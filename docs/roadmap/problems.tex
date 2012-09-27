@@ -1,0 +1,134 @@
+% LaTeX Template for a short article
+\documentclass[11pt]{article}
+\usepackage{amssymb,amsmath,amsthm,hyperref,verbatim,pict2e,graphicx,marvosym}
+\hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+ \pagestyle{empty} % remove page numbers
+
+%\oddsidemargin   0.0cm
+%\evensidemargin  0.0cm
+%\topmargin       0.0cm
+%\headheight      0.0cm
+%\headsep         1.0cm
+%\textheight     21.0cm
+%\textwidth      16.0cm
+\parskip         0.1cm
+\parindent       0.0cm
+%\footskip        1.0cm
+
+\usepackage[compact]{titlesec}
+\titlespacing{\section}{0pt}{8pt}{0pt}
+\titlespacing{\subsection}{0pt}{8pt}{0pt}
+\titlespacing{\subsubsection}{0pt}{8pt}{0pt}
+\usepackage{enumitem}
+\setitemize{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
+\setenumerate{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
+\def\ul{\begin{itemize}}
+\def\ule{\end{itemize}}
+\def\ol{\begin{enumerate}}
+\def\ole{\end{enumerate}}
+
+
+\title{DP problems of interest}
+\author{Manohar, Thierry}
+\date{}
+\begin{document}
+\maketitle
+\pagestyle{headings}
+
+\section{Introduction}
+\subsection{Smith-Waterman}
+Problem: matching two strings $S$, $T$.
+
+Alphabets:\ul
+\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
+\item Cost matrix: $\Sigma(M) = {\rm integers} \{0..n\}, n=\max({\rm cost}) \cdot \min({\rm length}(S),{\rm length}(T))$
+\item Backtrack matrix: $\Sigma(B)=\{stop,W,N,NW\}$
+\ule
+
+Initialization:\ul
+\item Cost matrix: $M_{(i,0)}=M_{(0,j)}=0$.
+\item Backtrack matrix: $B_{(i,0)}=B_{(0,j)}=stop$.
+\ule
+
+Recurrence:
+\[M_{(i,j)}=\max\left\{\begin{array}{l|l}
+	0 & stop\\
+	M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
+	M_{(i-1,j)}-d & N\\
+	M_{(i,j-1)}-d & W
+\end{array}\right\}=B_{(i,j)} \]
+
+\newpage
+\subsection{Nussinov algorithm}
+Problem: folding a RNA string $S$ over itself.
+
+Alphabets:\ul
+\item Input: $\Sigma(S)=\{A,C,G,U\}$.
+\item Cost matrix: $\Sigma(M)=\{0..n\}, n={\rm length}(S)/2$
+\item Backtrack matrix: $\Sigma(B)=\{stop,W,S,SW, 1..n\}$
+\ule
+
+Initialization: \ul
+\item Cost matrix: $\left\{\begin{array}{l} M_{(i,i)}=0 \\ M_{(i,i-1)}=0 \end{array}\right. \forall i \in 1..{\rm length}(S)$
+\item Backtrack matrix: $\left\{\begin{array}{l} B_{(i,i)}=stop \\ B_{(i,i-1)}=stop \end{array}\right.  \forall i \in 1..{\rm length}(S)$
+\ule
+
+Recurrence:
+\[M_{(i,j)}=\max\left\{\begin{array}{l|l}
+	M_{(i+1,j-1)}+\omega(i,j) & SW\\
+	M_{(i+1,j)} & S\\
+	M_{(i,j-1)} & W\\
+	\max_{i<k<j}M_{(i,k)}+W_{(k+1,j)} & k
+\end{array}\right\} = B_{(i,j)} \]
+With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
+
+% XXX: we let this aside for the moment as the recurrence has too many unknown parameters
+%\newpage
+%\subsection{Zuker folding}
+%Problem: folding a RNA string $S$ over itself.
+%
+%Alphabets:\ul
+%\item Input: $\Sigma(S)=\{A,C,G,U\}$.
+%\item Cost matrix: $\Sigma(W)=\Sigma(V)=\Sigma(F)=\{0..n\},n=$
+%\item Backtrack matrix: $\Sigma(B)=\{\}$
+%\ule
+%
+%Initialization:\ul
+%\item Cost matrices:\ul
+%	\item $\Sigma(W) = {\rm integers} \{0..n\}, n=\max({\rm cost}) \cdot \min({\rm length}(S),{\rm length}(T))$
+%	\item x
+%	\item x
+%\ule
+%\item Backtrack matrix
+%\ule
+%
+%Recurrence:
+%\[\begin{array}{rcl}
+%W_{(i,j)}&=&\min\left\{\begin{array}{l}
+%	W_{(i+1,j)}+b \\
+%	W_{(i,j-1)}+b \\
+%	V_{(i,j)}+\delta(S_i,S_j) \\
+%	\min_{i<k<j}W_{(i,k)}+W_{(k+1,j)}
+%\end{array}\right.\\\\
+%V_{(i,j)}&=&\min\left\{\begin{array}{ll}
+%	\infty \qquad\qquad\qquad\qquad {\rm if}(S_i,S_j) \text{ is not a base pair}\\
+%	eh(i,j)+b \qquad\qquad\, \text{otherwise} \\
+%	V_{(i+1,j-1)}+es(i,j) \\
+%	VBI(i,j) \\
+%	\min_{i<k<j-1}\{W_{(i+,k)}+W_{(k+1,j-1)}\} +c
+%\end{array}\right.\\\\
+% F_{(j)}&=&\min\left\{\begin{array}{ll}
+%F_{(j-i)} \\
+%\min_{1\le i< j} (V_{(i,j)} + F_{(j-1)})
+%\end{array}\right. \text{(Free Energy)}\\\\
+%VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
+%\end{array}\]
+%
+%XXX: missing: eh(i,j), ebi(i,j,i',j'), es(i,j), ...
+
+
+
+\end{document}

@@ -1,9 +1,20 @@
 Core function F:
+- in: s,t strings
 - in: neighbor costs: top, left, top+left
 - in: neighbor stats: top, left, top+left
 - out: backtrack information
 - out: cost(i,j)
 - out: stats
+
+To be most efficient, we need to get exact bit-sizes of
+- strings' char
+- costs: min/max values
+- stats: min/max values
+- backtrack
+
+=> we might want to parallelize processing within a thread that operate on 32 or 64 bit inputs (to reduce memory accesses)
+
+
 
 
 
