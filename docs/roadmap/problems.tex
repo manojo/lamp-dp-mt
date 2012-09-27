@@ -38,7 +38,8 @@
 \maketitle
 \pagestyle{headings}
 
-\section{Introduction}
+\section{Problems of interest}
+% ------------------------------------------------------------------------------------------------
 \subsection{Smith-Waterman}
 Problem: matching two strings $S$, $T$.
 
@@ -61,6 +62,40 @@ Recurrence:
 	M_{(i,j-1)}-d & W
 \end{array}\right\}=B_{(i,j)} \]
 
+% ------------------------------------------------------------------------------------------------
+\subsection{Smith-Waterman with gap extension at different cost}
+Problem: matching two strings $S$, $T$.
+
+Alphabets:\ul
+\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
+\item Cost matrix: $\Sigma(M) = {\rm integers} \{0..n\}, n=\max({\rm cost}) \cdot \min({\rm length}(S),{\rm length}(T))$
+\item Backtrack matrix: $\Sigma(B)=\{stop,W,N,NW\}$
+\ule
+
+Initialization:\ul
+\item Cost matrix: $M_{(i,0)}=M_{(0,j)}=0$.
+\item Backtrack matrix: $B_{(i,0)}=B_{(0,j)}=stop$.
+\ule
+
+Recurrence:
+\[M_{(i,j)}=\max\left\{\begin{array}{l|l}
+	0 & stop\\
+	M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
+	M_{(i-1,j)}-d & N\\
+	M_{(i,j-1)}-d & W
+\end{array}\right\}=B_{(i,j)} \]
+
+
+
+
+
+
+
+
+
+
+
+% ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Nussinov algorithm}
 Problem: folding a RNA string $S$ over itself.
@@ -85,9 +120,10 @@ Recurrence:
 \end{array}\right\} = B_{(i,j)} \]
 With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
 
-% XXX: we let this aside for the moment as the recurrence has too many unknown parameters
+% ------------------------------------------------------------------------------------------------
 %\newpage
 %\subsection{Zuker folding}
+% XXX: we let this aside for the moment as the recurrence has too many unknown parameters
 %Problem: folding a RNA string $S$ over itself.
 %
 %Alphabets:\ul
@@ -98,11 +134,9 @@ With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
 %
 %Initialization:\ul
 %\item Cost matrices:\ul
-%	\item $\Sigma(W) = {\rm integers} \{0..n\}, n=\max({\rm cost}) \cdot \min({\rm length}(S),{\rm length}(T))$
-%	\item x
-%	\item x
+%	\item xxx
 %\ule
-%\item Backtrack matrix
+%\item Backtrack matrix: $B$
 %\ule
 %
 %Recurrence:
