@@ -1,0 +1,9 @@
+Some GPU algorithms:
+http://hgpu.org/?cat=11
+
+CUDPP libraries (but awfully big resulting binary):
+http://code.google.com/p/cudpp/
+
+13 dwarfs:
+http://developer.amd.com/afds/assets/presentations/2155_final.pdf
+

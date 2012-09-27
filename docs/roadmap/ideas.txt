@@ -1,0 +1,87 @@
+Core function F:
+- in: neighbor costs: top, left, top+left
+- in: neighbor stats: top, left, top+left
+- out: backtrack information
+- out: cost(i,j)
+- out: stats
+
+
+
+
+
+
+
+
+Some ideas:
+- define a way to pack the characters => less memory transfer (i.e. GATC=>4 letters in 1 char)
+- operate on some larger word (ex 64 bits) to increase thread locality and reduce memory accesses
+
+- write a kernel that takes stats from left and r
+
+		stats (x)
+		 ||
+		 vv
+stats -> KK -> new_stats (y')
+(y)		 || \
+		 vv  --+ backtrack info (Bxy)
+		 new_stats (x')
+
+and compute the backtracking for its cell (optional as template boolean)
+
+- multi-grain
+  + within the 64b-words : multiple letters at once (thread level)
+  + group threads into blocks that operate on (block level)
+  + kernel that operates one after another (GPU/CPU level)
+    => can we catch a stream's event at CPU level to alloc memory to get back results ?
+- keep track of
+  + stats O(m+n)
+  + backtrack O(m*n)
+
+- are we sure we need squares ?
+  - rectangles can increase the full usage of all threads during (x-y) runs
+  - assuming we put longest word vertically we play hot potato for stats
+    left->right => block.x exchanges within block, last thread writes to
+    global exchange memory (if short, so that it does not penalize running time)
+  - we may go up to running in stripes
+
+- if we put in diagonal-major data in the memory, why not stream all chunks like
+  that using a cyclic buffer (?) => no empty slot
+  ==> this might be useful for the backtrack information
+
+
+- use extensively profiling : CUDA profiler
+
+- Robust DP paper provides 2 insights: coalesced access + GPU synchronization
+  => can we do a producer-consumer scenario at the block border so that we can
+     execute a large diagonal horizontal/vertical swipe made of multiple blocks?
+  => multiple swipes at different delays (so that we avoid syncing at every step
+
+          s-->
+  	  +----------------/------------+
+	t | B1            /             |
+	| +------/-------/              | KERNEL1 (keep benefit of t in shared mem)
+	| | B2  /                       | delay between b1 and b2 can be 1% of line length
+	v +----/------------------------+
+	  |                             |
+	  |                             | KERNEL2
+	Memory organized as
+	b1 -  -
+	b1 b1 b1
+	b1 b1 b1
+	.. .. ..
+	b1 b1 b1
+	b2 b1 b1
+	b2 b2 b1
+	b2 b2 b2
+	.. .. ..
+
+For stats (aggregation of the table): we need to maintain both an horizontal and vertical front
+For backtracking we need to maintain the whole table
+     .. | . |
+	..A | B | min/max: Min(D)=Min(Min(C),Min(B))
+	----+---+ sum    : Sum(D)=Sum(C)+Sum(B)-Sum(A)
+	..C | D | avg    : sum both #cells and values then divide at appropriate cell
+	----+---+
+
+we many not need to store what's the previous cell, however, the previous
+cell information (usually limited range) is much more compact than the score(32-64 bits)
