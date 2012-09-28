@@ -32,7 +32,7 @@
 
 
 \title{DP problems of interest}
-\author{Manohar, Thierry}
+\author{Manohar Jonnalagedda, Thierry Coppey}
 \date{}
 \begin{document}
 \maketitle
@@ -61,6 +61,7 @@ In the literature dynamic programming problems (DP) are classified according to 
 \ule
 
 \subsection{Simplifications}
+\subsubsection{Calculus}
 In some special case, it is possible to transform a non-serial problem into a serial problem, if we can embed the non-serial term into an additional aggregation matrix. For example, we can transform
 	\[M_{(i,j)}=\max\left\{\begin{array}{l} \max\limits_{k<i} M_{(k,j)}
 	\\ \sum\limits_{k<i, l<j}M_{(k,l)} \end{array}\right.
@@ -71,13 +72,17 @@ Where $C$ is a matrix that stores the maximum along the column and $A$ is a matr
 
 This simplification avoids the non-serial dependencies at the cost of an additional storage at the wavefront.
 
+\subsubsection{Precomputations}
+When a calculus computation is impossible, it might be worth to interleave a computation phase that will aggregate some of the results that are necessary to the computation block. For instance, for Nussinov's $\max_{i<k<j} [ M_{(i,k)}+M_{(k+1,j)} ]$ we can precompute it for all rows and columns of the block, and for all elements that are not part of the block, and pass these partial results together at the block launch.
+
+On GPU, this could be done by interleaving a new kernel for this specific purpose, on FPGA, this could be done by preparing the maximums in another memory area whose pointer will later be passed to the co-processor.
 
 % ----------------------------------------------------------------------------------------------------------------------------------------
 \section{Problems of interest}
 We describe problems structures: inputs, cost matrices, backtracking matrix. They all have an alphabet (that hopefully corresponds to a maximal bit-size) and matrixes dimensions are specified by number of indices and their number of elements is usually the same as the input. Unless otherwise specified, number are all unsigned integers. We describe the problem processing in terms of both initialization and recurrences.
 
 % ----------------------------------------------
-\subsection{Smith-Waterman}
+\subsection{Smith-Waterman (simple)}
 Problem: matching two strings $S$, $T$.
 
 Alphabets:\ul
@@ -100,7 +105,7 @@ Recurrence:
 \end{array}\right\}=B_{(i,j)} \]
 
 % ----------------------------------------------
-\subsection{Smith-Waterman with gap extension at different cost}
+\subsection{Smith-Waterman (with gap extension at different cost)}
 Problem: matching two strings $S$, $T$.
 
 Alphabets:\ul
@@ -135,7 +140,6 @@ Recurrence for the gap opening/extending matrices:
 	E_{(i-1,j)} - \beta & N\\
 \end{array}\right\}=B_{(i,j)} \]
 
-
 Otherwise written as:
 \[M_{(i,j)}=\max\left\{\begin{array}{l|l}
 	0 & stop\\
@@ -143,10 +147,6 @@ Otherwise written as:
 	\max_{1 \le k \le j-1} M_{(i,k)} - \alpha - (j-1-k) \cdot \beta & N\\
 	\max_{1 \le k \le i-1} M_{(k,j)} - \alpha - (i-1-k) \cdot \beta & W\\
 \end{array}\right\}=B_{(i,j)} \]
-
-
-
-
 
 % ----------------------------------------------
 \newpage
