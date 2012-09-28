@@ -149,6 +149,27 @@ Otherwise written as:
 \end{array}\right\}=B_{(i,j)} \]
 
 % ----------------------------------------------
+\subsection{Convex polygon triangulation}
+Problem: triangulating a polygon with least cost overall for added edges
+
+Alphabets:\ul
+\item Input: $\Sigma(S)= $ a matrix of costs for every possible edge in the polygon. The 
+size of the input is $\frac{n^2}{2}$, where $n$ is the number of vertices in the polygon. 
+\item Cost matrix: $\Sigma(M)=\mathbb{N}$. The sum of cost of edges is not "bounded".
+\item Backtrack matrix: $\Sigma(B)=\{n\}$
+\ule
+
+Recurrence:
+\[M_{(i,j)}= \max_{i<k<j}M_{(i,k)}+M_{(k+1,j)} + c(i,k) | k = B_{(i,j)} \]
+
+It is interesting to note that even in the sequential world, this problem is best solved 
+by filling the diagonals, ie. computing sub-solutions for all polygons on size $k$ before
+those of size $k+1$.
+
+% ----------------------------------------------
+
+
+% ----------------------------------------------
 \newpage
 \subsection{Nussinov algorithm}
 Problem: folding a RNA string $S$ over itself.
@@ -169,51 +190,60 @@ Recurrence:
 	M_{(i+1,j-1)}+\omega(i,j) & SW\\
 	M_{(i+1,j)} & S\\
 	M_{(i,j-1)} & W\\
-	\max_{i<k<j}M_{(i,k)}+W_{(k+1,j)} & k
+	\max_{i<k<j}M_{(i,k)}+M_{(k+1,j)} & k
 \end{array}\right\} = B_{(i,j)} \]
 With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
 
 % ------------------------------------------------------------------------------------------------
-%\newpage
-%\subsection{Zuker folding}
-% XXX: we let this aside for the moment as the recurrence has too many unknown parameters
-%Problem: folding a RNA string $S$ over itself.
-%
-%Alphabets:\ul
-%\item Input: $\Sigma(S)=\{A,C,G,U\}$.
-%\item Cost matrix: $\Sigma(W)=\Sigma(V)=\Sigma(F)=\{0..n\},n=$
-%\item Backtrack matrix: $\Sigma(B)=\{\}$
-%\ule
-%
-%Initialization:\ul
-%\item Cost matrices:\ul
-%	\item xxx
-%\ule
-%\item Backtrack matrix: $B$
-%\ule
-%
-%Recurrence:
-%\[\begin{array}{rcl}
-%W_{(i,j)}&=&\min\left\{\begin{array}{l}
-%	W_{(i+1,j)}+b \\
-%	W_{(i,j-1)}+b \\
-%	V_{(i,j)}+\delta(S_i,S_j) \\
-%	\min_{i<k<j}W_{(i,k)}+W_{(k+1,j)}
-%\end{array}\right.\\\\
-%V_{(i,j)}&=&\min\left\{\begin{array}{ll}
-%	\infty \qquad\qquad\qquad\qquad {\rm if}(S_i,S_j) \text{ is not a base pair}\\
-%	eh(i,j)+b \qquad\qquad\, \text{otherwise} \\
-%	V_{(i+1,j-1)}+es(i,j) \\
-%	VBI(i,j) \\
-%	\min_{i<k<j-1}\{W_{(i+,k)}+W_{(k+1,j-1)}\} +c
-%\end{array}\right.\\\\
-% F_{(j)}&=&\min\left\{\begin{array}{ll}
-%F_{(j-i)} \\
-%\min_{1\le i< j} (V_{(i,j)} + F_{(j-1)})
-%\end{array}\right. \text{(Free Energy)}\\\\
-%VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
-%\end{array}\]
-%
+\newpage
+\subsection{Zuker folding}
+XXX: we let this aside for the moment as the recurrence has too many unknown parameters
+Problem: folding a RNA string $S$ over itself.
+
+Alphabets:\ul
+\item Input: $\Sigma(S)=\{A,C,G,U\}$.
+\item Cost matrix: $\Sigma(W)=\Sigma(V)=\Sigma(F)=\{0..n\},n=$
+\item Backtrack matrix: $\Sigma(B)=\{\}$
+\ule
+
+Initialization:\ul
+\item Cost matrices:\ul
+	\item xxx
+\ule
+\item Backtrack matrix: $B$
+\ule
+
+Recurrence:
+\[\begin{array}{rcl}
+W_{(i,j)}&=&\min\left\{\begin{array}{l}
+	W_{(i+1,j)}+b \\
+	W_{(i,j-1)}+b \\
+	V_{(i,j)}+\delta(S_i,S_j) \\
+	\min_{i<k<j}W_{(i,k)}+W_{(k+1,j)}
+\end{array}\right.\\\\
+
+V_{(i,j)}&=&\min\left\{\begin{array}{ll}
+	\infty \qquad\qquad\qquad\qquad {\rm if}(S_i,S_j) \text{ is not a base pair}\\
+	eh(i,j)+b \qquad\qquad\, \text{otherwise} \\
+	V_{(i+1,j-1)}+es(i,j) \\
+	VBI(i,j) \\
+	\min_{i<k<j-1}\{W_{(i+1,k)}+W_{(k+1,j-1)}\} +c
+\end{array}\right.\\\\
+
+VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c \\\\
+
+F_{(j)}&=&\min\left\{\begin{array}{ll}
+F_{(j-i)} \\
+\min_{1\le i< j} (V_{(i,j)} + F_{(j-1)})
+\end{array}\right. \text{(Free Energy)}\\\\
+
+\end{array}\]
+
+\subsection{Comments}
+
+VBI stores scores for internal loops and bulges.
+Notice in VBI, two moving indices $i', j'$. In general this gives a quadratic complexity for that particular recurrence, making the overall complexity of the algorithm $O(n^4)$. In practice (as read in Arpith's work), we have that $i' - i + j'- j < 30$, so the complexity is reduced to $O(n^3)$, albeit with a large constant.
+
 %XXX: missing: eh(i,j), ebi(i,j,i',j'), es(i,j), ...
 
 
