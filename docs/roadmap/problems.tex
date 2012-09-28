@@ -74,22 +74,38 @@ Alphabets:\ul
 
 Initialization:\ul
 \item Cost matrix: $M_{(i,0)}=M_{(0,j)}=0$.
+\item Gap opening matrix: $E_{(i,0)}= 0, 0 \le i \le {\rm length}(S)$
+\item Gap extending matrix: $E_{(0,j)}= 0, 0 \le j \le {\rm length}(T)$
 \item Backtrack matrix: $B_{(i,0)}=B_{(0,j)}=stop$.
 \ule
 
-Recurrence:
+Recurrence for the cost matrix:
 \[M_{(i,j)}=\max\left\{\begin{array}{l|l}
 	0 & stop\\
 	M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
-	M_{(i-1,j)}-d & N\\
-	M_{(i,j-1)}-d & W
+	E_{(i,j)} & N\\
+	F_{(i,j)} & W
+\end{array}\right\}=B_{(i,j)} \]
+
+Recurrence for the gap opening/extending matrices:
+\[E_{(i,j)}=\max\left\{\begin{array}{l|l}
+	M_{(i, j-1)} - \alpha & NW\\
+	E_{(i,j-1)} - \beta & N\\
+\end{array}\right\}=B_{(i,j)} \]
+
+\[F_{(i,j)}=\max\left\{\begin{array}{l|l}
+	M_{(i-1, j)} - \alpha & NW\\
+	E_{(i-1,j)} - \beta & N\\
 \end{array}\right\}=B_{(i,j)} \]
 
 
-
-
-
-
+Otherwise written as:
+\[M_{(i,j)}=\max\left\{\begin{array}{l|l}
+	0 & stop\\
+	M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
+	\max_{1 \le k \le j-1} M_{(i,k)} - \alpha - (j-1-k) \cdot \beta & N\\
+	\max_{1 \le k \le i-1} M_{(k,j)} - \alpha - (i-1-k) \cdot \beta & W\\
+\end{array}\right\}=B_{(i,j)} \]
 
 
 
