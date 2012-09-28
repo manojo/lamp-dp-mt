@@ -12,10 +12,25 @@ Let's build some examples
 Smith-Waterman (from problems of interest)
 --------------------------------------------
 
+trait SWOps {
+	type T
+	type Cost = Int
+	type Backtrack = (i,j) => Direction
+	def rightGap(_ :_, c:Char) : [Cost, Backtrack]
+}
+
+def myRec = {
+	def M[i,j] : Int = max {
+		M[i,j-1] + gapRight,
+		M[i-1, j] + gapLeft,
+		M[i-1,j-1] + delta(S(i),T(j))
+	}
+}
+
 def SWat(S0: List[Char], T0:List[Char]) : List[Pair[Char,Char]] = {
 	def cost(s: Char, t: Char) = if (s==t) 2 else 1 // example cost function
 
-	def DP(S: List[Char], T:List[Char]): Pair[Score,Backtrack,Output[Pair[Char,Char]]] = (S,T) match {
+	def DP(S: List[Char], T:List[Char]): [Score,Backtrack,Output[Pair[Char,Char]] = (S,T) match {
 		case (_, Nil) => (0, stop)
 		case (Nil, _) => (0, stop)
 		case Si::Sr, Tj::Tr) =>
@@ -28,8 +43,28 @@ def SWat(S0: List[Char], T0:List[Char]) : List[Pair[Char,Char]] = {
 			else if (n>=w) then (n._1-d, "N",[Si,_])
 			else (w._1-d, "W",[_,Tj])
 	}
-
 	backtrack(DP(S0,T0))
+}
+
+def Nussinov(S0: List[Char]) : List[Pair[Char,Char]] = {
+	def cost(s: Char, t: Char) = if (s==t) 2 else 1 // example cost function
+
+	def DP(S: List[Char], T:List[Char]): [Score,Backtrack,Output[Pair[Char,Char]] = (S.zipWithIndex,T.zipWithIndex) match {
+		case (_, Nil) => (0, stop)
+		case (Nil, _) => (0, stop)
+		case (Si::Sr, Tj::Tr) =>
+			val nw = SWat(Sr,Tr);
+			val n  = SWat(Sr,T);
+			val w  = SWat(S,Tr);
+			val cols_rows = 
+			val c = cost(Si,Tj);
+
+			if (nw._1+c>=max(n,w)-d) then (nw._1+c,"NW",[Si,Tj])
+			else if (n>=w) then (n._1-d, "N",[Si,_])
+			else (w._1-d, "W",[_,Tj])
+	}
+
+	backtrack(DP(S0,S0))
 }
 
 - Char, Score, Backtrack, Output are LMS Rep objects so that we can easily detect

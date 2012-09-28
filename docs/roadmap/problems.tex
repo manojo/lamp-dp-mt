@@ -39,6 +39,19 @@
 \pagestyle{headings}
 
 \section{Problems of interest}
+
+\subsection{Classes of DP problems}
+
+\ul
+\item Monadic: see polyadic and inverse definition
+\item Polyadic
+\item Serial: when the dependencies of a cell are its "neighbors": 
+
+\[ M(i,j) = f(M(i-1,j), M(i, j-1), M(i-1,j-1)) \]
+
+\item non-Serial: not the above. Example: Nussinov (see below)
+\ule
+
 % ------------------------------------------------------------------------------------------------
 \subsection{Smith-Waterman}
 Problem: matching two strings $S$, $T$.
