@@ -1,3 +1,14 @@
+Plan:
+1. Define the main problem in focus and its class
+   - Dimension
+   - Serial/non-serial
+   - Monadic/polyadic
+2. Define some other problems that belong to this class or easier
+3.
+
+
+----------------------------------
+
 Core function F:
 - in: s,t strings
 - in: neighbor costs: top, left, top+left
@@ -99,7 +110,8 @@ cell information (usually limited range) is much more compact than the score(32-
 
 Memory usage of CPU:
 
-we can potentially extend the GPU's memory by storing some information in the CPU RAM, which in general is larger. For large sequences, this technique may apply to problems where one needs to access elements "all the way to the top" and aggregate them in a non trivial (max,min,sum,avg) way.
+we can potentially extend the GPU's memory by storing some information in the CPU RAM, which in general is larger.
+For large sequences, this technique may apply to problems where one needs to access elements "all the way to the top" and aggregate them in a non trivial (max,min,sum,avg) way.
 
 Problem parameters:
 - bit size (alphabet,stats,cost,backtrack)
@@ -107,4 +119,4 @@ Problem parameters:
   - 3D problem example is Smith Waterman with arbitrary gap weight function.
 - Summarizability of the set: for computing the stats of an element, we can limit ourselves to computing values up to a certain value
   -in SW with gap extending penalty, we can summarize easily.
-  -in Nussinov, we _need_ to access all the previous row-column elements for the pairwise sum (without a window limit). 
+  -in Nussinov, we _need_ to access all the previous row-column elements for the pairwise sum (without a window limit).

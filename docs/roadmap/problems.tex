@@ -7,16 +7,16 @@
 \usepackage[english]{babel}
  \pagestyle{empty} % remove page numbers
 
-%\oddsidemargin   0.0cm
-%\evensidemargin  0.0cm
-%\topmargin       0.0cm
-%\headheight      0.0cm
-%\headsep         1.0cm
-%\textheight     21.0cm
-%\textwidth      16.0cm
+\oddsidemargin   0.0cm
+\evensidemargin  0.0cm
+\topmargin       0.0cm
+\headheight      0.0cm
+\headsep         1.0cm
+\textheight     21.0cm
+\textwidth      16.0cm
 \parskip         0.1cm
 \parindent       0.0cm
-%\footskip        1.0cm
+\footskip        1.0cm
 
 \usepackage[compact]{titlesec}
 \titlespacing{\section}{0pt}{8pt}{0pt}
@@ -38,21 +38,45 @@
 \maketitle
 \pagestyle{headings}
 
-\section{Problems of interest}
-
-\subsection{Classes of DP problems}
-
-\ul
-\item Monadic: see polyadic and inverse definition
-\item Polyadic
-\item Serial: when the dependencies of a cell are its "neighbors": 
-
-\[ M(i,j) = f(M(i-1,j), M(i, j-1), M(i-1,j-1)) \]
-
-\item non-Serial: not the above. Example: Nussinov (see below)
+% ----------------------------------------------------------------------------------------------------------------------------------------
+\section{Introduction}
+\subsection{Definitions}\ul
+\item Block of computation: a block is simply a part of the DP matrix that we want to compute.
+\item Wavefront: this is the place around which computation happen, typically. There should be some memory to store intermediate information between block of computations
 \ule
 
-% ------------------------------------------------------------------------------------------------
+\subsection{Problems classification}
+In the literature dynamic programming problems (DP) are classified according to two criteria:
+
+\textbf{Monadic / polyadic}\ul
+\item Monadic: on the right hand-side of the recurrence formula, only one term appears. For instance, Smith-Waterman with constant penalty is monadic
+	\[M_{(i,j)}=\max\left\{\begin{array}{l} 0 \\ M_{(i-1,j-1)}+{\rm cost}(S(i),T(j))\\ M_{(i-1,j)}-d\\ M_{(i,j-1)}-d \end{array}\right. \]
+\item \textbf{Polyadic:} when multiple terms of the recurrence occur in the right and-side of the recurrence formula. For instance Fibonacci is polyadic: \[F(n) = F(n-1) + F(n-2)\]
+\ule
+
+\textbf{Serial/non-serial} \ul
+\item \textbf{Serial:} when the solution depends only of a fixed number of immediately previous solutions (i.e. neighbor cells). For instance Fibonacci is serial.
+\item \textbf{Non-serial:} when the solution of a level depends of an arbitrary number of previous solutions. Typically Smith-Waterman with arbitrary gap penalty and Nussinov are non-serial:
+	\[M_{(i,j)}=\max\left\{\begin{array}{l} ... \\ M_{(i,j-1)}\\ \max\limits_{i<k<j} [ M_{(i,k)}+M_{(k+1,j)} ] \end{array}\right. \]
+\ule
+
+\subsection{Simplifications}
+In some special case, it is possible to transform a non-serial problem into a serial problem, if we can embed the non-serial term into an additional aggregation matrix. For example, we can transform
+	\[M_{(i,j)}=\max\left\{\begin{array}{l} \max\limits_{k<i} M_{(k,j)}
+	\\ \sum\limits_{k<i, l<j}M_{(k,l)} \end{array}\right.
+	\implies M_{(i,j)}=\max\left\{\begin{array}{l} C_{(k,j)} \\ A_{(i-1,j-1)} \end{array}\right.\]
+Where $C$ is a matrix that stores the maximum along the column and $A$ is a matrix that stores the sum of the array of the previous elements. They can be easily computed with the additional recurrence.
+	\[\begin{array}{rcl} C_{(i,j)}&=&\max(C_{(i-1,j)}, M_{(i,j)}) \\
+	A_{(i,j)}&=&A_{(i-1,j)}+A_{(i,j-1)}-A_{(i-1,j-1)}+M_{(i,j)}\end{array}\]
+
+This simplification avoids the non-serial dependencies at the cost of an additional storage at the wavefront.
+
+
+% ----------------------------------------------------------------------------------------------------------------------------------------
+\section{Problems of interest}
+We describe problems structures: inputs, cost matrices, backtracking matrix. They all have an alphabet (that hopefully corresponds to a maximal bit-size) and matrixes dimensions are specified by number of indices and their number of elements is usually the same as the input. Unless otherwise specified, number are all unsigned integers. We describe the problem processing in terms of both initialization and recurrences.
+
+% ----------------------------------------------
 \subsection{Smith-Waterman}
 Problem: matching two strings $S$, $T$.
 
@@ -75,7 +99,7 @@ Recurrence:
 	M_{(i,j-1)}-d & W
 \end{array}\right\}=B_{(i,j)} \]
 
-% ------------------------------------------------------------------------------------------------
+% ----------------------------------------------
 \subsection{Smith-Waterman with gap extension at different cost}
 Problem: matching two strings $S$, $T$.
 
@@ -124,7 +148,7 @@ Otherwise written as:
 
 
 
-% ------------------------------------------------------------------------------------------------
+% ----------------------------------------------
 \newpage
 \subsection{Nussinov algorithm}
 Problem: folding a RNA string $S$ over itself.
