@@ -150,6 +150,27 @@ Otherwise written as:
 
 % ----------------------------------------------
 \newpage
+\subsection{Matrix chain multiplication}
+Problem: find an optimal parenthesizing of the multiplication of $n$ matrices $A_i$ of dimension $r_i \times c_i$. 
+
+Alphabets:\ul
+\item Input: matrix size is defined as pairs of integers $(r_i,c_i)$.
+\item Cost matrix: the cost is an integer (might blow up, use a float or a double?).
+\item Backtrack matrix: $\Sigma(B)=\{stop\} \cup \{0..n\}$ with $n$ the input length.
+\ule
+
+Initialization (line=length of sequence, column=start):\ul
+\item Cost matrix: $M_{(0,j)}=0$.
+\item Backtrack matrix: $B_{(0,j)}=stop$.
+\ule
+
+Recurrence for the cost matrix:
+\[M_{(i,j)}=\min_{i\le k<j}\left\{\begin{array}{l|l}
+	M_{(i,k)}+M_{(k,j)}+r_i \cdot r_k \cdot col_j & k
+\end{array}\right\}=B_{(i,j)} \]
+
+% ----------------------------------------------
+\newpage
 \subsection{Nussinov algorithm}
 Problem: folding a RNA string $S$ over itself.
 
@@ -175,44 +196,44 @@ With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
 
 % ------------------------------------------------------------------------------------------------
 %\newpage
-%\subsection{Zuker folding}
-% XXX: we let this aside for the moment as the recurrence has too many unknown parameters
-%Problem: folding a RNA string $S$ over itself.
-%
-%Alphabets:\ul
-%\item Input: $\Sigma(S)=\{A,C,G,U\}$.
-%\item Cost matrix: $\Sigma(W)=\Sigma(V)=\Sigma(F)=\{0..n\},n=$
-%\item Backtrack matrix: $\Sigma(B)=\{\}$
-%\ule
-%
-%Initialization:\ul
-%\item Cost matrices:\ul
-%	\item xxx
-%\ule
-%\item Backtrack matrix: $B$
-%\ule
-%
-%Recurrence:
-%\[\begin{array}{rcl}
-%W_{(i,j)}&=&\min\left\{\begin{array}{l}
-%	W_{(i+1,j)}+b \\
-%	W_{(i,j-1)}+b \\
-%	V_{(i,j)}+\delta(S_i,S_j) \\
-%	\min_{i<k<j}W_{(i,k)}+W_{(k+1,j)}
-%\end{array}\right.\\\\
-%V_{(i,j)}&=&\min\left\{\begin{array}{ll}
-%	\infty \qquad\qquad\qquad\qquad {\rm if}(S_i,S_j) \text{ is not a base pair}\\
-%	eh(i,j)+b \qquad\qquad\, \text{otherwise} \\
-%	V_{(i+1,j-1)}+es(i,j) \\
-%	VBI(i,j) \\
-%	\min_{i<k<j-1}\{W_{(i+,k)}+W_{(k+1,j-1)}\} +c
-%\end{array}\right.\\\\
-% F_{(j)}&=&\min\left\{\begin{array}{ll}
-%F_{(j-i)} \\
-%\min_{1\le i< j} (V_{(i,j)} + F_{(j-1)})
-%\end{array}\right. \text{(Free Energy)}\\\\
-%VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
-%\end{array}\]
+\subsection{Zuker folding}
+ XXX: we let this aside for the moment as the recurrence has too many unknown parameters
+Problem: folding a RNA string $S$ over itself.
+
+Alphabets:\ul
+\item Input: $\Sigma(S)=\{A,C,G,U\}$.
+\item Cost matrix: $\Sigma(W)=\Sigma(V)=\Sigma(F)=\{0..n\},n=$
+\item Backtrack matrix: $\Sigma(B)=\{\}$
+\ule
+
+Initialization:\ul
+\item Cost matrices:\ul
+	\item xxx
+\ule
+\item Backtrack matrix: $B$
+\ule
+
+Recurrence:
+\[\begin{array}{rcl}
+W_{(i,j)}&=&\min\left\{\begin{array}{l}
+	W_{(i+1,j)}+b \\
+	W_{(i,j-1)}+b \\
+	V_{(i,j)}+\delta(S_i,S_j) \\
+	\min_{i<k<j}W_{(i,k)}+W_{(k+1,j)}
+\end{array}\right.\\\\
+V_{(i,j)}&=&\min\left\{\begin{array}{ll}
+	\infty \qquad\qquad\qquad\qquad {\rm if}(S_i,S_j) \text{ is not a base pair}\\
+	eh(i,j)+b \qquad\qquad\, \text{otherwise} \\
+	V_{(i+1,j-1)}+es(i,j) \\
+	VBI(i,j) \\
+	\min_{i<k<j-1}\{W_{(i+,k)}+W_{(k+1,j-1)}\} +c
+\end{array}\right.\\\\
+ F_{(j)}&=&\min\left\{\begin{array}{ll}
+F_{(j-i)} \\
+\min_{1\le i< j} (V_{(i,j)} + F_{(j-1)})
+\end{array}\right. \text{(Free Energy)}\\\\
+VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
+\end{array}\]
 %
 %XXX: missing: eh(i,j), ebi(i,j,i',j'), es(i,j), ...
 
