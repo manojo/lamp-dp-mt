@@ -149,6 +149,27 @@ Otherwise written as:
 \end{array}\right\}=B_{(i,j)} \]
 
 % ----------------------------------------------
+\subsection{Convex polygon triangulation}
+Problem: triangulating a polygon with least cost overall for added edges
+
+Alphabets:\ul
+\item Input: $\Sigma(S)= $ a matrix of costs for every possible edge in the polygon. The 
+size of the input is $\frac{n^2}{2}$, where $n$ is the number of vertices in the polygon. 
+\item Cost matrix: $\Sigma(M)=\mathbb{N}$. The sum of cost of edges is not "bounded".
+\item Backtrack matrix: $\Sigma(B)=\{n\}$
+\ule
+
+Recurrence:
+\[M_{(i,j)}= \max_{i<k<j}M_{(i,k)}+M_{(k+1,j)} + c(i,k) | k = B_{(i,j)} \]
+
+It is interesting to note that even in the sequential world, this problem is best solved 
+by filling the diagonals, ie. computing sub-solutions for all polygons on size $k$ before
+those of size $k+1$.
+
+% ----------------------------------------------
+
+
+% ----------------------------------------------
 \newpage
 \subsection{Matrix chain multiplication}
 Problem: find an optimal parenthesizing of the multiplication of $n$ matrices $A_i$ of dimension $r_i \times c_i$. 
@@ -189,7 +210,7 @@ Recurrence:
 	M_{(i+1,j-1)}+\omega(i,j) & SW\\
 	M_{(i+1,j)} & S\\
 	M_{(i,j-1)} & W\\
-	\max_{i<k<j}M_{(i,k)}+W_{(k+1,j)} & k
+	\max_{i<k<j}M_{(i,k)}+M_{(k+1,j)} & k
 \end{array}\right\} = B_{(i,j)} \]
 With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
 
@@ -235,8 +256,5 @@ V_{(i,j)}&=&\min\left\{\begin{array}{ll}
 VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
 \end{array}\]
 %
-%XXX: missing: eh(i,j), ebi(i,j,i',j'), es(i,j), ...
-
-
 
 \end{document}
