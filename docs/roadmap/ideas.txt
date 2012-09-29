@@ -14,6 +14,29 @@ Plan:
 
 ----------------------------------
 
+Ideas for the language:
+- we want maximum flexibility
+- backtrack can be custom, we may want just to give back indices
+- two problems: we care about cost and we care about whole backtrack.
+	@DP def Fib(n:Int) = if (n<=2) return 1 else Fib(n-1)+Fib(n-2)
+  should be translated into the more complete syntax that allows more flexibility
+  => get inspiration from papers to write an internal language
+
+- we may want to keep track of indices but we do not want to give access to the backtrack matrix / cost matrix
+
+Language side:
+- define a simple way to represent some DP programs
+- define a comprehensive way to define them => micro-syntax
+- define the mapping into IR (actually the IR might BE the micro-syntax)
+- define optimizations to IR
+  - making serializable by using aggregation functions/transformations
+  - avoiding the cost matrix by moving it into the wavefront
+- scheduling (with memory loads for non-serializable)
+- code generation for both platforms
+  - possibly choice to use which platform for what part (load/compute @ cpu/gpu/fpga)
+
+----------------------------------
+
 Core function F:
 - in: s,t strings
 - in: neighbor costs: top, left, top+left
@@ -29,13 +52,6 @@ To be most efficient, we need to get exact bit-sizes of
 - backtrack
 
 => we might want to parallelize processing within a thread that operate on 32 or 64 bit inputs (to reduce memory accesses)
-
-
-
-
-
-
-
 
 
 
