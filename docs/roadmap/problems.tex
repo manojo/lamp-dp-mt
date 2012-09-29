@@ -170,7 +170,6 @@ Recurrence for the cost matrix:
 \end{array}\right\}=B_{(i,j)} \]
 
 % ----------------------------------------------
-\newpage
 \subsection{Nussinov algorithm}
 Problem: folding a RNA string $S$ over itself.
 
@@ -195,9 +194,8 @@ Recurrence:
 With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
 
 % ------------------------------------------------------------------------------------------------
-%\newpage
+\newpage
 \subsection{Zuker folding}
- XXX: we let this aside for the moment as the recurrence has too many unknown parameters
 Problem: folding a RNA string $S$ over itself.
 
 Alphabets:\ul
@@ -208,29 +206,31 @@ Alphabets:\ul
 
 Initialization:\ul
 \item Cost matrices:\ul
-	\item xxx
+	\item XXX: $W$,$V$
+	\item $F_{(0)}=0$
 \ule
 \item Backtrack matrix: $B$
 \ule
 
 Recurrence:
 \[\begin{array}{rcl}
-W_{(i,j)}&=&\min\left\{\begin{array}{l}
-	W_{(i+1,j)}+b \\
-	W_{(i,j-1)}+b \\
-	V_{(i,j)}+\delta(S_i,S_j) \\
-	\min_{i<k<j}W_{(i,k)}+W_{(k+1,j)}
-\end{array}\right.\\\\
+W_{(i,j)}&=&\min\left\{\begin{array}{l|l}
+	W_{(i+1,j)}+b & S\\
+	W_{(i,j-1)}+b & W\\
+	V_{(i,j)}+\delta(S_i,S_j) & ?V? \\
+	\min_{i<k<j}W_{(i,k)}+W_{(k+1,j)} & ?k?
+\end{array}\right.\\
+\\
 V_{(i,j)}&=&\min\left\{\begin{array}{ll}
 	\infty \qquad\qquad\qquad\qquad {\rm if}(S_i,S_j) \text{ is not a base pair}\\
 	eh(i,j)+b \qquad\qquad\, \text{otherwise} \\
 	V_{(i+1,j-1)}+es(i,j) \\
 	VBI(i,j) \\
 	\min_{i<k<j-1}\{W_{(i+,k)}+W_{(k+1,j-1)}\} +c
-\end{array}\right.\\\\
- F_{(j)}&=&\min\left\{\begin{array}{ll}
-F_{(j-i)} \\
-\min_{1\le i< j} (V_{(i,j)} + F_{(j-1)})
+\end{array}\right.\\
+\\
+ F_{(j)}&=&\min\left\{\begin{array}{ll} F_{(j-1)} \\ \min_{1\le i< j} (V_{(i,j)} + F_{(j-1)})
+%
 \end{array}\right. \text{(Free Energy)}\\\\
 VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
 \end{array}\]
