@@ -1,4 +1,3 @@
-% LaTeX Template for a short article
 \documentclass[11pt]{article}
 \usepackage{amssymb,amsmath,amsthm,hyperref,verbatim,pict2e,graphicx,marvosym,array,booktabs,nameref}
 \hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
@@ -8,16 +7,16 @@
 \usepackage[english]{babel}
 \pagestyle{empty} % remove page numbers
 
-\oddsidemargin   0.0cm
-\evensidemargin  0.0cm
-\topmargin       0.0cm
-\headheight      0.0cm
-\headsep         1.0cm
-\textheight     21.0cm
-\textwidth      16.0cm
-\parskip         0.1cm
-\parindent       0.0cm
-\footskip        1.0cm
+\oddsidemargin 0.0cm
+\evensidemargin 0.0cm
+\topmargin 0.0cm
+\headheight 0.0cm
+\headsep 1.0cm
+\textheight 21.0cm
+\textwidth 16.0cm
+\parskip 0.1cm
+\parindent 0.0cm
+\footskip 1.0cm
 
 \usepackage[compact]{titlesec}
 \titlespacing{\section}{0pt}{8pt}{0pt}
@@ -31,13 +30,16 @@
 \def\ol{\begin{enumerate}}
 \def\ole{\end{enumerate}}
 
-% Recurrence visualisation
+% Recurrence visualisation helpers
 \newcommand\Cd[3][0,-1]{\put(#2){\put(.5,.5){\circle*{.3}}\put(.5,.5){\linethickness{1.5pt}\vector(#1){#3}}}} % dependency [dx,dy]{x,y}{len}
 \def\Cg#1{\put(#1){\color{lightgray}\put(0,0){\polygon*(0,0)(0,1)(1,1)(1,0)}}} % grayed cell (not to store
 \def\Cz#1{\put(#1){\put(0,.35){\parbox{1\unitlength}{\centering\bf 0}}}} % zero-init cell
 \def\Cm{\put(6.5,4.5){\circle*{.4}}\multiput(0,0)(1,0){9}{\line(0,1){8}}\multiput(0,0)(0,1){9}{\line(1,0){8}}} % matrix base
+\def\Cfl#1{#1{0,6}#1{0,5}#1{1,5}#1{0,4}#1{1,4}#1{2,4}#1{0,3}#1{1,3}#1{2,3}#1{3,3}#1{0,2}#1{1,2}#1{2,2}#1{3,2}#1{4,2}
+	#1{0,1}#1{1,1}#1{2,1}#1{3,1}#1{4,1}#1{5,1}#1{0,0}#1{1,0}#1{2,0}#1{3,0}#1{4,0}#1{5,0}#1{6,0}} % triangular lower (function)
+\def\Cfd#1{#1{0,7}#1{1,6}#1{2,5}#1{3,4}#1{4,3}#1{5,2}#1{6,1}#1{7,0}} % main diagonal
 
-\title{DP problems of interest}
+\title{DP Problems of Interest}
 \author{Manohar Jonnalagedda, Thierry Coppey}
 \date{}
 \begin{document}
@@ -186,12 +188,32 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 
 % ----------------------------------------------
 \newpage
+\subsection{Smith-Waterman with arbitrary gap cost (3D)}\ol
+
+\item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$ with an arbitrary gap function. Without loss of generality, let $m\ge n$\footnote{Otherwise if $|T|>|N|$ we only need to swap both the inputs and backtracking pairs.}. Example penalty function could be\footnote{Intuition: long gaps penalize less, at some point, one large gap is better than matching and smaller gaps.} $g(x)=m-x$.
+
+\item Matrices: $M_{m \times n \times m}, B_{m \times n \times m}$
+\item Alphabets:\ul
+	\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
+	\item Cost matrix: $\Sigma(M) = [0..z], z=\max({\rm cost(\_)}) \cdot \min(m,n)$
+	\item Backtrack matrix: $\Sigma(B)=\{stop,W,N,NW\}$
+	\ule
+
+{\color{red}
+\item Initialization: XXX: we build this, because we go 3D.
+\item Recurrences:
+\item Backtracking:
+\item Visualisation:
+\item Optimizations:
+}
+\ole
+
+
+% ----------------------------------------------
+\newpage
 \subsection{Convex polygon triangulation}\ol
 \item Problem: triangulating a polygon of $n$ vertices with least total cost for added edges. We denote the cost of adding an edge between the  pair of edges $i,j$ by $S(i,j)$, Where $S_{n \times n}$ is a lower triangular matrix compacted in memory (rows are contiguous) with a 0 diagonal that is omitted \footnote{Arbitrary convention for both architectural implementation and code generator. Rationale: in lower triangular matrix, element address is independent of the matrix size.}, hence $|S|=\tfrac{n^2}{2}=N$.
 
-% ------------------------------------------------------------------------------------------
-% ------------------------------------------------------------------------------------------
-% ------------------------------------------------------------------------------------------
 {\color{red}
 \item Matrices: $M_{n\times n}, B_{n \times n}$ \textit{<<first edge, last edge>>} upper triangular including main diagonal 
 \item Alphabets:\ul
@@ -210,25 +232,14 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 \begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 	\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
 	\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
-	\Cg{0,6}
-	\Cg{0,5} \Cg{1,5}
-	\Cg{0,4} \Cg{1,4} \Cg{2,4}
-	\Cg{0,3} \Cg{1,3} \Cg{2,3} \Cg{3,3}
-	\Cg{0,2} \Cg{1,2} \Cg{2,2} \Cg{3,2} \Cg{4,2}
-	\Cg{0,1} \Cg{1,1} \Cg{2,1} \Cg{3,1} \Cg{4,1} \Cg{5,1}
-	\Cg{0,0} \Cg{1,0} \Cg{2,0} \Cg{3,0} \Cg{4,0} \Cg{5,0} \Cg{6,0}
-
-	\Cz{0,7}\Cz{1,6}\Cz{2,5}\Cz{3,4}\Cz{4,3}\Cz{5,2}\Cz{6,1}\Cz{7,0}
+	\Cfl{\Cg}\Cfd{\Cz}
 	\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
 	\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
 	\put(3.5,4.5){\line(3,-1){3}}
 	\put(4.5,4.5){\line(2,-2){2}}
 	\put(5.5,4.5){\line(1,-3){1}}
-	
 	%\Cd[1,-1]{5,2}{0.8}
-
 \Cm\end{picture}\end{center}
-
 
 \item Optimizations: XXX we need to rotate that matrix to progress in the same direction as usual, that is towards bottom right.
 }
@@ -238,7 +249,7 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 % ----------------------------------------------
 \newpage
 \subsection{Matrix chain multiplication}\ol
-\item Problem: find an optimal parenthesizing of the multiplication of $n$ matrices $A_i$. Each matrix $A_i$ is of dimension $r_i \times c_i$ \textit{<<r=rows, c=columns>>}. 
+\item Problem: find an optimal parenthesizing of the multiplication of $n$ matrices $A_i$. Each matrix $A_i$ is of dimension $r_i \times c_i$ and $c_i=r_{i+1} \forall i$. \textit{<<r=rows, c=columns>>}
 \item Matrices: $M_{n \times n}, B_{n \times n}$ \textit{(first, last matrix)}
 \item Alphabets:\ul
 	\item Input: matrix $A_i$ size is defined as pairs of integers $(r_i,c_i)$.
@@ -249,60 +260,47 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 	\item Cost matrix: $M_{(i,i)}=0$.
 	\item Backtrack matrix: $B_{(i,i)}=stop$.
 	\ule
-
-{\color{red}
-\item Recurrence for the cost matrix:
+\item Recurrence: $c_k=r_{k+1}$
 	\[M_{(i,j)}=\min_{i\le k<j}\left\{\begin{array}{l|l}
-		M_{(i,k)}+M_{(k,j)}+r_i \cdot r_k \cdot col_j & k
+		M_{(i,k)}+M_{(k+1,j)}+r_i \cdot c_k \cdot c_j & k
 	\end{array}\right\}=B_{(i,j)} \]
-\item Backtracking: XXX
-\item Visualisation: XXX
+\item Backtracking: Start at $B_{(1,n)}$. Use the following recursive function for parenthesizing
+	\[{\rm BT}(B_{(i,j)}=k) \mapsto \left\{\begin{array}{ll} A_i & \text{if } k=0 \lor k=j \\
+		\Big( {\rm BT}(B_{(i,k)}) \Big) \cdot \Big( {\rm BT}(B_{(k+1,j)}) \Big) & \text{otherwise} \end{array}\right.\]
 
+\item Visualisation:
+	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
+		\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
+		\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
+		\Cfl{\Cg}\Cfd{\Cz}
+		\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
+		\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
+		\put(3.5,4.5){\line(3,-1){3}}\put(4.5,4.5){\line(2,-2){2}}\put(5.5,4.5){\line(1,-3){1}}
+	\Cm\end{picture}\end{center}
 
-\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
-	\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
-	\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
-	\Cg{0,6}
-	\Cg{0,5} \Cg{1,5}
-	\Cg{0,4} \Cg{1,4} \Cg{2,4}
-	\Cg{0,3} \Cg{1,3} \Cg{2,3} \Cg{3,3}
-	\Cg{0,2} \Cg{1,2} \Cg{2,2} \Cg{3,2} \Cg{4,2}
-	\Cg{0,1} \Cg{1,1} \Cg{2,1} \Cg{3,1} \Cg{4,1} \Cg{5,1}
-	\Cg{0,0} \Cg{1,0} \Cg{2,0} \Cg{3,0} \Cg{4,0} \Cg{5,0} \Cg{6,0}
-
-	\Cz{0,7}\Cz{1,6}\Cz{2,5}\Cz{3,4}\Cz{4,3}\Cz{5,2}\Cz{6,1}\Cz{7,0}
-	\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
-	\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
-	\put(3.5,4.5){\line(3,-1){3}}
-	\put(4.5,4.5){\line(2,-2){2}}
-	\put(5.5,4.5){\line(1,-3){1}}
-	
-	%\Cd[1,-1]{5,2}{0.8}
-
-\Cm\end{picture}\end{center}
-
-\item Optimizations: XXX
-}
+\item Optimizations:\ul
+	\item {\color{red}We need to swap vertically the matrix to have a normalized progression towards bottom right. To do that, we need to map all indices $i \mapsto n-1-i$, but since we want to store the matrix sparsely, we might want to transform it into a lower triangular matrix as we can provide a size-independent mapping of element indices.
+	XXX: what's the best trade off ? progress towards bottom right VS map indices more efficiently ?}
+	\ule
 \ole
 
 % ----------------------------------------------
 \newpage
 \subsection{Nussinov algorithm}\ol
-\item Problem: folding a RNA string $S$ over itself.
-{\color{red}
-\item Matrices: XXX
+\item Problem: folding a RNA string $S$ over itself $\left\lfloor |S| / 2 \right\rfloor = n$.
+\item Matrices: $M_{n\times n}, B_{n \times n}$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\{A,C,G,U\}$.
-	\item Cost matrix: $\Sigma(M)=\{0..n\}, n={\rm length}(S)/2$
+	\item Cost matrix: $\Sigma(M)=\{0..n\}$
 	\item Backtrack matrix: $\Sigma(B)=\{stop,W,S,SW, 1..n\}$
 	\ule
-
 \item Initialization: \ul
-	\item Cost matrix: $\left\{\begin{array}{l} M_{(i,i)}=0 \\ M_{(i,i-1)}=0 \end{array}\right. \forall i \in 1..{\rm length}(S)$
-	\item Backtrack matrix: $\left\{\begin{array}{l} B_{(i,i)}=stop \\ B_{(i,i-1)}=stop \end{array}\right.  \forall i \in 1..{\rm length}(S)$
+	\item Cost matrix: $ M_{(i,i)}=M_{(i,i-1)}=0$
+	\item Backtrack matrix: $B_{(i,i)}=B_{(i,i-1)}=stop$
 	\ule
 
-\item Recurrences:
+{\color{red}
+\item Recurrences (XXX: isn't it $\max_{i\le k < j}$ ?):
 	\[M_{(i,j)}=\max\left\{\begin{array}{l|l}
 		M_{(i+1,j-1)}+\omega(i,j) & SW\\
 		M_{(i+1,j)} & S\\
@@ -319,17 +317,14 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Zuker folding}\ol
-\item Problem: folding a RNA string $S$ over itself.
-{\color{red}
-\item Matrices: XXX
-
-
+\item Problem: folding a RNA string $S$ over itself $\left\lfloor |S| / 2 \right\rfloor = n$.
+\item Matrices: $M_{n\times n}, V_{n\times n}, B_{n \times n}, {\color{red} F???}$
 \item Alphabets:\ul
-\item Input: $\Sigma(S)=\{A,C,G,U\}$.
-\item Cost matrix: $\Sigma(W)=\Sigma(V)=\Sigma(F)=\{0..n\},n=$
-\item Backtrack matrix: $\Sigma(B)=\{\}$
-\ule
-
+	\item Input: $\Sigma(S)=\{A,C,G,U\}$.
+	\item Cost matrix: $\Sigma(W)=\Sigma(V)=\Sigma(F)=\{0..n\}$
+	\item Backtrack matrix: $\Sigma(B)=\{stop, {\color{red} S,W, XXX here} \}$
+	\ule
+{\color{red}
 \item Initialization:\ul
 	\item Cost matrices:\ul
 		\item XXX: $W$,$V$
