@@ -1,6 +1,6 @@
 % LaTeX Template for a short article
 \documentclass[11pt]{article}
-\usepackage{amssymb,amsmath,amsthm,hyperref,verbatim,pict2e,graphicx,marvosym,array,booktabs}
+\usepackage{amssymb,amsmath,amsthm,hyperref,verbatim,pict2e,graphicx,marvosym,array,booktabs,nameref}
 \hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
 \usepackage[usenames]{xcolor} % color names ,dvipsnames,svgnames,table
 \usepackage[utf8]{inputenc}
@@ -35,7 +35,7 @@
 \newcommand\Cd[3][0,-1]{\put(#2){\put(.5,.5){\circle*{.3}}\put(.5,.5){\linethickness{1.5pt}\vector(#1){#3}}}} % dependency [dx,dy]{x,y}{len}
 \def\Cg#1{\put(#1){\color{lightgray}\put(0,0){\polygon*(0,0)(0,1)(1,1)(1,0)}}} % grayed cell (not to store
 \def\Cz#1{\put(#1){\put(0,.35){\parbox{1\unitlength}{\centering\bf 0}}}} % zero-init cell
-\def\Cm{\put(6.5,1.5){\circle*{.4}}\multiput(0,0)(1,0){9}{\line(0,1){8}}\multiput(0,0)(0,1){9}{\line(1,0){8}}} % matrix base
+\def\Cm{\put(6.5,4.5){\circle*{.4}}\multiput(0,0)(1,0){9}{\line(0,1){8}}\multiput(0,0)(0,1){9}{\line(1,0){8}}} % matrix base
 
 \title{DP problems of interest}
 \author{Manohar Jonnalagedda, Thierry Coppey}
@@ -95,68 +95,59 @@ We describe the problem processing in terms of both initialization and recurrenc
 
 % ----------------------------------------------
 \newpage
-\subsection{Smith-Waterman (simple)}
-Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$.
+\subsection{Smith-Waterman (simple)}\label{sswat}\ol
+\item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$.
+\item Matrices: $M_{m \times n}, B_{m \times n}$
+\item Alphabets:\ul
+	\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
+	\item Cost matrix: $\Sigma(M) = [0..z], z=\max({\rm cost(\_)}) \cdot \min(m,n)$
+	\item Backtrack matrix: $\Sigma(B)=\{stop,W,N,NW\}$
+	\ule
+\item Initialization:\ul
+	\item Cost matrix: $M_{(i,0)}=M_{(0,j)}=0$.
+	\item Backtrack matrix: $B_{(i,0)}=B_{(0,j)}=stop$.
+	\ule
+\item Recurrence: \[M_{(i,j)}=\max\left\{\begin{array}{l|l}
+		0 & stop\\
+		M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
+		M_{(i-1,j)}-d & N\\
+		M_{(i,j-1)}-d & W
+	\end{array}\right\}=B_{(i,j)} \]
 
-Matrices: $M_{m \times n}, B_{m \times n}$
-
-Alphabets:\ul
-\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
-\item Cost matrix: $\Sigma(M) = [0..z], z=\max({\rm cost(\_)}) \cdot \min(m,n)$
-\item Backtrack matrix: $\Sigma(B)=\{stop,W,N,NW\}$
-\ule
-
-Initialization:\ul
-\item Cost matrix: $M_{(i,0)}=M_{(0,j)}=0$.
-\item Backtrack matrix: $B_{(i,0)}=B_{(0,j)}=stop$.
-\ule
-
-Recurrence:
-\[M_{(i,j)}=\max\left\{\begin{array}{l|l}
-	0 & stop\\
-	M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
-	M_{(i-1,j)}-d & N\\
-	M_{(i,j-1)}-d & W
-\end{array}\right\}=B_{(i,j)} \]
-
-Backtracking: starts from the cell $M_{(m,j)} \cup M_{(i,n)} $
-
-Visualisation:
+\item Backtracking: starts from the cell $M_{(m,j)} \cup M_{(i,n)} $
+\item Visualisation: by convention, we put the longest string vertically ($m\ge n$):
 \begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 	\put(-.5,7.5){S}\put(-.35,7.4){\linethickness{1pt}\vector(0,-1){2}}
 	\put(.2,8.2){T}\put(.8,8.4){\linethickness{1pt}\vector(1,0){2}}
 	\Cz{0,0}\Cz{0,1}\Cz{0,2}\Cz{0,3}\Cz{0,4}\Cz{0,5}\Cz{0,6}\Cz{0,7}
 	\Cz{1,7}\Cz{2,7}\Cz{3,7}\Cz{4,7}\Cz{5,7}\Cz{6,7}\Cz{7,7}
-	\Cd{6,2}{0.8}
-	\Cd[1,0]{5,1}{0.8}
-	\Cd[1,-1]{5,2}{0.8}
+	\Cd{6,5}{0.8}
+	\Cd[1,0]{5,4}{0.8}
+	\Cd[1,-1]{5,5}{0.8}
 \Cm\end{picture}\end{center}
 
-Optimizations\ul
-\item In serial (monadic) problems we can avoid building the matrix $M$ by only maintaining the 3 last diagonals in memory (one for the diagonal element, one for horizontal/vertical, and one being built). This construction extends easily to polyadic problems where we need to maintain $k+2$ diagonals in memory where $k$ is the maximum backward lookup.
-\ule
+\item Optimizations:\ul
+	\item In serial (monadic) problems we can avoid building the matrix $M$ by only maintaining the 3 last diagonals in memory (one for the diagonal element, one for horizontal/vertical, and one being built). This construction extends easily to polyadic problems where we need to maintain $k+2$ diagonals in memory where $k$ is the maximum backward lookup.
+	\ule
+\ole
 
 % ----------------------------------------------
 \newpage
-\subsection{Smith-Waterman (with gap extension at different cost)}
-Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$.
-
-Matrices: $M_{m \times n}, E_{m \times n}, F_{m \times n}, B_{m \times n}$
-
-Alphabets:\ul
-\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
-\item Cost matrices: $\Sigma(M) = \Sigma(E) = \Sigma(F) = [0..z], z=\max({\rm cost(\_)}) \cdot \min(m,n)$
-\item Backtrack matrix: $\Sigma(B)=\{stop,W,N,NW\}$
-\ule
-
-Initialization:\ul
-\item No gap cost matrix: $M_{(i,0)}=M_{(0,j)}=0$.
-\item T-gap extension cost matrix: $E_{(i,0)}= 0$ \textit{<<eat S chars only>>}
-\item S-gap extension cost matrix: $F_{(0,j)}= 0$
-\item Backtrack matrix: $B_{(i,0)}=B_{(0,j)}=stop$.
-\ule
-
-Recurrence for the cost matrices:
+\subsection{Smith-Waterman (with gap extension at different cost)}\ol
+\item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$.
+\item Matrices: $M_{m \times n}, E_{m \times n}, F_{m \times n}, B_{m \times n}$
+\item Alphabets:\ul
+	\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
+	\item Cost matrices: $\Sigma(M) = \Sigma(E) = \Sigma(F) = [0..z], z=\max({\rm cost(\_)}) \cdot \min(m,n)$
+	\item Backtrack matrix: $\Sigma(B)=\{stop,W,N,NW\}$
+	\ule
+\item Initialization:\ul
+	\item No gap cost matrix: $M_{(i,0)}=M_{(0,j)}=0$.
+	\item T-gap extension cost matrix: $E_{(i,0)}= 0$ \textit{<<eat S chars only>>}
+	\item S-gap extension cost matrix: $F_{(0,j)}= 0$
+	\item Backtrack matrix: $B_{(i,0)}=B_{(0,j)}=stop$.
+	\ule
+\item Recurrence for the cost matrices:
 \[\begin{array}{rcl}
 M_{(i,j)}&=&\max\left\{\begin{array}{l|l}
 	0 & stop\\
@@ -176,10 +167,7 @@ F_{(i,j)}&=&\max\left\{\begin{array}{l|l}
 \end{array}\right\}=B_{(i,j)}
 \end{array}\]
 
-{\color{red} XXX: Are we sure we do not need to maintain separate backtrack tables for the gap extensions?}
-
-
-Otherwise written as:
+That can be written alternatively as:
 \[M_{(i,j)}=\max\left\{\begin{array}{l|l}
 	0 & stop\\
 	M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
@@ -187,103 +175,170 @@ Otherwise written as:
 	\max_{1 \le k \le i-1} M_{(k,j)} - \alpha - (i-1-k) \cdot \beta & W\\
 \end{array}\right\}=B_{(i,j)} \]
 
-{\color{red} XXX: how to simplify this relation, can we move the max in the wavefront?}
+Although the latter notation seems more explicit, it introduces non-serial dependencies that the former set of recurrences is free of. So we need to implement the former rules whose kernel is 
+\[ [M;E;F]_{(i,j)} = f_{\rm kernel} ( [M;E]_{(i,j-1)}, [M;F]_{(i-1,j)}, M_{(i-1,j-1)} ) \]
+Notice that this recurrence is very similar to \nameref{sswat} except that we propagate 3 values ($M,E,F$) instead of a single one ($M$).
 
-Recurrence visualisation:
-
-{\color{red} XXX: todo}
-
-Optimizations:
-
-{\color{red} XXX: todo}
-
-% ----------------------------------------------
-\newpage
-\subsection{Convex polygon triangulation}
-Problem: triangulating a polygon with least cost overall for added edges
-
-Alphabets:\ul
-\item Input: $\Sigma(S)= $ a matrix of costs for every possible edge in the polygon. The 
-size of the input is $\frac{n^2}{2}$, where $n$ is the number of vertices in the polygon. 
-\item Cost matrix: $\Sigma(M)=\mathbb{N}$. The sum of cost of edges is not "bounded".
-\item Backtrack matrix: $\Sigma(B)=\{n\}$
-\ule
-
-Recurrence:
-\[M_{(i,j)}= \max_{i<k<j}M_{(i,k)}+M_{(k+1,j)} + c(i,k) | k = B_{(i,j)} \]
-
-It is interesting to note that even in the sequential world, this problem is best solved 
-by filling the diagonals, ie. computing sub-solutions for all polygons on size $k$ before
-those of size $k+1$.
-
-% ----------------------------------------------
-
+\item Backtracking: same as \nameref{sswat}
+\item Visualisation: same as \nameref{sswat}
+\item Optimizations: same as \nameref{sswat}
+\ole
 
 % ----------------------------------------------
 \newpage
-\subsection{Matrix chain multiplication}
-Problem: find an optimal parenthesizing of the multiplication of $n$ matrices $A_i$ of dimension $r_i \times c_i$ \textit{(r=rows, c=columns)}. 
+\subsection{Convex polygon triangulation}\ol
+\item Problem: triangulating a polygon of $n$ vertices with least total cost for added edges. We denote the cost of adding an edge between the  pair of edges $i,j$ by $S(i,j)$, Where $S_{n \times n}$ is a lower triangular matrix compacted in memory (rows are contiguous) with a 0 diagonal that is omitted \footnote{Arbitrary convention for both architectural implementation and code generator. Rationale: in lower triangular matrix, element address is independent of the matrix size.}, hence $|S|=\tfrac{n^2}{2}=N$.
 
-Alphabets:\ul
-\item Input: matrix size is defined as pairs of integers $(r_i,c_i)$.
-\item Cost matrix: the cost is an integer (might blow up, use a float or a double?).
-\item Backtrack matrix: $\Sigma(B)=\{stop\} \cup \{0..n\}$ with $n$ the input length.
-\ule
+% ------------------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------------------
+{\color{red}
+\item Matrices: $M_{n\times n}, B_{n \times n}$ \textit{<<first edge, last edge>>} upper triangular including main diagonal 
+\item Alphabets:\ul
+	\item Input: $\Sigma(S_{(i,j)})=\{0..m\}$ with $m=\max_S(i,j) \forall i,j$ determined at runtime\footnote{We need to scan/have stats about $S$ and that's where LMS plays a role}.
+	\item Cost matrix: $\Sigma(M)=\{0..z\}$ with $z = m \cdot (n-2)$ (we add at most $n-2$ edges).
+	\item Backtrack matrix: $\Sigma(B)=\{stop, 0..n\}$ (the index of the edge we add)
+	\ule
+\item Initialization: $M_{(i,i)}=0, B_{(i,i)}=stop \quad\forall i$
+\item Recurrence: \[M_{(i,j)}=\left\{ \max_{i<k<j}M_{(i,k)}+M_{(k+1,j)} + S(i,k) \,\,\rule[-.75em]{.5pt}{2em}\,\,  k \right\} = B_{(i,j)} \]
+	It is interesting to note that even in the sequential world, this problem is best solved 
+	by filling the diagonals, ie. computing sub-solutions for all polygons on size $k$ before
+	those of size $k+1$.
+\item Backtracking: Starting at $B_{(0,n)}$ and let current point you backtrack drawing an edge from the current position to the backtracking position ??
 
-Initialization (line=length of sequence, column=start):\ul
-\item Cost matrix: $M_{(0,j)}=0$.
-\item Backtrack matrix: $B_{(0,j)}=stop$.
-\ule
+\item Visualisation: in its traditional form the matrix is upper triangular with diagonal excluded.
+\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
+	\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
+	\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
+	\Cg{0,6}
+	\Cg{0,5} \Cg{1,5}
+	\Cg{0,4} \Cg{1,4} \Cg{2,4}
+	\Cg{0,3} \Cg{1,3} \Cg{2,3} \Cg{3,3}
+	\Cg{0,2} \Cg{1,2} \Cg{2,2} \Cg{3,2} \Cg{4,2}
+	\Cg{0,1} \Cg{1,1} \Cg{2,1} \Cg{3,1} \Cg{4,1} \Cg{5,1}
+	\Cg{0,0} \Cg{1,0} \Cg{2,0} \Cg{3,0} \Cg{4,0} \Cg{5,0} \Cg{6,0}
 
-Recurrence for the cost matrix:
-\[M_{(i,j)}=\min_{i\le k<j}\left\{\begin{array}{l|l}
-	M_{(i,k)}+M_{(k,j)}+r_i \cdot r_k \cdot col_j & k
-\end{array}\right\}=B_{(i,j)} \]
+	\Cz{0,7}\Cz{1,6}\Cz{2,5}\Cz{3,4}\Cz{4,3}\Cz{5,2}\Cz{6,1}\Cz{7,0}
+	\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
+	\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
+	\put(3.5,4.5){\line(3,-1){3}}
+	\put(4.5,4.5){\line(2,-2){2}}
+	\put(5.5,4.5){\line(1,-3){1}}
+	
+	%\Cd[1,-1]{5,2}{0.8}
+
+\Cm\end{picture}\end{center}
+
+
+\item Optimizations: XXX we need to rotate that matrix to progress in the same direction as usual, that is towards bottom right.
+}
+\ole
+
 
 % ----------------------------------------------
-\subsection{Nussinov algorithm}
-Problem: folding a RNA string $S$ over itself.
+\newpage
+\subsection{Matrix chain multiplication}\ol
+\item Problem: find an optimal parenthesizing of the multiplication of $n$ matrices $A_i$. Each matrix $A_i$ is of dimension $r_i \times c_i$ \textit{<<r=rows, c=columns>>}. 
+\item Matrices: $M_{n \times n}, B_{n \times n}$ \textit{(first, last matrix)}
+\item Alphabets:\ul
+	\item Input: matrix $A_i$ size is defined as pairs of integers $(r_i,c_i)$.
+	\item Cost matrix: $\Sigma(M):=$ huge integer\footnote{Integer multiplication might blow up, use float or doubles and addition of logarithms instead.}.
+	\item Backtrack matrix: $\Sigma(B)=\{stop\} \cup \{0..n\}$.
+	\ule
+\item Initialization:\ul
+	\item Cost matrix: $M_{(i,i)}=0$.
+	\item Backtrack matrix: $B_{(i,i)}=stop$.
+	\ule
 
-Alphabets:\ul
-\item Input: $\Sigma(S)=\{A,C,G,U\}$.
-\item Cost matrix: $\Sigma(M)=\{0..n\}, n={\rm length}(S)/2$
-\item Backtrack matrix: $\Sigma(B)=\{stop,W,S,SW, 1..n\}$
-\ule
+{\color{red}
+\item Recurrence for the cost matrix:
+	\[M_{(i,j)}=\min_{i\le k<j}\left\{\begin{array}{l|l}
+		M_{(i,k)}+M_{(k,j)}+r_i \cdot r_k \cdot col_j & k
+	\end{array}\right\}=B_{(i,j)} \]
+\item Backtracking: XXX
+\item Visualisation: XXX
 
-Initialization: \ul
-\item Cost matrix: $\left\{\begin{array}{l} M_{(i,i)}=0 \\ M_{(i,i-1)}=0 \end{array}\right. \forall i \in 1..{\rm length}(S)$
-\item Backtrack matrix: $\left\{\begin{array}{l} B_{(i,i)}=stop \\ B_{(i,i-1)}=stop \end{array}\right.  \forall i \in 1..{\rm length}(S)$
-\ule
 
-Recurrence:
-\[M_{(i,j)}=\max\left\{\begin{array}{l|l}
-	M_{(i+1,j-1)}+\omega(i,j) & SW\\
-	M_{(i+1,j)} & S\\
-	M_{(i,j-1)} & W\\
-	\max_{i<k<j}M_{(i,k)}+M_{(k+1,j)} & k
-\end{array}\right\} = B_{(i,j)} \]
-With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
+\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
+	\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
+	\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
+	\Cg{0,6}
+	\Cg{0,5} \Cg{1,5}
+	\Cg{0,4} \Cg{1,4} \Cg{2,4}
+	\Cg{0,3} \Cg{1,3} \Cg{2,3} \Cg{3,3}
+	\Cg{0,2} \Cg{1,2} \Cg{2,2} \Cg{3,2} \Cg{4,2}
+	\Cg{0,1} \Cg{1,1} \Cg{2,1} \Cg{3,1} \Cg{4,1} \Cg{5,1}
+	\Cg{0,0} \Cg{1,0} \Cg{2,0} \Cg{3,0} \Cg{4,0} \Cg{5,0} \Cg{6,0}
+
+	\Cz{0,7}\Cz{1,6}\Cz{2,5}\Cz{3,4}\Cz{4,3}\Cz{5,2}\Cz{6,1}\Cz{7,0}
+	\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
+	\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
+	\put(3.5,4.5){\line(3,-1){3}}
+	\put(4.5,4.5){\line(2,-2){2}}
+	\put(5.5,4.5){\line(1,-3){1}}
+	
+	%\Cd[1,-1]{5,2}{0.8}
+
+\Cm\end{picture}\end{center}
+
+\item Optimizations: XXX
+}
+\ole
+
+% ----------------------------------------------
+\newpage
+\subsection{Nussinov algorithm}\ol
+\item Problem: folding a RNA string $S$ over itself.
+{\color{red}
+\item Matrices: XXX
+\item Alphabets:\ul
+	\item Input: $\Sigma(S)=\{A,C,G,U\}$.
+	\item Cost matrix: $\Sigma(M)=\{0..n\}, n={\rm length}(S)/2$
+	\item Backtrack matrix: $\Sigma(B)=\{stop,W,S,SW, 1..n\}$
+	\ule
+
+\item Initialization: \ul
+	\item Cost matrix: $\left\{\begin{array}{l} M_{(i,i)}=0 \\ M_{(i,i-1)}=0 \end{array}\right. \forall i \in 1..{\rm length}(S)$
+	\item Backtrack matrix: $\left\{\begin{array}{l} B_{(i,i)}=stop \\ B_{(i,i-1)}=stop \end{array}\right.  \forall i \in 1..{\rm length}(S)$
+	\ule
+
+\item Recurrences:
+	\[M_{(i,j)}=\max\left\{\begin{array}{l|l}
+		M_{(i+1,j-1)}+\omega(i,j) & SW\\
+		M_{(i+1,j)} & S\\
+		M_{(i,j-1)} & W\\
+		\max_{i<k<j}M_{(i,k)}+M_{(k+1,j)} & k
+	\end{array}\right\} = B_{(i,j)} \]
+	With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
+\item Backtracking: XXX
+\item Visualisation: XXX
+\item Optimizations: XXX
+}
+\ole
 
 % ------------------------------------------------------------------------------------------------
 \newpage
-\subsection{Zuker folding}
-Problem: folding a RNA string $S$ over itself.
+\subsection{Zuker folding}\ol
+\item Problem: folding a RNA string $S$ over itself.
+{\color{red}
+\item Matrices: XXX
 
-Alphabets:\ul
+
+\item Alphabets:\ul
 \item Input: $\Sigma(S)=\{A,C,G,U\}$.
 \item Cost matrix: $\Sigma(W)=\Sigma(V)=\Sigma(F)=\{0..n\},n=$
 \item Backtrack matrix: $\Sigma(B)=\{\}$
 \ule
 
-Initialization:\ul
-\item Cost matrices:\ul
-	\item XXX: $W$,$V$
-	\item $F_{(0)}=0$
-\ule
-\item Backtrack matrix: $B$
-\ule
+\item Initialization:\ul
+	\item Cost matrices:\ul
+		\item XXX: $W$,$V$
+		\item $F_{(0)}=0$
+	\ule
+	\item Backtrack matrix: $B$
+	\ule
 
-Recurrence:
+\item Recurrence:
 \[\begin{array}{rcl}
 W_{(i,j)}&=&\min\left\{\begin{array}{l|l}
 	W_{(i+1,j)}+b & S\\
@@ -305,13 +360,12 @@ V_{(i,j)}&=&\min\left\{\begin{array}{ll}
 \end{array}\right. \text{(Free Energy)}\\\\
 VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
 \end{array}\]
-%
 
-
-
-
-
-
+\item Backtracking: XXX
+\item Visualisation: XXX
+\item Optimizations: XXX
+}
+\ole
 
 %%\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash}m{#1}}
 %\newcolumntype{C}{@{\hspace{7pt}}c@{\hspace{7pt}}}
@@ -324,6 +378,4 @@ VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
 %0 &  &  &  &  & \mnl
 %0 &  &  &  &  & \mnl
 %\end{array}$
-
-
 \end{document}
