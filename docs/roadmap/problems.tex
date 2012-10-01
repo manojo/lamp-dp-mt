@@ -215,9 +215,21 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 
 \item Backtracking: same as in \nameref{sswat}
 \item Visualisation:
-{\color{red}
-\item Optimizations:
-}
+
+	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
+		\put(-.5,7.5){S}\put(-.35,7.4){\linethickness{1pt}\vector(0,-1){2}}
+		\put(.2,8.2){T}\put(.8,8.4){\linethickness{1pt}\vector(1,0){2}}
+%		\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
+%		\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
+	\Cz{0,0}\Cz{0,1}\Cz{0,2}\Cz{0,3}\Cz{0,4}\Cz{0,5}\Cz{0,6}\Cz{0,7}
+	\Cz{1,7}\Cz{2,7}\Cz{3,7}\Cz{4,7}\Cz{5,7}\Cz{6,7}\Cz{7,7}
+		\Cd[0,-1]{6,7}{2.8}\Cd[0,-1]{6,6}{1.8}\Cd{6,5}{0.8}
+		\Cd[1,0]{0,4}{5.8}\Cd[1,0]{1,4}{4.8}\Cd[1,0]{2,4}{3.8}\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
+		\Cd[1,-1]{5,5}{0.8}
+	\Cm\end{picture}\end{center}
+
+\item Optimizations: The dependencies here are non-serial, there is no optimization that we can 
+apply out of the box here.
 \ole
 
 
