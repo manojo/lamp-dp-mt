@@ -1,6 +1,9 @@
 \documentclass[11pt]{article}
 \usepackage{amssymb,amsmath,amsthm,hyperref,verbatim,pict2e,graphicx,marvosym,array,booktabs,nameref}
-%\hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
+\hypersetup{
+	%colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black
+	urlbordercolor=1 0 0,linkbordercolor=0 1 1, citebordercolor=0 1 1,
+}
 \usepackage[usenames]{xcolor} % color names ,dvipsnames,svgnames,table
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -305,26 +308,31 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\{A,C,G,U\}$.
 	\item Cost matrix: $\Sigma(M)=\{0..n\}$
-	\item Backtrack matrix: $\Sigma(B)=\{stop,W,S,SW, 1..n\}$
+	\item Backtrack matrix: $\Sigma(B)=\{stop,D,1..n\}$
 	\ule
 \item Initialization: \ul
 	\item Cost matrix: $ M_{(i,i)}=M_{(i,i-1)}=0$
 	\item Backtrack matrix: $B_{(i,i)}=B_{(i,i-1)}=stop$
 	\ule
-
-{\color{red}
-\item Recurrences (XXX: isn't it $\max_{i\le k < j}$ ?):
+\item Recurrences:
 	\[M_{(i,j)}=\max\left\{\begin{array}{l|l}
-		M_{(i+1,j-1)}+\omega(i,j) & SW\\
-		M_{(i+1,j)} & S\\
-		M_{(i,j-1)} & W\\
-		\max_{i<k<j}M_{(i,k)}+M_{(k+1,j)} & k
+		M_{(i+1,j-1)}+\omega(i,j) & D\\
+		\max_{i\le k<j}M_{(i,k)}+M_{(k+1,j)} & k
 	\end{array}\right\} = B_{(i,j)} \]
 	With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
-\item Backtracking: XXX
-\item Visualisation: XXX
-\item Optimizations: XXX
-}
+\item Backtracking: Start the backtracking in $B_{(1,n)}$ and go backward. The backtracking is very similar to that of the matrix multiplication, except that we also introduce the diagonal matching.
+\item Visualisation:
+	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
+		\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
+		\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
+		\Cfl{\Cg}\Cfd{\Cz}
+		\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
+		\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
+		\Cd[1,1]{5,3}{0.8}
+		\put(3.5,4.5){\line(3,-1){3}}\put(4.5,4.5){\line(2,-2){2}}\put(5.5,4.5){\line(1,-3){1}}
+	\Cm\end{picture}\end{center}
+
+\item Optimizations: note that this is very similar to the matrix multiplication except that we also need the diagonal one step backward, so the same optimization can apply.
 \ole
 
 % ----------------------------------------------
