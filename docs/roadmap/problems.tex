@@ -327,7 +327,7 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 }
 \ole
 
-% ------------------------------------------------------------------------------------------------
+% ----------------------------------------------
 \newpage
 \subsection{Zuker folding}\ol
 \item Problem: folding a RNA string $S$ over itself $\left\lfloor |S| / 2 \right\rfloor = n$.
@@ -374,6 +374,25 @@ VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
 \item Optimizations: XXX
 }
 \ole
+
+% ------------------------------------------------------------------------------------------------
+\newpage
+\section{Plan} \ol
+\item Define/agree some problems to take into consideration, agree on them
+\item Concerns separation: common architecture enables flexibility (exchange components) \ul
+	\item Block processor: CPU, GPU, FPGA, must allow variation of width and height
+	\item Memory stats computation (min, sum, ... column/line combinations): CPU, GPU
+	\item Scheduler (CPU): interleave block computation and memory statistics
+	\ule
+\item Common description \ul
+	\item Block kernel processor
+	\item Full block
+	\ule
+\item Discussion: wavefront, design similarities, polyhedral theory
+\ole
+
+
+
 
 %%\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash}m{#1}}
 %\newcolumntype{C}{@{\hspace{7pt}}c@{\hspace{7pt}}}
