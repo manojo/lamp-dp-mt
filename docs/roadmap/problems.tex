@@ -376,7 +376,6 @@ V_{(i,j)}&=&\min\left\{\begin{array}{ll}
 \end{array}\right. \text{(Free Energy)}\\\\
 VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
 \end{array}\]
-
 \item Backtracking: XXX
 \item Visualisation: XXX
 \item Optimizations: XXX
@@ -386,7 +385,9 @@ VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
 % ------------------------------------------------------------------------------------------------
 \newpage
 \section{Plan} \ol
-\item Define/agree the maoin problems/classes to take into consideration: dimension, serial/non-serial, monadic/polyadic, ... add some other problems that belong to this class or simpler classes
+\item Make sure we encompass all the most common patterns of DP: check if we have higher dimensions or more complex formula.
+\item Let the user tune the window size if he wants to reduce non-serial to serial.
+
 \item Concerns separation: common architecture enables flexibility (exchange components) \ul
 	\item Block processor: CPU, GPU, FPGA, must allow variation of width and height
 	\item Memory stats computation (min, sum, ... column/line combinations): CPU, GPU
