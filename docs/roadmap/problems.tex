@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 \usepackage{amssymb,amsmath,amsthm,hyperref,verbatim,pict2e,graphicx,marvosym,array,booktabs,nameref}
-\hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
+%\hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
 \usepackage[usenames]{xcolor} % color names ,dvipsnames,svgnames,table
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -378,7 +378,7 @@ VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
 % ------------------------------------------------------------------------------------------------
 \newpage
 \section{Plan} \ol
-\item Define/agree some problems to take into consideration, agree on them
+\item Define/agree the maoin problems/classes to take into consideration: dimension, serial/non-serial, monadic/polyadic, ... add some other problems that belong to this class or simpler classes
 \item Concerns separation: common architecture enables flexibility (exchange components) \ul
 	\item Block processor: CPU, GPU, FPGA, must allow variation of width and height
 	\item Memory stats computation (min, sum, ... column/line combinations): CPU, GPU
@@ -391,7 +391,13 @@ VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
 \item Discussion: wavefront, design similarities, polyhedral theory
 \ole
 
-
+TODO:\ol
+\item See the feasibility for FPGA (possibly helped by CPU)
+\item Implement this algorithm in both CUDA and FPGA $\to$ specify all parameters so that we can compare both implementations
+\item Find a common IR for the problems
+\item Write a code generator for both architectures from IR $\to$ make sure all the test-DP are compiled well from IR
+\item Find an expressive and compact language for the user-facing representation
+\ole
 
 
 %%\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash}m{#1}}
