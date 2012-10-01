@@ -116,7 +116,8 @@ We describe the problem processing in terms of both initialization and recurrenc
 		M_{(i,j-1)}-d & W
 	\end{array}\right\}=B_{(i,j)} \]
 
-\item Backtracking: starts from the cell $M_{(m,j)} \cup M_{(i,n)} $
+\item Backtracking: starts from the cell $\max \{M_{(m,j)} \cup M_{(i,n)}\}$, stops at
+the first cell containing a $0$.
 \item Visualisation: by convention, we put the longest string vertically ($m\ge n$):
 \begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 	\put(-.5,7.5){S}\put(-.35,7.4){\linethickness{1pt}\vector(0,-1){2}}
@@ -198,12 +199,10 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 	\ule
 
 \item Initialization:\ul
-	\item No gap cost matrix: $M_{(i,0)}=M_{(0,j)}=0$.
+	\item Match cost matrix: $M_{(i,0)}=M_{(0,j)}=0$.
 	\item Backtrack matrix: $B_{(i,0)}=B_{(0,j)}=stop$.
 	\ule
 
-{\color{red}
-\item Initialization: 
 \item Recurrence:
 
 \[M_{(i,j)}=\max\left\{\begin{array}{l|l}
@@ -214,9 +213,9 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 \end{array}\right\}=B_{(i,j)} \]
 
 
-
-\item Backtracking:
+\item Backtracking: same as in \nameref{sswat}
 \item Visualisation:
+{\color{red}
 \item Optimizations:
 }
 \ole

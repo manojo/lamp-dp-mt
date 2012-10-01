@@ -59,6 +59,7 @@ def Nussinov(S0: List[Char]) : List[Pair[Char,Char]] = {
 			val cols_rows = 
 			val c = cost(Si,Tj);
 
+
 			if (nw._1+c>=max(n,w)-d) then (nw._1+c,"NW",[Si,Tj])
 			else if (n>=w) then (n._1-d, "N",[Si,_])
 			else (w._1-d, "W",[_,Tj])
