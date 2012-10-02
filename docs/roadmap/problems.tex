@@ -216,7 +216,7 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 \end{array}\right\}=B_{(i,j)} \]
 
 
-\item Backtracking: same as in \nameref{sswat}
+\item Backtracking: similar to \nameref{sswat} except that you can jump of $k$ cells.
 \item Visualisation:
 
 	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
@@ -350,43 +350,51 @@ apply out of the box here.
 \newpage
 \subsection{Zuker folding}\ol
 \item Problem: folding a RNA string $S$ over itself $\left\lfloor |S| / 2 \right\rfloor = n$.
-\item Matrices: $M_{n\times n}, V_{n\times n}, B_{n \times n}, {\color{red} F???}$
+\item Matrices: $V_{n\times n}, W_{n\times n}, F_n$ (Free Energy),  $BV_{n \times n}, BW_{n \times n}, BF_n$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\{A,C,G,U\}$.
-	\item Cost matrix: $\Sigma(W)=\Sigma(V)=\Sigma(F)=\{0..n\}$
-	\item Backtrack matrix: $\Sigma(B)=\{stop, {\color{red} S,W, XXX here} \}$
-	\ule
-{\color{red}
-\item Initialization:\ul
 	\item Cost matrices:\ul
-		\item XXX: $W$,$V$
-		\item $F_{(0)}=0$
+		\item $\Sigma(W)=\Sigma(V)=\{0..z\}$ with $z \le n*b+c$
+		\item $\Sigma(F)=\{0..y\}$ with $y\le \min(F_0, z\cdot n)$
+		\ule
+	\item Backtrack matrices: \ul
+		\item $\Sigma(BW)=\{stop, S,W,V,k\}$
+		\item $\Sigma(BV)=\{stop, EH, ES, SW, i' \times j', k\}$
+		\item $\Sigma(BF)=\{stop, L, k\}$
+		\ule
 	\ule
-	\item Backtrack matrix: $B$
+\item Initialization:\ul
+	\item Cost matrices: $W_{(i,i)}=V_{(i,i)}=0, F_{(0)}=$ energy of the unfolded RNA.
+	\item Backtrack matrices: $BW_{(i,i)}=BV_{(i,i)}=BF_{(0)}=stop$.
 	\ule
-
 \item Recurrence:
 \[\begin{array}{rcl}
 W_{(i,j)}&=&\min\left\{\begin{array}{l|l}
 	W_{(i+1,j)}+b & S\\
 	W_{(i,j-1)}+b & W\\
-	V_{(i,j)}+\delta(S_i,S_j) & ?V? \\
-	\min_{i<k<j}W_{(i,k)}+W_{(k+1,j)} & ?k?
-\end{array}\right.\\
+	V_{(i,j)}+\delta(S_i,S_j) & V \\
+	\min_{i<k<j}W_{(i,k)}+W_{(k+1,j)} &k
+\end{array}\right\} = BW_{(i,j)}\\
 \\
-V_{(i,j)}&=&\min\left\{\begin{array}{ll}
+V_{(i,j)}&=&\min\left\{\begin{array}{l|l}
 	\infty \qquad\qquad\qquad\qquad {\rm if}(S_i,S_j) \text{ is not a base pair}\\
-	eh(i,j)+b \qquad\qquad\, \text{otherwise} \\
-	V_{(i+1,j-1)}+es(i,j) \\
-	VBI(i,j) \\
-	\min_{i<k<j-1}\{W_{(i+,k)}+W_{(k+1,j-1)}\} +c
-\end{array}\right.\\
+	eh(i,j)+b \qquad\qquad\, \text{otherwise} & EH\\
+	V_{(i+1,j-1)}+es(i,j) & ES \\
+	VBI(i,j) & i',j' \\
+	\min_{i<k<j-1}\{W_{(i+1,k)}+W_{(k+1,j-1)}\} +c & k
+\end{array}\right\} = BV_{(i,j)}\\
 \\
- F_{(j)}&=&\min\left\{\begin{array}{ll} F_{(j-1)} \\ \min_{1\le i< j} (V_{(i,j)} + F_{(j-1)})
-%
-\end{array}\right. \text{(Free Energy)}\\\\
+F_{(j)}&=&\min\left\{\begin{array}{l|l}
+	F_{(j-1)} & L \\ 
+	\min_{1\le i< j} (V_{(i,j)} + F_{(j-1)}) & k
+\end{array}\right\} = BF_{(j)}\\
+\\
 VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
 \end{array}\]
+
+In practice, we don't go backward for larger values than 30, so we can replace $\min_{i<k<j}$ by $\min_{\max(i,j-30)<k<j}$ in the expressions of $W$,$V$, $VBI$ and $F$.
+
+{\color{red}
 \item Backtracking: XXX
 \item Visualisation: XXX
 \item Optimizations: XXX
@@ -414,7 +422,13 @@ VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c
 
 \newpage
 \subsection{LMS compiler stack}
-\textbf{User-language}: Windowing, input sizes, alphabet, recurrence functions, devices available, what to keep in memory (cost, backtrack or both). \\
+\textbf{User-language}: define additional parameters for the recurrence\ul
+\item Windowing (to convert non-serial into serial problems)
+\item Input sizes, and alphabets (backtrack, input, cost)
+\item Backtrack (implicitly by backtrack alphabet size) and cost matrices bit-sizes (cost maximum may be inferred using <<Yield size/grammar analysis>>)
+\item Recurrence functions, devices available
+\item What to keep in memory (cost, backtrack or both).
+\ule
 $\Downarrow$ Conversion (using an existing technique)
 
 \textbf{Intermediate representation}
