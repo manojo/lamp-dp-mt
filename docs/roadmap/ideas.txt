@@ -12,6 +12,9 @@ Plan:
    -> make sure all the test-DP are compiled well from IR
 7. Find an expressive and compact language for the user-facing representation
 
+Translation into C++:
+http://bibiserv.cebitec.uni-bielefeld.de/macports/resources/download/
+
 ----------------------------------
 
 Ideas for the language:
