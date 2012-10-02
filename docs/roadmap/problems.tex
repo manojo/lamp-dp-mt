@@ -433,7 +433,10 @@ In practice, we don't go backward for larger values than 30, so we can replace $
 \newpage
 \section{Plan}
 \ol
-\item \textbf{Problems:} finish the problem description. \\ We might look towards parallel tree-raking, but it does not share much with the above algorithms (sparse version of above computations, might not scale that well). Most of the common patterns are already enclosed by the above problems. Real input size is around 300'000 (we may want to target the million, using disk). We might want to also look at an $O(n^3)$-space complexity problem (like matching 3 strings $S,T,U$).
+\item {\color{gray}
+\textbf{Problems:} finish the problem description. \\ We might look towards parallel tree-raking, but it does not share much with the above algorithms (sparse version of above computations, might not scale that well). Most of the common patterns are already enclosed by the above problems. Real input size is around 300'000 (we may want to target the million, using disk). We might want to also look at an $O(n^3)$-space complexity problem (like matching 3 strings $S,T,U$).
+}
+
 \item \textbf{User facing language:} goals are flexibility and compactness.\ul
 	\item Design the user-facing language that we want to support, which should be similar to related papers <<Algebraic Dynamic Programming>> and <<ADP fusion>>. We want to reuse their transformation to map (problem description) $\mapsto$ (kernel implementation) for a single element.
 	\item We also may want to try to make implicit transformation for code like \\
@@ -442,11 +445,14 @@ In practice, we don't go backward for larger values than 30, so we can replace $
 	\item Consider 3 different cases: we care about backtrack, the costs or both.
 	\item Backtracking: we might want to create an operator/class that given an item produces the previous in the backtrack, or the whole sequence in correct order, or only indices.
 	\ule
-Get an implementation by \emph{end of October}.
 
-\item \textbf{Prototyping:} get a prototype to understand difficulties and share common base. \\ Implement a working prototype of \nameref{aswat} on CPU (for correctness), and specific platform (CUDA/FPGA). This will give us an idea of how to implement the general case. We also need to benchmark and compare both implementations to see how we compare to existing implementations and see the direction to take (which decide is faster and by how much). Here we aim to do as good an implementaion for the specific platform (CPU/GPA) as possible.
+$\implies$ \emph{end of October}.
 
-\item \textbf{Baseline:} get some implementations working on the different platforms and use them as baselines. Goal to get something working by \emph{end of October}.
+\item \textbf{Prototyping:} get a prototype to understand difficulties and share common base. \\ Implement a working prototype of \nameref{aswat} on CPU (for correctness), and specific platform (CUDA/FPGA). This will give us an idea of how to implement the general case. We also need to benchmark and compare both implementations to see how we compare to existing implementations and see the direction to take (which decide is faster and by how much). Here we aim to do as good an implementaion for the specific platform (CPU/GPA) as possible.\\
+$\implies$ \emph{end of October}.
+
+\item \textbf{Baseline:} Also use benchmarks provided by existing implementations as baselines.\\
+$\implies$ \emph{end of October}.
 
 \item \textbf{Formalize IR:} According to experiences, describe the intermediate representation, also formalize the framework that will be provided to the code generators (i.e. memory management, ...).
 \item \textbf{Full compiler stack:} enrich the compiler stack from both top-down (translate best user-facing language parsers) and bottom-up (parametric code generators), core of the work.
