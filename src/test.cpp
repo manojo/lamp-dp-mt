@@ -51,10 +51,10 @@ public:
 	}
 
 	// XXX: we need to be smarter than doing this computation again and again
-	// maps (x,y) to its containing block start and length
+	// maps (y,x) to its containing block start and length
 	inline size_t blk_size() { return b_height*(b_width+b_height-1)-1; }
 	inline off_t blk(size_t y, size_t x) { return (y/b_height)*m_width*b_height + (x/b_width); }
-	// maps the position (x,y) into coalesced-by-block-height offsets
+	// maps the position (y,x) into coalesced-by-block-height offsets
 	inline off_t idx(size_t y, size_t x) {
 		return b_height*(x+(y%b_height)) + (y%b_height) + (y/b_height)*m_width*b_height;
 	}
@@ -69,27 +69,25 @@ public:
 	//
     // This is the CPU easy implementation that will be refined over time to match blocks system
 
-	inline int gap(int k) { return 99-k; }
+	inline int gap(int k) { return 20-k; }
 	inline int cost(TI s, TI t) { return s==t?1:0; }
 	void solve() {
 		// Initialization
 		for (size_t i=0; i<c_height; ++i) { _back[idx(i,0)]='S'; _cost[idx(i,0)]=0; }
 		for (size_t j=0; j<c_width; ++j) { _back[idx(0,j)]='S'; _cost[idx(0,j)]=0; }
 		// Recurrence
-		/*
-		for (size_t i=0; i<c_height; ++i) {
-			for (size_t j=0; j<c_width; ++j) {
-				TB b='S'; // stop
-				TC c=0;
-
-				TC c2 = _cost[idx(i-1,j-1)]+cost(_in[1][i],_in[0][j]);
-				if (c2>c) { c=c2; b='\\'; }
-
-				for (size_t k=0; k<i; ++j) {
-				}
+		const char* du="!ABCDEFGHIJKLMNOPQRStUVWXYZ0123456789|||||"; // go up(k): 1=A,2=B...
+		const char* dl="!abcdefghijklmnopqrstuvwxyz0123456789-----"; // go left(k): 1=a,2=b...
+		for (size_t i=1; i<c_height; ++i) {
+			for (size_t j=1; j<c_width; ++j) {
+				TB b='S'; TC c=0;  // stop
+				TC c2 = _cost[idx(i-1,j-1)]+cost(_in[1][i],_in[0][j]); if (c2>c) { c=c2; b='\\'; }
+				for (size_t k=1; k<j; ++k) { c2=_cost[idx(i,j-k)]-gap(k); if (c2>c) { c=c2; b=dl[k]; } } // XXX: missing the k information
+				for (size_t k=1; k<i; ++k) { c2=_cost[idx(i-k,j)]-gap(k); if (c2>c) { c=c2; b=du[k]; } }
+				_cost[idx(i,j)] = c;
+				_back[idx(i,j)] = b;
 			}
 		}
-		*/
 
 	}
 	// -------------------------------------------------------------------------
@@ -106,10 +104,8 @@ public:
 			for (size_t j=0;j<m_width;++j) {
 				if (i>=c_height||j>=c_width) printf(" .");
 				else {
-					// THE CONTENT OF THE TABLE
-					char c = _back[idx(i,j)];
-
-					printf(" %c",c?c:' ');
+					// TABLE CONTENT
+					char c = _back[idx(i,j)]; printf(" %c",c?c:' ');
 					//printf("  ");
 				}
 				if (j%b_width==b_width-1) printf(" |");
@@ -123,7 +119,6 @@ public:
 			}
 		}
 	}
-
 
 	// ------------------- memory backend -------------------
 	// - keep most elements into memory (detect exhaustion by malloc failure)
@@ -165,7 +160,6 @@ public:
 		// XXX: processing function, take partial results from the wavefront(serial) and block(non-serial) and compute final values
 		w_back=true;
 	}
-
 
 	// A serializer that will pre-aggregate results of previous blocks and compute
 	// partial aggregation for the current block (but will not do the actual block
