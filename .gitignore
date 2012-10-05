@@ -1,2 +1,10 @@
 *LatexianTemp*
+target/
+lib_managed/
+project/boot/
+local.properties
+\#*
+.\#*
+*~
+.target/
 
