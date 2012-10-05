@@ -1,7 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #define ASSERT(cond) extern int __assert__[1-2*(!(cond))];
+
+// directions for recurrences
+#define DIR_HORZ  0x1
+#define DIR_VERT  0x2
+#define DIR_DIAG  0x4
 
 // -----------------------------------------------------------------------------
 // Problem definition SWat(S,T) with arbitrary gap cost.
@@ -13,35 +19,31 @@
 //
 const char* p_S = "gattaccaggatacatacagattaccaggatacataca";
 const char* p_T = "gtaccaggatacaagtacatagcacataca";
+// g++ required to compile this [do not remove this line] CC:=g++
 const unsigned long p_SL = strlen(p_S);
 const unsigned long p_TL = strlen(p_T);
-
+// debug pretty-print
 const char* p_up="!ABCDEFGHIJKLMNOPQRStUVWXYZ0123456789|||||||||||"; // go up(k): 1=A,2=B...
 const char* p_left="!abcdefghijklmnopqrstuvwxyz0123456789---------"; // go left(k): 1=a,2=b...
 
 inline int p_gap(int k) { return 20-k; }
 inline int p_cost(char s, char t) { return s==t?1:0; }
-// -----------------------------------------------------------------------------
-
-// directions for recurrences
-#define DIR_HORZ  0x1
-#define DIR_VERT  0x2
-#define DIR_DIAG  0x4
 
 // -----------------------------------------------------------------------------
 // Tweaking parameters
-
 #define NONSERIAL (DIR_HORZ|DIR_VERT)          // non-serial direction
 #define POLYADIC  (DIR_HORZ|DIR_VERT|DIR_HORZ) // polyadic direction
 #define POLY_SZ   1                            // polyadic length (1=mondaic)
 
-// types
+#define INIT(i,j)  ((i)==0 || (j)==0)          // matrix initialization to (stop)
+
+// Data types
 #define TI char      // input data type
 #define TC int       // cost type
 #define TB char      // backtrack type
 #define TW int       // wavefront type (if not defined, there is no wavefront)
 
-// dimensions
+// Dimensions
 #define B_W 8LU      // block width
 #define B_H 4LU      // block height
 
@@ -147,6 +149,7 @@ void print(FILE* f) {
 }
 
 // -----------------------------------------------------------------------------
+// reference implementation
 
 void solve1() {
 	// Recurrence (embeds initialization)
@@ -157,8 +160,8 @@ void solve1() {
 			} else {
 				TB b='/'; TC c=0,c2;  // stop
 				for (size_t k=1; k<j; ++k) { c2=g_cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=p_left[k]; } } // XXX: missing the k information
-				for (size_t k=1; k<i; ++k) { c2=g_cost[idx(i-k,j)]-p_gap(k); if (c2>c) { c=c2; b=p_up[k]; } }
-				c2 = g_cost[idx(i-1,j-1)]+p_cost(g_in[0][i],g_in[1][j]); if (c2>c) { c=c2; b='\\'; }
+				for (size_t k=1; k<i; ++k) { c2=g_cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=p_up[k]; } }
+				c2 = g_cost[idx(i-1,j-1)]+p_cost(g_in[0][i],g_in[1][j]); if (c2>=c) { c=c2; b='\\'; }
 				g_cost[idx(i,j)] = c;
 				g_back[idx(i,j)] = b;
 			}
@@ -167,49 +170,43 @@ void solve1() {
 }
 
 // -----------------------------------------------------------------------------
+// block-split
 
 void blk_precompute2(blk_t* blk) {
-	for (size_t i=0; i<blk->mi; ++i) {
-		for (size_t j=0; j<blk->mj; ++j) {
-			TC c=0,c2; TB b='/'; // default (0,stop)
-			// XXX: UGLY CODE USING GLOBAL MEMORY, TO BE FIXED
-			//	if (blk->bi>0&&((NONSERIAL)&DIR_VERT) || blk->bj>0&&((NONSERIAL)&DIR_HORZ) || blk->bi>0&&blk->bj>0&&((NONSERIAL)&DIR_DIAG)) {
+	for (unsigned i=0;i<blk->mi;++i) {
+		for (unsigned j=0;j<blk->mj;++j) {
+			TB b='/'; TC c=0,c2;  // default(0,stop)
 			const unsigned long oi=blk->bi*B_H, oj=blk->bj*B_W; // block offset in global memory
-			for (unsigned long k=1; k<=oj; ++k) { c2=g_cost[idx(oi+i,oj-k)]-p_gap(k+j); if (c2>c) { c=c2; b=p_left[k+j]; } }
-			for (unsigned long k=1; k<=oi; ++k) { c2=g_cost[idx(oi-k,oj+j)]-p_gap(k+i); if (c2>c) { c=c2; b=p_up[k+i]; } }
-			// XXX: UGLY CODE USING GLOBAL MEMORY, TO BE FIXED
-			blk->cost[idx(i,j)]=c;
-			blk->back[idx(i,j)]=b;
+			if (!INIT(oi+i,oj+j)) {
+				// XXX: UGLY CODE USING GLOBAL MEMORY, TO BE FIXED
+				for (size_t k=j+1; k<oj+j; ++k) { c2=g_cost[idx(oi+i,oj+j-k)]-p_gap(k); if (c2>c) { c=c2; b=p_left[k]; } }
+				for (size_t k=i+1; k<oi+i; ++k) { c2=g_cost[idx(oi+i-k,oj+j)]-p_gap(k); if (c2>=c) { c=c2; b=p_up[k]; } }
+				// XXX: UGLY CODE USING GLOBAL MEMORY, TO BE FIXED
+			}
+			blk->cost[idx(i,j)] = c;
+			blk->back[idx(i,j)] = b;
+			//	if (blk->bi>0&&((NONSERIAL)&DIR_VERT) || blk->bj>0&&((NONSERIAL)&DIR_HORZ) || blk->bi>0&&blk->bj>0&&((NONSERIAL)&DIR_DIAG)) {
 		}
 	}
 }
 
-void blk_solve2(blk_t* blk) {
-	for (size_t i=0; i<blk->mi; ++i) {
-		for (size_t j=0; j<blk->mj; ++j) {
-			TB b=blk->back[idx(i,j)];
-			TC c=blk->cost[idx(i,j)];
+void blk_solve2(blk_t* blk /*, blk_t* left, blk_t* top, blk_t* diag*/) {
+	const unsigned long oi=blk->bi*B_H, oj=blk->bj*B_W; // block offset in global memory
+	for (unsigned i=0;i<blk->mi;++i) {
+		for (unsigned j=0;j<blk->mj;++j) {
+			TB b='/'; TC c=0,c2;  // stop
+			if (!INIT(oi+i,oj+j)) {
+				c2=blk->cost[idx(i,j)];
+				if (c2>c) { c=c2; b=blk->back[idx(i,j)]; }
+				for (size_t k=1; k<=j; ++k) { c2=blk->cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=p_left[k]; } }
+				for (size_t k=1; k<=i; ++k) { c2=blk->cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=p_up[k]; } }
 
-			if (blk->bi==0&&i==0 || blk->bj==0&&j==0) { b='/'; c=0; }
-			else {
-				if (c<0) { c=0; b='/'; }
-
-				TC c2;
-
-				for (size_t k=0; k<j; ++k) { c2=blk->cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=p_left[k]; } }
-				for (size_t k=0; k<i; ++k) { c2=blk->cost[idx(i-k,j)]-p_gap(k); if (c2>c) { c=c2; b=p_up[k]; } }
-
-
-				// XXX: BAD: WE'RE DOING BAD MEMORY ACCESSES AT BORDERS OF BLOCK
-				// if (i>0 && j>0) {
-					c2 = blk->cost[idx(i-1,j-1)] +p_cost(blk->in[0][i],blk->in[1][j]); if (c2>c) { c=c2; b='\\'; }
-				// }
-				// XXX: BAD: WE'RE DOING BAD MEMORY ACCESSES AT BORDERS OF BLOCK
-
-
+				// XXX: BAD: WE ACCESS NEIGHBOR BLOCKS HERE
+				// XXX: also pass the 3 contiguous blocks (depending dependencies direction)
+				c2 = g_cost[idx(oi+i-1,oj+j-1)]+p_cost(blk->in[0][i],blk->in[1][j]); if (c2>=c) { c=c2; b='\\'; }
 			}
-			blk->cost[idx(i,j)]=c;
-			blk->back[idx(i,j)]=b;
+			blk->cost[idx(i,j)] = c;
+			blk->back[idx(i,j)] = b;
 		}
 	}
 }
@@ -219,14 +216,13 @@ void solve2() {
 		for (size_t bj=0;bj<M_W/B_W;++bj) {
 			blk_t blk = blk_get(bi,bj);
 			//for (unsigned i=0;i<blk.mi;++i) for (unsigned j=0;j<blk.mj;++j) blk.back[idx(i,j)]='0'+(bi+bj);
+
+			// needs to acc
 			blk_precompute2(&blk);
 			blk_solve2(&blk);
 		}
 	}
-
-
 }
-
 
 #include <unistd.h>
 #include <stdarg.h>
@@ -246,7 +242,10 @@ int main(int argc, char** argv) {
 	FILE* f;
 	f=fopen("ref.txt","w"); solve1(); print(f); fclose(f);
 	f=fopen("t.txt","w"); solve2(); print(f); fclose(f);
-	sys_exec("diff","-dur","ref.txt","t.txt",NULL);
+	int r=sys_exec("diff","-dur","ref.txt","t.txt",NULL);
+	printf("\n\n");
+	sys_exec("cat","t.txt",NULL);
+	printf("\nCorrectness: %s\n",!r?"no differences":"FAILURE !!!");
 	unlink("ref.txt"); unlink("t.txt");
 
 	cleanup();
