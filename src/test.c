@@ -3,12 +3,19 @@
 #include <string.h>
 #include <assert.h>
 #define ASSERT(cond) extern int __assert__[1-2*(!(cond))];
+#define MAX(a,b) ({ typeof(a) _a=(a); typeof(b) _b=(b); _a>_b?_a:_b; })
+#define MIN(a,b) ({ typeof(a) _a=(a); typeof(b) _b=(b); _a<_b?_a:_b; })
 
 // directions for recurrences
-#define DIR_HORZ  0x1
-#define DIR_VERT  0x2
+#define DIR_VERT  0x1
+#define DIR_HORZ  0x2
 #define DIR_DIAG  0x4
 
+// -----------------------------------------------------------------------------
+// System assumptions: input in the 10^6, hence
+// - Input data size is known ahead of time (macros) and is loaded at once
+// - Input+wavefront data fit into device memory(|TW|+|TI|)*2*10^6-7
+// - Cost and backtrack matrix might be written back in main memory/filesystem
 // -----------------------------------------------------------------------------
 // Problem definition SWat(S,T) with arbitrary gap cost.
 // By convention, S is the longest string and put vertically
@@ -31,11 +38,11 @@ inline int p_cost(char s, char t) { return s==t?1:0; }
 
 // -----------------------------------------------------------------------------
 // Tweaking parameters
-#define NONSERIAL (DIR_HORZ|DIR_VERT)          // non-serial direction
-#define POLYADIC  (DIR_HORZ|DIR_VERT|DIR_HORZ) // polyadic direction
-#define POLY_SZ   1                            // polyadic length (1=mondaic)
+#define NONSERIAL DIR_VERT|DIR_HORZ         // non-serial direction
+#define POLYADIC  DIR_DIAG                  // polyadic direction
+#define POLY_SZ   1                         // polyadic length (1=mondaic)
 
-#define INIT(i,j)  ((i)==0 || (j)==0)          // matrix initialization to (stop)
+#define INIT(i,j)  ((i)==0 || (j)==0)       // matrix initialization to (stop)
 
 // Data types
 #define TI char      // input data type
@@ -75,7 +82,8 @@ typedef struct {
 } blk_t;
 
 // -----------------------------------------------------------------------------
-// all-in-main-memory implementation
+// Memory manager and problem data structures
+// > all-in-main-memory implementation
 
 const TI* g_in[2]={NULL,NULL}; // 0=vert(S), 1=horizontal(T) with |S| >= |T|
 TC* g_cost=NULL;
@@ -92,9 +100,9 @@ void init() {
 	#ifdef TW
 		g_wave[0]=(TW*)malloc(sizeof(TW)*C_H);
 		g_wave[1]=(TW*)malloc(sizeof(TW)*C_W);
-		g_wave[2]=(TW*)malloc(sizeof(TW)*M_H/B_H);
+		g_wave[2]=(TW*)malloc(sizeof(TW)*MAX(M_H/B_H,M_W/B_W));
 	#endif
-	g_in[0]=p_S;
+	g_in[0]=p_S; // also duplicate into CUDA
 	g_in[1]=p_T;
 }
 
@@ -107,17 +115,44 @@ void cleanup() {
 	#endif
 }
 
-blk_t blk_get(off_t bi, off_t bj) {
-	blk_t b; b.bi=bi; b.bj=bj;
+// memory manager
+// XXX: keep track of allocated zones, both function must be mutex-protected
+// XXX: we need an atomic list of cost blocks, of input blocks and of backtrack blocks
+// pthread_mutex_t* mutex;
+// typedef struct { off_t bi,bj; bool cost; bool dev; void* ptr; unsigned retained; } mem_t;
 	// XXX: test whether these zone were already allocated in CUDA memory to
 	// avoid using duplicate memory
-	b.in[0]=&g_in[0][bi*B_H];
-	b.in[1]=&g_in[1][bj*B_W];
-	b.cost=&g_cost[B_AT(bi,bj)];
-	b.back=&g_back[B_AT(bi,bj)];
+ // all these loads need to be atomically done, also released on demand
+ // ==> allocate an array of pointers (both main and device mem) and do atomic CAS on them to get pointer + counter
+ // See http://www.boost.org/doc/libs/1_39_0/boost/interprocess/detail/atomic.hpp
+ // instead take into account blocks that have been written to disk so that reloading into memory is easier
+ // also note that writing on disk must reorder differently to avoid writing dirty surrounding data
+void* mm_alloc(off_t bi, off_t bj, bool cost=true, bool device=false) {
+	// attempt to alloc, if cannot, then try to free all the blocks with 0 retain,
+	// possibly write-back to disk, then try again
+	if (cost) return &g_cost[B_AT(bi,bj)];
+	else return &g_back[B_AT(bi,bj)];
+}
+void mm_free(void* ptr) {}
+
+blk_t blk_get(off_t bi, off_t bj, bool device=false) {
+	blk_t b; b.bi=bi; b.bj=bj;
 	b.mi=C_H-bi*B_H; if (b.mi>B_H) b.mi=B_H;
 	b.mj=C_W-bj*B_W; if (b.mj>B_W) b.mj=B_W;
+	b.in[0]=&g_in[0][bi*B_H]; // XXX: depends whether we're on device
+	b.in[1]=&g_in[1][bj*B_W];
+	b.wr_back=false;
+	b.cost=(TC*)mm_alloc(bi,bj,true);
+	b.back=(TB*)mm_alloc(bi,bj,false);
 	return b;
+}
+
+void blk_free(blk_t* blk) {
+	if (blk->wr_back) {
+		// XXX: write-back to main memory or to storage
+	}
+	mm_free(blk->cost);
+	mm_free(blk->back);
 }
 
 void print(FILE* f) {
@@ -172,38 +207,65 @@ void solve1() {
 // -----------------------------------------------------------------------------
 // block-split
 
-void blk_precompute2(blk_t* blk) {
+void blk_precompute2(blk_t* blk, TC** cl_top, TC** cl_left, TC** cl_diag) {
+	const unsigned long oi=blk->bi*B_H, oj=blk->bj*B_W; // block offset in global memory
 	for (unsigned i=0;i<blk->mi;++i) {
 		for (unsigned j=0;j<blk->mj;++j) {
 			TB b='/'; TC c=0,c2;  // default(0,stop)
-			const unsigned long oi=blk->bi*B_H, oj=blk->bj*B_W; // block offset in global memory
 			if (!INIT(oi+i,oj+j)) {
+				// Non-serial partial dependencies
+
 				// XXX: UGLY CODE USING GLOBAL MEMORY, TO BE FIXED
+				//	if (blk->bi>0&&((NONSERIAL)&DIR_VERT) || blk->bj>0&&((NONSERIAL)&DIR_HORZ) || blk->bi>0&&blk->bj>0&&((NONSERIAL)&DIR_DIAG)) {
 				for (size_t k=j+1; k<oj+j; ++k) { c2=g_cost[idx(oi+i,oj+j-k)]-p_gap(k); if (c2>c) { c=c2; b=p_left[k]; } }
-				for (size_t k=i+1; k<oi+i; ++k) { c2=g_cost[idx(oi+i-k,oj+j)]-p_gap(k); if (c2>=c) { c=c2; b=p_up[k]; } }
+//				for (size_t k=i+1; k<oi+i; ++k) { c2=g_cost[idx(oi+i-k,oj+j)]-p_gap(k); if (c2>=c) { c=c2; b=p_up[k]; } }
+
+
+				for (size_t k=1; k<oi; ++k) {
+					c2=
+
+					cl_top[k/B_H][idx( (B_H-(k%B_H))%B_H  ,j)]
+
+					-p_gap(k+i);
+					if (c2>=c) { c=c2; b=p_up[k+i]; }
+				}
+
+
+/*
+				for (unsigned k=1;k<oi;++k) {
+					c2=cl_top[k/B_W] [ idx( (B_W-(k%B_W) )%B_W  , j)] - p_gap(i+k);
+
+					if (c2>c) { c=c2; b=p_up[i+k]; }
+				}
+*/
+
 				// XXX: UGLY CODE USING GLOBAL MEMORY, TO BE FIXED
 			}
 			blk->cost[idx(i,j)] = c;
 			blk->back[idx(i,j)] = b;
-			//	if (blk->bi>0&&((NONSERIAL)&DIR_VERT) || blk->bj>0&&((NONSERIAL)&DIR_HORZ) || blk->bi>0&&blk->bj>0&&((NONSERIAL)&DIR_DIAG)) {
 		}
 	}
 }
 
-void blk_solve2(blk_t* blk /*, blk_t* left, blk_t* top, blk_t* diag*/) {
-	const unsigned long oi=blk->bi*B_H, oj=blk->bj*B_W; // block offset in global memory
+//inline off_t idx(size_t i, size_t j) { return B_H*(j+(i%B_H)) + (i%B_H) + (i/B_H)*M_W*B_H; }
+
+// Get the cost value with backward search of at most 1 block
+#define COST_B1(i,j) ({ int _i=(i),_j=(j); TC* _c=_i<0?(_j<0?c_diag:c_top):(_j<0?c_left:blk->cost); \
+                        _i=(_i+B_H)%B_H; _j=(_j+B_W)%B_W; _c[B_H*(_j+_i)+_i]; })
+
+void blk_solve2(blk_t* blk, TC* c_top, TC* c_left, TC* c_diag) {
 	for (unsigned i=0;i<blk->mi;++i) {
 		for (unsigned j=0;j<blk->mj;++j) {
 			TB b='/'; TC c=0,c2;  // stop
-			if (!INIT(oi+i,oj+j)) {
+			if (!INIT(blk->bi*B_H+i,blk->bj*B_W+j)) {
 				c2=blk->cost[idx(i,j)];
+				// Non-serial partial result
 				if (c2>c) { c=c2; b=blk->back[idx(i,j)]; }
+				// Finish non-serial
 				for (size_t k=1; k<=j; ++k) { c2=blk->cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=p_left[k]; } }
 				for (size_t k=1; k<=i; ++k) { c2=blk->cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=p_up[k]; } }
-
-				// XXX: BAD: WE ACCESS NEIGHBOR BLOCKS HERE
-				// XXX: also pass the 3 contiguous blocks (depending dependencies direction)
-				c2 = g_cost[idx(oi+i-1,oj+j-1)]+p_cost(blk->in[0][i],blk->in[1][j]); if (c2>=c) { c=c2; b='\\'; }
+				// Monadic diagonal
+				c2=COST_B1(i-1,j-1) + p_cost(blk->in[0][i],blk->in[1][j]); if (c2>=c) { c=c2; b='\\'; }
 			}
 			blk->cost[idx(i,j)] = c;
 			blk->back[idx(i,j)] = b;
@@ -212,14 +274,64 @@ void blk_solve2(blk_t* blk /*, blk_t* left, blk_t* top, blk_t* diag*/) {
 }
 
 void solve2() {
-	for (size_t bi=0;bi<M_H/B_H;++bi) {
-		for (size_t bj=0;bj<M_W/B_W;++bj) {
+	// we need to manage concurrency at CPU level here to call multiple blocks
+	for (unsigned bi=0;bi<M_H/B_H;++bi) {
+		for (unsigned bj=0;bj<M_W/B_W;++bj) {
 			blk_t blk = blk_get(bi,bj);
-			//for (unsigned i=0;i<blk.mi;++i) for (unsigned j=0;j<blk.mj;++j) blk.back[idx(i,j)]='0'+(bi+bj);
 
-			// needs to acc
-			blk_precompute2(&blk);
-			blk_solve2(&blk);
+			// --------- Solving non-serial dependencies
+			#if NONSERIAL>0
+			TC** c_list[3]={NULL,NULL,NULL}; // previous blocks list (0=vert,1=horz,2=diag)
+			#if (NONSERIAL)&DIR_VERT
+			c_list[0]=(TC**)malloc(bi*sizeof(TC**)); for (unsigned k=0;k<bi;++k) c_list[0][k]=(TC*)mm_alloc(bi-k-1,bj);
+			#endif
+			#if (NONSERIAL)&DIR_HORZ
+			c_list[1]=(TC**)malloc(bj*sizeof(TC**)); for (unsigned k=0;k<bj;++k) c_list[1][k]=(TC*)mm_alloc(bi,bj-k-1);
+			#endif
+			#if (NONSERIAL)&DIR_DIAG
+			size_t bm=MIN(bi,bj);
+			c_list[2]=(TC**)malloc(3*bm*sizeof(TC**));
+			for (unsigned k=0;k<bm;++k) {
+				c_list[2][3*k+0]=mm_alloc(bi-k-1,bj-k-1); // Diagonal | Db Ub    -->j
+				c_list[2][3*k+1]=mm_alloc(bi-k  ,bj-k-1); // Upper    | Lb Da Ua
+				c_list[2][3*k+2]=mm_alloc(bi-k-1,bj-k  ); // Lower  i V    La []
+			}
+			#endif
+
+			// XXX: possibly transform c_list[] to device vectors before passing to function
+			blk_precompute2(&blk,c_list[0],c_list[1],c_list[2]);
+
+			#if (NONSERIAL)&DIR_VERT
+			for (unsigned k=0;k<bi;++k) mm_free(c_list[0][k]); free(c_list[0]);
+			#endif
+			#if (NONSERIAL)&DIR_HORZ
+			for (unsigned k=0;k<bj;++k) mm_free(c_list[1][k]); free(c_list[1]);
+			#endif
+			#if (NONSERIAL)&DIR_DIAG
+			for (unsigned k=0;k<3*bm;++k) mm_free(c_list[2][k]); free(c_list[2]);
+			#endif
+			#endif
+			// --------- Block processing
+			TC* c_prev[3]={NULL,NULL,NULL};
+			#if (POLYADIC)&(DIR_VERT|DIR_DIAG)
+			if (bi>0) c_prev[0]=(TC*)mm_alloc(bi-1,bj);
+			#endif
+			#if (POLYADIC)&(DIR_HORZ|DIR_DIAG)
+			if (bj>0) c_prev[1]=(TC*)mm_alloc(bi,bj-1);
+			#endif
+			#if (POLYADIC)&DIR_DIAG
+			if (bi>0 && bj>0) c_prev[2]=(TC*)mm_alloc(bi-1,bj-1);
+			#endif
+			blk_solve2(&blk,c_prev[0],c_prev[1],c_prev[2]);
+			#if (POLYADIC)&(DIR_VERT|DIR_DIAG)
+			if (bi>0) mm_free(c_prev[0]);
+			#endif
+			#if (POLYADIC)&(DIR_HORZ|DIR_DIAG)
+			if (bj>0) mm_free(c_prev[1]);
+			#endif
+			#if (POLYADIC)&DIR_DIAG
+			if (bi>0 && bj>0) mm_free(c_prev[2]);
+			#endif
 		}
 	}
 }
@@ -237,6 +349,7 @@ pid_t sys_exec(const char* path, ...) {
 }
 
 int main(int argc, char** argv) {
+
 	init();
 
 	FILE* f;
@@ -307,44 +420,6 @@ int main(int argc, char** argv) {
 // serial   : nserial=non-serial directions
 // polyadic : ptype=polyadic directions, psize=length of polyadic, 1=monadic
 // wavefront: whether we need additional data into the wavefront to be stored
-template<class TI, class TC, class TB, class TW> class DPblock;
-template<class TI, class TC, class TB, class TW> class DPload;
-template<class TI, class TC, class TB, class TW, int nserial=0, int ptype=DIR_HORZ|DIR_VERT|DIR_HORZ, int psize=1, bool wavefront=false>
-class DP {
-protected:
-	size_t m_width, m_height; // matrix memory dimensions
-	size_t b_width, b_height; // block dimensions
-	size_t c_width, c_height; // content matrix dimensions c_xx<=m_xx
-	// bool backend_fs; // use filesystem as a backend (when problem do not fit in memory).
-
-public:
-
-	// ------------------- in-memory backend -------------------
-	const TI* _in[2]; // 0=horz(T),1=vert(S) with |S| >= |T|
-	TC* _cost;
-	TB* _back;
-	TW* _wave[3]; // 0=horz,1=vert,2=diag
-
-	DP(size_t height, size_t width, size_t bh, size_t bw, const TI* in_vert, const TI* in_horz) {
-		c_width=width; b_width=bw; m_width=((c_width+bw-1)/bw)*bw;
-		c_height=height; b_height=bh; m_height=((c_height+bh-1)/bh)*bh;
-
-		size_t mem = m_width*m_height + bh*bh;
-		_cost=(TC*)malloc(sizeof(TC)*mem);
-		_back=(TB*)malloc(sizeof(TB)*mem);
-		if (wavefront) {
-			_wave[0]=(TW*)malloc(sizeof(TW)*width);
-			_wave[1]=(TW*)malloc(sizeof(TW)*height);
-			_wave[2]=(TW*)malloc(sizeof(TW)*m_height/b_height);
-		}
-		_in[0]=in_horz;
-		_in[1]=in_vert;
-	}
-	~DP() {
-		if (_cost) free(_cost);
-		if (_back) free(_back);
-		if (wavefront) { free(_wave[0]); free(_wave[1]); free(_wave[2]); }
-	}
 
 	// XXX: we need to be smarter than doing this computation again and again
 	// maps (y,x) to its containing block start and length
@@ -354,80 +429,6 @@ public:
 	inline off_t idx(size_t y, size_t x) {
 		return b_height*(x+(y%b_height)) + (y%b_height) + (y/b_height)*m_width*b_height;
 	}
-
-	// -------------------------------------------------------------------------
-	// SWat with arbitrary gap function
-	// S is the longest string and is vertical
-	// M[i,j] = max { 0                                 stop } = B[i,j]
-	//              { M[i-1,j-1]+cost(S[i],T[j])        NW   }
-	//              { max{1<=k<=j-1} M[i,j-k] - gap(k)  N(k) }
-	//              { max{1<=k<=i-1} M[i-k,j] - gap(k)  W(k) }
-	//
-    // This is the CPU easy implementation that will be refined over time to match blocks system
-
-	inline int gap(int k) { return 20-k; }
-	inline int cost(TI s, TI t) { return s==t?1:0; }
-	void solve() {
-		/*
-		// Recurrence (embeds initialization)
-		const char* du="!ABCDEFGHIJKLMNOPQRStUVWXYZ0123456789|||||"; // go up(k): 1=A,2=B...
-		const char* dl="!abcdefghijklmnopqrstuvwxyz0123456789-----"; // go left(k): 1=a,2=b...
-		for (size_t i=1; i<c_height; ++i) {
-			for (size_t j=1; j<c_width; ++j) {
-				if (i==0 || j==0) {
-					_back[idx(0,j)]='S'; _cost[idx(0,j)]=0;
-				} else {
-					TB b='S'; TC c=0;  // stop
-					TC c2 = _cost[idx(i-1,j-1)]+cost(_in[1][i],_in[0][j]); if (c2>c) { c=c2; b='\\'; }
-					for (size_t k=1; k<j; ++k) { c2=_cost[idx(i,j-k)]-gap(k); if (c2>c) { c=c2; b=dl[k]; } } // XXX: missing the k information
-					for (size_t k=1; k<i; ++k) { c2=_cost[idx(i-k,j)]-gap(k); if (c2>c) { c=c2; b=du[k]; } }
-					_cost[idx(i,j)] = c;
-					_back[idx(i,j)] = b;
-				}
-			}
-		}
-		*/
-
-		for (size_t bi=0;bi<m_height/b_height;++bi) {
-			for (size_t bj=0;bj<m_width/b_width;++bj) {
-				Block b(this,bi,bj);
-				b.solve();
-			}
-		}
-
-
-	}
-	// -------------------------------------------------------------------------
-
-	void print() {
-		printf("Matrix(%ldx%ld), data(%ldx%ld), blocks(%ldx%ld)\n",m_height,m_width,c_height,c_width,b_height,b_width);
-		printf("  ");
-		// header
-		for (size_t j=0;j<m_width;++j) { printf(" %c",j<c_width?(char)_in[0][j]:'#'); if (j%b_width==b_width-1) printf(" |"); }
-		printf("\n");
-		for (size_t i=0;i<m_height;++i) {
-			// content
-			printf(" %c",i<c_height?(char)_in[1][i]:'#');
-			for (size_t j=0;j<m_width;++j) {
-				if (i>=c_height||j>=c_width) printf(" .");
-				else {
-					// TABLE CONTENT
-					char c = _back[idx(i,j)]; printf(" %c",c?c:' ');
-					//printf("  ");
-				}
-				if (j%b_width==b_width-1) printf(" |");
-			}
-			printf("\n");
-			// spacer
-			if (i%b_height==b_height-1) {
-				printf("--");
-				for (size_t j=0;j<m_width;++j) { printf("--"); if (j%b_width==b_width-1) printf("-+"); }
-				printf("\n");
-			}
-		}
-	}
-
-	friend class Block;
 
 	// All-in-main-memory block
 	class Block {
@@ -441,56 +442,6 @@ public:
 		bool w_back; // whether memory needs to be written back
 		off_t b_i, b_j;
 	public:
-		Block(DP* dp, off_t y, off_t x) {
-			b_i=y*dp->b_height; b_j=x*dp->b_width;
-			_dp=dp;
-
-			// XXX: test whether these zone were already allocated in CUDA memory
-			_in[0]=dp->_in[y*dp->b_height];
-			_in[1]=dp->_in[x*dp->b_width];
-			_cost=&dp->_cost[dp->blk(y,x)];
-			_back=&dp->_back[dp->blk(y,x)];
-			max_i=dp->c_height-y*dp->b_height; if (max_i>dp->b_height) max_i=dp->b_height;
-			max_j=dp->c_width-x*dp->b_width; if (max_j>dp->b_width) max_j=dp->b_width;
-		}
-		void write() { w_back=true; }
-		~Block() {
-			// if (write) write_back();
-			// free memory
-		}
-
-		void solve() {
-			const char* du="!ABCDEFGHIJKLMNOPQRStUVWXYZ0123456789|||||"; // go up(k): 1=A,2=B...
-			const char* dl="!abcdefghijklmnopqrstuvwxyz0123456789-----"; // go left(k): 1=a,2=b...
-			// Precompute
-			if (b_i>0&&(nserial&DIR_VERT) || b_j>0&&(nserial&DIR_HORZ) || (b_i>0&&b_j>0&&(nserial&DIR_DIAG))) {
-				for (size_t i=0; i<_dp->b_height; ++i) {
-					for (size_t j=0; j<_dp->b_width; ++j) {
-						TC c=0,c2; TB b='S'; // default (0,stop)
-						// XXX: BAD: we do not use previous block but access global memory
-						for (size_t k=1; k<=b_i; ++k) { c2=DP::_cost[_dp->idx(b_i-k,j)]-_dp->gap(k+i); if (c2>c) { c=c2; b=du[k+i]; } }
-						for (size_t k=1; k<=b_j; ++k) { c2=DP::_cost[_dp->idx(i,b_j-k)]-_dp->gap(k+j); if (c2>c) { c=c2; b=dl[k+i]; } }
-						_cost[_dp->idx(i,j)]=c;
-						_back[_dp->idx(i,j)]=b;
-					}
-				}
-			}
-			// Solve
-			for (size_t i=1; i<_dp->c_height; ++i) {
-				for (size_t j=1; j<_dp->c_width; ++j) {
-					TB b=_back[_dp->idx(i,j)];
-					TC c=_cost[_dp->idx(i,j)];
-					if (b_i==0&&i==0 || b_j==0&&j==0) { b='S'; c=0; }
-					else {
-						TC c2 = _cost[_dp->idx(i-1,j-1)]+_dp->cost(_in[1][i],_in[0][j]); if (c2>c) { c=c2; b='\\'; }
-						for (size_t k=1; k<j; ++k) { c2=_cost[_dp->idx(i,j-k)]-_dp->gap(k); if (c2>c) { c=c2; b=dl[k]; } }
-						for (size_t k=1; k<i; ++k) { c2=_cost[_dp->idx(i-k,j)]-_dp->gap(k); if (c2>c) { c=c2; b=du[k]; } }
-						_cost[idx(i,j)] = c;
-						_back[idx(i,j)] = b;
-					}
-				}
-			}
-		}
 		void precompute() {
 			if (!nserial) return;
 			//if (nserial&DIR_HORZ)
@@ -499,11 +450,7 @@ public:
 			// XXX: provide a way to access the same column/row/diagonal backward
 			// compute the partial cost and write them in the block data
 		}
-
 	};
-
-
-
 /*
 	// ------------------- memory backend -------------------
 	// - keep most elements into memory (detect exhaustion by malloc failure)
@@ -518,11 +465,6 @@ public:
 	bool block_write(DPblock<TI,TC,TB,TW> bl) { return false; } // to store and free
 	bool block_free(DPblock<TI,TC,TB,TW> bl) { return false; } // to free memory
 	// XXX: keep track of blocks that are contiguously assigned
-
-	// access to the input
-	TI* in_vert(off_t pos, size_t len) { return NULL; }
-	TI* in_horz(off_t pos, size_t len) { return NULL; }
-	void  in_free(TI* input) {}
 */
 };
 
@@ -567,11 +509,8 @@ public:
 			DPblock<TI,TC,TB,TW>* b_diag, size_t s_diag) {
 		// XXX: aggregating function. store in block the partial results
 	}
-
-
 };
 */
-
 // COMPUTE THE PROBLEM LINE BY LINE => WE CAN ALLOC SUFFICIENT MEMORY TO FINISH THE LINE
 // GET A MEMORY BLOCK POINTER
 
@@ -584,13 +523,9 @@ public:
 // Have pack and unpack functions if we want to support lower bitsizes
 
 // XXX: find other implementations to get some hints
-
-
 /*
 // also think of
-void f(int* left, int* top, char S, char T, int* right, int* bottom) {
-	// this is he core function
-}
+void f(int* left, int* top, char S, char T, int* right, int* bottom) { // this is he core function
 
 void block(int x, int y, char* S, char* T, // block definition
 	int* left_wave, int* top_wave, int* topleft_wave, int* bottom_wave, int* right_wave, int* botright_wave, // wavefront
@@ -598,15 +533,4 @@ void block(int x, int y, char* S, char* T, // block definition
 	) {
 }
 */
-
-int main(int argc, char** argv) {
-	// longest string S vertically by convention
-	const char* S="gattaccaggatacatacagattaccaggatacataca";
-	const char* T="gtaccaggatacaagtacatagcacataca";
-	DP<char,int,char,int> p(strlen(S),strlen(T),4,8,S,T);
-	p.solve();
-	p.print();
-
-	return 0;
-}
 #endif
