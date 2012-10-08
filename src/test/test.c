@@ -218,8 +218,9 @@ void blk_precompute2(blk_t* blk, TC** cl_top, TC** cl_left, TC** cl_diag) {
 				// Non-serial partial dependencies
 				//	if (blk->bi>0&&((NONSERIAL)&DIR_VERT) || blk->bj>0&&((NONSERIAL)&DIR_HORZ) || blk->bi>0&&blk->bj>0&&((NONSERIAL)&DIR_DIAG)) {
 
-				for (unsigned k=1 ; k<oj; ++k) {
-					c2=cl_left[(k-1)/B_W][ i*(B_H+1)+ (B_W-k%B_W)%B_W *B_H ]-p_gap(j+k);
+				for (unsigned k=1, i0=i*(B_H+1)+(B_W-1)*B_H,
+				                   iN=i*(B_H+1),iX=i0; k<oj; ++k, iX=iX==iN?i0:iX-B_H) { // cl_left[(k-1)/B_W][ i*(B_H+1)+ (B_W-k%B_W)%B_W *B_H ];
+					c2=cl_left[(k-1)/B_W][iX]-p_gap(j+k);
 					if (c2>c) { c=c2; b=p_left[j+k]; }
 				}
 
@@ -228,6 +229,8 @@ void blk_precompute2(blk_t* blk, TC** cl_top, TC** cl_left, TC** cl_diag) {
 					c2= cl_top[k/B_H][iX] - p_gap(k+i);
 					if (c2>=c) { c=c2; b=p_up[k+i]; }
 				}
+
+				// XXX: diagonal non-serial dependencies
 
 			}
 			blk->cost[idx(i,j)] = c;

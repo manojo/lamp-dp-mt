@@ -437,6 +437,14 @@ In practice, we don't go backward for larger values than 30, so we can replace $
 \textbf{Problems:} finish the problem description. \\ We might look towards parallel tree-raking, but it does not share much with the above algorithms (sparse version of above computations, might not scale that well). Most of the common patterns are already enclosed by the above problems. Real input size is around 300'000 (we may want to target the million, using disk). We might want to also look at an $O(n^3)$-space complexity problem (like matching 3 strings $S,T,U$).
 }
 
+All the problems we consider use 2D storage matrix, their dependencies are an union of: \ul
+\item Serial dependencies
+\item Non-serial horizontal or vertical dependencies (1D non-serial)
+\item Non-serial horizontal+vertical dependencies in the form $M_{(i,j)} = {\rm op}_k f ( M_{(i,k)}, M_{(k,j)} ) $
+\item We have not found other type of dependencies in the litterature
+\ule
+
+
 \item \textbf{User facing language:} goals are flexibility and compactness.\ul
 	\item Design the user-facing language that we want to support, which should be similar to related papers <<Algebraic Dynamic Programming>> and <<ADP fusion>>. We want to reuse their transformation to map (problem description) $\mapsto$ (kernel implementation) for a single element.
 	\item We also may want to try to make implicit transformation for code like \\
