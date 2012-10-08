@@ -106,6 +106,28 @@ CPU time: 146.716 ms
 GPU time: 283.412 ms
 CPU time: 146.732 ms
 GPU time: 286.180 ms <- 1.95x slowdown vs CPU
+
+fun() only, -m64
+CPU time: 332.379 ms
+GPU time: 0.062 ms
+CPU time: 104.286 ms
+GPU time: 0.027 ms
+CPU time: 107.368 ms
+GPU time: 0.025 ms
+CPU time: 104.345 ms
+GPU time: 0.028 ms
+CPU time: 104.347 ms
+GPU time: 0.027 ms
+CPU time: 103.969 ms
+GPU time: 0.026 ms
+CPU time: 115.863 ms
+GPU time: 0.025 ms
+CPU time: 132.301 ms
+GPU time: 0.026 ms
+CPU time: 126.471 ms
+GPU time: 0.027 ms
+CPU time: 107.523 ms
+GPU time: 0.024 ms
 */
 
 for (int i=0;i<10;++i) {
