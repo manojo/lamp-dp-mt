@@ -1,3 +1,5 @@
+// XXX: do the math of shipping to the GPU for pre-computation
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -218,28 +220,21 @@ void blk_precompute2(blk_t* blk, TC** cl_top, TC** cl_left, TC** cl_diag) {
 				// XXX: UGLY CODE USING GLOBAL MEMORY, TO BE FIXED
 				//	if (blk->bi>0&&((NONSERIAL)&DIR_VERT) || blk->bj>0&&((NONSERIAL)&DIR_HORZ) || blk->bi>0&&blk->bj>0&&((NONSERIAL)&DIR_DIAG)) {
 				for (size_t k=j+1; k<oj+j; ++k) { c2=g_cost[idx(oi+i,oj+j-k)]-p_gap(k); if (c2>c) { c=c2; b=p_left[k]; } }
-//				for (size_t k=i+1; k<oi+i; ++k) { c2=g_cost[idx(oi+i-k,oj+j)]-p_gap(k); if (c2>=c) { c=c2; b=p_up[k]; } }
 
+				// XXX: replace with such code:
+				for (unsigned k=1 ; k<oj; ++k) {
+					//printf("%p -- %p\n", &g_cost[B_IN(oi+i,oj-k)], &cl_left[k/B_W][0] );
+					// printf("%p -- %p\n", &g_cost[idx(oi+i,oj-k)], &cl_left[k/B_W][idx(i,B_WH  )] );
+					//c2= cl_left[k/B_W][idx( i  ,   (B_W-(k%B_W))%B_W  )] - p_gap(k+j);
+					//if (c2>=c) { c=c2; b=p_left[k+j]; }
+				}
 
-				for (size_t k=1; k<oi; ++k) {
-					c2=
-
-					cl_top[k/B_H][idx( (B_H-(k%B_H))%B_H  ,j)]
-
-					-p_gap(k+i);
+				for (unsigned k=1, i0=idx(B_H-1,j),
+				                   iN=idx(0,j),iX=i0; k<oi; ++k, iX=iX==iN?i0:iX-1-B_H) { // cl_top[k/B_H][idx( (B_H-(k%B_H))%B_H  ,j)]
+					c2= cl_top[k/B_H][iX] - p_gap(k+i);
 					if (c2>=c) { c=c2; b=p_up[k+i]; }
 				}
 
-
-/*
-				for (unsigned k=1;k<oi;++k) {
-					c2=cl_top[k/B_W] [ idx( (B_W-(k%B_W) )%B_W  , j)] - p_gap(i+k);
-
-					if (c2>c) { c=c2; b=p_up[i+k]; }
-				}
-*/
-
-				// XXX: UGLY CODE USING GLOBAL MEMORY, TO BE FIXED
 			}
 			blk->cost[idx(i,j)] = c;
 			blk->back[idx(i,j)] = b;
