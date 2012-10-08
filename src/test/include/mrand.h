@@ -1,7 +1,8 @@
 /*
  * Mersenne Twister
- * Copyright 1997-2008 by Agner Fog.
- * Distributed under GNU General Public License
+ * Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
+ * The real versions due to Isaku Wada, 2002/01/09 added.
+ * BSD licence, http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
  */
 #include <stdint.h>
 
@@ -32,10 +33,10 @@
 #define MERS_C   0xEFC60000
 #endif
 
-uint32_t mt[MERS_N]; // State vector
-int mti;             // Index into mt
+static uint32_t mt[MERS_N]; // State vector
+static int mti;             // Index into mt
 
-uint32_t mrand();
+static uint32_t mrand();
 
 /* Seed generator */
 void mseed(int seed) {
@@ -79,3 +80,11 @@ uint32_t mrand() {
 	y ^=  y >> MERS_L;
 	return y;
 }
+
+long mrand31() { return (long)(mrand()>>1); }
+
+double mrand1() { return mrand()*(1.0/4294967295.0); } /* real in [0,1] */
+double mrand2() { return mrand()*(1.0/4294967296.0); } /* real in [0,1) */
+double mrand3() { return (((double)mrand()) + 0.5)*(1.0/4294967296.0); } /* real in (0,1) */
+
+double mrand53(void) { return((mrand()>>5)*67108864.0+(mrand()>>6))*(1.0/9007199254740992.0); }  /* real in [0,1) with 53-bit resolution */
