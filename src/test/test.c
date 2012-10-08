@@ -216,17 +216,11 @@ void blk_precompute2(blk_t* blk, TC** cl_top, TC** cl_left, TC** cl_diag) {
 			TB b='/'; TC c=0,c2;  // default(0,stop)
 			if (!INIT(oi+i,oj+j)) {
 				// Non-serial partial dependencies
-
-				// XXX: UGLY CODE USING GLOBAL MEMORY, TO BE FIXED
 				//	if (blk->bi>0&&((NONSERIAL)&DIR_VERT) || blk->bj>0&&((NONSERIAL)&DIR_HORZ) || blk->bi>0&&blk->bj>0&&((NONSERIAL)&DIR_DIAG)) {
-				for (size_t k=j+1; k<oj+j; ++k) { c2=g_cost[idx(oi+i,oj+j-k)]-p_gap(k); if (c2>c) { c=c2; b=p_left[k]; } }
 
-				// XXX: replace with such code:
 				for (unsigned k=1 ; k<oj; ++k) {
-					//printf("%p -- %p\n", &g_cost[B_IN(oi+i,oj-k)], &cl_left[k/B_W][0] );
-					// printf("%p -- %p\n", &g_cost[idx(oi+i,oj-k)], &cl_left[k/B_W][idx(i,B_WH  )] );
-					//c2= cl_left[k/B_W][idx( i  ,   (B_W-(k%B_W))%B_W  )] - p_gap(k+j);
-					//if (c2>=c) { c=c2; b=p_left[k+j]; }
+					c2=cl_left[(k-1)/B_W][ i*(B_H+1)+ (B_W-k%B_W)%B_W *B_H ]-p_gap(j+k);
+					if (c2>c) { c=c2; b=p_left[j+k]; }
 				}
 
 				for (unsigned k=1, i0=idx(B_H-1,j),
