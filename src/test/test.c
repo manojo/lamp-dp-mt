@@ -209,29 +209,38 @@ void solve1() {
 // -----------------------------------------------------------------------------
 // block-split
 
+#define BLK_COST_LEFT(i,k) (cl_left[(k-1)/B_W][ i*(B_H+1)+ (B_W-k%B_W)%B_W *B_H ])
+#define BLK_COST_TOP(k,j) (cl_top[k/B_H][idx((B_H-(k%B_H))%B_H,j)])
+
+// Handle non-serial dependencies out of the block
 void blk_precompute2(blk_t* blk, TC** cl_top, TC** cl_left, TC** cl_diag) {
 	const unsigned long oi=blk->bi*B_H, oj=blk->bj*B_W; // block offset in global memory
 	for (unsigned i=0;i<blk->mi;++i) {
 		for (unsigned j=0;j<blk->mj;++j) {
 			TB b='/'; TC c=0,c2;  // default(0,stop)
 			if (!INIT(oi+i,oj+j)) {
+
+
 				// Non-serial partial dependencies
 				//	if (blk->bi>0&&((NONSERIAL)&DIR_VERT) || blk->bj>0&&((NONSERIAL)&DIR_HORZ) || blk->bi>0&&blk->bj>0&&((NONSERIAL)&DIR_DIAG)) {
 
+				for (unsigned k=1; k<oj; ++k) { c2=BLK_COST_LEFT(i,k) - p_gap(j+k); if (c2>c) { c=c2; b=p_left[j+k]; } }
+				for (unsigned k=1; k<oi; ++k) { c2=BLK_COST_TOP(k,j) - p_gap(k+i); if (c2>=c) { c=c2; b=p_up[k+i]; } }
+
+
+
+/*
 				for (unsigned k=1, i0=i*(B_H+1)+(B_W-1)*B_H,
 				                   iN=i*(B_H+1),iX=i0; k<oj; ++k, iX=iX==iN?i0:iX-B_H) { // cl_left[(k-1)/B_W][ i*(B_H+1)+ (B_W-k%B_W)%B_W *B_H ];
 					c2=cl_left[(k-1)/B_W][iX]-p_gap(j+k);
 					if (c2>c) { c=c2; b=p_left[j+k]; }
 				}
-
 				for (unsigned k=1, i0=idx(B_H-1,j),
 				                   iN=idx(0,j),iX=i0; k<oi; ++k, iX=iX==iN?i0:iX-1-B_H) { // cl_top[k/B_H][idx( (B_H-(k%B_H))%B_H  ,j)]
 					c2= cl_top[k/B_H][iX] - p_gap(k+i);
 					if (c2>=c) { c=c2; b=p_up[k+i]; }
 				}
-
-				// XXX: diagonal non-serial dependencies
-
+*/
 			}
 			blk->cost[idx(i,j)] = c;
 			blk->back[idx(i,j)] = b;
@@ -286,7 +295,7 @@ void solve2() {
 			for (unsigned k=0;k<bm;++k) {
 				c_list[2][3*k+0]=mm_alloc(bi-k-1,bj-k-1); // Diagonal | Db Ub    -->j
 				c_list[2][3*k+1]=mm_alloc(bi-k  ,bj-k-1); // Upper    | Lb Da Ua
-				c_list[2][3*k+2]=mm_alloc(bi-k-1,bj-k  ); // Lower  i V    La []
+				c_list[2][3*k+2]=mm_alloc(bi-k-1,bj-k  ); // Lower   iV    La []
 			}
 			#endif
 
