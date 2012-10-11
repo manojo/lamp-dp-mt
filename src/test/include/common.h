@@ -1,22 +1,29 @@
 #include <stdio.h>
-#include <assert.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
 #include <sys/time.h>
 
 #include "mrand.h"
 
 #define _inline __attribute__((unused)) static inline
 #define ASSERT(cond) extern int __assert__[1-2*(!(cond))];
+#define MAX(a,b) ({ typeof(a) _a=(a); typeof(b) _b=(b); _a>_b?_a:_b; })
+#define MIN(a,b) ({ typeof(a) _a=(a); typeof(b) _b=(b); _a<_b?_a:_b; })
 
 // -----------------------------------------------------------------------------
-
-#define cuErr(err) (cudaError(err,__FILE__,__LINE__))
+// Some CUDA primitives
+#ifdef __CUDACC__
+#define cuDevSync() cudaDeviceSynchronize()
+#define cuErr(err) cuErr_(err,__FILE__,__LINE__)
 #define cuSync(stream) cuErr(cudaStreamSynchronize(stream))
 #define cuPut(host,dev,size,stream) cuErr(cudaMemcpyAsync(dev,host,size,cudaMemcpyHostToDevice,stream))
 #define cuGet(host,dev,size,stream) cuErr(cudaMemcpyAsync(host,dev,size,cudaMemcpyDeviceToHost,stream))
-_inline void cudaError(cudaError_t err, const char *file,  int line) { if (err!=cudaSuccess) { fprintf(stderr,"%s:%i CUDA error %d:%s\n", file, line, err, cudaGetErrorString(err)); exit(EXIT_FAILURE); } }
+#define cuMalloc(ptr,size) cuErr(cudaMalloc((void**)&ptr,size))
+#define cuFree(ptr) cuErr(cudaFree(ptr))
+_inline void cuErr_(cudaError_t err, const char *file, int line) { if (err!=cudaSuccess) { fprintf(stderr,"%s:%i CUDA error %d:%s\n", file, line, err, cudaGetErrorString(err)); exit(EXIT_FAILURE); } }
 _inline void cuInfo(bool full=true) {
 	int deviceCount=0; cudaError_t err=cudaGetDeviceCount(&deviceCount);
 	if (err==38 || deviceCount==0) { fprintf(stderr,"No CUDA device\n"); exit(EXIT_FAILURE); }
@@ -38,15 +45,21 @@ _inline void cuInfo(bool full=true) {
 		}
 	}
 }
+#else
+#define cuDevSync()
+#endif
+
+// -----------------------------------------------------------------------------
+// A simple timer that provides range and average
 
 struct cuTimer {
 	struct timeval ts;
 	double min,max,sum; int count;
 	cuTimer() { reset(); }
 	void reset() { min=max=-1; sum=0; count=0; }
-	void start() { cudaDeviceSynchronize();  gettimeofday(&ts,NULL); }
+	void start() { cuDevSync(); gettimeofday(&ts,NULL); }
 	void stop() {
-		struct timeval te; cudaDeviceSynchronize(); gettimeofday(&te,NULL);
+		struct timeval te; cuDevSync(); gettimeofday(&te,NULL);
 		double last=(te.tv_sec-ts.tv_sec)*1000.0+(te.tv_usec-ts.tv_usec)/1000.0;
 		if (min<0 || last<min) min=last; if (max<0 || last>max) max=last; sum+=last; count++;
 	}

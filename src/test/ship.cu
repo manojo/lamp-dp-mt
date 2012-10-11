@@ -15,7 +15,8 @@ __global__ void fun1(int* a, int* b, unsigned size) {
 
 int main(int argc,char** argv) {
 	cudaDeviceReset();
-	const unsigned size=1<<22; // 3<<24 = max can be reserved for 512MB GPU
+	const unsigned size=3<<21; // 3<<24 = max can be reserved for 512MB GPU
+	// 1<<22 with backtrack
 	const unsigned int ms=size*sizeof(int);
 
 	// 3<<24 = 48M pairs of (4+4) chars => 384Mb data to and back from GPU
@@ -38,22 +39,23 @@ for (int i=0;i<10;++i) {
 	cuErr(cudaStreamCreate(&stream));
 
 	// Test 1: forth and back memory transfer
-	gettimeofday(&ts, NULL);
+	cuSync(stream); gettimeofday(&ts, NULL);
 	cuPut(ca,ga,ms,stream);
 	cuPut(cb,gb,ms,stream);
 	fun<<<size/32, 32, 0, stream>>>(ga,gb,size);
 	cuGet(ca,ga,ms,stream);
 	cuGet(cb,gb,ms,stream);
-	cuSync(stream);
-	gettimeofday(&te, NULL);
-	printf("GPU time1: %.3f ms\n", (float)( 1000.0*(te.tv_sec-ts.tv_sec) + 0.001*(te.tv_usec-ts.tv_usec) ) );
+	cuSync(stream); gettimeofday(&te, NULL);
 
+	printf("GPU time1: %.3f ms\n", (float)( 1000.0*(te.tv_sec-ts.tv_sec) + 0.001*(te.tv_usec-ts.tv_usec) ) );
+/*
 	// Test 2: backtrack on GPU
 	gettimeofday(&ts, NULL);
 	fun1<<<1, 1, 0, stream>>>(ga,gb,size);
 	cuSync(stream);
 	gettimeofday(&te, NULL);
 	printf("GPU time2: %.3f ms\n", (float)( 1000.0*(te.tv_sec-ts.tv_sec) + 0.001*(te.tv_usec-ts.tv_usec) ) );
+*/
 }
 
 	free(ca);
@@ -88,6 +90,12 @@ CPU time: 105.941 ms
 GPU time: 285.827 ms
 CPU time: 107.504 ms
 GPU time: 285.893 ms <- hot caches 2.6x slowdown vs CPU
+* here we get 2.0x slowdown on a more recent computer
+	With (3<<25) elements
+	CPU time: 125.069 ms
+	GPU time: 262.614 ms (with transfer)
+	GPU time: 0.017 ms (for pure call
+
 
 Without -m64
 CPU time: 417.344 ms
