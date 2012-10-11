@@ -21,6 +21,10 @@
 #if !defined(SH_RECT)&&!defined(SH_TRI)&&!defined(SH_PARA)
 #error "Matrix must have a shape"
 #endif
+#ifndef SH_RECT
+ASSERT(M_W==M_H);
+#endif
+
 
 // Backtracking macros
 #define BSTOP (0)
@@ -40,8 +44,17 @@
 #define BI(bp) ( (bp)>>_BSH)                // extract the i value
 #define BJ(bp) ( (bp) & ((1<<_BSH)-1) )     // extract the j value
 
-#define MEM_MATRIX (M_W*M_H+B_H*B_H)
+#define MEM_MATRIX (M_W* ((M_H+B_H-1)/B_H)*B_H  +B_H*B_H)
 #define MEM_WAVE_D MAX((M_H+B_H-1)/B_H,(M_W+B_W-1)/B_W)
+
+// element indices
+inline unsigned idx(unsigned i, unsigned j) {
+	#ifdef SH_PARA
+		return B_H*((j%M_W)+(i%B_H)) + (i%B_H) + (i/B_H)*M_W*B_H;
+	#else
+		return B_H*(j+(i%B_H)) + (i%B_H) + (i/B_H)*M_W*B_H;
+	#endif
+}
 
 // -----------------------------------------------------------------------------
 // CPU helpers
@@ -121,3 +134,61 @@ void g_free() {
 }
 
 #endif
+
+// -----------------------------------------------------------------------------
+
+void dbg_print(bool gpu, FILE* f) {
+	TI* in0 = c_in[0];
+	TI* in1 = c_in[1];
+	TB* back = c_back;
+	TC* cost = c_cost;
+	if (gpu) {
+		in0=(TI*)malloc(sizeof(TI)*M_H);
+		in1=(TI*)malloc(sizeof(TI)*M_W);
+		back=(TB*)malloc(sizeof(TB)*MEM_MATRIX);
+		cost=(TC*)malloc(sizeof(TC)*MEM_MATRIX);
+		#ifdef __CUDACC__
+		cuStream(stream);
+		cuGet(in0,g_in[0],sizeof(TI)*M_H,stream);
+		cuGet(in1,g_in[1],sizeof(TI)*M_W,stream);
+		cuGet(back,g_back,sizeof(TB)*MEM_MATRIX,stream);
+		cuGet(cost,g_cost,sizeof(TC)*MEM_MATRIX,stream);
+		cuSync(stream);
+		cuStrFree(stream);
+		#endif
+	}
+
+	const char d[]={'#','|','-','\\'};
+	fprintf(f,"Matrix(%ldx%ld), blocks(%ldx%ld)\n",M_H,M_W,B_H,B_W);
+	fprintf(f,"  |");
+	// header
+	for (size_t j=0;j<M_W;++j) { fprintf(f," %c  ",in1[j]); if (j%B_W==B_W-1) fprintf(f," |"); }
+	fprintf(f,"\n");
+	for (size_t i=0;i<M_H;++i) {
+		// spacer
+		if (i%B_H==0) {
+			fprintf(f,"--+");
+			for (size_t j=0;j<M_W;++j) { fprintf(f,"----"); if (j%B_W==B_W-1) fprintf(f,"-+"); }
+			fprintf(f,"\n");
+		}
+		// content (backtrack)
+		fprintf(f,"%c |",in0[i]);
+		for (size_t j=0;j<M_W;++j) {
+			TB b = back[idx(i,j)];
+			if (BV(b)) fprintf(f," %c%2d",d[BD(b)],BV(b));
+			else fprintf(f," %c  ",d[BD(b)]);
+
+			if (j%B_W==B_W-1) fprintf(f," |");
+		}
+		fprintf(f,"\n");
+		// content (score)
+		fprintf(f,"  |");
+		for (size_t j=0;j<M_W;++j) {
+			TB c = cost[idx(i,j)];
+			fprintf(f,"%4d",c);
+			if (j%B_W==B_W-1) fprintf(f," |");
+		}
+		fprintf(f,"\n");
+	}
+	if (gpu) { free(in0); free(in1); free(back); free(cost); }
+}

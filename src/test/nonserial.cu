@@ -6,13 +6,13 @@
 // - Data types
 #define TI char    // input data type
 #define TC int     // cost type
-#define TB char    // backtrack type
+#define TB short   // backtrack type (2 bits for direction + 14 for value)
 #define TW int     // wavefront type (if not defined, no wavefront)
 // - Problem dimensions
 #define B_W 8LU    // block width
 #define B_H 4LU    // block height
-#define M_W 79LU   // matrix dimension
-#define M_H 37LU   // matrix dimension
+#define M_W 49LU   // matrix dimension
+#define M_H 67LU   // matrix dimension
 // - Problem shape (RECT, TRIANG, PARALL)
 #define SH_RECT
 //#define SH_TRI
@@ -48,23 +48,15 @@ inline TC p_cost(char s, char t) { return s==t?1:0; }
 // XXX: shall we assume that we could go sub-byte granularity for types ?
 // XXX: need a full rework here, depending the configuration
 
-// XXX: the memory is corrupted at some point, the full matrix is not initialized properly
-inline unsigned idx(unsigned i, unsigned j) { return B_H*((j%M_W)+(i%B_H)) + (i%B_H) + (i/B_H)*M_W*B_H; }
-
 void c_solve() {
-	for (size_t i=0; i<M_H; ++i) {
-		for (size_t j=0; j<M_W; ++j) {
+	for (unsigned i=0; i<M_H; ++i) {
+		for (unsigned j=0; j<M_W; ++j) {
 			if (INIT(i,j)) { c_back[idx(i,j)]=BSTOP; c_cost[idx(i,j)]=0; }
 			else {
 				TB b=BSTOP; TC c=0,c2;  // stop
-
-				b=2;
-
-				/*
 				for (size_t k=1; k<j; ++k) { c2=c_cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=B(DIR_LEFT,k); } }
 				for (size_t k=1; k<i; ++k) { c2=c_cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=B(DIR_UP,k); } }
-				c2 = c_cost[idx(i-1,j-1)]+p_cost(c_in[0][i],c_in[1][j]); if (c2>=c) { c=c2; b=B(DIR_DIAG,0); }
-				*/
+				c2 = c_cost[idx(i-1,j-1)]+p_cost(c_in[0][i],c_in[1][j]); if (c2>=c) { c=c2; b=B(DIR_DIAG,1); }
 				c_cost[idx(i,j)] = c;
 				c_back[idx(i,j)] = b;
 			}
@@ -73,32 +65,34 @@ void c_solve() {
 }
 
 // simply return the pair of indices (i,j) that are in the backtrack
-void c_backtrack() {
-	// XXX: separate find max and backtrack itself ?
-}
+// by default we use the direction-length backtrack
+TC c_backtrack(unsigned** bt, unsigned* size) {
+	// Find the position with maximal cost
+	unsigned mi=0; TC ci=0;
+	unsigned mj=0; TC cj=0;
+	for (unsigned i=0; i<M_H; ++i) { TC c=c_cost[idx(i,M_W-1)]; if (c>ci) { mi=i; ci=c; } }
+	for (unsigned j=0; j<M_W; ++j) { TC c=c_cost[idx(M_H-1,j)]; if (c>cj) { mj=j; cj=c; } }
+	unsigned i,j;
+	if (ci>cj) { i=mi; j=M_W-1; } else { i=M_H-1; j=mj; }
 
-void c_print(FILE* f) {
-	fprintf(f,"Matrix(%ldx%ld), blocks(%ldx%ld)\n",M_H,M_W,B_H,B_W);
-	fprintf(f,"  |");
-	// header
-	for (size_t j=0;j<M_W;++j) { fprintf(f," %c",c_in[1][j]); if (j%B_W==B_W-1) fprintf(f," |"); }
-	fprintf(f,"\n");
-	for (size_t i=0;i<M_H;++i) {
-		// spacer
-		if (i%B_H==0) {
-			fprintf(f,"--+");
-			for (size_t j=0;j<M_W;++j) { fprintf(f,"--"); if (j%B_W==B_W-1) fprintf(f,"-+"); }
-			fprintf(f,"\n");
-		}
-		// content
-		fprintf(f,"%c |",c_in[0][i]);
-		for (size_t j=0;j<M_W;++j) {
-			char d[]={'#','|','-','\\'};
-			fprintf(f," %c",d[BD(c_back[idx(i,j)])]);
-			if (j%B_W==B_W-1) fprintf(f," |");
-		}
-		fprintf(f,"\n");
+	// Backtrack
+	if (bt && size) {
+		TB b;
+		*bt=(unsigned*)malloc((M_W+M_H)*2*sizeof(unsigned));
+		unsigned sz=0;
+		unsigned* track=*bt;
+		do {
+			track[0]=i; track[1]=j; track+=2; ++sz;
+			b = c_back[idx(i,j)];
+			switch(BD(b)) {
+				case DIR_LEFT: j-=BV(b); break;
+				case DIR_UP: i-=BV(b); break;
+				case DIR_DIAG: i-=BV(b); j-=BV(b); break;
+			}
+		} while (b!=BSTOP);
+		*size=sz;
 	}
+	return MAX(ci,cj);
 }
 
 // -----------------------------------------------------------------------------
@@ -108,23 +102,33 @@ void c_print(FILE* f) {
 // - allocate memory
 // - access memory[cost,backtrack,wavefront,input] at index (i,j)
 
+
+void dbg_track(bool gpu, FILE* f) {
+	// XXX: fix for GPU
+
+	unsigned* bt;
+	unsigned sz;
+	unsigned score = c_backtrack(&bt,&sz);
+	fprintf(f,"Backtrack with best score : %d\n",score);
+	for (unsigned i=sz-1;;--i) {
+		printf("(%d,%d) ",bt[i*2],bt[i*2+1]);
+		if (!i) break;
+	}
+	printf("\n");
+	free(bt);
+}
+
 // -----------------------------------------------------------------------------
-
-/*
-*/
-
 
 int main(int argc, char** argv) {
 	c_init();
 	c_solve();
-	c_print(stdout);
+//	dbg_print(false,stdout);
+	dbg_track(false,stdout);
 	c_free();
-
 
 //	g_init();
 //	g_free();
-
-
 
 /*
 	#ifdef SH_RECT
@@ -137,13 +141,28 @@ int main(int argc, char** argv) {
 	printf("parallelogram\n");
 	#endif
 */
-
 	return 0;
 }
 
 
-#if 0
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0
 // macro helpers
 #define B_LEN(n) (B_H*B_W*(n) + B_H*(B_H-1)-1) // memory length for N contiguous(line) blocks
 #define B_IN(i,j) ( ((i)/B_H)*M_W*B_H + ((j)/B_W)*B_W*B_H ) // returns offset of the block containing (i,j)
@@ -178,8 +197,8 @@ void init() {
 	g_cost=(TC*)malloc(sizeof(TC)*mem);
 	g_back=(TB*)malloc(sizeof(TB)*mem);
 	#ifdef TW
-		g_wave[0]=(TW*)malloc(sizeof(TW)*C_H);
-		g_wave[1]=(TW*)malloc(sizeof(TW)*C_W);
+		g_wave[0]=(TW*)malloc(sizeof(TW)*M_H);
+		g_wave[1]=(TW*)malloc(sizeof(TW)*M_W);
 		g_wave[2]=(TW*)malloc(sizeof(TW)*MAX(M_H/B_H,M_W/B_W));
 	#endif
 	g_in[0]=p_S; // also duplicate into CUDA
@@ -217,8 +236,8 @@ void mm_free(void* ptr) {}
 
 blk_t blk_get(off_t bi, off_t bj, bool device=false) {
 	blk_t b; b.bi=bi; b.bj=bj;
-	b.mi=C_H-bi*B_H; if (b.mi>B_H) b.mi=B_H;
-	b.mj=C_W-bj*B_W; if (b.mj>B_W) b.mj=B_W;
+	b.mi=M_H-bi*B_H; if (b.mi>B_H) b.mi=B_H;
+	b.mj=M_W-bj*B_W; if (b.mj>B_W) b.mj=B_W;
 	b.in[0]=&g_in[0][bi*B_H]; // XXX: depends whether we're on device
 	b.in[1]=&g_in[1][bj*B_W];
 	b.wr_back=false;
@@ -233,34 +252,6 @@ void blk_free(blk_t* blk) {
 	}
 	mm_free(blk->cost);
 	mm_free(blk->back);
-}
-
-void print(FILE* f) {
-	fprintf(f,"Matrix(%ldx%ld), data(%ldx%ld), blocks(%ldx%ld)\n",M_H,M_W,C_H,C_W,B_H,B_W);
-	fprintf(f,"  ");
-	// header
-	for (size_t j=0;j<M_W;++j) { fprintf(f," %c",j<C_W?(char)g_in[1][j]:'#'); if (j%B_W==B_W-1) fprintf(f," |"); }
-	fprintf(f,"\n");
-	for (size_t i=0;i<M_H;++i) {
-		// content
-		fprintf(f," %c",i<C_H?(char)g_in[0][i]:'#');
-		for (size_t j=0;j<M_W;++j) {
-			if (i>=C_H||j>=C_W) fprintf(f," .");
-			else {
-				// TABLE CONTENT
-				char c = g_back[idx(i,j)]; fprintf(f," %c",c?c:' ');
-				//fprintf(f,"  ");
-			}
-			if (j%B_W==B_W-1) fprintf(f," |");
-		}
-		fprintf(f,"\n");
-		// spacer
-		if (i%B_H==B_H-1) {
-			fprintf(f,"--");
-			for (size_t j=0;j<M_W;++j) { fprintf(f,"--"); if (j%B_W==B_W-1) fprintf(f,"-+"); }
-			fprintf(f,"\n");
-		}
-	}
 }
 
 // -----------------------------------------------------------------------------
@@ -391,9 +382,7 @@ pid_t sys_exec(const char* path, ...) {
 }
 
 int main(int argc, char** argv) {
-
 	init();
-
 	FILE* f;
 	f=fopen("ref.txt","w"); solve1(); print(f); fclose(f);
 	f=fopen("t.txt","w"); solve2(); print(f); fclose(f);
