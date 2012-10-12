@@ -3,12 +3,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdarg.h>
 #include <assert.h>
 #include <sys/time.h>
 
 #include "mrand.h"
 
 #define _inline __attribute__((unused)) static inline
+#ifdef __CUDACC__
+#define _hostdev __host__ __device__
+#else
+#define _hostdev
+#endif
+
 #define ASSERT(cond) extern int __assert__[1-2*(!(cond))];
 #define MAX(a,b) ({ typeof(a) _a=(a); typeof(b) _b=(b); _a>_b?_a:_b; })
 #define MIN(a,b) ({ typeof(a) _a=(a); typeof(b) _b=(b); _a<_b?_a:_b; })
@@ -53,7 +60,7 @@ _inline void cuInfo(bool full=true) {
 #endif
 
 // -----------------------------------------------------------------------------
-// A simple timer that provides range and average
+// Timer with range and average measurements
 
 struct cuTimer {
 	struct timeval ts;
@@ -68,3 +75,17 @@ struct cuTimer {
 	}
 	void print() { printf("%6.2fms [%6.2f,%6.2f], %d runs",count?sum/count:0.0,min,max,count); min=max=-1; sum=0; count=0; }
 };
+
+// -----------------------------------------------------------------------------
+// Execute an external program and wait for its status
+
+int sys_exec(const char* path, ...) {
+	pid_t f; int r; char** argv=NULL; char* a; va_list ap; int n=2;
+	va_start(ap,path); while ((a=va_arg(ap,char*))) ++n; va_end(ap);
+	argv=(char**)malloc(n*sizeof(char*)); if (!argv) return -1; argv[0]=(char*)path; n=1;
+	va_start(ap,path); while ((a=va_arg(ap,char*))) argv[n++]=a; va_end(ap); argv[n]=NULL;
+	switch(f=fork()) { case -1: return -1; case 0: execvp(path,argv); _exit(1);
+		default: free(argv); if (f!=-1 && waitpid(f,&r,0)!=-1) return WEXITSTATUS(r); else return -1;
+	}
+}
+

@@ -48,7 +48,7 @@ ASSERT(M_W==M_H);
 #define MEM_WAVE_D MAX((M_H+B_H-1)/B_H,(M_W+B_W-1)/B_W)
 
 // element indices
-inline unsigned idx(unsigned i, unsigned j) {
+_hostdev _inline unsigned idx(unsigned i, unsigned j) {
 	#ifdef SH_PARA
 		return B_H*((j%M_W)+(i%B_H)) + (i%B_H) + (i/B_H)*M_W*B_H;
 	#else
