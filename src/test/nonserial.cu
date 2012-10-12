@@ -14,10 +14,10 @@
 #define TB short   // backtrack type (2 bits for direction + 14 for value)
 #define TW int     // wavefront type (if not defined, no wavefront)
 // - Problem dimensions
-#define B_W 32LU    // block width
-#define B_H 32LU    // block height
-#define M_W 249LU   // matrix dimension
-#define M_H 267LU   // matrix dimension
+#define B_W 64LU    // block width
+#define B_H 64LU    // block height
+#define M_W 512LU  // matrix dimension
+#define M_H 512LU  // matrix dimension
 // - Problem shape (RECT, TRIANG, PARALL)
 #define SH_RECT
 //#define SH_TRI
@@ -49,6 +49,22 @@ _hostdev _inline TC p_cost(char s, char t) { return s==t?1:0; }
 // -----------------------------------------------------------------------------
 
 #include "include/nonserial.h" // must be included after problem definition
+
+void c_solve() {
+	for (unsigned i=0; i<M_H; ++i) {
+		for (unsigned j=0; j<M_W; ++j) {
+			if (INIT(i,j)) { c_back[idx(i,j)]=BSTOP; c_cost[idx(i,j)]=0; }
+			else {
+				TB b=BSTOP; TC c=0,c2;  // stop
+				for (size_t k=1; k<j; ++k) { c2=c_cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=B(DIR_LEFT,k); } }
+				for (size_t k=1; k<i; ++k) { c2=c_cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=B(DIR_UP,k); } }
+				c2 = c_cost[idx(i-1,j-1)]+p_cost(c_in[0][i],c_in[1][j]); if (c2>=c) { c=c2; b=B(DIR_DIAG,1); }
+				c_cost[idx(i,j)] = c;
+				c_back[idx(i,j)] = b;
+			}
+		}
+	}
+}
 
 // simply return the pair of indices (i,j) that are in the backtrack
 // by default we use the direction-length backtrack
@@ -82,22 +98,6 @@ TC c_backtrack(unsigned** bt, unsigned* size) {
 	return cost;
 }
 
-void c_solve() {
-	for (unsigned i=0; i<M_H; ++i) {
-		for (unsigned j=0; j<M_W; ++j) {
-			if (INIT(i,j)) { c_back[idx(i,j)]=BSTOP; c_cost[idx(i,j)]=0; }
-			else {
-				TB b=BSTOP; TC c=0,c2;  // stop
-				for (size_t k=1; k<j; ++k) { c2=c_cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=B(DIR_LEFT,k); } }
-				for (size_t k=1; k<i; ++k) { c2=c_cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=B(DIR_UP,k); } }
-				c2 = c_cost[idx(i-1,j-1)]+p_cost(c_in[0][i],c_in[1][j]); if (c2>=c) { c=c2; b=B(DIR_DIAG,1); }
-				c_cost[idx(i,j)] = c;
-				c_back[idx(i,j)] = b;
-			}
-		}
-	}
-}
-
 /*
 //GPU lock-free synchronization function
 __device__ void __gpu_sync(int goalVal, volatile int *Arrayin, volatile int *Arrayout) {
@@ -125,21 +125,49 @@ __device__ void __gpu_sync(int goalVal, volatile int *Arrayin, volatile int *Arr
 }
 */
 
-__global__ void gpu_solve(TI* in0, TI* in1, TC* cost, TB* back, unsigned* sync) {
+// -----------------------------------------------------------------------------
+
+#define M_STRIPES ((M_H+B_H-1)/B_H) // number of CUDA block stripes (of height B_H) in the matrix
+
+__global__ void gpu_solve(TI* in0, TI* in1, TC* cost, TB* back, volatile unsigned* sync) { // 437ms -> 555ms for volatile (but ensures correctness)
+	const unsigned tx = threadIdx.x+B_H*blockIdx.x;
+	const int i=tx;
+	for (int jj=0; jj<M_W+M_H; ++jj) {
+		int j=jj-tx;
+
+		// Do computations in the valid part of the matrix
+		if (j>=0 && j<M_W && i<M_H) {
+			TB b=BSTOP; TC c=0,c2; // stop
+			if (!INIT(i,j)) {
+				for (size_t k=1; k<j; ++k) { c2=cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=B(DIR_LEFT,k); } }
+				for (size_t k=1; k<i; ++k) { c2=cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=B(DIR_UP,k); } }
+				c2 = cost[idx(i-1,j-1)]+p_cost(in0[i],in1[j]); if (c2>=c) { c=c2; b=B(DIR_DIAG,1); }
+			}
+			cost[idx(i,j)] = c;
+			back[idx(i,j)] = b;
+		}
+
+		// Synchronize between blocks
+		__threadfence();
+		if (threadIdx.x==0) {
+			sync[blockIdx.x]=jj;
+			if (blockIdx.x>0) {
+				while (sync[blockIdx.x-1]<jj) {}
+			}
+		}
+		__syncthreads();
+	}
+
+/*
+// XXX: BUGGY BUT TIMING IS BEARABLE
 	const unsigned tx = threadIdx.x+blockDim.x * blockIdx.x;
 	const unsigned bx = blockDim.x * gridDim.x;
-
-
-// XXX: BUGGY BUT TIMING IS BEARABLE
-
 	int i,j;
 	// initialization
 	for (i=tx;i<M_H;i+=bx) { cost[idx(i,0)]=0; back[idx(i,0)]=BSTOP; }
 	for (j=tx;j<M_W;j+=bx) { cost[idx(0,j)]=0; back[idx(0,j)]=BSTOP; }
 
 	if (threadIdx.x==0) sync[blockIdx.x]=0;
-
-
 	for (int i=1+tx; i<M_H; i+=bx) {
 		unsigned p=idx(i,1);
 		unsigned p1=idx(i-1,0);
@@ -155,7 +183,6 @@ __global__ void gpu_solve(TI* in0, TI* in1, TC* cost, TB* back, unsigned* sync) 
 				p1+=B_W;
 			}
 			// XXX: missing synchro between blocks
-
 			// XXX: sync between blocks: wait for previous block to have released its lock
 			__syncthreads();
 			// XXX: flush to memory
@@ -167,18 +194,16 @@ __global__ void gpu_solve(TI* in0, TI* in1, TC* cost, TB* back, unsigned* sync) 
 			__syncthreads();
 		}
 	}
-
+*/
 
 }
 
 void g_solve() {
 	//const unsigned tx = threadIdx.x + blockDim.x * ( blockIdx.x + blockIdx.y*gridDim.x );
 	unsigned* sync;
-
-	unsigned num_blocks = 64; // XXX: make sure that block*threads CAN be < M_H
-
-	cuMalloc(sync,sizeof(unsigned)*num_blocks); // 64 blocks
-	gpu_solve<<<64,32,0,NULL>>>(g_in[0],g_in[1],g_cost,g_back,sync);
+	cuMalloc(sync,sizeof(int)*M_STRIPES); // 64 blocks
+	cudaMemset(sync,0,sizeof(unsigned)*M_STRIPES);
+	gpu_solve<<<M_STRIPES,B_H,0,NULL>>>(g_in[0],g_in[1],g_cost,g_back,sync);
 	cuFree(sync);
 }
 
@@ -209,35 +234,43 @@ void dbg_track(bool gpu, FILE* f) {
 	free(bt);
 }
 
+void dbg_compare(bool full=false) {
+	TC* tc=(TC*)malloc(sizeof(TC)*MEM_MATRIX); cuGet(tc,g_cost,sizeof(TC)*MEM_MATRIX,NULL);
+	TB* tb=(TB*)malloc(sizeof(TB)*MEM_MATRIX); cuGet(tb,g_back,sizeof(TB)*MEM_MATRIX,NULL);
+	int err=0;
+	for (int i=0;i<M_H;++i) {
+		for (int j=0;j<M_W;++j) {
+			if (tc[idx(i,j)]!=c_cost[idx(i,j)]) { ++err; if (full) printf(" (%d,%d)",i,j); }
+
+			//if (tb[idx(i,j)]!=c_back[idx(i,j)]) printf("B");
+		}
+	}
+	printf("Compare CPU/GPU: %d errors.\n",err);
+	free(tc);
+	free(tb);
+}
+
 // -----------------------------------------------------------------------------
 
 int main(int argc, char** argv) {
 	cuInfo();
+	printf("Matrix: %ldx%ld, blocks: %ldx%ld.\n",M_H,M_W,B_H,B_W);
 
 	c_init();
+	g_init();
+
 	cuTimer t;
-	for (int i=0;i<4;++i) { t.start(); c_solve(); t.stop(); }
+	for (int i=0;i<6;++i) { t.start(); c_solve(); t.stop(); }
 	printf("CPU solve: "); t.print(); printf("\n");
+
 	// dbg_print(false,stdout);
 	// dbg_track(false,stdout);
 
-	g_init();
-	for (int i=0;i<4;++i) { t.start(); g_solve(); t.stop(); }
-	printf("GPU solve: "); t.print(); printf("\n");
+	g_solve();
+	dbg_compare();
 
-	/*
-	TC* tc=(TC*)malloc(sizeof(TC)*MEM_MATRIX); cuGet(tc,g_cost,sizeof(TC)*MEM_MATRIX,NULL);
-	TB* tb=(TB*)malloc(sizeof(TB)*MEM_MATRIX); cuGet(tb,g_back,sizeof(TB)*MEM_MATRIX,NULL);
-	for (int i=0;i<M_H;++i) {
-		for (int j=0;j<M_W;++j) {
-			if (tc[idx(i,j)]!=c_cost[idx(i,j)]) printf("C");
-			if (tb[idx(i,j)]!=c_back[idx(i,j)]) printf("B");
-		}
-	}
-	printf("\n");
-	free(tc);
-	free(tb);
-	*/
+	for (int i=0;i<6;++i) { t.start(); g_solve(); t.stop(); }
+	printf("GPU solve: "); t.print(); printf("\n");
 
 	c_free();
 	g_free();
@@ -256,6 +289,15 @@ int main(int argc, char** argv) {
 	cudaDeviceReset();
 	return 0;
 }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -297,36 +339,6 @@ typedef struct {
 // Memory manager and problem data structures
 // > all-in-main-memory implementation
 
-const TI* g_in[2]={NULL,NULL}; // 0=vert(S), 1=horizontal(T) with |S| >= |T|
-TC* g_cost=NULL;
-TB* g_back=NULL;
-#ifdef TW
-TW* g_wave[3]={NULL,NULL,NULL}; // 0=vert,1=horizontal,2=diagonal
-#endif
-
-// initialize structures
-void init() {
-	size_t mem = M_W*M_H+B_H*B_H;
-	g_cost=(TC*)malloc(sizeof(TC)*mem);
-	g_back=(TB*)malloc(sizeof(TB)*mem);
-	#ifdef TW
-		g_wave[0]=(TW*)malloc(sizeof(TW)*M_H);
-		g_wave[1]=(TW*)malloc(sizeof(TW)*M_W);
-		g_wave[2]=(TW*)malloc(sizeof(TW)*MAX(M_H/B_H,M_W/B_W));
-	#endif
-	g_in[0]=p_S; // also duplicate into CUDA
-	g_in[1]=p_T;
-}
-
-// cleanup structures
-void cleanup() {
-	if (g_cost) free(g_cost); g_cost=NULL;
-	if (g_back) free(g_back); g_back=NULL;
-	#ifdef TW
-	for (int i=0;i<3;++i) if (g_wave[i]) { free(g_wave[i]); g_wave[i]=NULL; }
-	#endif
-}
-
 // memory manager
 // XXX: keep track of allocated zones, both function must be mutex-protected
 // XXX: we need an atomic list of cost blocks, of input blocks and of backtrack blocks
@@ -347,46 +359,8 @@ void* mm_alloc(off_t bi, off_t bj, bool cost=true, bool device=false) {
 }
 void mm_free(void* ptr) {}
 
-blk_t blk_get(off_t bi, off_t bj, bool device=false) {
-	blk_t b; b.bi=bi; b.bj=bj;
-	b.mi=M_H-bi*B_H; if (b.mi>B_H) b.mi=B_H;
-	b.mj=M_W-bj*B_W; if (b.mj>B_W) b.mj=B_W;
-	b.in[0]=&g_in[0][bi*B_H]; // XXX: depends whether we're on device
-	b.in[1]=&g_in[1][bj*B_W];
-	b.wr_back=false;
-	b.cost=(TC*)mm_alloc(bi,bj,true);
-	b.back=(TB*)mm_alloc(bi,bj,false);
-	return b;
-}
-
-void blk_free(blk_t* blk) {
-	if (blk->wr_back) {
-		// XXX: write-back to main memory or to storage
-	}
-	mm_free(blk->cost);
-	mm_free(blk->back);
-}
-
 // -----------------------------------------------------------------------------
 // reference implementation
-
-void solve1() {
-	// Recurrence (embeds initialization)
-	for (size_t i=0; i<C_H; ++i) {
-		for (size_t j=0; j<C_W; ++j) {
-			if (i==0 || j==0) {
-				g_back[idx(i,j)]='/'; g_cost[idx(i,j)]=0;
-			} else {
-				TB b='/'; TC c=0,c2;  // stop
-				for (size_t k=1; k<j; ++k) { c2=g_cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=p_left[k]; } } // XXX: missing the k information
-				for (size_t k=1; k<i; ++k) { c2=g_cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=p_up[k]; } }
-				c2 = g_cost[idx(i-1,j-1)]+p_cost(g_in[0][i],g_in[1][j]); if (c2>=c) { c=c2; b='\\'; }
-				g_cost[idx(i,j)] = c;
-				g_back[idx(i,j)] = b;
-			}
-		}
-	}
-}
 
 // -----------------------------------------------------------------------------
 // block-split
@@ -431,53 +405,6 @@ void blk_solve2(blk_t* blk, TC* c_top, TC* c_left, TC* c_diag) {
 			}
 			blk->cost[idx(i,j)] = c;
 			blk->back[idx(i,j)] = b;
-		}
-	}
-}
-
-void solve2() {
-	// we need to manage concurrency at CPU level here to call multiple blocks
-	for (unsigned bi=0;bi<M_H/B_H;++bi) {
-		for (unsigned bj=0;bj<M_W/B_W;++bj) {
-			blk_t blk = blk_get(bi,bj);
-			// --------- Solving non-serial dependencies
-			#if NONSERIAL>0
-			TC** c_list[2]={NULL,NULL}; // previous blocks list (0=vert,1=horz,2=diag)
-			#if (NONSERIAL)&DIR_VERT
-			c_list[0]=(TC**)malloc(bi*sizeof(TC**)); for (unsigned k=0;k<bi;++k) c_list[0][k]=(TC*)mm_alloc(bi-k-1,bj);
-			#endif
-			#if (NONSERIAL)&DIR_HORZ
-			c_list[1]=(TC**)malloc(bj*sizeof(TC**)); for (unsigned k=0;k<bj;++k) c_list[1][k]=(TC*)mm_alloc(bi,bj-k-1);
-			#endif
-			blk_precompute2(&blk,c_list[0],c_list[1]);
-			#if (NONSERIAL)&DIR_VERT
-			for (unsigned k=0;k<bi;++k) mm_free(c_list[0][k]); free(c_list[0]);
-			#endif
-			#if (NONSERIAL)&DIR_HORZ
-			for (unsigned k=0;k<bj;++k) mm_free(c_list[1][k]); free(c_list[1]);
-			#endif
-			#endif
-			// --------- Block processing
-			TC* c_prev[3]={NULL,NULL,NULL};
-			#if (POLYADIC)&(DIR_VERT|DIR_DIAG)
-			if (bi>0) c_prev[0]=(TC*)mm_alloc(bi-1,bj);
-			#endif
-			#if (POLYADIC)&(DIR_HORZ|DIR_DIAG)
-			if (bj>0) c_prev[1]=(TC*)mm_alloc(bi,bj-1);
-			#endif
-			#if (POLYADIC)&DIR_DIAG
-			if (bi>0 && bj>0) c_prev[2]=(TC*)mm_alloc(bi-1,bj-1);
-			#endif
-			blk_solve2(&blk,c_prev[0],c_prev[1],c_prev[2]);
-			#if (POLYADIC)&(DIR_VERT|DIR_DIAG)
-			if (bi>0) mm_free(c_prev[0]);
-			#endif
-			#if (POLYADIC)&(DIR_HORZ|DIR_DIAG)
-			if (bj>0) mm_free(c_prev[1]);
-			#endif
-			#if (POLYADIC)&DIR_DIAG
-			if (bi>0 && bj>0) mm_free(c_prev[2]);
-			#endif
 		}
 	}
 }
