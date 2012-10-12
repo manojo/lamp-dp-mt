@@ -157,45 +157,6 @@ __global__ void gpu_solve(TI* in0, TI* in1, TC* cost, TB* back, volatile unsigne
 		}
 		__syncthreads();
 	}
-
-/*
-// XXX: BUGGY BUT TIMING IS BEARABLE
-	const unsigned tx = threadIdx.x+blockDim.x * blockIdx.x;
-	const unsigned bx = blockDim.x * gridDim.x;
-	int i,j;
-	// initialization
-	for (i=tx;i<M_H;i+=bx) { cost[idx(i,0)]=0; back[idx(i,0)]=BSTOP; }
-	for (j=tx;j<M_W;j+=bx) { cost[idx(0,j)]=0; back[idx(0,j)]=BSTOP; }
-
-	if (threadIdx.x==0) sync[blockIdx.x]=0;
-	for (int i=1+tx; i<M_H; i+=bx) {
-		unsigned p=idx(i,1);
-		unsigned p1=idx(i-1,0);
-		for (int j=1-tx; j<M_W; ++j) {
-			if (j>0) {
-				TC c=cost[p1]+p_cost(in0[i],in1[j]),c2;
-				TB b=B(DIR_DIAG,1);
-				for (size_t k=1; k<j; ++k) { c2=cost[p-k*B_W]-p_gap(k); if (c2>c) { c=c2; b=B(DIR_LEFT,k); } }
-				for (size_t k=1; k<i; ++k) { c2=cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=B(DIR_UP,k); } }
-				cost[p] = c;
-				back[p] = b;
-				p+=B_W;
-				p1+=B_W;
-			}
-			// XXX: missing synchro between blocks
-			// XXX: sync between blocks: wait for previous block to have released its lock
-			__syncthreads();
-			// XXX: flush to memory
-			if (threadIdx.x==0) {
-				const unsigned b = blockIdx.x;
-				sync[b]=i;
-				if (b>0) { while (sync[b-1]<i) {} }
-			}
-			__syncthreads();
-		}
-	}
-*/
-
 }
 
 void g_solve() {
@@ -207,12 +168,7 @@ void g_solve() {
 	cuFree(sync);
 }
 
-TC g_backtrack(unsigned** bt, unsigned* size) {
-	return 0;
-}
-
-
-
+TC g_backtrack(unsigned** bt, unsigned* size) { return 0; }
 
 // -----------------------------------------------------------------------------
 // GPU structures
@@ -235,14 +191,15 @@ void dbg_track(bool gpu, FILE* f) {
 }
 
 void dbg_compare(bool full=false) {
+	cudaMemset(g_cost,0xff,sizeof(TC)*MEM_MATRIX);
+	cudaMemset(g_back,0xff,sizeof(TB)*MEM_MATRIX);
+	g_solve();
 	TC* tc=(TC*)malloc(sizeof(TC)*MEM_MATRIX); cuGet(tc,g_cost,sizeof(TC)*MEM_MATRIX,NULL);
 	TB* tb=(TB*)malloc(sizeof(TB)*MEM_MATRIX); cuGet(tb,g_back,sizeof(TB)*MEM_MATRIX,NULL);
 	int err=0;
 	for (int i=0;i<M_H;++i) {
 		for (int j=0;j<M_W;++j) {
 			if (tc[idx(i,j)]!=c_cost[idx(i,j)]) { ++err; if (full) printf(" (%d,%d)",i,j); }
-
-			//if (tb[idx(i,j)]!=c_back[idx(i,j)]) printf("B");
 		}
 	}
 	printf("Compare CPU/GPU: %d errors.\n",err);
@@ -265,8 +222,6 @@ int main(int argc, char** argv) {
 
 	// dbg_print(false,stdout);
 	// dbg_track(false,stdout);
-
-	g_solve();
 	dbg_compare();
 
 	for (int i=0;i<6;++i) { t.start(); g_solve(); t.stop(); }
@@ -275,17 +230,9 @@ int main(int argc, char** argv) {
 	c_free();
 	g_free();
 
-/*
-	#ifdef SH_RECT
-	printf("rectangle\n");
-	#endif
-	#ifdef SH_TRI
-	printf("triangle\n");
-	#endif
-	#ifdef SH_PARA
-	printf("parallelogram\n");
-	#endif
-*/
+	// #ifdef SH_RECT
+	// #ifdef SH_TRI
+	// #ifdef SH_PARA
 	cudaDeviceReset();
 	return 0;
 }
@@ -351,19 +298,6 @@ typedef struct {
  // See http://www.boost.org/doc/libs/1_39_0/boost/interprocess/detail/atomic.hpp
  // instead take into account blocks that have been written to disk so that reloading into memory is easier
  // also note that writing on disk must reorder differently to avoid writing dirty surrounding data
-void* mm_alloc(off_t bi, off_t bj, bool cost=true, bool device=false) {
-	// attempt to alloc, if cannot, then try to free all the blocks with 0 retain,
-	// possibly write-back to disk, then try again
-	if (cost) return &g_cost[B_AT(bi,bj)];
-	else return &g_back[B_AT(bi,bj)];
-}
-void mm_free(void* ptr) {}
-
-// -----------------------------------------------------------------------------
-// reference implementation
-
-// -----------------------------------------------------------------------------
-// block-split
 
 #define COST_BLEFT(i,k) (cl_left[(k-1)/B_W][ i*(B_H+1)+ (B_W-k%B_W)%B_W *B_H ])
 #define COST_BTOP(k,j) (cl_top[k/B_H][idx((B_H-(k%B_H))%B_H,j)])
@@ -406,18 +340,6 @@ void blk_solve2(blk_t* blk, TC* c_top, TC* c_left, TC* c_diag) {
 			blk->cost[idx(i,j)] = c;
 			blk->back[idx(i,j)] = b;
 		}
-	}
-}
-
-#include <unistd.h>
-#include <stdarg.h>
-pid_t sys_exec(const char* path, ...) {
-	pid_t f; int r; char** argv=NULL; char* a; va_list ap; int n=2;
-	va_start(ap,path); while ((a=va_arg(ap,char*))) ++n; va_end(ap);
-	argv=(char**)malloc(n*sizeof(char*)); if (!argv) return -1; argv[0]=(char*)path; n=1;
-	va_start(ap,path); while ((a=va_arg(ap,char*))) argv[n++]=a; va_end(ap); argv[n]=NULL;
-	switch(f=fork()) { case -1: return -1; case 0: execvp(path,(char** const)argv); _exit(1);
-		default: free(argv); if (f!=-1 && waitpid(f,&r,0)!=-1) return WEXITSTATUS(r); else return -1;
 	}
 }
 
