@@ -14,7 +14,7 @@
 // |      M_W      |  |    M_H    |  |    M_H    |
 //
 // -----------------------------------------------------------------------------
-// make sure we picked exactely one shape
+// Ensure we picked exactely one shape
 #if defined(SH_RECT)&&defined(SH_TRI) || defined(SH_TRI)&&defined(SH_PARA) || defined(SH_PARA)&&defined(SH_RECT)
 #error "Cannot define two shapes for the matrix"
 #endif
@@ -25,12 +25,35 @@
 #error "Matrix or block dimensions missing"
 #endif
 
-#ifndef SH_RECT
-#ifdef M_W
-#undef M_W
+// Memory addressing strategies
+#if defined(SH_TRI)
+	#ifdef M_W
+	#undef M_W
+	#endif
+	#define M_W M_H
+	// compact memory addressing: full main diagonal, then the second, ...
+	// idx(i,j) = |M| - |/\| - M_H +i
+	//      |M| = M_H*(M_H+1)/2
+	//     |/\| = d*(d+1)/2
+	//        d = 2*M_H-1-(i+j)
+	#define MEM_MATRIX ((M_H*(M_H+1))/2) // lower right triangle, including diagonal
+	#define idx(i,j) ({ unsigned _i=(i),_j=(j),_d=2*M_H-1-(_i+_j); MEM_MATRIX-M_H - (_d*(_d-1))/2 +_i; })
+#elif defined(SH_PARA)
+	// parallelogram addressing: leftmost diagonal, then the second, ...
+	// this is as a rectangle column-wise but bend
+	#define MEM_MATRIX (M_H*M_W)
+	#define idx(i,j) ({ unsigned _i=(i); ((_i+(j)-M_H-1)*M_H + _i; })
+	//#define idx(i,j) ((j-i)*M_H + i*(M_H+1) )
+#elif defined(SH_RECT)
+	// block-line addressing: smaller parallelograms in lines of height B_H
+	#define MEM_MATRIX (M_W* ((M_H+B_H-1)/B_H)*B_H  +B_H*B_H)
+	#define idx(i,j) ({ unsigned _i=(i); (B_H*((j)+(_i%B_H)) + (_i%B_H) + (_i/B_H)*M_W*B_H) })
 #endif
-#define M_W M_H
-#endif
+
+// The wavefront consists of horizontal and/or vertical swipes
+#define MEM_WAVEFRONT MAX((M_H+B_H-1)/B_H,(M_W+B_W-1)/B_W)
+#define wh_idx(i) (i)
+#define wv_idx(j) (M_H+j)
 
 // Backtracking macros
 #define BSTOP (0)
@@ -50,18 +73,6 @@
 // #define BI(bp) ( (bp)>>_BSH)             // extract the i value
 // #define BJ(bp) ( (bp) & ((1<<_BSH)-1) )  // extract the j value
 
-#define MEM_MATRIX (M_W* ((M_H+B_H-1)/B_H)*B_H  +B_H*B_H)
-#define MEM_WAVE_D MAX((M_H+B_H-1)/B_H,(M_W+B_W-1)/B_W)
-
-// element indices
-_hostdev _inline unsigned idx(unsigned i, unsigned j) {
-	#ifdef SH_PARA
-		return B_H*((j%M_W)+(i%B_H)) + (i%B_H) + (i/B_H)*M_W*B_H;
-	#else
-		return B_H*(j+(i%B_H)) + (i%B_H) + (i/B_H)*M_W*B_H;
-	#endif
-}
-
 // -----------------------------------------------------------------------------
 // Solve the recurrence/fill the matrix
 void c_solve(); // CPU
@@ -77,20 +88,20 @@ static TI* c_in[2]={NULL,NULL};
 static TC* c_cost = NULL;
 static TB* c_back = NULL;
 #ifdef TW
-static TW* c_wave[3] = {NULL,NULL,NULL};
+static TW* c_wave = NULL;
 #endif
 
 void c_init() {
 	c_in[0]=p_input();
 	#ifdef SH_RECT
 	c_in[1]=p_input(true);
+	#else
+	c_in[1]=c_in[0];
 	#endif
 	c_cost=(TC*)malloc(sizeof(TC)*MEM_MATRIX);
 	c_back=(TB*)malloc(sizeof(TB)*MEM_MATRIX);
 	#ifdef TW
-		c_wave[0]=(TW*)malloc(sizeof(TW)*M_H);
-		c_wave[1]=(TW*)malloc(sizeof(TW)*M_W);
-		c_wave[2]=(TW*)malloc(sizeof(TW)*MEM_WAVE_D);
+	c_wave=(TW*)malloc(sizeof(TW)*(M_H+M_W));
 	#endif
 }
 
@@ -101,14 +112,20 @@ void c_free() {
 	#endif
 	free(c_cost); free(c_back);
 	#ifdef TW
-		for (int i=0;i<3;++i) free(c_wave[i]);
+	free(c_wave);
 	#endif
 }
+
+
+#include <list>
+#include <utility> // pair
 
 // simply return the pair of indices (i,j) that are in the backtrack
 // by default we use the direction-length backtrack
 TC c_backtrack(unsigned** bt, unsigned* size) {
 	unsigned i,j;
+
+	#ifdef SH_RECT // SWat
 	// Find the position with maximal cost
 	unsigned mi=0; TC ci=0;
 	unsigned mj=0; TC cj=0;
@@ -134,6 +151,38 @@ TC c_backtrack(unsigned** bt, unsigned* size) {
 		} while (b!=BSTOP);
 		*size=sz;
 	}
+	#endif
+
+
+	#ifdef SH_TRI
+	TC cost = c_cost[idx(M_H-1,M_H-1)];
+
+	if (bt && size) {
+		// XXX: return the length of the parenthesis content at the given position
+		*bt=(unsigned*)malloc((M_W+M_H)*2*sizeof(unsigned));
+		unsigned sz=0;
+		unsigned* track=*bt;
+
+		std::list<std::pair<int,int> > queue;
+		queue.push_back(std::make_pair(M_H-1,M_H-1));
+
+		while (!queue.empty()) {
+			std::pair<int,int> p = queue.front(); queue.pop_front();
+			i=p.first; j=p.second;
+			track[0]=i; track[1]=j; track+=2; ++sz;
+
+			TB back = c_back[idx(p.first,p.second)];
+			if (back!=BSTOP) {
+				int k=BV(back);
+				queue.push_back(std::make_pair(i,k));
+				// XXX: there must be a bug somewhere in indices here
+				queue.push_back(std::make_pair(M_H-k-2,j));
+			}
+		}
+		*size=sz;
+	}
+	#endif
+
 	return cost;
 }
 
@@ -145,7 +194,7 @@ static TI* g_in[2]={NULL,NULL};
 static TC* g_cost = NULL;
 static TB* g_back = NULL;
 #ifdef TW
-static TW* g_wave[3] = {NULL,NULL,NULL};
+static TW* g_wave = NULL;
 #endif
 
 void g_init() {
@@ -158,13 +207,13 @@ void g_init() {
 		cuMalloc(g_in[1],sizeof(TI)*M_W);
 		cuPut(tmp,g_in[1],sizeof(TI)*M_W,NULL);
 		free(tmp);
+	#else
+		g_in[1]=g_in[0];
 	#endif
 	cuMalloc(g_cost,sizeof(TC)*MEM_MATRIX);
 	cuMalloc(g_back,sizeof(TB)*MEM_MATRIX);
 	#ifdef TW
-		cuMalloc(g_wave[0],sizeof(TW)*M_H);
-		cuMalloc(g_wave[1],sizeof(TW)*M_W);
-		cuMalloc(g_wave[2],sizeof(TW)*MEM_WAVE_D);
+	cuMalloc(g_wave,sizeof(TW)*(M_H+M_W));
 	#endif
 }
 
@@ -175,7 +224,7 @@ void g_free() {
 	#endif
 	cuFree(g_cost); cuFree(g_back);
 	#ifdef TW
-		for (int i=0;i<3;++i) cuFree(g_wave[i]);
+	cuFree(g_wave);
 	#endif
 }
 
@@ -222,18 +271,34 @@ void dbg_print(bool gpu, FILE* f) {
 		// content (backtrack)
 		fprintf(f,"%c |",TI_CHR(in0[i]));
 		for (size_t j=0;j<M_W;++j) {
+			#ifdef SH_RECT
 			TB b = back[idx(i,j)];
 			if (BV(b)) fprintf(f," %c%2d",d[BD(b)],BV(b));
 			else fprintf(f," %c  ",d[BD(b)]);
+			#endif
+			#ifdef SH_TRI
+			if (i+j>=M_H-1) {
+				TB b = back[idx(i,j)];
+				if (BV(b)) fprintf(f," %c%2d",d[BD(b)],BV(b));
+				else fprintf(f," %c  ",d[BD(b)]);
+			} else {
+				fprintf(f," _  ");
+			}
 
+			#endif
 			if (j%B_W==B_W-1) fprintf(f," |");
 		}
 		fprintf(f,"\n");
 		// content (score)
 		fprintf(f,"  |");
 		for (size_t j=0;j<M_W;++j) {
-			TB c = cost[idx(i,j)];
-			fprintf(f,"%4d",c);
+			#ifdef SH_RECT
+			fprintf(f,"%4d",cost[idx(i,j)]);
+			#endif
+			#ifdef SH_TRI
+			if (i+j>=M_H-1) fprintf(f,"%4d",cost[idx(i,j)]);
+			else fprintf(f,"    ");
+			#endif
 			if (j%B_W==B_W-1) fprintf(f," |");
 		}
 		fprintf(f,"\n");
@@ -249,7 +314,7 @@ void dbg_track(bool gpu, FILE* f) {
 	unsigned sz;
 	unsigned score = c_backtrack(&bt,&sz);
 	fprintf(f,"Backtrack with best score : %d\n",score);
-	for (unsigned i=sz-1;;--i) {
+	if (sz) for (unsigned i=sz-1;;--i) {
 		printf("(%d,%d) ",bt[i*2],bt[i*2+1]);
 		if (!i) break;
 	}

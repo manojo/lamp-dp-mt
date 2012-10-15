@@ -312,8 +312,9 @@ apply out of the box here.
 	\Cm\end{picture}\end{center}
 
 \item Optimizations:\ul
-	\item {\color{red}We need to swap vertically the matrix to have a normalized progression towards bottom right. To do that, we need to map all indices $i \mapsto n-1-i$, but since we want to store the matrix sparsely, we might want to transform it into a lower triangular matrix as we can provide a size-independent mapping of element indices.
-	XXX: what's the best trade off ? progress towards bottom right VS map indices more efficiently ? Also consider efficient memory usage$\to$ larger problem VS standardized layout}
+	\item We need to swap vertically the matrix to have a normalized progression towards bottom right. To do that, we need to map all indices $i \mapsto n-1-i$ and we obtain a new recurrence relation:
+	\[M_{(i,j)}=\min_{i\le k<j}\left\{\begin{array}{l} M_{(i,k)}+M_{(2i-1 -k,j)}+r_i \cdot c_k \cdot c_j \end{array}\right. \]
+	With the initialization at $M_{(i,n-i-1)}$
 	\ule
 \ole
 
