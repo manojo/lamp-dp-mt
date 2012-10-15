@@ -21,10 +21,16 @@
 #if !defined(SH_RECT)&&!defined(SH_TRI)&&!defined(SH_PARA)
 #error "Matrix must have a shape"
 #endif
-#ifndef SH_RECT
-ASSERT(M_W==M_H);
+#if !defined(M_H) || !defined(M_W) || !defined(B_H) || !defined(B_W)
+#error "Matrix or block dimensions missing"
 #endif
 
+#ifndef SH_RECT
+#ifdef M_W
+#undef M_W
+#endif
+#define M_W M_H
+#endif
 
 // Backtracking macros
 #define BSTOP (0)
@@ -39,10 +45,10 @@ ASSERT(M_W==M_H);
 
 // Backtrack as (i,j), sizeof(TB)*4 bits available for each coordinate
 // in CUDA, might use prmt.b32{.mode}
-#define _BSH (sizeof(TB)*4)
-#define BP(i,j) ( (i)<<_BSH | (j) )         // new (i,j) backtrack pair
-#define BI(bp) ( (bp)>>_BSH)                // extract the i value
-#define BJ(bp) ( (bp) & ((1<<_BSH)-1) )     // extract the j value
+// #define _BSH (sizeof(TB)*4)
+// #define BP(i,j) ( (i)<<_BSH | (j) )      // new (i,j) backtrack pair
+// #define BI(bp) ( (bp)>>_BSH)             // extract the i value
+// #define BJ(bp) ( (bp) & ((1<<_BSH)-1) )  // extract the j value
 
 #define MEM_MATRIX (M_W* ((M_H+B_H-1)/B_H)*B_H  +B_H*B_H)
 #define MEM_WAVE_D MAX((M_H+B_H-1)/B_H,(M_W+B_W-1)/B_W)
@@ -55,6 +61,14 @@ _hostdev _inline unsigned idx(unsigned i, unsigned j) {
 		return B_H*(j+(i%B_H)) + (i%B_H) + (i/B_H)*M_W*B_H;
 	#endif
 }
+
+// -----------------------------------------------------------------------------
+// Solve the recurrence/fill the matrix
+void c_solve(); // CPU
+void g_solve(); // GPU
+// Backtrack the solution, using the matrix
+TC c_backtrack(unsigned** bt, unsigned* size);
+TC g_backtrack(unsigned** bt, unsigned* size);
 
 // -----------------------------------------------------------------------------
 // CPU helpers
@@ -89,6 +103,38 @@ void c_free() {
 	#ifdef TW
 		for (int i=0;i<3;++i) free(c_wave[i]);
 	#endif
+}
+
+// simply return the pair of indices (i,j) that are in the backtrack
+// by default we use the direction-length backtrack
+TC c_backtrack(unsigned** bt, unsigned* size) {
+	unsigned i,j;
+	// Find the position with maximal cost
+	unsigned mi=0; TC ci=0;
+	unsigned mj=0; TC cj=0;
+	for (unsigned i=0; i<M_H; ++i) { TC c=c_cost[idx(i,M_W-1)]; if (c>ci) { mi=i; ci=c; } }
+	for (unsigned j=0; j<M_W; ++j) { TC c=c_cost[idx(M_H-1,j)]; if (c>cj) { mj=j; cj=c; } }
+	if (ci>cj) { i=mi; j=M_W-1; } else { i=M_H-1; j=mj; }
+
+	TC cost = c_cost[idx(i,j)];
+	// Backtrack, returns a pair of coordinates in reverse order
+	if (bt && size) {
+		TB b;
+		*bt=(unsigned*)malloc((M_W+M_H)*2*sizeof(unsigned));
+		unsigned sz=0;
+		unsigned* track=*bt;
+		do {
+			track[0]=i; track[1]=j; track+=2; ++sz;
+			b = c_back[idx(i,j)];
+			switch(BD(b)) {
+				case DIR_LEFT: j-=BV(b); break;
+				case DIR_UP: i-=BV(b); break;
+				case DIR_DIAG: i-=BV(b); j-=BV(b); break;
+			}
+		} while (b!=BSTOP);
+		*size=sz;
+	}
+	return cost;
 }
 
 // -----------------------------------------------------------------------------
@@ -136,7 +182,9 @@ void g_free() {
 #endif
 
 // -----------------------------------------------------------------------------
+// Debug helpers
 
+// Pretty print the matrix(cost+backtrack) into the file descriptor
 void dbg_print(bool gpu, FILE* f) {
 	TI* in0 = c_in[0];
 	TI* in1 = c_in[1];
@@ -162,7 +210,7 @@ void dbg_print(bool gpu, FILE* f) {
 	fprintf(f,"Matrix(%ldx%ld), blocks(%ldx%ld)\n",M_H,M_W,B_H,B_W);
 	fprintf(f,"  |");
 	// header
-	for (size_t j=0;j<M_W;++j) { fprintf(f," %c  ",in1[j]); if (j%B_W==B_W-1) fprintf(f," |"); }
+	for (size_t j=0;j<M_W;++j) { fprintf(f," %c  ",TI_CHR(in1[j])); if (j%B_W==B_W-1) fprintf(f," |"); }
 	fprintf(f,"\n");
 	for (size_t i=0;i<M_H;++i) {
 		// spacer
@@ -172,7 +220,7 @@ void dbg_print(bool gpu, FILE* f) {
 			fprintf(f,"\n");
 		}
 		// content (backtrack)
-		fprintf(f,"%c |",in0[i]);
+		fprintf(f,"%c |",TI_CHR(in0[i]));
 		for (size_t j=0;j<M_W;++j) {
 			TB b = back[idx(i,j)];
 			if (BV(b)) fprintf(f," %c%2d",d[BD(b)],BV(b));
@@ -191,4 +239,65 @@ void dbg_print(bool gpu, FILE* f) {
 		fprintf(f,"\n");
 	}
 	if (gpu) { free(in0); free(in1); free(back); free(cost); }
+}
+
+// Backtrack the solved problem and pretty-print it
+void dbg_track(bool gpu, FILE* f) {
+	// XXX: add for GPU
+
+	unsigned* bt;
+	unsigned sz;
+	unsigned score = c_backtrack(&bt,&sz);
+	fprintf(f,"Backtrack with best score : %d\n",score);
+	for (unsigned i=sz-1;;--i) {
+		printf("(%d,%d) ",bt[i*2],bt[i*2+1]);
+		if (!i) break;
+	}
+	printf("\n");
+	free(bt);
+}
+
+// Checks that the CPU and GPU implementation return the same costs
+// Note that backtrack may vary depending the ordering of paths selection
+void dbg_compare(bool full=false) {
+	cudaMemset(g_cost,0xff,sizeof(TC)*MEM_MATRIX);
+	cudaMemset(g_back,0xff,sizeof(TB)*MEM_MATRIX);
+	g_solve();
+	TC* tc=(TC*)malloc(sizeof(TC)*MEM_MATRIX);
+	TB* tb=(TB*)malloc(sizeof(TB)*MEM_MATRIX);
+	#ifdef __CUDACC__
+	cuGet(tc,g_cost,sizeof(TC)*MEM_MATRIX,NULL);
+	cuGet(tb,g_back,sizeof(TB)*MEM_MATRIX,NULL);
+	#endif
+	c_solve();
+	int err=0;
+	for (int i=0;i<M_H;++i) {
+		for (int j=0;j<M_W;++j) {
+			if (tc[idx(i,j)]!=c_cost[idx(i,j)]) { ++err; if (full) printf(" (%d,%d)",i,j); }
+		}
+	}
+	printf("Compare CPU/GPU: %d errors.\n",err);
+	free(tc);
+	free(tb);
+}
+
+// Initialize some structures
+void dbg_init() {
+	#ifdef __CUDACC__
+	cuInfo();
+	#endif
+	printf("Matrix: %ldx%ld, blocks: %ldx%ld.\n",M_H,M_W,B_H,B_W);
+	c_init();
+	#ifdef __CUDACC__
+	g_init();
+	#endif
+}
+
+// Cleanup the initialized structures
+void dbg_cleanup() {
+	c_free();
+	#ifdef __CUDACC__
+	g_free();
+	cudaDeviceReset();
+	#endif
 }

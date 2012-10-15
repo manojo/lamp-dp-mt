@@ -1,135 +1,196 @@
 #include "include/common.h"
 
-// We want to support 3 types of problems:
-// - SH_RECT SWat arbitrary gap
-// - SH_TRI  Matrix multiplication
-// - SH_PARA Triangulation
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// System parameters
-// - Data types
-#define TI char    // input data type
-#define TC int     // cost type
-#define TB short   // backtrack type (2 bits for direction + 14 for value)
-#define TW int     // wavefront type (if not defined, no wavefront)
-// - Problem dimensions
-#define B_W 64LU    // block width
-#define B_H 64LU    // block height
-#define M_W 512LU  // matrix dimension
-#define M_H 512LU  // matrix dimension
-// - Problem shape (RECT, TRIANG, PARALL)
-#define SH_RECT
-//#define SH_TRI
+// Problem shape (SH_RECT, SH_TRI, SH_PARA)
+//#define SH_RECT
+#define SH_TRI
 //#define SH_PARA
-// Initialization
-#define INIT(i,j)  ((i)==0 || (j)==0) // matrix initialization at [stop]
 
-// Problem definition SWat(S,T) with arbitrary gap cost.
-// By convention, S is the longest string and put vertically
+// Problem dimensions
+#define B_W 32LU    // block width
+#define B_H 32LU    // block height
+#define M_W 128LU  // matrix dimension
+#define M_H 128LU  // matrix dimension
+
+// -----------------------------------------------------------------------------
+#ifdef SH_RECT
+// Smith-Waterman with arbitrary gap cost function (rectangular matrix).
+// SWat(S,T); by convention, S is the longest string and put vertically
 // M[i,j] = max { 0                                 stop } = B[i,j]
 //              { M[i-1,j-1]+cost(S[i],T[j])        NW   }
 //              { max{1<=k<=j-1} M[i,j-k] - gap(k)  N(k) }
 //              { max{1<=k<=i-1} M[i-k,j] - gap(k)  W(k) }
-//
-
-// Input string that can be free()d
+// Data types
+#define TI char     // input data type
+#define TI_CHR(X) X // conversion to char
+#define TC int      // cost type
+#define TB short    // backtrack type (2 bits for direction + 14 for value)
+//#define TW int    // wavefront type (if not defined, no wavefront)
+// Initialization
+#define INIT(i,j)  ((i)==0 || (j)==0) // matrix initialization at [stop]
+// Input
 TI* p_input(bool horz=false) {
 	static unsigned sh=time(NULL), sv=time(NULL)+573; // keep consistent
 	const char alph[4]={'A','C','G','T'};
 	unsigned n = horz?M_W:M_H; mseed(horz?sh:sv);
-	TI* in = (char*)malloc(n*sizeof(TI));
+	TI* in = (TI*)malloc(n*sizeof(TI));
 	for (unsigned i=0;i<n;++i) in[i]=alph[mrand()%4];
 	return in;
 }
-// problem specific helpers
+// Helpers
 _hostdev _inline TC p_gap(int k) { return 20-k; }
 _hostdev _inline TC p_cost(char s, char t) { return s==t?1:0; }
+#endif
 // -----------------------------------------------------------------------------
+#ifdef SH_TRI
+// Matrix multiplication parenthesizing (triangular matrix)
+// M[i,j]= min {i<=k<j} M[i,k] + M [k+1,j] + r_i * c_k * c_j
+//
+typedef struct { unsigned rows,cols; char print() { return 'X'; } } mat_t;
+// Data types
+#define TI mat_t         // input data type
+#define TI_CHR(X) '#'    // conversion to char (debug)
+#define TC unsigned long // cost type
+#define TB short         // backtrack type (2 bits for direction + 14 for value)
+//#define TW int         // wavefront type (if not defined, no wavefront)
+// Initialization
+#define INIT(i,j) (i==j) // matrix initialization at [stop]
+// Input
+TI* p_input() {
+	static unsigned s=time(NULL); mseed(s); // keep consistent
+	TI* in = (TI*)malloc(M_H*sizeof(TI));
+	in[0].rows=mrand()&0xff;
+	for (int i=1;i<M_H;++i) in[i-1].cols=in[1].rows=mrand()&0xff;
+	in[M_H-1].cols=mrand()&0xff;
+	return in;
+}
+
+// COMPACT MEMORY ADDRESSING:
+/*
+idx(i,j) = |M| - |/\| - M_H+j
+
+|M|  = M_H*(M_H+1)/2
+|/\| = t*(t+1)/2
+ t   = M_H-(j-i)-1
+
+#define idx(i,j) ({ int t=M_H-(j-i)-1; return (M_H*(M_H+1)-t*(t+1))>>1 - M_H+j; })
+
+*/
+
+
+
+
+#endif
+// -----------------------------------------------------------------------------
+#ifdef SH_PARA
+// Polygon triangulation (parallelogram matrix)
+#endif
 // -----------------------------------------------------------------------------
 
 #include "include/nonserial.h" // must be included after problem definition
 
 void c_solve() {
 	for (unsigned i=0; i<M_H; ++i) {
-		for (unsigned j=0; j<M_W; ++j) {
-			if (INIT(i,j)) { c_back[idx(i,j)]=BSTOP; c_cost[idx(i,j)]=0; }
-			else {
-				TB b=BSTOP; TC c=0,c2;  // stop
+		#ifdef SH_RECT
+		for (unsigned j=0; j<M_W; ++j)
+		#endif
+		#ifdef SH_TRI
+		for (unsigned j=i; j<M_W; ++j)
+		#endif
+		#ifdef SH_PARA
+		for (unsigned j=i; j<M_W+i; ++j)
+		#endif
+		{
+			TB b=BSTOP; TC c=0,c2;  // stop
+			if (!INIT(i,j)) {
+				#ifdef SH_RECT // SWat with arbitrary cost
 				for (size_t k=1; k<j; ++k) { c2=c_cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=B(DIR_LEFT,k); } }
 				for (size_t k=1; k<i; ++k) { c2=c_cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=B(DIR_UP,k); } }
 				c2 = c_cost[idx(i-1,j-1)]+p_cost(c_in[0][i],c_in[1][j]); if (c2>=c) { c=c2; b=B(DIR_DIAG,1); }
-				c_cost[idx(i,j)] = c;
-				c_back[idx(i,j)] = b;
+				#endif
+				#ifdef SH_TRI // Matrix multiplication
+
+
+				// go with initial mult
+
+				#endif
+
+
 			}
+			c_cost[idx(i,j)] = c;
+			c_back[idx(i,j)] = b;
 		}
 	}
 }
 
-// simply return the pair of indices (i,j) that are in the backtrack
-// by default we use the direction-length backtrack
-TC c_backtrack(unsigned** bt, unsigned* size) {
-	unsigned i,j;
-	// Find the position with maximal cost
-	unsigned mi=0; TC ci=0;
-	unsigned mj=0; TC cj=0;
-	for (unsigned i=0; i<M_H; ++i) { TC c=c_cost[idx(i,M_W-1)]; if (c>ci) { mi=i; ci=c; } }
-	for (unsigned j=0; j<M_W; ++j) { TC c=c_cost[idx(M_H-1,j)]; if (c>cj) { mj=j; cj=c; } }
-	if (ci>cj) { i=mi; j=M_W-1; } else { i=M_H-1; j=mj; }
 
-	TC cost = c_cost[idx(i,j)];
-	// Backtrack, returns a pair of coordinates in reverse order
-	if (bt && size) {
-		TB b;
-		*bt=(unsigned*)malloc((M_W+M_H)*2*sizeof(unsigned));
-		unsigned sz=0;
-		unsigned* track=*bt;
-		do {
-			track[0]=i; track[1]=j; track+=2; ++sz;
-			b = c_back[idx(i,j)];
-			switch(BD(b)) {
-				case DIR_LEFT: j-=BV(b); break;
-				case DIR_UP: i-=BV(b); break;
-				case DIR_DIAG: i-=BV(b); j-=BV(b); break;
-			}
-		} while (b!=BSTOP);
-		*size=sz;
-	}
-	return cost;
-}
 
-/*
-//GPU lock-free synchronization function
-__device__ void __gpu_sync(int goalVal, volatile int *Arrayin, volatile int *Arrayout) {
-	// thread ID in a block
-	int tid_in_blk = threadIdx.x * blockDim.y + threadIdx.y;
-	int nBlockNum = gridDim.x * gridDim.y;
-	int bid = blockIdx.x * gridDim.y + blockIdx.y;
 
-	// only thread 0 is used for synchronization
-	if (tid_in_blk == 0) Arrayin[bid] = goalVal;
 
-	if (bid == 1) {
-		if (tid_in_blk < nBlockNum)	{
-			while (Arrayin[tid_in_blk] != goalVal) {}
-			__syncthreads();
-		}
-		if (tid_in_blk<nBlockNum) Arrayout[tid_in_blk] = goalVal;
-	}
 
-	if (tid_in_blk == 0) {
-		while (Arrayout[bid] != goalVal) {}
-	}
-	__syncthreads();
 
-}
-*/
+
+
+
+
 
 // -----------------------------------------------------------------------------
 
-#define M_STRIPES ((M_H+B_H-1)/B_H) // number of CUDA block stripes (of height B_H) in the matrix
+#if 0
 
+#define M_STRIPES ((M_H+B_H-1)/B_H) // number of CUDA block stripes (of height B_H) in the matrix
 __global__ void gpu_solve(TI* in0, TI* in1, TC* cost, TB* back, volatile unsigned* sync) { // 437ms -> 555ms for volatile (but ensures correctness)
+/*
+	const int tx=threadIdx.x;
+	if (threadIdx.x==0)
+	for (unsigned i=0; i<M_H; ++i) {
+		for (unsigned j=0; j<M_W; ++j) {
+			TB b=BSTOP; TC c=0,c2;  // stop
+			if (!INIT(i,j)) {
+				for (size_t k=1; k<j; ++k) { c2=cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=B(DIR_LEFT,k); } }
+				for (size_t k=1; k<i; ++k) { c2=cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=B(DIR_UP,k); } }
+				c2 = cost[idx(i-1,j-1)]+p_cost(in0[i],in1[j]); if (c2>=c) { c=c2; b=B(DIR_DIAG,1); }
+			}
+			cost[idx(i,j)] = c;
+			back[idx(i,j)] = b;
+		}
+	}
+*/
+
+	const int tx=threadIdx.x;
+	__shared__ unsigned max[32]; // one min per block
+	for (unsigned i=0; i<M_H; ++i) {
+		for (unsigned j=0; j<M_W; ++j) {
+			TB b=BSTOP; TC c=0,c2;  // stop
+			max[0]=0;
+
+			if (!INIT(i,j)) {
+				for (size_t k=1; k<j; ++k) { c2=cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=B(DIR_LEFT,k); } }
+				for (size_t k=1; k<i; ++k) { c2=cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=B(DIR_UP,k); } }
+
+				if (threadIdx.x==0) {
+					c2 = cost[idx(i-1,j-1)]+p_cost(in0[i],in1[j]); if (c2>=c) { c=c2; b=B(DIR_DIAG,1); }
+				}
+
+				if (tx>=16) max[tx-16]=c;
+				if (tx<16 && c>max[tx]) max[tx]=c;
+				if (tx<8 && (c2=max[tx+8])>max[tx]) max[tx]=c2;
+				if (tx<4 && (c2=max[tx+4])>max[tx]) max[tx]=c2;
+				if (tx<2 && (c2=max[tx+2])>max[tx]) max[tx]=c2;
+				if (tx==0 && (c2=max[1])>max[0]) max[0]=c2;
+
+			}
+			if (c==max[0]) {
+				cost[idx(i,j)] = c;
+				back[idx(i,j)] = b;
+			}
+			__threadfence();
+		}
+	}
+	// assign 4 threads to search minimum
+	//	const unsigned tx = threadIdx.x+B_H*blockIdx.x;
+	// XXX: dynamic number of sub-threads to compute minimum
+
+/* 128x128 = 176.43ms
 	const unsigned tx = threadIdx.x+B_H*blockIdx.x;
 	const int i=tx;
 	for (int jj=0; jj<M_W+M_H; ++jj) {
@@ -157,83 +218,45 @@ __global__ void gpu_solve(TI* in0, TI* in1, TC* cost, TB* back, volatile unsigne
 		}
 		__syncthreads();
 	}
+*/
 }
+#endif
 
 void g_solve() {
+/*
 	//const unsigned tx = threadIdx.x + blockDim.x * ( blockIdx.x + blockIdx.y*gridDim.x );
 	unsigned* sync;
 	cuMalloc(sync,sizeof(int)*M_STRIPES); // 64 blocks
 	cudaMemset(sync,0,sizeof(unsigned)*M_STRIPES);
-	gpu_solve<<<M_STRIPES,B_H,0,NULL>>>(g_in[0],g_in[1],g_cost,g_back,sync);
+	//gpu_solve<<<M_STRIPES,B_H,0,NULL>>>(g_in[0],g_in[1],g_cost,g_back,sync);
+
+	gpu_solve<<<1,32,0,NULL>>>(g_in[0],g_in[1],g_cost,g_back,sync);
+
 	cuFree(sync);
+*/
 }
 
 TC g_backtrack(unsigned** bt, unsigned* size) { return 0; }
 
 // -----------------------------------------------------------------------------
-// GPU structures
-// - allocate memory
-// - access memory[cost,backtrack,wavefront,input] at index (i,j)
-
-void dbg_track(bool gpu, FILE* f) {
-	// XXX: add for GPU
-
-	unsigned* bt;
-	unsigned sz;
-	unsigned score = c_backtrack(&bt,&sz);
-	fprintf(f,"Backtrack with best score : %d\n",score);
-	for (unsigned i=sz-1;;--i) {
-		printf("(%d,%d) ",bt[i*2],bt[i*2+1]);
-		if (!i) break;
-	}
-	printf("\n");
-	free(bt);
-}
-
-void dbg_compare(bool full=false) {
-	cudaMemset(g_cost,0xff,sizeof(TC)*MEM_MATRIX);
-	cudaMemset(g_back,0xff,sizeof(TB)*MEM_MATRIX);
-	g_solve();
-	TC* tc=(TC*)malloc(sizeof(TC)*MEM_MATRIX); cuGet(tc,g_cost,sizeof(TC)*MEM_MATRIX,NULL);
-	TB* tb=(TB*)malloc(sizeof(TB)*MEM_MATRIX); cuGet(tb,g_back,sizeof(TB)*MEM_MATRIX,NULL);
-	int err=0;
-	for (int i=0;i<M_H;++i) {
-		for (int j=0;j<M_W;++j) {
-			if (tc[idx(i,j)]!=c_cost[idx(i,j)]) { ++err; if (full) printf(" (%d,%d)",i,j); }
-		}
-	}
-	printf("Compare CPU/GPU: %d errors.\n",err);
-	free(tc);
-	free(tb);
-}
-
-// -----------------------------------------------------------------------------
 
 int main(int argc, char** argv) {
-	cuInfo();
-	printf("Matrix: %ldx%ld, blocks: %ldx%ld.\n",M_H,M_W,B_H,B_W);
-
-	c_init();
-	g_init();
-
 	cuTimer t;
-	for (int i=0;i<6;++i) { t.start(); c_solve(); t.stop(); }
+	dbg_init();
+
+	// CPU solving
+	for (int i=0;i<2;++i) { t.start(); c_solve(); t.stop(); }
 	printf("CPU solve: "); t.print(); printf("\n");
+
+	// GPU solving
+	// for (int i=0;i<2;++i) { t.start(); g_solve(); t.stop(); }
+	// printf("GPU solve: "); t.print(); printf("\n");
 
 	// dbg_print(false,stdout);
 	// dbg_track(false,stdout);
-	dbg_compare();
+	// dbg_compare();
 
-	for (int i=0;i<6;++i) { t.start(); g_solve(); t.stop(); }
-	printf("GPU solve: "); t.print(); printf("\n");
-
-	c_free();
-	g_free();
-
-	// #ifdef SH_RECT
-	// #ifdef SH_TRI
-	// #ifdef SH_PARA
-	cudaDeviceReset();
+	dbg_cleanup();
 	return 0;
 }
 
@@ -354,8 +377,31 @@ int main(int argc, char** argv) {
 	printf("\nCorrectness: %s\n",!r?"no differences":"FAILURE !!!");
 	unlink("ref.txt"); unlink("t.txt");
 
-	cleanup();
 	return 0;
 }
+
+
+/*
+//GPU lock-free synchronization function
+__device__ void __gpu_sync(int goalVal, volatile int *Arrayin, volatile int *Arrayout) {
+	// thread ID in a block
+	int tid_in_blk = threadIdx.x * blockDim.y + threadIdx.y;
+	int nBlockNum = gridDim.x * gridDim.y;
+	int bid = blockIdx.x * gridDim.y + blockIdx.y;
+	// only thread 0 is used for synchronization
+	if (tid_in_blk == 0) Arrayin[bid] = goalVal;
+	if (bid == 1) {
+		if (tid_in_blk < nBlockNum)	{
+			while (Arrayin[tid_in_blk] != goalVal) {}
+			__syncthreads();
+		}
+		if (tid_in_blk<nBlockNum) Arrayout[tid_in_blk] = goalVal;
+	}
+	if (tid_in_blk == 0) {
+		while (Arrayout[bid] != goalVal) {}
+	}
+	__syncthreads();
+}
+*/
 
 #endif
