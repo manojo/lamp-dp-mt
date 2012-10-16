@@ -169,7 +169,10 @@ TC c_backtrack(unsigned** bt, unsigned* size) {
 		while (!queue.empty()) {
 			std::pair<int,int> p = queue.front(); queue.pop_front();
 			i=p.first; j=p.second;
-			track[0]=i; track[1]=j; track+=2; ++sz;
+
+			// vertical flipping
+			#define inv(x) (M_H-1-(x))
+			track[0]=inv(i); track[1]=j; track+=2; ++sz;
 
 			TB back = c_back[idx(p.first,p.second)];
 			if (back!=BSTOP) {

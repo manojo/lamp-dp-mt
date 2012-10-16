@@ -8,8 +8,8 @@
 // Problem dimensions
 #define B_W 32LU    // block width
 #define B_H 32LU    // block height
-#define M_W 32LU  // matrix dimension
-#define M_H 32LU  // matrix dimension
+#define M_W 64LU  // matrix dimension
+#define M_H 64LU  // matrix dimension
 
 // -----------------------------------------------------------------------------
 #ifdef SH_RECT
@@ -64,7 +64,7 @@ typedef struct { unsigned rows,cols; char print() { return 'X'; } } mat_t;
 TI* p_input() {
 	static unsigned s=time(NULL); mseed(s); // keep consistent
 	TI* in = (TI*)malloc(M_H*sizeof(TI));
-	#define RNZ ({ unsigned x; do { x=mrand()&0x7; } while (!x); x; })
+	#define RNZ ({ unsigned x; do { x=mrand()&0x3; } while (!x); x; })
 	in[0].rows=RNZ;
 	for (int i=1;i<M_H;++i) { in[i-1].cols=in[i].rows=RNZ; }
 	in[M_H-1].cols=RNZ;
@@ -101,10 +101,15 @@ void c_solve() {
 				c2 = c_cost[idx(i-1,j-1)]+p_cost(c_in[0][i],c_in[1][j]); if (c2>=c) { c=c2; b=B(DIR_DIAG,1); }
 				#endif
 				#ifdef SH_TRI // Matrix multiplication
+				// vertical flipping code generation:
+				// 1. replace i by inv(i) in the formula
+				// 2. replace idx(a,b) by idx(inv(a),b)
+				// 3. replace inv(inv(i)) by i
 				c = COST_MAX;
-				for (unsigned k=M_H-1-i; k<j; ++k) {
-					c2=c_cost[idx(i,k)] + c_cost[idx(M_H-k-2,j)] + in0[i].rows * in0[k].cols * in0[j].cols;
-					if (c2<c) { c=c2; b=B(DIR_DIAG,k); }
+				#define inv(x) (M_H-1-(x)) // we need to flip [i] axis
+				for (unsigned k=inv(i); k<j; ++k) {
+					c2=c_cost[idx(i,k)] + c_cost[idx(inv(k+1),j)] + in0[inv(i)].rows * in0[k].cols * in0[j].cols; // since in0=in1, in1 is idempotent under flip
+					if (c2<c) { c=c2; b=B(DIR_DIAG,k); } // technically we care only about k, but make sure it's not considered as stop
 				}
 				#endif
 			}
@@ -112,6 +117,12 @@ void c_solve() {
 			c_back[idx(i,j)] = b;
 		}
 	}
+	#ifdef SH_TRI
+	for (unsigned i=0; i<M_H; ++i) {
+		printf("%dx%d ",in0[i].rows,in0[i].cols);
+	}
+	printf("\n");
+	#endif
 }
 
 // -----------------------------------------------------------------------------
