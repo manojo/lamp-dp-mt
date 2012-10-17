@@ -58,7 +58,7 @@ TI* p_input() {
 #ifdef SH_PARA
 // Polygon triangulation (parallelogram matrix).
 //
-//   M[i,j]= max_{i<k<j} M[i,k]+M[k,j] + S(i,k)
+//   M[i,j]= S(i,k) + max_{i<k<j} M[i,k]+M[k,j]
 //
 // Data types
 #define TI char          // input data type
@@ -77,7 +77,10 @@ TI* p_input() {
 }
 _hostdev _inline TC p_cost(TI a, TI b) {
 	static long s = time(NULL); // seed
-	long n = ( s ^ a ^ b ) % 44927;
+	long n = ( s ^ (a ^ b) ) % 44927;
 	n=n%23; if (n==0) n=1; return n;
 }
+
+// This is a requirement for the problem
+ASSERT(M_W==M_H-1);
 #endif

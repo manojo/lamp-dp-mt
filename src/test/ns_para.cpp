@@ -1,13 +1,14 @@
 #include "include/common.h"
-//#define SH_RECT // memory+solve+backtrack seems OK
-//#define SH_TRI // memory+solve+backtrack seems OK
-#define SH_PARA // memory layout ok
+// Problem style (one among the 3 below)
+//#define SH_RECT
+//#define SH_TRI
+#define SH_PARA
 
 // Problem dimensions
 #define B_W 8LU    // block width
 #define B_H 8LU    // block height
-#define M_W 4LU  // matrix dimension
-#define M_H 4LU  // matrix dimension
+#define M_W 5LU  // matrix dimension
+#define M_H 6LU  // matrix dimension
 
 // -----------------------------------------------------------------------------
 #include "include/ns_prob.h"
@@ -57,8 +58,9 @@ void c_solve() {
 			unsigned j=jj+i;
 			TB b=BT_STOP; TC c=0,c2;  // stop
 			if (!INIT(i,j)) {
+				unsigned Cij = p_cost(c_in[0][i],c_in[0][j%M_H]); // mind the modulo, we just want to pass (i,j) actually
 				for (unsigned k=i+1;k<j;++k) {
-					c2 = c_cost[idx(i,j)]=c_cost[idx(i,k)]+c_cost[idx(k,j)] + p_cost(c_in[0][i],c_in[0][k%M_H]); // mind the modulo
+					c2 = c_cost[idx(i,j)]=c_cost[idx(i,k)]+c_cost[idx(k,j)] + Cij;
 					if (c2>c) { c=c2; b=(TB)k; }
 				}
 			}
@@ -142,25 +144,19 @@ TC c_backtrack(unsigned** bt, unsigned* size) {
 		unsigned sz=0;
 		unsigned* track=*bt;
 
-
 		std::list<std::pair<int,int> > queue;
 		queue.push_back(std::make_pair(i,j));
 
 		while (!queue.empty()) {
 			std::pair<int,int> p = queue.front(); queue.pop_front();
 			i=p.first; j=p.second;
-			track[0]=i; track[1]=j; track+=2; ++sz;
-
-/*
-			TB k = c_back[idx(p.first,p.second)];
+			track[0]=i%M_H; track[1]=j%M_H; track+=2; ++sz;
+			TB k = c_back[idx(i,j)];
 			if (k!=BT_STOP) {
-				queue.push_back(std::make_pair(i,k));
-				queue.push_back(std::make_pair(k+1,j));
+				if (k-i>1) queue.push_back(std::make_pair(i,k));
+				if (j-k>1) queue.push_back(std::make_pair(k,j));
 			}
-*/
 		}
-
-
 
 		*size=sz;
 	}
@@ -177,8 +173,8 @@ int main(int argc, char** argv) {
 	c_solve();
 
 	for (unsigned i=0;i<M_H;++i) {
-		for (unsigned j=0;j<M_W;++j) {
-			printf("[%d-%d]=%2ld  ",i,j,p_cost(c_in[0][i],c_in[0][j]));
+		for (unsigned j=i+1;j<=i+M_W;++j) {
+			printf("<%c-%c> = %2ld  ",c_in[0][i],c_in[0][j%M_H],p_cost(c_in[0][i],c_in[0][j%M_H]));
 		}
 		printf("\n");
 	}

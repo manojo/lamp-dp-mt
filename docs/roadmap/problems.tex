@@ -252,7 +252,7 @@ apply out of the box here.
 	\ule
 \item Initialization: $M_{(i,i)}=0, M_{(i,i+1)}=0, B_{(i,i)}=stop \quad\forall i$
 
-\item Recurrence: \[M_{(i,j)}=\left\{ \max_{i<k<j}M_{(i,k)}+M_{(k+1,j)} + S(i,k) \,\,\rule[-.75em]{.5pt}{2em}\,\,  k \right\} = B_{(i,j)} \]
+\item Recurrence: \[M_{(i,j)}=\left\{ S(i,j) + \max_{i<k<j}M_{(i,k)}+M_{(k,j)} \,\,\rule[-.75em]{.5pt}{2em}\,\,  k \right\} = B_{(i,j)} \]
 	It is interesting to note that even in the sequential world, this problem is solved 
 	by filling the diagonals, ie. computing sub-solutions for all polygons of size $k$ before
 	those of size $k+1$.

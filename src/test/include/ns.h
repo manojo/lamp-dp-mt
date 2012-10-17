@@ -271,7 +271,6 @@ void dbg_init() {
 	#ifdef __CUDACC__
 	cuInfo();
 	#endif
-	printf("Matrix: %ldx%ld, blocks: %ldx%ld.\n",M_H,M_W,B_H,B_W);
 	c_init();
 	#ifdef __CUDACC__
 	g_init();
