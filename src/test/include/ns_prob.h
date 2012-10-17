@@ -100,7 +100,9 @@ TI* p_input() {
 //   M[i,j]= S(i,k) + max_{i<k<j} M[i,k]+M[k,j]
 //
 // This is a requirement for the problem
-ASSERT(M_W==M_H-1);
+//ASSERT(M_W==M_H-1);
+#undef M_W
+#define M_W (M_H-1)
 // Data types
 #define TI char          // input data type
 #define TI_CHR(X) (X)    // conversion to char (debug)

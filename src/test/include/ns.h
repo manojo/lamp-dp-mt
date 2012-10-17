@@ -28,6 +28,7 @@
 // -----------------------------------------------------------------------------
 // Memory addressing strategies
 #if defined(SH_TRI)
+	#define SH_SHAPE "Triangle"
 	#ifdef M_W
 	#undef M_W
 	#endif
@@ -39,11 +40,13 @@
 	#define MEM_MATRIX ((M_H*(M_H+1))/2) // lower right triangle, including diagonal
 	#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })
 #elif defined(SH_PARA)
+	#define SH_SHAPE "Parallelogram"
 	// parallelogram address: leftmost diagonal, then the second, ...
 	// circular structure for n steps, hence the modulo
 	#define MEM_MATRIX (M_H*M_W)
 	#define idx(i,j) ({ unsigned _i=(i); ((j)-_i)*M_H + _i%M_H; })
 #elif defined(SH_RECT)
+	#define SH_SHAPE "Rectangle"
 	// block-lines address: smaller parallelograms in lines of height B_H
 	#define MEM_MATRIX (M_W* ((M_H+B_H-1)/B_H)*B_H  +B_H*B_H)
 	#define idx(i,j) ({ unsigned _i=(i); (B_H*((j)+(_i%B_H)) + (_i%B_H) + (_i/B_H)*M_W*B_H); })
@@ -261,17 +264,21 @@ void dbg_compare(bool full=false) {
 	#else
 	for (unsigned i=0;i<MEM_MATRIX;++i) { if (tc[i]!=c_cost[i]) ++err; }
 	#endif
-	if (err==0) fprintf(stderr,"Compare cpu/gpu: identical.\n");
-	else fprintf(stderr,"Compare cpu/gpu: WARNING %d ERRORS !!\n",err);
+	if (err==0) fprintf(stderr,"- Matrix cpu/gpu: identical.\n");
+	else fprintf(stderr,"- Matrix cpu/gpu: WARNING %d ERRORS !!\n",err);
 	free(tc);
 	free(tb);
+	
+	// XXX: implement backtrack comparison
+	
 }
 
 // Initialize some structures
-void dbg_init() {
+void dbg_init(bool info=false) {
 	#ifdef __CUDACC__
-	cuInfo();
+	if (info) cuInfo();
 	#endif
+	fprintf(stderr,SH_SHAPE " %ldx%ld with block %ldx%ld\n",M_H,M_W,B_H,B_H);
 	c_init();
 	#ifdef __CUDACC__
 	g_init();
