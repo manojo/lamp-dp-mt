@@ -56,7 +56,7 @@
 
 // -----------------------------------------------------------------------------
 // Maximal cost
-#define COST_MAX ((1<<(sizeof(TC)*8-1))-1) // max signed value
+#define COST_MAX ((1ULL<<(sizeof(TC)*8-1))-1) // max signed value
 
 // Backtracking
 #define BT_STOP ((TB)(~0ULL)) // = 0xff...ff        // base case, stop backtracking
@@ -256,12 +256,9 @@ void dbg_compare(bool full=false) {
 	#endif
 	c_solve();
 	int err=0;
-	for (unsigned i=0;i<M_H;++i) {
-		for (unsigned j=0;j<M_W;++j) {
-			if (tc[idx(i,j)]!=c_cost[idx(i,j)]) { ++err; if (full) printf(" (%d,%d)",i,j); }
-		}
-	}
-	printf("Compare CPU/GPU: %d errors.\n",err);
+	for (unsigned i=0;i<MEM_MATRIX;++i) { if (tc[i]!=c_cost[i]) ++err; }
+	if (err==0) fprintf(stderr,"Compare cpu/gpu: identical.\n");
+	fprintf(stderr,"Compare cpu/gpu: WARNING %d ERRORS !!\n",err);
 	free(tc);
 	free(tb);
 }

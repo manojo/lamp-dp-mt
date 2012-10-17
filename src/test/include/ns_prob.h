@@ -1,3 +1,18 @@
+// Kernel mini-language
+// -----------------------------------------------------------------------------
+// _ini(i)         access the vertical string at position i (SH_RECT)
+// _inj(j)         access the horizontal string at position j (SH_RECT)
+// _in(i)          access the string at position i (SH_TRI, SH_PARA)
+
+// _cost(i,j)      return the cost at position (i,j)
+
+// _infinity       sets the current cost to infinity
+// _min(cost,back) take the min between current cost and (cost) with backtrack (back)
+// _max(cost,back) take the max between current cost and (cost) with backtrack (back)
+
+// _max_loop(k,min,max,cost,back)  compute the max over {min<=k<max} of (cost) with backtrack (back)
+// _min_loop(k,min,max,cost,back)  compute the min over {min<=k<max} of (cost) with backtrack (back)
+
 // -----------------------------------------------------------------------------
 #ifdef SH_RECT
 // Smith-Waterman with arbitrary gap cost function (rectangular matrix).
@@ -23,9 +38,19 @@ TI* p_input(bool horz=false) {
 	for (unsigned i=0;i<n;++i) in[i]=alph[mrand()%4];
 	return in;
 }
-// Helpers
+// Helpers functions
 _hostdev _inline TC p_gap(int k) { return 20-k; }
 _hostdev _inline TC p_cost(char s, char t) { return s==t?1:0; }
+// Computation kernel
+#define p_kernel \
+	_max_loop(k,1,i,  _cost(i-k,j) - p_gap(k),                  BT(DIR_UP,k)   ) \
+	_max_loop(k,1,j,  _cost(i,j-k) - p_gap(k),                  BT(DIR_LEFT,k) ) \
+	_max(             _cost(i-1,j-1) + p_cost(_ini(i),_inj(j)), BT(DIR_DIAG,1) )
+
+// for (unsigned k=1; k<i; ++k) { c2=c_cost[idx(i-k,j)]-p_gap(k); if (c2>c) { c=c2; b=BT(DIR_UP,k); } }
+// for (unsigned k=1; k<j; ++k) { c2=c_cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=BT(DIR_LEFT,k); } }
+// c2 = c_cost[idx(i-1,j-1)]+p_cost(c_in[0][i],c_in[1][j]); if (c2>=c) { c=c2; b=BT(DIR_DIAG,1); }
+
 #endif
 
 // -----------------------------------------------------------------------------
@@ -52,6 +77,18 @@ TI* p_input() {
 	in[M_H-1].cols=RNZ;
 	return in;
 }
+// Computation kernel
+#define p_kernel \
+	_infinity \
+	_min_loop(k,i,j,  _cost(i,k) + _cost(k+1,j) + _in(i).rows * _in(k).cols * _in(j).cols, k )
+
+// mat_t* in0=c_in[0];
+// c = COST_MAX;
+// for (unsigned k=i; k<j; ++k) {
+// 	c2=c_cost[idx(i,k)] + c_cost[idx(k+1,j)] + in0[i].rows * in0[k].cols * in0[j].cols;
+// 	if (c2<c) { c=c2; b=(TB)k; }
+// }
+
 #endif
 
 // -----------------------------------------------------------------------------
@@ -60,6 +97,8 @@ TI* p_input() {
 //
 //   M[i,j]= S(i,k) + max_{i<k<j} M[i,k]+M[k,j]
 //
+// This is a requirement for the problem
+ASSERT(M_W==M_H-1);
 // Data types
 #define TI char          // input data type
 #define TI_CHR(X) (X)    // conversion to char (debug)
@@ -75,12 +114,19 @@ TI* p_input() {
 	for (unsigned i=0;i<M_H;++i) in[i]=names[i%n];
 	return in;
 }
-_hostdev _inline TC p_cost(TI a, TI b) {
-	static long s = time(NULL); // seed
-	long n = ( s ^ (a ^ b) ) % 44927;
-	n=n%23; if (n==0) n=1; return n;
+// Helpers functions
+_hostdev _inline TC p_cost(TI a, TI b) { static long s=time(NULL); // seed
+	long n = ( s ^ (a ^ b) ) % 44927; n=n%23; if (n==0) n=1; return n;
 }
+// Computation kernel
+#define p_kernel \
+	TC Cij = p_cost(_in(i),_in(j)); \
+	_max_loop(k,i+1,j, _cost(i,k) + _cost(k,j) + Cij,  k  )
 
-// This is a requirement for the problem
-ASSERT(M_W==M_H-1);
+// TC Cij = p_cost(c_in[0][i],c_in[0][j%M_H]); // mind the modulo, we just want to pass (i,j) actually
+// for (unsigned k=i+1;k<j;++k) {
+// 	c2 = c_cost[idx(i,k)] + c_cost[idx(k,j)] + Cij;
+// 	if (c2>c) { c=c2; b=(TB)k; }
+// }
+
 #endif
