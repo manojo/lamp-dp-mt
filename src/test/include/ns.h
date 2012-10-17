@@ -40,8 +40,9 @@
 	#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })
 #elif defined(SH_PARA)
 	// parallelogram address: leftmost diagonal, then the second, ...
+	// circular structure for n steps, hence the modulo
 	#define MEM_MATRIX (M_H*M_W)
-	#define idx(i,j) ({ unsigned _i=(i); ((j)-_i)*M_H+_i; })
+	#define idx(i,j) ({ unsigned _i=(i); ((j)-_i)*M_H + _i%M_H; })
 #elif defined(SH_RECT)
 	// block-lines address: smaller parallelograms in lines of height B_H
 	#define MEM_MATRIX (M_W* ((M_H+B_H-1)/B_H)*B_H  +B_H*B_H)
@@ -285,3 +286,24 @@ void dbg_cleanup() {
 	cudaDeviceReset();
 	#endif
 }
+
+// -----------------------------------------------------------------------------
+
+#if 0
+// Check the memory addressing / together with print
+void dbg_checkmem() {
+	// Memory mapping
+	//for (int i=0;i<MEM_MATRIX;++i) { c_cost[i]=i; c_back[i]=BT_STOP; }
+	// Swipe lines and columns numbers
+	#define CHK(i0,in,j0,jn,x) for (unsigned i=i0;i<in;++i) for (unsigned j=j0;j<jn;++j) { c_cost[idx(i,j)]=x; c_back[idx(i,j)]=BT_STOP; } dbg_print(false,stdout);
+	#ifdef SH_RECT
+	CHK(0,M_H,0,M_W,i) CHK(0,M_H,0,M_W,j)
+	#endif
+	#ifdef SH_PARA
+	CHK(0,M_H,i,i+M_W,i) CHK(0,M_H,i,i+M_W,j)
+	#endif
+	#ifdef SH_TRI
+	CHK(0,M_H,i,M_W,i) CHK(0,M_H,i,M_W,j)
+	#endif
+}
+#endif

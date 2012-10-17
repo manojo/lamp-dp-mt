@@ -1,6 +1,3 @@
-// Unused data type
-//#define TW int    // wavefront type (if not defined, no wavefront)
-
 // -----------------------------------------------------------------------------
 #ifdef SH_RECT
 // Smith-Waterman with arbitrary gap cost function (rectangular matrix).
@@ -14,6 +11,7 @@
 #define TI_CHR(X) X // conversion to char
 #define TC int      // cost type
 #define TB short    // backtrack type (2 bits for direction + 14 for value)
+//#define TW int    // wavefront type (if not defined, no wavefront)
 // Initialization
 #define INIT(i,j)  ((i)==0 || (j)==0) // matrix initialization at [stop]
 // Input
@@ -48,7 +46,7 @@ typedef struct { unsigned rows,cols; char print() { return 'X'; } } mat_t;
 TI* p_input() {
 	static unsigned s=time(NULL); mseed(s); // keep consistent
 	TI* in = (TI*)malloc(M_H*sizeof(TI));
-	#define RNZ ({ unsigned x; do { x=mrand()%4; } while (!x); x; })
+	#define RNZ ({ unsigned x; do { x=mrand()%10; } while (!x); x; })
 	in[0].rows=RNZ;
 	for (unsigned i=1;i<M_H;++i) { in[i-1].cols=in[i].rows=RNZ; }
 	in[M_H-1].cols=RNZ;
@@ -77,10 +75,9 @@ TI* p_input() {
 	for (unsigned i=0;i<M_H;++i) in[i]=names[i%n];
 	return in;
 }
-
-TC p_cost(TI a, TI b) {
+_hostdev _inline TC p_cost(TI a, TI b) {
 	static long s = time(NULL); // seed
-	long n = ( s ^ ((long)a<<8) ^ b ) % 44927;
-	return n % 23;
+	long n = ( s ^ a ^ b ) % 44927;
+	n=n%23; if (n==0) n=1; return n;
 }
 #endif

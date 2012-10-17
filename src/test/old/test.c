@@ -209,38 +209,20 @@ void solve1() {
 // -----------------------------------------------------------------------------
 // block-split
 
-#define BLK_COST_LEFT(i,k) (cl_left[(k-1)/B_W][ i*(B_H+1)+ (B_W-k%B_W)%B_W *B_H ])
-#define BLK_COST_TOP(k,j) (cl_top[k/B_H][idx((B_H-(k%B_H))%B_H,j)])
+#define COST_BLEFT(i,k) (cl_left[(k-1)/B_W][ i*(B_H+1)+ (B_W-k%B_W)%B_W *B_H ])
+#define COST_BTOP(k,j) (cl_top[k/B_H][idx((B_H-(k%B_H))%B_H,j)])
 
 // Handle non-serial dependencies out of the block
-void blk_precompute2(blk_t* blk, TC** cl_top, TC** cl_left, TC** cl_diag) {
+void blk_precompute2(blk_t* blk, TC** cl_top, TC** cl_left) {
 	const unsigned long oi=blk->bi*B_H, oj=blk->bj*B_W; // block offset in global memory
 	for (unsigned i=0;i<blk->mi;++i) {
 		for (unsigned j=0;j<blk->mj;++j) {
 			TB b='/'; TC c=0,c2;  // default(0,stop)
 			if (!INIT(oi+i,oj+j)) {
-
-
 				// Non-serial partial dependencies
-				//	if (blk->bi>0&&((NONSERIAL)&DIR_VERT) || blk->bj>0&&((NONSERIAL)&DIR_HORZ) || blk->bi>0&&blk->bj>0&&((NONSERIAL)&DIR_DIAG)) {
+				for (unsigned k=1; k<oj; ++k) { c2=COST_BLEFT(i,k) - p_gap(j+k); if (c2>c) { c=c2; b=p_left[j+k]; } }
+				for (unsigned k=1; k<oi; ++k) { c2=COST_BTOP(k,j) - p_gap(k+i); if (c2>=c) { c=c2; b=p_up[k+i]; } }
 
-				for (unsigned k=1; k<oj; ++k) { c2=BLK_COST_LEFT(i,k) - p_gap(j+k); if (c2>c) { c=c2; b=p_left[j+k]; } }
-				for (unsigned k=1; k<oi; ++k) { c2=BLK_COST_TOP(k,j) - p_gap(k+i); if (c2>=c) { c=c2; b=p_up[k+i]; } }
-
-
-
-/*
-				for (unsigned k=1, i0=i*(B_H+1)+(B_W-1)*B_H,
-				                   iN=i*(B_H+1),iX=i0; k<oj; ++k, iX=iX==iN?i0:iX-B_H) { // cl_left[(k-1)/B_W][ i*(B_H+1)+ (B_W-k%B_W)%B_W *B_H ];
-					c2=cl_left[(k-1)/B_W][iX]-p_gap(j+k);
-					if (c2>c) { c=c2; b=p_left[j+k]; }
-				}
-				for (unsigned k=1, i0=idx(B_H-1,j),
-				                   iN=idx(0,j),iX=i0; k<oi; ++k, iX=iX==iN?i0:iX-1-B_H) { // cl_top[k/B_H][idx( (B_H-(k%B_H))%B_H  ,j)]
-					c2= cl_top[k/B_H][iX] - p_gap(k+i);
-					if (c2>=c) { c=c2; b=p_up[k+i]; }
-				}
-*/
 			}
 			blk->cost[idx(i,j)] = c;
 			blk->back[idx(i,j)] = b;
@@ -248,11 +230,8 @@ void blk_precompute2(blk_t* blk, TC** cl_top, TC** cl_left, TC** cl_diag) {
 	}
 }
 
-//inline off_t idx(size_t i, size_t j) { return B_H*(j+(i%B_H)) + (i%B_H) + (i/B_H)*M_W*B_H; }
-
 // Get the cost value with backward search of at most 1 block
-#define COST_B1(i,j) ({ int _i=(i),_j=(j); TC* _c=_i<0?(_j<0?c_diag:c_top):(_j<0?c_left:blk->cost); \
-                        _i=(_i+B_H)%B_H; _j=(_j+B_W)%B_W; _c[B_H*(_j+_i)+_i]; })
+#define COST_B1(i,j) ({ int _i=(i),_j=(j); TC* _c=_i<0?(_j<0?c_diag:c_top):(_j<0?c_left:blk->cost); _i=(_i+B_H)%B_H; _j=(_j+B_W)%B_W; _c[B_H*(_j+_i)+_i]; })
 
 void blk_solve2(blk_t* blk, TC* c_top, TC* c_left, TC* c_diag) {
 	for (unsigned i=0;i<blk->mi;++i) {
@@ -279,37 +258,21 @@ void solve2() {
 	for (unsigned bi=0;bi<M_H/B_H;++bi) {
 		for (unsigned bj=0;bj<M_W/B_W;++bj) {
 			blk_t blk = blk_get(bi,bj);
-
 			// --------- Solving non-serial dependencies
 			#if NONSERIAL>0
-			TC** c_list[3]={NULL,NULL,NULL}; // previous blocks list (0=vert,1=horz,2=diag)
+			TC** c_list[2]={NULL,NULL}; // previous blocks list (0=vert,1=horz,2=diag)
 			#if (NONSERIAL)&DIR_VERT
 			c_list[0]=(TC**)malloc(bi*sizeof(TC**)); for (unsigned k=0;k<bi;++k) c_list[0][k]=(TC*)mm_alloc(bi-k-1,bj);
 			#endif
 			#if (NONSERIAL)&DIR_HORZ
 			c_list[1]=(TC**)malloc(bj*sizeof(TC**)); for (unsigned k=0;k<bj;++k) c_list[1][k]=(TC*)mm_alloc(bi,bj-k-1);
 			#endif
-			#if (NONSERIAL)&DIR_DIAG
-			size_t bm=MIN(bi,bj);
-			c_list[2]=(TC**)malloc(3*bm*sizeof(TC**));
-			for (unsigned k=0;k<bm;++k) {
-				c_list[2][3*k+0]=mm_alloc(bi-k-1,bj-k-1); // Diagonal | Db Ub    -->j
-				c_list[2][3*k+1]=mm_alloc(bi-k  ,bj-k-1); // Upper    | Lb Da Ua
-				c_list[2][3*k+2]=mm_alloc(bi-k-1,bj-k  ); // Lower   iV    La []
-			}
-			#endif
-
-			// XXX: possibly transform c_list[] to device vectors before passing to function
-			blk_precompute2(&blk,c_list[0],c_list[1],c_list[2]);
-
+			blk_precompute2(&blk,c_list[0],c_list[1]);
 			#if (NONSERIAL)&DIR_VERT
 			for (unsigned k=0;k<bi;++k) mm_free(c_list[0][k]); free(c_list[0]);
 			#endif
 			#if (NONSERIAL)&DIR_HORZ
 			for (unsigned k=0;k<bj;++k) mm_free(c_list[1][k]); free(c_list[1]);
-			#endif
-			#if (NONSERIAL)&DIR_DIAG
-			for (unsigned k=0;k<3*bm;++k) mm_free(c_list[2][k]); free(c_list[2]);
 			#endif
 			#endif
 			// --------- Block processing

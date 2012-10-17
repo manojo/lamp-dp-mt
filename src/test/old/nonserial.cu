@@ -1,15 +1,15 @@
 #include "include/common.h"
-
+// COMP:=g++
 // Problem shape (SH_RECT, SH_TRI, SH_PARA)
 //#define SH_RECT
-#define SH_TRI
-//#define SH_PARA
+//#define SH_TRI
+#define SH_PARA
 
 // Problem dimensions
 #define B_W 32LU    // block width
 #define B_H 32LU    // block height
-#define M_W 64LU  // matrix dimension
-#define M_H 64LU  // matrix dimension
+#define M_W 16LU  // matrix dimension
+#define M_H 16LU  // matrix dimension
 
 // -----------------------------------------------------------------------------
 #ifdef SH_RECT
@@ -47,7 +47,7 @@ _hostdev _inline TC p_cost(char s, char t) { return s==t?1:0; }
 // M[i,j]= min {i<=k<j} M[i,k] + M [k+1,j] + r_i * c_k * c_j
 // Now we need to flip the i axis to normalize progression
 //
-//   M[i,j]= min {i<=k<j} M[i,k] + M [j+i-(1+k),j] + r_i * c_k * c_j
+//   M[i,j]= min {inv(i)<=k<j} M[i,k] + M [inv(k+1),j] + r_inv(i) * c_k * c_j
 //
 typedef struct { unsigned rows,cols; char print() { return 'X'; } } mat_t;
 // Data types
@@ -64,7 +64,7 @@ typedef struct { unsigned rows,cols; char print() { return 'X'; } } mat_t;
 TI* p_input() {
 	static unsigned s=time(NULL); mseed(s); // keep consistent
 	TI* in = (TI*)malloc(M_H*sizeof(TI));
-	#define RNZ ({ unsigned x; do { x=mrand()&0x3; } while (!x); x; })
+	#define RNZ ({ unsigned x; do { x=mrand()%10; } while (!x); x; })
 	in[0].rows=RNZ;
 	for (int i=1;i<M_H;++i) { in[i-1].cols=in[i].rows=RNZ; }
 	in[M_H-1].cols=RNZ;
@@ -74,14 +74,79 @@ TI* p_input() {
 #endif
 // -----------------------------------------------------------------------------
 #ifdef SH_PARA
-// Polygon triangulation (parallelogram matrix)
+// Polygon triangulation (parallelogram matrix).
+// M[i,j]= max_{i<k<j} M[i,k]+M[k,j] + S(i,k)
+// After i axis flipping we obtain
+//
+//    M[i,j]= max_{inv(i)<k<j} M[i,k]+M[inv(k),j] + S(inv(i),k)
+//
+// Data types
+#define TI char          // input data type
+#define TI_CHR(X) (X)    // conversion to char (debug)
+#define TC unsigned long // cost type
+#define TB short         // backtrack type (2 bits for direction + 14 for value)
+// Initialization
+//#define INIT(i,j) (i+j<=M_H-1) // matrix initialization at [stop]
+#define INIT(i,j) (i>=j) // matrix initialization at [stop]
+
+TI* p_input() {
+	const char* names="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	static const int n = strlen(names);
+	TI* in = (TI*)malloc(M_H*sizeof(TI));
+	for (int i=0;i<M_H;++i) in[i]=names[i%n];
+	return in;
+}
+
+TC p_cost(TI a, TI b) {
+	static long s = time(NULL); // seed
+	long n = ( s ^ ((long)a<<8) ^ b ) % 44927;
+	return n % 97;
+}
+
 #endif
 // -----------------------------------------------------------------------------
 
 #include "include/nonserial.h" // must be included after problem definition
 
 void c_solve() {
-	mat_t* in0=c_in[0];
+#ifdef SH_RECT
+	for (unsigned i=0; i<M_H; ++i) {
+		for (unsigned j=0; j<M_W; ++j) {
+			TB b=BSTOP; TC c=0,c2;  // stop
+			if (!INIT(i,j)) {
+				for (unsigned k=1; k<j; ++k) { c2=c_cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=B(DIR_LEFT,k); } }
+				for (unsigned k=1; k<i; ++k) { c2=c_cost[idx(i-k,j)]-p_gap(k); if (c2>=c) { c=c2; b=B(DIR_UP,k); } }
+				c2 = c_cost[idx(i-1,j-1)]+p_cost(c_in[0][i],c_in[1][j]); if (c2>=c) { c=c2; b=B(DIR_DIAG,1); }
+			}
+			c_cost[idx(i,j)] = c;
+			c_back[idx(i,j)] = b;
+		}
+	}
+#endif
+
+#ifdef SH_PARA
+	for (unsigned jj=0; jj<M_W; ++jj) {
+		for (unsigned i=0; i<M_H; ++i) {
+			unsigned j=jj+i;
+			TB b=BSTOP; TC c=0,c2;  // stop
+			if (!INIT(i,j)) {
+				for (unsigned k=i+1;k<j;++k) {
+					c2 = c_cost[idx(i,j)]=c_cost[idx(i,k)]+c_cost[idx(k,j)] + p_cost(c_in[0][i],c_in[0][k]);
+				}
+			}
+			c_cost[idx(i,j)] = c;
+			c_back[idx(i,j)] = b;
+		}
+	}
+#endif
+
+
+
+
+
+
+
+/*
 	for (unsigned i=0; i<M_H; ++i) {
 		#ifdef SH_RECT
 		for (unsigned j=0; j<M_W; ++j)
@@ -90,7 +155,7 @@ void c_solve() {
 		for (unsigned j=M_H-1-i; j<M_W; ++j)
 		#endif
 		#ifdef SH_PARA
-		for (unsigned j=i; j<M_W+i; ++j)
+		for (unsigned j=M_H-1-i; j<M_W+M_H-1-i; ++j)
 		#endif
 		{
 			TB b=BSTOP; TC c=0,c2;  // stop
@@ -105,12 +170,26 @@ void c_solve() {
 				// 1. replace i by inv(i) in the formula
 				// 2. replace idx(a,b) by idx(inv(a),b)
 				// 3. replace inv(inv(i)) by i
+				mat_t* in0=c_in[0];
 				c = COST_MAX;
-				#define inv(x) (M_H-1-(x)) // we need to flip [i] axis
 				for (unsigned k=inv(i); k<j; ++k) {
 					c2=c_cost[idx(i,k)] + c_cost[idx(inv(k+1),j)] + in0[inv(i)].rows * in0[k].cols * in0[j].cols; // since in0=in1, in1 is idempotent under flip
 					if (c2<c) { c=c2; b=B(DIR_DIAG,k); } // technically we care only about k, but make sure it's not considered as stop
 				}
+				#endif
+				#ifdef SH_PARA
+
+				char* in0=c_in[0];
+				for (unsigned k=inv(i); k<j; ++k) {
+					c2 = c_cost[idx(i,k)] / *+c_cost[idx(inv(k),j)]* /; //; // + p_cost(in0[inv(i)],in0[k]);
+
+					printf("[%d,%d]  ",k,j);
+
+
+
+					if (c2>c) { c=c2; b=B(DIR_DIAG,k); } // technically we care only about k, but make sure it's not considered as stop
+				}
+
 				#endif
 			}
 			c_cost[idx(i,j)] = c;
@@ -123,6 +202,7 @@ void c_solve() {
 	}
 	printf("\n");
 	#endif
+*/
 }
 
 // -----------------------------------------------------------------------------
@@ -246,8 +326,8 @@ int main(int argc, char** argv) {
 	// for (int i=0;i<2;++i) { t.start(); g_solve(); t.stop(); }
 	// printf("GPU solve: "); t.print(); printf("\n");
 
-	dbg_print(false,stdout);
-	dbg_track(false,stdout);
+	//dbg_print(false,stdout);
+	//dbg_track(false,stdout);
 	// dbg_compare();
 
 	dbg_cleanup();
