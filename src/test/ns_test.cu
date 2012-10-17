@@ -7,8 +7,8 @@
 // Problem dimensions
 #define B_W 32LU    // block width
 #define B_H 32LU    // block height
-#define M_W 128LU  // matrix dimension
-#define M_H 128LU  // matrix dimension
+#define M_W 1024LU  // matrix dimension
+#define M_H 1024LU  // matrix dimension
 
 // -----------------------------------------------------------------------------
 #include "include/ns_prob.h" // problem definitions
@@ -25,6 +25,8 @@ __global__ void gpu_solve(TI* in0, TI* in1, TC* cost, TB* back, volatile unsigne
 
 #ifdef SH_RECT
 	// 1 block = 88ms, 128x128, correct, down to 30ms with multi-blocks
+	// 1043ms for 1024x1024 => we are above "Optimizing DP on GPU via adaptive thread parallelism"
+	// => we need to use the same technique as they do (but first compare on the same problem)
 	const unsigned jjN = tN + M_W;
 	for (unsigned i=tI; i<M_H; i+=tN) for (unsigned jj=0; jj<jjN; ++jj) {
 		unsigned j = jj-tI;
