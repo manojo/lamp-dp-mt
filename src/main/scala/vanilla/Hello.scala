@@ -1,6 +1,6 @@
 package vanilla
 
-object Hello extends App with BuyerAlgebra{
+object Hello extends App{
   
   println("Hello World!")
 }
