@@ -1,5 +1,7 @@
 // Kernel mini-language
 // -----------------------------------------------------------------------------
+// Variables: i, j, correspond to resp. row and column indices
+
 // _ini(i)         access the vertical string at position i (SH_RECT)
 // _inj(j)         access the horizontal string at position j (SH_RECT)
 // _in(i)          access the string at position i (SH_TRI, SH_PARA)
@@ -115,7 +117,7 @@ TI* p_input() {
 	return in;
 }
 // Helpers functions
-_hostdev _inline TC p_cost(TI a, TI b) { static long s=time(NULL); // seed
+_hostdev _inline TC p_cost(TI a, TI b) { long s=0xdeadbeef; //time(NULL); // seed, warning with static for GPU
 	long n = ( s ^ (a ^ b) ) % 44927; n=n%23; if (n==0) n=1; return n;
 }
 // Computation kernel

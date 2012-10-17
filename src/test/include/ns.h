@@ -256,9 +256,13 @@ void dbg_compare(bool full=false) {
 	#endif
 	c_solve();
 	int err=0;
+	#ifdef SH_RECT // some extra memory is needed, we want to ignore it
+	for (int i=0;i<M_H;++i) for (int j=0;j<M_W;++j) { if (tc[idx(i,j)]!=c_cost[idx(i,j)]) ++err; }
+	#else
 	for (unsigned i=0;i<MEM_MATRIX;++i) { if (tc[i]!=c_cost[i]) ++err; }
+	#endif
 	if (err==0) fprintf(stderr,"Compare cpu/gpu: identical.\n");
-	fprintf(stderr,"Compare cpu/gpu: WARNING %d ERRORS !!\n",err);
+	else fprintf(stderr,"Compare cpu/gpu: WARNING %d ERRORS !!\n",err);
 	free(tc);
 	free(tb);
 }
@@ -284,6 +288,7 @@ void dbg_cleanup() {
 }
 
 // -----------------------------------------------------------------------------
+// Unused functions
 
 #if 0
 // Check the memory addressing / together with print
@@ -302,4 +307,21 @@ void dbg_checkmem() {
 	CHK(0,M_H,i,M_W,i) CHK(0,M_H,i,M_W,j)
 	#endif
 }
+
+// Get additional data to check correctness of printed solution
+void dbg_print2() {
+	#ifdef SH_TRI
+		mat_t* in0=c_in[0];
+		for (unsigned i=0; i<M_H; ++i) printf("%dx%d ",in0[i].rows,in0[i].cols); printf("\n");
+	#endif
+	#ifdef SH_PARA
+		for (unsigned i=0;i<M_H;++i) {
+			for (unsigned j=i+1;j<=i+M_W;++j) {
+				printf("<%c-%c> = %2ld  ",c_in[0][i],c_in[0][j%M_H],p_cost(c_in[0][i],c_in[0][j%M_H]));
+			}
+			printf("\n");
+		}
+	#endif
+}
+
 #endif

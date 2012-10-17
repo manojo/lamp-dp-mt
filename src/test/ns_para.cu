@@ -1,18 +1,38 @@
 #include "include/common.h"
 // Problem style (one among the 3 below)
-//#define SH_RECT
-#define SH_TRI
+#define SH_RECT // XXX: errors on GPU (!)
+//#define SH_TRI
 //#define SH_PARA
 
 // Problem dimensions
 #define B_W 8LU    // block width
 #define B_H 8LU    // block height
-#define M_W 5LU  // matrix dimension
-#define M_H 6LU  // matrix dimension
+#define M_W 128LU  // matrix dimension
+#define M_H 128LU  // matrix dimension
 
 // -----------------------------------------------------------------------------
 #include "include/ns_prob.h"
 #include "include/ns.h" // must be included after problem definition
+// -----------------------------------------------------------------------------
+
+#define _infinity c=COST_MAX;
+#ifdef SH_RECT
+#define _ini(i) c_in[0][i]
+#define _inj(j) c_in[1][j]
+#endif
+#ifdef SH_TRI
+#define _in(i) c_in[0][i]
+#endif
+#ifdef SH_PARA
+#define _in(i) c_in[0][i%M_H]
+#endif
+
+#define _cost(i,j) c_cost[idx(i,j)]
+#define _max_loop(K,MIN,MAX,EXPR,BACK) for (unsigned K=MIN; K<MAX; ++K) { c2=EXPR; if (c2>c) { c=c2; b=BACK; } }
+#define _max(EXPR,BACK) c2=EXPR; if (c2>=c) { c=c2; b=BACK; }
+#define _min_loop(K,MIN,MAX,EXPR,BACK) for (unsigned K=MIN; K<MAX; ++K) { c2=EXPR; if (c2<c) { c=c2; b=BACK; } }
+#define _min(EXPR,BACK) c2=EXPR; if (c2<=c) { c=c2; b=BACK; }
+
 // -----------------------------------------------------------------------------
 
 void c_solve() {
@@ -34,26 +54,6 @@ void c_solve() {
 
 			TB b=BT_STOP; TC c=0,c2; // stop
 			if (!INIT(i,j)) {
-
-				// assume i and j are defined
-				#define _infinity c=COST_MAX;
-				#ifdef SH_RECT
-				#define _ini(i) c_in[0][i]
-				#define _inj(j) c_in[1][j]
-				#endif
-				#ifdef SH_TRI
-				#define _in(i) c_in[0][i]
-				#endif
-				#ifdef SH_PARA
-				#define _in(i) c_in[0][i%M_H]
-				#endif
-
-				#define _cost(i,j) c_cost[idx(i,j)]
-				#define _max_loop(K,MIN,MAX,EXPR,BACK) for (unsigned K=MIN; K<MAX; ++K) { c2=EXPR; if (c2>c) { c=c2; b=BACK; } }
-				#define _max(EXPR,BACK) c2=EXPR; if (c2>=c) { c=c2; b=BACK; }
-				#define _min_loop(K,MIN,MAX,EXPR,BACK) for (unsigned K=MIN; K<MAX; ++K) { c2=EXPR; if (c2<c) { c=c2; b=BACK; } }
-				#define _min(EXPR,BACK) c2=EXPR; if (c2<=c) { c=c2; b=BACK; }
-
 				p_kernel
 			}
 			c_cost[idx(i,j)] = c;
@@ -61,6 +61,74 @@ void c_solve() {
 		}
 	}
 }
+
+// -----------------------------------------------------------------------------
+
+#undef _ini
+#undef _inj
+#undef _in
+#undef _cost
+#undef _max
+#undef _min
+#undef _max_loop
+#undef _min_loop
+#undef _infinity
+
+#define _infinity c=COST_MAX;
+#ifdef SH_RECT
+#define _ini(i) in0[i]
+#define _inj(j) in1[j]
+#endif
+#ifdef SH_TRI
+#define _in(i) in0[i]
+#endif
+#ifdef SH_PARA
+#define _in(i) in0[i%M_H]
+#endif
+
+#define _cost(i,j) cost[idx(i,j)]
+#define _max_loop(K,MIN,MAX,EXPR,BACK) for (unsigned K=MIN; K<MAX; ++K) { c2=EXPR; if (c2>c) { c=c2; b=BACK; } }
+#define _max(EXPR,BACK) c2=EXPR; if (c2>=c) { c=c2; b=BACK; }
+#define _min_loop(K,MIN,MAX,EXPR,BACK) for (unsigned K=MIN; K<MAX; ++K) { c2=EXPR; if (c2<c) { c=c2; b=BACK; } }
+#define _min(EXPR,BACK) c2=EXPR; if (c2<=c) { c=c2; b=BACK; }
+
+// -----------------------------------------------------------------------------
+
+__global__ void gpu_solve(TI* in0, TI* in1, TC* cost, TB* back) {
+
+#ifdef SH_RECT
+	for (unsigned i=0; i<M_H; ++i) {
+		for (unsigned j=0; j<M_W; ++j) {
+#endif
+#ifdef SH_TRI
+	// not sure we want to proceed by //gram-blocks or by diagonal
+	for (unsigned ii=0; ii<M_H; ++ii) {
+		unsigned i=M_H-1-ii;
+		for (unsigned j=i; j<M_W; ++j) {
+#endif
+#ifdef SH_PARA
+	for (unsigned jj=0; jj<M_W; ++jj) {
+		for (unsigned i=0; i<M_H; ++i) {
+			unsigned j=jj+i;
+#endif
+
+			TB b=BT_STOP; TC c=0,c2; // stop
+			if (!INIT(i,j)) {
+				p_kernel
+			}
+			cost[idx(i,j)] = c;
+			back[idx(i,j)] = b;
+		}
+	}
+
+
+}
+
+void g_solve() {
+	gpu_solve<<<1, 1, 0, NULL>>>(g_in[0], g_in[1], g_cost, g_back);
+}
+
+// -----------------------------------------------------------------------------
 
 #include <list>
 #include <utility> // pair
@@ -164,33 +232,20 @@ int main(int argc, char** argv) {
 
 	c_solve();
 
-	#ifdef SH_TRI
-		mat_t* in0=c_in[0];
-		for (unsigned i=0; i<M_H; ++i) printf("%dx%d ",in0[i].rows,in0[i].cols); printf("\n");
-	#endif
-	#ifdef SH_PARA
-		for (unsigned i=0;i<M_H;++i) {
-			for (unsigned j=i+1;j<=i+M_W;++j) {
-				printf("<%c-%c> = %2ld  ",c_in[0][i],c_in[0][j%M_H],p_cost(c_in[0][i],c_in[0][j%M_H]));
-			}
-			printf("\n");
-		}
-	#endif
-	dbg_print(false,stdout);
-	dbg_track(false,stdout);
+	//dbg_print(false,stdout);
+	//dbg_track(false,stdout);
 
-/*
 	// CPU solving
 	for (int i=0;i<2;++i) { t.start(); c_solve(); t.stop(); }
 	printf("CPU solve: "); t.print(); printf("\n");
 
 	// GPU solving
-	// for (int i=0;i<2;++i) { t.start(); g_solve(); t.stop(); }
-	// printf("GPU solve: "); t.print(); printf("\n");
+	for (int i=0;i<2;++i) { t.start(); g_solve(); t.stop(); }
+	printf("GPU solve: "); t.print(); printf("\n");
 
+	dbg_compare();
+	// XXX: also compare backtrack
 
-*/
-	//dbg_compare();
 	dbg_cleanup();
 	return 0;
 }
