@@ -36,9 +36,7 @@ void c_solve() {
 #endif
 
 			TB b=BT_STOP; TC c=0,c2; // stop
-			if (!INIT(i,j)) {
-				p_kernel
-			}
+			if (!INIT(i,j)) { p_kernel }
 			c_cost[idx(i,j)] = c;
 			c_back[idx(i,j)] = b;
 		}

@@ -104,7 +104,7 @@ We describe the problem processing in terms of both initialization and recurrenc
 % ----------------------------------------------
 \newpage
 \subsection{Smith-Waterman (simple)}\label{sswat}\ol
-\item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$.
+\item Problem: matching two strings $S$, $T$ with $|S_{\rm padded}|=m, |T_{\rm padded}|=n$.
 \item Matrices: $M_{m \times n}, B_{m \times n}$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
@@ -137,13 +137,14 @@ the first cell containing a $0$.
 
 \item Optimizations:\ul
 	\item In serial (monadic) problems we can avoid building the matrix $M$ by only maintaining the 3 last diagonals in memory (one for the diagonal element, one for horizontal/vertical, and one being built). This construction extends easily to polyadic problems where we need to maintain $k+2$ diagonals in memory where $k$ is the maximum backward lookup.
+	\item Padding: since first line and column of the matrix are zeroes, their initialization might be omitted, but this would implies more involved initialization and computations, which is cumbersome. Also since to fill the $i^{\rm th}$ row we refer to the $(i-1)^{\rm th}$ character of string $S$ thus we prepend to both $S$ and $T$ an unused character, so that matrix and input lines are aligned. Hence valid input indices are $S[1 \cdots m-1]$ and $T[1 \cdots n-1]$. We refer as such strings as padded strings hereafter (with $|S_{\rm padded}| = |S| + 1$).
 	\ule
 \ole
 
 % ----------------------------------------------
 \newpage
 \subsection{Smith-Waterman (with gap extension at different cost)}\ol
-\item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$.
+\item Problem: matching two strings $S$, $T$ with $|S_{\rm padded}|=m, |T_{\rm padded}|=n$.
 \item Matrices: $M_{m \times n}, E_{m \times n}, F_{m \times n}, B_{m \times n}$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
@@ -196,7 +197,7 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 % ----------------------------------------------
 \newpage
 \subsection{Smith-Waterman with arbitrary gap cost}\label{aswat}\ol
-\item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$ with an arbitrary gap function $g(x)\ge 0$ where $x$ is the size of the gap. Without loss of generality, let $m\ge n$\footnote{Otherwise if $|T|>|N|$ we only need to swap both the inputs and backtracking pairs.}. Example penalty function could be\footnote{Intuition: long gaps penalize less, at some point, one large gap is better than matching and smaller gaps.} $g(x)=m-x$.
+\item Problem: matching two strings $S$, $T$ with $|S_{\rm padded}|=m, |T_{\rm padded}|=n$ with an arbitrary gap function $g(x)\ge 0$ where $x$ is the size of the gap. Without loss of generality, let $m\ge n$\footnote{Otherwise if $|T|>|N|$ we only need to swap both the inputs and backtracking pairs.}. Example penalty function could be\footnote{Intuition: long gaps penalize less, at some point, one large gap is better than matching and smaller gaps.} $g(x)=m-x$.
 \item Matrices: $M_{m \times n}, B_{m \times n \times m}$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.

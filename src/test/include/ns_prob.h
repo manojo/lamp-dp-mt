@@ -31,13 +31,14 @@
 //#define TW int    // wavefront type (if not defined, no wavefront)
 // Initialization
 #define INIT(i,j)  ((i)==0 || (j)==0) // matrix initialization at [stop]
-// Input
+// Input (returns padded strings)
 TI* p_input(bool horz=false) {
 	static unsigned sh=time(NULL), sv=time(NULL)+573; // keep consistent
 	const char alph[4]={'A','C','G','T'};
 	unsigned n = horz?M_W:M_H; mseed(horz?sh:sv);
 	TI* in = (TI*)malloc(n*sizeof(TI));
-	for (unsigned i=0;i<n;++i) in[i]=alph[mrand()%4];
+	in[0]='#'; // padding
+	for (unsigned i=1;i<n;++i) in[i]=alph[mrand()%4];
 	return in;
 }
 // Helpers functions
