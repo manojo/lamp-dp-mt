@@ -1,0 +1,42 @@
+\input{style.sty}
+
+\title{Benchmarks}
+\begin{document}
+\maketitle
+\pagestyle{headings}
+
+The goal of this document is to see how we are comparing with other papers in terms of performance and to note performance progress of the improvements.
+
+\subsection*{Graphic cards}
+\def\unt#1{& \footnotesize #1}
+\begin{center}\begin{tabular}{lrrr} \toprule
+\bf Paper		&				& \bf -- 		& \bf  ATLP\cite{gpu_atlp} \\ \midrule
+Serie		&				& GeForce	& Tesla \\
+Model		&				& GT 650M	& C1060 \\
+Architecture	&				& Kepler		& GT200 \\
+Capability		&				& 3.0		& 1.3 \\
+Memory \unt{Mb}				& 1024		& 4096 \\
+CUDA cores &					& 384		& 240 \\
+Core clock \unt{MHz}			& 756		& 1300 \\
+Memory clock \unt{MHz}			& 1953		& 1600 \\
+Memory bus \unt{bit}				& 128		& 512 \\
+Memory bandwidth \unt{GB/s}		& 28.8		& 102.4 \\
+Processing power \unt{GFLOPS}	&564.5		& 622.08 \\ \midrule
+\bf Processing speedup & 		& 1			& 1.07 \\
+\bf Memory speedup & 			& 1			& 3.55 \\ \bottomrule
+\end{tabular}\end{center}
+
+\subsection*{Results}
+\subsubsection*{ATLP\cite{gpu_atlp}}
+\begin{center}\begin{tabular}{lrrrrrrrrrr} \toprule
+\bf Matrix size & 128 & 256 & 512 & 1024 & 1536 & 2048 & 2560 & 3072 & 3584 & 4096 \\ \midrule
+\bf No split & 0.07 & 0.09 & 0.19 & 0.59 & 1.27 & 2.25 & 3.51 & 5.07 & 6.92 & 9.06 \\
+\bf Split at 1 & 0.06 & 0.07 & 0.08 & 0.14 & 0.26 & 0.47 & 0.77 & 1.21 & 1.80 & 2.57 \\ \bottomrule
+\end{tabular} \\[4pt]
+Matrix multiplication timing in seconds
+\end{center}
+
+\bibliographystyle{plain}
+\bibliography{bibliography.bib}
+
+\end{document}
