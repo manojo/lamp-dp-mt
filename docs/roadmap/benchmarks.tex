@@ -8,23 +8,23 @@
 The goal of this document is to see how we are comparing with other papers in terms of performance and to note performance progress of the improvements.
 
 % --------------------------------------------------------------------------------
-\subsection*{Graphic cards}
+\subsection*{Graphic cards\footnote{Source: \url{http://en.wikipedia.org/wiki/Comparison_of_Nvidia_graphics_processing_units}}}
 \def\unt#1{& \footnotesize #1}
-\begin{center}\begin{tabular}{lrrr} \toprule
-\bf Paper		&				& \bf -- 		& \bf  ATLP\cite{gpu_atlp} \\ \midrule
-Serie		&				& GeForce	& Tesla \\
-Model		&				& GT 650M	& C1060 \\
-Architecture	&				& Kepler		& GT200 \\
-Capability		&				& 3.0		& 1.3 \\
-Memory \unt{Mb}				& 1024		& 4096 \\
-CUDA cores &					& 384		& 240 \\
-Core clock \unt{MHz}			& 756		& 1300 \\
-Memory clock \unt{MHz}			& 1953		& 1600 \\
-Memory bus \unt{bit}				& 128		& 512 \\
-Memory bandwidth \unt{GB/s}		& 28.8		& 102.4 \\
-Processing power \unt{GFLOPS}	&564.5		& 622.08 \\ \midrule
-\bf Processing speedup & 		& 1			& 1.07 \\
-\bf Memory speedup & 			& 1			& 3.55 \\ \bottomrule
+\begin{center}\begin{tabular}{lrrrr} \toprule
+\bf Paper		&				& \bf -- 		& \bf  ATLP\cite{gpu_atlp} & \bf SWMB\cite{swat_mega} \\ \midrule
+Serie		&				& GeForce	& Tesla	& GeForce  \\
+Model		&				& GT 650M	& C1060	& GTX 560 \\
+Architecture	&				& Kepler		& GT200	& GF114 \\
+Capability		&				& 3.0		& 1.3	& 2.1 \\
+Memory \unt{Mb}				& 1024		& 4096	& 1024 \\
+CUDA cores &					& 384		& 240	& 384 \\
+Core clock \unt{MHz}			& 756		& 1300	& 822 \\
+Memory clock \unt{MHz}			& 1953		& 1600	& 4008 \\
+Memory bus \unt{bit}				& 128		& 512	& 256 \\
+Memory bandwidth \unt{GB/s}		& 28.8		& 102.4	& 128.26 \\
+Processing power \unt{GFLOPS}	&564.5		& 622.08	& 1263.4 \\ \midrule
+\bf Processing speedup & 		& 1			& 1.07	& \\
+\bf Memory speedup & 			& 1			& 3.55	& \\ \bottomrule
 \end{tabular}\end{center}
 
 % --------------------------------------------------------------------------------
@@ -34,12 +34,25 @@ Processing power \unt{GFLOPS}	&564.5		& 622.08 \\ \midrule
 \bf Matrix size & 128 & 256 & 512 & 1024 & 1536 & 2048 & 2560 & 3072 & 3584 & 4096 \\ \midrule
 \bf No split & 0.07 & 0.09 & 0.19 & 0.59 & 1.27 & 2.25 & 3.51 & 5.07 & 6.92 & 9.06 \\
 \bf Split at 1 & 0.06 & 0.07 & 0.08 & 0.14 & 0.26 & 0.47 & 0.77 & 1.21 & 1.80 & 2.57 \\ \bottomrule
-\end{tabular} \\[4pt]
-Matrix multiplication timing in seconds
-\end{center}
+\end{tabular} \\[4pt] Matrix multiplication timing in seconds \end{center}
+
+\subsubsection*{SWMB\cite{swat_mega}}
+\begin{center}\begin{tabular}{rlrr} \toprule
+\bf Matrix size & \bf Sequences & \bf No pruning & \bf Pruning \\ \midrule
+162K $\times$ 172K		& NC\_000898.1, NC\_007605.1	& 1.2 & 1.2 \\
+543K $\times$ 536K		& NC\_003064.2, NC\_000914.1	& 10.8 & 10.8 \\
+1044K $\times$ 1073K	& CP000051.1, AE002160.2		& 40.3 & 36.2 \\
+3147K $\times$ 3283K	& BA000035.2, BX927147.1		& 363.6 & 363.2 \\ 
+5227K $\times$ 5229K	& AE016879.1, AE017225.1		& 962.4 & 469.5 \\
+7146K $\times$ 5227K	& NC\_005027.1, NC\_003997.3	& 1309 & 1309 \\
+23012K $\times$ 24544K	& NT\_033779.4, NT\_037436.3	& 19701 & 19694 \\
+59374K $\times$ 23953K	& NC\_000024.9, NC\_006492.2	& 49634 & 46869 \\
+32799K $\times$ 46944K	& BA000046.3, NC\_000021.7		& 53869 & 29133 \\ \bottomrule
+\end{tabular} \\[4pt] Smith-Waterman, timing in seconds \end{center}
+
 
 % --------------------------------------------------------------------------------
-\subsubsection*{Preliminary results}
+\subsubsection*{Intermediate results}
 \begin{center}\begin{tabular}{cclrrr} \toprule
 \bf Matrix & \bf Block & \bf Comment & \bf R(ms) & \bf T(ms) & \bf P(ms) \\ \midrule
 1024 & 32 & CPU baseline & 1965.63 & 1191.13 & 6069.66 \\

@@ -17,13 +17,6 @@
 #include "include/ns_gpu.h"  // gpu implementation
 // -----------------------------------------------------------------------------
 
-/*
-PRELIMINARY RESULTS (i7-3720QM-1core vs GeForce GT 650M-attached)
------------------------------------------------------------------
-
-
-*/
-
 __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, volatile unsigned* lock) {
 	const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x; // * (  + blockIdx.y*gridDim.x );
 	const unsigned tN = blockDim.x * gridDim.x;
