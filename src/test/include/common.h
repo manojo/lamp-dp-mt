@@ -73,7 +73,7 @@ struct cuTimer {
 		double last=(te.tv_sec-ts.tv_sec)*1000.0+(te.tv_usec-ts.tv_usec)/1000.0;
 		if (min<0 || last<min) min=last; if (max<0 || last>max) max=last; sum+=last; count++;
 	}
-	void print() { printf("%6.2fms [%6.2f,%6.2f], %d runs",count?sum/count:0.0,min,max,count); min=max=-1; sum=0; count=0; }
+	void print() { fprintf(stderr,"%7.2fms [%7.2f,%7.2f], %d runs",count?sum/count:0.0,min,max,count); min=max=-1; sum=0; count=0; }
 };
 
 // -----------------------------------------------------------------------------

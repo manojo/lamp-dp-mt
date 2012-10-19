@@ -5,13 +5,13 @@
 //
 //      SH_RECT          SH_TRI               SH_PARA
 // +---------------+  +-----------+  +-----------+-----------+ --
-// |               |  | X X X X / |  | X X X X /           / |
-// |               |  | X X X /   |  | X X X /           / X |
-// |               |  | X X /     |  | X X /           / X X | M_H
-// |               |  | X /       |  | X /           / X X X |
-// |               |  | /         |  | /           / X X X X |
+// |               |  | \         |  | \           \ X X X X |
+// |               |  | X \       |  | X \           \ X X X |
+// |               |  | X X \     |  | X X \           \ X X | M_H
+// |               |  | X X X \   |  | X X X \           \ X |
+// |               |  | X X X X \ |  | X X X X \           \ |
 // +---------------+  +-----------+  +-----------+-----------+ --
-// |      M_W      |  |    M_H    |  |    M_H    |
+// |      M_W      |  |    M_H    |              |    M_W    |
 //
 // -----------------------------------------------------------------------------
 // Ensure we picked exactely one shape
@@ -42,13 +42,18 @@
 	// parallelogram addressing: leftmost diagonal, then the second, ...
 	// this is as a rectangle column-wise but bend
 	#define MEM_MATRIX (M_H*M_W)
-	#define idx(i,j) ({ unsigned _i=(i); ((_i+(j)-M_H-1)*M_H + _i; })
-	//#define idx(i,j) ((j-i)*M_H + i*(M_H+1) )
+	//#define idx(i,j) ({ unsigned _i=(i); ((j)+_i-(M_H-1))*M_H+_i; })
+
+	#define idx(i,j) ({ unsigned _i=(i); ((j)-_i)*M_H+_i; })
+
+
 #elif defined(SH_RECT)
 	// block-line addressing: smaller parallelograms in lines of height B_H
 	#define MEM_MATRIX (M_W* ((M_H+B_H-1)/B_H)*B_H  +B_H*B_H)
-	#define idx(i,j) ({ unsigned _i=(i); (B_H*((j)+(_i%B_H)) + (_i%B_H) + (_i/B_H)*M_W*B_H) })
+	#define idx(i,j) ({ unsigned _i=(i); (B_H*((j)+(_i%B_H)) + (_i%B_H) + (_i/B_H)*M_W*B_H); })
 #endif
+#define inv(x) (M_H-1-(x)) // to flip along [i] axis
+
 
 // The wavefront consists of horizontal and/or vertical swipes
 #define MEM_WAVEFRONT MAX((M_H+B_H-1)/B_H,(M_W+B_W-1)/B_W)
@@ -125,7 +130,7 @@ void c_free() {
 TC c_backtrack(unsigned** bt, unsigned* size) {
 	unsigned i,j;
 
-	#ifdef SH_RECT // SWat
+#ifdef SH_RECT // SWat
 	// Find the position with maximal cost
 	unsigned mi=0; TC ci=0;
 	unsigned mj=0; TC cj=0;
@@ -151,10 +156,9 @@ TC c_backtrack(unsigned** bt, unsigned* size) {
 		} while (b!=BSTOP);
 		*size=sz;
 	}
-	#endif
+#endif
 
-
-	#ifdef SH_TRI
+#ifdef SH_TRI
 	TC cost = c_cost[idx(M_H-1,M_H-1)];
 
 	if (bt && size) {
@@ -169,9 +173,7 @@ TC c_backtrack(unsigned** bt, unsigned* size) {
 		while (!queue.empty()) {
 			std::pair<int,int> p = queue.front(); queue.pop_front();
 			i=p.first; j=p.second;
-
-			// vertical flipping
-			#define inv(x) (M_H-1-(x))
+			// note vertical flipping
 			track[0]=inv(i); track[1]=j; track+=2; ++sz;
 
 			TB back = c_back[idx(p.first,p.second)];
@@ -184,7 +186,17 @@ TC c_backtrack(unsigned** bt, unsigned* size) {
 		}
 		*size=sz;
 	}
-	#endif
+#endif
+
+#ifdef SH_PARA
+	TC cost = c_cost[idx(M_H-1,M_H-1)];
+	if (bt && size) {
+		*bt=NULL;
+		*size=0;
+	}
+
+#endif
+
 
 	return cost;
 }
@@ -299,7 +311,7 @@ void dbg_print(bool gpu, FILE* f) {
 			fprintf(f,"%4d",cost[idx(i,j)]);
 			#endif
 			#ifdef SH_TRI
-			if (i+j>=M_H-1) fprintf(f,"%4d",cost[idx(i,j)]);
+			if (i+j>=M_H-1) fprintf(f,"%4ld",(long)cost[idx(i,j)]);
 			else fprintf(f,"    ");
 			#endif
 			if (j%B_W==B_W-1) fprintf(f," |");
