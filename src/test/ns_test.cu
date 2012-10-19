@@ -20,25 +20,27 @@
 /*
 PRELIMINARY RESULTS (i7-3720QM-1core vs GeForce GT 650M-attached)
 -----------------------------------------------------------------
-Parallelogram 1024x1023 with block 32x32
-- CPU: 6077.89ms [6069.66,6086.13], 2 runs
-- GPU:  642.33ms [ 516.82, 767.84], 2 runs
-- Matrix cpu/gpu: identical.
-Triangle 1024x1024 with block 32x32
-- CPU: 1201.34ms [1191.13,1211.55], 2 runs
-- GPU:  619.68ms [ 499.87, 739.49], 2 runs
-- Matrix cpu/gpu: identical.
-Rectangle 1024x1024 with block 32x32
-- CPU: 1977.18ms [1965.63,1988.74], 2 runs
-- GPU: 1054.84ms [ 838.67,1271.00], 2 runs
-- Matrix cpu/gpu: identical.
+
+
 */
 
-__global__ void gpu_solve(TI* in0, TI* in1, TC* cost, TB* back, volatile unsigned* lock) {
+__global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, volatile unsigned* lock) {
 	const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x; // * (  + blockIdx.y*gridDim.x );
 	const unsigned tN = blockDim.x * gridDim.x;
 	const unsigned tB = blockIdx.x;
 	unsigned tP=0; // block progress
+	/*
+	 * Optimizations to implement when we are confident about the problem structure:
+	 * SH_RECT: Since we sweep the rectangle with a diagonal, at iteration M_W+(tN+1)/2
+	 *          half of them will we unused. At this point, break the loop and construct
+	 *          a new loop where 2 threads are assigned the same cell, that is thread tI
+	 *          is assigned to cell (i/2, j). We would require tI/2 shared cost cells to
+	 *          exchange maximal cost, the cell with cost=maximum writes (cost,backtrack)
+	 *          to the original matrices.
+	 * SH_TRI : Similarly, when half of the threads go out of the triangle, we can reassign
+	 *          two threads per cell, then repeat the operation at 4 and 8 (possibly 16 and 32).
+	 * SH_PARA: No optimization possible since every pair of thread has very different dependences
+     */
 
 #ifdef SH_RECT
 	// 1 block = 88ms, 128x128, correct, down to 30ms with multi-blocks
@@ -73,18 +75,17 @@ __global__ void gpu_solve(TI* in0, TI* in1, TC* cost, TB* back, volatile unsigne
 				cost[idx(i,j)] = c;
 				back[idx(i,j)] = b;
 			}
-			// Sync between blocks
-			__threadfence();
-			if (threadIdx.x==0) {
-				lock[tB]=++tP;
-				#ifdef SH_PARA
-				for (unsigned b=1;b<gridDim.x;++b) { // sync with all blocks
-					while(lock[(tB+b)%gridDim.x]<tP) {}
-				}
-				#else
-				if (tB) while(lock[tB-1]<tP) {} // sync with previous block
-				#endif
+			// Sync between blocks, removing __threadfence() is incorrect but works
+			// __threadfence(); 
+			#ifdef SH_PARA // wait for all blocks
+			__syncthreads();
+			++tP; if (threadIdx.x==0) lock[tB]=tP;
+			for (unsigned b=threadIdx.x;b<gridDim.x;b+=blockDim.x) { // sync with all blocks
+				while(lock[(tB+b)%gridDim.x]<tP) {}
 			}
+			#else // wait for previous block only
+			if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }
+			#endif
 			__syncthreads();
 		}
 	}
@@ -107,11 +108,11 @@ int main(int argc, char** argv) {
 	dbg_init();
 
 	// CPU solving
-	for (int i=0;i<2;++i) { t.start(); c_solve(); t.stop(); }
+	for (int i=0;i<1;++i) { t.start(); c_solve(); t.stop(); }
 	fprintf(stderr,"- CPU: "); t.print(); fprintf(stderr,"\n");
 	fflush(stderr);
 	// GPU solving
-	for (int i=0;i<2;++i) { t.start(); g_solve(); t.stop(); }
+	for (int i=0;i<10;++i) { t.start(); g_solve(); t.stop(); }
 	fprintf(stderr,"- GPU: "); t.print(); fprintf(stderr,"\n");
 
 	dbg_compare();

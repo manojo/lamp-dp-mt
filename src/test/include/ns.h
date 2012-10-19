@@ -274,7 +274,7 @@ void dbg_compare(bool full=false) {
 }
 
 // Initialize some structures
-void dbg_init(bool info=true) {
+void dbg_init(bool info=false) {
 	#ifdef __CUDACC__
 	if (info) cuInfo();
 	#endif
