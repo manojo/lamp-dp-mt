@@ -69,6 +69,23 @@ trait ADPParsers {
         case _ => List[(T,U)]()
         }
       }
+    }
+
+    /*
+     * the 'nonEmpty' to the right combinator
+     */
+    def ~~+ [U](that: => Parser[U]) = new Parser[(T,U)]{
+      def apply(sw: Subword) = {
+        sw match{
+        case (i,j) if i<j => 
+        for(
+          k <- (i to j-1).toList;
+          x <- inner((i,k));
+          y <- that((k,j))
+        ) yield((x,y))
+        case _ => List[(T,U)]()
+        }
+      }
     }    
 
     /*
