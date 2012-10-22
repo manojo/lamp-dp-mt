@@ -6,6 +6,8 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <sys/time.h>
+#include <sys/types.h> // waitpid
+#include <sys/wait.h> // waitpid
 
 #include "mrand.h"
 
