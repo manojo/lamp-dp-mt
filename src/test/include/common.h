@@ -33,7 +33,12 @@
 #define cuStream(stream) cudaStream_t stream; cuErr(cudaStreamCreate(&stream));
 #define cuStrFree(stream) cuErr(cudaStreamDestroy(stream))
 
-_inline void cuErr_(cudaError_t err, const char *file, int line) { if (err!=cudaSuccess) { fprintf(stderr,"%s:%i CUDA error %d:%s\n", file, line, err, cudaGetErrorString(err)); exit(EXIT_FAILURE); } }
+_inline void cuErr_(cudaError_t err, const char *file, int line) {
+	if (err!=cudaSuccess) {
+		fprintf(stderr,"%s:%i CUDA error %d:%s\n", file, line, err, cudaGetErrorString(err));
+		cudaDeviceReset(); exit(EXIT_FAILURE);
+	}
+}
 _inline void cuInfo(bool full=true) {
 	int deviceCount=0; cudaError_t err=cudaGetDeviceCount(&deviceCount);
 	if (err==38 || deviceCount==0) { fprintf(stderr,"No CUDA device\n"); exit(EXIT_FAILURE); }
