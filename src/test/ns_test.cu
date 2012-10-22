@@ -7,8 +7,8 @@
 // Problem dimensions
 #define B_W 32LU    // block width
 #define B_H 32LU    // block height
-#define M_W 1024LU  // matrix dimension
-#define M_H 1024LU  // matrix dimension
+#define M_W 2048LU  // matrix dimension
+#define M_H 2048LU  // matrix dimension
 
 // -----------------------------------------------------------------------------
 #include "include/ns_prob.h" // problem definitions
@@ -93,6 +93,46 @@ void g_solve() {
 	gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in[0], g_in[1], g_cost, g_back, lock);
 	cuFree(lock);
 }
+
+
+
+
+TC g_backtrack(unsigned** bt, unsigned* size) {
+	TC cost;
+	unsigned i,j;
+
+	// Find the position with maximal cost along bottom+right borders
+	unsigned mi=0; TC ci=0;
+	unsigned mj=0; TC cj=0;
+	for (unsigned i=0; i<M_H; ++i) { TC c=c_cost[idx(i,M_W-1)]; if (c>ci) { mi=i; ci=c; } }
+	for (unsigned j=0; j<M_W; ++j) { TC c=c_cost[idx(M_H-1,j)]; if (c>cj) { mj=j; cj=c; } }
+	if (ci>cj) { i=mi; j=M_W-1; } else { i=M_H-1; j=mj; }
+
+	cost = c_cost[idx(i,j)];
+	// Backtrack, returns a pair of coordinates in reverse order
+	if (bt && size) {
+		TB b;
+		*bt=(unsigned*)malloc((M_W+M_H)*2*sizeof(unsigned));
+		unsigned sz=0;
+		unsigned* track=*bt;
+		do {
+			track[0]=i; track[1]=j; track+=2; ++sz;
+			b = c_back[idx(i,j)];
+			switch(BT_D(b)) {
+				case DIR_LEFT: j-=BT_V(b); break;
+				case DIR_UP: i-=BT_V(b); break;
+				case DIR_DIAG: i-=BT_V(b); j-=BT_V(b); break;
+			}
+		} while (b!=BT_STOP);
+		*size=sz;
+	}
+
+
+	return cost;
+}
+
+
+
 
 // -----------------------------------------------------------------------------
 

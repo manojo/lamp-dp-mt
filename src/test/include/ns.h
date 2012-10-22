@@ -230,10 +230,9 @@ void dbg_print(bool gpu, FILE* f) {
 
 // Backtrack the solved problem and pretty-print it
 void dbg_track(bool gpu, FILE* f) {
-	// XXX: add for GPU
 	unsigned* bt;
 	unsigned sz;
-	unsigned score = c_backtrack(&bt,&sz);
+	unsigned score = gpu ? g_backtrack(&bt,&sz) : c_backtrack(&bt,&sz);
 	fprintf(f,"Backtrack with best score : %d\n",score);
 	if (sz) for (unsigned i=sz-1;;--i) {
 		printf("(%d,%d) ",bt[i*2],bt[i*2+1]);
@@ -246,17 +245,16 @@ void dbg_track(bool gpu, FILE* f) {
 // Checks that the CPU and GPU implementation return the same costs
 // Note that backtrack may vary depending the ordering of paths selection
 void dbg_compare(bool full=false) {
+	TC* tc=(TC*)malloc(sizeof(TC)*MEM_MATRIX);
+	TB* tb=(TB*)malloc(sizeof(TB)*MEM_MATRIX);
 	#ifdef __CUDACC__
 	cudaMemset(g_cost,0xff,sizeof(TC)*MEM_MATRIX);
 	cudaMemset(g_back,0xff,sizeof(TB)*MEM_MATRIX);
 	g_solve();
-	#endif
-	TC* tc=(TC*)malloc(sizeof(TC)*MEM_MATRIX);
-	TB* tb=(TB*)malloc(sizeof(TB)*MEM_MATRIX);
-	#ifdef __CUDACC__
 	cuGet(tc,g_cost,sizeof(TC)*MEM_MATRIX,NULL);
 	cuGet(tb,g_back,sizeof(TB)*MEM_MATRIX,NULL);
 	#endif
+
 	c_solve();
 	int err=0;
 	#ifdef SH_RECT // some extra memory is needed, we want to ignore it
@@ -269,8 +267,15 @@ void dbg_compare(bool full=false) {
 	free(tc);
 	free(tb);
 	
+
+	#ifdef __CUDACC__
+
 	// XXX: implement backtrack comparison
 	
+	
+	#else
+	fprintf(stderr,"NO GPU implementation available\n");
+	#endif	
 }
 
 // Initialize some structures
