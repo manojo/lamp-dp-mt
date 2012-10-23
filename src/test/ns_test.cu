@@ -87,6 +87,9 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 void g_solve() {
 	unsigned blk_size = 32; // = warp size
 	unsigned blk_num = (M_H+blk_size-1)/blk_size;
+	#ifdef SH_PARA // 384 cores (GF650M)
+	if (blk_num>32) blk_num=32;
+	#endif
 	unsigned* lock;
 	cuMalloc(lock,sizeof(unsigned)*blk_num);
 	cuErr(cudaMemset(lock,0,sizeof(unsigned)*blk_num));

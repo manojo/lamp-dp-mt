@@ -58,9 +58,10 @@ Processing power \unt{GFLOPS}	&564.5		& 622.08	& 1263.4 \\ \midrule
 1024 & 32 & CPU baseline & 1965.63 & 1191.13 & 6069.66 \\
 1024 & 32 & GPU baseline & 838.67 & 499.87 & 516.82 \\
 1024 & 32 & GPU sync improved & 642.37 & 316.40 & 343.29 \\
-
+2048 & 32 & CPU baseline & 27229.28 & 15296.09 & 57323.04 \\
+2048 & 32 & GPU P 32 blocks & 2864.27 & 1427.21 & 2096.34 \\
 \bottomrule \end{tabular} \\[4pt]
-Best timings for R=rectangle, T=triangle, P=parallelogram
+Best timings for R=rectangle, T=triangle, P=parallelogram\footnote{$\le 32$ blocks on my GPU to prevent deadlock}
 \end{center}
 
 % --------------------------------------------------------------------------------

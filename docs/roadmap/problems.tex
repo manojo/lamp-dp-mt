@@ -18,13 +18,13 @@
 \pagestyle{headings}
 
 % ----------------------------------------------------------------------------------------------------------------------------------------
-\section{Introduction}
+\section{Problems classification}
 \subsection{Definitions}\ul
 \item Block of computation: a block is simply a part of the DP matrix that we want to compute.
 \item Wavefront: this is the place around which computation happen, typically. There should be some memory to store intermediate information between block of computations
 \ule
 
-\subsection{Problems classification}
+\subsection{Classification}
 In the literature, dynamic programming problems (DP) are classified according to two criteria:
 
 \textbf{Monadic/polyadic}\ul
@@ -108,7 +108,7 @@ the first cell containing a $0$.
 
 % ----------------------------------------------
 \newpage
-\subsection{Smith-Waterman (with gap extension at different cost)}\ol
+\subsection{Smith-Waterman with affine gap extension cost}\ol
 \item Problem: matching two strings $S$, $T$ with $|S_{\rm padded}|=m, |T_{\rm padded}|=n$.
 \item Matrices: $M_{m \times n}, E_{m \times n}, F_{m \times n}, B_{m \times n}$
 \item Alphabets:\ul
@@ -356,7 +356,7 @@ V_{(i,j)}&=&\min\left\{\begin{array}{l|l}
 	\infty \qquad\qquad\qquad\qquad {\rm if}(S_i,S_j) \text{ is not a base pair} & stop\\\\
 	eh(i,j)+b \qquad\qquad\, \text{otherwise} & HL\\
 	V_{(i+1,j-1)}+es(i,j) & IL \\
-	VBI(i,j) & (i',j') \\
+	VBI_{(i,j)} & (i',j') \\
 	\min_{i<k<j-1}\{W_{(i+1,k)}+W_{(k+1,j-1)}\} +c & k
 \end{array}\right\} = BV_{(i,j)}\\
 \\
@@ -365,35 +365,38 @@ F_{(j)}&=&\min\left\{\begin{array}{l|l}
 	\min_{1\le i< j} (F_{(i-1)} + V_{(i,j)}) & i
 \end{array}\right\} = BF_{(j)}\\
 \\
-VBI(i,j)&=&\min_{i<i'<j'<j}\{V_{(i',j')}+ebi(i,j,i',j')\} +c \quad|\quad (i',j')=BV_{(i,j)}
+VBI_{(i,j)}&=&\min\Big\{\min_{i<i'<j'<j}V_{(i',j')}+ebi(i,j,i',j')\} +c \,\,\Big|\,\, (i',j') \Big\}=BV_{(i,j)}
 \end{array}\]
 
-In practice, we don't go backward for larger values than 30, so we can replace $\min_{i<k<j}$ by $\min_{\max(i,j-30)<k<j}$ in the expressions of $W$,$V$, $VBI$ and $F$.
+In practice, we don't go backward for larger values than 30, so we can replace $\min_{i<k<j}$ by $\min_{\max(i,j-30)<k<j}$ in the expressions of $VBI$ {\color{red} $W$,$V$ and $F$}.
 
-{\color{red}
 \item Backtracking: Start at $BF_{(n)}$ using the recurrences
  \[\begin{array}{rcl}
 	BF_{(j)} &=& \left\{\begin{array}{rcl} L&\implies& BF_{(j-1)} \\ i &\implies& BF_{(i-1)} + BV_{(i,j)} \end{array} \right.\\
 	\\
-	BV(i,j) &=& \left\{\begin{array}{rcl}
+	BV_{(i,j)} &=& \color{red} \left\{\begin{array}{rcl}
 		HL &\implies&\big< {\rm hairpin}(i,j) \big> \\
 		IL &\implies& \big< {\rm stack}(i,j) \big> BV_{(i+1,j-1)} \\
 		(i',j') &\implies& \big< \text{multi-loop from $(i,j)$ to }(i',j') \big> BV(i',j')\\
 		k &\implies& BW_{(i+1,k)} BW_{(k+1,j-1)}
 	\end{array}\right.\\
 	\\
-	BW_{(i,j)} &=& \left\{\begin{array}{rcl}
+	BW_{(i,j)} &=& \color{red} \left\{\begin{array}{rcl}
 	S & \implies & \big< bulge(i) \big> BW_{(i+1,j)} \\
 	W & \implies & \big< bulge(j) \big> BW_{(i,j+1)} \\
 	V &\implies& BV_{(i,j)} \\
 	k &\implies& BW_{(i+1,k)} BW_{(k+1,j-1)}
 	\end{array}\right.
 \end{array}\]
-}
-\item Visualisation: \begin{center}\includegraphics[width=7cm]{problems_zucker.pdf}\end{center}
+
+\item Visualisation: \begin{center}\includegraphics[width=8cm]{problems_zucker.pdf}\end{center}
 	% source: <<Parallization of dynamic programming recurrences in computational biology>> paper
-\item Optimizations: {\color{red} XXX}
+\item Optimizations: {\color{red} XXX: we need to find how to encode $F_{(j)}$ such that we can normalize our computation into an existing recurrence shape.}
 \ole
+\newpage
+
+% ------------------------------------------------------------------------------------------------
+\section{Related problems}
 
 % ------------------------------------------------------------------------------------------------
 \newpage
