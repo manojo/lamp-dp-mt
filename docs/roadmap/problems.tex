@@ -171,15 +171,12 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 	\item Backtrack matrix: $B_{(i,0)}=B_{(0,j)}=stop$.
 	\ule
 
-\item Recurrence:
-
-\[M_{(i,j)}=\max\left\{\begin{array}{l|l}
+\item Recurrence: \[M_{(i,j)}=\max\left\{\begin{array}{l|l}
 	0 & stop\\
 	M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
 	\max_{1 \le k \le j-1} M_{(i,j-k)} - g(k) & N_k\\
 	\max_{1 \le k \le i-1} M_{(i-k,j)} - g(k) & W_k\\
 \end{array}\right\}=B_{(i,j)} \]
-
 
 \item Backtracking: similar to \nameref{sswat} except that you can jump of $k$ cells.
 \item Visualization:
@@ -384,7 +381,7 @@ In practice, we don't go backward for larger values than 30, so we can replace $
 
 \item Visualization: \begin{center}\includegraphics[width=8cm]{problems_zucker.pdf}\end{center}
 	% source: <<Parallization of dynamic programming recurrences in computational biology>> paper
-\item Optimizations: {\color{red} XXX: we need to find how to encode $F_{(j)}$ such that we can normalize our computation into an existing recurrence shape.}
+\item Optimizations: {\color{red} XXX: notice that there are 3 matrices: $W$,$V$ ($VBI$ is part of $V$) that can be expressed using regular matrix, and $F$ that is of different dimension than $W$ and $V$ and requires a special construction (in the wavefront?). We need to find a nice way to encode both its construction and backtrack into the existing framework (implement 1D DP recursively?)}
 \ole
 
 % ------------------------------------------------------------------------------------------------
@@ -392,7 +389,9 @@ In practice, we don't go backward for larger values than 30, so we can replace $
 \section{Related problems}
 
 {\color{red}
-Add additional problems into their related category
+XXX: describe common parts between problems (sub categories)
+
+XXX: Add additional problems into their related category
 \ul
 \item \url{http://en.wikipedia.org/wiki/Dynamic_programming}
 \item \url{http://www.cs.berkeley.edu/~vazirani/algorithms/chap6.pdf}
@@ -405,78 +404,57 @@ Add additional problems into their related category
 % ------------------------------------------------------------------------------------------------
 \newpage
 \section{Implementation}
-We denote by \textit{device} the computational device on which the processing of the DP matrix (or of a computational block) is done. This can be the GPU or the FPGA internal memory. Usually the main memory is larger and can ultimately be extended by disk or network storage.
+We denote by \textit{device} the computational device on which the processing of the DP matrix (or of a computational block) is done and $M_D$ its memory. This can be the GPU or the FPGA internal memory. Usually the main memory is larger than device memory and can ultimately be extended by either disk or network storage.
 \subsection{Memory requirements}
-We propose to evaluate the device memory requirements to solve the above problem classes. First we need to define additional problem properties related to implementation:\ul
-\item
+We propose to evaluate the device memory requirements to solve the above problem classes. We need first to define additional problem properties related to implementation:\ul
+\item \textbf{Number of matrices:} multiple matrices can be encoded as 1 matrix with multiple values per cell. Hence the implementation differentiates only between cost and backtrack matrices with respective element sizes $S_C$ and $S_B$.
+\item \textbf{Delay of dependencies:} In case the problem does not fit into memory, partial matrix content needs to be transferred across sub-problems. Such data amount is usually proportional to the delay of dependencies. If this delay is small, it might be worth to duplicate matrix data in the wavefront, otherwise it might be more efficient to allow access to the previous computational blocks of the matrix.
+\item \textbf{Wavefront size:} Finally some aggregation that is made along some dimension of the matrix does not need to be written at every cell but can be propagated and aggregated along with computation (ex: maximum along one row or column). Hence such information can be maintained in a single place (in the wavefront) and progress together with the computation. We denote by $S_W$ the size of wavefront elements.
+\item \textbf{Input size:} the size of an input letter (from input alphabet) is denoted by $S_I$.
 \ule
 
+\subsection{Small problems (in-memory)}
+Problem that can fit in memory can be solved in a single pass on the device. Such problem must satisfy the equation:
+	\[(S_I+S_W) \cdot (m+n) + (S_C+S_B) \cdot (m\cdot n) \le M_D\]
 
+For instance, assuming that $m=n$, $M_D=1024{\rm Mb}$, that backtrack is 2b (<16384, 3 directions) and that the cost can be represented on 4 b (int or float), that input is 1b (char) and that there is no wavefront, we can treat problems of size $n$ such that $2n+5n^2 \le 2^{30} \implies  n\le 14650$. We might also possibly need to take into account extra padding memory used for coalesced accesses. But it is reasonable to estimate that problems up to 14K fit in memory.
 
-\subsection{Performance considerations}
+\subsection{Large problems}
+To handle large problems, we need to split the matrix into blocks of size $B_H \times B_W$.
 
-%\subsubsection{Precomputations}
-%When a calculus transformation is impossible, it might be worth to interleave a computation phase that will aggregate some of the results that are necessary to the computation block. For instance, for Nussinov term $\max_{i<k<j} [ M_{(i,k)}+M_{(k+1,j)} ]$, we can precompute it over all rows and columns of the block, and for all elements that are not part of the block, then pass these partial results together at the block launch to finish the computation.
-%
-%On GPU, this could be done by interleaving a new kernel for this specific purpose, on FPGA, this could be done by preparing the maximums in another memory area whose pointer will later be passed to the co-processor. We may notice that since this phase is at the same time necessary for both architecture, and can be run independently, we can both execute them concurrently and mix between architectures (use CUDA for pre-computation and FPGA for actual tile computation for instance).
+\subsubsection{Non-serial problems}
+Non-serial problems need to potentially access all elements that have been previously computed. Assuming the restriction that dependencies are only along the rows and columns and that the serial dependencies delay is $\le$ than one block size, we need all the block on the same line and column and one in diagonal.
 
-Zucker: il y a une matrice 1d additionnelle
-la question n'est pas "comment on fait", j'ai relu la recurrence, mais d'avantage "comment rendre a de maniere generique sans utiliser une grosse hash map" ?
+For simplification, let $m=n$, assume that we have $b$ rectangular block per row and per column. We need to transfer forth and back (in terms of blocks):
+	\[b \cdot b +% computed line (once)
+		(b-1) \cdot (b-1) + % diagonal block (1 per block)
+		\sum_{i=0}^{b-1} i \cdot b % column blocks (for line i)
+		= \tfrac{1}{2}b^2(b+5)-2b+1\]
 
-XXX: do we want to support larger non-serial problem that do not fit in memory
+With $b=8$ we have 401 block transfer (forth and back), which corresponds to transferring $12.5\times$ the whole matrix, and the problem size can now be (following the same formula and assertion as for small problems) $2n + 5 \cdot \big(  (n/b)^2 \cdot 2b \big) = 2n+10n^2/8 \le 2^{30} \implies n\le 29307$, so we roughly doubled matrix size at the cost of $12.5\times$ matrix transfer time plus indices overhead.
 
-%\subsubsection{Towards a complexity metric}
-Considering the serial polyadic case, the number of dependencies of each option in the right hand-side of the formula (polyadic count) needs to be weighted with the number of achievable options (lines in the right hand-side of the formula) to provide some usable metric (number of dependencies, or memory accesses). Hence unless all options are evaluated in parallel, polyadic count itself can not be used as a problem complexity metric.
+{\color{red} XXX: Do we want to support larger non-serial problem that do not fit in memory? Is it worth implementing ? Argue.}
 
-The delay of dependencies might also have an impact: if the matrix is too large to fit in the memory (device or main memory), it becomes necessary to maintain partial matrix content (all the intermediate elements) within the wavefront. Also the number of cost matrices might affect the performance, simply because maintaining them requires computations and memory accesses.
+\subsubsection{Serial problems}
 
-These considerations obviously do not change the problem's algorithmic complexity but might provide some estimate of the constant factor that is omitted in the big $O$ notation.
+{\color{red}
+Split into blocks:\ul
+\item Decide the shape of the blocks
+\item Decide the size of the blocks
+\item Decide of a strategy to store intermediate lines/columns: space/time tradeoff.
+\ule
 
-%\subsubsection{New classification proposal}
-We propose 5 criteria to categorize dynamic programming problems:\ol
-\item \textbf{Dimensions of the matrix:} the dimension in which the intermediate computation matrix lies. For the majority of the problems, the matrix is 2D, but it might be 1D (ex: Fibonacci), 3D (aligning 3 sequences) or more.
-\item \textbf{Complexity of dependencies:} the number of dependencies can be a constant (serial) or arbitrarily growing (non-serial). Also in the non-serial case, we allow to differentiate between dependences along one or more dimensions of the matrix.
-\item \textbf{Number of matrices:} (and element size) counts the number of cost and associated backtrack matrices to be maintained. This factor (combined with respective data encoding) allows to give a precise memory consumption and defines whether the problem fits into one device memory or needs to be split into subproblems.
-\item \textbf{Delay of dependencies:} In case the problem does not fit into memory, partial matrix content needs to be transferred across sub-problems. This amount is usually proportional to the delay of dependencies.
-\item \textbf{Wavefront size:} Finally some aggregation that is made along some dimension of the matrix does not need to be written at every cell of the matrix (ex: maximum along one line). Hence such information can be maintained in a single place (wavefront) and progress with the computation.
-\ole
-
-The first 2 criteria provide the theoretical complexity of the dynamic program. Indeed, DP proceeds by filling every element of the matrix, and for each element of the matrix, compute the aggregate over all dependencies, hence the overall complexity is equal to the product of the complexities.
+XXX: make it work up to 14K for all 3 problems using multiple kernels
+XXX: example of non-symmetric serial problem
 
 The three last elements, combined with the above one, provide a precise estimation of the memory consumption, and the implementation difficulty 
-
 
 all the problem are subject to the input dimensions $n$.
 
 the two latter one gives an estimation of the constant factor.
 
-delay
-polyadic
-
-We might need to introduce new parameters for serial
-- delay (access 1 or up to k elements backwards)
-- number of cost matrices to maintain
-
-- size of wavefront
-
-Implementation: number of matrices, size of data, size of wavefront
-
-Since in some special case, transforming it might be possible to transform a non-serial 
-We propose a slightly different classification as 
-
-non-serial monadic -> serial polyadic
-
-XXX: transformation to polyadic serial into monadic serial
-
--> aggregation
--> delay
-
-monadic / polyadic defines the complexity of the backtrack
-
-
-
-
-
+The delay of dependencies might also have an impact: if the matrix is too large to fit in the memory (device or main memory), it becomes necessary to maintain partial matrix content (all the intermediate elements) within the wavefront. Also the number of cost matrices might affect the performance, simply because maintaining them requires computations and memory accesses.
+}
 
 % ------------------------------------------------------------------------------------------------
 \newpage
