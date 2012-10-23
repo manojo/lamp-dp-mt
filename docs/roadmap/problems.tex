@@ -1,6 +1,6 @@
 \input{style.sty}
 
-% Recurrence visualisation helpers
+% Recurrence visualization helpers
 \newcommand\Cd[3][0,-1]{\put(#2){\put(.5,.5){\circle*{.3}}\put(.5,.5){\linethickness{1.5pt}\vector(#1){#3}}}} % dependency [dx,dy]{x,y}{len}
 \def\Cg#1{\put(#1){\color{lightgray}\put(0,0){\polygon*(0,0)(0,1)(1,1)(1,0)}}} % grayed cell (not to store
 \def\Cz#1{\put(#1){\put(0,.35){\parbox{1\unitlength}{\centering\bf 0}}}} % zero-init cell
@@ -20,27 +20,26 @@
 % ----------------------------------------------------------------------------------------------------------------------------------------
 \section{Problems classification}
 \subsection{Definitions}\ul
-\item Block of computation: a block is simply a part of the DP matrix that we want to compute.
-\item Wavefront: this is the place around which computation happen, typically. There should be some memory to store intermediate information between block of computations
+\item \textbf{Dimensions:} let $n$ the size of the input and $d$ the dimension of the underlying matrix.
+\item \textbf{Matrices:} we refer indifferently by the matrix or the matrices to all the intermediate cost- and backtrack-related informations that are necessary to solve the dynamic programming problem of interest. Matrices elements are usually denoted by $M_{(i,j)}$ ($i^{\rm th}$ line , $j^{\rm th}$ column).
+\item \textbf{Computation block:} this is a part of the DP matrix (cost and or backtrack) that we want to compute. A block might be either a sub-matrix (rectangular) or a parallelogram, possibly cropped at its parent matrix boundaries.
+\item \textbf{Wavefront:} the wavefront consists of all the data necessary to reconstruct a computation block of the DP matrix. It might include some previous lines/columns/diagonals as well as line-/column-/diagonal-wise aggregations (min, max, sum, ...).
+\item \textbf{Delay:} we call delay the maximum distance between an element and its dependencies along column and lines (ex: recurrence $M_{(i,j)}=f\big(M_{(i-1,j)}, M_{(i-2,j-1)}\big)$ has delay 3).
 \ule
 
 \subsection{Classification}
-In the literature, dynamic programming problems (DP) are classified according to two criteria:
+\subsubsection{Litterature classification}
+In the literature, dynamic programming problems (DP) are classified according to two criteria:\ul
+\item \textbf{Monadic/polyadic:} a problem is monadic when only one of the previously computed term appears in the right hand-side of the recurrence formula (ex: Smith-Waterman). When two or more terms appear, the problem is polyadic (ex: Fibonacci, $F_n = F_{n-1} + F_{n-2}$).
+When a problem is polyadic with index $p$, it also means that its backtracking forms a $p$-ary tree (where each node has at most $p$ children).
 
-\textbf{Monadic/polyadic}\ul
-\item \textbf{Monadic:} on the right hand-side of the recurrence formula, only one term appears. For instance, Smith-Waterman with constant penalty is monadic
-	\[M_{(i,j)}=\max\left\{\begin{array}{l} 0 \\ M_{(i-1,j-1)}+{\rm cost}(S(i),T(j))\\ M_{(i-1,j)}-d\\ M_{(i,j-1)}-d \end{array}\right. \]
-\item \textbf{Polyadic:} when multiple terms of the recurrence occur in the right and-side of the recurrence formula. For instance Fibonacci is polyadic: \[F(n) = F(n-1) + F(n-2)\]
-\ule
-
-\textbf{Serial/non-serial} \ul
-\item \textbf{Serial:} when the solution depends only of a fixed number of immediately previous solutions (i.e. neighbor cells). For instance Fibonacci is serial (it accesses only 2 cells backward).
-\item \textbf{Non-serial:} when the solution depends of an arbitrary number of previous solutions. Typically Smith-Waterman with arbitrary gap penalty and Nussinov are non-serial:
+\item \textbf{Serial/non-serial:} a problem is serial ($s=0$) when the solutions depends on a fixed number of previous solutions (ex: Fibonacci), otherwise it is said to be non-serial ($s\ge 1$), as the number of dependencies grows with the size of the subproblem. That is computing an element of the matrix would require $O(n^s)$.  (ex: Smith-Waterman with arbitrary gap is $s=1$; we can usually infer $s$ from the number of bound variables in the recurrence formula)
 	\[M_{(i,j)}=\max\left\{\begin{array}{l} ... \\ M_{(i,j-1)}\\ \max\limits_{i<k<j} [ M_{(i,k)}+M_{(k+1,j)} ] \end{array}\right. \]
 \ule
 
-\subsection{Simplifications}
-\subsubsection{Calculus}
+Note that the algorithmic complexity of a problem is exactly $O\big(n^{d+s}\big)$.
+
+\subsubsection{Calculus simplifications}
 In some special case, it is possible to transform a non-serial problem into a serial problem, if we can embed the non-serial term into an additional aggregation matrix. For example:
 	\[M_{(i,j)}=\max\left\{\begin{array}{l} \max\limits_{k<i} M_{(k,j)}
 	\\ \sum\limits_{k<i, l<j}M_{(k,l)} \end{array}\right.
@@ -49,15 +48,12 @@ Where the matrix $C$ stores the maximum along the column and matrix $A$ stores t
 	\[\begin{array}{rcl} C_{(i,j)}&=&\max(C_{(i-1,j)}, M_{(i,j)}) \\
 	A_{(i,j)}&=&A_{(i-1,j)}+A_{(i,j-1)}-A_{(i-1,j-1)}+M_{(i,j)}\end{array}\]
 
-This simplification avoids the non-serial dependencies at the cost of extra storage in the wavefront, unfortunately, it might be applicable only for some special cases.
-
-\subsubsection{Precomputations}
-When a calculus transformation is impossible, it might be worth to interleave a computation phase that will aggregate some of the results that are necessary to the computation block. For instance, for Nussinov term $\max_{i<k<j} [ M_{(i,k)}+M_{(k+1,j)} ]$, we can precompute it over all rows and columns of the block, and for all elements that are not part of the block, then pass these partial results together at the block launch to finish the computation.
-
-On GPU, this could be done by interleaving a new kernel for this specific purpose, on FPGA, this could be done by preparing the maximums in another memory area whose pointer will later be passed to the co-processor. We may notice that since this phase is at the same time necessary for both architecture, and can be run independently, we can both execute them concurrently and mix between architectures (use CUDA for pre-computation and FPGA for actual tile computation for instance).
+Although this simplification removes some non-serial dependencies at the cost of extra storage in the wavefront, it is not sufficient to transform all non-serial monadic problems into serial problems (ex: this does not apply to Smith-Waterman with arbitrary gap cost).
 
 % ----------------------------------------------------------------------------------------------------------------------------------------
 \section{Problems of interest}
+We usually focus on problem that have an underlying bi-dimensional matrix ($d=2$) because they can be parallelized (as opposed to be serial if $d=1$) and can solve large problems (of size $n$). Problems of higher matrix dimensionality ($d\ge3$) require substantial memory which severely impacts their scalability. Also we tend to limit algorithmic complexity of the problems as from $O(n^4)$ on, running time becomes a severely limiting factor.
+
 We describe problems structures: inputs, cost matrices and backtracking matrix. These all have an alphabet (that must be bounded in terms of bit-size). Unless otherwise specified, we adopt the following conventions:\ul
 \item Matrices dimensions are implicitly specified by number of indices and their number of elements is usually the same as the input length.
 \item Number are all unsigned integers
@@ -89,7 +85,7 @@ We describe the problem processing in terms of both initialization and recurrenc
 
 \item Backtracking: starts from the cell $\max \{M_{(m,j)} \cup M_{(i,n)}\}$, stops at
 the first cell containing a $0$.
-\item Visualisation: by convention, we put the longest string vertically ($m\ge n$):
+\item Visualization: by convention, we put the longest string vertically ($m\ge n$):
 \begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 	\put(-.5,7.5){S}\put(-.35,7.4){\linethickness{1pt}\vector(0,-1){2}}
 	\put(.2,8.2){T}\put(.8,8.4){\linethickness{1pt}\vector(1,0){2}}
@@ -155,7 +151,7 @@ Although the latter notation seems more explicit, it introduces non-serial depen
 Notice that this recurrence is very similar to \nameref{sswat} except that we propagate 3 values ($M,E,F$) instead of a single one ($M$).
 
 \item Backtracking: same as \nameref{sswat}
-\item Visualisation: same as \nameref{sswat}
+\item Visualization: same as \nameref{sswat}
 \item Optimizations: same as \nameref{sswat}
 \ole
 
@@ -186,13 +182,10 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 
 
 \item Backtracking: similar to \nameref{sswat} except that you can jump of $k$ cells.
-\item Visualisation:
-
+\item Visualization:
 	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 		\put(-.5,7.5){S}\put(-.35,7.4){\linethickness{1pt}\vector(0,-1){2}}
 		\put(.2,8.2){T}\put(.8,8.4){\linethickness{1pt}\vector(1,0){2}}
-%		\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
-%		\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
 	\Cz{0,0}\Cz{0,1}\Cz{0,2}\Cz{0,3}\Cz{0,4}\Cz{0,5}\Cz{0,6}\Cz{0,7}
 	\Cz{1,7}\Cz{2,7}\Cz{3,7}\Cz{4,7}\Cz{5,7}\Cz{6,7}\Cz{7,7}
 		\Cd[0,-1]{6,7}{2.8}\Cd[0,-1]{6,6}{1.8}\Cd{6,5}{0.8}
@@ -227,7 +220,7 @@ apply out of the box here.
 	\[{\rm BT}(B_{(i,j)}=k) \mapsto \left\{\begin{array}{ll} A_i & \text{if } k=0 \lor k=j \\
 		\Big( {\rm BT}(B_{(i,k)}) \Big) \cdot \Big( {\rm BT}(B_{(k+1,j)}) \Big) & \text{otherwise} \end{array}\right.\]
 
-\item Visualisation: the layout is the a matrix of size $n \times (2n-2)$, because of polygons being 
+\item Visualization: the layout is the a matrix of size $n \times (2n-2)$, because of polygons being 
 "cyclical" in nature.
 \begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(16,9)
 	\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
@@ -267,7 +260,7 @@ apply out of the box here.
 	\[{\rm BT}(B_{(i,j)}=k) \mapsto \left\{\begin{array}{ll} A_i & \text{if } k=0 \lor k=j \\
 		\Big( {\rm BT}(B_{(i,k)}) \Big) \cdot \Big( {\rm BT}(B_{(k+1,j)}) \Big) & \text{otherwise} \end{array}\right.\]
 
-\item Visualisation:
+\item Visualization:
 	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 		\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
 		\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
@@ -305,7 +298,7 @@ apply out of the box here.
 	\end{array}\right\} = B_{(i,j)} \]
 	With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
 \item Backtracking: Start the backtracking in $B_{(1,n)}$ and go backward. The backtracking is very similar to that of the matrix multiplication, except that we also introduce the diagonal matching.
-\item Visualisation:
+\item Visualization:
 	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 		\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
 		\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
@@ -389,14 +382,101 @@ In practice, we don't go backward for larger values than 30, so we can replace $
 	\end{array}\right.
 \end{array}\]
 
-\item Visualisation: \begin{center}\includegraphics[width=8cm]{problems_zucker.pdf}\end{center}
+\item Visualization: \begin{center}\includegraphics[width=8cm]{problems_zucker.pdf}\end{center}
 	% source: <<Parallization of dynamic programming recurrences in computational biology>> paper
 \item Optimizations: {\color{red} XXX: we need to find how to encode $F_{(j)}$ such that we can normalize our computation into an existing recurrence shape.}
 \ole
-\newpage
 
 % ------------------------------------------------------------------------------------------------
+\newpage
 \section{Related problems}
+
+{\color{red}
+Add additional problems into their related category
+\ul
+\item \url{http://en.wikipedia.org/wiki/Dynamic_programming}
+\item \url{http://www.cs.berkeley.edu/~vazirani/algorithms/chap6.pdf}
+\item \url{http://www.algorithmist.com/index.php/Dynamic_Programming}
+\item \url{http://www.cs.uiuc.edu/~jeffe/teaching/algorithms/notes/05-dynprog.pdf}
+\item \url{http://www.cs.ucsb.edu/~suri/cs130b/NewDynProg.pdf}
+\ule
+}
+
+% ------------------------------------------------------------------------------------------------
+\newpage
+\section{Implementation}
+We denote by \textit{device} the computational device on which the processing of the DP matrix (or of a computational block) is done. This can be the GPU or the FPGA internal memory. Usually the main memory is larger and can ultimately be extended by disk or network storage.
+\subsection{Memory requirements}
+We propose to evaluate the device memory requirements to solve the above problem classes. First we need to define additional problem properties related to implementation:\ul
+\item
+\ule
+
+
+
+\subsection{Performance considerations}
+
+%\subsubsection{Precomputations}
+%When a calculus transformation is impossible, it might be worth to interleave a computation phase that will aggregate some of the results that are necessary to the computation block. For instance, for Nussinov term $\max_{i<k<j} [ M_{(i,k)}+M_{(k+1,j)} ]$, we can precompute it over all rows and columns of the block, and for all elements that are not part of the block, then pass these partial results together at the block launch to finish the computation.
+%
+%On GPU, this could be done by interleaving a new kernel for this specific purpose, on FPGA, this could be done by preparing the maximums in another memory area whose pointer will later be passed to the co-processor. We may notice that since this phase is at the same time necessary for both architecture, and can be run independently, we can both execute them concurrently and mix between architectures (use CUDA for pre-computation and FPGA for actual tile computation for instance).
+
+Zucker: il y a une matrice 1d additionnelle
+la question n'est pas "comment on fait", j'ai relu la recurrence, mais d'avantage "comment rendre a de maniere generique sans utiliser une grosse hash map" ?
+
+XXX: do we want to support larger non-serial problem that do not fit in memory
+
+%\subsubsection{Towards a complexity metric}
+Considering the serial polyadic case, the number of dependencies of each option in the right hand-side of the formula (polyadic count) needs to be weighted with the number of achievable options (lines in the right hand-side of the formula) to provide some usable metric (number of dependencies, or memory accesses). Hence unless all options are evaluated in parallel, polyadic count itself can not be used as a problem complexity metric.
+
+The delay of dependencies might also have an impact: if the matrix is too large to fit in the memory (device or main memory), it becomes necessary to maintain partial matrix content (all the intermediate elements) within the wavefront. Also the number of cost matrices might affect the performance, simply because maintaining them requires computations and memory accesses.
+
+These considerations obviously do not change the problem's algorithmic complexity but might provide some estimate of the constant factor that is omitted in the big $O$ notation.
+
+%\subsubsection{New classification proposal}
+We propose 5 criteria to categorize dynamic programming problems:\ol
+\item \textbf{Dimensions of the matrix:} the dimension in which the intermediate computation matrix lies. For the majority of the problems, the matrix is 2D, but it might be 1D (ex: Fibonacci), 3D (aligning 3 sequences) or more.
+\item \textbf{Complexity of dependencies:} the number of dependencies can be a constant (serial) or arbitrarily growing (non-serial). Also in the non-serial case, we allow to differentiate between dependences along one or more dimensions of the matrix.
+\item \textbf{Number of matrices:} (and element size) counts the number of cost and associated backtrack matrices to be maintained. This factor (combined with respective data encoding) allows to give a precise memory consumption and defines whether the problem fits into one device memory or needs to be split into subproblems.
+\item \textbf{Delay of dependencies:} In case the problem does not fit into memory, partial matrix content needs to be transferred across sub-problems. This amount is usually proportional to the delay of dependencies.
+\item \textbf{Wavefront size:} Finally some aggregation that is made along some dimension of the matrix does not need to be written at every cell of the matrix (ex: maximum along one line). Hence such information can be maintained in a single place (wavefront) and progress with the computation.
+\ole
+
+The first 2 criteria provide the theoretical complexity of the dynamic program. Indeed, DP proceeds by filling every element of the matrix, and for each element of the matrix, compute the aggregate over all dependencies, hence the overall complexity is equal to the product of the complexities.
+
+The three last elements, combined with the above one, provide a precise estimation of the memory consumption, and the implementation difficulty 
+
+
+all the problem are subject to the input dimensions $n$.
+
+the two latter one gives an estimation of the constant factor.
+
+delay
+polyadic
+
+We might need to introduce new parameters for serial
+- delay (access 1 or up to k elements backwards)
+- number of cost matrices to maintain
+
+- size of wavefront
+
+Implementation: number of matrices, size of data, size of wavefront
+
+Since in some special case, transforming it might be possible to transform a non-serial 
+We propose a slightly different classification as 
+
+non-serial monadic -> serial polyadic
+
+XXX: transformation to polyadic serial into monadic serial
+
+-> aggregation
+-> delay
+
+monadic / polyadic defines the complexity of the backtrack
+
+
+
+
+
 
 % ------------------------------------------------------------------------------------------------
 \newpage
