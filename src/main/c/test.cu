@@ -35,7 +35,8 @@ int main(int argc, char** argv) {
 	dbg_compare(); // XXX: also compare backtrack
 
 	//dbg_print(false,stdout);
-	//dbg_track(false,stdout);
+	dbg_track(false,stdout);
+	dbg_track(true,stdout);
 
 	dbg_cleanup();
 	return 0;

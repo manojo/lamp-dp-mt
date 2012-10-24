@@ -121,27 +121,32 @@ void g_solve() {
 
 typedef struct { unsigned size; TC score; } bt_info;
 
-__global__ void gpu_backtrack(bt_info* info, unsigned* bt, TC* cost, TB* back) {
-	//info->score=0; info->size=0;
-	unsigned i,j;
+#define QUEUE_PUSH(i,j) tail[0]=i; tail[1]=j; tail+=2; ++sz;
+#define QUEUE_POP(i,j) i=head[0]; j=head[1]; head+=2;
+#define QUEUE_EMPTY (head==tail)
 
+__global__ void gpu_backtrack(bt_info* info, unsigned* bt, TC* cost, TB* back) {
+//	info->score=0; info->size=0; return;
+
+	unsigned i,j,sz=0,*tail=bt;
+	#ifndef SH_RECT
+	unsigned *head=bt;
+	#endif
+
+#if SH_RECT
 	// Find the position with maximal cost along bottom+right borders
 	unsigned mi=0; TC ci=0;
 	unsigned mj=0; TC cj=0;
 	for (unsigned i=0; i<M_H; ++i) { TC c=cost[idx(i,M_W-1)]; if (c>ci) { mi=i; ci=c; } }
 	for (unsigned j=0; j<M_W; ++j) { TC c=cost[idx(M_H-1,j)]; if (c>cj) { mj=j; cj=c; } }
 	if (ci>cj) { i=mi; j=M_W-1; } else { i=M_H-1; j=mj; }
-
 	info->score = cost[idx(i,j)];
 
 	// Backtrack, returns a pair of coordinates in reverse order
 	if (!bt) return;
-
 	TB b;
-	unsigned sz=0;
-	unsigned* track=bt;
 	do {
-		track[0]=i; track[1]=j; track+=2; ++sz;
+		QUEUE_PUSH(i,j)
 		b = back[idx(i,j)];
 		switch(BT_D(b)) {
 			case DIR_LEFT: j-=BT_V(b); break;
@@ -149,8 +154,22 @@ __global__ void gpu_backtrack(bt_info* info, unsigned* bt, TC* cost, TB* back) {
 			case DIR_DIAG: i-=BT_V(b); j-=BT_V(b); break;
 		}
 	} while (b!=BT_STOP);
-	info->size=sz;
+#endif
 
+#ifdef SH_TRI
+	info->score = cost[idx(0,M_H-1)];
+	if (!bt) return;
+	QUEUE_PUSH(0,M_H-1);
+	while (!QUEUE_EMPTY) {
+		QUEUE_POP(i,j)
+		TB k = back[idx(i,j)];
+		if (k!=BT_STOP) {
+			QUEUE_PUSH(i,k);
+			QUEUE_PUSH(k+1,j);
+		}
+	}
+#endif
+	info->size=sz;
 }
 
 TC g_backtrack(unsigned** bt, unsigned* size) {
