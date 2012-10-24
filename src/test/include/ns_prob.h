@@ -107,7 +107,7 @@ TI* p_input() {
 // Data types
 #define TI char          // input data type
 #define TI_CHR(X) (X)    // conversion to char (debug)
-#define TC unsigned long // cost type
+#define TC unsigned      // cost type
 #define TB short         // backtrack type (2 bits for direction + 14 for value)
 // Initialization
 #define INIT(i,j) (i>=j) // matrix initialization at [stop]

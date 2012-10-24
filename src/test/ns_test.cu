@@ -7,8 +7,10 @@
 // Problem dimensions
 #define B_W 32LU    // block width
 #define B_H 32LU    // block height
-#define M_W 2048LU  // matrix dimension
-#define M_H 2048LU  // matrix dimension
+#define M_W 128LU   // matrix dimension (at most 14336LU for in-memory, 12288LU OK)
+#define M_H 128LU   // matrix dimension
+//#define SPLITS 4    // number of kernels to be successively launched
+
 
 // -----------------------------------------------------------------------------
 #include "include/ns_prob.h" // problem definitions
@@ -17,7 +19,7 @@
 #include "include/ns_gpu.h"  // gpu implementation
 // -----------------------------------------------------------------------------
 
-__global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, volatile unsigned* lock) {
+__global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, volatile unsigned* lock, unsigned s0, unsigned s1) {
 	const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x; // * (  + blockIdx.y*gridDim.x );
 	const unsigned tN = blockDim.x * gridDim.x;
 	const unsigned tB = blockIdx.x;
@@ -56,10 +58,10 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 	//	for (unsigned j=i; j<M_W; ++j) { {
 #endif
 #ifdef SH_PARA
-	for (unsigned jj=0; jj<M_W; ++jj) {
-		for (unsigned i=tI; i<M_H; i+=tN) {
-			unsigned j=jj+i;
-			{
+	for (unsigned jj=s0; jj<s1; ++jj) {
+		{
+			for (unsigned i=tI; i<M_H; i+=tN) {
+				unsigned j=jj+i;
 	//for (unsigned jj=0; jj<M_W; ++jj) {
 	//	for (unsigned i=0; i<M_H; ++i) { unsigned j=jj+i; {
 #endif
@@ -69,7 +71,7 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 				back[idx(i,j)] = b;
 			}
 			// Sync between blocks, removing __threadfence() is incorrect but works
-			// __threadfence(); 
+			// __threadfence();
 			#ifdef SH_PARA // wait for all blocks
 			__syncthreads();
 			++tP; if (threadIdx.x==0) lock[tB]=tP;
@@ -82,18 +84,40 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 			__syncthreads();
 		}
 	}
+
+	// Sync with all blocks at exit
+	/*
+	__syncthreads();
+	tP=0; if (threadIdx.x==0) lock[tB]=0;
+	for (unsigned b=threadIdx.x;b<gridDim.x;b+=blockDim.x) {
+		while(lock[(tB+b)%gridDim.x]!=0) {}
+	}
+	*/
 }
 
 void g_solve() {
 	unsigned blk_size = 32; // = warp size
 	unsigned blk_num = (M_H+blk_size-1)/blk_size;
-	#ifdef SH_PARA // 384 cores (GF650M)
+#ifdef SH_PARA // 384 cores (GF650M) XXX: find out exactly why
 	if (blk_num>32) blk_num=32;
-	#endif
+#endif
 	unsigned* lock;
 	cuMalloc(lock,sizeof(unsigned)*blk_num);
 	cuErr(cudaMemset(lock,0,sizeof(unsigned)*blk_num));
-	gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in[0], g_in[1], g_cost, g_back, lock);
+#ifdef SPLITS
+	cudaStream_t stream;
+	cuErr(cudaStreamCreate(&stream));
+	for (int i=0;i<SPLITS;++i) {
+		unsigned s0=(M_W*i)/SPLITS;
+		unsigned s1=(M_W*(i+1))/SPLITS;
+		gpu_solve<<<blk_num, blk_size, 0, stream>>>(g_in[0], g_in[1], g_cost, g_back, lock, s0, s1);
+
+	}
+	cuSync(stream);
+	cuErr(cudaStreamDestroy(stream));
+#else
+	gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in[0], g_in[1], g_cost, g_back, lock, 0, M_W);
+#endif
 	cuFree(lock);
 }
 
@@ -144,14 +168,14 @@ int main(int argc, char** argv) {
 	dbg_init();
 
 	// CPU solving
-	for (int i=0;i<1;++i) { t.start(); c_solve(); t.stop(); }
-	fprintf(stderr,"- CPU: "); t.print(); fprintf(stderr,"\n");
-	fflush(stderr);
+	//for (int i=0;i<1;++i) { t.start(); c_solve(); t.stop(); }
+	//fprintf(stderr,"- CPU: "); t.print(); fprintf(stderr,"\n");
+	//fflush(stderr);
 	// GPU solving
-	for (int i=0;i<10;++i) { t.start(); g_solve(); t.stop(); }
+	for (int i=0;i<1;++i) { t.start(); g_solve(); t.stop(); }
 	fprintf(stderr,"- GPU: "); t.print(); fprintf(stderr,"\n");
 
-	dbg_compare();
+	//dbg_compare();
 	// XXX: also compare backtrack
 
 	//dbg_print(false,stdout);
