@@ -24,7 +24,6 @@ void c_solve() {
 		for (unsigned j=0; j<M_W; ++j) {
 #endif
 #ifdef SH_TRI
-	// not sure we want to proceed by //gram-blocks or by diagonal
 	for (unsigned ii=0; ii<M_H; ++ii) {
 		unsigned i=M_H-1-ii;
 		for (unsigned j=i; j<M_W; ++j) {
@@ -34,7 +33,6 @@ void c_solve() {
 		for (unsigned i=0; i<M_H; ++i) {
 			unsigned j=jj+i;
 #endif
-
 			TB b=BT_STOP; TC c=0,c2; // stop
 			if (!INIT(i,j)) { p_kernel }
 			c_cost[idx(i,j)] = c;
@@ -61,7 +59,7 @@ void c_solve() {
 #include <utility> // pair
 // simply return the pair of indices (i,j) that are in the backtrack
 TC c_backtrack(unsigned** bt, unsigned* size) {
-	TC cost;
+	TC score;
 	unsigned i,j;
 
 #ifdef SH_RECT // SWat
@@ -72,7 +70,7 @@ TC c_backtrack(unsigned** bt, unsigned* size) {
 	for (unsigned j=0; j<M_W; ++j) { TC c=c_cost[idx(M_H-1,j)]; if (c>cj) { mj=j; cj=c; } }
 	if (ci>cj) { i=mi; j=M_W-1; } else { i=M_H-1; j=mj; }
 
-	cost = c_cost[idx(i,j)];
+	score = c_cost[idx(i,j)];
 	// Backtrack, returns a pair of coordinates in reverse order
 	if (bt && size) {
 		TB b;
@@ -93,7 +91,7 @@ TC c_backtrack(unsigned** bt, unsigned* size) {
 #endif
 
 #ifdef SH_TRI
-	cost = c_cost[idx(0,M_H-1)];
+	score = c_cost[idx(0,M_H-1)];
 	if (bt && size) {
 		// returns internal nodes of the binary tree whose leaves are on diagonal
 		*bt=(unsigned*)malloc((M_W+M_H)*2*sizeof(unsigned));
@@ -120,10 +118,10 @@ TC c_backtrack(unsigned** bt, unsigned* size) {
 
 #ifdef SH_PARA
 	i=0,j=M_W-1;
-	cost=c_cost[idx(i,j)];
+	score=c_cost[idx(i,j)];
 	for (unsigned k=1;k<M_H;++k) { // find max along last diagonal
 		TC c2=c_cost[idx(k,M_W-1+k)];
-		if (c2>cost) { cost=c2; i=k; j=M_W-1+k; }
+		if (c2>score) { score=c2; i=k; j=M_W-1+k; }
 	}
 
 	if (bt && size) {
@@ -148,5 +146,5 @@ TC c_backtrack(unsigned** bt, unsigned* size) {
 		*size=sz;
 	}
 #endif
-	return cost;
+	return score;
 }

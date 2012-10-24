@@ -121,7 +121,7 @@ TI* p_input() {
 }
 // Helpers functions
 _hostdev _inline TC p_cost(TI a, TI b) { long s=0xdeadbeef; //time(NULL); // seed, warning with static for GPU
-	long n = ( s ^ (a ^ b) ) % 44927; n=n%23; if (n==0) n=1; return n;
+	unsigned long n = ( s ^ (a ^ b) ) % 44927; n=n%23+1; return n; // must be (strictly) positive
 }
 // Computation kernel
 #define p_kernel \

@@ -1,6 +1,6 @@
-// NON-SERIAL:
+// SMALL PROBLEMS: SERIAL AND NON-SERIAL
 // - Non-serial problem, fills a square, triangle or parallelogram matrix
-// - All the data fits in the GPU memory
+// - All the data fits in the GPU memory (up to about 12K x 12K matrix)
 // - Progress must be possible along anti-diagonal in parallel
 //
 //      SH_RECT          SH_TRI               SH_PARA
@@ -232,8 +232,12 @@ void dbg_print(bool gpu, FILE* f) {
 void dbg_track(bool gpu, FILE* f) {
 	unsigned* bt;
 	unsigned sz;
-	unsigned score = gpu ? g_backtrack(&bt,&sz) : c_backtrack(&bt,&sz);
-	fprintf(f,"Backtrack with best score : %d\n",score);
+	TC score =
+	#ifdef __CUDACC__
+		gpu ? g_backtrack(&bt,&sz) :
+	#endif
+		c_backtrack(&bt,&sz);
+	fprintf(f,"Backtrack with best score : %llu\n",(unsigned long long)score);
 	if (sz) for (unsigned i=sz-1;;--i) {
 		printf("(%d,%d) ",bt[i*2],bt[i*2+1]);
 		if (!i) break;
@@ -246,9 +250,10 @@ void dbg_track(bool gpu, FILE* f) {
 // Note that backtrack may vary depending the ordering of paths selection
 void dbg_compare() {
 	double ttc=0,ttg=0; cuTimer t;
+	// Matrix filling
+#ifdef __CUDACC__
 	TC* tc=(TC*)malloc(sizeof(TC)*MEM_MATRIX);
 	TB* tb=(TB*)malloc(sizeof(TB)*MEM_MATRIX);
-	#ifdef __CUDACC__
 	cudaMemset(g_cost,0xff,sizeof(TC)*MEM_MATRIX);
 	cudaMemset(g_back,0xff,sizeof(TB)*MEM_MATRIX);
 	t.start();
@@ -256,10 +261,13 @@ void dbg_compare() {
 	ttg=t.stop();
 	cuGet(tc,g_cost,sizeof(TC)*MEM_MATRIX,NULL);
 	cuGet(tb,g_back,sizeof(TB)*MEM_MATRIX,NULL);
-	#endif
+#endif
 	t.start();
 	c_solve();
 	ttc=t.stop();
+	fprintf(stderr,"- Matrix cpu(%.3f)/gpu(%.3f) : ",ttc/1000,ttg/1000);
+	// Matrix content comparison
+#ifdef __CUDACC__
 	int err=0;
 	#ifdef SH_RECT // some extra memory is needed, we want to ignore it
 	for (int i=0;i<M_H;++i) for (int j=0;j<M_W;++j) { if (tc[idx(i,j)]!=c_cost[idx(i,j)]) ++err; }
@@ -267,18 +275,23 @@ void dbg_compare() {
 	#else
 	for (unsigned i=0;i<MEM_MATRIX;++i) { if (tc[i]!=c_cost[i]) ++err; }
 	#endif
-	fprintf(stderr,"- Matrix cpu(%.3f)/gpu(%.3f) : ",ttc/1000,ttg/1000);
 	if (err==0) fprintf(stderr,"identical.\n"); else fprintf(stderr,"WARNING %d ERRORS !!\n",err);
 	free(tc);
 	free(tb);
-
-	#ifdef __CUDACC__
-
-	// XXX: implement backtrack comparison
-
-	#else
-	fprintf(stderr,"NO GPU implementation available\n");
-	#endif
+#endif
+	// Backtracking
+	ttc=0; ttg=0;
+	TC cost_c,cost_g;
+	unsigned *bt,size;
+	t.start(); cost_c=c_backtrack(&bt,&size); ttc=t.stop(); if (size&&bt) free(bt);
+#ifdef __CUDACC__
+	t.start(); cost_g=g_backtrack(&bt,&size); ttg=t.stop(); if (size&&bt) free(bt);
+#else
+	cost_g=cost_c;
+#endif
+	fprintf(stderr,"- Backtrack cpu(%.3f)/gpu(%.3f) : ",ttc/1000,ttg/1000);
+	if (cost_c==cost_g) fprintf(stderr,"identical (%lld).\n",(long long)cost_c);
+	else fprintf(stderr,"WARNING ERROR ( %lld != %lld ) !!\n",(long long)cost_c,(long long)cost_g);
 }
 
 // Initialize some structures

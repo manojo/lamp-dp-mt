@@ -4,7 +4,7 @@ if [ "$OSTYPE" = "darwin" ]; then
 	CCARGS="-arch=sm_30 -O2 --linker-options -rpath,/usr/local/cuda/lib"
 	EXEC="./test"
 else
-	CCARG="-arch=sm_20 -O2"
+	CCARG="-arch=sm_21 -O2"
 	EXEC="optirun ./test"
 fi
 
