@@ -351,15 +351,15 @@ V_{(i,j)}&=&\min\left\{\begin{array}{l|l}
 	\min_{i<k<j-1}\{W_{(i+1,k)}+W_{(k+1,j-1)}\} +c & k
 \end{array}\right\} = BV_{(i,j)}\\
 \\
+VBI_{(i,j)}&=&\min\Big\{\min_{i<i'<j'<j}V_{(i',j')}+ebi(i,j,i',j')\} +c \,\,\Big|\,\, (i',j') \Big\}=BV_{(i,j)}\\
+\\
 F_{(j)}&=&\min\left\{\begin{array}{l|l}
 	F_{(j-1)} & L \\ 
 	\min_{1\le i< j} (F_{(i-1)} + V_{(i,j)}) & i
-\end{array}\right\} = BF_{(j)}\\
-\\
-VBI_{(i,j)}&=&\min\Big\{\min_{i<i'<j'<j}V_{(i',j')}+ebi(i,j,i',j')\} +c \,\,\Big|\,\, (i',j') \Big\}=BV_{(i,j)}
+\end{array}\right\} = BF_{(j)}
 \end{array}\]
 
-In practice, we don't go backward for larger values than 30, so we can replace $\min_{i<k<j}$ by $\min_{\max(i,j-30)<k<j}$ in the expressions of $VBI$ {\color{red} $W$,$V$ and $F$}.
+In practice, we don't go backward for larger values than 30, so we can replace $\min_{i<k<j}$ by $\min_{\max(i,j-30)<k<j}$ in the expressions of $VBI$.
 
 \item Backtracking: Start at $BF_{(n)}$ using the recurrences
  \[\begin{array}{rcl}
