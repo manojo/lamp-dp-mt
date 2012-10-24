@@ -7,9 +7,9 @@
 // Problem dimensions
 #define B_W 32LU    // block width
 #define B_H 32LU    // block height
-#define M_W 128LU   // matrix dimension (at most 14336LU for in-memory, 12288LU OK)
-#define M_H 128LU   // matrix dimension
-//#define SPLITS 4    // number of kernels to be successively launched
+#define M_W 4096LU  // matrix dimension (at most 14336LU for in-memory, 12288LU OK)
+#define M_H 4096LU  // matrix dimension
+#define SPLITS 8    // number of kernels to be successively launched
 
 
 // -----------------------------------------------------------------------------
@@ -19,11 +19,6 @@
 #include "include/ns_gpu.h"  // gpu implementation
 // -----------------------------------------------------------------------------
 
-__global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, volatile unsigned* lock, unsigned s0, unsigned s1) {
-	const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x; // * (  + blockIdx.y*gridDim.x );
-	const unsigned tN = blockDim.x * gridDim.x;
-	const unsigned tB = blockIdx.x;
-	unsigned tP=0; // block progress
 	/*
 	 * Optimizations to implement when we are confident about the problem structure:
 	 * SH_RECT: Since we sweep the rectangle with a diagonal, at iteration M_W+(tN+1)/2
@@ -36,69 +31,69 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 	 *          two threads per cell, then repeat the operation at 4 and 8 (possibly 16 and 32).
 	 * SH_PARA: No optimization possible since every pair of thread has very different dependences
      */
-
-#ifdef SH_RECT
 	// 1 block = 88ms, 128x128, correct, down to 30ms with multi-blocks
 	// 1043ms for 1024x1024 => we are above "Optimizing DP on GPU via adaptive thread parallelism"
 	// => we need to use the same technique as they do (but first compare on the same problem)
-	const unsigned jjN = tN + M_W;
-	for (unsigned i=tI; i<M_H; i+=tN) {
-		for (unsigned jj=0; jj<jjN; ++jj) {
+
+__global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {
+	const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x; // * (  + blockIdx.y*gridDim.x );
+	const unsigned tN = blockDim.x * gridDim.x;
+	const unsigned tB = blockIdx.x;
+	unsigned tP=s_start; // block progress
+
+#ifdef SH_RECT
+	#ifdef SPLITS
+	if (s_start) { tP+=tN*s_start/B_W; s_start+=tN*s_start/B_W; }
+	s_stop+=tN*s_stop/B_W;
+	#else
+	s_stop+=tN;
+	#endif
+
+
+	for (unsigned jj=s_start; jj<s_stop; ++jj) {
+		for (unsigned i=tI; i<M_H; i+=tN) {
 			unsigned j = jj-tI;
 			if (j<M_W) {
-	//for (unsigned i=0; i<M_H; ++i) {
-	//	for (unsigned j=0; j<M_W; ++j) { {
 #endif
 #ifdef SH_TRI
-	for (unsigned ii=tI; ii<M_H; ii+=tN) {
-		unsigned i=M_H-1-ii;
-		for (unsigned j=i; j<M_W+i; ++j) {
+	for (unsigned jj=s_start; jj<s_stop; ++jj) {
+		for (unsigned ii=tI; ii<M_H; ii+=tN) {
+			unsigned i=M_H-1-ii;
+			unsigned j=i+jj;
 			if (j<M_W) {
-	//for (unsigned ii=0; ii<M_H; ++ii) { unsigned i=M_H-1-ii;
-	//	for (unsigned j=i; j<M_W; ++j) { {
 #endif
 #ifdef SH_PARA
-	for (unsigned jj=s0; jj<s1; ++jj) {
-		{
-			for (unsigned i=tI; i<M_H; i+=tN) {
-				unsigned j=jj+i;
-	//for (unsigned jj=0; jj<M_W; ++jj) {
-	//	for (unsigned i=0; i<M_H; ++i) { unsigned j=jj+i; {
+	for (unsigned jj=s_start; jj<s_stop; ++jj) {
+		for (unsigned i=tI; i<M_H; i+=tN) {
+			unsigned j=jj+i;
+			{
 #endif
 				TB b=BT_STOP; TC c=0,c2; // stop
 				if (!INIT(i,j)) { p_kernel }
 				cost[idx(i,j)] = c;
 				back[idx(i,j)] = b;
 			}
-			// Sync between blocks, removing __threadfence() is incorrect but works
-			// __threadfence();
-			#ifdef SH_PARA // wait for all blocks
-			__syncthreads();
-			++tP; if (threadIdx.x==0) lock[tB]=tP;
-			for (unsigned b=threadIdx.x;b<gridDim.x;b+=blockDim.x) { // sync with all blocks
-				while(lock[(tB+b)%gridDim.x]<tP) {}
-			}
-			#else // wait for previous block only
-			if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }
-			#endif
-			__syncthreads();
 		}
-	}
 
-	// Sync with all blocks at exit
-	/*
-	__syncthreads();
-	tP=0; if (threadIdx.x==0) lock[tB]=0;
-	for (unsigned b=threadIdx.x;b<gridDim.x;b+=blockDim.x) {
-		while(lock[(tB+b)%gridDim.x]!=0) {}
+		// Sync between blocks, removing __threadfence() is incorrect but works
+		// __threadfence();
+		#ifdef SH_PARA // wait for all blocks
+		__syncthreads();
+		++tP; if (threadIdx.x==0) lock[tB]=tP;
+		for (unsigned b=threadIdx.x;b<gridDim.x;b+=blockDim.x) { // sync with all blocks
+			while(lock[(tB+b)%gridDim.x]<tP) {}
+		}
+		#else // wait for previous block only
+		if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }
+		#endif
+		__syncthreads();
 	}
-	*/
 }
 
 void g_solve() {
 	unsigned blk_size = 32; // = warp size
 	unsigned blk_num = (M_H+blk_size-1)/blk_size;
-#ifdef SH_PARA // 384 cores (GF650M) XXX: find out exactly why
+#ifdef SH_PARA // 384 cores (GF650M) XXX: find out why deadlock at >32 blocks
 	if (blk_num>32) blk_num=32;
 #endif
 	unsigned* lock;
@@ -111,7 +106,6 @@ void g_solve() {
 		unsigned s0=(M_W*i)/SPLITS;
 		unsigned s1=(M_W*(i+1))/SPLITS;
 		gpu_solve<<<blk_num, blk_size, 0, stream>>>(g_in[0], g_in[1], g_cost, g_back, lock, s0, s1);
-
 	}
 	cuSync(stream);
 	cuErr(cudaStreamDestroy(stream));
@@ -175,7 +169,7 @@ int main(int argc, char** argv) {
 	for (int i=0;i<1;++i) { t.start(); g_solve(); t.stop(); }
 	fprintf(stderr,"- GPU: "); t.print(); fprintf(stderr,"\n");
 
-	//dbg_compare();
+	// dbg_compare();
 	// XXX: also compare backtrack
 
 	//dbg_print(false,stdout);

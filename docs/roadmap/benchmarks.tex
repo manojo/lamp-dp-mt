@@ -1,9 +1,12 @@
-\input{style.sty}
+%\input{style.sty}
 
-\title{Benchmarks}
-\begin{document}
-\maketitle
-\pagestyle{headings}
+%\title{Benchmarks}
+%\begin{document}
+%\maketitle
+%\pagestyle{headings}
+
+\newpage
+\section{Benchmarks}
 
 The goal of this document is to see how we are comparing with other papers in terms of performance and to note performance progress of the improvements.
 
@@ -50,20 +53,19 @@ Processing power \unt{GFLOPS}	&564.5		& 622.08	& 1263.4 \\ \midrule
 32799K $\times$ 46944K	& BA000046.3, NC\_000021.7		& 53869 & 29133 \\ \bottomrule
 \end{tabular} \\[4pt] Smith-Waterman, timing in seconds \end{center}
 
-
 % --------------------------------------------------------------------------------
 \subsubsection*{Intermediate results}
 \begin{center}\begin{tabular}{cclrrr} \toprule
-\bf Matrix & \bf Block & \bf Comment & \bf R(ms) & \bf T(ms) & \bf P(ms) \\ \midrule
-1024 & 32 & CPU baseline & 1965.63 & 1191.13 & 6069.66 \\
-1024 & 32 & GPU baseline & 838.67 & 499.87 & 516.82 \\
-1024 & 32 & GPU sync improved & 642.37 & 316.40 & 343.29 \\
-2048 & 32 & CPU baseline & 27229.28 & 15296.09 & 57323.04 \\
-2048 & 32 & GPU P $\le32$ blocks & 2864.27 & 1427.21 & 2096.34 \\
-4096 & 32 & GPU 8 splits & & & 16767.58 \\
-8192 & 32 & GPU 64 splits & & & 135793.22 \\
-12288 & 32 & GPU 256 splits & & & 460912.44 \\
-
+\bf Matrix & \bf Block & \bf Comment & \bf R(s) & \bf T(s) & \bf P(s) \\ \midrule
+1024 & 1 & CPU					& 1.965		& 1.191		& 6.069 \\
+2048 & 1 & CPU					& 27.229		& 15.296		& 57.323 \\
+4096 & 1 & CPU					& 			& 177.608	&  \\
+1024 & 32 & GPU baseline			& 0.838		& 0.500		& 0.516 \\
+1024 & 32 & GPU sync improved		& 0.642		& 0.316		& 0.343 \\
+2048 & 32 & GPU P $\le32$ blocks		& 2.864		& 1.427		& 2.096 \\
+4096 & 32 & GPU 8 splits				& timeout		& 9.285		& 16.767 \\
+8192 & 32 & GPU 64 splits			&			& 62.064		& 135.793 \\
+12288 & 32 & GPU 256 splits			&			& 196.971	& 460.912 \\
 \bottomrule \end{tabular} \\[4pt]
 Best timings for R=rectangle, T=triangle, P=parallelogram\footnote{$\le 32$ blocks on my GPU to prevent deadlock}
 \end{center}
@@ -80,7 +82,4 @@ Problem are described by the triplet <matrix size/block size/shape>.
 	\ule
 \ule
 
-% --------------------------------------------------------------------------------
-\bibliographystyle{plain}
-\bibliography{bibliography.bib}
-\end{document}
+%\end{document}

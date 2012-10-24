@@ -244,7 +244,7 @@ void dbg_track(bool gpu, FILE* f) {
 
 // Checks that the CPU and GPU implementation return the same costs
 // Note that backtrack may vary depending the ordering of paths selection
-void dbg_compare(bool full=false) {
+void dbg_compare() {
 	double ttc=0,ttg=0; cuTimer t;
 	TC* tc=(TC*)malloc(sizeof(TC)*MEM_MATRIX);
 	TB* tb=(TB*)malloc(sizeof(TB)*MEM_MATRIX);
@@ -263,10 +263,11 @@ void dbg_compare(bool full=false) {
 	int err=0;
 	#ifdef SH_RECT // some extra memory is needed, we want to ignore it
 	for (int i=0;i<M_H;++i) for (int j=0;j<M_W;++j) { if (tc[idx(i,j)]!=c_cost[idx(i,j)]) ++err; }
+	// for (int j=0;j<M_W;++j) { for (int i=0;i<M_H;++i) printf("%c",tc[idx(i,j)]!=c_cost[idx(i,j)]?'!':' '); printf("\n"); }
 	#else
 	for (unsigned i=0;i<MEM_MATRIX;++i) { if (tc[i]!=c_cost[i]) ++err; }
 	#endif
-	fprintf(stderr,"- Matrix cpu(%.3f)/gpu(%.3f) : ",ttc,ttg);
+	fprintf(stderr,"- Matrix cpu(%.3f)/gpu(%.3f) : ",ttc/1000,ttg/1000);
 	if (err==0) fprintf(stderr,"identical.\n"); else fprintf(stderr,"WARNING %d ERRORS !!\n",err);
 	free(tc);
 	free(tb);
@@ -274,10 +275,10 @@ void dbg_compare(bool full=false) {
 	#ifdef __CUDACC__
 
 	// XXX: implement backtrack comparison
-	
+
 	#else
 	fprintf(stderr,"NO GPU implementation available\n");
-	#endif	
+	#endif
 }
 
 // Initialize some structures
