@@ -120,9 +120,8 @@ void g_solve() {
 // -----------------------------------------------------------------------------
 
 typedef struct { unsigned size; TC score; } bt_info;
-
-#define QUEUE_PUSH(i,j) tail[0]=i; tail[1]=j; tail+=2; ++sz;
-#define QUEUE_POP(i,j) i=head[0]; j=head[1]; head+=2;
+#define QUEUE_PUSH(i,j) { tail[0]=i; tail[1]=j; tail+=2; ++sz; }
+#define QUEUE_POP(i,j) { i=head[0]; j=head[1]; head+=2; }
 #define QUEUE_EMPTY (head==tail)
 
 __global__ void gpu_backtrack(bt_info* info, unsigned* bt, TC* cost, TB* back) {
@@ -166,6 +165,32 @@ __global__ void gpu_backtrack(bt_info* info, unsigned* bt, TC* cost, TB* back) {
 		if (k!=BT_STOP) {
 			QUEUE_PUSH(i,k);
 			QUEUE_PUSH(k+1,j);
+		}
+	}
+#endif
+
+#ifdef SH_PARA
+	i=0,j=M_W-1;
+	unsigned score=cost[idx(i,j)];
+	for (unsigned k=1;k<M_H;++k) { // find max along last diagonal
+		TC c2=cost[idx(k,M_W-1+k)];
+		if (c2>score) { score=c2; i=k; j=M_W-1+k; }
+	}
+	info->score=score;
+
+	if (!bt) return;
+	QUEUE_PUSH(i,j);
+	while (!QUEUE_EMPTY) {
+		// queue pop + modulo
+		i=head[0]; j=head[1];
+		head[0]=i%M_H;
+		head[1]=j%M_H;
+		head+=2;
+
+		TB k = back[idx(i,j)];
+		if (k!=BT_STOP) {
+			if (k-i>1) QUEUE_PUSH(i,k);
+			if (j-k>1) QUEUE_PUSH(k,j);
 		}
 	}
 #endif
