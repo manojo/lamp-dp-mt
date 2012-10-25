@@ -20,27 +20,18 @@
 \begin{verbatim}
 - serial implementation for large memory
 - optimizations for in-memory computations
+- CPU+GPU implementation for S (NS?) problems larger than device memory
 \end{verbatim}
 
 \subsubsection*{Todo @Manohar}
 \begin{verbatim}
 - generate chain matrix recurrences to generate implementation
-\end{verbatim}
-
-Steps/timeline
-\begin{verbatim}
-- Theorie (?|?)
-- Implementation CPU+GPU pour P/NS (3 problemes: rect, tri, parall)
-- Implementation CPU+GPU pour _/S
-- Lien avec le DSL
-- Benchmarks
-- Optimisations
+- more theory behind what we want to support, how we encompass all cases, ...
 \end{verbatim}
 
 \subsection*{Plan} \ol
 \item {\color{gray}
-\textbf{Problems:} finish the problem description. \\ We might look towards parallel tree-raking, but it does not share much with the above algorithms (sparse version of above computations, might not scale that well). Most of the common patterns are already enclosed by the above problems. Real input size is around 300'000 (we may want to target the million, using disk). We might want to also look at an $O(n^3)$-space complexity problem (like matching 3 strings $S,T,U$).
-}
+\textbf{Problems description:} parallel tree-raking, does not share much with other algorithms (sparse version of computations, might not scale efficiently). Most common patterns are already enclosed by the above problems. Real input size is around 300K. We might want to also look at an $O(n^3)$-space-complex problem (like matching 3 strings $S,T,U$).}
 
 All the problems we consider use 2D storage matrix, their dependencies are an union of: \ul
 \item Serial dependencies
@@ -49,14 +40,13 @@ All the problems we consider use 2D storage matrix, their dependencies are an un
 \item We have not found other type of dependencies in the literature
 \ule
 
-
 \item \textbf{User facing language:} goals are flexibility and compactness.\ul
-	\item Design the user-facing language that we want to support, which should be similar to related papers <<Algebraic Dynamic Programming>> and <<ADP fusion>>. We want to reuse their transformation to map (problem description) $\mapsto$ (kernel implementation) for a single element.
+	\item User-facing language should be similar to related paper \cite{adp_gpu} or \href{http://hackage.haskell.org/package/ADPfusion}{\it ADP fusion}. We want to reuse the transformation mapping (problem description) $\mapsto$ (kernel implementation) for a single element.
 	\item We also may want to try to make implicit transformation for code like \\
 		{\tt @DP def Fib(n:Int) = if (n<=2) return 1 else Fib(n-1)+Fib(n-2)}.
 	\item Windowing: the user should be able to force a windowing (i.e. force a non-serial problem to be a $k$-polyadic serial problem).	
-	\item Consider 3 different cases: we care about backtrack, the costs or both.
-	\item Backtracking: we might want to create an operator/class that given an item produces the previous in the backtrack, or the whole sequence in correct order, or only indices.
+	\item 3 different cases: we care about backtrack cost or both.
+	\item Backtracking: create an operator that produces the whole backtrack sequence indices.
 	\ule
 
 $\implies$ \emph{end of October}.
@@ -67,12 +57,11 @@ $\implies$ \emph{end of October}.
 \item \textbf{Baseline:} Also use benchmarks provided by existing implementations as baselines.\\
 $\implies$ \emph{end of October}.
 
-\item \textbf{Formalize IR:} According to experiences, describe the intermediate representation, also formalize the framework that will be provided to the code generators (i.e. memory management, ...).
+\item \textbf{Formalize IR:} describe the intermediate representation, formalize the framework provided to the code generators (i.e. memory management, ...).
 \item \textbf{Full compiler stack:} enrich the compiler stack from both top-down (translate best user-facing language parsers) and bottom-up (parametric code generators), core of the work.
-\item \textbf{Test and benchmark:} make sure our implementations are correct and compare them with previous papers implementations.
+\item \textbf{Benchmark:} make sure implementations are correct, compare them other papers.
+\item \textbf{Optimizations:} improve as much as possible / as long as time permits
 \ole
-
-
 
 % --------------------------------------------------------------------------------
 \input{problems}
