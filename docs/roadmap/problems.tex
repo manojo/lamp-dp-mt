@@ -517,7 +517,7 @@ Such restriction implies that all the block of the line and the row, and one add
 For simplification, let $m=n$ and assume that we have $b$ square blocks per row and per column. Hence we have the following memory restriction:
 \[ 2\frac{n}{b}(S_I+S_W) + 2 \cdot \frac{n^2}{b}S_C + \frac{n^2}{b^2} S_B \le M_D\]
 
-We also need to take into account the transfer between main memory (or disk) and device memory. Dependency blocks only need to be read, computed blocks need to be written back. Focusing on the cost blocks only:
+We also need to take into account the transfer between main memory (or disk) and device memory. Dependency blocks only need to be read, computed blocks need to be written back. Ignoring the backtrack and focusing only on the cost blocks, the transfers (in blocks) are:
 \[\begin{array}{rclll}
 		b^2 +% computed line writeback (once)
 		(b-1)^2 + % diagonal block loads (1 per block)
@@ -531,29 +531,44 @@ We also need to take into account the transfer between main memory (or disk) and
 		&=& b^3 &\qquad& \rm (Parallelogram)
 \end{array}\]
 
-Backtrack blocks need only to be write back and optionally reloaded during backtrack, hence we need to transfer at most:
-\[\begin{array}{cccll}
-	b^2&+&2b &\qquad& \rm (Rectangle)\\
-	\tfrac{1}{2}b^2 + \tfrac{1}{2}b &+& 2b-1 % binary tree with b leafs, hence b-1 interior nodes.
-		&\qquad& \rm (Triangle)\\
-	b^2 &+& 2b-1 &\qquad& \rm (Parallelogram)
-	
-\end{array}\]
-Since matrix can grow larger, we store backtrack on 4 bytes. Reusing other assertions from small problems we have $S_C=4, S_B=4, S_I=1, S_W=0$ and $M_D=2^{30}$. From first constraint we have
-\[
-\frac{n}{b} (1 + 4n + 2\tfrac{n}{b}) \le 2^{29}
-\quad\Longleftarrow\quad 5n^2 \le b \cdot 2^{29} \]
-Since blocks can not divide cells, we must have $b\le n$ hence $n\le 2^{29}/5 \approx 1.07\cdot 10^8$.
+Putting these two formula together, and using most of the device memory available, we obtain the following results with $S_C=4, S_B=4, S_I=1, S_W=0$ and $M_D=2^{30}$:
+\begin{center}\includegraphics[width=14cm]{ns_large.pdf}\end{center}
+
+Given an experimental bandwidth of 5.3743 Gb/s between CPU and GPU, processing matrices one order of magnitude larger (128K) would result in between 10 and 25 minutes of delay due to transfers. {\color{blue} Using our preliminary benchmarks, such a computation would require at least 7.6 days, assuming there is no other scalability issues.}
+
+%Backtrack blocks need only to be write back and optionally reloaded during backtrack, hence we need to transfer at most:
+%\[\begin{array}{cccll}
+%	b^2&+&2b &\qquad& \rm (Rectangle)\\
+%	\tfrac{1}{2}b^2 + \tfrac{1}{2}b &+& 2b-1 % binary tree with b leafs, hence b-1 interior nodes.
+%		&\qquad& \rm (Triangle)\\
+%	b^2 &+& 2b-1 &\qquad& \rm (Parallelogram)
+%	
+%\end{array}\]
+%Since matrix can grow larger, we store backtrack on 4 bytes. Reusing other assertions from small problems we have $S_C=4, S_B=4, S_I=1, S_W=0$ and $M_D=2^{30}$. From first constraint we have
+%\[
+%\frac{n}{b} (1 + 4n + 2\tfrac{n}{b}) \le 2^{29}
+%\quad\Longleftarrow\quad 5n^2 \le b \cdot 2^{29} \]
+%Since blocks can not divide cells, we must have $b\le n$ hence $n\le 2^{29}/5 \approx 1.07\cdot 10^8$.
+%
+%\textbf{Transfer time is the limiting factor to scalability}\\
+%Since we are interested in an efficient implementation of DP, we want to have an acceptable ratio
+%\[R= \frac{\text{transfer time}}{\text{computation time}}\]
+
+%Let's count the minimal transfer time for various sizes using all the available memory.
+
+
+
+
 
 
 
 {\color{red} XXX: Continue rewriting here
 
+
 With $b=8$ we have 337 block transfer, which corresponds to transferring $5.3\times$ the whole matrix, and the problem size can now be (same assertions as for small problems) $2n + 5 \cdot \big(  (n/b)^2 \cdot 2b \big) = 2n+10n^2/8 \le 2^{30} \implies n\le 29307$, so we roughly doubled matrix size at the cost of $12.5\times$ matrix transfer time plus indices overhead.
 
 Assume a different implementation might be worth to support problems order of magnitude larger, hence $n \approx 120K$ thus we need $2^{30} > 2n + 5 \cdot \big(  (n/b)^2 \cdot 2b \big) = $
 }
-
 
 {\color{red} XXX: Do we want to support larger non-serial problem that do not fit in memory? Is it worth implementing ? Argue.}
 
