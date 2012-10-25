@@ -505,18 +505,55 @@ Problem that can fit in memory can be solved in a single pass on the device. Suc
 For instance, assuming that $m=n$, $M_D=1024{\rm Mb}$, that backtrack is 2b (<16384, 3 directions) and that the cost can be represented on 4 b (int or float), that input is 1b (char) and that there is no wavefront, we can treat problems of size $n$ such that $2n+5n^2 \le 2^{30} \implies  n\le 14650$. We might also possibly need to take into account extra padding memory used for coalesced accesses. But it is reasonable to estimate that problems up to 14K fit in memory.
 
 \subsection{Large problems}
-To handle large problems, we need to split the matrix into blocks of size $B_H \times B_W$.
+To handle large problems, we need to split the matrix into blocks of size $B_H \times B_W$. For simplification, we assume a square matrix made of square blocks with $b$ blocks per row/column.
 
 \subsubsection{Non-serial problems}
-Non-serial problems need to potentially access all elements that have been previously computed. Assuming the restriction that dependencies are only along the rows and columns and that the serial dependencies delay is $\le$ than one block size, we need all the block on the same line and column and one in diagonal.
+Non-serial problems need to potentially access all elements that have been previously computed. We restrict\footnote{As we have not encountered a problem with non-serial dependencies along the diagonal.} ourselves to the following dependencies: \ul
+\item Non-serial dependencies along row and column
+\item Serial dependencies along diagonal, with delay smaller or equal to one block size
+\ule
+Such restriction implies that all the block of the line and the row, and one additional block to cover diagonal dependencies must be held in memory (independently of the matrix shape).
 
-For simplification, let $m=n$, assume that we have $b$ rectangular block per row and per column. We need to transfer forth and back (in terms of blocks):
-	\[b \cdot b +% computed line (once)
-		(b-1) \cdot (b-1) + % diagonal block (1 per block)
-		\sum_{i=0}^{b-1} i \cdot b % column blocks (for line i)
-		= \tfrac{1}{2}b^2(b+5)-2b+1\]
+For simplification, let $m=n$ and assume that we have $b$ square blocks per row and per column. Hence we have the following memory restriction:
+\[ 2\frac{n}{b}(S_I+S_W) + 2 \cdot \frac{n^2}{b}S_C + \frac{n^2}{b^2} S_B \le M_D\]
 
-With $b=8$ we have 401 block transfer (forth and back), which corresponds to transferring $12.5\times$ the whole matrix, and the problem size can now be (following the same formula and assertion as for small problems) $2n + 5 \cdot \big(  (n/b)^2 \cdot 2b \big) = 2n+10n^2/8 \le 2^{30} \implies n\le 29307$, so we roughly doubled matrix size at the cost of $12.5\times$ matrix transfer time plus indices overhead.
+We also need to take into account the transfer between main memory (or disk) and device memory. Dependency blocks only need to be read, computed blocks need to be written back. Focusing on the cost blocks only:
+\[\begin{array}{rclll}
+		b^2 +% computed line writeback (once)
+		(b-1)^2 + % diagonal block loads (1 per block)
+		\sum\limits_{i=0}^{b-1} i \cdot b % column dependencies loads (for line i)
+		&=&\tfrac{1}{2}b^3+\tfrac{3}{2}b^2-2b+1 &\qquad& \rm (Rectangle)
+	\\
+		\sum\limits_{i=1}^{b} \Big(1+2\cdot(i-1)\Big) \cdot (b+1-i) % on i_th diagonal
+		&=& \tfrac{1}{3} b^3 + \tfrac{1}{2}b^2 + \tfrac{1}{6}b &\qquad& \rm (Triangle)
+	\\
+		\sum\limits_{i=1}^{b} \Big(1+2\cdot(i-1)\Big) \cdot b % on i_th diagonal
+		&=& b^3 &\qquad& \rm (Parallelogram)
+\end{array}\]
+
+Backtrack blocks need only to be write back and optionally reloaded during backtrack, hence we need to transfer at most:
+\[\begin{array}{cccll}
+	b^2&+&2b &\qquad& \rm (Rectangle)\\
+	\tfrac{1}{2}b^2 + \tfrac{1}{2}b &+& 2b-1 % binary tree with b leafs, hence b-1 interior nodes.
+		&\qquad& \rm (Triangle)\\
+	b^2 &+& 2b-1 &\qquad& \rm (Parallelogram)
+	
+\end{array}\]
+Since matrix can grow larger, we store backtrack on 4 bytes. Reusing other assertions from small problems we have $S_C=4, S_B=4, S_I=1, S_W=0$ and $M_D=2^{30}$. From first constraint we have
+\[
+\frac{n}{b} (1 + 4n + 2\tfrac{n}{b}) \le 2^{29}
+\quad\Longleftarrow\quad 5n^2 \le b \cdot 2^{29} \]
+Since blocks can not divide cells, we must have $b\le n$ hence $n\le 2^{29}/5 \approx 1.07\cdot 10^8$.
+
+
+
+{\color{red} XXX: Continue rewriting here
+
+With $b=8$ we have 337 block transfer, which corresponds to transferring $5.3\times$ the whole matrix, and the problem size can now be (same assertions as for small problems) $2n + 5 \cdot \big(  (n/b)^2 \cdot 2b \big) = 2n+10n^2/8 \le 2^{30} \implies n\le 29307$, so we roughly doubled matrix size at the cost of $12.5\times$ matrix transfer time plus indices overhead.
+
+Assume a different implementation might be worth to support problems order of magnitude larger, hence $n \approx 120K$ thus we need $2^{30} > 2n + 5 \cdot \big(  (n/b)^2 \cdot 2b \big) = $
+}
+
 
 {\color{red} XXX: Do we want to support larger non-serial problem that do not fit in memory? Is it worth implementing ? Argue.}
 
