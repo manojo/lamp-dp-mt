@@ -1,7 +1,7 @@
-// SMALL PROBLEMS: SERIAL AND NON-SERIAL
+// SMALL PROBLEMS: serial and non-serial problems that fit into device memory
 // - Non-serial problem, fills a square, triangle or parallelogram matrix
 // - All the data fits in the GPU memory (up to about 12K x 12K matrix)
-// - Progress must be possible along anti-diagonal in parallel
+// - Progress must be possible along one (anti-)diagonal in parallel
 //
 //      SH_RECT          SH_TRI               SH_PARA
 // +---------------+  +-----------+  +-----------+-----------+ --

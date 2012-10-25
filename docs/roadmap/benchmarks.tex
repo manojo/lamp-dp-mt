@@ -63,9 +63,9 @@ Processing power \unt{GFLOPS}	&564.5		& 622.08	& 1263.4 \\ \midrule
 1024 & 32 & GPU baseline			& 0.838		& 0.500		& 0.516 \\
 1024 & 32 & GPU sync improved		& 0.642		& 0.316		& 0.343 \\
 2048 & 32 & GPU P $\le32$ blocks		& 2.864		& 1.427		& 2.096 \\
-4096 & 32 & GPU 8 splits				& timeout		& 9.285		& 16.767 \\
-8192 & 32 & GPU 64 splits			&			& 62.064		& 135.793 \\
-12288 & 32 & GPU 256 splits			&			& 196.971	& 460.912 \\
+4096 & 32 & GPU 8 splits				& 21.902		& 9.285		& 16.767 \\
+8192 & 32 & GPU 64 splits			& 159.058	& 62.064		& 135.793 \\
+12288 & 32 & GPU 256 splits			& 419.030	& 196.971	& 460.912 \\
 \bottomrule \end{tabular} \\[4pt]
 Best timings for R=rectangle, T=triangle, P=parallelogram\footnote{$\le 32$ blocks on my GPU to prevent deadlock}
 \end{center}
@@ -77,7 +77,7 @@ Problem are described by the triplet <matrix size/block size/shape>.
 \item It has been put in evidence in a previous work\footnote{Performance Evaluation 2012 miniproject, \it Performance Evaluation of Mersenne arithmetic on GPUs} that with Mac OS operating system, using the GPU exclusively for CUDA or combining with UI display may affect the performance (GeForce 330M, architecture 1.2). With the new architecture (3.0, GeForce 650M), this difference has been reduced to less than 3.5\% with the decoupling of UI and CUDA performing best. So in micro-benchmarks, we can safely ignore the graphic card usage.
 
 \item Synchronization  between blocks\ul
-	\item Removing {\tt \_\_threadfence()} before the synchronization is not syntactically correct but still remains correct, this validates the observation made by \cite{gpu_barrier}. Speedup for <1024/32/*> are 67ms (parallelogram) 100ms (triangle) 180ms (rectangle).
+	\item Removing {\tt \_\_threadfence()} before the synchronization is not syntactically correct but results still remains valid, this confirms the observation made by \cite{gpu_barrier}. Speedup for <1024/32/*> are 67ms (parallelogram) 100ms (triangle) 180ms (rectangle).
 	\item In the parallelogram case, using all threads to monitor other blocks status instead of 1 thread results in a 6.4x speedup (22.72$\to$3.52ms) on <1024/32/para>.
 	\ule
 \ule

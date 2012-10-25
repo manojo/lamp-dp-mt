@@ -43,12 +43,12 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 
 #ifdef SH_RECT
 	#ifdef SPLITS
-	if (s_start) { tP+=tN*s_start/B_W; s_start+=tN*s_start/B_W; }
-	s_stop+=tN*s_stop/B_W;
+	s_start += (tN*s_start)/M_W;
+	s_stop += (tN*s_stop)/M_W;
+	tP=s_start;
 	#else
 	s_stop+=tN;
 	#endif
-
 
 	for (unsigned jj=s_start; jj<s_stop; ++jj) {
 		for (unsigned i=tI; i<M_H; i+=tN) {
@@ -125,8 +125,6 @@ typedef struct { unsigned size; TC score; } bt_info;
 #define QUEUE_EMPTY (head==tail)
 
 __global__ void gpu_backtrack(bt_info* info, unsigned* bt, TC* cost, TB* back) {
-//	info->score=0; info->size=0; return;
-
 	unsigned i,j,sz=0,*tail=bt;
 	#ifndef SH_RECT
 	unsigned *head=bt;
@@ -183,8 +181,7 @@ __global__ void gpu_backtrack(bt_info* info, unsigned* bt, TC* cost, TB* back) {
 	while (!QUEUE_EMPTY) {
 		// queue pop + modulo
 		i=head[0]; j=head[1];
-		head[0]=i%M_H;
-		head[1]=j%M_H;
+		head[0]=i%M_H; head[1]=j%M_H;
 		head+=2;
 
 		TB k = back[idx(i,j)];
