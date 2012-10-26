@@ -22,6 +22,17 @@ function [] = ns_large()
 	xlabel('Input size');
 	ylabel('Data transferred (GB)');
 	d_save(h,'ns_large.eps',9,4);
+
+	R=X(end,3);
+	T=X(end,4);
+	P=X(end,5);
+	fprintf('Transfer volume (Gb) %.0f (R) %.0f (T) %.0f (P)\n',R,T,P)
+
+	% Using results from ship.cu
+	XT = ( 483.20 - 122.69 )/1000; % transfer time (total-process) in ms
+	XV = 992 *2/1024; % 992Mb transferred in both direction
+	XP = XV/XT;
+	fprintf('Transfer time (min) %.2f (R) %.2f (T) %.2f (P)\n',R/XP/60,T/XP/60,P/XP/60)
 end
 
 function d_save(h,file,width,height)

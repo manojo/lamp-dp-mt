@@ -388,54 +388,70 @@ In practice, we don't go backward for larger values than 30, so we can replace $
 % ------------------------------------------------------------------------------------------------
 \newpage
 \section{Related problems}
-The goal of this section is to demonstrate that our framework can accommodate with many problems that we have not considered thoroughly at the design time.
+The goal of this section is to demonstrate that our framework can accommodate with many problems that we have not considered at the design time.
 
 \subsection{Serial problems}
-\begin{tabular}{llll} \toprule
+\begin{tabular}{llcc} \toprule
 \bf Problem & \bf Shape & \bf Matrices & \bf Wavefront \\ \midrule
 Smith-Waterman \footnotesize simple & rectangle & 1 & -- \\
-Smith-Waterman \footnotesize affine gap extension & rectangle & 1 & 2 \\
+Smith-Waterman \footnotesize affine gap extension & rectangle & 3 & -- \\
+\href{http://en.wikipedia.org/wiki/Dynamic_programming#Checkerboard}{Checkerboard} & rectangle & 1 & -- \\
+\href{http://en.wikipedia.org/wiki/Longest_common_subsequence_problem\#Code_for_the_dynamic_programming_solution}{Longest common subsequence} & rectangle & 1 & -- \\
+\href{http://en.wikipedia.org/wiki/Longest_common_substring_problem\#Pseudocode}{Longest common substring} & rectangle & 1 & -- \\
+\href{http://en.wikipedia.org/wiki/Levenshtein_distance\#Computing_Levenshtein_distance}{Levenshtein distance} & rectangle & 1 & -- \\
 \end{tabular}
 
 \subsection{Non-serial problems}
-\begin{tabular}{llll} \toprule
+\begin{tabular}{llcc} \toprule
 \bf Problem & \bf Shape & \bf Matrices & \bf Wavefront \\ \midrule
 Smith-Waterman \footnotesize arbitrary gap cost & rectangle & 1 & -- \\
 Convex polygon triangulation & parallelogram & 1 & -- \\
 Matrix chain multiplication & triangle & 1 & -- \\
 Nussinov & triangle & 1 & -- \\
 Zuker folding & triangle & \color{red} 3? & \color{red} 0? \\
+\href{http://en.wikipedia.org/wiki/CYK_algorithm}{Cocke-Younger-Kasami (CYK)} & triangle & \#rules & -- \\
+
 \end{tabular}
 
-{\color{red}
-I guess we need between 20-50 DP problems to demonstrate that we identified almost all types of problems. We need to describe common parts between problems (sub categories).
+\subsection{Other problems}\ul
+\item Dijkstra shortest path: we need a $E\times V$ matrix, along $E$ forall $V$ reduce its distance, problem is serial along $E$, non-serial along $V$ hence of complexity $O(|E|\cdot |V^2|)$ which is far worse than both $O(|V|^2)$ (min-priority queue) and $O(|E|+|V|\log |V|)$ (Fibonacci heap).
+\item Fibonacci: this problem is serial 1D. Could be implemented using a placeholder element in one of the matrix dimension.
+\item \href{http://archive.ite.journal.informs.org/Vol3No1/Sniedovich/\#dpmodel}{Tower of Hanoi}: 1D non-serial
+\item \href{http://www.cs.ust.hk/mjg_lib/bibs/DPSu/DPSu.Files/KnPl81.PDF}{Knuth's word wrapping}: 1D non-serial
 
-Add additional problems into their related category:
-\ul
-\item \url{http://en.wikipedia.org/wiki/Dynamic_programming}
-\item \url{http://www.cs.berkeley.edu/~vazirani/algorithms/chap6.pdf}
-\item \url{http://www.algorithmist.com/index.php/Dynamic_Programming}
-\item \url{http://www.cs.uiuc.edu/~jeffe/teaching/algorithms/notes/05-dynprog.pdf}
-\item \url{http://www.cs.ucsb.edu/~suri/cs130b/NewDynProg.pdf}
+\item \href{http://en.wikipedia.org/wiki/Longest_increasing_subsequence#Efficient_algorithms}{Longest increasing subsequence}: serial but binary search algorithm more efficient: $O(n \log n)$.
+
+{\color{red}
+\item \href{http://en.wikipedia.org/wiki/Floyd-Warshall_algorithm}{Floyd-Warshall}: <it possible to move the $k$ external loop inside?> Serial with $n$ iterations
+\item \href{http://en.wikipedia.org/wiki/Viterbi_algorithm}{Viterbi \footnotesize (hidden Markov models)}: $T$ non-serial iterations over a vector
+}
 \ule
 
-XXX: see comments
+{\color{red}
+Other algorithms to consider/process:\ul
+\item \href{http://en.wikipedia.org/wiki/Bellman-Ford_algorithm}{Bellman-Ford} (finding the shortest distance in a graph)
+\item \href{http://en.wikipedia.org/wiki/Earley_parser#Pseudocode}{Earley parser} (a type of chart parser)
+\item \href{http://en.wikipedia.org/wiki/Needleman-Wunsch_algorithm}{Needleman-Wunsch} (sequences alignement)
+\ule
+See more in comments
 }
 
-%
-%Dijkstra shortest path, Fibonacci, Balanced 0-1 matrix, Checkerboard, Tower of Hanoi
+Other algorithms used in bioinformatics, including sequence alignment, structural alignment, RNA structure prediction.
+
+% PROBLEM LISTS
+% I guess we need between 20-50 DP problems to demonstrate that we identified almost all types of problems.
+% http://en.wikipedia.org/wiki/Dynamic_programming
+% http://www.cs.berkeley.edu/~vazirani/algorithms/chap6.pdf
+% http://www.algorithmist.com/index.php/Dynamic_Programming
+% http://www.cs.uiuc.edu/~jeffe/teaching/algorithms/notes/05-dynprog.pdf
+% http://www.cs.ucsb.edu/~suri/cs130b/NewDynProg.pdf
+% ------------------------------------------
+% Balanced 0-1 matrix
 %Recurrent solutions to lattice models for protein-DNA binding
 %Backward induction as a solution method for finite-horizon discrete-time dynamic optimization problems
 %Method of undetermined coefficients can be used to solve the Bellman equation in infinite-horizon, discrete-time, discounted, time-invariant dynamic optimization problems
-%Many string algorithms including longest common subsequence, longest increasing subsequence, longest common substring, Levenshtein distance (edit distance).
 %Many algorithmic problems on graphs can be solved efficiently for graphs of bounded treewidth or bounded clique-width by using dynamic programming on a tree decomposition of the graph.
-%The Cocke-Younger-Kasami (CYK) algorithm which determines whether and how a given string can be generated by a given context-free grammar
-%Knuth's word wrapping algorithm that minimizes raggedness when word wrapping text
 %The use of transposition tables and refutation tables in computer chess
-%The Viterbi algorithm (used for hidden Markov models)
-%The Earley algorithm (a type of chart parser)
-%The Needleman-Wunsch and other algorithms used in bioinformatics, including sequence alignment, structural alignment, RNA structure prediction.
-%Floyd's all-pairs shortest path algorithm
 %Pseudo-polynomial time algorithms for the subset sum and knapsack and partition problems
 %The dynamic time warping algorithm for computing the global distance between two time series
 %The Selinger (a.k.a. System R) algorithm for relational database query optimization
@@ -451,40 +467,29 @@ XXX: see comments
 %Adaptive-critic training strategy for artificial neural networks
 %Stereo algorithms for solving the correspondence problem used in stereo vision.
 %Seam carving (content aware image resizing)
-%The Bellman-Ford algorithm for finding the shortest distance in a graph.
 %Some approximate solution methods for the linear search problem.
 %Kadane's algorithm for the maximum subarray problem.
-%	http://en.wikipedia.org/wiki/Dynamic_programming#A_type_of_balanced_0.E2.80.931_matrix
+% =====> http://en.wikipedia.org/wiki/Dynamic_programming#A_type_of_balanced_0.E2.80.931_matrix
 %
 %Shortest path in DAGs
-%Longest increasing subsequences
 %Knapsack
 %Shortest path
 %All pair shortest paths
 %Independent sets in trees
 %=> also see exercises for more problems
-%	http://www.cs.berkeley.edu/~vazirani/algorithms/chap6.pdf
+% =====> http://www.cs.berkeley.edu/~vazirani/algorithms/chap6.pdf
 %
-%Longest Increasing Subsequence
-%Longest Common Subsequence
 %Subset Sum
 %Coin Change
 %Family Graph
-%	http://www.algorithmist.com/index.php/Dynamic_Programming
+% =====> http://www.algorithmist.com/index.php/Dynamic_Programming
 %
-%Longest Increasing Subsequence
-%Edit/Levenshtein distance
 %Optimal Binary Search Trees
 %	http://www.cs.uiuc.edu/~jeffe/teaching/algorithms/notes/05-dynprog.pdf
 %
 %Independent set on a tree
 %0-1 Knapsack
-%Floyd-Warshall
-%	http://www.cs.ucsb.edu/~suri/cs130b/NewDynProg.pdf
-
-
-
-
+% =====> http://www.cs.ucsb.edu/~suri/cs130b/NewDynProg.pdf
 
 % ------------------------------------------------------------------------------------------------
 \newpage
@@ -531,50 +536,27 @@ We also need to take into account the transfer between main memory (or disk) and
 		&=& b^3 &\qquad& \rm (Parallelogram)
 \end{array}\]
 
-Putting these two formula together, and using most of the device memory available, we obtain the following results with $S_C=4, S_B=4, S_I=1, S_W=0$ and $M_D=2^{30}$:
+Putting these two formula together, and using most of the device memory available, we obtain the following results with $S_C=4, S_B\footnote{To deal with larger matrices, backtrack data need to be extended.}=4, S_I=1, S_W=0$ and $M_D=2^{30}$:
 \begin{center}\includegraphics[width=14cm]{ns_large.pdf}\end{center}
 
-Given an experimental bandwidth of 5.3743 Gb/s between CPU and GPU, processing matrices one order of magnitude larger (128K) would result in between 10 and 25 minutes of delay due to transfers. {\color{blue} Using our preliminary benchmarks, such a computation would require at least 7.6 days, assuming there is no other scalability issues.}
-
-%Backtrack blocks need only to be write back and optionally reloaded during backtrack, hence we need to transfer at most:
-%\[\begin{array}{cccll}
-%	b^2&+&2b &\qquad& \rm (Rectangle)\\
-%	\tfrac{1}{2}b^2 + \tfrac{1}{2}b &+& 2b-1 % binary tree with b leafs, hence b-1 interior nodes.
-%		&\qquad& \rm (Triangle)\\
-%	b^2 &+& 2b-1 &\qquad& \rm (Parallelogram)
-%	
-%\end{array}\]
-%Since matrix can grow larger, we store backtrack on 4 bytes. Reusing other assertions from small problems we have $S_C=4, S_B=4, S_I=1, S_W=0$ and $M_D=2^{30}$. From first constraint we have
-%\[
-%\frac{n}{b} (1 + 4n + 2\tfrac{n}{b}) \le 2^{29}
-%\quad\Longleftarrow\quad 5n^2 \le b \cdot 2^{29} \]
-%Since blocks can not divide cells, we must have $b\le n$ hence $n\le 2^{29}/5 \approx 1.07\cdot 10^8$.
-%
-%\textbf{Transfer time is the limiting factor to scalability}\\
-%Since we are interested in an efficient implementation of DP, we want to have an acceptable ratio
-%\[R= \frac{\text{transfer time}}{\text{computation time}}\]
-
-%Let's count the minimal transfer time for various sizes using all the available memory.
-
-
-
-
-
-
-
-{\color{red} XXX: Continue rewriting here
-
-
-With $b=8$ we have 337 block transfer, which corresponds to transferring $5.3\times$ the whole matrix, and the problem size can now be (same assertions as for small problems) $2n + 5 \cdot \big(  (n/b)^2 \cdot 2b \big) = 2n+10n^2/8 \le 2^{30} \implies n\le 29307$, so we roughly doubled matrix size at the cost of $12.5\times$ matrix transfer time plus indices overhead.
-
-Assume a different implementation might be worth to support problems order of magnitude larger, hence $n \approx 120K$ thus we need $2^{30} > 2n + 5 \cdot \big(  (n/b)^2 \cdot 2b \big) = $
-}
-
-{\color{red} XXX: Do we want to support larger non-serial problem that do not fit in memory? Is it worth implementing ? Argue.}
+Given an experimental bandwidth of 5.3743 Gb/s between CPU and GPU, processing matrices one order of magnitude larger (128K) would result in respectively 13\up{(R)}, 8.5\up{(T)} and 25.4\up{(P)} minutes of transfer delay. Extrapolating the preliminary results of small problems, a computation on input of size 128K would require respectively 7 days 13h\up{(R)}, 2 days 22h\up{(T)} and 6 days 10h\up{(P)}, assuming there is no other scalability issues. Although this overhead seems appealing compared to the computation time, the total time blows up (because of the  $O(n^3)$ complexity) and make the processing of such large problem less relevant. Given that real problems -- like RNA folding -- operate at input sizes up to 4096, it would not be of much relevancy to implement a version for larger cases, although perfectly feasible.
 
 \subsubsection{Serial problems}
+The serial problem have the interesting property to access to a fixed number of previous elements. These elements 
+
+
+propose a memory consumption scheme
+
+try to setup wavefront size (if needed) => just enlarge the matrix by 1 so that we go wavefront-to-wavefront
+
+
 
 {\color{red}
+
+XXX: what's the maximal size of the wavefront ??
+
+XXX: can we avoid to store some matrices and put them in the wavefront ??
+
 Split into blocks:\ul
 \item Decide the shape of the blocks
 \item Decide the size of the blocks
