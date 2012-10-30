@@ -24,13 +24,34 @@
 4. Propose an IR and code generators related to
 Note. We only need to generate code directly for CUDA, no interaction. Look at string templating .
 """xxx $var xxx"""
-- Fork lms on github and cleanup all the CUDA generator
-
+- Fork LMS on GitHub and cleanup all the CUDA generator
 
 % class problem into categories
 % think of hashmap implementation. is it useful ?
 - CPU+GPU implementation for serial (NS?) problems larger than device memory
 - optimizations for in-memory computations
+
+1. restriction vs ADP: we give only the best answer, do we care about semi-optimal ones?
+2. separate initialization (base cases, atoms) and processing (rules, recurrences) => less cases to handle (no if)
+3. use sub-cell parallelism (seen in 2 papers already)
+
+Plan:
+We need to extend the language to support all 3 cases
+- Parallelogram is triangular + cyclic => add a cyclic keyword that applies to the whole problem
+- Square: what is the transform being done in ADP extension?
+
+1. optimize: terminals of bounded yield + binary decomposition if possible
+2. transform into: axioms (init/fixed) + rules (iterations)
+3. transform to code
+     axiom(i := k(i)) -> M[i,i]=k(i)
+     rule(x~y := h(x,y)) -> M[i,j]=forall_i<k<j h(M[i,k],M[k,j]) for both unbounded yield
+     rule(x~y_l := h(x,y)) -> M[i,j]=forall_j-l<k<j h(M[i,k],M[k,j]) for y bounded by l
+     rule(x~y_l := h(x,y)) -> M[i,j]=h(M[i,j-l],M[j-l,j]) for y of exactly l
+
+XXX: how to encode multi-dimensional matrices
+1. assume they have the same type put one after another => different dimensions ok
+2. assume of same size => put into a struct
+=> but using different pointers seems more reliable => completely different matrices => fixed list of matrices by dimensionality (O(1), O(n), O(n^2), ...) of structs (determined by number of indices to access object)
 \end{verbatim}
 
 \subsubsection*{Todo @Manohar}
