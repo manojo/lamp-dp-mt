@@ -16,11 +16,34 @@
 \item Provide multi-platform support (CPU/GPU/FPGA)
 \ule
 
+\begin{verbatim}
+restrict to only 1 max/min (more restrictive than ADP)
+
+for optimization we want to split grammar into binary productions, to do that we need
+to have equality on the following formula. We can solve it more easily if functions are linear
+\end{verbatim}
+\[\min\limits_{i<k_1<k_2<j}\big[ f(i,k_1,k_2,j) \big] \le  \min\limits_{i<k_2<j} \big[ g_2(i,\min\limits_{i<k_1<k_2} \big[ (g_1(i,k_1,k_2  ) \big],k_2,j) \big]  \]
+
+\begin{verbatim}
+Roadmap:
+2.11 Come with an IR prototype: data structures and nodes
+9.11 GenScala on LMS, JNI working for arbitrary types
+16.11 GenCuda + LMS CudaCompiler
+23.11 Problem generalization: "cyclic keyword", Zucker problem / CudaLoop optimization
+30.11-- Gap due to LMS missing knowledge
+7.12 Benchmarking, grammar analysis
+14.12
+21.12
+28.12 -------
+4.01 -------
+11.01 writing report = implementation description + plan for future work
+18.01 writing report
+\end{verbatim}
+
+
 \subsubsection*{Todo @TCK}
 \begin{verbatim}
-1. check the vanilla implementation
-2. read ADP legacy parsers
-3. presentation for Thursday
+cleanup ADP code
 4. Propose an IR and code generators related to
 Note. We only need to generate code directly for CUDA, no interaction. Look at string templating .
 """xxx $var xxx"""
