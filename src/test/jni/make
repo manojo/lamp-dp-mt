@@ -10,20 +10,35 @@ fi
 if [ "`echo $0 | grep '^/'`" != "" ]; then BASE="$0"; else BASE="$PWD/$0"; fi
 BASE="`echo $BASE | sed 's/\/[^/]*$/\//g' | sed 's/\/.\//\//g' | sed 's/\/$//g'`";
 
+
+##############
+if [ "$1" != "c" ]; then
+
 # cleanup
 rm src/Vec3.h 2>/dev/null
 rm -r "$BASE/bin" 2>/dev/null
 mkdir -p "$BASE/bin"
 
+printf "Build:"
+
 # compile scala
-scalac -d "$BASE/bin" "$BASE/src/"*.scala
+printf " Scala"
+scalac -d "$BASE/bin" "$BASE/src/"*.scala || exit
 
 # get the class signature (scala lib to remove warning)
-javah -classpath "$SCALA_HOME/lib/scala-library.jar:$BASE/bin" -d "$BASE/src" Vec3
+printf " header"
+javah -classpath "$SCALA_HOME/lib/scala-library.jar:$BASE/bin" -d "$BASE/src" Vec3 CudaDP || exit
 
 # compile C library in the classpath
-gcc -I"$JAVA_INCLUDE" -shared "$BASE/src/Vec3.c" -o "$BASE/bin/libVec3.jnilib"
+printf " C"
+gcc -I"$JAVA_INCLUDE" -shared "$BASE/src/Vec3.c" -o "$BASE/bin/libVec3.jnilib" || exit
 
+fi
+##############
+
+gcc -I"$JAVA_INCLUDE" -shared "$BASE/src/CudaDP.c" -o "$BASE/bin/libCudaDP.jnilib" || exit
+
+printf ".\n"
 # and execute
 scala -cp "$BASE/bin" Toy
 
