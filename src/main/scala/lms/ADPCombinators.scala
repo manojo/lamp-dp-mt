@@ -23,52 +23,52 @@ trait ADPParsers { this: Base =>
 
   // Mapper, Equivalent of ADP's <<< operator.
   // To separate left and right hand side of a grammar rule
-  def infix_^^[T,U](p:Rep[Parser[T]], f: T => U) = parser_map(p,f)
+  def infix_^^[T:Manifest,U:Manifest](p:Rep[Parser[T]], f: T => U) = parser_map(p,f)
 
   // Or combinator. Equivalent of ADP's ||| operator.
   // In ADP semantics we concatenate the results of the parse of
   // 'this' with the parse of 'that'
-  def infix_|[T](p1:Rep[Parser[T]], p2: => Rep[Parser[T]]) = parser_or(p1,p2)
+  def infix_|[T:Manifest](p1:Rep[Parser[T]], p2: => Rep[Parser[T]]) = parser_or(p1,p2)
 
   // Concatenate combinators.
   // Parses a concatenation of string left~right with length(left) in leftR=[leftL,leftU]
   // and length(right) in rightR=[rightL,rightU], leftU,rightU=0 means unbounded (infinity).
-  def infix_~~  [T,U](p1:Rep[Parser[T]], leftR:(Int,Int), rightR:(Int,Int), p2: => Rep[Parser[U]]) = parser_concat(p1, (leftR._1,leftR._2,rightR._1,rightR._2), p2)
-  def infix_~~~ [T,U](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (0,0,0,0), p2)
-  def infix_~~+ [T,U](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (0,0,1,0), p2)
-  def infix_+~~ [T,U](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (1,0,0,0), p2)
-  def infix_+~+ [T,U](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (1,0,1,0), p2)
-  def infix_*~~ [T,U](p1:Rep[Parser[T]], leftL:Int, rightR:(Int,Int), p2: => Rep[Parser[U]]) = parser_concat(p1, (leftL,0,rightR._1,rightR._2), p2)
-  def infix_~~* [T,U](p1:Rep[Parser[T]], leftR:(Int,Int), rightL:Int, p2: => Rep[Parser[U]]) = parser_concat(p1, (leftR._1,leftR._2,rightL,0), p2)
-  def infix_*~* [T,U](p1:Rep[Parser[T]], leftL:Int, rightL:Int, p2: => Rep[Parser[U]]) = parser_concat(p1, (leftL,0,rightL,0), p2)
-  def infix_-~~ [T,U](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (1,1,0,0), p2)
-  def infix_~~- [T,U](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (0,0,1,1), p2)
+  def infix_~~  [T:Manifest,U:Manifest](p1:Rep[Parser[T]], leftR:(Int,Int), rightR:(Int,Int), p2: => Rep[Parser[U]]) = parser_concat(p1, (leftR._1,leftR._2,rightR._1,rightR._2), p2)
+  def infix_~~~ [T:Manifest,U:Manifest](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (0,0,0,0), p2)
+  def infix_~~+ [T:Manifest,U:Manifest](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (0,0,1,0), p2)
+  def infix_+~~ [T:Manifest,U:Manifest](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (1,0,0,0), p2)
+  def infix_+~+ [T:Manifest,U:Manifest](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (1,0,1,0), p2)
+  def infix_*~~ [T:Manifest,U:Manifest](p1:Rep[Parser[T]], leftL:Int, rightR:(Int,Int), p2: => Rep[Parser[U]]) = parser_concat(p1, (leftL,0,rightR._1,rightR._2), p2)
+  def infix_~~* [T:Manifest,U:Manifest](p1:Rep[Parser[T]], leftR:(Int,Int), rightL:Int, p2: => Rep[Parser[U]]) = parser_concat(p1, (leftR._1,leftR._2,rightL,0), p2)
+  def infix_*~* [T:Manifest,U:Manifest](p1:Rep[Parser[T]], leftL:Int, rightL:Int, p2: => Rep[Parser[U]]) = parser_concat(p1, (leftL,0,rightL,0), p2)
+  def infix_-~~ [T:Manifest,U:Manifest](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (1,1,0,0), p2)
+  def infix_~~- [T:Manifest,U:Manifest](p1:Rep[Parser[T]], p2: => Rep[Parser[U]]) = parser_concat(p1, (0,0,1,1), p2)
 
   // Aggregate combinator.
   // Takes a function which modifies the list of a parse. Usually used
   // for max or min functions (but can also be a prettyprint).
-  def infix_aggregate[T,U](p:Rep[Parser[T]], h: List[T] => List[U]) = parser_aggregate(p,h)
+  def infix_aggregate[T:Manifest,U:Manifest](p:Rep[Parser[T]], h: List[T] => List[U]) = parser_aggregate(p,h)
 
   // Filter combinator.
   // Yields an empty list if the filter does not pass.
-  def infix_filter[T](p:Rep[Parser[T]], pred: Subword => Boolean) = parser_filter(p,pred)
+  def infix_filter[T:Manifest](p:Rep[Parser[T]], pred: Subword => Boolean) = parser_filter(p,pred)
 
   // Tabulation (or memoization).
   // Might provide information regarding the table dimensions
   // as a parameter at some point.
-  def infix_tabulate[T](p:Rep[Parser[T]]) = parser_tabulate(p)
+  def infix_tabulate[T:Manifest](p:Rep[Parser[T]]) = parser_tabulate(p)
 
   abstract class Parser[T] extends (Subword => List[T]) { inner =>
     def apply(sw: Subword): List[T]
   }
 
   // Concrete syntax
-  def parser_map[T,U](p:Rep[Parser[T]], f: T => U): Rep[Parser[U]]
-  def parser_or[T](p1:Rep[Parser[T]], p2: => Rep[Parser[T]]): Rep[Parser[T]]
-  def parser_concat[T,U](p1:Rep[Parser[T]], bounds:(Int,Int,Int,Int), p2: => Rep[Parser[U]]) : Rep[Parser[(T,U)]]
-  def parser_aggregate[T,U](p:Rep[Parser[T]], h: List[T] => List[U]): Rep[Parser[U]]
-  def parser_filter[T](p:Rep[Parser[T]], pred: Subword => Boolean): Rep[Parser[T]]
-  def parser_tabulate[T](p:Rep[Parser[T]]):Rep[Parser[T]]
+  def parser_map[T:Manifest,U:Manifest](p:Rep[Parser[T]], f: T => U) : Rep[Parser[U]]
+  def parser_or[T:Manifest](p1:Rep[Parser[T]], p2: => Rep[Parser[T]]) : Rep[Parser[T]]
+  def parser_concat[T:Manifest,U:Manifest](p1:Rep[Parser[T]], bounds:(Int,Int,Int,Int), p2: => Rep[Parser[U]]) : Rep[Parser[(T,U)]]
+  def parser_aggregate[T:Manifest,U:Manifest](p:Rep[Parser[T]], h: List[T] => List[U]) : Rep[Parser[U]]
+  def parser_filter[T:Manifest](p:Rep[Parser[T]], pred: Subword => Boolean) : Rep[Parser[T]]
+  def parser_tabulate[T:Manifest](p:Rep[Parser[T]]) : Rep[Parser[T]]
 }
 
 trait LexicalParsers extends ADPParsers { this: Base =>
@@ -84,44 +84,41 @@ trait LexicalParsers extends ADPParsers { this: Base =>
 // Intermediate representation
 
 trait ADPParsersExp extends ADPParsers with BaseExp {
-  // IR Nodes
   case class ADP_Map[T,U](p:Exp[Parser[T]], f: T => U) extends Def[Parser[U]]
-  case class ADP_Or[T](p1:Exp[Parser[T]], p2:Parser[T]) extends Def[Parser[T]]
+  case class ADP_Or[T](p1:Exp[Parser[T]], p2:Exp[Parser[T]]) extends Def[Parser[T]]
   case class ADP_CCat[T,U](p1:Exp[Parser[T]], bounds:(Int,Int,Int,Int), p2: Exp[Parser[U]]) extends Def[Parser[(T,U)]]
   case class ADP_Agg[T,U](p:Exp[Parser[T]], h: List[T] => List[U]) extends Def[Parser[U]]
   case class ADP_Filter[T](p:Exp[Parser[T]], pred: Subword => Boolean) extends Def[Parser[T]]
   case class ADP_Tab[T](p:Exp[Parser[T]]) extends Def[Parser[T]]
 
-/*
-  override def parser_map[T,U](p:Exp[Parser[T]], f: T => U) = ADP_Map(p,f)
-  override def parser_or[T](p1:Exp[Parser[T],p2 => Exp[Parser[T]]) = ADP_Or(p1,p2)
-  override def parser_concat[T,U](p1:Parser[T], bounds:(Int,Int,Int,Int), p2: => Exp[Parser[U]]) = ADP_CCat(p1,bounds,p2)
-  override def parser_aggregate[T,U](p:Parser[T], h: List[T] => List[U]) = ADP_Agg(p,h)
-  override def parser_filter[T](p:Parser[T], pred: Subword => Boolean) = ADP_Filter(p, pred)
-  override def parser_tabulate[T](p:Parser[T]) = ADP_Tab(p)
-*/
+  override def parser_map[T:Manifest,U:Manifest](p:Exp[Parser[T]], f: T => U) = ADP_Map(p,f)
+  override def parser_or[T:Manifest](p1:Exp[Parser[T]], p2: => Exp[Parser[T]]) = ADP_Or(p1,p2)
+  override def parser_concat[T:Manifest,U:Manifest](p1:Exp[Parser[T]], bounds:(Int,Int,Int,Int), p2: => Exp[Parser[U]]) = ADP_CCat(p1,bounds,p2)
+  override def parser_aggregate[T:Manifest,U:Manifest](p:Exp[Parser[T]], h: List[T] => List[U]) = ADP_Agg(p,h)
+  override def parser_filter[T:Manifest](p:Exp[Parser[T]], pred: Subword => Boolean) = ADP_Filter(p, pred)
+  override def parser_tabulate[T:Manifest](p:Exp[Parser[T]]) = ADP_Tab(p)
 }
 
+trait LexicalParsersExp extends LexicalParsers with ADPParsersExp {
 /*
-trait LexicalParsersExp extends LexicalParsers with ADPParsersExp { this: BaseExp =>
-  def char = new Parser[Char] {
+  override def char = new Parser[Char] {
     def apply(sw:Subword) = sw match {
       case (i, j) if(j == i+1) => List(input(i))
       case _ => List()
     }
   }
-  def charf(f: Char => Boolean) = char filter {
+  override def charf(f: Char => Boolean) = char filter {
     case(i,j) if(i+1 == j) => f(input(i))
     case _ => false
   }
-  def digitParser: Parser[Int] = (char filter isDigit) ^^ readDigit
-  def readDigit(c: Char) = (c - '0').toInt
-  def isDigit(sw: Subword) = sw match{
+  override def digitParser: Parser[Int] = (char filter isDigit) ^^ readDigit
+  override def readDigit(c: Char) = (c - '0').toInt
+  override def isDigit(sw: Subword) = sw match{
     case(i,j) if(i+1 == j) => input(i).isDigit
     case _ => false
   }
-}
 */
+}
 
 // -----------------------------------------------------------------------------
 // Optimization
@@ -131,7 +128,6 @@ trait LexicalParsersExp extends LexicalParsers with ADPParsersExp { this: BaseEx
 // -----------------------------------------------------------------------------
 // Code generation
 
-/*
 trait ScalaGenADPParsers extends ScalaGenBase {
   val IR: BaseExp with ADPParsersExp
   import IR._
@@ -145,7 +141,7 @@ trait ScalaGenADPParsers extends ScalaGenBase {
       stream.println("def apply(sw: Subword) = inner(sw)++that(sw)")
     case ADP_Agg(inner,h) =>
       stream.println("def apply(sw: Subword) = h(inner(sw))")
-    case ADP_CCat(inner,lL,lU,rL,rU,that) =>
+    case ADP_CCat(inner,(lL,lU,rL,rU),that) =>
        stream.println("""
         def apply(sw: Subword) = sw match {
           case (i,j) if i<j =>
@@ -174,6 +170,7 @@ trait ScalaGenADPParsers extends ScalaGenBase {
   }
 }
 
+/*
 trait ScalaGenLexicalParsers extends ScalaGenBase with ScalaGenADPParsers {
   val IR: BaseExp with LexicalParsersExp
   import IR._
@@ -182,6 +179,26 @@ trait ScalaGenLexicalParsers extends ScalaGenBase with ScalaGenADPParsers {
     case _ => super.emitNode(sym, node)
   }
 }
+
+trait LexicalParsersExp extends LexicalParsers with ADPParsersExp { this: BaseExp =>
+  def char = new Parser[Char] {
+    def apply(sw:Subword) = sw match {
+      case (i, j) if(j == i+1) => List(input(i))
+      case _ => List()
+    }
+  }
+  def charf(f: Char => Boolean) = char filter {
+    case(i,j) if(i+1 == j) => f(input(i))
+    case _ => false
+  }
+  def digitParser: Parser[Int] = (char filter isDigit) ^^ readDigit
+  def readDigit(c: Char) = (c - '0').toInt
+  def isDigit(sw: Subword) = sw match{
+    case(i,j) if(i+1 == j) => input(i).isDigit
+    case _ => false
+  }
+}
+
 */
 
 // -----------------------------------------------------------------------------
@@ -190,16 +207,13 @@ trait Interpreter extends ADPParsers { this: Base =>
   override type Rep[+A] = A
   override def unit[A : Manifest](a: A) = a
 
-  override def parser_map[T,U](inner:Parser[T], f: T => U) = new Parser[U] {
+  override def parser_map[T:Manifest,U:Manifest](inner:Parser[T], f: T => U) = new Parser[U] {
     def apply(sw:Subword) = inner(sw) map f
   }
-  override def parser_or[T](inner:Parser[T],that: => Parser[T]): Parser[T] = new Parser[T] {
+  override def parser_or[T:Manifest](inner:Parser[T],that: => Parser[T]): Parser[T] = new Parser[T] {
     def apply(sw: Subword) = inner(sw)++that(sw)
   }
-  override def parser_aggregate[T,U](inner:Parser[T], h: List[T] => List[U]) = new Parser[U] {
-    def apply(sw: Subword) = h(inner(sw))
-  }
-  override def parser_concat[T,U](inner:Parser[T], bounds:(Int,Int,Int,Int), that: => Parser[U]) = new Parser[(T,U)] {
+  override def parser_concat[T:Manifest,U:Manifest](inner:Parser[T], bounds:(Int,Int,Int,Int), that: => Parser[U]) = new Parser[(T,U)] {
     def apply(sw: Subword) = (sw,bounds) match {
       case ((i,j),(lL,lU,rL,rU)) if i<j =>
         val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
@@ -213,10 +227,13 @@ trait Interpreter extends ADPParsers { this: Base =>
     }
   }
 
-  override def parser_filter[T](inner:Parser[T], p: Subword => Boolean) = new Parser[T] {
+  override def parser_aggregate[T:Manifest,U:Manifest](inner:Parser[T], h: List[T] => List[U]) = new Parser[U] {
+    def apply(sw: Subword) = h(inner(sw))
+  }
+  override def parser_filter[T:Manifest](inner:Parser[T], p: Subword => Boolean) = new Parser[T] {
     def apply(sw: Subword) = if(p(sw)) inner(sw) else List[T]()
   }
-  override def parser_tabulate[T](inner:Parser[T]) = new Parser[T]{
+  override def parser_tabulate[T:Manifest](inner:Parser[T]) = new Parser[T]{
     //for now, the tabulation store is kept inside the parser
     //maybe to be changed and made global at some point of time
     import scala.collection.mutable.HashMap
