@@ -231,7 +231,6 @@ trait LexicalParsersGen extends ADPGen{
     case(i,j) if(i+1 == j) => input(i).isDigit
     case _ => false
   }
-
 }
 
 object HelloADPGen extends LexicalParsersGen with BracketsAlgebra{

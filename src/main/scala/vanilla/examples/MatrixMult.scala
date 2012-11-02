@@ -79,6 +79,8 @@ trait MatrixGrammar extends ADPParsers with PrettyMatrixAlgebra{
       case (i,j) if(i+1 == j) => List(input(i))
       case _ => List()
     }
+
+    def makeTree = Production("aMatrix")
   }
 
   def matrixGrammar: Parser[((Int,Int,Int),String)] = ((

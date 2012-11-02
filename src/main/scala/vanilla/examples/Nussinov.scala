@@ -76,6 +76,8 @@ trait NussinovGrammar extends PrettyPairingAlgebra with LexicalParsers{
       case (i,j) if i == j => List(Dummy())
       case _ => List()
     }
+
+    def makeTree = Production("empty")
   }
 
   val basePairs = List(('a','u'),('u','a'),('g','u'),('u','g'),('c','g'),('g','c'))
