@@ -69,7 +69,7 @@ trait ADPParsers { this: Base =>
   }
 
   // Concrete syntax
-  // XXX: we need to process over Rep[Parser[]] and keep manifest ??!
+  // XXX: do we need to process over Rep[Parser[]] and keep manifest ???
   def parser_map[T,U](inner:Parser[T], f: T => U): Parser[U]
   def parser_or[T](inner:Parser[T], that: => Parser[T]): Parser[T]
   def parser_aggregate[T,U](inner:Parser[T], h: List[T] => List[U]): Parser[U]
@@ -78,8 +78,17 @@ trait ADPParsers { this: Base =>
   def parser_tabulate[T](inner:Parser[T]):Parser[T]
 }
 
+trait LexicalParsers extends ADPParsers { this: Base =>
+  override type Input = String
+  def char: Parser[Char]
+  def charf(f: Char => Boolean): Parser[Char]
+  def digitParser: Parser[Int]
+  def readDigit(c: Char): Int
+  def isDigit(sw: Subword): Boolean
+}
+
 // -----------------------------------------------------------------------------
-// Interpreter
+// Interpreters
 trait Interpreter extends ADPParsers { this: Base =>
   override type Rep[+A] = A
   override def unit[A : Manifest](a: A) = a
@@ -123,11 +132,7 @@ trait Interpreter extends ADPParsers { this: Base =>
   }
 }
 
-// -----------------------------------------------------------------------------
-
-// XXX: why do we have this Interpreter dependency, can we get rid of ?
-trait LexicalParsers extends ADPParsers with Interpreter { this: Base =>
-  type Input = String
+trait LexicalInterpreter extends Interpreter with LexicalParsers { this: Base =>
   def char = new Parser[Char] {
     def apply(sw:Subword) = sw match {
       case (i, j) if(j == i+1) => List(input(i))
@@ -163,8 +168,8 @@ trait BracketsAlgebra extends BracketsSignature {
   def h(l : List[Int]) = if(l.isEmpty) List() else List(l.max)
 }
 
-trait Prog extends LexicalParsers { this: Base with ADPParsers =>
-  // ---------- HelloADP extends LexicalParsers with BracketsAlgebra
+// XXX: get rid of the interpreter here
+trait Prog /*HelloADP*/ extends LexicalInterpreter /*LexicalParsers*/ with BracketsAlgebra { this: Base =>
   def input = "(((3)))(2)"
   def bracketize(c:Char,s:String) = "("+c+","+s+")"
 
@@ -173,19 +178,16 @@ trait Prog extends LexicalParsers { this: Base with ADPParsers =>
   }
 
   val dummyParser = digitParser | digitParser
-  val myParser: Parser[Int] = (
+  val myParser: Rep[Parser[Int]] = ( // Is this sufficient to extract the parser content ?
       digitParser
     | (char -~~ myParser ~~- char).filter(areBrackets _).^^{ case (c1,(i,c2)) => i}
     | myParser +~+ myParser ^^ {case (x,y) => x+y}
   ).tabulate
 
-  def main = println(myParser(0,input.length))
-  // ----------
+  def parse = myParser(0,input.length)
 }
 
 object ADPTest extends App {
   val interpretedProg = new Prog with Base with Interpreter
-
-  // XXX: why do we also get an empty list at some point ???
-  println(interpretedProg.main)
+  println(interpretedProg.parse)
 }
