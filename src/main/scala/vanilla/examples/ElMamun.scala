@@ -12,7 +12,6 @@ trait Bill extends Signature{
   def f(i: Int): Answer
   def add(a: Add): Answer
   def mul(m: Mul): Answer
-
 }
 
 trait BuyerAlgebra extends Bill{
@@ -44,19 +43,17 @@ trait SellerAlgebra extends Bill{
 }
 
 trait BillGrammar extends LexicalParsers with SellerAlgebra{
-
   def plus = charf(_ == '+')
   def times = charf(_ == '*')
 
-  def billGrammar: Parser[Int] = (
-    (charf(_.isDigit) ^^ readDigit |||
-    (billGrammar ~~- plus ~~~ billGrammar) ^^ {case ((a1,c),a2) => add(Add(a1,c,a2))} |||
-    (billGrammar ~~- times ~~~ billGrammar) ^^ {case ((a1,c),a2) => mul(Mul(a1,c,a2))}) aggregate h
-  ).tabulate
+  def billGrammar: Parser[Int] = ((
+    charf(_.isDigit) ^^ readDigit
+  | (billGrammar ~~- plus ~~~ billGrammar) ^^ {case ((a1,c),a2) => add(Add(a1,c,a2))}
+  | (billGrammar ~~- times ~~~ billGrammar) ^^ {case ((a1,c),a2) => mul(Mul(a1,c,a2))}
+  ) aggregate h).tabulate
 }
 
 object ElMamun extends BillGrammar with App{
-
   def input = "1+2*3*4+5"
   println(billGrammar(0,input.length))
 }
