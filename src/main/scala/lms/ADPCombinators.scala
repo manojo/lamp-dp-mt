@@ -12,7 +12,7 @@ trait Signature {
 }
 
 trait ADPParsers { this: Base =>
-  type Subword = Rep[(Int, Int)]
+  type Subword = (Int, Int)
   type Input // = String
 
   /*
@@ -85,6 +85,26 @@ trait LexicalParsers extends ADPParsers { this: Base =>
   def digitParser: Parser[Int]
   def readDigit(c: Char): Int
   def isDigit(sw: Subword): Boolean
+}
+
+// -----------------------------------------------------------------------------
+// Intermediate representation
+trait ADPParsersExp extends ADPParsers { this: BaseExp => }
+
+// -----------------------------------------------------------------------------
+// Optimization
+trait ADPParsersOpt extends ADPParsersExp { this: BaseExp => }
+
+// -----------------------------------------------------------------------------
+// Code generation
+
+trait ScalaGenADPParsers extends ScalaGenBase {
+  val IR: BaseExp with ADPParsersExp
+  import IR._
+
+  override def emitNode(sym: Sym[Any], node: Def[Any]): Unit = node match {
+    case _ => super.emitNode(sym, node)
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -188,6 +208,13 @@ trait Prog /*HelloADP*/ extends LexicalInterpreter /*LexicalParsers*/ with Brack
 }
 
 object ADPTest extends App {
+/*
+  val concreteProg = new Prog with ADPParsersExp with CompileScala { self =>
+    override val codegen = new ScalaGenADPParsers { val IR: self.type=self }
+    codegen.emitSource(myParser,new java.io.PrintWriter(System.out))
+  }
+*/
+
   val interpretedProg = new Prog with Base with Interpreter
   println(interpretedProg.parse)
 }
