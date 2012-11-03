@@ -236,13 +236,24 @@ int main(int argc, char** argv) {
 }
     """)
 
-    gen("scala code")
+    //gen("scala code")
 
     println
     println("C/CUDA implementation generated, now let's play")
     println
 
 // XXX: fix the reflection as it is broken
+    case class Foo(x:Int, y:Short, z:Long, a:Boolean, b:Byte, c:Char)
+    type Input = Foo
+
+    def printMethods2[T: Manifest] { // no instance
+      //val meths = manifest[T].erasure.getMethods
+      //println(meths mkString "\n")
+      println(manifest[T].erasure.getConstructors.mkString(", "))
+      println(manifest[T].erasure.getDeclaredFields.map{x=>x.getType+" "+x.getName}.mkString("\n"))
+      //println(manifest[T].erasure.getDeclaredFields.map{x=>x.toGenericString}.mkString("\n"))
+    }
+    printMethods2[Input]
 
 /*
     // Input typing
@@ -273,19 +284,14 @@ int main(int argc, char** argv) {
     println(loader);
     println
 */
-/*
-    type Input = (Int,Int,Char,Long,Short,Boolean,Byte)
 
-    def printMethods2[T: Manifest] { // no instance
-      val meths = manifest[T].erasure.getMethods
-      println(meths mkString "\n")
-    }
-    printMethods2[Input]
-*/
+    //type Input = (Int,Int,Char,Long,Short,Boolean,Byte)
+
     
   // http://tutorials.jenkov.com/java-reflection/fields.html
   // http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
 
+/*
     type Input = (Int,Int)
   
     val dp = new CudaDP[Input]
@@ -295,7 +301,7 @@ int main(int argc, char** argv) {
     println("Score = "+dp.getScore)
     println("Backtrack = "+dp.getBacktrack)
     dp.free
-
+*/
     println("done");
   }
 }
