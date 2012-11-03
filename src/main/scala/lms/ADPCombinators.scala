@@ -73,11 +73,15 @@ trait ADPParsers { this: Base =>
 
 trait LexicalParsers extends ADPParsers { this: Base =>
   override type Input = String
-  def char: Parser[Char]
-  def charf(f: Char => Boolean): Parser[Char]
-  def digitParser: Parser[Int]
-  def readDigit(c: Char): Int
-  def isDigit(sw: Subword): Boolean
+  def char: Rep[Parser[Char]]
+  def charf(f: Char => Boolean): Rep[Parser[Char]]
+  def digitParser: Rep[Parser[Int]]
+
+  def readDigit(c: Char) = (c - '0').toInt
+  def isDigit(sw: Subword) = sw match {
+    case(i,j) if (i+1==j) => input(i).isDigit
+    case _ => false
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -100,24 +104,13 @@ trait ADPParsersExp extends ADPParsers with BaseExp {
 }
 
 trait LexicalParsersExp extends LexicalParsers with ADPParsersExp {
-/*
-  override def char = new Parser[Char] {
-    def apply(sw:Subword) = sw match {
-      case (i, j) if(j == i+1) => List(input(i))
-      case _ => List()
-    }
-  }
-  override def charf(f: Char => Boolean) = char filter {
-    case(i,j) if(i+1 == j) => f(input(i))
-    case _ => false
-  }
-  override def digitParser: Parser[Int] = (char filter isDigit) ^^ readDigit
-  override def readDigit(c: Char) = (c - '0').toInt
-  override def isDigit(sw: Subword) = sw match{
-    case(i,j) if(i+1 == j) => input(i).isDigit
-    case _ => false
-  }
-*/
+  case object Lex_Char extends Def[Parser[Char]]
+  case class Lex_Charf(f: Char => Boolean) extends Def[Parser[Char]]
+  case object Lex_DigitParser extends Def[Parser[Int]]
+
+  override def char = Lex_Char
+  override def charf(f: Char => Boolean) = Lex_Charf(f)
+  override def digitParser = Lex_DigitParser
 }
 
 // -----------------------------------------------------------------------------
@@ -133,16 +126,14 @@ trait ScalaGenADPParsers extends ScalaGenBase {
   import IR._
 
   override def emitNode(sym: Sym[Any], node: Def[Any]): Unit = node match {
-    case ADP_Map(inner, f) =>
-      stream.println("def apply(sw:Subword) = inner(sw) map f")
-      // stream.println("val " + quote(sym) + " = …")
-      //emitValDef(sym, quote(v) + ".map(x => x * " + quote(k) + ")")
-    case ADP_Or(inner,that) =>
-      stream.println("def apply(sw: Subword) = inner(sw)++that(sw)")
-    case ADP_Agg(inner,h) =>
-      stream.println("def apply(sw: Subword) = h(inner(sw))")
+    case ADP_Map(p, f) =>
+      emitValDef(sym, "new Parser[U] { def apply(sw:Subword) = "+quote(p)+"(sw) map f }")
+    case ADP_Or(p1,p2) =>
+      emitValDef(sym, "new Parser[T] { def apply(sw: Subword) = "+quote(p1)+"(sw)++"+quote(p2)+"(sw) }")
+
     case ADP_CCat(inner,(lL,lU,rL,rU),that) =>
-       stream.println("""
+      // XXX: treat specific cases at compile time for indices
+      emitValDef(sym, """new Parser[T,U] { 
         def apply(sw: Subword) = sw match {
           case (i,j) if i<j =>
             val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
@@ -153,53 +144,44 @@ trait ScalaGenADPParsers extends ScalaGenBase {
               y <- that((k,j))
             ) yield((x,y))
           case _ => List[(T,U)]()
-        }""")
-    case ADP_Filter(inner, p) =>
-      stream.println("def apply(sw: Subword) = if(p(sw)) inner(sw) else List[T]()")
-    case ADP_Tab(inner) =>
-      stream.println("""
+        }}""")
+    case ADP_Agg(p,h) =>
+      emitValDef(sym, "new Parser[T,U] { def apply(sw: Subword) = h("+quote(p)+"(sw)) }")
+    case ADP_Filter(p, pred) =>
+      emitValDef(sym, "new Parser[T] { def apply(sw: Subword) = if(pred(sw)) "+quote(p)+"(sw) else List[T]() }")
+    case ADP_Tab(p) =>
+      emitValDef(sym, """new Parser[T] { 
         //for now, the tabulation store is kept inside the parser
         //maybe to be changed and made global at some point of time
         val map = new scala.collection.mutable.HashMap[Subword, List[T]]
         def apply(sw: Subword) = sw match {
-          case (i, j) if(i <= j) => map.getOrElseUpdate(sw, inner(sw))
+          case (i, j) if(i <= j) => map.getOrElseUpdate(sw, """+quote(p)+"""(sw))
           case _ => List()
-        }""")
+        }}""")
   
     case _ => super.emitNode(sym, node)
   }
 }
 
-/*
-trait ScalaGenLexicalParsers extends ScalaGenBase with ScalaGenADPParsers {
+trait ScalaGenLexicalParsers extends ScalaGenADPParsers {
   val IR: BaseExp with LexicalParsersExp
   import IR._
 
   override def emitNode(sym: Sym[Any], node: Def[Any]): Unit = node match {
+    case Lex_Char => 
+      emitValDef(sym, """new Parser[Char] {
+        def apply(sw:Subword) = sw match {
+          case (i, j) if(j == i+1) => List(input(i))
+          case _ => List()
+        }}""")
+    case Lex_Charf(f) => emitValDef(sym, """char filter {
+          case(i,j) if(i+1 == j) => f(input(i))
+          case _ => false
+        }""") 
+    case Lex_DigitParser => emitValDef(sym, "(char filter isDigit) ^^ readDigit")
     case _ => super.emitNode(sym, node)
   }
 }
-
-trait LexicalParsersExp extends LexicalParsers with ADPParsersExp { this: BaseExp =>
-  def char = new Parser[Char] {
-    def apply(sw:Subword) = sw match {
-      case (i, j) if(j == i+1) => List(input(i))
-      case _ => List()
-    }
-  }
-  def charf(f: Char => Boolean) = char filter {
-    case(i,j) if(i+1 == j) => f(input(i))
-    case _ => false
-  }
-  def digitParser: Parser[Int] = (char filter isDigit) ^^ readDigit
-  def readDigit(c: Char) = (c - '0').toInt
-  def isDigit(sw: Subword) = sw match{
-    case(i,j) if(i+1 == j) => input(i).isDigit
-    case _ => false
-  }
-}
-
-*/
 
 // -----------------------------------------------------------------------------
 // Interpreters
@@ -258,11 +240,6 @@ trait LexicalInterpreter extends Interpreter with LexicalParsers { this: Base =>
     case _ => false
   }
   def digitParser: Parser[Int] = (char filter isDigit) ^^ readDigit
-  def readDigit(c: Char) = (c - '0').toInt
-  def isDigit(sw: Subword) = sw match {
-    case(i,j) if(i+1 == j) => input(i).isDigit
-    case _ => false
-  }
 }
 
 // -----------------------------------------------------------------------------
@@ -282,8 +259,7 @@ trait BracketsAlgebra extends BracketsSignature {
   def h(l : List[Int]) = if(l.isEmpty) List() else List(l.max)
 }
 
-// XXX: get rid of the interpreter here
-trait Prog extends LexicalParsers with BracketsAlgebra with LexicalInterpreter { this: Base =>
+trait Prog extends LexicalParsers with BracketsAlgebra { this: Base =>
   def input = "(((3)))(2)"
   def bracketize(c:Char,s:String) = "("+c+","+s+")"
 
@@ -292,22 +268,34 @@ trait Prog extends LexicalParsers with BracketsAlgebra with LexicalInterpreter {
   }
 
   val dummyParser = digitParser | digitParser
+
+// XXX: this does not work for the moment
+/*
   val myParser: Rep[Parser[Int]] = (
     digitParser
-// XXX: this does not work for the moment
-//    | (char -~~ myParser ~~- char).filter(areBrackets _) ^^ { case (c1,(i,c2)) => i }
-//    | myParser +~+ myParser ^^ {case (x,y) => x+y}
+  | (char -~~ myParser ~~- char).filter(areBrackets _) ^^ { case (c1,(i,c2)) => i }
+  | myParser +~+ myParser ^^ {case (x,y) => x+y}
+  ) tabulate
+*/
+
+  def f0(x:(Char,(Int,Char))) = x._2._1
+  val p0 = ((char -~~ myParser ~~- char) filter (areBrackets _)) ^^ f0
+
+  def f1(x:(Int,Int)) = x._1+x._2
+  val p1 = myParser +~+ myParser ^^ f1
+
+  val myParser: Rep[Parser[Int]] = (
+    digitParser | p0 // | p1 // crashes LMS
   ) tabulate
 }
 
 object ADPTest extends App {
-  /*
+/*
   val concreteProg = new Prog with EffectExp with ADPParsersExp with LexicalParsersExp with CompileScala { self =>
     override val codegen = new ScalaGenEffect with ScalaGenADPParsers with ScalaGenLexicalParsers { val IR: self.type=self }
-    codegen.emitSource(myParser,new java.io.PrintWriter(System.out))
+    //codegen.emitSource(myParser,new java.io.PrintWriter(System.out))
   }
-  */
-  
+*/  
   val interpretedProg = new Prog with Base with Interpreter with LexicalInterpreter
   println(interpretedProg.myParser((0,interpretedProg.input.length)))
 }
