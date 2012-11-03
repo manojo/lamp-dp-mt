@@ -46,9 +46,20 @@ TI* p_input() {
 #include "include/small_gpu.h"  // gpu implementation
 
 int main(int argc, char** argv) {
-	dbg_init();
-	dbg_compare();
-	dbg_cleanup();
+	g_init();
+	g_solve();
+
+	unsigned *bt,size;
+	TC cost=g_backtrack(&bt,&size);
+	printf("Cost = %lu\n",cost);
+	printf("Backtrack = \n");
+	if (size) {
+		unsigned i=size;
+		do { --i; printf("(%d,%d) ",bt[i*2],bt[i*2+1]); } while (i);
+	}
+	free(bt);
+	printf("\n");
+
+	g_free();
 	return 0;
 }
-
