@@ -95,10 +95,10 @@ static TB* c_back = NULL;
 static TW* c_wave = NULL;
 #endif
 
-void c_init() {
-	c_in[0]=p_input();
+void c_init(TI* in0, TI* in1) {
+	c_in[0]=in0;
 	#ifdef SH_RECT
-	c_in[1]=p_input(true);
+	c_in[1]=in1;
 	#else
 	c_in[1]=c_in[0];
 	#endif
@@ -130,16 +130,12 @@ static TB* g_back = NULL;
 static TW* g_wave = NULL;
 #endif
 
-void g_init() {
-	TI* tmp = p_input();
+void g_init(TI* in0, TI* in1) {
 	cuMalloc(g_in[0],sizeof(TI)*M_H);
-	cuPut(tmp,g_in[0],sizeof(TI)*M_H,NULL);
-	free(tmp);
+	cuPut(in0,g_in[0],sizeof(TI)*M_H,NULL);
 	#ifdef SH_RECT
-		tmp = p_input(true);
 		cuMalloc(g_in[1],sizeof(TI)*M_W);
-		cuPut(tmp,g_in[1],sizeof(TI)*M_W,NULL);
-		free(tmp);
+		cuPut(in1,g_in[1],sizeof(TI)*M_W,NULL);
 	#else
 		g_in[1]=g_in[0];
 	#endif
@@ -300,9 +296,14 @@ void dbg_init(bool info=false) {
 	if (info) cuInfo();
 	#endif
 	fprintf(stderr,SH_SHAPE " %ldx%ld with block %ldx%ld\n",M_H,M_W,B_H,B_H);
-	c_init();
+	TI* in0=p_input();
+	TI* in1=NULL;
+	#ifdef SH_RECT
+	in1=p_input(true);
+	#endif
+	c_init(in0,in1);
 	#ifdef __CUDACC__
-	g_init();
+	g_init(in0,in1);
 	#endif
 }
 

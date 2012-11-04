@@ -17,8 +17,8 @@ object Loader {
 }
 
 /** Dynamic Programming solver struct for CUDA */
-class CudaDP[TI] {
-  type Input = Array[TI];
+class CudaDP {
+  type Input = Array[Product];
   type Backtrack = Array[Tuple2[Int,Int]];
 
   Loader.load("CudaDP")
@@ -37,34 +37,8 @@ class CudaDP[TI] {
 
 /** Demo application */
 object Toy {
-  type Input = (Int,Int)
-
-  // Input typing
-  lazy val inTypes:List[String] = {
-  	import scala.reflect.runtime.universe._
-  	var s = typeOf[Input].toString;
-  	s.substring(1,s.length-1).replace("scala.","").toLowerCase.split(", ").toList
-  }
-  lazy val struct = "typedef struct { "+inTypes.zipWithIndex.map{case (x,i)=>x+" _"+(i+1)}.mkString("; ")+"; } in_t;"
-  lazy val loader = {
-    val k = Map(("boolean","Z"),("byte","B"),("char","C"),("short","S"),("int","I"),("long","J"),("float","F"),("double","D"))
-    val ts = inTypes
-    val ms = ts.map {x=>k(x)}.zipWithIndex.map{case(t,i) => "    (*env)->GetMethodID(env, cls, \"_"+(i+1)+"\", \"()"+t+"\")," }
-    var es = ts.zipWithIndex.map{case(t,i) => "    e->_"+(i+1)+" = ("+t+") (*env)->CallObjectMethod(env, elem, ms["+i+"]);" }
-    "  jmethodID ms[] = {\n"+ms.mkString("\n")+"\n  };\n\n  for (i=0;i<size;++i) {\n"+
-    "    elem = (*env)->GetObjectArrayElement(env, input, i);\n"+
-    "    TI* e = &((*in)[i]);\n" +  es.mkString("\n")+"\n  }\n"
-  }
-
-
   def main(args: Array[String]) {
-    println("C struct:")
-    println(struct);
-    println("C loader:")
-    println(loader);
-    println
-
-    val dp = new CudaDP[Input]
+    val dp = new CudaDP
     dp.inStrings("Hello world","Hello Manohar")
 
     dp.inArrays( Array((1,3),(3,5),(5,9),(9,2),(2,4)) ,null)
