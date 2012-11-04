@@ -116,8 +116,8 @@ class CudaDP[TI:Manifest] {
   type Input = Array[TI];
   type Backtrack = Array[(Int,Int)];
 
-  @native def inArrays(in1: Input, in2: Input):Unit;
   @native def inStrings(in1: String, in2: String):Unit;
+  @native def inArrays(in1: Input, in2: Input):Unit;
   // Compute the matrix content
   //@native def computeMatrix:Unit;
   @native def computeMatrix:Unit;
@@ -149,9 +149,7 @@ class CudaDP[TI:Manifest] {
   }
 }
 
-// scalac -d bin CCompiler.scala && scala -cp bin TestCCompiler
-
-
+// This is the input of our alorithm
 case class Mat(rows:Int, cols:Int)
 
 object TestCCompiler extends CudaDP[Mat] with CCompiler {
@@ -165,21 +163,19 @@ object TestCCompiler extends CudaDP[Mat] with CCompiler {
     // http://tutorials.jenkov.com/java-reflection/fields.html
     // http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
 
+    // Common header file
     add("h","#ifndef __CudaDP_H__\n#define __CudaDP_H__\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"+
         (inputHelpers._1)+" // input type\n#define TC unsigned long // cost type\n#define TB short // backtrack type\n"+
-        "void g_init();\nvoid g_free();\nvoid g_solve();\nTC g_backtrack(unsigned** bt, unsigned* size);\n"+
+        "void g_init(TI* in0, TI* in1);\nvoid g_free();\nvoid g_solve();\nTC g_backtrack(unsigned** bt, unsigned* size);\n"+
         "\n#ifdef __cplusplus\n}\n#endif\n#endif")
 
+    // JNI wrapper
     add("c","""
 #include <jni.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include "{file}.h"
-
-// Input type
-// typedef struct { int _1, _2; } in_t;  // GEN: generate this
-// #define TI in_t
 
 TI* in1=NULL;
 TI* in2=NULL;
@@ -203,8 +199,8 @@ static int inArray(JNIEnv* env, jobjectArray input, TI** in) {
 #ifdef __cplusplus
 extern "C" {
 #endif
-JNIEXPORT void JNICALL Java_CudaDP_inArrays(JNIEnv *, jobject, jobjectArray, jobjectArray);
 JNIEXPORT void JNICALL Java_CudaDP_inStrings(JNIEnv *, jobject, jstring, jstring);
+JNIEXPORT void JNICALL Java_CudaDP_inArrays(JNIEnv *, jobject, jobjectArray, jobjectArray);
 JNIEXPORT void JNICALL Java_CudaDP_computeMatrix(JNIEnv *, jobject);
 JNIEXPORT jlong JNICALL Java_CudaDP_getScore(JNIEnv *, jobject);
 JNIEXPORT jobjectArray JNICALL Java_CudaDP_getBacktrack(JNIEnv *, jobject);
@@ -212,18 +208,6 @@ JNIEXPORT void JNICALL Java_CudaDP_free(JNIEnv *, jobject);
 #ifdef __cplusplus
 }
 #endif
-
-JNIEXPORT void JNICALL Java_CudaDP_inArrays(JNIEnv* env, jobject obj, jobjectArray input1, jobjectArray input2) {
-  in1_len=inArray(env,input1,&in1);
-  in2_len=inArray(env,input2,&in2);
-
-  int i; printf("inLists( [");
-  for (i=0;i<in1_len;++i) { TI e = in1[i]; if (i) printf(","); printf("(%d,%d)",e.rows,e.cols); } printf("] [");
-  for (i=0;i<in2_len;++i) { TI e = in2[i]; if (i) printf(","); printf("(%d,%d)",e.rows,e.cols); } printf("] )\n");
-
-  // XXX: alloc list.count * object.size ints, process
-  // better: write a class that is a placeholder and can be combined into a struct
-}
 
 JNIEXPORT void JNICALL Java_CudaDP_inStrings(JNIEnv* env, jobject obj, jstring string1, jstring string2) {
   const char* s1=env->GetStringUTFChars(string1, NULL);
@@ -233,46 +217,57 @@ JNIEXPORT void JNICALL Java_CudaDP_inStrings(JNIEnv* env, jobject obj, jstring s
   env->ReleaseStringUTFChars(string2, s2);
 }
 
-extern void g_init();
-extern void g_solve();
-extern void g_free();
+extern TI* p_input();
+JNIEXPORT void JNICALL Java_CudaDP_inArrays(JNIEnv* env, jobject obj, jobjectArray input1, jobjectArray input2) {
+  in1_len=inArray(env,input1,&in1);
+  in2_len=inArray(env,input2,&in2);
 
-JNIEXPORT void JNICALL Java_CudaDP_computeMatrix(JNIEnv* env, jobject obj) { g_init(); g_solve(); g_free(); printf("computeMatrix()\n"); }
-JNIEXPORT jlong JNICALL Java_CudaDP_getScore(JNIEnv* env, jobject obj) { printf("getScore()\n"); return 0; }
-JNIEXPORT jobjectArray JNICALL Java_CudaDP_getBacktrack(JNIEnv *env, jobject obj) { printf("getBacktrack()\n"); return NULL; }
-JNIEXPORT void JNICALL Java_CudaDP_free(JNIEnv* env, jobject obj) { printf("free()\n"); }
+  int i; printf("inLists( [");
+  for (i=0;i<in1_len;++i) { TI e = in1[i]; if (i) printf(","); printf("(%d,%d)",e.rows,e.cols); } printf("] [");
+  for (i=0;i<in2_len;++i) { TI e = in2[i]; if (i) printf(","); printf("(%d,%d)",e.rows,e.cols); } printf("] )\n");
+
+  // XXX: fix this
+  TI* in0=p_input(); g_init(in0,NULL);
+}
+
+JNIEXPORT void JNICALL Java_CudaDP_computeMatrix(JNIEnv* env, jobject obj) { g_solve(); }
+JNIEXPORT jlong JNICALL Java_CudaDP_getScore(JNIEnv* env, jobject obj) { return g_backtrack(NULL,NULL); }
+JNIEXPORT jobjectArray JNICALL Java_CudaDP_getBacktrack(JNIEnv *env, jobject obj) {
+  unsigned *bt,size;
+  TC cost=g_backtrack(&bt,&size);
+
+  // XXX: create an array of resulting size and pass back to Scala
+  printf("Cost = %lu\n",cost);
+  printf("Backtrack = \n");
+  if (size) {
+    unsigned i=size;
+    do { --i; printf("(%d,%d) ",bt[i*2],bt[i*2+1]); } while (i);
+  }
+  free(bt); printf("\n");
+  return NULL;
+}
+JNIEXPORT void JNICALL Java_CudaDP_free(JNIEnv* env, jobject obj) { g_free(); }
 """)
 
+    // CUDA problem definition
     add("cu","""
 #include "{file}.h"
-#include "../include/common.h" // XXX: fix path
+#include "{inc}/common.h"
 #define SH_TRI
 #define B_W 32LU
 #define B_H 32LU
 #define M_W 128LU
 #define M_H 128LU
 
-////////////////////////////////////////////////////////////////////////////////
-// Data types
-#define TI_CHR(X) ('0'+(X).rows) // conversion to char (debug)
-#define TC unsigned long // cost type
-#define TB short         // backtrack type (2 bits for direction + 14 for value)
-
 // Initialization
 #define INIT(i,j) (j<=i) // matrix initialization at [stop]
 
 // Matrix multiplication parenthesizing (triangular matrix)
-//
 //   M[i,j]= min {i<=k<j} M[i,k] + M [k+1,j] + r_i * c_k * c_j
-//
+
 #define p_kernel \
   _infinity \
   _min_loop(k,i,j,  _cost(i,k) + _cost(k+1,j) + _in(i).rows * _in(k).cols * _in(j).cols, k )
-
-// Once generated: execute
-// nvcc -arch=sm_21 -O2 <FILE>.cu -DSH_RECT -o <OUT>
-// optirun <OUT>
-////////////////////////////////////////////////////////////////////////////////
 
 // Input
 TI* p_input() {
@@ -283,25 +278,9 @@ TI* p_input() {
   in[M_H-1].cols=RNZ; return in;
 }
 
-// XXX: fix path
-#include "../include/small.h"      // common functions
-#include "../include/small_cpu.h"  // cpu implementation
-#include "../include/small_gpu.h"  // gpu implementation
-
-int main(int argc, char** argv) {
-  g_init(); g_solve();
-  unsigned *bt,size;
-  TC cost=g_backtrack(&bt,&size);
-  printf("Cost = %lu\n",cost);
-  printf("Backtrack = \n");
-  if (size) {
-    unsigned i=size;
-    do { --i; printf("(%d,%d) ",bt[i*2],bt[i*2+1]); } while (i);
-  }
-  free(bt); printf("\n");
-  g_free(); return 0;
-}
-    """)
+#include "{inc}/small.h" 
+#include "{inc}/small_gpu.h"
+""",Map(("inc","../include")))
 
     gen
 
@@ -309,9 +288,6 @@ int main(int argc, char** argv) {
     println("C/CUDA implementation generated, now let's play")
     println
 
-//    type Input = (Int,Int)
- 
-//    val dp = new CudaDP[Input]
     inStrings("Hello world","Hello Manohar")
     inArrays(Array(Mat(1,3),Mat(3,5),Mat(5,9),Mat(9,2),Mat(2,4)) ,null)
     computeMatrix

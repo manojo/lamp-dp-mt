@@ -16,6 +16,7 @@
 #include "include/small.h"      // common functions
 #include "include/small_cpu.h"  // cpu implementation
 #include "include/small_gpu.h"  // gpu implementation
+#include "include/small_dbg.h"  // debug helpers
 // -----------------------------------------------------------------------------
 
 //#define FAST

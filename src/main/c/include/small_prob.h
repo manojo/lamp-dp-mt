@@ -63,7 +63,7 @@ _hostdev _inline TC p_cost(char s, char t) { return s==t?1:0; }
 //   M[i,j]= min {i<=k<j} M[i,k] + M [k+1,j] + r_i * c_k * c_j
 //
 // Data types
-typedef struct { unsigned rows,cols; char print() { return 'X'; } } mat_t;
+typedef struct { unsigned rows,cols; } mat_t;
 #define TI mat_t         // input data type
 #define TI_CHR(X) ('0'+(X).rows) // conversion to char (debug)
 #define TC unsigned long // cost type
