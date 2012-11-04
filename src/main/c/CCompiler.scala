@@ -1,73 +1,5 @@
 import java.io._
 
-trait CCompiler {
-  val outPath:String
-  val cudaPath:String
-  val cudaFlags:String
-  val ccFlags:String
-  val ldFlags:String
-
-  var compileCount = 0
-  var dataMap = new scala.collection.mutable.HashMap[String,String]()
-
-  private def replace(content:String, map:Map[String,String]) = {
-    val builder = new StringBuilder(content);
-    def rep(o:String, n:String) = {
-      val ol=o.length; val nl=n.length
-      var idx=builder.indexOf(o)
-      while (idx != -1) { builder.replace(idx,idx+ol,n); idx=builder.indexOf(o,idx+nl) }
-    }
-    map.foreach { case (o,n) => rep("{"+o+"}",n) }
-    builder.toString
-  }
-
-  // create a new file (c,cpp,cu,h)
-  def add(ext:String, content:String):Unit = add(ext,content,Map())
-  def add(ext:String, content:String, map:Map[String,String]) {
-    val cnt = replace(content,map)
-    dataMap.get(ext) match {
-      case Some(o) => dataMap += ((ext,o+"\n/*---EOF---*/\n"+cnt))
-      case None => dataMap += ((ext,cnt))
-    }
-  }
-
-  // execute arbitrary command, return (out,err)
-  private def run(cmd:String):(String,String) = {
-    val p = Runtime.getRuntime.exec(cmd,null,new File(outPath));
-    def gobble(in:InputStream) = new Runnable {
-      var out = new StringBuilder
-      var thr = new Thread(this); thr.start
-      override def toString = { thr.join; out.toString.trim }
-      override def run {
-        val r = new BufferedReader(new InputStreamReader(in))
-        var l = r.readLine; while(l != null) { out.append(l+"\n"); l = r.readLine }; r.close
-      }
-    }
-    val out=gobble(p.getInputStream); val err=gobble(p.getErrorStream); p.waitFor
-    val o=out.toString; val e=err.toString
-    if (!o.equals("") || !e.equals("")) println("\nExec: "+cmd+"\n- Out: "+o+"\n- Err: "+e+"\n")
-    (o,e)
-  }
-
-  // generate and instanciate
-  def gen {
-    compileCount = compileCount+1
-    val f = "comp"+compileCount
-    dataMap.foreach { case (ext,data) => val out=new FileWriter(outPath+"/"+f+"."+ext); out.write(replace(data,Map(("file",f)))); out.close }
-    dataMap.foreach {
-      case("c",_) =>   run("g++ "+ccFlags+" "+f+".c -c -o "+f+"_c.o") // gcc fails at linking properly with nvcc files
-      case("cpp",_) => run("g++ "+ccFlags+" "+f+".cpp -c -o "+f+"_cpp.o")
-      case("cu",_) =>  run(cudaPath+"/bin/nvcc "+cudaFlags+" "+ccFlags+" "+f+".cu -c -o "+f+"_cu.o")
-      case _ =>
-    }
-    val files = dataMap.map{case(x,_)=>x}.filter(! _.startsWith("h")).map(f+"_"+_+".o").mkString(" ")
-    run("g++ "+files+" "+ldFlags+" -o libComp"+compileCount+".jnilib")
-    dataMap.clear
-    // now load the library
-    System.load(new File(outPath+"/libComp"+compileCount+".jnilib").getCanonicalPath)
-  }
-}
-
 /*
 import scala.tools.nsc._
 import scala.tools.nsc.reporters._
@@ -109,45 +41,193 @@ trait ScalaCompiler {
 }
 */
 
+trait CCompiler {
+  val outPath:String
+  val cudaPath:String
+  val cudaFlags:String
+  val ccFlags:String
+  val ldFlags:String
 
-/** ------------------------ Example usage ------------------------ **/
+  var compileCount = 0
+  var dataMap = new scala.collection.mutable.HashMap[String,String]()
+
+  private def replace(content:String, map:Map[String,String]) = {
+    val builder = new StringBuilder(content);
+    def rep(o:String, n:String) = {
+      val ol=o.length; val nl=n.length
+      var idx=builder.indexOf(o)
+      while (idx != -1) { builder.replace(idx,idx+ol,n); idx=builder.indexOf(o,idx+nl) }
+    }
+    map.foreach { case (o,n) => rep("{"+o+"}",n) }
+    builder.toString
+  }
+
+  // create/append to a file (c,cpp,cu,h)
+  def add(ext:String, content:String):Unit = add(ext,content,Map())
+  def add(ext:String, content:String, map:Map[String,String]) {
+    val cnt = replace(content,map)
+    dataMap.get(ext) match {
+      case Some(o) => dataMap += ((ext,o+"\n/*---EOF---*/\n"+cnt))
+      case None => dataMap += ((ext,cnt))
+    }
+  }
+
+  // execute arbitrary command, return (out,err)
+  private def run(cmd:String):(String,String) = {
+    val p = Runtime.getRuntime.exec(cmd,null,new File(outPath));
+    def gobble(in:InputStream) = new Runnable {
+      var out = new StringBuilder
+      var thr = new Thread(this); thr.start
+      override def toString = { thr.join; out.toString.trim }
+      override def run {
+        val r = new BufferedReader(new InputStreamReader(in))
+        var l = r.readLine; while(l != null) { out.append(l+"\n"); l = r.readLine }; r.close
+      }
+    }
+    val out=gobble(p.getInputStream); val err=gobble(p.getErrorStream); p.waitFor
+    val o=out.toString; val e=err.toString
+    if (!o.equals("") || !e.equals("")) println("\nExec: "+cmd+"\n- Out: "+o+"\n- Err: "+e+"\n")
+    (o,e)
+  }
+
+  // generate and load library
+  def gen {
+    compileCount = compileCount+1
+    val f = "comp"+compileCount
+    dataMap.foreach { case (ext,data) => val out=new FileWriter(outPath+"/"+f+"."+ext); out.write(replace(data,Map(("file",f)))); out.close }
+    dataMap.foreach {
+      case("c",_) =>   run("g++ "+ccFlags+" "+f+".c -c -o "+f+"_c.o") // gcc fails to link properly with nvcc object files
+      case("cpp",_) => run("g++ "+ccFlags+" "+f+".cpp -c -o "+f+"_cpp.o")
+      case("cu",_) =>  run(cudaPath+"/bin/nvcc "+cudaFlags+" "+ccFlags+" "+f+".cu -c -o "+f+"_cu.o")
+      case _ =>
+    }
+    val files = dataMap.map{case(x,_)=>x}.filter(! _.startsWith("h")).map(f+"_"+_+".o").mkString(" ")
+    run("g++ "+files+" "+ldFlags+" -o libComp"+compileCount+".jnilib")
+    dataMap.clear
+    System.load(new File(outPath+"/libComp"+compileCount+".jnilib").getCanonicalPath)
+  }
+}
+
+// XXX: arbitrary cost/scoring type
+// XXX: arbitrary cost/scoring type
+// XXX: arbitrary cost/scoring type
+// XXX: arbitrary cost/scoring type
+// XXX: arbitrary cost/scoring type
 
 class CudaDP[TI:Manifest] {
   type Input = Array[TI];
   type Backtrack = Array[(Int,Int)];
 
-  @native def inStrings(in1: String, in2: String):Unit;
-  @native def inArrays(in1: Input, in2: Input):Unit;
-  // Compute the matrix content
-  //@native def computeMatrix:Unit;
-  @native def computeMatrix:Unit;
-  // Get score and backtrack
-  @native def getScore:Long;
-  @native def getBacktrack:Backtrack;
-  // Release structures
-  @native def free:Unit;
-
-  val inputHelpers:(String,String) = manifest[TI].erasure match {
-    case cl if (cl.toString.equals("char")) =>
-        (
-          "#define TI char",
-          "  for (i=0;i<size;++i) (*in)[i] = (char)env->GetObjectArrayElement(input, i);\n"
-        )
-    case cl =>
-        //println(manifest[T].erasure.getConstructors.mkString(", "))
-        //println(manifest[T].erasure.getDeclaredFields.map{x=>x.getType+" "+x.getName}.mkString("\n"))
-        val ts = cl.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
-        val k = Map(("boolean","Z"),("byte","B"),("char","C"),("short","S"),("int","I"),("long","J"),("float","F"),("double","D"))
-        val ms = ts.map {case(t,n)=> "    env->GetMethodID(cls, \""+n+"\", \"()"+k(t)+"\")," }
-        var es = ts.zipWithIndex.map{ case((t,n),i) => "    e->"+n+" = ("+t+")(long) env->CallObjectMethod(elem, ms["+i+"]);" }
-        (
-          "typedef struct { "+ts.map{case (t,n)=>t+" "+n+";"}.mkString(" ")+" } in_t;\n#define TI in_t",
-          "  jmethodID ms[] = {\n"+ms.mkString("\n")+"\n  };\n\n  for (i=0;i<size;++i) {\n"+
-          "    elem = env->GetObjectArrayElement(input, i);\n"+
-          "    TI* e = &((*in)[i]);\n" +  es.mkString("\n")+"\n  }\n"
-        )
+  def solve(in1: Input, in2: Input):(Long,Backtrack) = {
+    init(in1,in2); solve; val res=backtrack; free; res
   }
+
+  // Setup the input data
+  @native private def init(in1: Input, in2: Input) {}
+  // Compute the matrix content
+  @native private def solve {}
+  // Get score and backtrack
+  @native private def backtrack:(Long,Backtrack) = null;
+  // Release structures
+  @native private def free {}
+
+  // Primitive types mapping
+  private val type_jni = Map(("boolean","Z"),("byte","B"),("char","C"),("short","S"),("int","I"),("long","J"),("float","F"),("double","D"))
+  private val type_c = Map(("boolean","bool"),("byte","unsigned char"),("char","char"),("short","short"),("int","int"),("long","long"),("float","float"),("double","double"))
+
+  // header and JNI implementation files
+  private val helpers:(String,String) = manifest[TI].erasure match {
+    case cl if (type_jni.contains(cl.toString)) => val cn=cl.toString;
+      ("#define TI "+type_c(cn),"  for (i=0;i<size;++i) (*in)[i] = (TI)env->Get"+cn.substring(0,1).toUpperCase+cn.substring(1)+"ArrayElement(input, i);\n")
+    case cl => //println(manifest[T].erasure.getConstructors.mkString(", "))
+      val ts = cl.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
+      val ms = ts.map{ case(t,n)=> "env->GetMethodID(cls, \""+n+"\", \"()"+type_jni(t)+"\")," }
+      var es = ts.zipWithIndex.map{ case((t,n),i) => "e->"+n+" = env->Call"+t.substring(0,1).toUpperCase+t.substring(1)+"Method(elem, ms["+i+"]);" }
+      ("typedef struct { "+ts.map{case (t,n)=>type_c(t)+" "+n+";"}.mkString(" ")+" } in_t;\n#define TI in_t",
+       "  jmethodID ms[] = {\n    "+ms.mkString("\n    ")+"\n  };\n\n  for (i=0;i<size;++i) {\n"+
+       "    elem = env->GetObjectArrayElement(input, i);\n    TI* e = &((*in)[i]);\n    "+es.mkString("\n    ")+"\n  }\n")
+  }
+  val h_file = "#ifndef __CudaDP_H__\n#define __CudaDP_H__\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"+
+      (helpers._1)+"\n#define TC unsigned long\n#define TB short\nvoid g_init(TI* in0, TI* in1);\nvoid g_free();\n"+
+      "void g_solve();\nTC g_backtrack(unsigned** bt, unsigned* size);\n\n#ifdef __cplusplus\n}\n#endif\n#endif"
+  val c_file = """
+#include <jni.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "{file}.h"
+
+TI *in1=NULL,*in2=NULL;
+int in1_len=0,in2_len=0;
+
+static int inArray(JNIEnv* env, jobjectArray input, TI** in) {
+  // Allocate memory
+  if (*in) free(*in); *in=NULL; if (input==NULL) return 0;
+  jsize i,size = env->GetArrayLength(input);
+  *in=(TI*)malloc(size*sizeof(TI)); if (!*in) { fprintf(stderr,"Not enough memory.\n"); exit(1); }
+  if (size==0) return 0;
+
+  jobject elem = env->GetObjectArrayElement(input, 0);
+  jclass cls = env->GetObjectClass(elem);
+  
+  """+helpers._2+"""
+  return size;
 }
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+JNIEXPORT void JNICALL Java_CudaDP_init(JNIEnv *, jobject, jobjectArray, jobjectArray);
+JNIEXPORT void JNICALL Java_CudaDP_solve(JNIEnv *, jobject) { g_solve(); }
+JNIEXPORT jobject JNICALL Java_CudaDP_backtrack(JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_CudaDP_free(JNIEnv *, jobject) { g_free(); }
+#ifdef __cplusplus
+}
+#endif
+
+extern TI* p_input(); // XXX: to go away
+JNIEXPORT void JNICALL Java_CudaDP_init(JNIEnv* env, jobject obj, jobjectArray input1, jobjectArray input2) {
+  in1_len=inArray(env,input1,&in1);
+  in2_len=inArray(env,input2,&in2);
+
+  int i; printf("inLists( [");
+  for (i=0;i<in1_len;++i) { TI e = in1[i]; if (i) printf(","); printf("(%d,%d)",e.rows,e.cols); } printf("] [");
+  for (i=0;i<in2_len;++i) { TI e = in2[i]; if (i) printf(","); printf("(%d,%d)",e.rows,e.cols); } printf("] )\n");
+
+  // XXX: fix this
+  TI* in0=p_input(); g_init(in0,NULL);
+}
+
+JNIEXPORT jobject JNICALL Java_CudaDP_backtrack(JNIEnv *env, jobject obj) {
+  unsigned *bt,size,i;
+  TC cost=g_backtrack(&bt,&size);
+
+  jclass cls = env->FindClass("scala/Tuple2");
+  jmethodID cons = env->GetMethodID(cls, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  jclass clsi = env->FindClass("java/lang/Integer");
+  jmethodID consi = env->GetMethodID(clsi, "<init>", "(I)V");
+  jclass clsl = env->FindClass("java/lang/Long");
+  jmethodID consl = env->GetMethodID(clsl, "<init>", "(J)V");
+
+  jobjectArray backtrack = env->NewObjectArray(size, cls, NULL);
+  for (i=0; i<size; ++i) {
+    jobject e1 = env->NewObject(clsi, consi, bt[i*2]);
+    jobject e2 = env->NewObject(clsi, consi, bt[i*2+1]);
+    jobject tuple = env->NewObject(cls, cons, e1, e2);
+    env->SetObjectArrayElement(backtrack, size-1-i, tuple);
+  }
+  free(bt);
+  
+  jobject score = env->NewObject(clsl, consl, cost);
+  return env->NewObject(cls, cons, score, backtrack);
+}
+"""
+}
+
+class CudaDPStr extends CudaDP[Char] {
+  def solve(in1: String, in2: String):(Long,Backtrack) = solve(in1.toArray, if(in2!=null) in2.toArray else null)
+}
+
+/** ------------------------ Example usage ------------------------ **/
 
 // This is the input of our alorithm
 case class Mat(rows:Int, cols:Int)
@@ -160,94 +240,10 @@ object TestCCompiler extends CudaDP[Mat] with CCompiler {
   override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
 
   def main(args: Array[String]) = {
+    add("h",h_file)
+    add("c",c_file)
     // http://tutorials.jenkov.com/java-reflection/fields.html
     // http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
-
-    // Common header file
-    add("h","#ifndef __CudaDP_H__\n#define __CudaDP_H__\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"+
-        (inputHelpers._1)+" // input type\n#define TC unsigned long // cost type\n#define TB short // backtrack type\n"+
-        "void g_init(TI* in0, TI* in1);\nvoid g_free();\nvoid g_solve();\nTC g_backtrack(unsigned** bt, unsigned* size);\n"+
-        "\n#ifdef __cplusplus\n}\n#endif\n#endif")
-
-    // JNI wrapper
-    add("c","""
-#include <jni.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include "{file}.h"
-
-TI* in1=NULL;
-TI* in2=NULL;
-int in1_len=0;
-int in2_len=0;
-
-static int inArray(JNIEnv* env, jobjectArray input, TI** in) {
-  // Allocate memory
-  if (*in) free(*in); *in=NULL; if (input==NULL) return 0;
-  jsize i,size = env->GetArrayLength(input);
-  *in=(TI*)malloc(size*sizeof(TI)); assert(*in);
-  if (size==0) return 0;
-
-  jobject elem = env->GetObjectArrayElement(input, 0);
-  jclass cls = env->GetObjectClass(elem);
-  
-  """+inputHelpers._2+"""
-  return size;
-}
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-JNIEXPORT void JNICALL Java_CudaDP_inStrings(JNIEnv *, jobject, jstring, jstring);
-JNIEXPORT void JNICALL Java_CudaDP_inArrays(JNIEnv *, jobject, jobjectArray, jobjectArray);
-JNIEXPORT void JNICALL Java_CudaDP_computeMatrix(JNIEnv *, jobject);
-JNIEXPORT jlong JNICALL Java_CudaDP_getScore(JNIEnv *, jobject);
-JNIEXPORT jobjectArray JNICALL Java_CudaDP_getBacktrack(JNIEnv *, jobject);
-JNIEXPORT void JNICALL Java_CudaDP_free(JNIEnv *, jobject);
-#ifdef __cplusplus
-}
-#endif
-
-JNIEXPORT void JNICALL Java_CudaDP_inStrings(JNIEnv* env, jobject obj, jstring string1, jstring string2) {
-  const char* s1=env->GetStringUTFChars(string1, NULL);
-  const char* s2=env->GetStringUTFChars(string2, NULL);
-  printf("inStrings( \"%s\", \"%s\")\n",s1,s2);
-  env->ReleaseStringUTFChars(string1, s1);
-  env->ReleaseStringUTFChars(string2, s2);
-}
-
-extern TI* p_input();
-JNIEXPORT void JNICALL Java_CudaDP_inArrays(JNIEnv* env, jobject obj, jobjectArray input1, jobjectArray input2) {
-  in1_len=inArray(env,input1,&in1);
-  in2_len=inArray(env,input2,&in2);
-
-  int i; printf("inLists( [");
-  for (i=0;i<in1_len;++i) { TI e = in1[i]; if (i) printf(","); printf("(%d,%d)",e.rows,e.cols); } printf("] [");
-  for (i=0;i<in2_len;++i) { TI e = in2[i]; if (i) printf(","); printf("(%d,%d)",e.rows,e.cols); } printf("] )\n");
-
-  // XXX: fix this
-  TI* in0=p_input(); g_init(in0,NULL);
-}
-
-JNIEXPORT void JNICALL Java_CudaDP_computeMatrix(JNIEnv* env, jobject obj) { g_solve(); }
-JNIEXPORT jlong JNICALL Java_CudaDP_getScore(JNIEnv* env, jobject obj) { return g_backtrack(NULL,NULL); }
-JNIEXPORT jobjectArray JNICALL Java_CudaDP_getBacktrack(JNIEnv *env, jobject obj) {
-  unsigned *bt,size;
-  TC cost=g_backtrack(&bt,&size);
-
-  // XXX: create an array of resulting size and pass back to Scala
-  printf("Cost = %lu\n",cost);
-  printf("Backtrack = \n");
-  if (size) {
-    unsigned i=size;
-    do { --i; printf("(%d,%d) ",bt[i*2],bt[i*2+1]); } while (i);
-  }
-  free(bt); printf("\n");
-  return NULL;
-}
-JNIEXPORT void JNICALL Java_CudaDP_free(JNIEnv* env, jobject obj) { g_free(); }
-""")
 
     // CUDA problem definition
     add("cu","""
@@ -288,12 +284,10 @@ TI* p_input() {
     println("C/CUDA implementation generated, now let's play")
     println
 
-    inStrings("Hello world","Hello Manohar")
-    inArrays(Array(Mat(1,3),Mat(3,5),Mat(5,9),Mat(9,2),Mat(2,4)) ,null)
-    computeMatrix
-    println("Score = "+getScore)
-    println("Backtrack = "+getBacktrack)
-    free
+    val (score,bt) = solve(Array(Mat(1,3),Mat(3,5),Mat(5,9),Mat(9,2),Mat(2,4)) ,null)
+    println("Score = "+score)
+    println("Backtrack =\n"+bt.map{case (i,j)=>"("+i+","+j+")"}.mkString(" "))
+
 
     println("done");
   }
