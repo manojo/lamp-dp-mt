@@ -134,17 +134,14 @@ abstract class CudaDP[TI:Manifest,TC:Manifest] extends CCompiler {
   private val tc = manifest[TC].erasure.toString
   private val ti:(String,String) = manifest[TI].erasure match {
     case cl if (type_jni.contains(cl.toString)) => val cn=cl.toString;
-      ("#define TI "+type_c(cn),
-       "  for (i=0;i<size;++i) (*in)[i] = (TI)env->Get"+up1(cn)+"ArrayElement(input, i);\n"
-      )
+      ("#define TI "+type_c(cn),"  for (i=0;i<size;++i) (*in)[i] = (TI)env->Get"+up1(cn)+"ArrayElement(input, i);\n")
     case cl => //println(manifest[T].erasure.getConstructors.mkString(", "))
       val ts = cl.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
       val ms = ts.map{ case(t,n)=> "env->GetMethodID(cls, \""+n+"\", \"()"+type_jni(t)+"\")," }
       var es = ts.zipWithIndex.map{ case((t,n),i) => "e->"+n+" = env->Call"+up1(t)+"Method(elem, ms["+i+"]);" }
       ("typedef struct { "+ts.map{case (t,n)=>type_c(t)+" "+n+";"}.mkString(" ")+" } in_t;\n#define TI in_t",
        "  jmethodID ms[] = {\n    "+ms.mkString("\n    ")+"\n  };\n\n  for (i=0;i<size;++i) {\n"+
-       "    elem = env->GetObjectArrayElement(input, i);\n    TI* e = &((*in)[i]);\n    "+es.mkString("\n    ")+"\n  }\n"
-      )
+       "    elem = env->GetObjectArrayElement(input, i);\n    TI* e = &((*in)[i]);\n    "+es.mkString("\n    ")+"\n  }\n")
   }
   val h_file = "#ifndef __CudaDP_H__\n#define __CudaDP_H__\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"+
       (ti._1)+"\n#define TC "+type_c(tc)+"\n#define TB short\nvoid g_init(TI* in0, TI* in1);\nvoid g_free();\n"+
@@ -235,8 +232,6 @@ object TestCCompiler {
 #include "{file}.h"
 #include "{inc}/common.h"
 #define SH_TRI
-#define B_W 32LU
-#define B_H 32LU
 #define M_W {M_W}LU
 #define M_H {M_H}LU
 
