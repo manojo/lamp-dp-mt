@@ -11,16 +11,41 @@ trait ADPParsers {
   type Subword = (Int, Int)
   type Input // = String
 
+
+  /**
+   * tree structure which can be used for generating
+   * recurrences
+   */
+  abstract class PTree[+T]
+  case class Aggregate[T,U](h: List[T] => List[U], p: PTree[T]) extends PTree[U]
+  case class Or[T](l: PTree[T], r: PTree[T]) extends PTree[T]
+  case class Map[T,U](f: T => U, p: PTree[T]) extends PTree[U]
+
+  //type info more to "please" the type system than any deeper meaning
+  case class Concat[T,U](l: PTree[T], r: PTree[U], indices: (Int,Int,Int,Int)) extends PTree[(T,U)]
+  case class Filter[T](f: Subword => Boolean, p: PTree[T]) extends PTree[T]
+  case class Production[T](name:String) extends PTree[T]
+
+  abstract class Terminal[T] extends PTree[T]
+
+
   /*
    * the input is a "global" value, as in DP we need
    * the it during the whole running time of the algorithm
    */
   def input: Input
 
+  /*
+   * a global store which can be used to store parsers that
+   * are productions. Used when transforming into a tree
+   */
+  val store = new scala.collection.mutable.HashMap[String,PTree[Any]]
+
   //def parseAll[T](p: Parser[T], in: Input, sw: Subword) =
 
   abstract class Parser[T] extends (Subword => List[T]) { inner =>
     def apply(sw: Subword): List[T]
+    def makeTree : PTree[T]
 
     /*
      * Mapper.
@@ -29,6 +54,7 @@ trait ADPParsers {
      */
     def map[U](f: T => U) = new Parser[U]{
       def apply(sw:Subword) = inner(sw) map f
+      def makeTree = Map(f,inner.makeTree)
     }
 
     def ^^[U](f: T => U) = this.map(f)
@@ -41,6 +67,7 @@ trait ADPParsers {
      */
     def or (that: => Parser[T]) = new Parser[T]{
       def apply(sw: Subword) = inner(sw)++that(sw)
+      def makeTree = Or(inner.makeTree, that.makeTree)
     }
 
     def |(that: => Parser[T]) = or(that)
@@ -52,6 +79,7 @@ trait ADPParsers {
      */
     def aggregate [U] (h: List[T] => List[U]) = new Parser[U]{
       def apply(sw: Subword) = h(inner(sw))
+      def makeTree = Aggregate(h,inner.makeTree)
     }
 
     /*
@@ -71,6 +99,7 @@ trait ADPParsers {
           ) yield((x,y))
         case _ => List[(T,U)]()
       }
+      def makeTree = Concat(inner.makeTree, that.makeTree, (lL,lU,rL,rU))
     }
 
     def ~~~ [U](that: => Parser[U]) = concat(0,0,0,0)(that)
@@ -93,6 +122,7 @@ trait ADPParsers {
      */
     def filter (p: Subword => Boolean) = new Parser[T]{
       def apply(sw: Subword) = if(p(sw)) inner(sw) else List[T]()
+      def makeTree = Filter(p, inner.makeTree)
     }
 
     /*
@@ -110,6 +140,23 @@ trait ADPParsers {
         case (i, j) if(i <= j) => map.getOrElseUpdate(sw, inner(sw))
         case _ => List()
       }
+
+      def makeTree = inner.makeTree
+    }
+
+    /**
+     * named parser. If the parser has a name its tree will be
+     * made only once
+     */
+    def named(name: String) = new Parser[T]{
+      def apply(sw: Subword) = inner.apply(sw)
+      def makeTree = store.get(name) match {
+        case None =>
+          store += name -> Production(name)
+          inner.makeTree
+        //WATCHOUT for possible unsafe type casting!!
+        case Some(p) => p.asInstanceOf[PTree[T]]
+      }
     }
   }
 }
@@ -117,11 +164,14 @@ trait ADPParsers {
 trait LexicalParsers extends ADPParsers {
   type Input = String
 
+  case class CharT() extends Terminal[Char]
+
   def char = new Parser[Char]{
     def apply(sw:Subword) = sw match {
       case (i, j) if(j == i+1) => List(input(i))
       case _ => List()
     }
+    def makeTree = CharT()
   }
 
   def charf(f: Char => Boolean) = char filter {
@@ -137,6 +187,27 @@ trait LexicalParsers extends ADPParsers {
     case(i,j) if(i+1 == j) => input(i).isDigit
     case _ => false
   }
+}
+
+trait Gen extends ADPParsers {
+
+  def gen[T](t: PTree[T]): String = t match {
+    case Production(name) => name+"[i,j]"
+    //case CharT() => "char"
+    case Or(l,r) => gen(l) + " ++ " + gen(r)
+    case Map(f, Concat(l,r, (lL, lU, rL, rU))) =>
+      val lgen = gen(l)
+      val rgen = gen(r)
+      lgen+ "k]" + " + " + "[k" + rgen // to replace with gen of f
+    case Map(f, t) =>
+      gen(t)
+    case Aggregate(h,t) =>
+      "min(" + gen(t) +")"
+
+    case _ => "no gen yet!"
+  }
+
+  def gen[T](p: Parser[T]): String = gen(p.makeTree)
 }
 
 /*** Example ***/
