@@ -7,3 +7,20 @@ http://code.google.com/p/cudpp/
 13 dwarfs:
 http://developer.amd.com/afds/assets/presentations/2155_final.pdf
 
+
+http://tutorials.jenkov.com/java-reflection/fields.html
+http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
+
+XXX: use TypeClass to put a predicate on types
+--------------------------------------------
+
+def fun[T: CanTranslateToC](...)
+def fun[T](implicit ev:CanTranslateToC[T])
+
+class CanTranslateToC[T] {
+  def translate:String
+}
+
+implicit def canTranslateInt = new CanTranslateToC[Int] = {
+  def translate = "Int"
+}

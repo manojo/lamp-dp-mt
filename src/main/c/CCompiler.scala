@@ -4,6 +4,7 @@ import scala.tools.nsc._
 import scala.tools.nsc.reporters._
 
 trait ScalaCompiler {
+  val outPath:String
   var compiler: Global = _
   var reporter: ConsoleReporter = _
   def setupCompiler = {
@@ -23,18 +24,14 @@ trait ScalaCompiler {
     compiler = new Global(settings, reporter)
   }
 
-  def compile[T](className:String,source:String)(implicit mT: Manifest[T]): T = {
+  def compile[T](className:String,source:String)(implicit mT: scala.reflect.ClassTag[T]): T = {
     if (this.compiler eq null) setupCompiler
     val compiler = this.compiler
     val run = new compiler.Run
-    // XXX: this fails if VirtualDirectory. Is this a bug to report ?
-    //val fileSystem = new scala.tools.nsc.io.VirtualDirectory("<vfs>", None)
-    val fileSystem = new scala.tools.nsc.io.PlainFile("bin")
-
+    val fileSystem = new scala.tools.nsc.io.PlainFile(outPath) // this fails with VirtualDirectory("<vfs>", None). Bug?
     compiler.settings.outputDirs.setSingleOutput(fileSystem)
-    run.compileSources(List(new util.BatchSourceFile("<stdin>", source)))
+    run.compileSources(List(new scala.reflect.internal.util.BatchSourceFile("<stdin>", source)))
     reporter.printSummary(); reporter.reset
-
     val parent = this.getClass.getClassLoader
     val loader = new scala.tools.nsc.interpreter.AbstractFileClassLoader(fileSystem, parent)
     val cls: Class[_] = loader.loadClass(className)
@@ -115,18 +112,18 @@ abstract class DP extends CCompiler with ScalaCompiler {
   private val type_c = Map(("boolean","bool"),("byte","unsigned char"),("char","char"),("short","short"),("int","int"),("long","long"),("float","float"),("double","double"))
   private def up1(s:String) = s.substring(0,1).toUpperCase+s.substring(1)
 
-// Typeclass to put a predicate
-  def fun[TI:Manifest,TC:Manifest](body:String) : (Array[TI],Array[TI]) => (TC,Array[(Int,Int)]) = {
+  def fun[TI:scala.reflect.ClassTag,TC:scala.reflect.ClassTag](body:String) : (Array[TI],Array[TI]) => (TC,Array[(Int,Int)]) = {
     type Input = Array[TI];
     type Backtrack = Array[(Int,Int)];
     type Fun = (Input,Input) => (TC,Backtrack)
 
     // Types helpers
-    val tc = manifest[TC].erasure.toString
-    val ti:(String,String) = manifest[TI].erasure match {
+    val tc = scala.reflect.classTag[TC].runtimeClass.toString
+    val ti:(String,String) = scala.reflect.classTag[TI].runtimeClass match {
       case cl if (type_jni.contains(cl.toString)) => val cn=cl.toString;
         ("#define TI "+type_c(cn),"  for (i=0;i<size;++i) (*in)[i] = (TI)env->Get"+up1(cn)+"ArrayElement(input, i);\n")
-      case cl => //println(manifest[T].erasure.getConstructors.mkString(", "))
+      case cl =>
+        //println(manifest[T].erasure.getConstructors.mkString(", "))
         val ts = cl.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
         val ms = ts.map{ case(t,n)=> "env->GetMethodID(cls, \""+n+"\", \"()"+type_jni(t)+"\")," }
         var es = ts.zipWithIndex.map{ case((t,n),i) => "e->"+n+" = env->Call"+up1(t)+"Method(elem, ms["+i+"]);" }
@@ -157,12 +154,12 @@ static unsigned inArray(JNIEnv* env, jobjectArray input, TI** in) {
 #ifdef __cplusplus
 extern "C" {
 #endif
-JNIEXPORT jobject JNICALL Java_{className}_foo(JNIEnv *, jobject, jobjectArray, jobjectArray);
+JNIEXPORT jobject JNICALL Java_{className}_apply(JNIEnv *, jobject, jobjectArray, jobjectArray);
 #ifdef __cplusplus
 }
 #endif
 
-JNIEXPORT jobject JNICALL Java_{className}_foo(JNIEnv* env, jobject obj, jobjectArray input1, jobjectArray input2) {
+JNIEXPORT jobject JNICALL Java_{className}_apply(JNIEnv* env, jobject obj, jobjectArray input1, jobjectArray input2) {
   // 1. Initialize
   TI *in1=NULL,*in2=NULL; inArray(env,input1,&in1); inArray(env,input2,&in2);
   g_init(in1,in2);
@@ -207,16 +204,9 @@ JNIEXPORT jobject JNICALL Java_{className}_foo(JNIEnv* env, jobject obj, jobject
       add("h", h_file, map)
       add("c", c_file, map)
       add("cu", body, map)
-      // 3. create a new scala class with a native method as (Input,Input)=>(Cost,BT)
-//      def f = compile[Fun](className,"class "+className+" extends Function2[Array[Any],Array[Any],Any] { @native def apply(in1:Array[Any],in2:Array[Any]):Any; }")
-      def f = compile[Fun](className,"class "+className+""" extends Function2[Array[Any],Array[Any],Any] {
-       override def apply(in1:Array[Any],in2:Array[Any]):Any = foo(in1,in2)
-       @native def foo(in1:Array[Any],in2:Array[Any]):Any
-        }""")
       gen
-
-  println("F= "+f)
-
+      // 3. create a new scala class with a native method as (Input,Input)=>(Cost,BT)
+      def f = compile[Fun](className,"class "+className+" extends Function2[Array[Any],Array[Any],Any] { @native override def apply(in1:Array[Any],in2:Array[Any]):Any }")
       // 4. invoke it
       f(in1,in2)
     }
@@ -231,9 +221,6 @@ object TestCCompiler {
   case class Mat(rows:Int, cols:Int)
 
   def main(args: Array[String]) = {
-    // http://tutorials.jenkov.com/java-reflection/fields.html
-    // http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
-
     // This is an example usage
     val dp_gen = new DP {
       override val outPath = "bin"
@@ -242,14 +229,13 @@ object TestCCompiler {
       override val ccFlags = "-O2 -I/System/Library/Frameworks/JavaVM.framework/Headers"
       override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
     }
-    val f = dp_gen.fun[Mat,Long](
-dp_gen.replace("""
+    val dp = dp_gen.fun[Mat,Long](dp_gen.replace("""
 #include "{file}.h"
 #include "{inc}/common.h"
-#define SH_TRI
 #define M_W {in1Size}LU
 #define M_H {in2Size}LU
 
+#define SH_TRI
 // Matrix multiplication parenthesizing (triangular matrix)
 //   M[i,j]= min {i<=k<j} M[i,k] + M [k+1,j] + r_i * c_k * c_j
 
@@ -260,18 +246,16 @@ dp_gen.replace("""
 
 #include "{inc}/small.h" 
 #include "{inc}/small_gpu.h"
-""",Map(("inc","../include"))
-)
+""",Map(("inc","../include")))
     )
 
-    val (score,bt) = f(Array(Mat(1,3),Mat(3,5),Mat(5,9),Mat(9,2),Mat(2,4)) ,null)
+    val (score,bt) = dp(Array(Mat(1,3),Mat(3,5),Mat(5,9),Mat(9,2),Mat(2,4)) ,null)
     println("Score = "+score)
     println("Backtrack =\n"+bt.map{case (i,j)=>"("+i+","+j+")"}.mkString(" "))
 
-    val (score2,bt2) = f(Array(Mat(1,3),Mat(3,1)) ,null)
+    val (score2,bt2) = dp(Array(Mat(1,3),Mat(3,1)) ,null)
     println("Score = "+score2)
     println("Backtrack =\n"+bt2.map{case (i,j)=>"("+i+","+j+")"}.mkString(" "))
-
 
     println("done");
   }

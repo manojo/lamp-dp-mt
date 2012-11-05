@@ -10,7 +10,7 @@ fi
 if [ "$1" = "cc" ]; then
 	# Scala CUDA/C compiler
 	mkdir -p bin
-	fsc -d bin CCompiler.scala && scala -cp bin TestCCompiler
+	fsc -deprecation -d bin CCompiler.scala && scala -cp bin TestCCompiler
 	rm -r bin/*.class bin/*.o
 
 elif [ "$1" = "cpp" ]; then
