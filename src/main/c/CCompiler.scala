@@ -1,6 +1,5 @@
 import java.io._
 
-/*
 import scala.tools.nsc._
 import scala.tools.nsc.reporters._
 
@@ -24,13 +23,16 @@ trait ScalaCompiler {
     compiler = new Global(settings, reporter)
   }
 
-  def compile[T](className:String,content:String)(implicit mT: Manifest[T]): T = {
+  def compile[T](className:String,source:String)(implicit mT: Manifest[T]): T = {
     if (this.compiler eq null) setupCompiler
     val compiler = this.compiler
     val run = new compiler.Run
-    val fileSystem = new scala.tools.nsc.io.VirtualDirectory("<vfs>", None)
+    // XXX: this fails if VirtualDirectory. Is this a bug to report ?
+    //val fileSystem = new scala.tools.nsc.io.VirtualDirectory("<vfs>", None)
+    val fileSystem = new scala.tools.nsc.io.PlainFile("bin")
+
     compiler.settings.outputDirs.setSingleOutput(fileSystem)
-    run.compileSources(List(new util.BatchSourceFile("<stdin>", content)))
+    run.compileSources(List(new util.BatchSourceFile("<stdin>", source)))
     reporter.printSummary(); reporter.reset
 
     val parent = this.getClass.getClassLoader
@@ -39,7 +41,6 @@ trait ScalaCompiler {
     cls.newInstance.asInstanceOf[T]
   }
 }
-*/
 
 trait CCompiler {
   val outPath:String
@@ -108,45 +109,35 @@ trait CCompiler {
   }
 }
 
-abstract class CudaDP[TI:Manifest,TC:Manifest] extends CCompiler {
-  type Input = Array[TI];
-  type Backtrack = Array[(Int,Int)];
-
-  def solve(in1: Input, in2: Input):(TC,Backtrack) = {
-    init(in1,in2); solve; val res=backtrack; free; res
-  }
-
-  // Setup the input data
-  @native private def init(in1: Input, in2: Input) {}
-  // Compute the matrix content
-  @native private def solve {} // fake implementation to allow private
-  // Get score and backtrack
-  @native private def backtrack:(TC,Backtrack) = null;
-  // Release structures
-  @native private def free {}
-
-  // Types helpers
+abstract class DP extends CCompiler with ScalaCompiler {
+  private var counter = 0
   private val type_jni = Map(("boolean","Z"),("byte","B"),("char","C"),("short","S"),("int","I"),("long","J"),("float","F"),("double","D"))
   private val type_c = Map(("boolean","bool"),("byte","unsigned char"),("char","char"),("short","short"),("int","int"),("long","long"),("float","float"),("double","double"))
   private def up1(s:String) = s.substring(0,1).toUpperCase+s.substring(1)
 
-  // header and JNI implementation files
-  private val tc = manifest[TC].erasure.toString
-  private val ti:(String,String) = manifest[TI].erasure match {
-    case cl if (type_jni.contains(cl.toString)) => val cn=cl.toString;
-      ("#define TI "+type_c(cn),"  for (i=0;i<size;++i) (*in)[i] = (TI)env->Get"+up1(cn)+"ArrayElement(input, i);\n")
-    case cl => //println(manifest[T].erasure.getConstructors.mkString(", "))
-      val ts = cl.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
-      val ms = ts.map{ case(t,n)=> "env->GetMethodID(cls, \""+n+"\", \"()"+type_jni(t)+"\")," }
-      var es = ts.zipWithIndex.map{ case((t,n),i) => "e->"+n+" = env->Call"+up1(t)+"Method(elem, ms["+i+"]);" }
-      ("typedef struct { "+ts.map{case (t,n)=>type_c(t)+" "+n+";"}.mkString(" ")+" } in_t;\n#define TI in_t",
-       "  jmethodID ms[] = {\n    "+ms.mkString("\n    ")+"\n  };\n\n  for (i=0;i<size;++i) {\n"+
-       "    elem = env->GetObjectArrayElement(input, i);\n    TI* e = &((*in)[i]);\n    "+es.mkString("\n    ")+"\n  }\n")
-  }
-  val h_file = "#ifndef __CudaDP_H__\n#define __CudaDP_H__\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"+
-      (ti._1)+"\n#define TC "+type_c(tc)+"\n#define TB short\nvoid g_init(TI* in0, TI* in1);\nvoid g_free();\n"+
-      "void g_solve();\nTC g_backtrack(unsigned** bt, unsigned* size);\n\n#ifdef __cplusplus\n}\n#endif\n#endif"
-  val c_file = replace("""
+// Typeclass to put a predicate
+  def fun[TI:Manifest,TC:Manifest](body:String) : (Array[TI],Array[TI]) => (TC,Array[(Int,Int)]) = {
+    type Input = Array[TI];
+    type Backtrack = Array[(Int,Int)];
+    type Fun = (Input,Input) => (TC,Backtrack)
+
+    // Types helpers
+    val tc = manifest[TC].erasure.toString
+    val ti:(String,String) = manifest[TI].erasure match {
+      case cl if (type_jni.contains(cl.toString)) => val cn=cl.toString;
+        ("#define TI "+type_c(cn),"  for (i=0;i<size;++i) (*in)[i] = (TI)env->Get"+up1(cn)+"ArrayElement(input, i);\n")
+      case cl => //println(manifest[T].erasure.getConstructors.mkString(", "))
+        val ts = cl.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
+        val ms = ts.map{ case(t,n)=> "env->GetMethodID(cls, \""+n+"\", \"()"+type_jni(t)+"\")," }
+        var es = ts.zipWithIndex.map{ case((t,n),i) => "e->"+n+" = env->Call"+up1(t)+"Method(elem, ms["+i+"]);" }
+        ("typedef struct { "+ts.map{case (t,n)=>type_c(t)+" "+n+";"}.mkString(" ")+" } in_t;\n#define TI in_t",
+         "  jmethodID ms[] = {\n    "+ms.mkString("\n    ")+"\n  };\n\n  for (i=0;i<size;++i) {\n"+
+         "    elem = env->GetObjectArrayElement(input, i);\n    TI* e = &((*in)[i]);\n    "+es.mkString("\n    ")+"\n  }\n")
+    }
+    val h_file = "#ifndef __CudaDP_H__\n#define __CudaDP_H__\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"+
+        (ti._1)+"\n#define TC "+type_c(tc)+"\n#define TB short\nvoid g_init(TI* in0, TI* in1);\nvoid g_free();\n"+
+        "void g_solve();\nTC g_backtrack(unsigned** bt, unsigned* size);\n\n#ifdef __cplusplus\n}\n#endif\n#endif"
+    val c_file = replace("""
 #include <jni.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -155,13 +146,10 @@ abstract class CudaDP[TI:Manifest,TC:Manifest] extends CCompiler {
 static unsigned inArray(JNIEnv* env, jobjectArray input, TI** in) {
   // Allocate memory
   if (*in) free(*in); *in=NULL; if (input==NULL) return 0;
-  jsize i,size = env->GetArrayLength(input);
+  jsize i,size = env->GetArrayLength(input); if (size==0) return 0;
   *in=(TI*)malloc(size*sizeof(TI)); if (!*in) { fprintf(stderr,"Not enough memory.\n"); exit(1); }
-  if (size==0) return 0;
-
   jobject elem = env->GetObjectArrayElement(input, 0);
   jclass cls = env->GetObjectClass(elem);
-  
   {TI_Load}
   return size;
 }
@@ -169,23 +157,21 @@ static unsigned inArray(JNIEnv* env, jobjectArray input, TI** in) {
 #ifdef __cplusplus
 extern "C" {
 #endif
-JNIEXPORT void JNICALL Java_CudaDP_init(JNIEnv *, jobject, jobjectArray, jobjectArray);
-JNIEXPORT void JNICALL Java_CudaDP_solve(JNIEnv *, jobject) { g_solve(); }
-JNIEXPORT jobject JNICALL Java_CudaDP_backtrack(JNIEnv *, jobject);
-JNIEXPORT void JNICALL Java_CudaDP_free(JNIEnv *, jobject) { g_free(); }
+JNIEXPORT jobject JNICALL Java_{className}_foo(JNIEnv *, jobject, jobjectArray, jobjectArray);
 #ifdef __cplusplus
 }
 #endif
 
-JNIEXPORT void JNICALL Java_CudaDP_init(JNIEnv* env, jobject obj, jobjectArray input1, jobjectArray input2) {
+JNIEXPORT jobject JNICALL Java_{className}_foo(JNIEnv* env, jobject obj, jobjectArray input1, jobjectArray input2) {
+  // 1. Initialize
   TI *in1=NULL,*in2=NULL; inArray(env,input1,&in1); inArray(env,input2,&in2);
-  g_init(in1,in2); free(in1); free(in2);
-}
-
-JNIEXPORT jobject JNICALL Java_CudaDP_backtrack(JNIEnv *env, jobject obj) {
+  g_init(in1,in2);
+  free(in1); free(in2);
+  // 2. Solve
+  g_solve();
+  // 3. Backtrack
   unsigned *bt,size,i;
   TC cost=g_backtrack(&bt,&size);
-
   jclass cls = env->FindClass("scala/Tuple2");
   jmethodID ctr = env->GetMethodID(cls, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   jclass cls_i = env->FindClass("java/lang/Integer");
@@ -201,39 +187,68 @@ JNIEXPORT jobject JNICALL Java_CudaDP_backtrack(JNIEnv *env, jobject obj) {
   }
   free(bt);
   jobject score = env->NewObject(cls_c, ctr_c, cost);
-  return env->NewObject(cls, ctr, score, backtrack);
+  jobject result = env->NewObject(cls, ctr, score, backtrack);
+  // 4. Cleanup
+  g_free();
+  return result;
 }
 """,Map(("TI_Load",ti._2),("TC_Class","java/lang/"+up1(tc)),("TC_Jni",type_jni(tc))))
-}
 
-abstract class CudaDPStr[TC:Manifest] extends CudaDP[Char,TC] {
-  def solve(in1: String, in2: String):(TC,Backtrack) = solve(in1.toArray, if(in2!=null) in2.toArray else null)
+    def applier(in1:Input,in2:Input):(TC,Backtrack) = {
+      // 1. get a new name space for the problem defined ad (body,in1,in2)
+      counter = counter + 1
+      val className = "DPImpl"+counter
+      // 2. generate CUDA / JNI code for in that className, (2) content and (3) input
+      val map = Map(
+        ("className",className),
+        ("in1Size",""+in1.size),
+        ("in2Size",""+(if(in2==null)in1 else in2).size)
+      )
+      add("h", h_file, map)
+      add("c", c_file, map)
+      add("cu", body, map)
+      // 3. create a new scala class with a native method as (Input,Input)=>(Cost,BT)
+//      def f = compile[Fun](className,"class "+className+" extends Function2[Array[Any],Array[Any],Any] { @native def apply(in1:Array[Any],in2:Array[Any]):Any; }")
+      def f = compile[Fun](className,"class "+className+""" extends Function2[Array[Any],Array[Any],Any] {
+       override def apply(in1:Array[Any],in2:Array[Any]):Any = foo(in1,in2)
+       @native def foo(in1:Array[Any],in2:Array[Any]):Any
+        }""")
+      gen
+
+  println("F= "+f)
+
+      // 4. invoke it
+      f(in1,in2)
+    }
+    applier
+  }
 }
 
 /** ------------------------ Example usage ------------------------ **/
 
 object TestCCompiler {
-
   // This is the input of our alorithm
   case class Mat(rows:Int, cols:Int)
 
-  // This is our algorithm
-  val dp = new CudaDP[Mat,Long] with CCompiler {
-    override val outPath = "bin"
-    override val cudaPath = "/usr/local/cuda"
-    override val cudaFlags = "-m64 -arch=sm_30"
-    override val ccFlags = "-O2 -I/System/Library/Frameworks/JavaVM.framework/Headers"
-    override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
+  def main(args: Array[String]) = {
+    // http://tutorials.jenkov.com/java-reflection/fields.html
+    // http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
 
-    override def solve(in1:Input,in2:Input) = {
-      add("h",h_file)
-      add("c",c_file)
-      add("cu","""
+    // This is an example usage
+    val dp_gen = new DP {
+      override val outPath = "bin"
+      override val cudaPath = "/usr/local/cuda"
+      override val cudaFlags = "-m64 -arch=sm_30"
+      override val ccFlags = "-O2 -I/System/Library/Frameworks/JavaVM.framework/Headers"
+      override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
+    }
+    val f = dp_gen.fun[Mat,Long](
+dp_gen.replace("""
 #include "{file}.h"
 #include "{inc}/common.h"
 #define SH_TRI
-#define M_W {M_W}LU
-#define M_H {M_H}LU
+#define M_W {in1Size}LU
+#define M_H {in2Size}LU
 
 // Matrix multiplication parenthesizing (triangular matrix)
 //   M[i,j]= min {i<=k<j} M[i,k] + M [k+1,j] + r_i * c_k * c_j
@@ -245,29 +260,17 @@ object TestCCompiler {
 
 #include "{inc}/small.h" 
 #include "{inc}/small_gpu.h"
-""",Map(("inc","../include"),("M_H",""+in1.size),("M_W",""+(if(in2==null)in1 else in2).size)))
+""",Map(("inc","../include"))
+)
+    )
 
-      gen // XXX: can be called only once for the moment
-      super.solve(in1,in2)
-    }
-  }
-
-  def main(args: Array[String]) = {
-    // http://tutorials.jenkov.com/java-reflection/fields.html
-    // http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
-
-    // This is an example usage
-    val (score,bt) = dp.solve(Array(Mat(1,3),Mat(3,5),Mat(5,9),Mat(9,2),Mat(2,4)) ,null)
-
+    val (score,bt) = f(Array(Mat(1,3),Mat(3,5),Mat(5,9),Mat(9,2),Mat(2,4)) ,null)
     println("Score = "+score)
     println("Backtrack =\n"+bt.map{case (i,j)=>"("+i+","+j+")"}.mkString(" "))
 
-    // XXX: error, there is no recompilation/reload of the libraries
-    /*
-    val (score2,bt2) = dp.solve(Array(Mat(1,3),Mat(3,1)) ,null)
+    val (score2,bt2) = f(Array(Mat(1,3),Mat(3,1)) ,null)
     println("Score = "+score2)
     println("Backtrack =\n"+bt2.map{case (i,j)=>"("+i+","+j+")"}.mkString(" "))
-    */
 
 
     println("done");
