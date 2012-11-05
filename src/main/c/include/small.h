@@ -21,8 +21,15 @@
 #if !defined(SH_RECT)&&!defined(SH_TRI)&&!defined(SH_PARA)
 #error "Matrix must have a shape"
 #endif
-#if !defined(M_H) || !defined(M_W) || !defined(B_H) || !defined(B_W)
-#error "Matrix or block dimensions missing"
+#if !defined(M_H) || !defined(M_W)
+#error "Matrix dimensions undefined"
+#endif
+
+#if !defined(B_H) || !defined(B_W)
+#undef B_H
+#undef B_W
+#define B_W 32LU
+#define B_H 32LU
 #endif
 
 // -----------------------------------------------------------------------------
