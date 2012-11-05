@@ -11,7 +11,7 @@ trait Signature {
   def h(l: List[Answer]) : List[Answer]
 }
 
-trait ADPParsers { this: Base =>
+trait ADPParsers extends Base {
   type Subword = (Int, Int)
   type Input // = String
 
@@ -71,7 +71,7 @@ trait ADPParsers { this: Base =>
   def parser_tabulate[T:Manifest](p:Rep[Parser[T]]) : Rep[Parser[T]]
 }
 
-trait LexicalParsers extends ADPParsers { this: Base =>
+trait LexicalParsers extends ADPParsers {
   override type Input = String
   def char: Rep[Parser[Char]]
   def charf(f: Char => Boolean): Rep[Parser[Char]]
@@ -133,7 +133,7 @@ trait ScalaGenADPParsers extends ScalaGenBase {
 
     case ADP_CCat(inner,(lL,lU,rL,rU),that) =>
       // XXX: treat specific cases at compile time for indices
-      emitValDef(sym, """new Parser[T,U] { 
+      emitValDef(sym, """new Parser[T,U] {
         def apply(sw: Subword) = sw match {
           case (i,j) if i<j =>
             val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
@@ -150,7 +150,7 @@ trait ScalaGenADPParsers extends ScalaGenBase {
     case ADP_Filter(p, pred) =>
       emitValDef(sym, "new Parser[T] { def apply(sw: Subword) = if(pred(sw)) "+quote(p)+"(sw) else List[T]() }")
     case ADP_Tab(p) =>
-      emitValDef(sym, """new Parser[T] { 
+      emitValDef(sym, """new Parser[T] {
         //for now, the tabulation store is kept inside the parser
         //maybe to be changed and made global at some point of time
         val map = new scala.collection.mutable.HashMap[Subword, List[T]]
@@ -158,7 +158,7 @@ trait ScalaGenADPParsers extends ScalaGenBase {
           case (i, j) if(i <= j) => map.getOrElseUpdate(sw, """+quote(p)+"""(sw))
           case _ => List()
         }}""")
-  
+
     case _ => super.emitNode(sym, node)
   }
 }
@@ -168,7 +168,7 @@ trait ScalaGenLexicalParsers extends ScalaGenADPParsers {
   import IR._
 
   override def emitNode(sym: Sym[Any], node: Def[Any]): Unit = node match {
-    case Lex_Char => 
+    case Lex_Char =>
       emitValDef(sym, """new Parser[Char] {
         def apply(sw:Subword) = sw match {
           case (i, j) if(j == i+1) => List(input(i))
@@ -177,7 +177,7 @@ trait ScalaGenLexicalParsers extends ScalaGenADPParsers {
     case Lex_Charf(f) => emitValDef(sym, """char filter {
           case(i,j) if(i+1 == j) => f(input(i))
           case _ => false
-        }""") 
+        }""")
     case Lex_DigitParser => emitValDef(sym, "(char filter isDigit) ^^ readDigit")
     case _ => super.emitNode(sym, node)
   }
@@ -185,7 +185,7 @@ trait ScalaGenLexicalParsers extends ScalaGenADPParsers {
 
 // -----------------------------------------------------------------------------
 // Interpreters
-trait Interpreter extends ADPParsers { this: Base =>
+trait Interpreter extends ADPParsers {
   override type Rep[+A] = A
   override def unit[A : Manifest](a: A) = a
 
@@ -228,7 +228,7 @@ trait Interpreter extends ADPParsers { this: Base =>
   }
 }
 
-trait LexicalInterpreter extends Interpreter with LexicalParsers { this: Base =>
+trait LexicalInterpreter extends Interpreter with LexicalParsers {
   def char = new Parser[Char] {
     def apply(sw:Subword) = sw match {
       case (i, j) if(j == i+1) => List(input(i))
@@ -259,7 +259,7 @@ trait BracketsAlgebra extends BracketsSignature {
   def h(l : List[Int]) = if(l.isEmpty) List() else List(l.max)
 }
 
-trait Prog extends LexicalParsers with BracketsAlgebra { this: Base =>
+trait Prog extends LexicalParsers with BracketsAlgebra {
   def input = "(((3)))(2)"
   def bracketize(c:Char,s:String) = "("+c+","+s+")"
 
@@ -278,14 +278,13 @@ trait Prog extends LexicalParsers with BracketsAlgebra { this: Base =>
   ) tabulate
 */
 
-  def f0(x:(Char,(Int,Char))) = x._2._1
-  val p0 = ((char -~~ myParser ~~- char) filter (areBrackets _)) ^^ f0
-
-  def f1(x:(Int,Int)) = x._1+x._2
-  val p1 = myParser +~+ myParser ^^ f1
+  //def f0(x:(Char,(Int,Char))) = x._2._1
+  //def f1(x:(Int,Int)) = x._1+x._2
 
   val myParser: Rep[Parser[Int]] = (
-    digitParser | p0 // | p1 // crashes LMS
+    digitParser |
+    ((char -~~ myParser ~~- char) filter (areBrackets _)) ^^ {x: (Char,(Int,Char)) => x._2._1} |
+    myParser +~+ myParser ^^ {x: (Int,Int) => x._1 + x._2}
   ) tabulate
 }
 
@@ -295,7 +294,7 @@ object ADPTest extends App {
     override val codegen = new ScalaGenEffect with ScalaGenADPParsers with ScalaGenLexicalParsers { val IR: self.type=self }
     //codegen.emitSource(myParser,new java.io.PrintWriter(System.out))
   }
-*/  
-  val interpretedProg = new Prog with Base with Interpreter with LexicalInterpreter
+*/
+  val interpretedProg = new Prog with LexicalInterpreter
   println(interpretedProg.myParser((0,interpretedProg.input.length)))
 }

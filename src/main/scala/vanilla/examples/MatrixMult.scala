@@ -70,7 +70,7 @@ trait PrettyMatrixAlgebra extends MatrixSig{
   }
 }
 
-trait MatrixGrammar extends ADPParsers with PrettyMatrixAlgebra{
+trait MatrixGrammar extends Gen with MatrixAlgebra{
 
   type Input = Array[(Int,Int)]
 
@@ -83,13 +83,16 @@ trait MatrixGrammar extends ADPParsers with PrettyMatrixAlgebra{
     def makeTree = Production("aMatrix")
   }
 
-  def matrixGrammar: Parser[((Int,Int,Int),String)] = ((
+  def matrixGrammar: Parser[(Int,Int,Int)] = ((
     aMatrix ^^ single
   | (matrixGrammar +~+ matrixGrammar) ^^ {case (a1,a2) => mult(a1, a2)}
-  ) aggregate h).tabulate
+  ) aggregate h).tabulate.named("M")
+
+
 }
 
 object MatrixMult extends MatrixGrammar with App{
   def input = List((10,100),(100,5),(5,50)).toArray
-  println(matrixGrammar(0,input.length))
+  //println(matrixGrammar(0,input.length))
+  println(gen(matrixGrammar))
 }

@@ -189,6 +189,27 @@ trait LexicalParsers extends ADPParsers {
   }
 }
 
+trait Gen extends ADPParsers {
+
+  def gen[T](t: PTree[T]): String = t match {
+    case Production(name) => name+"[i,j]"
+    //case CharT() => "char"
+    case Or(l,r) => gen(l) + " ++ " + gen(r)
+    case Map(f, Concat(l,r, (lL, lU, rL, rU))) =>
+      val lgen = gen(l)
+      val rgen = gen(r)
+      lgen+ "k]" + " + " + "[k" + rgen // to replace with gen of f
+    case Map(f, t) =>
+      gen(t)
+    case Aggregate(h,t) =>
+      "min(" + gen(t) +")"
+
+    case _ => "no gen yet!"
+  }
+
+  def gen[T](p: Parser[T]): String = gen(p.makeTree)
+}
+
 /*** Example ***/
 
 trait BracketsSignature extends Signature{
