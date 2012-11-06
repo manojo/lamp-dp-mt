@@ -15,18 +15,20 @@ trait ADPParsers { this:Signature =>
   def input: Input
 
   // Tree structure for recurrences generation
-  abstract class PTree
-  case class PTerminal[T](t:T) extends PTree { override def toString = t.toString }
-  case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree { override def toString = "Best("+p+")"  }
-  case class POr(l: PTree, r: PTree) extends PTree { override def toString = l +" ++ "+r }
-  case class PMap[T,U](f: T => U, p: PTree) extends PTree { override def toString = "Map("+p+")"  }
-  case class PFilter(f: Subword => Boolean, p: PTree) extends PTree { override def toString = "Filter("+p+")"  }
-  case class PRule(name:String) extends PTree { override def toString=name }
+  abstract class PTree { def mk(i:String,j:String,k:Char):String = toString }
+  case class PTerminal[T](t:T) extends PTree { override def mk(i:String,j:String,k:Char) = t.toString }
+  case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = "Best("+p.mk(i,j,k)+")" }
+  case class POr(l: PTree, r: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = l.mk(i,j,k) +" ++ "+r.mk(i,j,k) }
+  case class PMap[T,U](f: T => U, p: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = "Map("+p.mk(i,j,k)+")"  }
+  case class PFilter(f: Subword => Boolean, p: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = "Filter("+p.mk(i,j,k)+")"  }
+  case class PRule(name:String) extends PTree { override def mk(i:String,j:String,k:Char) = name+"["+i+","+j+"]" }
   case class PConcat(l: PTree, r: PTree, indices:(Int,Int,Int,Int)) extends PTree {
-    override def toString = indices match {
-      case (1,1,0,0) => l + " -~~ "+r
-      case (0,0,1,1) => l + " ~~- "+r
-      case _ => l+" ~"+indices+"~ "+r
+    override def mk(i:String,j:String,k:Char) = indices match {
+      case (1,1,0,0) => l.mk(i,i+"+1",k) + " -~~ "+r.mk(i+"+1",j,k)
+      case (0,0,1,1) => l.mk(i,j+"-1",k) + " ~~- "+r.mk(j+"-1",j,k)
+      case (0,0,0,0) => val n=(k+1).toChar; "for "+i+"<="+k+"<="+j+" { "+ l.mk(i,""+k,n) + " ~~~ "+r.mk(""+k,j,n) +" } "
+      // XXX: provide more rules here      
+      case _ => "<"+ l.mk(i+"?",j+"?",k)+" ~"+indices+"~ "+r.mk(i+"?",j+"?",k) +">"
     }
   }
 
@@ -49,13 +51,11 @@ trait ADPParsers { this:Signature =>
   def gen:String = {
     println("------------ rules ------------")
     for((n,p) <- rules) {
-      println( n+"[i,j] => "+p.asInstanceOf[Parser[Any]].makeTree )
+      println( n+"[i,j] => "+p.asInstanceOf[Parser[Any]].makeTree.mk("i","j",'k') )
     }
     println("------------- end -------------")
     "Hash maps: "+tabs.size
   }
-
-
 
   abstract class Parser[T] extends (Subword => List[T]) { inner =>
     def apply(sw: Subword): List[T]
@@ -125,41 +125,7 @@ trait ADPParsers { this:Signature =>
       def apply(sw: Subword) = if(p(sw)) inner(sw) else List[T]()
       def tree = PFilter(p, inner.tree)
     }
-
-    /**
-     * named parser. If the parser has a name its tree will be
-     * made only once
-     */
-    /*
-    def named(name: String) = new Parser[T]{
-      def apply(sw: Subword) = inner.apply(sw)
-      def makeTree = store.get(name) match {
-        case None =>
-          store += name -> Production(name)
-          inner.makeTree
-        //WATCHOUT for possible unsafe type casting!!
-        case Some(p) => p.asInstanceOf[PTree[T]]
-      }
-    }
-    def gen[T](p: Parser[T]): String = gen(p.makeTree)
-    def gen[T](t: PTree[T]): String = t match {
-      case Production(name) => name+"[i,j]"
-      //case CharT() => "char"
-      case Or(l,r) => gen(l) + " ++ " + gen(r)
-      case Map(f, Concat(l,r, (lL, lU, rL, rU))) =>
-        val lgen = gen(l)
-        val rgen = gen(r)
-        lgen+ "k]" + " + " + "[k" + rgen // to replace with gen of f
-      case Map(f, t) =>
-        gen(t)
-      case Aggregate(h,t) =>
-        "min(" + gen(t) +")"
-
-      case _ => "no gen yet!"
-    }
-    */
   }
-  // val store = new scala.collection.mutable.HashMap[String,PTree[Any]]
 }
 
 trait LexicalParsers extends ADPParsers { this:Signature =>
