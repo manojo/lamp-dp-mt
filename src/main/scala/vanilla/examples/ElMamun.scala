@@ -56,5 +56,5 @@ trait BillGrammar extends LexicalParsers with SellerAlgebra{
 object ElMamun extends BillGrammar with App{
   def input = "1+2*3*4+5".toArray
   println(billGrammar(0,input.length))
-  println("Hash maps: "+tabs.size)
+  println(gen)
 }

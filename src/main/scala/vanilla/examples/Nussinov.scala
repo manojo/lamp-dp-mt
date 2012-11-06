@@ -99,5 +99,5 @@ trait NussinovGrammar extends PrettyPairingAlgebra with LexicalParsers {
 object Nussinov extends NussinovGrammar with App {
   def input = "guaugu".toArray
   println(s(0,input.length))
-  println("Hash maps: "+tabs.size)
+  println(gen)
 }

@@ -33,20 +33,34 @@ trait ADPParsers { this:Signature =>
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
   val tabs = new HashMap[String,HashMap[Subword,List[Answer]]]
-
-  def tabulate(name:String, p:Parser[Answer]) = new Parser[Answer] {
+  val rules = new HashMap[String,Parser[Answer]]
+  def tabulate(name:String, inner:Parser[Answer]) = new Parser[Answer] {
     val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[Answer]])
+    rules += ((name,this))
+
     def apply(sw: Subword) = sw match {
-      case (i,j) if(i <= j) => map.getOrElseUpdate(sw, p(sw))
+      case (i,j) if(i <= j) => map.getOrElseUpdate(sw, inner(sw))
       case _ => List()
     }
-    def tree = p.tree
+    def tree = PRule(name)
+    override def makeTree = inner.tree
   }
+
+  def gen:String = {
+    println("------------ rules ------------")
+    for((n,p) <- rules) {
+      println( n+"[i,j] => "+p.asInstanceOf[Parser[Any]].makeTree )
+    }
+    println("------------- end -------------")
+    "Hash maps: "+tabs.size
+  }
+
 
 
   abstract class Parser[T] extends (Subword => List[T]) { inner =>
     def apply(sw: Subword): List[T]
     def tree : PTree
+    def makeTree = tree
 
     // Mapper. Equivalent of ADP's <<< operator.
     // To separate left and right hand side of a grammar rule
@@ -206,6 +220,6 @@ object HelloADP extends LexicalParsers with BracketsAlgebra {
 
   def main(args: Array[String]) = {
     println(myParser(0,input.length))
-    println("Hash maps: "+tabs.size)
+    println(gen)
   }
 }

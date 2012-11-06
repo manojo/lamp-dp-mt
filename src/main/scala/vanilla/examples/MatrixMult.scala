@@ -89,5 +89,5 @@ trait MatrixGrammar extends ADPParsers with MatrixAlgebra {
 object MatrixMult extends MatrixGrammar with App{
   def input = List((10,100),(100,5),(5,50)).toArray
   println(matrixGrammar(0,input.length))
-  println("Hash maps: "+tabs.size)
+  println(gen)
 }
