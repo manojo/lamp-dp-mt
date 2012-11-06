@@ -48,7 +48,7 @@ trait PrettyPrintAlgebra extends MatrixSig{
 /*
  * combining two algebrae: done manually for now
  */
-trait PrettyMatrixAlgebra extends MatrixSig{
+trait PrettyMatrixAlgebra extends MatrixSig {
   type Answer = ((Int,Int,Int), String)
   type Alphabet = (Int,Int)
 
@@ -70,29 +70,24 @@ trait PrettyMatrixAlgebra extends MatrixSig{
   }
 }
 
-trait MatrixGrammar extends Gen with MatrixAlgebra{
-
-  type Input = Array[(Int,Int)]
-
+trait MatrixGrammar extends ADPParsers with MatrixAlgebra {
   def aMatrix = new Parser[(Int,Int)]{
     def apply(sw: Subword) = sw match {
       case (i,j) if(i+1 == j) => List(input(i))
       case _ => List()
     }
 
-    def makeTree = Production("aMatrix")
+    def tree = PTerminal("aMatrix")
   }
 
-  def matrixGrammar: Parser[(Int,Int,Int)] = ((
+  def matrixGrammar: Parser[(Int,Int,Int)] = tabulate("M",(
     aMatrix ^^ single
   | (matrixGrammar +~+ matrixGrammar) ^^ {case (a1,a2) => mult(a1, a2)}
-  ) aggregate h).tabulate.named("M")
-
-
+  ) aggregate h)
 }
 
 object MatrixMult extends MatrixGrammar with App{
   def input = List((10,100),(100,5),(5,50)).toArray
-  //println(matrixGrammar(0,input.length))
-  println(gen(matrixGrammar))
+  println(matrixGrammar(0,input.length))
+  println("Hash maps: "+tabs.size)
 }
