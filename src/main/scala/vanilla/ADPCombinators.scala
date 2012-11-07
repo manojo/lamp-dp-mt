@@ -15,20 +15,45 @@ trait ADPParsers { this:Signature =>
   def input: Input
 
   // Tree structure for recurrences generation
-  abstract class PTree { def mk(i:String,j:String,k:Char):String = toString }
-  case class PTerminal[T](t:T) extends PTree { override def mk(i:String,j:String,k:Char) = t.toString }
-  case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = "Best("+p.mk(i,j,k)+")" }
-  case class POr(l: PTree, r: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = l.mk(i,j,k) +" ++ "+r.mk(i,j,k) }
-  case class PMap[T,U](f: T => U, p: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = "Map("+p.mk(i,j,k)+")"  }
-  case class PFilter(f: Subword => Boolean, p: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = "Filter("+p.mk(i,j,k)+")"  }
-  case class PRule(name:String) extends PTree { override def mk(i:String,j:String,k:Char) = name+"["+i+","+j+"]" }
+  abstract class PTree { def mk(i:String,j:String,n:Char):String = toString }
+  case class PTerminal[T](t:T) extends PTree { override def mk(i:String,j:String,n:Char) = t.toString }
+  case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree { override def mk(i:String,j:String,n:Char) = "Best("+p.mk(i,j,n)+")" }
+  case class POr(l: PTree, r: PTree) extends PTree { override def mk(i:String,j:String,n:Char) = l.mk(i,j,n) +" ++ "+r.mk(i,j,n) }
+  case class PMap[T,U](f: T => U, p: PTree) extends PTree { override def mk(i:String,j:String,n:Char) = "Map("+p.mk(i,j,n)+")"  }
+  case class PFilter(f: Subword => Boolean, p: PTree) extends PTree { override def mk(i:String,j:String,n:Char) = "Filter("+p.mk(i,j,n)+")"  }
+  case class PRule(name:String) extends PTree { override def mk(i:String,j:String,n:Char) = name+"["+i+","+j+"]" }
   case class PConcat(l: PTree, r: PTree, indices:(Int,Int,Int,Int)) extends PTree {
-    override def mk(i:String,j:String,k:Char) = indices match {
-      case (1,1,0,0) => l.mk(i,i+"+1",k) + " -~~ "+r.mk(i+"+1",j,k)
-      case (0,0,1,1) => l.mk(i,j+"-1",k) + " ~~- "+r.mk(j+"-1",j,k)
-      case (0,0,0,0) => val n=(k+1).toChar; "for "+i+"<="+k+"<="+j+" { "+ l.mk(i,""+k,n) + " ~~~ "+r.mk(""+k,j,n) +" } "
-      // XXX: provide more rules here      
-      case _ => "<"+ l.mk(i+"?",j+"?",k)+" ~"+indices+"~ "+r.mk(i+"?",j+"?",k) +">"
+    override def mk(i:String,j:String,n:Char) = {
+      def cond1(f:Int, l:Int, u:Int):String = if (l==0 && u==0) null else "if ("+(if(l>0)i+"+"+(f+l)+"<="+j else"")+(if(l>0&&u>0)" && "else"")+(if(u>0)i+"+"+(f+u)+">="+j else"")+")"
+
+      // XXX: extract k and n0 to have one case
+      val (c,b) = indices match {
+        // low=up in at least one side
+        case (iL,iU,0,0) if (iL==iU && iL>0) => var k=i+"+"+iL; (null, l.mk(i,k,n) + " ~ "+r.mk(k,j,n))
+        case (0,0,jL,jU) if (jL==jU && jL>0) => var k=j+"-"+jL; (null, l.mk(i,k,n) + " ~ "+r.mk(k,j,n))
+        case (0,0,0,0) => val n1=(n+1).toChar; var k=""+n; ("for ("+i+"<="+k+"<="+j+")", l.mk(i,k,n1) + " ~~~ "+r.mk(k,j,n1))
+        case (iL,iU,jL,jU) if (iL==iU && jL==jU) => var k=i+"+"+iL; ("if ("+i+"+"+(iL+jL)+"=="+j+")", l.mk(i,k,n) + " ~ "+r.mk(k,j,n))
+        case (iL,iU,jL,jU) if (iL==iU) => var k=i+"+"+iL; (cond1(iL,jL,jU), l.mk(i,k,n) + " ~ "+r.mk(k,j,n))
+        case (iL,iU,jL,jU) if (jL==jU) => var k=j+"-"+jL; (cond1(jL,iL,iU), l.mk(i,k,n) + " ~ "+r.mk(k,j,n))
+
+        // general case
+        // XXX: provide more rules here
+/*
+      val (loop,body) = indices match {
+        // No additional var
+        // Additional var needed
+        case (iL,iU,jL,jU) =>
+          val i0 = indices match { case _ => "I0" }
+          val j0 = indices match { case _ => "J0" }
+          val n=(k+1).toChar; ("for "+i0+"<="+k+"<="+j0, l.mk(i,""+k,n) + " ~~~ "+r.mk(""+k,j,n))
+      }
+    }
+*/
+
+
+        case _ => ("FOR??", "<"+ l.mk(i+"?",j+"?",n)+" ~"+indices+"~ "+r.mk(i+"?",j+"?",n) +">")
+      }
+      if (c==null) b else c+" { "+b+" } "
     }
   }
 
