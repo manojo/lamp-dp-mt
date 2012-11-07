@@ -14,50 +14,77 @@ trait ADPParsers { this:Signature =>
   // Input is a "global" value, used during the whole running time of algorithm
   def input: Input
 
-  // Tree structure for recurrences generation
-  abstract class PTree { def mk(i:String,j:String,k:Char):String = toString }
-  case class PTerminal[T](t:T) extends PTree { override def mk(i:String,j:String,k:Char) = t.toString }
-  case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = "Best("+p.mk(i,j,k)+")" }
-  case class POr(l: PTree, r: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = l.mk(i,j,k) +" ++ "+r.mk(i,j,k) }
-  case class PMap[T,U](f: T => U, p: PTree) extends PTree {
-    override def mk(i:String,j:String,k:Char) = {
-      val (out,body) = mk2(p,i,j,k)
-      if (out==null) body else out+" { "+body+" } "
-    }
-
-    // XXX: we must support recursion
-    // (cond, body)
-    def mk2(p0:PTree, i:String,j:String,k:Char):(String,String) = p0 match {
-      case c@PConcat(l,r,indices) =>
-        c.mk2(i,j,k) match {
-          case (null,k0,kn) => (null, "Map("+l.mk(i,k0,kn)+" ~ "+r.mk(k0,j,kn)+")")
-          case (cond,k0,kn) => (cond, "Map("+l.mk(i,k0,kn)+" ~ "+r.mk(k0,j,kn)+")")
-        }
-      case _ => (null, "Map("+p0.mk(i,j,k)+")")
-    }
+  // A simple variable generator that sequentially issues free variables
+  class FreeVar(v0:Char) {
+    private var v=v0;
+    def get:String = { var r=""+v; v=(v+1).toChar; r }
+    def dup=new FreeVar(v0)
   }
 
-  case class PFilter(f: Subword => Boolean, p: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = "Filter("+p.mk(i,j,k)+")"  }
-  case class PRule(name:String) extends PTree { override def mk(i:String,j:String,k:Char) = name+"["+i+","+j+"]" }
+  // Tree structure for recurrences generation
+  abstract class PTree {
+    // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
+    // XXX: make sure the string is long enough even for fixed cases
+    // XXX: make sure all avriables are unique within the tree => use freevar generator
+    /*
+    idea:
+    1. assign to each node its bounds (i,j)
+    2. collect all the conditions from the tree
+    3. generate the tree content without conditions
+    */
+    def gen(i:String,j:String,g:FreeVar):(List[String],String) = (Nil,toString)
+    def emit(d:(List[String],String)):String = d match { case (cs,b) => cs.map{x=>x+" { "}.mkString("")+b+cs.map{x=>" } "}.mkString("") }
+    def emit:String = emit(gen("i","j",new FreeVar('k')))
+  }
+  case class PTerminal[T](t:T) extends PTree { /*XXX:better f:(String,String) => String*/
+    override def gen(i:String,j:String,g:FreeVar) = (Nil, t.toString) /*XXX: f(i,j) */
+  }
+  case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree {
+    override def gen(i:String,j:String,g:FreeVar) = { val (c,b)=p.gen(i,j,g); (c, "Best("+b+")") }
+  }
+  case class POr(l: PTree, r: PTree) extends PTree {
+    override def gen(i:String,j:String,g:FreeVar) = (Nil, emit(l.gen(i,j,g.dup))+" ++ "+emit(r.gen(i,j,g.dup)))
+  }
+  case class PMap[T,U](f: T => U, p: PTree) extends PTree {
+    override def gen(i:String,j:String,g:FreeVar) = { val (c,b)=p.gen(i,j,g); (c, "Map("+b+")") }
+  }
+  case class PFilter(f: Subword => Boolean, p: PTree) extends PTree {
+    override def gen(i:String,j:String,g:FreeVar) = { val (c,b)=p.gen(i,j,g); (c, "Filter("+b+")") } // XXX: this translates to an if
+  }
+  case class PRule(name:String) extends PTree {
+    override def gen(i:String,j:String,g:FreeVar) = (Nil, name+"["+i+","+j+"]")
+  }
   case class PConcat(l: PTree, r: PTree, indices:(Int,Int,Int,Int)) extends PTree {
-    override def mk(i:String,j:String,k:Char) = {
-      val (out,k0,kn) = mk2(i,j,k)
-      val body = l.mk(i,k0,kn)+" ~ "+r.mk(k0,j,kn)
-      if (out==null) body else out+" { "+body+" } "
+    override def gen(i:String,j:String,g:FreeVar) = {
+      def bf1(f:Int, l:Int, u:Int) = if (l==0 && u==0) null else "if ("+(if(l>0)i+"+"+(f+l)+"<="+j else"")+(if(l>0&&u>0)" && "else"")+(if(u>0)i+"+"+(f+u)+">="+j else"")+")"
+      val (c,k) = indices match {
+        // low=up in at least one side
+        case (0,0,0,0) => val k0=g.get; ("for ("+i+"<="+k0+"<="+j+")", k0)
+        case (iL,iU,0,0) if (iL==iU) => (null, i+"+"+iL)
+        case (0,0,jL,jU) if (jL==jU) => (null, j+"-"+jL)
+
+        case (iL,iU,jL,jU) if (iL==iU && jL==jU) => ("if ("+i+"+"+(iL+jL)+"=="+j+")", i+"+"+iL)
+        case (iL,iU,jL,jU) if (iL==iU) => (bf1(iL,jL,jU), i+"+"+iL)
+        case (iL,iU,jL,jU) if (jL==jU) => (bf1(jL,iL,iU), j+"-"+jL)
+        // most general case
+        case (iL,iU,jL,jU) =>
+          val min_k = if (jU==0) i+"+"+iL else "max("+i+"+"+iL+","+j+"-"+jU+")"
+          val max_k = if (iU==0) j+"-"+jL else "min("+j+"-"+jL+","+i+"+"+iU+")"
+          // we might want to simplify if min_k==i || max_k==j
+          val k0=g.get; ("int min_"+k0+"="+min_k+",max_"+k0+"="+max_k+"; for(min_"+k0+"<="+k0+"<=max_"+k0+")", k0)
+      }
+      val cc = if (c==null) Nil else List(c)
+      val (lc,lb) = l.gen(i,k,g)
+      val (rc,rb) = r.gen(k,j,g)
+      (cc ::: lc ::: rc, lb+" ~ "+rb)
     }
+
+
 
     // (cond, solid_k, next_k)
     def mk2(i:String,j:String,k:Char):(String,String,Char) = {
       def cond1(f:Int, l:Int, u:Int):String = if (l==0 && u==0) null else "if ("+(if(l>0)i+"+"+(f+l)+"<="+j else"")+(if(l>0&&u>0)" && "else"")+(if(u>0)i+"+"+(f+u)+">="+j else"")+")"
       indices match {
-        // XXX: make sure the string is long enough even for fixed cases
-        // XXX: make sure all avriables are unique within the tree => use freevar generator
-/*
-idea:
-1. assign to each node its bounds (i,j)
-2. collect all the conditions from the tree
-3. generate the tree content without conditions
-*/
         // low=up in at least one side
         case (0,0,0,0) => ("for ("+i+"<="+k+"<="+j+")", ""+k, (k+1).toChar)
         case (iL,iU,0,0) if (iL==iU) => (null, i+"+"+iL, k)
@@ -94,7 +121,7 @@ idea:
   def gen:String = {
     println("------------ rules ------------")
     for((n,p) <- rules) {
-      println( n+"[i,j] => "+p.asInstanceOf[Parser[Any]].makeTree.mk("i","j",'k') )
+      println( n+"[i,j] => "+p.asInstanceOf[Parser[Any]].makeTree.emit )
     }
     println("------------- end -------------")
     "Hash maps: "+tabs.size
