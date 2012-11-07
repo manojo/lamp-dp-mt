@@ -23,21 +23,15 @@ trait ADPParsers { this:Signature =>
 
   // Tree structure for recurrences generation
   abstract class PTree {
+    // 1. Assign to each node its bounds (i,j)
+    // 2. Collect all the conditions from the tree and its content body
     // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
-    // XXX: make sure the string is long enough even for fixed cases
-    // XXX: make sure all avriables are unique within the tree => use freevar generator
-    /*
-    idea:
-    1. assign to each node its bounds (i,j)
-    2. collect all the conditions from the tree
-    3. generate the tree content without conditions
-    */
     def gen(i:String,j:String,g:FreeVar):(List[String],String) = (Nil,toString)
     def emit(d:(List[String],String)):String = d match { case (cs,b) => cs.map{x=>x+" { "}.mkString("")+b+cs.map{x=>" } "}.mkString("") }
     def emit:String = emit(gen("i","j",new FreeVar('k')))
   }
-  case class PTerminal[T](t:T) extends PTree { /*XXX:better f:(String,String) => String*/
-    override def gen(i:String,j:String,g:FreeVar) = (Nil, t.toString) /*XXX: f(i,j) */
+  case class PTerminal[T](f:(String,String) => (String,String)) extends PTree { // f must return (condition||null, body)
+    override def gen(i:String,j:String,g:FreeVar) = { var (c,b)=f(i,j); (if(c==null)Nil else List("if ("+c+")"),b) }
   }
   case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree {
     override def gen(i:String,j:String,g:FreeVar) = { val (c,b)=p.gen(i,j,g); (c, "Best("+b+")") }
@@ -79,12 +73,12 @@ trait ADPParsers { this:Signature =>
       (cc ::: lc ::: rc, lb+" ~ "+rb)
     }
 
-
-
     // (cond, solid_k, next_k)
     def mk2(i:String,j:String,k:Char):(String,String,Char) = {
       def cond1(f:Int, l:Int, u:Int):String = if (l==0 && u==0) null else "if ("+(if(l>0)i+"+"+(f+l)+"<="+j else"")+(if(l>0&&u>0)" && "else"")+(if(u>0)i+"+"+(f+u)+">="+j else"")+")"
       indices match {
+        // XXX: make sure the string is long enough even for fixed cases
+
         // low=up in at least one side
         case (0,0,0,0) => ("for ("+i+"<="+k+"<="+j+")", ""+k, (k+1).toChar)
         case (iL,iU,0,0) if (iL==iU) => (null, i+"+"+iL, k)
@@ -206,7 +200,7 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
       case (i, j) if(j == i+1) => List(input(i))
       case _ => List()
     }
-    def tree = new PTerminal("Char")
+    def tree = new PTerminal((i:String,j:String) => (i+"+1=="+j,"Char["+i+"]"))
   }
 
   def charf(f: Char => Boolean) = char filter {
