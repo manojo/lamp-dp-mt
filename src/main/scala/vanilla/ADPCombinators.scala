@@ -50,13 +50,16 @@ trait ADPParsers { this:Signature =>
   }
   case class PConcat(l: PTree, r: PTree, indices:(Int,Int,Int,Int)) extends PTree {
     override def gen(i:String,j:String,g:FreeVar) = {
-      def bf1(f:Int, l:Int, u:Int) = if (l==0 && u==0) null else "if ("+(if(l>0)i+"+"+(f+l)+"<="+j else"")+(if(l>0&&u>0)" && "else"")+(if(u>0)i+"+"+(f+u)+">="+j else"")+")"
+
+      // XXX: optimize for stupid condition verifications, use (char,delta) to encode incides possibly
+
+
+      def bf1(f:Int, l:Int, u:Int) = "if ("+i+"+"+(f+l)+"<="+j+(if(u>0)" && "+i+"+"+(f+u)+">="+j else "")+")"
       val (c,k) = indices match {
         // low=up in at least one side
         case (0,0,0,0) => val k0=g.get; ("for ("+i+"<="+k0+"<="+j+")", k0)
-        case (iL,iU,0,0) if (iL==iU) => (null, i+"+"+iL)
-        case (0,0,jL,jU) if (jL==jU) => (null, j+"-"+jL)
-
+        case (iL,iU,0,0) if (iL==iU) => ("if ("+i+"+"+iL+"<"+j+")", i+"+"+iL)
+        case (0,0,jL,jU) if (jL==jU) => ("if ("+i+"+"+jL+"<"+j+")", j+"-"+jL)
         case (iL,iU,jL,jU) if (iL==iU && jL==jU) => ("if ("+i+"+"+(iL+jL)+"=="+j+")", i+"+"+iL)
         case (iL,iU,jL,jU) if (iL==iU) => (bf1(iL,jL,jU), i+"+"+iL)
         case (iL,iU,jL,jU) if (jL==jU) => (bf1(jL,iL,iU), j+"-"+jL)
@@ -67,32 +70,9 @@ trait ADPParsers { this:Signature =>
           // we might want to simplify if min_k==i || max_k==j
           val k0=g.get; ("int min_"+k0+"="+min_k+",max_"+k0+"="+max_k+"; for(min_"+k0+"<="+k0+"<=max_"+k0+")", k0)
       }
-      val cc = if (c==null) Nil else List(c)
       val (lc,lb) = l.gen(i,k,g)
       val (rc,rb) = r.gen(k,j,g)
-      (cc ::: lc ::: rc, lb+" ~ "+rb)
-    }
-
-    // (cond, solid_k, next_k)
-    def mk2(i:String,j:String,k:Char):(String,String,Char) = {
-      def cond1(f:Int, l:Int, u:Int):String = if (l==0 && u==0) null else "if ("+(if(l>0)i+"+"+(f+l)+"<="+j else"")+(if(l>0&&u>0)" && "else"")+(if(u>0)i+"+"+(f+u)+">="+j else"")+")"
-      indices match {
-        // XXX: make sure the string is long enough even for fixed cases
-
-        // low=up in at least one side
-        case (0,0,0,0) => ("for ("+i+"<="+k+"<="+j+")", ""+k, (k+1).toChar)
-        case (iL,iU,0,0) if (iL==iU) => (null, i+"+"+iL, k)
-        case (0,0,jL,jU) if (jL==jU) => (null, j+"-"+jL, k)
-        case (iL,iU,jL,jU) if (iL==iU && jL==jU) => ("if ("+i+"+"+(iL+jL)+"=="+j+")", i+"+"+iL, k)
-        case (iL,iU,jL,jU) if (iL==iU) => (cond1(iL,jL,jU), i+"+"+iL, k)
-        case (iL,iU,jL,jU) if (jL==jU) => (cond1(jL,iL,iU), j+"-"+jL, k)
-        // most general case
-        case (iL,iU,jL,jU) =>
-          val min_k = if (jU==0) i+"+"+iL else "max("+i+"+"+iL+","+j+"-"+jU+")"
-          val max_k = if (iU==0) j+"-"+jL else "min("+j+"-"+jL+","+i+"+"+iU+")"
-          // we might want to simplify if min_k==i || max_k==j
-          ("int min_"+k+"="+min_k+",max_"+k+"="+max_k+"; for(min_"+k+"<="+k+"<=max_"+k+")", ""+k, (k+1).toChar)
-      }
+      (c :: lc ::: rc, lb+" ~ "+rb)
     }
   }
 
