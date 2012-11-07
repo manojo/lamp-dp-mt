@@ -50,6 +50,14 @@ trait ADPParsers { this:Signature =>
     def mk2(i:String,j:String,k:Char):(String,String,Char) = {
       def cond1(f:Int, l:Int, u:Int):String = if (l==0 && u==0) null else "if ("+(if(l>0)i+"+"+(f+l)+"<="+j else"")+(if(l>0&&u>0)" && "else"")+(if(u>0)i+"+"+(f+u)+">="+j else"")+")"
       indices match {
+        // XXX: make sure the string is long enough even for fixed cases
+        // XXX: make sure all avriables are unique within the tree => use freevar generator
+/*
+idea:
+1. assign to each node its bounds (i,j)
+2. collect all the conditions from the tree
+3. generate the tree content without conditions
+*/
         // low=up in at least one side
         case (0,0,0,0) => ("for ("+i+"<="+k+"<="+j+")", ""+k, (k+1).toChar)
         case (iL,iU,0,0) if (iL==iU) => (null, i+"+"+iL, k)
