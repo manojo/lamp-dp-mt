@@ -15,7 +15,7 @@ trait PairingSig extends Signature {
   def split(l: Answer, r: Answer): Answer
 }
 
-trait PairingAlgebra extends PairingSig{
+trait PairingAlgebra extends PairingSig {
   type Answer = Int
   type Alphabet = Char
 
