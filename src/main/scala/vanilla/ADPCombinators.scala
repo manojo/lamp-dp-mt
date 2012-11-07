@@ -15,45 +15,55 @@ trait ADPParsers { this:Signature =>
   def input: Input
 
   // Tree structure for recurrences generation
-  abstract class PTree { def mk(i:String,j:String,n:Char):String = toString }
-  case class PTerminal[T](t:T) extends PTree { override def mk(i:String,j:String,n:Char) = t.toString }
-  case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree { override def mk(i:String,j:String,n:Char) = "Best("+p.mk(i,j,n)+")" }
-  case class POr(l: PTree, r: PTree) extends PTree { override def mk(i:String,j:String,n:Char) = l.mk(i,j,n) +" ++ "+r.mk(i,j,n) }
-  case class PMap[T,U](f: T => U, p: PTree) extends PTree { override def mk(i:String,j:String,n:Char) = "Map("+p.mk(i,j,n)+")"  }
-  case class PFilter(f: Subword => Boolean, p: PTree) extends PTree { override def mk(i:String,j:String,n:Char) = "Filter("+p.mk(i,j,n)+")"  }
-  case class PRule(name:String) extends PTree { override def mk(i:String,j:String,n:Char) = name+"["+i+","+j+"]" }
-  case class PConcat(l: PTree, r: PTree, indices:(Int,Int,Int,Int)) extends PTree {
-    override def mk(i:String,j:String,n:Char) = {
-      def cond1(f:Int, l:Int, u:Int):String = if (l==0 && u==0) null else "if ("+(if(l>0)i+"+"+(f+l)+"<="+j else"")+(if(l>0&&u>0)" && "else"")+(if(u>0)i+"+"+(f+u)+">="+j else"")+")"
-
-      // XXX: extract k and n0 to have one case
-      val (c,b) = indices match {
-        // low=up in at least one side
-        case (iL,iU,0,0) if (iL==iU && iL>0) => var k=i+"+"+iL; (null, l.mk(i,k,n) + " ~ "+r.mk(k,j,n))
-        case (0,0,jL,jU) if (jL==jU && jL>0) => var k=j+"-"+jL; (null, l.mk(i,k,n) + " ~ "+r.mk(k,j,n))
-        case (0,0,0,0) => val n1=(n+1).toChar; var k=""+n; ("for ("+i+"<="+k+"<="+j+")", l.mk(i,k,n1) + " ~~~ "+r.mk(k,j,n1))
-        case (iL,iU,jL,jU) if (iL==iU && jL==jU) => var k=i+"+"+iL; ("if ("+i+"+"+(iL+jL)+"=="+j+")", l.mk(i,k,n) + " ~ "+r.mk(k,j,n))
-        case (iL,iU,jL,jU) if (iL==iU) => var k=i+"+"+iL; (cond1(iL,jL,jU), l.mk(i,k,n) + " ~ "+r.mk(k,j,n))
-        case (iL,iU,jL,jU) if (jL==jU) => var k=j+"-"+jL; (cond1(jL,iL,iU), l.mk(i,k,n) + " ~ "+r.mk(k,j,n))
-
-        // general case
-        // XXX: provide more rules here
-/*
-      val (loop,body) = indices match {
-        // No additional var
-        // Additional var needed
-        case (iL,iU,jL,jU) =>
-          val i0 = indices match { case _ => "I0" }
-          val j0 = indices match { case _ => "J0" }
-          val n=(k+1).toChar; ("for "+i0+"<="+k+"<="+j0, l.mk(i,""+k,n) + " ~~~ "+r.mk(""+k,j,n))
-      }
+  abstract class PTree { def mk(i:String,j:String,k:Char):String = toString }
+  case class PTerminal[T](t:T) extends PTree { override def mk(i:String,j:String,k:Char) = t.toString }
+  case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = "Best("+p.mk(i,j,k)+")" }
+  case class POr(l: PTree, r: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = l.mk(i,j,k) +" ++ "+r.mk(i,j,k) }
+  case class PMap[T,U](f: T => U, p: PTree) extends PTree {
+    override def mk(i:String,j:String,k:Char) = {
+      val (out,body) = mk2(p,i,j,k)
+      if (out==null) body else out+" { "+body+" } "
     }
-*/
 
+    // XXX: we must support recursion
+    // (cond, body)
+    def mk2(p0:PTree, i:String,j:String,k:Char):(String,String) = p0 match {
+      case c@PConcat(l,r,indices) =>
+        c.mk2(i,j,k) match {
+          case (null,k0,kn) => (null, "Map("+l.mk(i,k0,kn)+" ~ "+r.mk(k0,j,kn)+")")
+          case (cond,k0,kn) => (cond, "Map("+l.mk(i,k0,kn)+" ~ "+r.mk(k0,j,kn)+")")
+        }
+      case _ => (null, "Map("+p0.mk(i,j,k)+")")
+    }
+  }
 
-        case _ => ("FOR??", "<"+ l.mk(i+"?",j+"?",n)+" ~"+indices+"~ "+r.mk(i+"?",j+"?",n) +">")
+  case class PFilter(f: Subword => Boolean, p: PTree) extends PTree { override def mk(i:String,j:String,k:Char) = "Filter("+p.mk(i,j,k)+")"  }
+  case class PRule(name:String) extends PTree { override def mk(i:String,j:String,k:Char) = name+"["+i+","+j+"]" }
+  case class PConcat(l: PTree, r: PTree, indices:(Int,Int,Int,Int)) extends PTree {
+    override def mk(i:String,j:String,k:Char) = {
+      val (out,k0,kn) = mk2(i,j,k)
+      val body = l.mk(i,k0,kn)+" ~ "+r.mk(k0,j,kn)
+      if (out==null) body else out+" { "+body+" } "
+    }
+
+    // (cond, solid_k, next_k)
+    def mk2(i:String,j:String,k:Char):(String,String,Char) = {
+      def cond1(f:Int, l:Int, u:Int):String = if (l==0 && u==0) null else "if ("+(if(l>0)i+"+"+(f+l)+"<="+j else"")+(if(l>0&&u>0)" && "else"")+(if(u>0)i+"+"+(f+u)+">="+j else"")+")"
+      indices match {
+        // low=up in at least one side
+        case (0,0,0,0) => ("for ("+i+"<="+k+"<="+j+")", ""+k, (k+1).toChar)
+        case (iL,iU,0,0) if (iL==iU) => (null, i+"+"+iL, k)
+        case (0,0,jL,jU) if (jL==jU) => (null, j+"-"+jL, k)
+        case (iL,iU,jL,jU) if (iL==iU && jL==jU) => ("if ("+i+"+"+(iL+jL)+"=="+j+")", i+"+"+iL, k)
+        case (iL,iU,jL,jU) if (iL==iU) => (cond1(iL,jL,jU), i+"+"+iL, k)
+        case (iL,iU,jL,jU) if (jL==jU) => (cond1(jL,iL,iU), j+"-"+jL, k)
+        // most general case
+        case (iL,iU,jL,jU) =>
+          val min_k = if (jU==0) i+"+"+iL else "max("+i+"+"+iL+","+j+"-"+jU+")"
+          val max_k = if (iU==0) j+"-"+jL else "min("+j+"-"+jL+","+i+"+"+iU+")"
+          // we might want to simplify if min_k==i || max_k==j
+          ("int min_"+k+"="+min_k+",max_"+k+"="+max_k+"; for(min_"+k+"<="+k+"<=max_"+k+")", ""+k, (k+1).toChar)
       }
-      if (c==null) b else c+" { "+b+" } "
     }
   }
 
