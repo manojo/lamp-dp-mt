@@ -16,63 +16,105 @@ trait ADPParsers { this:Signature =>
 
   // A simple variable generator that sequentially issues free variables
   class FreeVar(v0:Char) {
-    private var v=v0;
-    def get:String = { var r=""+v; v=(v+1).toChar; r }
+    private var v=v0
+    def get = { var r=v; v=(v+1).toChar; Var(r,0) }
     def dup=new FreeVar(v0)
   }
 
+  // Conditions on fresh variables variables
+  case class Var(v:Char,d:Int) { // 'v'+d
+    override def toString = if (d==0) ""+v else if (d>0) v+"+"+d else v+""+d
+    def a(e:Int) = Var(v,d+e)
+    def f(l:Var,u:Var) = CFor(v,l.v,d-l.d,u.v,d-u.d)
+    def l(t:Var,e:Int) = CLeq(v,t.v,d-t.d+e)
+    def e(t:Var,e:Int) = CEq(v,t.v,d-t.d+e)
+  }
+  class Cond // Constraint that is put on variables
+  case class CFor(v:Char,l:Char,ld:Int,u:Char,ud:Int) extends Cond // for ('l'+ld<='v'<='u'-ud)
+  case class CLeq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta<='b'
+  case class CEq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta=='b'
+  
   // Tree structure for recurrences generation
   abstract class PTree {
     // 1. Assign to each node its bounds (i,j)
     // 2. Collect all the conditions from the tree and its content body
     // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
-    def gen(i:String,j:String,g:FreeVar):(List[String],String) = (Nil,toString)
-    def emit(d:(List[String],String)):String = d match { case (cs,b) => cs.map{x=>x+" { "}.mkString("")+b+cs.map{x=>" } "}.mkString("") }
-    def emit:String = emit(gen("i","j",new FreeVar('k')))
+    def gen(i:Var,j:Var,g:FreeVar):(List[Cond],String) = (Nil,toString)
+    def emit(d:(List[Cond],String)):String = d match { case (cs,body) =>
+      cs.map {
+        case CFor(v,l,ld,u,0) => "for ("+l+(if(ld>0)"+"+ld else "")+" <= "+v+" <= "+u+")"
+        case CFor(v,l,ld,u,ud) => v+"u="+u+"-"+ud+"; for ("+l+(if(ld>0)"+"+ld else "")+" <= "+v+" <= "+v+"u)"
+        case CEq(a,b,d) => "if ("+a+"+"+d+"=="+b+")"
+        case CLeq(a,b,d) => "if ("+a+"+"+d+"<="+b+")"
+      }.map{x=>x+" { "}.mkString("")+body+cs.map{x=>" } "}.mkString("")
+    }
+    def emit:String = emit(gen(Var('i',0),Var('j',0),new FreeVar('k')))
   }
-  case class PTerminal[T](f:(String,String) => (String,String)) extends PTree { // f must return (condition||null, body)
-    override def gen(i:String,j:String,g:FreeVar) = { var (c,b)=f(i,j); (if(c==null)Nil else List("if ("+c+")"),b) }
+  case class PTerminal[T](f:(Var,Var) => (List[Cond],String)) extends PTree {
+    override def gen(i:Var,j:Var,g:FreeVar) = f(i,j)
   }
   case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree {
-    override def gen(i:String,j:String,g:FreeVar) = { val (c,b)=p.gen(i,j,g); (c, "Best("+b+")") }
+    override def gen(i:Var,j:Var,g:FreeVar) = p match {
+      case POr(l,r) => POr(PAggr(h,l),PAggr(h,r)).gen(i,j,g)
+      case _ => val (c,b)=p.gen(i,j,g); (c, "Best("+b+")")
+    }
   }
   case class POr(l: PTree, r: PTree) extends PTree {
-    override def gen(i:String,j:String,g:FreeVar) = (Nil, emit(l.gen(i,j,g.dup))+" ++ "+emit(r.gen(i,j,g.dup)))
+    override def gen(i:Var,j:Var,g:FreeVar) = (Nil, emit(l.gen(i,j,g.dup))+" ++ "+emit(r.gen(i,j,g.dup)))
   }
   case class PMap[T,U](f: T => U, p: PTree) extends PTree {
-    override def gen(i:String,j:String,g:FreeVar) = { val (c,b)=p.gen(i,j,g); (c, "Map("+b+")") }
+    override def gen(i:Var,j:Var,g:FreeVar) = { val (c,b)=p.gen(i,j,g); (c, "Map("+b+")") }
   }
   case class PFilter(f: Subword => Boolean, p: PTree) extends PTree {
-    override def gen(i:String,j:String,g:FreeVar) = { val (c,b)=p.gen(i,j,g); (c, "Filter("+b+")") } // XXX: this translates to an if
+    override def gen(i:Var,j:Var,g:FreeVar) = { val (c,b)=p.gen(i,j,g); (c, "Filter("+b+")") }
   }
   case class PRule(name:String) extends PTree {
-    override def gen(i:String,j:String,g:FreeVar) = (Nil, name+"["+i+","+j+"]")
+    override def gen(i:Var,j:Var,g:FreeVar) = (Nil, name+"["+i+","+j+"]")
   }
   case class PConcat(l: PTree, r: PTree, indices:(Int,Int,Int,Int)) extends PTree {
-    override def gen(i:String,j:String,g:FreeVar) = {
+    override def gen(i:Var,j:Var,g:FreeVar) = {
+      def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.l(j,f+l)); if (u>0) j.l(i,-f-u)::ls else ls }
 
-      // XXX: optimize for stupid condition verifications, use (char,delta) to encode incides possibly
-
-
-      def bf1(f:Int, l:Int, u:Int) = "if ("+i+"+"+(f+l)+"<="+j+(if(u>0)" && "+i+"+"+(f+u)+">="+j else "")+")"
-      val (c,k) = indices match {
+      val (c,k):(List[Cond],Var) = indices match {
         // low=up in at least one side
-        case (0,0,0,0) => val k0=g.get; ("for ("+i+"<="+k0+"<="+j+")", k0)
-        case (iL,iU,0,0) if (iL==iU) => ("if ("+i+"+"+iL+"<"+j+")", i+"+"+iL)
-        case (0,0,jL,jU) if (jL==jU) => ("if ("+i+"+"+jL+"<"+j+")", j+"-"+jL)
-        case (iL,iU,jL,jU) if (iL==iU && jL==jU) => ("if ("+i+"+"+(iL+jL)+"=="+j+")", i+"+"+iL)
-        case (iL,iU,jL,jU) if (iL==iU) => (bf1(iL,jL,jU), i+"+"+iL)
-        case (iL,iU,jL,jU) if (jL==jU) => (bf1(jL,iL,iU), j+"-"+jL)
+        case (0,0,0,0) => val k0=g.get; (List(k0.f(i,j)), k0)
+        case (iL,iU,0,0) if (iL==iU) => (List(i.l(j,iL)), i.a(iL))
+        case (0,0,jL,jU) if (jL==jU) => (List(i.l(j,jL)), j.a(-jL))
+        case (iL,iU,jL,jU) if (iL==iU && jL==jU) => (List(i.e(j,iL+jL)), i.a(iL))
+        case (iL,iU,jL,jU) if (iL==iU) => (bf1(iL,jL,jU), i.a(iL))
+        case (iL,iU,jL,jU) if (jL==jU) => (bf1(jL,iL,iU), j.a(-jL))
         // most general case
         case (iL,iU,jL,jU) =>
-          val min_k = if (jU==0) i+"+"+iL else "max("+i+"+"+iL+","+j+"-"+jU+")"
-          val max_k = if (iU==0) j+"-"+jL else "min("+j+"-"+jL+","+i+"+"+iU+")"
+          val k0=g.get;
+          var cs:List[Cond] = Nil
+          if (jU>0) j.l(k0,-jU)
+          if (iU>0) i.l(k0,iU)
           // we might want to simplify if min_k==i || max_k==j
-          val k0=g.get; ("int min_"+k0+"="+min_k+",max_"+k0+"="+max_k+"; for(min_"+k0+"<="+k0+"<=max_"+k0+")", k0)
+          (CFor(k0.v,i.v,iL,j.v,jL)::cs, k0)
       }
       val (lc,lb) = l.gen(i,k,g)
       val (rc,rb) = r.gen(k,j,g)
-      (c :: lc ::: rc, lb+" ~ "+rb)
+
+      var cs = c ::: lc ::: rc
+      // optimizations and conditions simplifications
+      // 1. filter x+0=x
+      cs = cs.filter { case CEq(a,b,0) if (a==b) => false case _ => true }
+      // 2. minimize the range of for loop
+      cs = cs.map { case CFor(v,l,ld,u,ud) => var lm=ld; var um=ud;
+          cs.foreach { case CLeq(a,b,d) =>
+              if (a==l && b==v) { if (d>lm) lm=d; }
+              if (a==v && b==u) { if (d>um) um=d; }
+            case _ =>
+          }
+          CFor(v,l,lm,u,um)
+        case x => x
+      }
+      // 3. drop useless Leq (either contained by a for or superseded by another constraint on the same pair)
+      cs.foreach {
+        case CLeq(a,b,x) => cs=cs.filter { case CLeq(c,d,y) if (c==a && d==b && y<x) => false case _ => true }
+        case CFor(v,l,_,u,_) => cs=cs.filter { case CLeq(c,d,_) if (c==l && d==v || c==v && d==u) => false case _ => true }
+      }
+      (cs, lb+" ~ "+rb)
     }
   }
 
@@ -180,7 +222,7 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
       case (i, j) if(j == i+1) => List(input(i))
       case _ => List()
     }
-    def tree = new PTerminal((i:String,j:String) => (i+"+1=="+j,"Char["+i+"]"))
+    def tree = new PTerminal((i:Var,j:Var) => (List(i.e(j,1)),"Char["+i+"]"))
   }
 
   def charf(f: Char => Boolean) = char filter {

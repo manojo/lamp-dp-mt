@@ -77,7 +77,7 @@ trait MatrixGrammar extends ADPParsers with MatrixAlgebra {
       case _ => List()
     }
 
-    def tree = PTerminal((i:String,j:String) => (i+"+1=="+j,"mat["+i+"]"))
+    def tree = PTerminal((i:Var,j:Var) => (List(i.e(j,1)),"mat["+i+"]"))
   }
 
   def matrixGrammar: Parser[(Int,Int,Int)] = tabulate("M",(

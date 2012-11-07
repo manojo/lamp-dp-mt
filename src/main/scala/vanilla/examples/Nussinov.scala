@@ -76,7 +76,7 @@ trait NussinovGrammar extends PrettyPairingAlgebra with LexicalParsers {
       case (i,j) if i == j => List(Dummy())
       case _ => List()
     }
-    def tree = PTerminal((i:String,j:String) => (i+"=="+j,"empty"))
+    def tree = PTerminal((i:Var,j:Var) => (List(i.e(j,0)),"empty"))
   }
 
   val basePairs = List(('a','u'),('u','a'),('g','u'),('u','g'),('c','g'),('g','c'))
