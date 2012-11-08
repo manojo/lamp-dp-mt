@@ -148,9 +148,9 @@ trait ADPParsers { this:Signature =>
   // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
   def gen(q:PTree,i:Var,j:Var,g:FreeVar):(List[Cond],String) = q match {
     case PTerminal(f) => f(i,j)
-    case PAggr(hh:Function1[List[Any],List[Any]],p) => p match {
+    case PAggr(h:Function1[List[Any],List[Any]],p) => p match {
       case POr(l,r) => gen(POr(PAggr(h,l),PAggr(h,r)),i,j,g)
-      case _ => val (c,b)=gen(p,i,j,g); (c, "Best("+b+")")
+      case _ => val (c,b)=gen(p,i,j,g); (c, "Aggr("+b+")")
     }
     case POr(l,r) => (Nil, emit(gen(l,i,j,g.dup))+" ++ "+emit(gen(r,i,j,g.dup)))
     case PMap(f,p) => val (c,b)=gen(p,i,j,g); (c, "Map("+b+")")
