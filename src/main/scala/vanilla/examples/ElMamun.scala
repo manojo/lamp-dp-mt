@@ -36,10 +36,8 @@ trait SellerAlgebra extends Bill {
   def add(a: Add) = a.l + a.r
   def mul(m: Mul) = m.l * m.r
 
-  def h(l :List[Answer]) = l match {
-    case Nil => Nil
-    case _ => l.max::Nil
-  }
+  def h(a:Int, b:Int) = if (a>b) a else b
+  def z = 0
 }
 
 trait BillGrammar extends LexicalParsers with SellerAlgebra {
@@ -50,7 +48,7 @@ trait BillGrammar extends LexicalParsers with SellerAlgebra {
     charf(_.isDigit) ^^ readDigit
   | (billGrammar ~~- plus ~~~ billGrammar) ^^ {case ((a1,c),a2) => add(Add(a1,c,a2))}
   | (billGrammar ~~- times ~~~ billGrammar) ^^ {case ((a1,c),a2) => mul(Mul(a1,c,a2))}
-  ) aggregate h)
+  ) fold(z,h) )
 }
 
 object ElMamun extends BillGrammar with App {

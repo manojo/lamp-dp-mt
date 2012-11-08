@@ -4,7 +4,8 @@ trait Signature {
   type Alphabet // input type
   type Answer   // output type
 
-  def h(l: List[Answer]) : List[Answer]
+  def h(a:Answer, b:Answer):Answer
+  def z:Answer // zero
 }
 
 trait ADPParsers { this:Signature =>
@@ -17,7 +18,7 @@ trait ADPParsers { this:Signature =>
   // Tree structure for recurrences generation
   sealed abstract class PTree
   case class PTerminal[T](f:(Var,Var) => (List[Cond],String)) extends PTree
-  case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree
+  case class PFold[T,U](z:U, h:(U,T) => U, p: PTree) extends PTree
   case class POr(l: PTree, r: PTree) extends PTree
   case class PMap[T,U](f: T => U, p: PTree) extends PTree
   case class PFilter(f: Subword => Boolean, p: PTree) extends PTree
@@ -62,12 +63,13 @@ trait ADPParsers { this:Signature =>
       def tree = POr(inner.tree, that.tree)
     }
 
-    // Aggregate combinator.
-    // Takes a function which modifies the list of a parse. Usually used
-    // for max or min functions (but can also be a prettyprint).
-    def aggregate[U](h: List[T] => List[U]) = new Parser[U] {
-      def apply(sw: Subword) = h(inner(sw))
-      def tree = PAggr(h,inner.tree)
+    // Folding combinator (aggregation).
+    // Takes a zero and a function that produce the best element.
+    // Used for max or min functions (but can also be a prettyprint).
+    // def fold:Parser[Answer] = fold(z,(h _).asInstanceOf[Function2[Answer,T,Answer]])
+    def fold[U](z:U, h:(U,T) => U) = new Parser[U] {
+      def apply(sw: Subword) = List ( (z /: inner(sw))(h) ) // (0.0/:a){case(x,y)=>x+y*2.0}
+      def tree = PFold(z,h,inner.tree)
     }
 
     // Concatenate combinator.
@@ -148,9 +150,9 @@ trait ADPParsers { this:Signature =>
   // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
   def gen(q:PTree,i:Var,j:Var,g:FreeVar):(List[Cond],String) = q match {
     case PTerminal(f) => f(i,j)
-    case PAggr(h:Function1[List[Any],List[Any]],p) => p match {
-      case POr(l,r) => gen(POr(PAggr(h,l),PAggr(h,r)),i,j,g)
-      case _ => val (c,b)=gen(p,i,j,g); (c, "Aggr("+b+")")
+    case PFold(z,h,p) => val hh=h.asInstanceOf[Function2[Any,Any,Any]]; p match {
+      case POr(l,r) => gen(POr(PFold(z,hh,l),PFold(z,hh,r)),i,j,g)
+      case _ => val (c,b)=gen(p,i,j,g); (c, "Fold("+b+")")
     }
     case POr(l,r) => (Nil, emit(gen(l,i,j,g.dup))+" ++ "+emit(gen(r,i,j,g.dup)))
     case PMap(f,p) => val (c,b)=gen(p,i,j,g); (c, "Map("+b+")")
@@ -252,7 +254,8 @@ trait BracketsAlgebra extends BracketsSignature {
 
   def bracket(l: Char, s: Int, r: Char) = s
   def split(s: Int, t: Int) = s+t
-  def h(l : List[Int]) = if(l.isEmpty) List() else List(l.max)
+  def h(a:Int, b:Int) = if (a>b) a else b
+  def z = 0
 }
 
 object HelloADP extends LexicalParsers with BracketsAlgebra {

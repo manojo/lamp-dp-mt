@@ -2,72 +2,59 @@ package vanilla.examples
 
 import vanilla._
 
-/**
- * Matrix multiplication
- */
+/** Matrix multiplication */
 trait MatrixSig extends Signature {
+  type Alphabet = (Int,Int)
+
   case class Add(l: Answer, c: Alphabet, r: Answer)
   case class Mul(l: Answer, c: Alphabet, r: Answer)
 
   def single(i: (Int, Int)): Answer
   def mult(l: Answer, r: Answer): Answer
+
+  // Helpers
+  type Prod = (Int,Int,Int) // matrix product as (rows, cost, columns)
+  def cmp(a:Prod, b:Prod):Boolean = (a,b) match { // returns true if a better than b
+    case ((0,0,0),_) => false
+    case (_,(0,0,0)) => true
+    case _ => (a._2 < b._2)
+  }
+  def mul(a:Prod, b:Prod) = (a,b) match {
+   case((r1,m1,c1),(r2,m2,c2)) => (r1, m1 + m2 + r1 * c1 * c2, c2)
+  }
 }
 
-trait MatrixAlgebra extends MatrixSig{
-  type Answer = (Int,Int,Int)
-  type Alphabet = (Int,Int)
-
-  //create a new Ordering for triples of ints
-  object TripleOrdering extends Ordering[(Int,Int,Int)]{
-    def compare(a: (Int,Int,Int), b: (Int,Int,Int)) = a._2 compare b._2
-  }
+trait MatrixAlgebra extends MatrixSig {
+  type Answer = Prod
 
   def single(i: (Int, Int)) = (i._1, 0, i._2)
-  def mult(l: Answer, r: Answer) = (l,r) match {
-    case((r1,m1,c1),(r2,m2,c2)) => (r1, m1 + m2 + r1 * c1 * c2, c2)
-  }
-
-  def h(l :List[Answer]) = l match {
-    case Nil => Nil
-    case _ => l.min::Nil
-  }
+  def mult(l: Answer, r: Answer) = mul(l,r)
+  def h(a:Answer, b:Answer) = if (cmp(a,b)) a else b
+  def z = (0,0,0)
 }
 
 trait PrettyPrintAlgebra extends MatrixSig {
   type Answer = String
-  type Alphabet = (Int,Int)
 
   def single(i: (Int, Int)) = "|"+i._1+"x"+i._2+"|"
   def mult(l: Answer, r: Answer) = (l,r) match {
     case(s1,s2) => "("+s1+"*"+s2+")"
   }
-
-  def h(l :List[Answer]) = l
+  def h(a:Answer, b:Answer) = a+", "+b
+  def z = ""
 }
 
-/*
- * combining two algebrae: done manually for now
- */
+/** Combining two algebrae: done manually for now */
 trait PrettyMatrixAlgebra extends MatrixSig {
-  type Answer = ((Int,Int,Int), String)
-  type Alphabet = (Int,Int)
-
-  //create a new Ordering for triples of ints
-  object TripleOrdering extends Ordering[((Int,Int,Int),String)] {
-    def compare(a: ((Int,Int,Int),String), b: ((Int,Int,Int),String)) =
-      a._1._2 compare b._1._2
-  }
+  type Answer = (Prod, String)
 
   def single(i: (Int, Int)) = ((i._1, 0, i._2), "|"+i._1+"x"+i._2+"|")
   def mult(l: Answer, r: Answer) = (l,r) match {
-    case(((r1,m1,c1),s1),((r2,m2,c2),s2)) =>
-      ((r1, m1 + m2 + r1 * c1 * c2, c2), "("+s1+"*"+s2+")")
+    case((p1,s1),(p2,s2)) => (mul(p1,p2), "("+s1+"*"+s2+")")
   }
 
-  def h(l :List[Answer]) = l match {
-    case Nil => Nil
-    case _ => l.min::Nil
-  }
+  def h(a:Answer, b:Answer) = if (cmp(a._1,b._1)) a else b
+  def z = ((0,0,0),"")
 }
 
 trait MatrixGrammar extends ADPParsers with MatrixAlgebra {
@@ -76,14 +63,13 @@ trait MatrixGrammar extends ADPParsers with MatrixAlgebra {
       case (i,j) if(i+1 == j) => List(input(i))
       case _ => List()
     }
-
     def tree = PTerminal((i:Var,j:Var) => (List(i.e(j,1)),"mat["+i+"]"))
   }
 
   def matrixGrammar: Parser[(Int,Int,Int)] = tabulate("M",(
     aMatrix ^^ single
   | (matrixGrammar +~+ matrixGrammar) ^^ { case (a1,a2) => mult(a1, a2) }
-  ) aggregate h)
+  ) fold(z,h))
 }
 
 object MatrixMult extends MatrixGrammar with App {
