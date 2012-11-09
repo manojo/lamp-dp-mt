@@ -154,7 +154,7 @@ trait ADPParsers { this:Signature =>
       case POr(l,r) => gen(POr(PFold(z,hh,l),PFold(z,hh,r)),i,j,g)
       case _ => val (c,b)=gen(p,i,j,g); (c, "Fold("+b+")")
     }
-    case POr(l,r) => (Nil, emit(gen(l,i,j,g.dup))+" ++ "+emit(gen(r,i,j,g.dup)))
+    case POr(l,r) => (Nil, emit(gen(l,i,j,g.dup))+"\n       ++ "+emit(gen(r,i,j,g.dup)))
     case PMap(f,p) => val (c,b)=gen(p,i,j,g); (c, "Map("+b+")")
     case PFilter(f,p) => val (c,b)=gen(p,i,j,g); (c, "Filter("+b+")")
     case PRule(name) => (Nil, name+"["+i+","+j+"]")
@@ -254,7 +254,7 @@ trait BracketsAlgebra extends BracketsSignature {
 
   def bracket(l: Char, s: Int, r: Char) = s
   def split(s: Int, t: Int) = s+t
-  def h(a:Int, b:Int) = if (a>b) a else b
+  def h (a:Int, b:Int) = Math.max(a,b)
   def z = 0
 }
 
