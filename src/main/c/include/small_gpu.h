@@ -1,4 +1,5 @@
 #ifdef __CUDACC__
+#define WARP_SIZE 32
 // -----------------------------------------------------------------------------
 #define _infinity c=COST_MAX;
 #ifdef SH_RECT
@@ -19,21 +20,6 @@
 #define _min(EXPR,BACK) c2=EXPR; if (c2<=c) { c=c2; b=BACK; }
 
 // -----------------------------------------------------------------------------
-
-/*
- * Optimizations to implement when we are confident about the problem structure:
- * SH_RECT: Since we sweep the rectangle with a diagonal, at iteration M_W+(tN+1)/2
- *          half of them will we unused. At this point, break the loop and construct
- *          a new loop where 2 threads are assigned the same cell, that is thread tI
- *          is assigned to cell (i/2, j). We would require tI/2 shared cost cells to
- *          exchange maximal cost, the cell with cost=maximum writes (cost,backtrack)
- *          to the original matrices.
- * SH_TRI : Similarly, when half of the threads go out of the triangle, we can reassign
- *          two threads per cell, then repeat the operation at 4 and 8 (possibly 16 and 32).
- * SH_PARA: No optimization possible since every pair of thread has very different dependences
- */
-
-// Use the same technique as "Optimizing DP on GPU via adaptive thread parallelism"
 
 __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {
 	const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x; // * (  + blockIdx.y*gridDim.x );
@@ -93,7 +79,7 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 // -----------------------------------------------------------------------------
 
 void g_solve() {
-	unsigned blk_size = 32; // = warp size
+	unsigned blk_size = WARP_SIZE;
 	unsigned blk_num = (M_H+blk_size-1)/blk_size;
 #ifdef SH_PARA // 384 cores (GF650M) XXX: find out why deadlock at >32 blocks
 	if (blk_num>32) blk_num=32;
