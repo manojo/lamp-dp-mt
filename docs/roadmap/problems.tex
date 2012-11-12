@@ -487,12 +487,13 @@ Zuker folding & triangle & \color{red} 3? & \color{red} 0? \\
 \newpage
 \section{User facing language}
 \subsection{Parsing grammar (ADP)}
+{\color{red}
 Borrowing from ADP XXX
 
 XXX: explain ADP concepts
 
 XXX: normalization, transforms applied
-
+}
 
 \subsection{Backtracking}
 In order to do a clean and efficient transformation from ADP-like language to plain C recurrences, we need to construct bottom-up recurrences from top-down parser rules. To do that, we slightly need to modify the ADP language in order to separate the backtracking and the scoring, because we want to obtain an efficient algorithm: backtrack reads are in $O(n^2)$ whereas score reads are proportional to the algorithmic complexity ($O(n^3)$ or more for non-serial). To deal with this problem, we are facing two options:\ul
@@ -569,26 +570,27 @@ Given an experimental bandwidth of 5.3743 Gb/s between CPU and GPU, processing m
 \subsubsection{Serial problems}
 The serial problem have the interesting property to access to a fixed number of previous elements. These elements can be either stored either explicitly in a scoring matrix or implicitly as moving aggregation into a wavefront. Since the dependencies are fixed, the computation direction gains an additional degree of freedom: matrix can be solved in diagonal (as non-serial problems) or line-wise or column-wiser. This allows to store the whole necessary state to make progress into a limited number of lines (or columns), and sweep vertically (resp. horizontally) along the matrix.
 
-Since serial problems are of complexity $O(n^2)$
+Since serial problems are of complexity $O(n^2)$ (due to the matrix dimension and the finite number of dependencies), it is possible to tackle much larger problem than non-serial during the same running time. Hence, it seems obvious to let serial problems grow larger than the memory.
 
+Mixing the dependency property and size requirements, we can split the matrix into sub-matrices, store special lines (and/or columns) into memory (or hard disk), and repeat computations to solve the backtrack (similarly as in \cite{swat_gpu},\cite{swat_mega}, but this implementation use problem-specific knowledge that might not generalize).
 
+To store intermediate lines and columns, we are facing two different strategies to explore:\ul
+\item \textbf{Fixed subproblem size:} we decompose the algorithm as follows\ol
+\item Define a grid of <<major column and rows>>, where each cell's data (input, output, cost and backtrack matrices) fits into the device memory.
+\item Compute the values of the grid's major columns and rows in one pass.
+\item Second (on-demand) computation to process backtracking inside relevant cells.
+\ole
+Let $b$ the number of cells that we have on each row/column, the total computation running time would be $(b^2 + 2b) \cdot t_b$ where $t_b$ is the time to compute one cell's matrix. This division has the advantage of providing the minimal computation time at the expense of external storage proportional to $O(n)$ (if we store only lines or columns) or $O(n^2)$ (if we store both).
 
-Different strategies
-XXX: Do we need/want to use divide and conquer?\ul
-\item Divide and co
-\item
+\item \textbf{Myers and Miller’s algorithm:} (divide and conquer)
+This algorithm break the DP problem into 2 (or 4) subproblems such that once the middle line/column is computed, the problem can be solved for 1 submatrix and backtracking among up to 2 of the 3 other. This breaking is applied recursively until the submatrix data fits into memory. The storage requirements are $4 \cdot O(n)$ (we store along both dimension $1+\tfrac{1}{2}+\tfrac{1}{4}+...$ lines/columns).
+
+The algorithm proceeds as follows: first it solves the problem to obtain the first backtracking element, then it breaks the matrix in 4 submatrices, and refine it until backtrack is tractable. Since there is at most $\log n/b$ refinements and since every part of the matrix may be involved in backtrack, running time is $O(n^2 \log_2 n)$.
+\item \textbf{Hybrid approach:} a hybrid approach might be created to take advantage of additional available memory, however, the running time decreases logarithmically to the space used.
 \ule
 
-
-
-
-propose a memory consumption scheme
-
-try to setup wavefront size (if needed) => just enlarge the matrix by 1 so that we go wavefront-to-wavefront
-
-
-
 {\color{red}
+try to setup wavefront size (if needed) => just enlarge the matrix by 1 so that we go wavefront-to-wavefront
 
 XXX: what's the maximal size of the wavefront ??
 
