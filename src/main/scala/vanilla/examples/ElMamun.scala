@@ -5,7 +5,7 @@ import vanilla._
 /**
  * El Mamoun's "oldest" DP problem
  */
-trait Bill extends Signature{
+trait Bill extends Signature {
   case class Add(l: Answer, c: Alphabet, r: Answer)
   case class Mul(l: Answer, c: Alphabet, r: Answer)
 
@@ -14,7 +14,7 @@ trait Bill extends Signature{
   def mul(m: Mul): Answer
 }
 
-trait BuyerAlgebra extends Bill{
+trait BuyerAlgebra extends Bill {
   type Answer = Int
   override type Alphabet = Char
 
@@ -28,7 +28,7 @@ trait BuyerAlgebra extends Bill{
   }
 }
 
-trait SellerAlgebra extends Bill{
+trait SellerAlgebra extends Bill {
   type Answer = Int
   override type Alphabet = Char
 
@@ -36,13 +36,11 @@ trait SellerAlgebra extends Bill{
   def add(a: Add) = a.l + a.r
   def mul(m: Mul) = m.l * m.r
 
-  def h(l :List[Answer]) = l match{
-    case Nil => Nil
-    case _ => l.max::Nil
-  }
+  def h(a:Int, b:Int) = if (a>b) a else b
+  def z = 0
 }
 
-trait BillGrammar extends LexicalParsers with SellerAlgebra{
+trait BillGrammar extends LexicalParsers with SellerAlgebra {
   def plus = charf(_ == '+')
   def times = charf(_ == '*')
 
@@ -50,10 +48,10 @@ trait BillGrammar extends LexicalParsers with SellerAlgebra{
     charf(_.isDigit) ^^ readDigit
   | (billGrammar ~~- plus ~~~ billGrammar) ^^ {case ((a1,c),a2) => add(Add(a1,c,a2))}
   | (billGrammar ~~- times ~~~ billGrammar) ^^ {case ((a1,c),a2) => mul(Mul(a1,c,a2))}
-  ) aggregate h)
+  ) fold(z,h) )
 }
 
-object ElMamun extends BillGrammar with App{
+object ElMamun extends BillGrammar with App {
   def input = "1+2*3*4+5".toArray
   println(billGrammar(0,input.length))
   println(gen)

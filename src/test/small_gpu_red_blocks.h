@@ -1,5 +1,4 @@
 #ifdef __CUDACC__
-#define WARP_SIZE 32
 // -----------------------------------------------------------------------------
 #define _infinity c=COST_MAX;
 #ifdef SH_RECT
@@ -20,8 +19,12 @@
 #define _min(EXPR,BACK) c2=EXPR; if (c2<=c) { c=c2; b=BACK; }
 
 // -----------------------------------------------------------------------------
+// Using the same technique as "Optimizing DP on GPU via adaptive thread parallelism"
+// does not bring the expected speedup. Indeed, assuming that the bottleneck lies in
+// the bandwidth, our slowdown is proportional to the bandwidth decrease and we match
+// their performance. XXX: this has to be properly tested.
 
-__global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {
+__global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop, unsigned mh) {
 	const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x; // * (  + blockIdx.y*gridDim.x );
 	const unsigned tN = blockDim.x * gridDim.x;
 	const unsigned tB = blockIdx.x;
@@ -37,27 +40,27 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 	#endif
 
 	for (unsigned jj=s_start; jj<s_stop; ++jj) {
-		for (unsigned i=tI; i<M_H; i+=tN) {
+		for (unsigned i=tI; i<mh; i+=tN) {
 			unsigned j = jj-tI;
 			if (j<M_W) {
 #endif
 #ifdef SH_TRI
 	for (unsigned jj=s_start; jj<s_stop; ++jj) {
-		for (unsigned ii=tI; ii<M_H; ii+=tN) {
-			unsigned i=M_H-1-ii;
+		for (unsigned ii=tI; ii<mh; ii+=tN) {
+			unsigned i=mh-1-ii;
 			unsigned j=i+jj;
 			if (j<M_W) {
 #endif
 #ifdef SH_PARA
 	for (unsigned jj=s_start; jj<s_stop; ++jj) {
-		for (unsigned i=tI; i<M_H; i+=tN) {
+		for (unsigned i=tI; i<mh; i+=tN) {
 			unsigned j=jj+i;
 			{
 #endif
 				TB b=BT_STOP; TC c=0,c2; // stop
 				if (!INIT(i,j)) { p_kernel }
-				cost[idx(i,j)] = c;
-				back[idx(i,j)] = b;
+				cost[idx(i,j)] = c; // XXX: idx(i,j) might be expanded since computation-independent
+				back[idx(i,j)] = b; // also might use idx(i,j)->left(k),top(k),bottom(k) in computations
 			}
 		}
 
@@ -78,8 +81,22 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 
 // -----------------------------------------------------------------------------
 
+/*
+ * Optimizations to implement when we are confident about the problem structure:
+ * SH_RECT: Since we sweep the rectangle with a diagonal, at iteration M_W+(tN+1)/2
+ *          half of them will we unused. At this point, break the loop and construct
+ *          a new loop where 2 threads are assigned the same cell, that is thread tI
+ *          is assigned to cell (i/2, j). We would require tI/2 shared cost cells to
+ *          exchange maximal cost, the cell with cost=maximum writes (cost,backtrack)
+ *          to the original matrices.
+ * SH_TRI : Similarly, when half of the threads go out of the triangle, we can reassign
+ *          two threads per cell, then repeat the operation at 4 and 8 (possibly 16 and 32).
+ * SH_PARA: No optimization possible since every pair of thread has very different dependences
+ */
+
+
 void g_solve() {
-	unsigned blk_size = WARP_SIZE;
+	unsigned blk_size = 32; // = warp size
 	unsigned blk_num = (M_H+blk_size-1)/blk_size;
 #ifdef SH_PARA // 384 cores (GF650M) XXX: find out why deadlock at >32 blocks
 	if (blk_num>32) blk_num=32;
@@ -93,7 +110,21 @@ void g_solve() {
 	for (int i=0;i<SPLITS;++i) {
 		unsigned s0=(M_W*i)/SPLITS;
 		unsigned s1=(M_W*(i+1))/SPLITS;
-		gpu_solve<<<blk_num, blk_size, 0, stream>>>(g_in[0], g_in[1], g_cost, g_back, lock, s0, s1);
+
+		unsigned mh = M_H;
+		unsigned blk_n = blk_num;
+
+		#ifndef SH_PARA
+		unsigned red = (SPLITS-i)/SPLITS;
+		if (red>1) {
+			blk_n=blk_num/red;
+			mh = M_H/red;
+		}
+
+		#endif
+
+
+		gpu_solve<<<blk_n, blk_size, 0, stream>>>(g_in[0], g_in[1], g_cost, g_back, lock, s0, s1, mh);
 	}
 	cuSync(stream);
 	cuErr(cudaStreamDestroy(stream));

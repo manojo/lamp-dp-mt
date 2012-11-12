@@ -15,7 +15,7 @@ trait PairingSig extends Signature {
   def split(l: Answer, r: Answer): Answer
 }
 
-trait PairingAlgebra extends PairingSig{
+trait PairingAlgebra extends PairingSig {
   type Answer = Int
   type Alphabet = Char
 
@@ -53,21 +53,14 @@ trait PrettyPairingAlgebra extends PairingSig {
   type Answer = (Int, String)
   type Alphabet = Char
 
-  //create a new Ordering for triples of ints
-  object TripleOrdering extends Ordering[(Int,String)] {
-    def compare(a: (Int,String), b: (Int,String)) = a._1 compare b._1
-  }
-
   def nil(a: Dummy) = (0, "")
   def left(c: Alphabet,a: Answer) = (a._1, "."+a._2)
   def right(a: Answer, c:Alphabet) = (a._1, a._2+".")
   def pair(l: Alphabet, a: Answer, r: Alphabet) = (a._1 + 1, "("+a._2+")")
   def split(l: Answer, r: Answer) = (l._1 + r._1, l._2 + r._2)
 
-  def h(l :List[Answer]) = l match {
-    case Nil => Nil
-    case _ => l.max::Nil
-  }
+  def h(a:Answer, b:Answer) = if (a._1 > b._1) a else b
+  def z = (0,"")
 }
 
 trait NussinovGrammar extends PrettyPairingAlgebra with LexicalParsers {
@@ -76,8 +69,7 @@ trait NussinovGrammar extends PrettyPairingAlgebra with LexicalParsers {
       case (i,j) if i == j => List(Dummy())
       case _ => List()
     }
-
-    def tree = PTerminal("empty")
+    def tree = PTerminal((i:Var,j:Var) => (List(i.e(j,0)),"empty"))
   }
 
   val basePairs = List(('a','u'),('u','a'),('g','u'),('u','g'),('c','g'),('g','c'))
@@ -87,7 +79,7 @@ trait NussinovGrammar extends PrettyPairingAlgebra with LexicalParsers {
     empty ^^ nil
   | (s ~~- char) ^^ {case (a,c) => right(a,c)}
   | (s ~~+ t) ^^{case (a,b) => split(a,b)}
-  ) aggregate h)
+  ) fold(z,h) )
 
   def t: Parser[(Int,String)] = tabulate("t",
     ((char -~~ s ~~- char)

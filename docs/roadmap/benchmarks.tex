@@ -63,7 +63,7 @@ Processing power \unt{GFLOPS}	&564.5		& 622.08	& 1263.4 \\ \midrule
 1024 & 32 & GPU baseline			& 0.838		& 0.500		& 0.516 \\
 1024 & 32 & GPU sync improved		& 0.642		& 0.316		& 0.343 \\
 2048 & 32 & GPU P $\le32$ blocks		& 2.864		& 1.427		& 2.096 \\
-4096 & 32 & GPU 8 splits				& 21.902		& 9.285		& 16.767 \\
+4096 & 32 & GPU 8 splits				& 21.902		& 8.841		& 16.767 \\
 8192 & 32 & GPU 64 splits			& 159.058	& 62.064		& 135.793 \\
 12288 & 32 & GPU 256 splits			& 419.030	& 196.971	& 460.912 \\
 \bottomrule \end{tabular} \\[4pt]
@@ -80,6 +80,23 @@ Problem are described by the triplet <matrix size/block size/shape>.
 	\item Removing {\tt \_\_threadfence()} before the synchronization is not syntactically correct but results still remains valid, this confirms the observation made by \cite{gpu_barrier}. Speedup for <1024/32/*> are 67ms (parallelogram) 100ms (triangle) 180ms (rectangle).
 	\item In the parallelogram case, using all threads to monitor other blocks status instead of 1 thread results in a 6.4x speedup (22.72$\to$3.52ms) on <1024/32/para>.
 	\ule
+\item Using multiple threads per matrix cell:
+In the case of a triangular matrix, at each step, the number of cells to be computed (on the diagonal) decrease while the computation complexity increase (there is one more dependency). According to \cite{gpu_atlp}, the solution lies in adaptive thread mapping, using more than one thread to compute one matrix cell, depending on the complexity. However, in our setup (memory layout+algorithm+hardware), we did not found any improvement by doing so. We want to explore the reason for that: we pose as hypothesis that the bandwidth is the bottleneck of our setup and test it.\ul
+\item
+
+First we need to prove that we use almost all the available memory bandwidth: for matrix multiplication, in a triangular matrix, we have
+\[\text{Total transfer}=\frac{n(n+1)}{2} \text{ writes} + \sum_{i=0}^{n-1} 2 i \cdot (n-i) \text{ reads}\]
+where each write is 10 bytes (long+short), and each read is 8 bytes (long). For $n=4096$ we transfer
+% n*(n + 1)/2*12 + Sum[2*i*(n - i), {i, 0, n - 1}]*8
+183'352'614'912 bytes which corresponds to 183.35GB. In 8.841 seconds, we can transfer theoretically at most $8.841\cdot 28.8 = 254 \rm GB$. Hence we can say that 72\% of the algorithm running time is spent into memory accesses.
+
+\item On a 4096 matrix, if we assume that ATLP card would have the same bandwidth as our card, their running time would be
+\[2.57 \cdot (1-.72) + 2.57 \cdot 0.72 \cdot \tfrac{102.4_{GB/s}}{28.8_{GB/s}} = 9.43\rm s_{\text{ ATLP}} > 8.84\rm s_{\text{ our}}\]
+Which shows that our algorithm is comparable to theirs. However, we must avoid a close comparison because the fundamental hardware differences would make a tight computation almost intractable (additionally, we do not have ATLP source code).
+\ule
+As a conclusion, (1) we must remain away to invalidate their result as previous hardware generations might be subject to more constraint to our hardware and (2) we are on par, if not better with one of the best current implementation.
+
+\item Reducing the number of threads launched at different splits of the algorithm (especially in latest splits in rectangular and triangular shapes) does not bring any speedup. Even worse, it slows down slightly the computation. We might attribute this to a better constant transformation by the compiler. Hence, having many idle threads does not impede performance.
 \ule
 
 %\end{document}
