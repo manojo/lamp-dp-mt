@@ -77,3 +77,41 @@ object MatrixMult extends MatrixGrammar with App {
   println(matrixGrammar(0,input.length))
   println(gen)
 }
+
+
+trait MatrixGrammarB extends BDPParsers with MatrixAlgebra {
+  def aMatrix = new Parser[(Int,Int)]{
+    def apply(sw: Subword) = sw match {
+      case (i,j) if(i+1 == j) => List(input(i))
+      case _ => List()
+    }
+
+    def makeTree = SingleElem
+  }
+
+  val costMatrix: Array[Array[List[Answer]]]
+   = Array.ofDim(input.length + 1, input.length +1)
+
+  val matrixGrammar: Parser[(Int,Int,Int)] = ((
+    aMatrix ^^ single
+  | (matrixGrammar +~+ matrixGrammar) ^^ {case (a1,a2) => mult(a1, a2)}
+  ) aggregate h).tabulate("M", costMatrix)
+}
+
+object MatrixMultB extends MatrixGrammarB with GenB with App{
+  def input = Array((10,100),(100,5),(5,50))
+  val costs = bottomUp(matrixGrammar, costMatrix)
+
+  //println(costs(0)(0))
+  for(i <- 0 to input.length){
+    for(j <- 0 to input.length){
+      print(
+        costs(i)(j) + " "
+        //if(costs(i)(j).isEmpty) "empty  " else costs(i)(j).head + " "
+      )
+    }
+    println()
+  }
+
+  println(matrixGrammar(0,input.length))
+}
