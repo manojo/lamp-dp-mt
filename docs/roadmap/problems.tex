@@ -380,7 +380,7 @@ In practice, we don't go backward for larger values than 30, so we can replace $
 	\end{array}\right.
 \end{array}\]
 
-\item Visualization: \begin{center}\includegraphics[width=8cm]{problems_zucker.pdf}\end{center}
+\item Visualization: \begin{center}\includegraphics[width=8cm]{inc/zucker.pdf}\end{center}
 	% source: <<Parallization of dynamic programming recurrences in computational biology>> paper
 \item Optimizations: {\color{red} XXX: notice that there are 3 matrices: $W$,$V$ ($VBI$ is part of $V$) that can be expressed using regular matrix, and $F$ that is of different dimension than $W$ and $V$ and requires a special construction (in the wavefront?). We need to find a nice way to encode both its construction and backtrack into the existing framework (implement 1D DP recursively?)}
 \ole
@@ -493,7 +493,22 @@ Borrowing from ADP XXX
 XXX: explain ADP concepts
 
 XXX: normalization, transforms applied
+
+XXX: Think how to implement {\tt cyclic} problems and {\tt windowing} properties within the language
+
+\begin{verbatim}
+restrict to only 1 max/min (more restrictive than ADP)
+for optimization we want to split grammar into binary productions, to do that we need
+to have equality on the following formula. We can solve it more easily if functions are linear
+\end{verbatim}
+\[\min\limits_{i<k_1<k_2<j}\big[ f(i,k_1,k_2,j) \big] \le  \min\limits_{i<k_2<j} \big[ g_2(i,\min\limits_{i<k_1<k_2} \big[ (g_1(i,k_1,k_2  ) \big],k_2,j) \big]  \]
+
+
+
 }
+
+
+
 
 \subsection{Backtracking}
 In order to do a clean and efficient transformation from ADP-like language to plain C recurrences, we need to construct bottom-up recurrences from top-down parser rules. To do that, we slightly need to modify the ADP language in order to separate the backtracking and the scoring, because we want to obtain an efficient algorithm: backtrack reads are in $O(n^2)$ whereas score reads are proportional to the algorithmic complexity ($O(n^3)$ or more for non-serial). To deal with this problem, we are facing two options:\ul
@@ -563,7 +578,7 @@ We also need to take into account the transfer between main memory (or disk) and
 \end{array}\]
 
 Putting these two formula together, and using most of the device memory available, we obtain the following results with $S_C=4, S_B\footnote{To deal with larger matrices, backtrack data need to be extended.}=4, S_I=1, S_W=0$ and $M_D=2^{30}$:
-\begin{center}\includegraphics[width=14cm]{ns_large.pdf}\end{center}
+\begin{center}\includegraphics[width=14cm]{inc/ns_large.pdf}\end{center}
 
 Given an experimental bandwidth of 5.3743 Gb/s between CPU and GPU, processing matrices one order of magnitude larger (128K) would result in respectively 13\up{(R)}, 8.5\up{(T)} and 25.4\up{(P)} minutes of transfer delay. Extrapolating the preliminary results of small problems, a computation on input of size 128K would require respectively 7 days 13h\up{(R)}, 2 days 22h\up{(T)} and 6 days 10h\up{(P)}, assuming there is no other scalability issues. Although this overhead seems appealing compared to the computation time, the total time blows up (because of the  $O(n^3)$ complexity) and make the processing of such large problem less relevant. Given that real problems -- like RNA folding -- operate at input sizes up to 4096, it would not be of much relevancy to implement a version for larger cases, although perfectly feasible.
 

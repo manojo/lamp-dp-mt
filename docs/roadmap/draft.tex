@@ -1,62 +1,66 @@
-\input{style.sty}
+\documentclass[11pt]{article}
+\input{inc/style.sty}
 
-\title{Draft}
+\title{DynaProg for Scala}
+\subtitle{A Scala DSL for Dynamic Programming on GPU and FPGA}
 \begin{document}
-\maketitle
+%\maketitle
+\shorttitle
+
+\subsection*{Abstract}
+Dynamic programming (solving a problem by leveraging subproblems solutions) is a common pattern used in various domains. Yet underlying matrix recurrences are non-trivial and error prone. Additionally, domain experts might not have the skills to make an efficient parallel implementation. In this paper, we leverage the Scala / LMS infrastructure to implement a domain specific language (DSL) for dynamic programming on heterogeneous platforms, which allows to write concise and efficient programs. Our contributions are: \ul
+\item Classification of dynamic programming problems, and generalization of their characteristics % shape, dependency graph
+\item State of the art parallel implementation of these classes on GPUs
+\item Grammar embedded in Scala (DSL) to express dynamic programming problems efficiently
+%\item Normalization of the grammar into efficient productions
+\item Code generator to transform a grammar into efficient code for CPU, GPU, and FPGA
+\item Systematic approach to generate and process backtracking information
+\ule
+
 \pagestyle{headings}
 \setcounter{tocdepth}{2} \tableofcontents
 
 % ------------------------------------------------------------------------------------------------
 \newpage
+\section{Introduction}
+\subsection{Dynamic programming}
+\subsection{Scala and LMS}
+
+% ------------------------------------------------------------------------------------------------
+\input{problems}
+\input{benchmarks}
+
+% ------------------------------------------------------------------------------------------------
+\newpage
 \section{Planning/draft}
-\subsubsection*{Contributions}\ul
-\item Identify DP classes and give a generalization of their shape/dependency graph
-\item Provide state of the art/on par parallel implementations for all these classes
-\item Generalize/simplify expression by using a DSL to implement these problems
-\item Provide multi-platform support (CPU/GPU/FPGA)
-\ule
-
+\subsubsection*{Roadmap}
 \begin{verbatim}
-restrict to only 1 max/min (more restrictive than ADP)
-
-for optimization we want to split grammar into binary productions, to do that we need
-to have equality on the following formula. We can solve it more easily if functions are linear
-\end{verbatim}
-\[\min\limits_{i<k_1<k_2<j}\big[ f(i,k_1,k_2,j) \big] \le  \min\limits_{i<k_2<j} \big[ g_2(i,\min\limits_{i<k_1<k_2} \big[ (g_1(i,k_1,k_2  ) \big],k_2,j) \big]  \]
-
-\begin{verbatim}
-Roadmap:
 2.11 Come with an IR prototype: data structures and nodes
 9.11 GenScala on LMS, JNI working for arbitrary types
 16.11 GenCuda + LMS CudaCompiler
 23.11 Problem generalization: "cyclic keyword", Zucker problem / CudaLoop optimization
 30.11-- Gap due to LMS missing knowledge
-7.12 Benchmarking, grammar analysis
+ 7.12 Benchmarking, grammar analysis
 14.12
 21.12
-28.12 -------
-4.01 -------
-11.01 writing report = implementation description + plan for future work
-18.01 writing report
+28.12 --- holiday ---
+ 4.01 --- holiday ---
+11.01 Writing report: implementation description and plan for future work
+18.01 Writing report
 \end{verbatim}
-
 
 \subsubsection*{Todo @TCK}
 \begin{verbatim}
-cleanup ADP code
 4. Propose an IR and code generators related to
 Note. We only need to generate code directly for CUDA, no interaction. Look at string templating .
 """xxx $var xxx"""
-- Fork LMS on GitHub and cleanup all the CUDA generator
-
-% class problem into categories
-% think of hashmap implementation. is it useful ?
+- Fork LMS on GitHub and cleanup the CUDA generator
 - CPU+GPU implementation for serial (NS?) problems larger than device memory
 - optimizations for in-memory computations
 
 1. restriction vs ADP: we give only the best answer, do we care about semi-optimal ones?
 2. separate initialization (base cases, atoms) and processing (rules, recurrences) => less cases to handle (no if)
-3. use sub-cell parallelism (seen in 2 papers already)
+3. use sub-cell parallelism (seen in 2 papers already) => does not improve
 
 Plan:
 We need to extend the language to support all 3 cases
@@ -117,11 +121,271 @@ $\implies$ \emph{end of October}.
 \item \textbf{Optimizations:} improve as much as possible / as long as time permits
 \ole
 
-% --------------------------------------------------------------------------------
-\input{problems}
-\input{benchmarks}
 
-% --------------------------------------------------------------------------------
-\bibliographystyle{plain}
+\begin{verbatim}
+ideas.txt
+---------------------------------------------------
+Plan:
+1. Define the main problem in focus and its class
+   - Dimension
+   - Serial/non-serial
+   - Monadic/polyadic
+2. Define some other problems that belong to this class or simpler classes
+3. See the feasibility for FPGA (possibly helped by CPU)
+4. Implement this algorithm in both CUDA and FPGA
+   -> specify all parameters so that we can compare both implementations
+5. Find a common IR for the problems
+6. Write a code generator for both architectures from IR
+   -> make sure all the test-DP are compiled well from IR
+7. Find an expressive and compact language for the user-facing representation
+
+Translation into C++:
+http://bibiserv.cebitec.uni-bielefeld.de/macports/resources/download/
+
+----------------------------------
+
+Ideas for the language:
+- we want maximum flexibility
+- backtrack can be custom, we may want just to give back indices
+- two problems: we care about cost and we care about whole backtrack.
+	@DP def Fib(n:Int) = if (n<=2) return 1 else Fib(n-1)+Fib(n-2)
+  should be translated into the more complete syntax that allows more flexibility
+  => get inspiration from papers to write an internal language
+
+- we may want to keep track of indices but we do not want to give access to the backtrack matrix / cost matrix
+
+Language side:
+- define a simple way to represent some DP programs
+- define a comprehensive way to define them => micro-syntax
+- define the mapping into IR (actually the IR might BE the micro-syntax)
+- define optimizations to IR
+  - making serializable by using aggregation functions/transformations
+  - avoiding the cost matrix by moving it into the wavefront
+- scheduling (with memory loads for non-serializable)
+- code generation for both platforms
+  - possibly choice to use which platform for what part (load/compute @ cpu/gpu/fpga)
+
+----------------------------------
+
+Core function F:
+- in: s,t strings
+- in: neighbor costs: top, left, top+left
+- in: neighbor stats: top, left, top+left
+- out: backtrack information
+- out: cost(i,j)
+- out: stats
+
+To be most efficient, we need to get exact bit-sizes of
+- strings' char
+- costs: min/max values
+- stats: min/max values
+- backtrack
+
+=> we might want to parallelize processing within a thread that operate on 32 or 64 bit inputs (to reduce memory accesses)
+
+
+
+Some ideas:
+- define a way to pack the characters => less memory transfer (i.e. GATC=>4 letters in 1 char)
+- operate on some larger word (ex 64 bits) to increase thread locality and reduce memory accesses
+
+- write a kernel that takes stats from left and r
+
+		stats (x)
+		 ||
+		 vv
+stats -> KK -> new_stats (y')
+(y)		 || \
+		 vv  --+ backtrack info (Bxy)
+		 new_stats (x')
+
+and compute the backtracking for its cell (optional as template boolean)
+
+- multi-grain
+  + within the 64b-words : multiple letters at once (thread level)
+  + group threads into blocks that operate on (block level)
+  + kernel that operates one after another (GPU/CPU level)
+    => can we catch a stream's event at CPU level to alloc memory to get back results ?
+- keep track of
+  + stats O(m+n)
+  + backtrack O(m*n)
+
+- are we sure we need squares ?
+  - rectangles can increase the full usage of all threads during (x-y) runs
+  - assuming we put longest word vertically we play hot potato for stats
+    left->right => block.x exchanges within block, last thread writes to
+    global exchange memory (if short, so that it does not penalize running time)
+  - we may go up to running in stripes
+
+- if we put in diagonal-major data in the memory, why not stream all chunks like
+  that using a cyclic buffer (?) => no empty slot
+  ==> this might be useful for the backtrack information
+
+
+- use extensively profiling : CUDA profiler
+
+- Robust DP paper provides 2 insights: coalesced access + GPU synchronization
+  => can we do a producer-consumer scenario at the block border so that we can
+     execute a large diagonal horizontal/vertical swipe made of multiple blocks?
+  => multiple swipes at different delays (so that we avoid syncing at every step
+
+          s-->
+  	  +----------------/------------+
+	t | B1            /             |
+	| +------/-------/              | KERNEL1 (keep benefit of t in shared mem)
+	| | B2  /                       | delay between b1 and b2 can be 1% of line length
+	v +----/------------------------+
+	  |                             |
+	  |                             | KERNEL2
+	Memory organized as
+	b1 -  -
+	b1 b1 b1
+	b1 b1 b1
+	.. .. ..
+	b1 b1 b1
+	b2 b1 b1
+	b2 b2 b1
+	b2 b2 b2
+	.. .. ..
+
+For stats (aggregation of the table): we need to maintain both an horizontal and vertical front
+For backtracking we need to maintain the whole table
+     .. | . |
+	..A | B | min/max: Min(D)=Min(Min(C),Min(B))
+	----+---+ sum    : Sum(D)=Sum(C)+Sum(B)-Sum(A)
+	..C | D | avg    : sum both #cells and values then divide at appropriate cell
+	----+---+
+
+we many not need to store what's the previous cell, however, the previous
+cell information (usually limited range) is much more compact than the score(32-64 bits)
+
+Memory usage of CPU:
+
+we can potentially extend the GPU's memory by storing some information in the CPU RAM, which in general is larger.
+For large sequences, this technique may apply to problems where one needs to access elements "all the way to the top" and aggregate them in a non trivial (max,min,sum,avg) way.
+
+Problem parameters:
+- bit size (alphabet,stats,cost,backtrack)
+- dimensionality (2D,3D for the matrix)
+  - 3D problem example is Smith Waterman with arbitrary gap weight function.
+- Summarizability of the set: for computing the stats of an element, we can limit ourselves to computing values up to a certain value
+  -in SW with gap extending penalty, we can summarize easily.
+  -in Nussinov, we _need_ to access all the previous row-column elements for the pairwise sum (without a window limit).
+
+user-interface.txt
+--------------------------------------
+This is how we would like to encode the DP programs into Scala DSL.
+
+I think the best would be to reuse most of the syntactic elements and write it
+as an uneducated programmer would write, apply annotations/additions on top of
+it or detect that it is DP and then converge to our system.
+
+We need to keep in mind that we need both to express the backtracking and the scoring at the same time
+
+
+Let's build some examples
+
+Smith-Waterman (from problems of interest)
+--------------------------------------------
+
+trait SWOps {
+	type T
+	type Cost = Int
+	type Backtrack = (i,j) => Direction
+	def rightGap(_ :_, c:Char) : [Cost, Backtrack]
+}
+
+def myRec = {
+	def M[i,j] : Int = max {
+		M[i,j-1] + gapRight,
+		M[i-1, j] + gapLeft,
+		M[i-1,j-1] + delta(S(i),T(j))
+	}
+}
+
+def SWat(S0: List[Char], T0:List[Char]) : List[Pair[Char,Char]] = {
+	def cost(s: Char, t: Char) = if (s==t) 2 else 1 // example cost function
+
+	def DP(S: List[Char], T:List[Char]): [Score,Backtrack,Output[Pair[Char,Char]] = (S,T) match {
+		case (_, Nil) => (0, stop)
+		case (Nil, _) => (0, stop)
+		case Si::Sr, Tj::Tr) =>
+			val nw = SWat(Sr,Tr);
+			val n  = SWat(Sr,T);
+			val w  = SWat(S,Tr);
+			val c = cost(Si,Tj);
+
+			if (nw._1+c>=max(n,w)-d) then (nw._1+c,"NW",[Si,Tj])
+			else if (n>=w) then (n._1-d, "N",[Si,_])
+			else (w._1-d, "W",[_,Tj])
+	}
+	backtrack(DP(S0,T0))
+}
+
+def Nussinov(S0: List[Char]) : List[Pair[Char,Char]] = {
+	def cost(s: Char, t: Char) = if (s==t) 2 else 1 // example cost function
+
+	def DP(S: List[Char], T:List[Char]): [Score,Backtrack,Output[Pair[Char,Char]] = (S.zipWithIndex,T.zipWithIndex) match {
+		case (_, Nil) => (0, stop)
+		case (Nil, _) => (0, stop)
+		case (Si::Sr, Tj::Tr) =>
+			val nw = SWat(Sr,Tr);
+			val n  = SWat(Sr,T);
+			val w  = SWat(S,Tr);
+			val cols_rows = 
+			val c = cost(Si,Tj);
+
+			if (nw._1+c>=max(n,w)-d) then (nw._1+c,"NW",[Si,Tj])
+			else if (n>=w) then (n._1-d, "N",[Si,_])
+			else (w._1-d, "W",[_,Tj])
+	}
+
+	backtrack(DP(S0,S0))
+}
+
+- Char, Score, Backtrack, Output are LMS Rep objects so that we can easily detect
+  when we need to use dynamic programming.
+- backtrack() is a new function that take the Backtrack information and reconstruct
+  the desired output backwards
+
+We would unfold this program into two:
+1. The dynamic programming that constructs all the solution and that is the core of the algorithm
+2. The backtrack function that reconstruct the solution and can be run anywhere (Java, CPU, ...)
+
+
+URLs.txt
+------------------------------------
+Some GPU algorithms:
+http://hgpu.org/?cat=11
+
+CUDPP libraries (but awfully big resulting binary):
+http://code.google.com/p/cudpp/
+
+13 dwarfs:
+http://developer.amd.com/afds/assets/presentations/2155_final.pdf
+
+
+http://tutorials.jenkov.com/java-reflection/fields.html
+http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
+
+XXX: use TypeClass to put a predicate on types
+--------------------------------------------
+
+def fun[T: CanTranslateToC](...)
+def fun[T](implicit ev:CanTranslateToC[T])
+
+class CanTranslateToC[T] {
+  def translate:String
+}
+
+implicit def canTranslateInt = new CanTranslateToC[Int] = {
+  def translate = "Int"
+}
+
+\end{verbatim}
+
+% ------------------------------------------------------------------------------------------------
+\newpage
+\bibliographystyle{finplain}
 \bibliography{bibliography.bib}
 \end{document}

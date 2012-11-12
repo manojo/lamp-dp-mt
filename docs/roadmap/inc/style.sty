@@ -1,0 +1,100 @@
+\usepackage{amssymb,amsmath,amsthm,hyperref,verbatim,pict2e,graphicx,array,listings,appendix,color}
+\usepackage{algorithm,algorithmic,booktabs,marvosym,wrapfig,xytree,multicol,multirow,arydshln,nameref}
+\hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black
+	%pdfborderstyle={/S/U/W 1},urlbordercolor=1 0 0,linkbordercolor=.5 1 1, citebordercolor=.5 1 1
+}
+\usepackage[usenames]{xcolor} % color names ,dvipsnames,svgnames,table
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+
+% margins
+\pagestyle{headings}
+\oddsidemargin 0.0cm
+\evensidemargin 0.0cm
+\topmargin 0.0cm
+\headheight 0.0cm
+\headsep 1.0cm
+\textheight 22.0cm
+\textwidth 16.0cm
+\parskip 0.1cm
+\parindent 0.0cm
+\footskip 1.0cm
+
+% compact titles
+\usepackage[compact]{titlesec}
+\titlespacing{\section}{0pt}{8pt}{0pt}
+\titlespacing{\subsection}{0pt}{8pt}{0pt}
+\titlespacing{\subsubsection}{0pt}{8pt}{0pt}
+
+% compact lists
+\usepackage{enumitem}
+\setitemize{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
+\setenumerate{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
+\def\ul{\begin{itemize}}
+\def\ule{\end{itemize}}
+\def\ol{\begin{enumerate}}
+\def\ole{\end{enumerate}}
+
+\def\up#1{\textsuperscript{#1}}
+
+% listings
+\definecolor{dkpink}{RGB}{200,0,100}
+\definecolor{gray}{RGB}{128,128,128}
+\lstset{
+	xleftmargin=20pt,
+	numberstyle=\tiny,stepnumber=1,numbersep=5pt,
+	showstringspaces=true,         % underline spaces within strings
+	tabsize=2,                      % sets default tabsize to 2 spaces
+	captionpos=t,                   % sets the caption-position to bottom
+	breaklines=true,                % sets automatic line breaking
+	breakatwhitespace=true, % sets if automatic breaks should only happen at whitespace
+	title=\lstname, % show the filename of files included with \lstinputlisting; also try caption instead of title
+	basicstyle=\small\tt,keywordstyle=\color{blue},commentstyle=\color{gray},stringstyle=\color{dkpink}
+}
+% define Scala syntax
+\lstdefinelanguage{Scala}{
+	morekeywords={abstract,case,catch,class,def,do,else,extends,false,final,finally,for,if,implicit,import,%
+	match,mixin,new,null,object,override,package,	private,protected,requires,return,sealed,super,this,%
+	throw,trait,true,try,type,val,var,while,with,yield},
+	otherkeywords={=>,<-,<\%,<:,>:,\#,@},sensitive=true,
+	morecomment=[l]{//},	morecomment=[n]{/*}{*/},
+	morestring=[b]",morestring=[b]',morestring=[b]"""
+}
+
+% title page
+\makeatletter
+\gdef\@subtitle{}\def\subtitle#1{\gdef\@subtitle{#1}}
+\def\my@heading{
+\def\ps@headings{\let\@mkboth\markboth
+	\def\@evenhead{\small \rightmark \hfill \textit{\@title}, p.~\thepage}
+	\def\@oddhead{\@evenhead}}\pagestyle{headings}}
+\renewcommand{\maketitle}{
+	%\begin{titlepage}
+	\setcounter{page}{0}\thispagestyle{empty}
+	{\centering\null\vfill\includegraphics[width=5.5cm]{inc/logo_epfl.pdf} % EPFL logo
+	\vspace{1.5cm}\hrule \vspace{2.5cm} {\LARGE \@title \par} {\large \emph \@subtitle \par}
+	\vspace{2.75cm} {\Large \@author \par}
+	\vspace{5.5cm} {\large School of Computer and Communication Sciences, EPFL \par}
+	\vspace{1.0cm} {\@date \par} % date
+	\vfill\null\par}\my@heading
+	\newpage
+	%\end{titlepage}
+}
+\newcommand{\shorttitle}{
+	\thispagestyle{empty}
+	\hfill \includegraphics[width=3cm]{inc/logo_epfl}\vspace{.1cm} % EPFL logo
+	\begin{center} {\LARGE \@title} \\ \vspace{.1cm} {\large \textit{\@subtitle}} \\ \rule[1ex]{350pt}{.5pt} \\
+	\@author \\ {\small School of Computer and Communication Sciences, EPFL} \vspace{.2cm} \\{\small \@date}
+	\end{center} \vspace{.5cm}\my@heading
+}
+\makeatother
+
+% appendix
+\makeatletter
+\let\origappendix\appendix
+\renewcommand\appendix{\clearpage\pagenumbering{Roman}\origappendix\section*{\appendixname}\lstset{frame=tb,numbers=left}}
+\makeatother
+
+% default
+\author{\href{mailto:thierry.coppey@epfl.ch}{Thierry Coppey}, \href{mailto:manohar.jonnalagedda@epfl.ch}{Manohar Jonnalagedda}, \href{mailto:nithin.george@epfl.ch}{Nithin George} }
