@@ -1,17 +1,11 @@
-%\input{style.sty}
-
-%\title{Benchmarks}
-%\begin{document}
-%\maketitle
-%\pagestyle{headings}
-
 \newpage
 \section{Benchmarks}
-
-The goal of this document is to see how we are comparing with other papers in terms of performance and to note performance progress of the improvements.
+% --------------------------------------------------------------------------------
+\subsection{Related work}
+The goal of this section is to see how we are comparing with other papers in terms of performance and to note performance progress of the improvements.
 
 % --------------------------------------------------------------------------------
-\subsection*{Graphic cards\footnote{Source: \url{http://en.wikipedia.org/wiki/Comparison_of_Nvidia_graphics_processing_units}}}
+\subsubsection*{Graphic cards\footnote{Source: \url{http://en.wikipedia.org/wiki/Comparison_of_Nvidia_graphics_processing_units}}}
 \def\unt#1{& \footnotesize #1}
 \begin{center}\begin{tabular}{lrrrr} \toprule
 \bf Paper		&				& \bf -- 		& \bf  ATLP\cite{gpu_atlp} & \bf SWMB\cite{swat_mega} \\ \midrule
@@ -31,15 +25,15 @@ Processing power \unt{GFLOPS}	&564.5		& 622.08	& 1263.4 \\ \midrule
 \end{tabular}\end{center}
 
 % --------------------------------------------------------------------------------
-\subsection*{Results}
-\subsubsection*{ATLP\cite{gpu_atlp}}
+\subsubsection*{Results}
+\textbf{ATLP\cite{gpu_atlp}}
 \begin{center}\begin{tabular}{lrrrrrrrrrr} \toprule
 \bf Matrix size & 128 & 256 & 512 & 1024 & 1536 & 2048 & 2560 & 3072 & 3584 & 4096 \\ \midrule
 \bf No split & 0.07 & 0.09 & 0.19 & 0.59 & 1.27 & 2.25 & 3.51 & 5.07 & 6.92 & 9.06 \\
 \bf Split at 1 & 0.06 & 0.07 & 0.08 & 0.14 & 0.26 & 0.47 & 0.77 & 1.21 & 1.80 & 2.57 \\ \bottomrule
 \end{tabular} \\[4pt] Matrix multiplication timing in seconds \end{center}
 
-\subsubsection*{SWMB\cite{swat_mega}}
+\textbf{SWMB\cite{swat_mega}}
 \begin{center}\begin{tabular}{rlrr} \toprule
 \bf Matrix size & \bf Sequences & \bf No pruning & \bf Pruning \\ \midrule
 162K $\times$ 172K		& NC\_000898.1, NC\_007605.1	& 1.2 & 1.2 \\
@@ -54,6 +48,7 @@ Processing power \unt{GFLOPS}	&564.5		& 622.08	& 1263.4 \\ \midrule
 \end{tabular} \\[4pt] Smith-Waterman, timing in seconds \end{center}
 
 % --------------------------------------------------------------------------------
+\subsection{Results}
 \subsubsection*{Intermediate results}
 \begin{center}\begin{tabular}{cclrrr} \toprule
 \bf Matrix & \bf Block & \bf Comment & \bf R(s) & \bf T(s) & \bf P(s) \\ \midrule
@@ -99,4 +94,3 @@ As a conclusion, (1) we must remain away to invalidate their result as previous 
 \item Reducing the number of threads launched at different splits of the algorithm (especially in latest splits in rectangular and triangular shapes) does not bring any speedup. Even worse, it slows down slightly the computation. We might attribute this to a better constant transformation by the compiler. Hence, having many idle threads does not impede performance.
 \ule
 
-%\end{document}

@@ -8,13 +8,13 @@
 \shorttitle
 
 \subsection*{Abstract}
-Dynamic programming (solving a problem by leveraging subproblems solutions) is a common pattern used in various domains. Yet underlying matrix recurrences are non-trivial and error prone. Additionally, domain experts might not have the skills to make an efficient parallel implementation. In this paper, we leverage the Scala / LMS infrastructure to implement a domain specific language (DSL) for dynamic programming on heterogeneous platforms, which allows to write concise and efficient programs. Our contributions are: \ul
-\item Classification of dynamic programming problems, and generalization of their characteristics % shape, dependency graph
+Dynamic programming is a common pattern of Computer Science used in various domains. Yet underlying matrix recurrences might be difficult to express and error prone. Additionally, domain experts might not have the skills to make an efficient parallel implementation. In this paper, we leverage the Scala / LMS infrastructure to implement a domain specific language (DSL) for dynamic programming on heterogeneous platforms, which allows to write concise and efficient programs. Our contributions are: \ul
+\item Classification of DP problems characteristics (matrix shape, dependency graph, ...)
 \item State of the art parallel implementation of these classes on GPUs
-\item Grammar embedded in Scala (DSL) to express dynamic programming problems efficiently
+\item Grammar embedded in Scala (DSL) to express DP problems efficiently
 %\item Normalization of the grammar into efficient productions
-\item Code generator to transform a grammar into efficient code for CPU, GPU, and FPGA
 \item Systematic approach to generate and process backtracking information
+\item Code generator to transform a grammar into efficient code for CPU, GPU and FPGA
 \ule
 
 \pagestyle{headings}
@@ -24,43 +24,65 @@ Dynamic programming (solving a problem by leveraging subproblems solutions) is a
 \newpage
 \section{Introduction}
 \subsection{Dynamic programming}
+Dynamic programming consists of solving a problem by reusing subproblems solutions. The most famous example of dynamic programming is the Fibonacci series that is defined as 
+\[F(n+1) = F(n)+F(n-1) \qquad \text{ with } F(0)=F(1)=1 \]
+
+A typical characteristic of dynamic programming is that a subproblem solution is often reused multiple time, so it is often efficient to store intermediate results in a table to speed-up computation of larger problems.
+
+There exist various categories of dynamic programming:\ul
+\item Series, knapsack : that operates usually on a single dimension
+\item Sequences alignment (matching two sequences at best), top-down grammar analysis, ...
+\item Tree-related algorithms: phylogenetic trees raking, maximum tree independent set, ... 
+\ule
+
+Since the first category is inherently sequential and the third category is hard to parallelize efficiently, we focus on the second type of problems, which is also the most common.
+
+{\color{red}
+parallel tree-raking, does not share much with other algorithms (sparse version of computations, might not scale efficiently). Most common patterns are already enclosed by the above problems. Real input size is around 300K. We might want to also look at an $O(n^3)$-space-complex problem (like matching 3 strings $S,T,U$).
+
+All the problems we consider use 2D storage matrix, their dependencies are an union of: \ul
+\item Serial dependencies
+\item Non-serial horizontal or vertical dependencies (1D non-serial)
+\item Non-serial horizontal+vertical dependencies in the form $M_{(i,j)} = {\rm op}_k f ( M_{(i,k)}, M_{(k,j)} ) $
+\item We have not found other type of dependencies in the literature
+\ule}
+
+
 \subsection{Scala and LMS}
 
 % ------------------------------------------------------------------------------------------------
 \input{problems}
+\input{design}
+\input{implementation}
 \input{benchmarks}
+\section{Future work}
+\section{Conclusion}
 
 % ------------------------------------------------------------------------------------------------
 \newpage
 \section{Planning/draft}
 \subsubsection*{Roadmap}
-\begin{verbatim}
-2.11 Come with an IR prototype: data structures and nodes
-9.11 GenScala on LMS, JNI working for arbitrary types
-16.11 GenCuda + LMS CudaCompiler
-23.11 Problem generalization: "cyclic keyword", Zucker problem / CudaLoop optimization
-30.11-- Gap due to LMS missing knowledge
- 7.12 Benchmarking, grammar analysis
-14.12
-21.12
-28.12 --- holiday ---
- 4.01 --- holiday ---
-11.01 Writing report: implementation description and plan for future work
-18.01 Writing report
-\end{verbatim}
+\begin{tabular}{rl}
+16.11 & Rules normalization and automatic backtracking as in 5.2 \\
+	& GenScala on LMS + GenCuda + LMS CudaCompiler \\
+23.11 & Problem generalization: "cyclic keyword", Zucker problem / CudaLoop optimization \\
+30.11 &--- Gap due to LMS missing knowledge \\
+7.12 & Benchmarking, grammar analysis \\
+14.12 & \\
+21.12 & \\
+28.12 & --- holiday --- \\
+ 4.01 & --- holiday --- \\
+11.01 & Writing report: implementation description and plan for future work \\
+18.01 & Writing report
+\end{tabular}
 
 \subsubsection*{Todo @TCK}
 \begin{verbatim}
-4. Propose an IR and code generators related to
-Note. We only need to generate code directly for CUDA, no interaction. Look at string templating .
-"""xxx $var xxx"""
-- Fork LMS on GitHub and cleanup the CUDA generator
+Look at string templating. """xxx $var xxx"""
+- Cleanup LMS CUDA generator
 - CPU+GPU implementation for serial (NS?) problems larger than device memory
-- optimizations for in-memory computations
 
-1. restriction vs ADP: we give only the best answer, do we care about semi-optimal ones?
 2. separate initialization (base cases, atoms) and processing (rules, recurrences) => less cases to handle (no if)
-3. use sub-cell parallelism (seen in 2 papers already) => does not improve
 
 Plan:
 We need to extend the language to support all 3 cases
@@ -88,15 +110,6 @@ XXX: how to encode multi-dimensional matrices
 \end{verbatim}
 
 \subsection*{Plan} \ol
-\item {\color{gray}
-\textbf{Problems description:} parallel tree-raking, does not share much with other algorithms (sparse version of computations, might not scale efficiently). Most common patterns are already enclosed by the above problems. Real input size is around 300K. We might want to also look at an $O(n^3)$-space-complex problem (like matching 3 strings $S,T,U$).}
-
-All the problems we consider use 2D storage matrix, their dependencies are an union of: \ul
-\item Serial dependencies
-\item Non-serial horizontal or vertical dependencies (1D non-serial)
-\item Non-serial horizontal+vertical dependencies in the form $M_{(i,j)} = {\rm op}_k f ( M_{(i,k)}, M_{(k,j)} ) $
-\item We have not found other type of dependencies in the literature
-\ule
 
 \item \textbf{User facing language:} goals are flexibility and compactness.\ul
 	\item User-facing language should be similar to related paper \cite{adp_gpu} or \href{http://hackage.haskell.org/package/ADPfusion}{\it ADP fusion}. We want to reuse the transformation mapping (problem description) $\mapsto$ (kernel implementation) for a single element.
@@ -183,12 +196,9 @@ To be most efficient, we need to get exact bit-sizes of
 
 => we might want to parallelize processing within a thread that operate on 32 or 64 bit inputs (to reduce memory accesses)
 
-
-
 Some ideas:
 - define a way to pack the characters => less memory transfer (i.e. GATC=>4 letters in 1 char)
 - operate on some larger word (ex 64 bits) to increase thread locality and reduce memory accesses
-
 - write a kernel that takes stats from left and r
 
 		stats (x)
@@ -216,11 +226,9 @@ and compute the backtracking for its cell (optional as template boolean)
     left->right => block.x exchanges within block, last thread writes to
     global exchange memory (if short, so that it does not penalize running time)
   - we may go up to running in stripes
-
 - if we put in diagonal-major data in the memory, why not stream all chunks like
   that using a cyclic buffer (?) => no empty slot
   ==> this might be useful for the backtrack information
-
 
 - use extensively profiling : CUDA profiler
 
@@ -230,23 +238,24 @@ and compute the backtracking for its cell (optional as template boolean)
   => multiple swipes at different delays (so that we avoid syncing at every step
 
           s-->
-  	  +----------------/------------+
-	t | B1            /             |
-	| +------/-------/              | KERNEL1 (keep benefit of t in shared mem)
-	| | B2  /                       | delay between b1 and b2 can be 1% of line length
-	v +----/------------------------+
-	  |                             |
-	  |                             | KERNEL2
-	Memory organized as
-	b1 -  -
-	b1 b1 b1
-	b1 b1 b1
-	.. .. ..
-	b1 b1 b1
-	b2 b1 b1
-	b2 b2 b1
-	b2 b2 b2
-	.. .. ..
+  +----------------/------------+
+t | B1            /             |
+| +------/-------/              | KERNEL1 (keep benefit of t in shared mem)
+| | B2  /                       | delay between b1 and b2 can be 1% of line length
+v +----/------------------------+
+  |                             |
+  |                             | KERNEL2
+Memory organized as
+b1 -- --
+b1 b1 --
+b1 b1 b1
+b1 b1 b1
+.. .. ..
+b1 b1 b1
+b2 b1 b1
+b2 b2 b1
+b2 b2 b2
+.. .. ..
 
 For stats (aggregation of the table): we need to maintain both an horizontal and vertical front
 For backtracking we need to maintain the whole table
@@ -255,14 +264,8 @@ For backtracking we need to maintain the whole table
 	----+---+ sum    : Sum(D)=Sum(C)+Sum(B)-Sum(A)
 	..C | D | avg    : sum both #cells and values then divide at appropriate cell
 	----+---+
-
 we many not need to store what's the previous cell, however, the previous
 cell information (usually limited range) is much more compact than the score(32-64 bits)
-
-Memory usage of CPU:
-
-we can potentially extend the GPU's memory by storing some information in the CPU RAM, which in general is larger.
-For large sequences, this technique may apply to problems where one needs to access elements "all the way to the top" and aggregate them in a non trivial (max,min,sum,avg) way.
 
 Problem parameters:
 - bit size (alphabet,stats,cost,backtrack)
@@ -274,16 +277,7 @@ Problem parameters:
 
 user-interface.txt
 --------------------------------------
-This is how we would like to encode the DP programs into Scala DSL.
-
-I think the best would be to reuse most of the syntactic elements and write it
-as an uneducated programmer would write, apply annotations/additions on top of
-it or detect that it is DP and then converge to our system.
-
-We need to keep in mind that we need both to express the backtracking and the scoring at the same time
-
-
-Let's build some examples
+Reuse most of the syntactic elements and write it as uneducated programmer, apply annotations/additions on top of it or detect that it is DP and then converge to our system.
 
 Smith-Waterman (from problems of interest)
 --------------------------------------------
@@ -322,27 +316,6 @@ def SWat(S0: List[Char], T0:List[Char]) : List[Pair[Char,Char]] = {
 	backtrack(DP(S0,T0))
 }
 
-def Nussinov(S0: List[Char]) : List[Pair[Char,Char]] = {
-	def cost(s: Char, t: Char) = if (s==t) 2 else 1 // example cost function
-
-	def DP(S: List[Char], T:List[Char]): [Score,Backtrack,Output[Pair[Char,Char]] = (S.zipWithIndex,T.zipWithIndex) match {
-		case (_, Nil) => (0, stop)
-		case (Nil, _) => (0, stop)
-		case (Si::Sr, Tj::Tr) =>
-			val nw = SWat(Sr,Tr);
-			val n  = SWat(Sr,T);
-			val w  = SWat(S,Tr);
-			val cols_rows = 
-			val c = cost(Si,Tj);
-
-			if (nw._1+c>=max(n,w)-d) then (nw._1+c,"NW",[Si,Tj])
-			else if (n>=w) then (n._1-d, "N",[Si,_])
-			else (w._1-d, "W",[_,Tj])
-	}
-
-	backtrack(DP(S0,S0))
-}
-
 - Char, Score, Backtrack, Output are LMS Rep objects so that we can easily detect
   when we need to use dynamic programming.
 - backtrack() is a new function that take the Backtrack information and reconstruct
@@ -351,7 +324,6 @@ def Nussinov(S0: List[Char]) : List[Pair[Char,Char]] = {
 We would unfold this program into two:
 1. The dynamic programming that constructs all the solution and that is the core of the algorithm
 2. The backtrack function that reconstruct the solution and can be run anywhere (Java, CPU, ...)
-
 
 URLs.txt
 ------------------------------------
@@ -364,24 +336,16 @@ http://code.google.com/p/cudpp/
 13 dwarfs:
 http://developer.amd.com/afds/assets/presentations/2155_final.pdf
 
-
 http://tutorials.jenkov.com/java-reflection/fields.html
 http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
 
 XXX: use TypeClass to put a predicate on types
 --------------------------------------------
-
 def fun[T: CanTranslateToC](...)
 def fun[T](implicit ev:CanTranslateToC[T])
 
-class CanTranslateToC[T] {
-  def translate:String
-}
-
-implicit def canTranslateInt = new CanTranslateToC[Int] = {
-  def translate = "Int"
-}
-
+class CanTranslateToC[T] { def translate:String }
+implicit def canTranslateInt = new CanTranslateToC[Int] = { def translate = "Int" }
 \end{verbatim}
 
 % ------------------------------------------------------------------------------------------------
