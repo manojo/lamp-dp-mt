@@ -5,14 +5,18 @@ trait Signature {
   type Answer   // output type
 
   def h(l: List[Answer]) : List[Answer]
+  val cyclic = false
 }
 
 trait ADPParsers { this:Signature =>
+
   type Subword = (Int, Int)
   type Input = Array[Alphabet]
 
   // Input is a "global" value, used during the whole running time of algorithm
   def input: Input
+
+  def in(k:Int) = input(k % input.size) // to deal with cyclic
 
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
@@ -23,6 +27,9 @@ trait ADPParsers { this:Signature =>
     rules += ((name,this))
 
     def apply(sw: Subword) = sw match {
+      case (i,j) if(i <= j && cyclic) =>
+        val sw2 = (i%input.size, j%input.size)
+        map.getOrElseUpdate(sw2, inner(sw))
       case (i,j) if(i <= j) => map.getOrElseUpdate(sw, inner(sw))
       case _ => List()
     }
@@ -99,6 +106,17 @@ trait ADPParsers { this:Signature =>
       //def tree = PFilter(p, inner.tree)
     }
   }
+
+  def parse(p:Parser[Answer]):List[Answer] = {
+    if (cyclic) {
+      h( ((0 until input.size).flatMap{ x => p(x,input.size+x) }).toList )
+    } else {
+      p(0,input.size)
+    }
+  }
+
+  //def elems(k:Int) = new Parser[List[Alphabet]] {}
+  //def elem:Parser[Alphabet] = elem(1).head
 }
 
 trait LexicalParsers extends ADPParsers { this:Signature =>
@@ -106,10 +124,18 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
 
   def char = new Parser[Char] {
     def apply(sw:Subword) = sw match {
-      case (i, j) if(j == i+1) => List(input(i))
+      case (i, j) if(j == i+1) => List(in(i))
       case _ => List()
     }
     //def tree = new PTerminal((i:Var,j:Var) => (List(i.e(j,1)),"Char["+i+"]"))
+  }
+
+  // same as a char but returns its index instead
+  def chari = new Parser[Int] {
+    def apply(sw:Subword) = sw match {
+      case (i, j) if(j == i+1) => List(i)
+      case _ => List()
+    }
   }
 
   def charf(f: Char => Boolean) = char filter {

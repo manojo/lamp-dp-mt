@@ -25,7 +25,6 @@ object HelloADP extends LexicalParsers with BracketsAlgebra {
     case(i,j) => input(i) == '(' && input(j-1) == ')'
   }
 
-  val dummyParser = digitParser | digitParser
   val myParser: Parser[Int] = tabulate("M",
       digitParser
     | (char -~~ myParser ~~- char).filter(areBrackets _).^^{ case (c1,(i,c2)) => i}

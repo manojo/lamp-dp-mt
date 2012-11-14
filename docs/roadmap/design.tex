@@ -35,6 +35,10 @@ We define the aggregate function h as $List[T]\to List[T]$ and a special string 
 What about the other way round for aggregation: instead of specifying List[U]->List[T] specify comparator of T and a k to keep the k bests(?)
 
 XXX: can we get rid of the "tabulate" by using the function name and saying that all rules are tabulated ?
+
+
+IS CYCLIC EQUIVALENT TO WINDOWING ??
+No: in cyclic we compute 2 triangles, in windowing we compute 3 (no reuse) => make graph to make this explicit
 }
 
 % ------------------------------------------------------------------------------------------------
