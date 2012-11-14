@@ -2,9 +2,8 @@ package v2.examples
 
 import v2._
 
-/**
- * Matrix multiplication
- */
+/*
+// Matrix multiplication
 trait MatrixSig extends Signature {
   case class Add(l: Answer, c: Alphabet, r: Answer)
   case class Mul(l: Answer, c: Alphabet, r: Answer)
@@ -91,3 +90,4 @@ object MatrixMult extends MatrixGrammar with App {
   println(matrixGrammar(0,input.length))
   //println(gen)
 }
+*/

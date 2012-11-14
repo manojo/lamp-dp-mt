@@ -2,9 +2,8 @@ package v2.examples
 
 import v2._
 
-/**
- * El Mamoun's "oldest" DP problem
- */
+/*
+// El Mamoun's "oldest" DP problem
 trait Bill extends Signature {
   case class Add(l: Answer, c: Alphabet, r: Answer)
   case class Mul(l: Answer, c: Alphabet, r: Answer)
@@ -58,3 +57,4 @@ object ElMamun extends BillGrammar with App {
   println(billGrammar(0,input.length))
   //println(gen)
 }
+*/

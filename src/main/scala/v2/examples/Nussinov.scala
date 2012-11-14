@@ -2,9 +2,9 @@ package v2.examples
 
 import v2._
 
-/**
- * Matrix multiplication
- */
+/*
+
+// Nussinov
 trait PairingSig extends Signature {
   case class Dummy()
 
@@ -100,3 +100,4 @@ object Nussinov extends NussinovGrammar with App {
   println(s(0,input.length))
   //println(gen)
 }
+*/
