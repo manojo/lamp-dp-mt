@@ -40,7 +40,7 @@ trait SellerAlgebra extends Bill {
   def z = 0
 }
 
-trait BillGrammar extends LexicalParsers with SellerAlgebra {
+trait BillGrammar extends LexicalParsers with SellerAlgebra with CodeGen{
   def plus = charf(_ == '+')
   def times = charf(_ == '*')
 
