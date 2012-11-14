@@ -1,8 +1,9 @@
 \newpage
-\section{Dynamic programming problems}
+\section{Dynamic programming problems} \label{problems}
 % ------------------------------------------------------------------------------------------------
 \subsection{Problems classification}
 \subsubsection{Definitions}\ul
+\item \textbf{Alphabets:} the alphabet represent an enumeration of the possible values. Their size helps determining how many bits are required in the implementation to store the values. Alphabets must be defined for input, wavefront, cost and backtrack.
 \item \textbf{Dimensions:} let $n$ the size of the input and $d$ the dimension of the underlying matrix.
 \item \textbf{Matrices:} we refer indifferently by the matrix or the matrices to all the intermediate cost- and backtrack-related informations that are necessary to solve the dynamic programming problem of interest. Matrices elements are usually denoted by $M_{(i,j)}$ ($i^{\rm th}$ line , $j^{\rm th}$ column).
 \item \textbf{Computation block:} this is a part of the DP matrix (cost and or backtrack) that we want to compute. A block might be either a sub-matrix (rectangular) or a parallelogram, possibly cropped at its parent matrix boundaries.
@@ -382,7 +383,7 @@ In practice, we don't go backward for larger values than 30, so we can replace $
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Related problems}
-The goal of this section is to demonstrate that our framework can accommodate with many {\color{red} (20-50)} problems that we have not considered at the design time.
+The goal of this section is to demonstrate that our framework can accommodate with many problems that we have not considered at the design time.
 
 \subsubsection{Serial problems}
 \begin{tabular}{llcc} \toprule
@@ -417,9 +418,11 @@ Zuker folding & triangle & \color{red} 3? & \color{red} 0? \\
 \item \href{http://www.cs.ust.hk/mjg_lib/bibs/DPSu/DPSu.Files/KnPl81.PDF}{Knuth's word wrapping}: 1D non-serial
 \item \href{http://en.wikipedia.org/wiki/Longest_increasing_subsequence#Efficient_algorithms}{Longest increasing subsequence}: serial but binary search algorithm more efficient: $O(n \log n)$.
 \item \href{http://www.ccs.neu.edu/home/jaa/CSG713.04F/Information/Handouts/dyn_prog.pdf}{Coin Change}: 1D non-serial
+\ule
 
-
-{\color{red}
+ {\color{red}
+XXX: Fill up to 20-50 related problems to see how general we are
+\ul
 \item \href{http://en.wikipedia.org/wiki/Floyd-Warshall_algorithm}{Floyd-Warshall}: <it possible to move the $k$ external loop inside?> Serial with $n$ iterations
 \item \href{http://en.wikipedia.org/wiki/Viterbi_algorithm}{Viterbi \footnotesize (hidden Markov models)}: $T$ non-serial iterations over a vector
 \item \href{http://en.wikipedia.org/wiki/Bellman-Ford_algorithm}{Bellman-Ford} (finding the shortest distance in a graph)
@@ -429,7 +432,6 @@ Zuker folding & triangle & \color{red} 3? & \color{red} 0? \\
 \item Structural alignment (MAMMOTH, SSAP), \href{http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi}{RNA structure prediction}.
 \item \href{http://en.wikipedia.org/wiki/Recursive_least_squares_filter}{Recursive least squares}
 \item \href{http://www.math.utep.edu/Faculty/pmdelgado2/courses/adv_algorithms/homework-08_anser.pdf}{Bitonic tour}
-}
 \ule
 
 \begin{verbatim}
@@ -472,3 +474,4 @@ Zuker folding & triangle & \color{red} 3? & \color{red} 0? \\
 - 0-1 Knapsack
 =====> http://www.cs.ucsb.edu/~suri/cs130b/NewDynProg.pdf
 \end{verbatim}
+}

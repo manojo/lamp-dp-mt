@@ -20,58 +20,33 @@ Dynamic programming is a common pattern of Computer Science used in various doma
 \pagestyle{headings}
 \setcounter{tocdepth}{2} \tableofcontents
 
-% ------------------------------------------------------------------------------------------------
-\newpage
-\section{Introduction}
-\subsection{Dynamic programming}
-Dynamic programming consists of solving a problem by reusing subproblems solutions. The most famous example of dynamic programming is the Fibonacci series that is defined as 
-\[F(n+1) = F(n)+F(n-1) \qquad \text{ with } F(0)=F(1)=1 \]
-
-A typical characteristic of dynamic programming is that a subproblem solution is often reused multiple time, so it is often efficient to store intermediate results in a table to speed-up computation of larger problems.
-
-There exist various categories of dynamic programming:\ul
-\item Series, knapsack : that operates usually on a single dimension
-\item Sequences alignment (matching two sequences at best), top-down grammar analysis, ...
-\item Tree-related algorithms: phylogenetic trees raking, maximum tree independent set, ... 
-\ule
-
-Since the first category is inherently sequential and the third category is hard to parallelize efficiently, we focus on the second type of problems, which is also the most common.
-
-{\color{red}
-parallel tree-raking, does not share much with other algorithms (sparse version of computations, might not scale efficiently). Most common patterns are already enclosed by the above problems. Real input size is around 300K. We might want to also look at an $O(n^3)$-space-complex problem (like matching 3 strings $S,T,U$).
-
-All the problems we consider use 2D storage matrix, their dependencies are an union of: \ul
-\item Serial dependencies
-\item Non-serial horizontal or vertical dependencies (1D non-serial)
-\item Non-serial horizontal+vertical dependencies in the form $M_{(i,j)} = {\rm op}_k f ( M_{(i,k)}, M_{(k,j)} ) $
-\item We have not found other type of dependencies in the literature
-\ule}
-
-
-\subsection{Scala and LMS}
-
-% ------------------------------------------------------------------------------------------------
+\input{introduction}
 \input{problems}
 \input{design}
 \input{implementation}
 \input{benchmarks}
-\section{Future work}
+\section{Future work} \ul
+\item Serial for problems larger than memory, use hybrid (Myers and Miller's algorithm with $\log_k$ with $k$ depending on available memory) approach depending available memory
+\item Annotation on recursive functions to use dynamic programming like \\
+	{\tt @DynaProg def Fib(n:Int) = if (n<=2) return 1 else Fib(n-1)+Fib(n-2)}.
+\ule
+
 \section{Conclusion}
 
 % ------------------------------------------------------------------------------------------------
 \newpage
-\section{Planning/draft}
-\subsubsection*{Steps}\ul
+\section{Planning --- Work in progress}
+\subsubsection*{Steps}\ol
 \item Re-implement vanilla combinators with lists
 \item Add following problems and features:\ul
-	\item Polygon triangulation (cyclic problem)
-	\item SWat with arbitrary gap (multi-track grammar)
+	\item Polygon triangulation (cyclic problem) (parallelogram matrix)
+	\item SWat with arbitrary gap (multi-track grammar) (rectangular matrix)
 	\item Zucker (rules of different complexity $O(n^2) / O(n)$)
 	\item Rules normalization
 	\item Rules dependency
 	\item Automatic backtracking
 	\ule
-\item Test / proof that parsers are correct
+\item Test/proof parsers are correct --- make sure implementation is correct
 \item Automate test to compare against implementation
 \item Build bottom-up vanilla version\ul
 	\item Separate initialization (terminals) and non-terminals (speed up?)
@@ -81,12 +56,9 @@ All the problems we consider use 2D storage matrix, their dependencies are an un
 	\item Re-implement bottom-up vanilla into LMS
 	\item Re-implement CUDA version and use functions body to infer CUDA code
 	\ule
+\item Benchmarks --- compare also versus other papers.
 \item Write report
-\item Further work\ul
-	\item Serial for problems larger than memory, use hybrid (Myers and Miller's algorithm with $\log_k$ with $k$ depending on available memory) approach depending available memory
-	\item 
-	\ule
-\ule
+\ole
 
 \subsubsection*{Roadmap}
 \begin{tabular}{rl}
@@ -104,25 +76,12 @@ All the problems we consider use 2D storage matrix, their dependencies are an un
 \end{tabular}
 
 \subsubsection*{Todo @TCK}
+\subsubsection*{Todo @Manohar}
 \begin{verbatim}
 Look at string templating. """xxx $var xxx"""
 - Cleanup LMS CUDA generator
-- CPU+GPU implementation for serial (NS?) problems larger than device memory
 
-2. separate initialization (base cases, atoms) and processing (rules, recurrences) => less cases to handle (no if)
-
-Plan:
-We need to extend the language to support all 3 cases
-- Parallelogram is triangular + cyclic => add a cyclic keyword that applies to the whole problem
-- Square: what is the transform being done in ADP extension?
-
-1. optimize: terminals of bounded yield + binary decomposition if possible
-2. transform into: axioms (init/fixed) + rules (iterations)
-3. transform to code
-     axiom(i := k(i)) -> M[i,i]=k(i)
-     rule(x~y := h(x,y)) -> M[i,j]=forall_i<k<j h(M[i,k],M[k,j]) for both unbounded yield
-     rule(x~y_l := h(x,y)) -> M[i,j]=forall_j-l<k<j h(M[i,k],M[k,j]) for y bounded by l
-     rule(x~y_l := h(x,y)) -> M[i,j]=h(M[i,j-l],M[j-l,j]) for y of exactly l
+Separate initialization (base cases, atoms) and processing (rules, recurrences) => less cases to handle (no if)
 
 XXX: how to encode multi-dimensional matrices
 1. assume they have the same type put one after another => different dimensions ok
@@ -130,74 +89,16 @@ XXX: how to encode multi-dimensional matrices
 => but using different pointers seems more reliable => completely different matrices => fixed list of matrices by dimensionality (O(1), O(n), O(n^2), ...) of structs (determined by number of indices to access object)
 \end{verbatim}
 
-\subsubsection*{Todo @Manohar}
-\begin{verbatim}
-- generate chain matrix recurrences to generate implementation
-- more theory behind what we want to support, how we encompass all cases, ...
-\end{verbatim}
-
-\subsection*{Plan} \ol
-
-\item \textbf{User facing language:} goals are flexibility and compactness.\ul
-	\item User-facing language should be similar to related paper \cite{adp_gpu} or \href{http://hackage.haskell.org/package/ADPfusion}{\it ADP fusion}. We want to reuse the transformation mapping (problem description) $\mapsto$ (kernel implementation) for a single element.
-	\item We also may want to try to make implicit transformation for code like \\
-		{\tt @DP def Fib(n:Int) = if (n<=2) return 1 else Fib(n-1)+Fib(n-2)}.
-	\item Windowing: the user should be able to force a windowing (i.e. force a non-serial problem to be a $k$-polyadic serial problem).	
-	\item 3 different cases: we care about backtrack cost or both.
-	\item Backtracking: create an operator that produces the whole backtrack sequence indices.
-	\ule
-
-$\implies$ \emph{end of October}.
-
-\item \textbf{Prototyping:} get a prototype to understand difficulties and share common base. \\ Implement a working prototype of \nameref{aswat} on CPU (for correctness), and specific platform (CUDA/FPGA). This will give us an idea of how to implement the general case. We also need to benchmark and compare both implementations to see how we compare to existing implementations and see the direction to take (which decide is faster and by how much). Here we aim to do as good an implementation for the specific platform (CPU/GPA) as possible.\\
-$\implies$ \emph{end of October}.
-
-\item \textbf{Baseline:} Also use benchmarks provided by existing implementations as baselines.\\
-$\implies$ \emph{end of October}.
-
+\subsection*{OldPlan} \ol
+\item \textbf{User facing language:} similar to \cite{adp_gpu} or \cite{adp_fusion} \href{http://hackage.haskell.org/package/ADPfusion}{\it ADP fusion}. We want to reuse the transformation mapping (problem description) $\mapsto$ (kernel implementation) for a single element.
+\item \textbf{Prototyping:} understand difficulties and share common base. Prototype of \nameref{aswat} on CUDA/FPGA. Give an idea of how to implement the general case. Benchmark and compare both implementations. Aim to do as good an implementation for the specific platform (CPU/GPA) as possible.
 \item \textbf{Formalize IR:} describe the intermediate representation, formalize the framework provided to the code generators (i.e. memory management, ...).
 \item \textbf{Full compiler stack:} enrich the compiler stack from both top-down (translate best user-facing language parsers) and bottom-up (parametric code generators), core of the work.
-\item \textbf{Benchmark:} make sure implementations are correct, compare them other papers.
-\item \textbf{Optimizations:} improve as much as possible / as long as time permits
 \ole
 
-
 \begin{verbatim}
-ideas.txt
----------------------------------------------------
-Plan:
-1. Define the main problem in focus and its class
-   - Dimension
-   - Serial/non-serial
-   - Monadic/polyadic
-2. Define some other problems that belong to this class or simpler classes
-3. See the feasibility for FPGA (possibly helped by CPU)
-4. Implement this algorithm in both CUDA and FPGA
-   -> specify all parameters so that we can compare both implementations
-5. Find a common IR for the problems
-6. Write a code generator for both architectures from IR
-   -> make sure all the test-DP are compiled well from IR
-7. Find an expressive and compact language for the user-facing representation
-
-Translation into C++:
-http://bibiserv.cebitec.uni-bielefeld.de/macports/resources/download/
-
-----------------------------------
-
-Ideas for the language:
-- we want maximum flexibility
-- backtrack can be custom, we may want just to give back indices
-- two problems: we care about cost and we care about whole backtrack.
-	@DP def Fib(n:Int) = if (n<=2) return 1 else Fib(n-1)+Fib(n-2)
-  should be translated into the more complete syntax that allows more flexibility
-  => get inspiration from papers to write an internal language
-
-- we may want to keep track of indices but we do not want to give access to the backtrack matrix / cost matrix
-
-Language side:
-- define a simple way to represent some DP programs
-- define a comprehensive way to define them => micro-syntax
-- define the mapping into IR (actually the IR might BE the micro-syntax)
+1. optimize: terminals of bounded yield + binary decomposition if possible
+2. transform into: axioms (init/fixed) + rules (iterations)
 - define optimizations to IR
   - making serializable by using aggregation functions/transformations
   - avoiding the cost matrix by moving it into the wavefront
@@ -206,7 +107,6 @@ Language side:
   - possibly choice to use which platform for what part (load/compute @ cpu/gpu/fpga)
 
 ----------------------------------
-
 Core function F:
 - in: s,t strings
 - in: neighbor costs: top, left, top+left
@@ -215,26 +115,20 @@ Core function F:
 - out: cost(i,j)
 - out: stats
 
-To be most efficient, we need to get exact bit-sizes of
-- strings' char
-- costs: min/max values
-- stats: min/max values
-- backtrack
-
-=> we might want to parallelize processing within a thread that operate on 32 or 64 bit inputs (to reduce memory accesses)
+we might want to pack into memory the matrix data and make threads operate on more than one cell.
 
 Some ideas:
 - define a way to pack the characters => less memory transfer (i.e. GATC=>4 letters in 1 char)
 - operate on some larger word (ex 64 bits) to increase thread locality and reduce memory accesses
 - write a kernel that takes stats from left and r
 
-		stats (x)
-		 ||
-		 vv
+        stats (x)
+         ||
+         vv
 stats -> KK -> new_stats (y')
-(y)		 || \
-		 vv  --+ backtrack info (Bxy)
-		 new_stats (x')
+(y)      || \
+         vv  --+ backtrack info (Bxy)
+     new_stats (x')
 
 and compute the backtracking for its cell (optional as template boolean)
 
@@ -286,83 +180,19 @@ b2 b2 b2
 
 For stats (aggregation of the table): we need to maintain both an horizontal and vertical front
 For backtracking we need to maintain the whole table
-     .. | . |
-	..A | B | min/max: Min(D)=Min(Min(C),Min(B))
-	----+---+ sum    : Sum(D)=Sum(C)+Sum(B)-Sum(A)
-	..C | D | avg    : sum both #cells and values then divide at appropriate cell
-	----+---+
+... | . |
+..A | B | min/max: Min(D)=Min(Min(C),Min(B))
+----+---+ sum    : Sum(D)=Sum(C)+Sum(B)-Sum(A)
+..C | D | avg    : sum both #cells and values then divide at appropriate cell
+----+---+
 we many not need to store what's the previous cell, however, the previous
 cell information (usually limited range) is much more compact than the score(32-64 bits)
 
-Problem parameters:
-- bit size (alphabet,stats,cost,backtrack)
-- dimensionality (2D,3D for the matrix)
-  - 3D problem example is Smith Waterman with arbitrary gap weight function.
-- Summarizability of the set: for computing the stats of an element, we can limit ourselves to computing values up to a certain value
-  -in SW with gap extending penalty, we can summarize easily.
-  -in Nussinov, we _need_ to access all the previous row-column elements for the pairwise sum (without a window limit).
-
-user-interface.txt
---------------------------------------
-Reuse most of the syntactic elements and write it as uneducated programmer, apply annotations/additions on top of it or detect that it is DP and then converge to our system.
-
-Smith-Waterman (from problems of interest)
---------------------------------------------
-
-trait SWOps {
-	type T
-	type Cost = Int
-	type Backtrack = (i,j) => Direction
-	def rightGap(_ :_, c:Char) : [Cost, Backtrack]
-}
-
-def myRec = {
-	def M[i,j] : Int = max {
-		M[i,j-1] + gapRight,
-		M[i-1, j] + gapLeft,
-		M[i-1,j-1] + delta(S(i),T(j))
-	}
-}
-
-def SWat(S0: List[Char], T0:List[Char]) : List[Pair[Char,Char]] = {
-	def cost(s: Char, t: Char) = if (s==t) 2 else 1 // example cost function
-
-	def DP(S: List[Char], T:List[Char]): [Score,Backtrack,Output[Pair[Char,Char]] = (S,T) match {
-		case (_, Nil) => (0, stop)
-		case (Nil, _) => (0, stop)
-		case Si::Sr, Tj::Tr) =>
-			val nw = SWat(Sr,Tr);
-			val n  = SWat(Sr,T);
-			val w  = SWat(S,Tr);
-			val c = cost(Si,Tj);
-
-			if (nw._1+c>=max(n,w)-d) then (nw._1+c,"NW",[Si,Tj])
-			else if (n>=w) then (n._1-d, "N",[Si,_])
-			else (w._1-d, "W",[_,Tj])
-	}
-	backtrack(DP(S0,T0))
-}
-
-- Char, Score, Backtrack, Output are LMS Rep objects so that we can easily detect
-  when we need to use dynamic programming.
-- backtrack() is a new function that take the Backtrack information and reconstruct
-  the desired output backwards
-
-We would unfold this program into two:
-1. The dynamic programming that constructs all the solution and that is the core of the algorithm
-2. The backtrack function that reconstruct the solution and can be run anywhere (Java, CPU, ...)
-
-URLs.txt
-------------------------------------
-Some GPU algorithms:
-http://hgpu.org/?cat=11
-
-CUDPP libraries (but awfully big resulting binary):
-http://code.google.com/p/cudpp/
-
-13 dwarfs:
-http://developer.amd.com/afds/assets/presentations/2155_final.pdf
-
+----------------------------------------------------------------------------
+Some GPU algorithms: http://hgpu.org/?cat=11
+Translation into C++: http://bibiserv.cebitec.uni-bielefeld.de/macports/resources/download/
+CUDPP libraries (but awfully big resulting binary): http://code.google.com/p/cudpp/
+13 dwarfs: http://developer.amd.com/afds/assets/presentations/2155_final.pdf
 http://tutorials.jenkov.com/java-reflection/fields.html
 http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
 

@@ -25,6 +25,7 @@ Since we construct the dependency tree bottom up, and since we need to work with
 \item \textbf{Dependency analysis:} a precise order between the rules application must be given. This is required as we use a bottom-up approach where all previous results must be computed versus a top-down approach with a table where a fallback to computation always exist if the desired element is not present.
 \ule
 
+{\color{red}
 Size analysis to know what storage size we require
 
 \textbf{=> have a pair of subwords for multiple sequences}
@@ -34,8 +35,7 @@ We define the aggregate function h as $List[T]\to List[T]$ and a special string 
 What about the other way round for aggregation: instead of specifying List[U]->List[T] specify comparator of T and a k to keep the k bests(?)
 
 XXX: can we get rid of the "tabulate" by using the function name and saying that all rules are tabulated ?
-
-
+}
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Parsing grammar (ADP)}
@@ -77,7 +77,7 @@ In short, we break parsers into normalized rules, the backtracking information i
 Assuming that the backtracking information is meant to guide further processing, we provide this information into a list constructed bottom-up: it can be simply processed by the user program in-order, applying for each user-defined rule the underlying transformation, and storing intermediate results (i.e. in a hash map) until they are processed by another rule. Since consumed sub-result can be dropped and since the backtracking contains only relevant sub-problems, ultimately, only the result will be stored.
 
 % ------------------------------------------------------------------------------------------------
-\subsection{Memory management}
+\subsection{Memory constraints}
 We denote by \textit{device} the computational device on which the processing of the DP matrix (or of a computational block) is done and $M_D$ its memory. This can be the GPU or the FPGA internal memory. Usually the main memory is larger than device memory and can ultimately be extended by either disk or network storage.
 
 We propose to evaluate the device memory requirements to solve the above problem classes. We need first to define additional problem properties related to implementation:\ul
@@ -178,10 +178,12 @@ The delay of dependencies might also have an impact: if the matrix is too large 
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Memory layout}
+{\color{red} XXX}
 
 
 % ------------------------------------------------------------------------------------------------
 \newpage
+{\color{red} 
 \subsection{LMS compiler stack}
 \textbf{User-language}: define additional parameters for the recurrence\ul
 \item Windowing (to convert non-serial into serial problems)
@@ -218,7 +220,7 @@ $\Downarrow$ Generation\ul
 \ule
 
 \textbf{Binary program}
-
+}
 %\ol
 %\item Make sure we encompass all the most common patterns of DP: check if we have higher dimensions or more complex formula.
 %\item Let the user tune the window size if he wants to reduce non-serial to serial.
