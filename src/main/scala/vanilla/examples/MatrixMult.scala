@@ -57,7 +57,7 @@ trait PrettyMatrixAlgebra extends MatrixSig {
   def z = ((0,0,0),"")
 }
 
-trait MatrixGrammar extends ADPParsers with MatrixAlgebra {
+trait MatrixGrammar extends ADPParsers with MatrixAlgebra with CodeGen {
   def aMatrix = new Parser[(Int,Int)] {
     def apply(sw: Subword) = sw match {
       case (i,j) if(i+1 == j) => List(input(i))
@@ -79,7 +79,7 @@ object MatrixMult extends MatrixGrammar with App {
 }
 
 
-trait MatrixGrammarB extends BDPParsers with MatrixAlgebra {
+/*trait MatrixGrammarB extends BDPParsers with MatrixAlgebra {
   def aMatrix = new Parser[(Int,Int)]{
     def apply(sw: Subword) = sw match {
       case (i,j) if(i+1 == j) => List(input(i))
@@ -114,4 +114,4 @@ object MatrixMultB extends MatrixGrammarB with GenB with App{
   }
 
   println(matrixGrammar(0,input.length))
-}
+}*/

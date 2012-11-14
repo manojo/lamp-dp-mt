@@ -267,7 +267,7 @@ trait Prog extends LexicalParsers with BracketsAlgebra {
     case(i,j) => input(i) == '(' && input(j-1) == ')'
   }
 
-  val dummyParser = digitParser | digitParser
+  //val dummyParser = digitParser | digitParser
 
 // XXX: this does not work for the moment
 /*
@@ -281,20 +281,22 @@ trait Prog extends LexicalParsers with BracketsAlgebra {
   //def f0(x:(Char,(Int,Char))) = x._2._1
   //def f1(x:(Int,Int)) = x._1+x._2
 
-  val myParser: Rep[Parser[Int]] = (
+ /* val myParser: Rep[Parser[Int]] = (
     digitParser |
     ((char -~~ myParser ~~- char) filter (areBrackets _)) ^^ {x: (Char,(Int,Char)) => x._2._1} |
     myParser +~+ myParser ^^ {x: (Int,Int) => x._1 + x._2}
-  ) tabulate
+  ) tabulate*/
+
+  val dummyParser = digitParser
 }
 
 object ADPTest extends App {
-/*
-  val concreteProg = new Prog with EffectExp with ADPParsersExp with LexicalParsersExp with CompileScala { self =>
+
+/*  val concreteProg = new Prog with EffectExp with ADPParsersExp with LexicalParsersExp with CompileScala { self =>
     override val codegen = new ScalaGenEffect with ScalaGenADPParsers with ScalaGenLexicalParsers { val IR: self.type=self }
-    //codegen.emitSource(myParser,new java.io.PrintWriter(System.out))
+    codegen.emitSource(dummyParser,new java.io.PrintWriter(System.out))
   }
 */
   val interpretedProg = new Prog with LexicalInterpreter
-  println(interpretedProg.myParser((0,interpretedProg.input.length)))
+  println(interpretedProg.dummyParser((0,interpretedProg.input.length)))
 }

@@ -63,7 +63,7 @@ trait PrettyPairingAlgebra extends PairingSig {
   def z = (0,"")
 }
 
-trait NussinovGrammar extends PrettyPairingAlgebra with LexicalParsers {
+trait NussinovGrammar extends PrettyPairingAlgebra with LexicalParsers with CodeGen{
   def empty = new Parser[Dummy] {
     def apply(sw: Subword) = sw match {
       case (i,j) if i == j => List(Dummy())

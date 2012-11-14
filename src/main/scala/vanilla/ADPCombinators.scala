@@ -6,7 +6,9 @@ trait Signature {
 
   def h(a:Answer, b:Answer):Answer
   def z:Answer // zero
+
 }
+
 
 trait ADPParsers { this:Signature =>
   type Subword = (Int, Int)
@@ -14,6 +16,21 @@ trait ADPParsers { this:Signature =>
 
   // Input is a "global" value, used during the whole running time of algorithm
   def input: Input
+
+  // Variables : a name and an offset
+  case class Var(v:Char,d:Int) { // 'v'+d
+    override def toString = if (d==0) ""+v else if (d>0) v+"+"+d else v+""+d
+    def a(e:Int) = Var(v,d+e)
+    def f(l:Var,u:Var) = CFor(v,l.v,d-l.d,u.v,d-u.d)
+    def l(t:Var,e:Int) = CLeq(v,t.v,d-t.d+e)
+    def e(t:Var,e:Int) = CEq(v,t.v,d-t.d+e)
+  }
+
+  // Conditions on fresh variables variables
+  class Cond // Constraint that is put on variables
+  case class CFor(v:Char,l:Char,ld:Int,u:Char,ud:Int) extends Cond // for ('l'+ld<='v'<='u'-ud)
+  case class CLeq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta<='b'
+  case class CEq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta=='b'
 
   // Tree structure for recurrences generation
   sealed abstract class PTree
@@ -29,7 +46,7 @@ trait ADPParsers { this:Signature =>
   import scala.collection.mutable.HashMap
   val tabs = new HashMap[String,HashMap[Subword,List[Answer]]]
   val rules = new HashMap[String,Parser[Answer]]
-  def tabulate(name:String, inner:Parser[Answer]) = new Parser[Answer] {
+  def tabulate(name:String, inner:Parser[Answer]): Parser[Answer] = new Parser[Answer] {
     val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[Answer]])
     rules += ((name,this))
 
@@ -38,13 +55,11 @@ trait ADPParsers { this:Signature =>
       case _ => List()
     }
     def tree = PRule(name)
-    override def makeTree = inner.tree
   }
 
   abstract class Parser[T] extends (Subword => List[T]) { inner =>
     def apply(sw: Subword): List[T]
     def tree : PTree
-    def makeTree = tree
 
     // Mapper. Equivalent of ADP's <<< operator.
     // To separate left and right hand side of a grammar rule
@@ -111,10 +126,40 @@ trait ADPParsers { this:Signature =>
       def tree = PFilter(p, inner.tree)
     }
   }
+}
 
-//}
-// --------------------------------------------------
-//trait CodeGen extends ADPParsers { this:Signature => 
+/**
+ * Lexical parsers
+ */
+trait LexicalParsers extends ADPParsers { this:Signature =>
+  override type Alphabet = Char
+
+  def char = new Parser[Char] {
+    def apply(sw:Subword) = sw match {
+      case (i, j) if(j == i+1) => List(input(i))
+      case _ => List()
+    }
+    def tree = new PTerminal((i:Var,j:Var) => (List(i.e(j,1)),"Char["+i+"]"))
+  }
+
+  def charf(f: Char => Boolean) = char filter {
+    case(i,j) if(i+1 == j) => f(input(i))
+    case _ => false
+  }
+
+  def digitParser: Parser[Int] = (char filter isDigit) ^^ readDigit
+  def readDigit(c: Char) = (c - '0').toInt
+  def isDigit(sw: Subword) = sw match {
+    case(i,j) if(i+1 == j) => input(i).isDigit
+    case _ => false
+  }
+}
+
+/**
+ * generation of recurrence-like relations
+ */
+ // --------------------------------------------------
+trait CodeGen extends ADPParsers { this:Signature =>
 
   // A simple variable generator that sequentially issues free variables
   class FreeVar(v0:Char) {
@@ -123,24 +168,9 @@ trait ADPParsers { this:Signature =>
     def dup=new FreeVar(v0)
   }
 
-  // Variables : a name and an offset
-  case class Var(v:Char,d:Int) { // 'v'+d
-    override def toString = if (d==0) ""+v else if (d>0) v+"+"+d else v+""+d
-    def a(e:Int) = Var(v,d+e)
-    def f(l:Var,u:Var) = CFor(v,l.v,d-l.d,u.v,d-u.d)
-    def l(t:Var,e:Int) = CLeq(v,t.v,d-t.d+e)
-    def e(t:Var,e:Int) = CEq(v,t.v,d-t.d+e)
-  }
-
-  // Conditions on fresh variables variables
-  class Cond // Constraint that is put on variables
-  case class CFor(v:Char,l:Char,ld:Int,u:Char,ud:Int) extends Cond // for ('l'+ld<='v'<='u'-ud)
-  case class CLeq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta<='b'
-  case class CEq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta=='b'
-  
   def gen:String = {
     println("------------ rules ------------")
-    for((n,p) <- rules) println( n+"[i,j] => "+emit(p.makeTree))
+    for((n,p) <- rules) println( n+"[i,j] => "+emit(p.tree))
     println("------------- end -------------")
     "Hash maps: "+tabs.size
   }
@@ -181,7 +211,7 @@ trait ADPParsers { this:Signature =>
       val (lc,lb) = gen(l,i,k,g)
       val (rc,rb) = gen(r,k,j,g)
 
-      var cs = c ::: lc ::: rc
+      var cs = c ++ lc ++ rc
       // Optimizations and conditions simplifications
       // 1. filter x+0=x
       cs = cs.filter { case CEq(a,b,0) if (a==b) => false case _ => true }
@@ -216,27 +246,55 @@ trait ADPParsers { this:Signature =>
   }
 }
 
-trait LexicalParsers extends ADPParsers { this:Signature =>
-  override type Alphabet = Char
 
-  def char = new Parser[Char] {
-    def apply(sw:Subword) = sw match {
-      case (i, j) if(j == i+1) => List(input(i))
+/**
+ * generation of recurrence-like relations
+ */
+ // --------------------------------------------------
+trait BottomUpParsers extends ADPParsers { this:Signature =>
+
+  def bottomUp = {
+
+    def bottomUp0(p : Parser[Answer], costMatrix: Array[Array[List[Answer]]]) = {
+      //initialising the cost matrix
+      for(i <- 0 to input.length){
+        for(j <- 0 to input.length)
+          costMatrix(i)(j) = List()
+      }
+
+      for(j <- 0 to input.length){
+        for(i <- (0 to j).reverse){
+          costMatrix(i)(j) = p((i,j))
+        }
+      }
+    }
+
+  }
+
+  // Memoization through tabulation
+  import scala.collection.mutable.HashMap
+  val costMatrices = new HashMap[String,Array[Array[List[Answer]]]]
+
+  //we're using arrays instead of hashmaps here that's all
+  override def tabulate(name:String, inner:Parser[Answer]) = new Parser[Answer] {
+    val costMatrix = costMatrices.getOrElseUpdate(name, Array.ofDim(input.length + 1, input.length + 1))
+    rules += ((name,this))
+
+    def apply(sw: Subword) = sw match {
+      case (i,j) if(i <= j) =>
+        costMatrix(i)(j) match {
+          case Nil =>
+            //println("matrix lookup failed at " + sw)
+            costMatrix(i)(j) = inner(sw); costMatrix(i)(j)
+          case xs =>
+            //println("matrix lookup succeeded at " + sw)
+            xs
+        }
       case _ => List()
     }
-    def tree = new PTerminal((i:Var,j:Var) => (List(i.e(j,1)),"Char["+i+"]"))
-  }
 
-  def charf(f: Char => Boolean) = char filter {
-    case(i,j) if(i+1 == j) => f(input(i))
-    case _ => false
-  }
-
-  def digitParser: Parser[Int] = (char filter isDigit) ^^ readDigit
-  def readDigit(c: Char) = (c - '0').toInt
-  def isDigit(sw: Subword) = sw match {
-    case(i,j) if(i+1 == j) => input(i).isDigit
-    case _ => false
+    //same as before for the tree
+    def tree = PRule(name)
   }
 }
 
@@ -258,7 +316,7 @@ trait BracketsAlgebra extends BracketsSignature {
   def z = 0
 }
 
-object HelloADP extends LexicalParsers with BracketsAlgebra {
+object HelloADP extends LexicalParsers with BracketsAlgebra with CodeGen {
   def input = "(((3)))(2)".toArray
   def bracketize(c:Char,s:String) = "("+c+","+s+")"
 
