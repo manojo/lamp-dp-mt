@@ -67,17 +67,26 @@ All the problems we consider use 2D storage matrix, their dependencies are an un
 	\item Polygon triangulation (cyclic problem)
 	\item SWat with arbitrary gap (multi-track grammar)
 	\item Zucker (rules of different complexity $O(n^2) / O(n)$)
+	\item Rules normalization
+	\item Rules dependency
+	\item Automatic backtracking
 	\ule
+\item Test / proof that parsers are correct
+\item Automate test to compare against implementation
 \item Build bottom-up vanilla version\ul
 	\item Separate initialization (terminals) and non-terminals (speed up?)
+	\item In parallel implement the code generator for CUDA, hardcode in text function bodies for CUDA
 	\ule
-
+\item LMS implementation: from normal to Rep/Exp\ul
+	\item Re-implement bottom-up vanilla into LMS
+	\item Re-implement CUDA version and use functions body to infer CUDA code
+	\ule
+\item Write report
+\item Further work\ul
+	\item Serial for problems larger than memory, use hybrid (Myers and Miller's algorithm with $\log_k$ with $k$ depending on available memory) approach depending available memory
+	\item 
+	\ule
 \ule
-
-
-
-
-
 
 \subsubsection*{Roadmap}
 \begin{tabular}{rl}
