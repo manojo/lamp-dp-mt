@@ -86,7 +86,7 @@ trait ADPParsers { this:Signature =>
             x <- inner((i,k));
             y <- that((k,j))
           ) yield((x,y))
-        case _ => List[(T,U)]()
+        case _ => List()
       }
       //def tree = PConcat(inner.tree, that.tree, (lL,lU,rL,rU))
     }
