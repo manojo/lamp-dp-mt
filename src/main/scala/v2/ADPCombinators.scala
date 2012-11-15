@@ -44,7 +44,7 @@ trait ADPParsers { this:Signature =>
     // Mapper. Equivalent of ADP's <<< operator.
     // To separate left and right hand side of a grammar rule
     def ^^[U](f: T => U) = this.map(f)
-    private def map[U](f: T => U) = new Parser[U]{
+    private def map[U](f: T => U) = new Parser[U] {
       def apply(sw:Subword) = inner(sw) map f
       //def tree = PMap(f,inner.tree)
     }
@@ -64,6 +64,13 @@ trait ADPParsers { this:Signature =>
     def aggregate[U](h: List[T] => List[U]) = new Parser[U] {
       def apply(sw: Subword) = h(inner(sw))
       //def tree = PAggr(h,inner.tree)
+    }
+
+    // Filter combinator.
+    // Yields an empty list if the filter does not pass.
+    def filter (p: Subword => Boolean) = new Parser[T] {
+      def apply(sw: Subword) = if(p(sw)) inner(sw) else List[T]()
+      //def tree = PFilter(p, inner.tree)
     }
 
     // Concatenate combinator.
@@ -97,13 +104,6 @@ trait ADPParsers { this:Signature =>
 
     def -~~ [U](that: => Parser[U]) = concat(1,1,0,0)(that)
     def ~~- [U](that: => Parser[U]) = concat(0,0,1,1)(that)
-
-    // Filter combinator.
-    // Yields an empty list if the filter does not pass.
-    def filter (p: Subword => Boolean) = new Parser[T] {
-      def apply(sw: Subword) = if(p(sw)) inner(sw) else List[T]()
-      //def tree = PFilter(p, inner.tree)
-    }
   }
 
   def parse(p:Parser[Answer])(in:Input):List[Answer] = {

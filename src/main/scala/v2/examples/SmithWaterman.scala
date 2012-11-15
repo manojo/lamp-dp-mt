@@ -13,34 +13,124 @@ trait SWatAlgebra extends SWatSignature {
   type Answer = (Int,String,String) // score, string1, string2
   def h(l:List[Answer]) = if(l.isEmpty) List() else List(l.maxBy(_._1))
 
-  private val open = -2
-  private val extend = -1
+  private val open = 2
+  private val extend = 1
   def gap(size:Int) = open + (size-1) * extend
   def pair(a:Char,b:Char) = if (a==b) 1 else 0
 }
 
-object SWatApp extends App with LexicalParsers with SWatAlgebra {
+// ------------------------------------------------------------------------------------------
+
+// Two-tracks combinators
+trait TTParsers { this:Signature =>
+  type Subword = (Int, Int) // (end_in1, end_in2)
+  type Input = Array[Alphabet]
+
+  private var input1: Input = null
+  private var input2: Input = null
+  def in1(k:Int):Alphabet = input1(k)
+  def in2(k:Int):Alphabet = input2(k)
+  def size1:Int = input1.size
+  def size2:Int = input2.size
+
+  import scala.collection.mutable.HashMap
+  val tabs = new HashMap[String,HashMap[Subword,List[Answer]]]
+  val rules = new HashMap[String,Parser[Answer]]
+  def tabulate(name:String, inner:Parser[Answer]) = new Parser[Answer] {
+    val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[Answer]])
+    rules += ((name,this))
+
+    def apply(sw: Subword) = sw match {
+      case (i,j) => map.getOrElseUpdate(sw, inner(sw))
+    }
+  }
+
+  abstract class Parser[T] { inner =>
+    // duplicate
+    def apply(sw: Subword): List[T]
+    def ^^[U](f: T => U) = this.map(f)
+    private def map[U](f: T => U) = new Parser[U] { def apply(sw:Subword) = inner(sw) map f }
+    def |(that: => Parser[T]) = or(that)
+    private def or (that: => Parser[T]) = new Parser[T] { def apply(sw: Subword) = inner(sw)++that(sw) }
+    def aggregate[U](h: List[T] => List[U]) = new Parser[U] { def apply(sw: Subword) = h(inner(sw)) }
+    def filter (p: Subword => Boolean) = new Parser[T] { def apply(sw: Subword) = if(p(sw)) inner(sw) else List[T]() }
+    // duplicate end
+
+    private def concat1[U](l:Int, u:Int)(that: => Parser[U]) = new Parser[(T,U)] {
+      def apply(sw: Subword) = sw match {
+        case (i,j) =>
+          val i0 = if (l==0) 0 else Math.max(i-l,0)
+          for(
+            k <- (i0 to i-u).toList;
+            x <- inner((i,k));
+            y <- that((k,j))
+          ) yield((x,y))
+        case _ => List[(T,U)]()
+      }
+    }
+    def -~~ [U](that: => Parser[U]) = concat1(1,1)(that)
+    def +~~ [U](that: => Parser[U]) = concat1(0,0)(that)
+    def ++~ [U](that: => Parser[U]) = concat1(0,1)(that)
+
+    private def concat2[U](l:Int, u:Int)(that: => Parser[U]) = new Parser[(T,U)] {
+      def apply(sw: Subword) = sw match {
+        case (i,j) =>
+          val j0 = if (l==0) 0 else Math.max(j-l,0)
+          for(
+            k <- (j0 to j-u).toList;
+            x <- inner((i,k));
+            y <- that((j,k))
+          ) yield((x,y))
+        case _ => List[(T,U)]()
+      }
+    }
+    def ~~- [U](that: => Parser[U]) = concat1(1,1)(that)
+    def ~~+ [U](that: => Parser[U]) = concat1(0,0)(that)
+    def ~++ [U](that: => Parser[U]) = concat1(0,1)(that)
+  }
+
+  def parse(p:Parser[Answer])(in1:Input,in2:Input):List[Answer] = {
+    input1=in1; input2=in2;
+    val res=p(size1,size2)
+    input1=null; input2=null; res
+  }
+}
+
+// ------------------------------------------------------------------------------------------
+
+object SWatApp extends App with TTParsers with SWatAlgebra {
+  class Dummy
+  def empty = new Parser[Dummy] {
+    def apply(sw:Subword) = if (sw._1==0 && sw._2==0) List(new Dummy) else List()
+  }
+  def char1 = new Parser[Char] {
+    def apply(sw:Subword) = if (sw._1 < size1) List(in1(sw._1)) else List()
+  }
+  def char2 = new Parser[Char] {
+    def apply(sw:Subword) = if (sw._2 < size1) List(in2(sw._2)) else List()
+  }
+
+  def gap1 = new Parser[Int] { def apply(sw:Subword) = List(sw._1) }
+  def gap2 = new Parser[Int] { def apply(sw:Subword) = List(sw._2) }
+
+  // Needleman-Wunsch
+  def alignment: Parser[Answer] = tabulate("M",(
+    empty                         ^^ { _ => (0,"","") } // zero
+  | gap1  ++~ alignment           ^^ { case _ => (0,"UNIMPLEMENTED","UNIMPLEMENTED") } // for k=1..i : M(i-k,j) - gap(k)
+  |           alignment ~++ gap2  ^^ { case _ => (0,"UNIMPLEMENTED","UNIMPLEMENTED") } // for k=1..j : M(i,j-k) - gap(k)
+  | char1 -~~ alignment ~~- char2 ^^ { case (c1,((score,s1,s2),c2)) => (score+pair(c1,c2),s1+c1, s2+c2) } // M(i-1,j-1) + pair(in1(i),in2(j))
+  ) aggregate h)
+
+  def p(s1:String,s2:String) = parse(alignment)(s1.toArray,s2.toArray)
+
+  // Compiles but stack overflow
+  // println(p("GATTACA","CATTAGAG"))
   println("UNIMPLEMENTED")
 
-/*
-  Ideas:
-  - define parsers on a single track
-  - define a combinator that takes two single track parser and compute it into a 2-track parser
-  - rework needed functions
-
-  def pair
-  def gap_left
-  deg gap_top
-
-C implementation:
-#define p_kernel \
-  _max_loop(k,1,i,  _cost(i-k,j) - p_gap(k),                  BT(DIR_UP,k)   ) \ <<- gap top
-  _max_loop(k,1,j,  _cost(i,j-k) - p_gap(k),                  BT(DIR_LEFT,k) ) \ <<- gap left
-  _max(             _cost(i-1,j-1) + p_cost(_ini(i),_inj(j)), BT(DIR_DIAG,1) ) <<-- pair
-
-XXX: also implement general case where we search both directions / in limited range
-
-*/
+  // C implementation:
+  //   _max_loop(k,1,i,  _cost(i-k,j) - p_gap(k),                  BT(DIR_UP,k)   ) <<-- gap top
+  //   _max_loop(k,1,j,  _cost(i,j-k) - p_gap(k),                  BT(DIR_LEFT,k) ) <<-- gap left
+  //   _max(             _cost(i-1,j-1) + p_cost(_ini(i),_inj(j)), BT(DIR_DIAG,1) ) <<-- pair
 }
 
 /*
@@ -49,8 +139,8 @@ XXX: also implement general case where we search both directions / in limited ra
 
 Lexical parsers
 ----------------
-> type Subword  = (Int,Int)
-> type Parser b = Subword -> [b]
+> type Subword  = (Int,Int) -- equivalent
+> type Parser b = Subword -> [b] -- equivalent
 
 > region, uregion :: Parser (Int,Int)
 > uregion (i,j) = [(i,j)| i <= j]
