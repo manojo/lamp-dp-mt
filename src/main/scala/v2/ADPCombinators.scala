@@ -6,7 +6,7 @@ trait Signature {
 
   def h(l: List[Answer]) : List[Answer]
   val cyclic = false // is the problem cyclic
-  val window = 0     // windowing the problem
+  val window = 0     // windowing size, 0=infinite
 }
 
 trait ADPParsers { this:Signature =>

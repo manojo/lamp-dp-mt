@@ -14,7 +14,6 @@ trait BuyerAlgebra extends Bill {
 
   def add(l: Answer, r: Answer) = l + r
   def mul(l: Answer, r: Answer) = l * r
-
   def h(l :List[Answer]) = l match {
     case Nil => Nil
     case _ => l.min::Nil
@@ -26,7 +25,6 @@ trait SellerAlgebra extends Bill {
 
   def add(l: Answer, r: Answer) = l + r
   def mul(l: Answer, r: Answer) = l * r
-
   def h(l :List[Answer]) = l match {
     case Nil => Nil
     case _ => l.max::Nil

@@ -2,6 +2,8 @@ package v2.examples
 
 import v2._
 
+// Correct parenthesization problem
+// Also examplifies the windowing
 trait BracketsSignature extends Signature {
   def readDigit(c: Alphabet) : Answer
   def bracket(l: Alphabet, s: Answer, r: Alphabet) : Answer
@@ -28,12 +30,12 @@ object BracketsApp extends LexicalParsers with BracketsAlgebra {
       digitParser
     | (char -~~ myParser ~~- char).filter(areBrackets _).^^{ case (c1,(i,c2)) => i}
     | myParser +~+ myParser ^^ {case (x,y) => x+y}
-    // This is to allow dirty characters
+    // Digits sum in the string
     //| (char -~~ myParser) ^^ { case (c,i) => i }
     //| (myParser ~~- char) ^^ { case (i,c) => i }
   ) aggregate h)
 
-  // Score of best valid subproblem of size 8 := (1)((6))
+  // Score of best valid subproblem of size exactely 8 := "(1)((6))"
   override val window = 8
   def main(args: Array[String]) = {
     println(parse(myParser)("(((3)))((2))(1)((6))((((8))))".toArray))

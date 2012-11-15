@@ -40,6 +40,8 @@ trait PrettyPrintAlgebra extends MatrixSig {
 
 /*
  * Combining two algebrae: done manually for now
+ * XXX: maybe look at 
+ * http://www.chuusai.com/2011/06/09/scala-union-types-curry-howard/
  */
 trait PrettyMatrixAlgebra extends MatrixSig {
   type Answer = ((Int,Int,Int), String)
