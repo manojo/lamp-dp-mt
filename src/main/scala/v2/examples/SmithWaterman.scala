@@ -16,7 +16,7 @@ trait SWatAlgebra extends SWatSignature {
   private val open = 2
   private val extend = 1
   def gap(size:Int) = open + (size-1) * extend
-  def pair(a:Char,b:Char) = if (a==b) 1 else 0
+  def pair(a:Char,b:Char) = if (a==b) 3 else -1
 }
 
 // ------------------------------------------------------------------------------------------
@@ -39,14 +39,13 @@ trait TTParsers { this:Signature =>
   def tabulate(name:String, inner:Parser[Answer]) = new Parser[Answer] {
     val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[Answer]])
     rules += ((name,this))
-
-    def apply(sw: Subword) = sw match {
-      case (i,j) => map.getOrElseUpdate(sw, inner(sw))
-    }
+    def apply(sw: Subword) = map.getOrElseUpdate(sw, inner(sw))
   }
 
   abstract class Parser[T] { inner =>
-    // duplicate
+    def apply2(sw:Subword, k:Int): List[T] = apply(sw)
+
+    // duplicated
     def apply(sw: Subword): List[T]
     def ^^[U](f: T => U) = this.map(f)
     private def map[U](f: T => U) = new Parser[U] { def apply(sw:Subword) = inner(sw) map f }
@@ -54,39 +53,39 @@ trait TTParsers { this:Signature =>
     private def or (that: => Parser[T]) = new Parser[T] { def apply(sw: Subword) = inner(sw)++that(sw) }
     def aggregate[U](h: List[T] => List[U]) = new Parser[U] { def apply(sw: Subword) = h(inner(sw)) }
     def filter (p: Subword => Boolean) = new Parser[T] { def apply(sw: Subword) = if(p(sw)) inner(sw) else List[T]() }
-    // duplicate end
+    // duplicated end
 
-    private def concat1[U](l:Int, u:Int)(that: => Parser[U]) = new Parser[(T,U)] {
+    def concat1[U](l:Int,u:Int)(that: => Parser[U]) = new Parser[(T,U)] {
       def apply(sw: Subword) = sw match {
-        case (i,j) =>
+        case (i,j) => 
           val i0 = if (l==0) 0 else Math.max(i-l,0)
           for(
             k <- (i0 to i-u).toList;
-            x <- inner((i,k));
+            x <- inner.apply2((i,j),k);
             y <- that((k,j))
           ) yield((x,y))
         case _ => List[(T,U)]()
       }
     }
-    def -~~ [U](that: => Parser[U]) = concat1(1,1)(that)
-    def +~~ [U](that: => Parser[U]) = concat1(0,0)(that)
     def ++~ [U](that: => Parser[U]) = concat1(0,1)(that)
+    def +~~ [U](that: => Parser[U]) = concat1(0,0)(that)
+    def -~~ [U](that: => Parser[U]) = concat1(1,1)(that)
 
-    private def concat2[U](l:Int, u:Int)(that: => Parser[U]) = new Parser[(T,U)] {
+    def concat2[U](l:Int,u:Int)(that: => Parser[U]) = new Parser[(T,U)] {
       def apply(sw: Subword) = sw match {
-        case (i,j) =>
+        case (i,j) => 
           val j0 = if (l==0) 0 else Math.max(j-l,0)
           for(
             k <- (j0 to j-u).toList;
             x <- inner((i,k));
-            y <- that((j,k))
+            y <- that.apply2((i,j),k)
           ) yield((x,y))
         case _ => List[(T,U)]()
       }
     }
-    def ~~- [U](that: => Parser[U]) = concat1(1,1)(that)
-    def ~~+ [U](that: => Parser[U]) = concat1(0,0)(that)
-    def ~++ [U](that: => Parser[U]) = concat1(0,1)(that)
+    def ~++ [U](that: => Parser[U]) = concat2(0,1)(that)
+    def ~~+ [U](that: => Parser[U]) = concat2(0,0)(that)
+    def ~~- [U](that: => Parser[U]) = concat2(1,1)(that)
   }
 
   def parse(p:Parser[Answer])(in1:Input,in2:Input):List[Answer] = {
@@ -100,32 +99,39 @@ trait TTParsers { this:Signature =>
 
 object SWatApp extends App with TTParsers with SWatAlgebra {
   class Dummy
-  def empty = new Parser[Dummy] {
-    def apply(sw:Subword) = if (sw._1==0 && sw._2==0) List(new Dummy) else List()
+  def empty = new Parser[Dummy] { def apply(sw:Subword) = if (sw._1==0 && sw._2==0) List(new Dummy) else List() }
+  def char1 = new Parser[Char] { def apply(sw:Subword) = if (0 < sw._1) List(in1(sw._1-1)) else List() }
+  def char2 = new Parser[Char] { def apply(sw:Subword) = if (0 < sw._2) List(in2(sw._2-1)) else List() }
+
+  // non-empty string
+  def gap1 = new Parser[(Int,Int)] {
+    def apply(sw:Subword) = List() // should never be called
+    override def apply2(sw:Subword, k:Int) = if (0 < sw._1) List((k,sw._1)) else List()
+    //def apply(sw:Subword) = if (0 < sw._1) List(sw._1) else List()
   }
-  def char1 = new Parser[Char] {
-    def apply(sw:Subword) = if (sw._1 < size1) List(in1(sw._1)) else List()
-  }
-  def char2 = new Parser[Char] {
-    def apply(sw:Subword) = if (sw._2 < size1) List(in2(sw._2)) else List()
+  def gap2 = new Parser[(Int,Int)] {
+    def apply(sw:Subword) = List() // should never be called
+    override def apply2(sw:Subword, k:Int) = if (0 < sw._1) List((k,sw._2)) else List()
+    //def apply(sw:Subword) = if (0 < sw._2) List(sw._2) else List()
   }
 
-  def gap1 = new Parser[Int] { def apply(sw:Subword) = List(sw._1) }
-  def gap2 = new Parser[Int] { def apply(sw:Subword) = List(sw._2) }
+
+  def prettyGap(sw:Subword,in:Function1[Int,Char]):(String,String) = {
+    val g=(sw._1 until sw._2).toList; (g.map{x=>in(x)}.mkString(""),g.map{x=>"-"}.mkString(""))
+  }
 
   // Needleman-Wunsch
   def alignment: Parser[Answer] = tabulate("M",(
-    empty                         ^^ { _ => (0,"","") } // zero
-  | gap1  ++~ alignment           ^^ { case _ => (0,"UNIMPLEMENTED","UNIMPLEMENTED") } // for k=1..i : M(i-k,j) - gap(k)
-  |           alignment ~++ gap2  ^^ { case _ => (0,"UNIMPLEMENTED","UNIMPLEMENTED") } // for k=1..j : M(i,j-k) - gap(k)
+    empty                         ^^ { _ => (0,".",".") } // zero
+  | gap1  ++~ alignment           ^^ { case (g,(score,s1,s2)) => val (g1,g2) = prettyGap(g,in1); (score-gap(g._2-g._1),s1+g1,s2+g2) } // for k=1..i : M(i-k,j) - gap(k)
+  |           alignment ~++ gap2  ^^ { case ((score,s1,s2),g) => val (g1,g2) = prettyGap(g,in2); (score-gap(g._2-g._1),s1+g2,s2+g1) } // for k=1..j : M(i,j-k) - gap(k)
   | char1 -~~ alignment ~~- char2 ^^ { case (c1,((score,s1,s2),c2)) => (score+pair(c1,c2),s1+c1, s2+c2) } // M(i-1,j-1) + pair(in1(i),in2(j))
   ) aggregate h)
 
-  def p(s1:String,s2:String) = parse(alignment)(s1.toArray,s2.toArray)
+  def align(s1:String,s2:String) = parse(alignment)(s1.toArray,s2.toArray)
 
-  // Compiles but stack overflow
-  // println(p("GATTACA","CATTAGAG"))
-  println("UNIMPLEMENTED")
+  val (score,s1,s2) = align("GATTACA","CCCATTAGAG").head
+  println("Score: "+score+"\nSeq1: "+s1+"\nSeq2: "+s2)
 
   // C implementation:
   //   _max_loop(k,1,i,  _cost(i-k,j) - p_gap(k),                  BT(DIR_UP,k)   ) <<-- gap top
