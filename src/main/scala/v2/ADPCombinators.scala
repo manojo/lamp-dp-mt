@@ -5,18 +5,18 @@ trait Signature {
   type Answer   // output type
 
   def h(l: List[Answer]) : List[Answer]
-  val cyclic = false
+  val cyclic = false // is the problem cyclic
+  val window = 0     // windowing the problem
 }
 
 trait ADPParsers { this:Signature =>
-
   type Subword = (Int, Int)
   type Input = Array[Alphabet]
 
   // Input is a "global" value, used during the whole running time of algorithm
-  def input: Input
-
-  def in(k:Int) = input(k % input.size) // to deal with cyclic
+  private var input: Input = null
+  def in(k:Int):Alphabet = input(k % size) // to deal with cyclic
+  def size:Int = input.size
 
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
@@ -28,8 +28,7 @@ trait ADPParsers { this:Signature =>
 
     def apply(sw: Subword) = sw match {
       case (i,j) if(i <= j && cyclic) =>
-        val sw2 = (i%input.size, j%input.size)
-        map.getOrElseUpdate(sw2, inner(sw))
+        val sw2 = (i%size, j%size); map.getOrElseUpdate(sw2, inner(sw))
       case (i,j) if(i <= j) => map.getOrElseUpdate(sw, inner(sw))
       case _ => List()
     }
@@ -107,12 +106,16 @@ trait ADPParsers { this:Signature =>
     }
   }
 
-  def parse(p:Parser[Answer]):List[Answer] = {
-    if (cyclic) {
-      h( ((0 until input.size).flatMap{ x => p(x,input.size+x) }).toList )
+  def parse(p:Parser[Answer])(in:Input):List[Answer] = {
+    input = in;
+    val res = if (cyclic) {
+      h( ((0 until size).flatMap{ x => p(x,size+x) }).toList )
+    } else if (window>0) {
+      h( ((0 to size-window).flatMap{ x => p(x,window+x) }).toList )
     } else {
-      p(0,input.size)
+      p(0,size)
     }
+    input = null; res
   }
 
   //def elems(k:Int) = new Parser[List[Alphabet]] {}
@@ -139,14 +142,14 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
   }
 
   def charf(f: Char => Boolean) = char filter {
-    case(i,j) if(i+1 == j) => f(input(i))
+    case(i,j) if(i+1 == j) => f(in(i))
     case _ => false
   }
 
   def digitParser: Parser[Int] = (char filter isDigit) ^^ readDigit
   def readDigit(c: Char) = (c - '0').toInt
   def isDigit(sw: Subword) = sw match {
-    case(i,j) if(i+1 == j) => input(i).isDigit
+    case(i,j) if(i+1 == j) => in(i).isDigit
     case _ => false
   }
 }

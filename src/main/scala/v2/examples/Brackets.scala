@@ -17,22 +17,26 @@ trait BracketsAlgebra extends BracketsSignature {
   def h(l : List[Int]) = if(l.isEmpty) List() else List(l.max)
 }
 
-object HelloADP extends LexicalParsers with BracketsAlgebra {
-  def input = "(((3)))(2)".toArray
+object BracketsApp extends LexicalParsers with BracketsAlgebra {
   def bracketize(c:Char,s:String) = "("+c+","+s+")"
 
   def areBrackets(sw: Subword) = sw match {
-    case(i,j) => input(i) == '(' && input(j-1) == ')'
+    case(i,j) => j > i+1 && in(i) == '(' && in(j-1) == ')'
   }
 
-  val myParser: Parser[Int] = tabulate("M",
+  val myParser: Parser[Int] = tabulate("M",(
       digitParser
     | (char -~~ myParser ~~- char).filter(areBrackets _).^^{ case (c1,(i,c2)) => i}
     | myParser +~+ myParser ^^ {case (x,y) => x+y}
-  )
+    // This is to allow dirty characters
+    //| (char -~~ myParser) ^^ { case (c,i) => i }
+    //| (myParser ~~- char) ^^ { case (i,c) => i }
+  ) aggregate h)
 
+  // Score of best valid subproblem of size 8 := (1)((6))
+  override val window = 8
   def main(args: Array[String]) = {
-    println(myParser(0,input.length))
+    println(parse(myParser)("(((3)))((2))(1)((6))((((8))))".toArray))
     //println(gen)
   }
 }

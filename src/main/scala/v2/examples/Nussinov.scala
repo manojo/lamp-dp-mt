@@ -2,8 +2,6 @@ package v2.examples
 
 import v2._
 
-/*
-
 // Nussinov
 trait PairingSig extends Signature {
   case class Dummy()
@@ -32,7 +30,7 @@ trait PairingAlgebra extends PairingSig {
 }
 
 /*
-trait PrettyPAlgebra extends PairingSig{
+trait PrettyPAlgebra extends PairingSig {
   type Answer = (String,String)
   type Alphabet = Char
 
@@ -90,14 +88,13 @@ trait NussinovGrammar extends PrettyPairingAlgebra with LexicalParsers {
 
   def t: Parser[(Int,String)] = tabulate("t",
     ((char -~~ s ~~- char)
-      filter {case (i,j) => isBasePair(input(i),input(j-1))})
+      filter {case (i,j) => isBasePair(in(i),in(j-1))})
      ^^ {case (c1,(a,c2)) => pair(c1,a,c2)}
   )
 }
 
 object Nussinov extends NussinovGrammar with App {
-  def input = "guaugu".toArray
-  println(s(0,input.length))
+  val input = "guaugu".toArray
+  println(parse(s)(input))
   //println(gen)
 }
-*/

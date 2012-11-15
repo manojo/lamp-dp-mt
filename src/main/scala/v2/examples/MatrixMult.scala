@@ -2,7 +2,6 @@ package v2.examples
 
 import v2._
 
-/*
 // Matrix multiplication
 trait MatrixSig extends Signature {
   case class Add(l: Answer, c: Alphabet, r: Answer)
@@ -12,14 +11,9 @@ trait MatrixSig extends Signature {
   def mult(l: Answer, r: Answer): Answer
 }
 
-trait MatrixAlgebra extends MatrixSig{
-  type Answer = (Int,Int,Int)
-  type Alphabet = (Int,Int)
-
-  //create a new Ordering for triples of ints
-  object TripleOrdering extends Ordering[(Int,Int,Int)]{
-    def compare(a: (Int,Int,Int), b: (Int,Int,Int)) = a._2 compare b._2
-  }
+trait MatrixAlgebra extends MatrixSig {
+  type Answer = (Int,Int,Int) // rows, cost, columns
+  type Alphabet = (Int,Int) // rows, columns
 
   def single(i: (Int, Int)) = (i._1, 0, i._2)
   def mult(l: Answer, r: Answer) = (l,r) match {
@@ -28,7 +22,7 @@ trait MatrixAlgebra extends MatrixSig{
 
   def h(l :List[Answer]) = l match {
     case Nil => Nil
-    case _ => l.min::Nil
+    case _ => l.minBy(_._2)::Nil
   }
 }
 
@@ -45,7 +39,7 @@ trait PrettyPrintAlgebra extends MatrixSig {
 }
 
 /*
- * combining two algebrae: done manually for now
+ * Combining two algebrae: done manually for now
  */
 trait PrettyMatrixAlgebra extends MatrixSig {
   type Answer = ((Int,Int,Int), String)
@@ -72,10 +66,9 @@ trait PrettyMatrixAlgebra extends MatrixSig {
 trait MatrixGrammar extends ADPParsers with MatrixAlgebra {
   def aMatrix = new Parser[(Int,Int)] {
     def apply(sw: Subword) = sw match {
-      case (i,j) if(i+1 == j) => List(input(i))
+      case (i,j) if(i+1 == j) => List(in(i))
       case _ => List()
     }
-
     //def tree = PTerminal((i:Var,j:Var) => (List(i.e(j,1)),"mat["+i+"]"))
   }
 
@@ -86,8 +79,8 @@ trait MatrixGrammar extends ADPParsers with MatrixAlgebra {
 }
 
 object MatrixMult extends MatrixGrammar with App {
-  def input = List((10,100),(100,5),(5,50)).toArray
-  println(matrixGrammar(0,input.length))
+  val input = List((10,100),(100,5),(5,50)).toArray
+
+  println(parse(matrixGrammar)(input))
   //println(gen)
 }
-*/
