@@ -332,16 +332,16 @@ apply out of the box here.
 \item Recurrence:
 \[\begin{array}{rcl}
 W_{(i,j)}&=&\min\left\{\begin{array}{l|l}
-	W_{(i+1,j)}+b & S\\
-	W_{(i,j-1)}+b & W\\
+	W_{(i+1,j)}+b & L\\
+	W_{(i,j-1)}+b & R\\
 	V_{(i,j)}+\delta(S_i,S_j) & V \\
 	\min_{i<k<j}W_{(i,k)}+W_{(k+1,j)} &k
 \end{array}\right\} = BW_{(i,j)}\\
 \\
 V_{(i,j)}&=&\min\left\{\begin{array}{l|l}
 	\infty \qquad\qquad\qquad\qquad {\rm if}(S_i,S_j) \text{ is not a base pair} & stop\\\\
-	eh(i,j)+b \qquad\qquad\, \text{otherwise} & HL\\
-	V_{(i+1,j-1)}+es(i,j) & IL \\
+	eh(i,j)+b \qquad\qquad\, \text{otherwise} & hairpin\\
+	V_{(i+1,j-1)}+es(i,j) & stack \\
 	VBI_{(i,j)} & (i',j') \\
 	\min_{i<k<j-1}\{W_{(i+1,k)}+W_{(k+1,j-1)}\} +c & k
 \end{array}\right\} = BV_{(i,j)}\\
@@ -349,7 +349,7 @@ V_{(i,j)}&=&\min\left\{\begin{array}{l|l}
 VBI_{(i,j)}&=&\min\Big\{\min_{i<i'<j'<j}V_{(i',j')}+ebi(i,j,i',j')\} +c \,\,\Big|\,\, (i',j') \Big\}=BV_{(i,j)}\\
 \\
 F_{(j)}&=&\min\left\{\begin{array}{l|l}
-	F_{(j-1)} & L \\ 
+	F_{(j-1)} & P \\ 
 	\min_{1\le i< j} (F_{(i-1)} + V_{(i,j)}) & i
 \end{array}\right\} = BF_{(j)}
 \end{array}\]
@@ -358,26 +358,34 @@ In practice, we don't go backward for larger values than 30, so we can replace $
 
 \item Backtracking: Start at $BF_{(n)}$ using the recurrences
  \[\begin{array}{rcl}
-	BF_{(j)} &=& \left\{\begin{array}{rcl} L&\implies& BF_{(j-1)} \\ i &\implies& BF_{(i-1)} + BV_{(i,j)} \end{array} \right.\\
+	BF_{(j)} &=& \left\{\begin{array}{rcl} P&\implies& BF_{(j-1)} \\ i &\implies& BF_{(i-1)} + BV_{(i,j)} \end{array} \right.\\
 	\\
-	BV_{(i,j)} &=& \color{red} \left\{\begin{array}{rcl}
-		HL &\implies&\big< {\rm hairpin}(i,j) \big> \\
-		IL &\implies& \big< {\rm stack}(i,j) \big> BV_{(i+1,j-1)} \\
-		(i',j') &\implies& \big< \text{multi-loop from $(i,j)$ to }(i',j') \big> BV(i',j')\\
-		k &\implies& BW_{(i+1,k)} BW_{(k+1,j-1)}
+	BV_{(i,j)} &=& \left\{\begin{array}{rcl}
+		hairpin &\implies&\big< {\rm hairpin}(i,j) \big> \\
+		stack &\implies& \big< {\rm stack}(i,j) \big> \oplus BV_{(i+1,j-1)} \\
+		(i',j') &\implies& \big< \text{bulge from $(i,j)$ to }(i',j') \big> \oplus BV(i',j')\\
+		k &\implies& BW_{(i+1,k)} \oplus BW_{(k+1,j-1)}
 	\end{array}\right.\\
 	\\
-	BW_{(i,j)} &=& \color{red} \left\{\begin{array}{rcl}
-	S & \implies & \big< bulge(i) \big> BW_{(i+1,j)} \\
-	W & \implies & \big< bulge(j) \big> BW_{(i,j+1)} \\
+	BW_{(i,j)} &=& \left\{\begin{array}{rcl}
+	L & \implies & \big< multi\_loop(i) \big> \oplus BW_{(i+1,j)} \\
+	R & \implies & \big< multi\_loop(j) \big> \oplus BW_{(i,j+1)} \\
 	V &\implies& BV_{(i,j)} \\
-	k &\implies& BW_{(i+1,k)} BW_{(k+1,j-1)}
+	k &\implies& BW_{(i+1,k)} \oplus BW_{(k+1,j-1)}
 	\end{array}\right.
 \end{array}\]
 
-\item Visualization: \begin{center}\includegraphics[width=8cm]{inc/zucker.pdf}\end{center}
-	% source: <<Parallization of dynamic programming recurrences in computational biology>> paper
-\item Optimizations: {\color{red} XXX: notice that there are 3 matrices: $W$,$V$ ($VBI$ is part of $V$) that can be expressed using regular matrix, and $F$ that is of different dimension than $W$ and $V$ and requires a special construction (in the wavefront?). We need to find a nice way to encode both its construction and backtrack into the existing framework (implement 1D DP recursively?)}
+\item Visualizations\footnote{Reproductions of the illustrations from \cite{para_dprec} pp.148,149}:
+The recurrence consists of two non-serial dependencies as in <<\nameref{aswat}>> plus a bounded 2-dimensional dependency for bulges.
+\begin{center}\includegraphics[width=8cm]{inc/zuker_rec.pdf}\end{center}
+
+Since this problem is non-trivial to understand from the recurrences, we propose an additional illustration of a RNA chain folded according to the Zuker folding algorithm.
+\begin{center}
+\includegraphics[width=10cm]{inc/zuker_struct.pdf} \\
+\small An example of an RNA folded into a secondary structure. Types of structural features modeled by the Zuker folding algorithm include: dangling ends (1), internal loop (11), stack (23), multi-loop (47), bulge (68) and hairpin loop (78).
+\end{center}
+
+\item Optimizations: {\color{red} XXX: notice that there are 3 matrices: $W$,$V$ ($VBI$ is part of $V$) that can be expressed using regular matrix, and $F$ that is of different dimension than $W$ and $V$ and requires a special construction (in the wavefront?). We need to find a nice way to encode both its construction and backtrack into the existing framework (implement 1D DP recursively?) Also notice that the $k$ of $BV$ and $BW$ describe almost the same backtrack, but there is an additional cost $c$ in $BV$.}
 \ole
 
 % ------------------------------------------------------------------------------------------------
@@ -456,22 +464,17 @@ XXX: Fill up to 20-50 related problems to see how general we are
 - Seam carving (content aware image resizing)
 - Some approximate solution methods for the linear search problem.
 =====> http://en.wikipedia.org/wiki/Dynamic_programming#A_type_of_balanced_0.E2.80.931_matrix
-
 - Shortest path in DAGs
 - Shortest path
 - All pair shortest paths
 - Independent sets in trees
 => also see exercises for more problems
 =====> http://www.cs.berkeley.edu/~vazirani/algorithms/chap6.pdf
-
 - Subset Sum, Coin Change, Family Graph
 =====> http://www.algorithmist.com/index.php/Dynamic_Programming
-
 - Optimal Binary Search Trees
 =====> http://www.cs.uiuc.edu/~jeffe/teaching/algorithms/notes/05-dynprog.pdf
-
 - Independent set on a tree
-- 0-1 Knapsack
 =====> http://www.cs.ucsb.edu/~suri/cs130b/NewDynProg.pdf
 \end{verbatim}
 }

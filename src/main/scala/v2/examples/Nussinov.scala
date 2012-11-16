@@ -4,7 +4,7 @@ import v2._
 
 // Nussinov
 trait PairingSig extends Signature {
-  case class Dummy()
+  case class Dummy
 
   def nil(a: Dummy): Answer
   def left(c: Alphabet, a: Answer): Answer
@@ -23,7 +23,7 @@ trait PairingAlgebra extends PairingSig {
   def pair(l: Alphabet, a: Answer, r: Alphabet) = a+1
   def split(l: Answer, r: Answer) = l + r
 
-  def h(l :List[Answer]) = l match{
+  def h(l :List[Answer]) = l match {
     case Nil => Nil
     case _ => l.max::Nil
   }
@@ -66,7 +66,7 @@ trait PrettyPairingAlgebra extends PairingSig {
 trait NussinovGrammar extends PrettyPairingAlgebra with LexicalParsers {
   def empty = new Parser[Dummy] {
     def apply(sw: Subword) = sw match {
-      case (i,j) if i == j => List(Dummy())
+      case (i,j) if i == j => List(new Dummy)
       case _ => List()
     }
     //def tree = PTerminal((i:Var,j:Var) => (List(i.e(j,0)),"empty"))
