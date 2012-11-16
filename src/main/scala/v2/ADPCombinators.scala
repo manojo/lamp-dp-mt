@@ -1,5 +1,6 @@
 package v2
 
+class Dummy // return of empty parser
 trait Signature {
   type Alphabet // input type
   type Answer   // output type
@@ -118,38 +119,35 @@ trait ADPParsers { this:Signature =>
     input = null; res
   }
 
-  //def elems(k:Int) = new Parser[List[Alphabet]] {}
-  //def elem:Parser[Alphabet] = elem(1).head
+  def empty = new Parser[Dummy] {
+    def apply(sw:Subword) = sw match {
+      case (i,j) => if (i==j) List(new Dummy) else Nil
+    }
+  }
+  def el = new Parser[Alphabet] {
+    def apply(sw:Subword) = sw match {
+      case (i,j) => if(i+1==j) List(in(i)) else Nil
+    }
+  }
+  def eli = new Parser[Int] {
+    def apply(sw:Subword) = sw match {
+      case (i,j) => if(i+1==j) List(i) else Nil
+    }
+  }
+  def seq(min:Int, max:Int) = new Parser[(Int,Int)] {
+    def apply(sw:Subword) = sw match {
+      case (i,j) => if (i+min<=j && (max==0 || i+max>=j)) List((i,j)) else Nil
+    }
+  }
 }
 
 trait LexicalParsers extends ADPParsers { this:Signature =>
   override type Alphabet = Char
-
-  def char = new Parser[Char] {
-    def apply(sw:Subword) = sw match {
-      case (i, j) if(j == i+1) => List(in(i))
-      case _ => List()
-    }
-    //def tree = new PTerminal((i:Var,j:Var) => (List(i.e(j,1)),"Char["+i+"]"))
-  }
-
-  // same as a char but returns its index instead
-  def chari = new Parser[Int] {
-    def apply(sw:Subword) = sw match {
-      case (i, j) if(j == i+1) => List(i)
-      case _ => List()
-    }
-  }
-
-  def charf(f: Char => Boolean) = char filter {
-    case(i,j) if(i+1 == j) => f(in(i))
+  def char = el
+  def chari = eli
+  def charf(f: Char => Boolean) = el filter {
+    case(i,j) if(i+1==j) => f(in(i))
     case _ => false
   }
-
-  def digitParser: Parser[Int] = (char filter isDigit) ^^ readDigit
-  def readDigit(c: Char) = (c - '0').toInt
-  def isDigit(sw: Subword) = sw match {
-    case(i,j) if(i+1 == j) => in(i).isDigit
-    case _ => false
-  }
+  def digit: Parser[Int] = (charf {_.isDigit}) ^^ { c=>(c-'0').toInt }
 }

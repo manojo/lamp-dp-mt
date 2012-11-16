@@ -5,7 +5,6 @@ import v2._
 // Correct parenthesization problem
 // Also examplifies the windowing
 trait BracketsSignature extends Signature {
-  def readDigit(c: Alphabet) : Answer
   def bracket(l: Alphabet, s: Answer, r: Alphabet) : Answer
   def split(s: Answer, t: Answer): Answer
 }
@@ -27,7 +26,7 @@ object BracketsApp extends LexicalParsers with BracketsAlgebra {
   }
 
   val myParser: Parser[Int] = tabulate("M",(
-      digitParser
+      digit
     | (char -~~ myParser ~~- char).filter(areBrackets _).^^{ case (c1,(i,c2)) => i}
     | myParser +~+ myParser ^^ {case (x,y) => x+y}
     // Digits sum in the string

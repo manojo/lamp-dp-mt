@@ -77,20 +77,17 @@ trait TTParsers { this:Signature =>
     val res=p(size1,size2)
     input1=null; input2=null; res
   }
-}
 
-trait MatchingParsers extends TTParsers { this:Signature =>
-  class Dummy
   def empty = new Parser[Dummy] { def apply(sw:Subword) = if (sw._1==0 && sw._2==0) List(new Dummy) else List() }
-  def char1 = new Parser[Alphabet] { def apply(sw:Subword) = if (0 < sw._1) List(in1(sw._1-1)) else List() }
-  def char2 = new Parser[Alphabet] { def apply(sw:Subword) = if (0 < sw._2) List(in2(sw._2-1)) else List() }
+  def el1 = new Parser[Alphabet] { def apply(sw:Subword) = if (0 < sw._1) List(in1(sw._1-1)) else List() }
+  def el2 = new Parser[Alphabet] { def apply(sw:Subword) = if (0 < sw._2) List(in2(sw._2-1)) else List() }
 
   // non-empty string, return (start,end)
-  def gap1 = new Parser[(Int,Int)] {
+  def seq1 = new Parser[(Int,Int)] {
     def apply(sw:Subword) = List() // should never be called
     override def apply2(sw:Subword, k:Int) = if (0 < sw._1) List((k,sw._1)) else List()
   }
-  def gap2 = new Parser[(Int,Int)] {
+  def seq2 = new Parser[(Int,Int)] {
     def apply(sw:Subword) = List() // should never be called
     override def apply2(sw:Subword, k:Int) = if (0 < sw._1) List((k,sw._2)) else List()
   }

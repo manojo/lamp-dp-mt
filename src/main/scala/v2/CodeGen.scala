@@ -1,7 +1,24 @@
 package v2
 
 /*
-trait CodeGen extends ADPParsers { this:Signature =>
+trait CodeGen { this:Signature =>
+
+  type Subword = (Int, Int)
+  type Input = Array[Alphabet]
+
+  // Memoization through tabulation
+  import scala.collection.mutable.HashMap
+  val tabs = new HashMap[String,HashMap[Subword,List[Answer]]]
+  val rules = new HashMap[String,Parser[Answer]]
+
+  abstract class Parser[T] extends (Subword => List[T]) {
+    def apply(sw: Subword): List[T]
+    def tree : PTree
+    def makeTree = tree
+  }
+
+
+
   // Tree structure for recurrences generation
   sealed abstract class PTree
   case class PTerminal[T](f:(Var,Var) => (List[Cond],String)) extends PTree

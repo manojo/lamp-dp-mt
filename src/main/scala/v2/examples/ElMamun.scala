@@ -40,7 +40,7 @@ trait BillGrammar extends LexicalParsers with Bill {
   def times = charf(_ == '*')
 
   def billGrammar: Parser[Int] = tabulate("M",(
-    charf(_.isDigit) ^^ readDigit
+    digit
   | (billGrammar ~~- plus ~~~ billGrammar) ^^ { case ((a1,c),a2) => add(a1,a2) }
   | (billGrammar ~~- times ~~~ billGrammar) ^^ { case ((a1,c),a2) => mul(a1,a2) }
   ) aggregate h)

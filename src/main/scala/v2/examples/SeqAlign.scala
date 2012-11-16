@@ -19,7 +19,7 @@ trait SmithWatermanAlgebra extends SeqAlignSignature {
 
   def gap(score:Int, g:(Int,Int)) = { val size=g._2-g._1; Math.max(0, score + ( open + (size-1) * extend )) }
   def pair(a:Char,b:Char) = if (a==b) 10 else -3
-  def h(l:List[Answer]) = if(l.isEmpty) List() else List(l.maxBy(_._1))
+  def h(l:List[Answer]) = if(l.isEmpty) Nil else List(l.maxBy(_._1))
 }
 
 // Needleman-Wunsch algebra
@@ -29,20 +29,20 @@ trait NeedlemanWunschAlgebra extends SeqAlignSignature {
 
   def gap(score:Int, g:(Int,Int)) = { val size=g._2-g._1; score + ( open + (size-1) * extend ) }
   def pair(a:Char,b:Char) = if (a==b) 4 else -3
-  def h(l:List[Answer]) = if(l.isEmpty) List() else List(l.maxBy(_._1))
+  def h(l:List[Answer]) = if(l.isEmpty) Nil else List(l.maxBy(_._1))
 }
 
-trait SeqAlignGrammar extends MatchingParsers with SeqAlignSignature {
+trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
   private def prettyGap(sw:Subword,in:Function1[Int,Char]):(String,String) = {
     val g=(sw._1 until sw._2).toList; (g.map{x=>in(x)}.mkString(""),g.map{x=>"-"}.mkString(""))
   }
 
   def align(s1:String,s2:String) = parse(alignment)(s1.toArray,s2.toArray)
   def alignment: Parser[Answer] = tabulate("M",(
-    empty                         ^^ { _ => (0,".",".") }
-  | gap1  ++~ alignment           ^^ { case (g,(score,s1,s2)) => val (g1,g2)=prettyGap(g,in1); (gap(score,g),s1+g1,s2+g2) }
-  |           alignment ~++ gap2  ^^ { case ((score,s1,s2),g) => val (g1,g2)=prettyGap(g,in2); (gap(score,g),s1+g2,s2+g1) }
-  | char1 -~~ alignment ~~- char2 ^^ { case (c1,((score,s1,s2),c2)) => (score+pair(c1,c2),s1+c1, s2+c2) }
+    empty                       ^^ { _ => (0,".",".") }
+  | seq1 ++~ alignment          ^^ { case (g,(score,s1,s2)) => val (g1,g2)=prettyGap(g,in1); (gap(score,g),s1+g1,s2+g2) }
+  |          alignment ~++ seq2 ^^ { case ((score,s1,s2),g) => val (g1,g2)=prettyGap(g,in2); (gap(score,g),s1+g2,s2+g1) }
+  | el1  -~~ alignment ~~- el2  ^^ { case (c1,((score,s1,s2),c2)) => (score+pair(c1,c2),s1+c1, s2+c2) }
   ) aggregate h)
 }
 
