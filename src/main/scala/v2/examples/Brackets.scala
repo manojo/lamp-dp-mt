@@ -38,6 +38,6 @@ object BracketsApp extends LexicalParsers with BracketsAlgebra {
   override val window = 8
   def main(args: Array[String]) = {
     println(parse(myParser)("(((3)))((2))(1)((6))((((8))))".toArray))
-    //println(gen)
+    println(gen)
   }
 }

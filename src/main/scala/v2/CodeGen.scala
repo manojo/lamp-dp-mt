@@ -1,49 +1,59 @@
 package v2
 
-/*
-trait CodeGen { this:Signature =>
+class Dummy // return of empty parser
+trait Signature {
+  type Alphabet // input type
+  type Answer   // output type
 
+  def h(l: List[Answer]) : List[Answer]
+  val cyclic = false // is the problem cyclic
+  val window = 0     // windowing size, 0=infinite
+}
+
+trait CodeGen { this:Signature =>
+  val twotracks = false
   type Subword = (Int, Int)
   type Input = Array[Alphabet]
 
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
   val tabs = new HashMap[String,HashMap[Subword,List[Answer]]]
-  val rules = new HashMap[String,Parser[Answer]]
+  val rules = new HashMap[String,Treeable]
 
-  abstract class Parser[T] extends (Subword => List[T]) {
-    def apply(sw: Subword): List[T]
+  trait Treeable {
     def tree : PTree
     def makeTree = tree
   }
 
-
+  // ------------------------------------------------------------------------------
 
   // Tree structure for recurrences generation
   sealed abstract class PTree
-  case class PTerminal[T](f:(Var,Var) => (List[Cond],String)) extends PTree
+  case class PTerminal[T](f: (Var,Var) => (List[Cond],String)) extends PTree
   case class PAggr[T,U](h: List[T] => List[U], p: PTree) extends PTree
   case class POr(l: PTree, r: PTree) extends PTree
   case class PMap[T,U](f: T => U, p: PTree) extends PTree
   case class PFilter(f: Subword => Boolean, p: PTree) extends PTree
-  case class PRule(name:String) extends PTree
-  case class PConcat(l: PTree, r: PTree, indices:(Int,Int,Int,Int)) extends PTree
+  case class PRule(name: String) extends PTree
+  case class PConcat(l: PTree, r: PTree, indices: (Int,Int,Int,Int)) extends PTree
+  case class PConcatTT(l: PTree, r: PTree, track: Boolean, indices: (Int,Int)) extends PTree
 
   // A simple variable generator that sequentially issues free variables
   class FreeVar(v0:Char) {
     private var v=v0
     def get = { var r=v; v=(v+1).toChar; Var(r,0) }
-    def dup=new FreeVar(v0)
+    def dup = new FreeVar(v0)
   }
 
   // Variables : a name and an offset
   case class Var(v:Char,d:Int) { // 'v'+d
     override def toString = if (d==0) ""+v else if (d>0) v+"+"+d else v+""+d
-    def a(e:Int) = Var(v,d+e)
-    def f(l:Var,u:Var) = CFor(v,l.v,d-l.d,u.v,d-u.d)
-    def l(t:Var,e:Int) = CLeq(v,t.v,d-t.d+e)
-    def e(t:Var,e:Int) = CEq(v,t.v,d-t.d+e)
+    def add(e:Int) = Var(v,d+e)
+    def loop(l:Var,u:Var) = CFor(v,l.v,d-l.d,u.v,d-u.d)
+    def leq(t:Var,e:Int) = CLeq(v,t.v,d-t.d+e)
+    def eq(t:Var,e:Int) = CEq(v,t.v,d-t.d+e)
   }
+  val zero = Var('0',0) // 0+0
 
   // Conditions on fresh variables variables
   class Cond // Constraint that is put on variables
@@ -52,6 +62,7 @@ trait CodeGen { this:Signature =>
   case class CEq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta=='b'
 
   def gen:String = {
+    println("Problem type: "+(if (twotracks) "sequence alignment" else if (cyclic) "cyclic" else "standard" ));
     println("------------ rules ------------")
     for((n,p) <- rules) println( n+"[i,j] => "+emit(p.makeTree))
     println("------------- end -------------")
@@ -63,39 +74,54 @@ trait CodeGen { this:Signature =>
   // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
   def gen(q:PTree,i:Var,j:Var,g:FreeVar):(List[Cond],String) = q match {
     case PTerminal(f) => f(i,j)
-    case PAggr(h:Function1[List[Any],List[Any]],p) => p match {
+    case PAggr(h:Function1[List[Any],List[Any]] @unchecked,p) => p match {
       case POr(l,r) => gen(POr(PAggr(h,l),PAggr(h,r)),i,j,g)
       case _ => val (c,b)=gen(p,i,j,g); (c, "Aggr("+b+")")
     }
-    case POr(l,r) => (Nil, emit(gen(l,i,j,g.dup))+" ++ "+emit(gen(r,i,j,g.dup)))
+    case POr(l,r) => (Nil, emit(gen(l,i,j,g.dup))+"\n       ++ "+emit(gen(r,i,j,g.dup)))
     case PMap(f,p) => val (c,b)=gen(p,i,j,g); (c, "Map("+b+")")
     case PFilter(f,p) => val (c,b)=gen(p,i,j,g); (c, "Filter("+b+")")
     case PRule(name) => (Nil, name+"["+i+","+j+"]")
-    case PConcat(l, r, indices) =>
-      def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.l(j,f+l)); if (u>0) j.l(i,-f-u)::ls else ls }
+    case PConcatTT(l,r,track,indices) =>
+      val (c,k):(List[Cond],Var) = (track,indices) match {
+        case (false,(a,b)) if (a==b && a>0) => (List(zero.leq(i,1)),i.add(-a))
+        case (false,(a,b)) => val k0=g.get; (List(CFor(k0.v,'0',1,i.v,1)),k0)
+        case (true,(a,b)) if (a==b && a>0) => (List(zero.leq(j,1)),j.add(-a))
+        case (true,(a,b)) => val k0=g.get; (List(CFor(k0.v,'0',1,j.v,1)),k0)
+      }
+      val (lc,lb) = gen(l,i,if (track) k else j,g)
+      val (rc,rb) = gen(r,if (!track) k else i,j,g)
+      (simplify(c ::: lc ::: rc), lb+" ~TT~ "+rb)
 
+    case PConcat(l, r, indices) =>
+      def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u>0) j.leq(i,-f-u)::ls else ls }
       val (c,k):(List[Cond],Var) = indices match {
         // low=up in at least one side
-        case (0,0,0,0) => val k0=g.get; (List(k0.f(i,j)), k0)
-        case (iL,iU,0,0) if (iL==iU) => (List(i.l(j,iL)), i.a(iL))
-        case (0,0,jL,jU) if (jL==jU) => (List(i.l(j,jL)), j.a(-jL))
-        case (iL,iU,jL,jU) if (iL==iU && jL==jU) => (List(i.e(j,iL+jL)), i.a(iL))
-        case (iL,iU,jL,jU) if (iL==iU) => (bf1(iL,jL,jU), i.a(iL))
-        case (iL,iU,jL,jU) if (jL==jU) => (bf1(jL,iL,iU), j.a(-jL))
+        case (0,0,0,0) => val k0=g.get; (List(k0.loop(i,j)), k0)
+        case (iL,iU,0,0) if (iL==iU) => (List(i.leq(j,iL)), i.add(iL))
+        case (0,0,jL,jU) if (jL==jU) => (List(i.leq(j,jL)), j.add(-jL))
+        case (iL,iU,jL,jU) if (iL==iU && jL==jU) => (List(i.eq(j,iL+jL)), i.add(iL))
+        case (iL,iU,jL,jU) if (iL==iU) => (bf1(iL,jL,jU), i.add(iL))
+        case (iL,iU,jL,jU) if (jL==jU) => (bf1(jL,iL,iU), j.add(-jL))
         // most general case
         case (iL,iU,jL,jU) =>
           val k0=g.get;
           var cs:List[Cond] = Nil
-          if (jU>0) j.l(k0,-jU)
-          if (iU>0) i.l(k0,iU)
+          if (jU>0) j.leq(k0,-jU)
+          if (iU>0) i.leq(k0,iU)
           // we might want to simplify if min_k==i || max_k==j
           (CFor(k0.v,i.v,iL,j.v,jL)::cs, k0)
       }
       val (lc,lb) = gen(l,i,k,g)
       val (rc,rb) = gen(r,k,j,g)
+      (simplify(c ::: lc ::: rc), lb+" ~ "+rb)
 
-      var cs = c ::: lc ::: rc
-      // Optimizations and conditions simplifications
+    case _ => (Nil,toString)
+  }
+
+  // Optimizations and conditions simplifications
+  def simplify(conds: List[Cond]):List[Cond] = {
+      var cs = conds
       // 1. filter x+0=x
       cs = cs.filter { case CEq(a,b,0) if (a==b) => false case _ => true }
       // 2. minimize the range of for loop
@@ -113,9 +139,7 @@ trait CodeGen { this:Signature =>
         case CLeq(a,b,x) => cs=cs.filter { case CLeq(c,d,y) if (c==a && d==b && y<x) => false case _ => true }
         case CFor(v,l,_,u,_) => cs=cs.filter { case CLeq(c,d,_) if (c==l && d==v || c==v && d==u) => false case _ => true }
       }
-      (cs, lb+" ~ "+rb)
-
-    case _ => (Nil,toString)
+      cs
   }
 
   def emit(p:PTree):String = emit(gen(p,Var('i',0),Var('j',0),new FreeVar('k')))
@@ -128,4 +152,3 @@ trait CodeGen { this:Signature =>
     }.map{x=>x+" { "}.mkString("")+body+cs.map{x=>" }"}.mkString("")
   }
 }
-*/

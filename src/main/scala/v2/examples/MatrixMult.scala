@@ -53,13 +53,13 @@ trait PrettyMatrixAlgebra extends MatrixSig {
 }
 
 trait MatrixGrammar extends ADPParsers with MatrixSig {
+  /*
   def aMatrix = new Parser[(Int,Int)] {
-    def apply(sw: Subword) = sw match {
-      case (i,j) if(i+1 == j) => List(in(i))
-      case _ => List()
-    }
-    //def tree = PTerminal((i:Var,j:Var) => (List(i.e(j,1)),"mat["+i+"]"))
+    def apply(sw: Subword) = if(sw._1+1 == sw._2) List(in(i)) else Nil
+    def tree = PTerminal((i:Var,j:Var) => (List(i.e(j,1)),"mat["+i+"]"))
   }
+  */
+  def aMatrix = el
 
   def matrixGrammar: Parser[Answer] = tabulate("M",(
     aMatrix ^^ single
@@ -71,5 +71,5 @@ object MatrixMult extends App with MatrixGrammar with PrettyMatrixAlgebra {
   val input = List((10,100),(100,5),(5,50)).toArray
 
   println(parse(matrixGrammar)(input))
-  //println(gen)
+  println(gen)
 }

@@ -14,7 +14,7 @@ trait TriangulationAlgebra extends TriangulationSignature {
   def h(l:List[Answer]) = if(l.isEmpty) List() else List(l.minBy(_._3))
 }
 
-object TriangulationApp extends LexicalParsers with TriangulationAlgebra {
+object Triangulation extends LexicalParsers with TriangulationAlgebra {
   def edge(a:Int,b:Int):Int = (in(a),in(b)) match {
     case (a,b) if (a==b) => -1000 // should never happen
     case ('a','d') | ('a','e') | ('b','d') => 1
@@ -23,6 +23,7 @@ object TriangulationApp extends LexicalParsers with TriangulationAlgebra {
   }
 
   def triangle = new Parser[Answer] {
+    def tree = PTerminal{(_,_)=> (Nil,"triangle")}
     def apply(sw:Subword) = sw match { // we need to use in() instead of input for cyclic
       case (i,j) if(j == i+2) => List((i,j, edge(i,j), in(i)+""+in(j) ))
       case (i,j) => List()
@@ -44,6 +45,6 @@ object TriangulationApp extends LexicalParsers with TriangulationAlgebra {
     def solve(s:String) = parse(triangulation)(s.toArray)
 
     println(solve("abcdef"))
-    //println(gen)
+    println(gen)
   }
 }

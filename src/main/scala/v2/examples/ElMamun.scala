@@ -54,6 +54,10 @@ object ElMamun extends App {
   object seller extends BillGrammar with SellerAlgebra 
 
   val input = "1+2*3*4+5".toArray
+  println
   println("Buyer : "+buyer.parse(input).head)
+  println(buyer.gen)
+  println
   println("Seller: "+seller.parse(input).head)
+  println(buyer.gen)
 }
