@@ -51,11 +51,6 @@ trait PrettyPairingAlgebra extends PairingSig {
   type Answer = (Int, String)
   type Alphabet = Char
 
-  //create a new Ordering for triples of ints
-  object TripleOrdering extends Ordering[(Int,String)] {
-    def compare(a: (Int,String), b: (Int,String)) = a._1 compare b._1
-  }
-
   def nil(a: Dummy) = (0, "")
   def left(c: Alphabet,a: Answer) = (a._1, "."+a._2)
   def right(a: Answer, c:Alphabet) = (a._1, a._2+".")
@@ -64,7 +59,7 @@ trait PrettyPairingAlgebra extends PairingSig {
 
   def h(l :List[Answer]) = l match {
     case Nil => Nil
-    case _ => l.max::Nil
+    case _ => l.maxBy(_._1)::Nil
   }
 }
 
