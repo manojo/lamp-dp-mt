@@ -91,25 +91,25 @@ trait TTParsers extends CodeGen { this:Signature =>
   }
 
   def empty = new Parser[Dummy] {
-    def tree = PTerminal{(i:Var,j:Var) => (Nil,"empty")} // XXX: missing condition
+    def tree = PTerminal{(i:Var,j:Var) => (List(zero.leq(i,1),zero.leq(j,1)),"empty")}
     def apply(sw:Subword) = sw match { case (i,j) => if(i==0 && j==0) List(new Dummy) else Nil }
   }
   def el1 = new Parser[Alphabet] {
-    def tree = PTerminal{(i:Var,j:Var) => (Nil,"in1["+i.add(-1)+"]")}  // XXX: missing condition
+    def tree = PTerminal{(i:Var,j:Var) => (List(zero.leq(i,1)),"in1["+i.add(-1)+"]")}
     def apply(sw:Subword) = sw match { case (i,j) => if(0 < i) List(in1(i-1)) else Nil }
   }
   def el2 = new Parser[Alphabet] {
-    def tree = PTerminal{(i:Var,j:Var) => (Nil,"in2["+j.add(-1)+"]")}  // XXX: missing condition
+    def tree = PTerminal{(i:Var,j:Var) => (List(zero.leq(j,1)),"in2["+j.add(-1)+"]")}
     def apply(sw:Subword) = sw match { case (i,j) => if(0 < j) List(in2(j-1)) else Nil }
   }
   // non-empty string, return (start,end)
   def seq1 = new Parser[(Int,Int)] {
-    def tree = PTerminal{(i:Var,j:Var) => (Nil,"seq1")}  // XXX: missing condition
+    def tree = PTerminal{(i:Var,j:Var) => (List(zero.leq(i,1)),"seq1[??k??,"+i+"]")}
     def apply(sw:Subword) = Nil // should never be called
     override def apply2(sw:Subword, k:Int) = sw match { case (i,j) => if (0 < i) List((k,i)) else Nil }
   }
   def seq2 = new Parser[(Int,Int)] {
-    def tree = PTerminal{(i:Var,j:Var) => (Nil,"seq2")}  // XXX: missing condition
+    def tree = PTerminal{(i:Var,j:Var) => (List(zero.leq(j,1)),"seq2[??k??,"+j+"]")}
     def apply(sw:Subword) = Nil // should never be called
     override def apply2(sw:Subword, k:Int) = sw match { case (i,j) => if (0 < j) List((k,j)) else Nil }
   }
