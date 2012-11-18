@@ -8,13 +8,9 @@ trait ADPParsers extends CodeGen { this:Signature =>
 
   def parse(p:Parser[Answer])(in:Input):List[Answer] = {
     input = in;
-    val res = if (cyclic) {
-      h( ((0 until size).flatMap{ x => p(x,size+x) }).toList )
-    } else if (window>0) {
-      h( ((0 to size-window).flatMap{ x => p(x,window+x) }).toList )
-    } else {
-      p(0,size)
-    }
+    val res = if (cyclic) h( ((0 until size).flatMap{ x => p(x,size+x) }).toList )
+              else if (window>0) h( ((0 to size-window).flatMap{ x => p(x,window+x) }).toList )
+              else p(0,size)
     input = null; res
   }
 

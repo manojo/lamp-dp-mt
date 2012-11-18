@@ -1,13 +1,13 @@
 package v2
 
-class Dummy // return of empty parser
+class Dummy // empty parser match
 trait Signature {
   type Alphabet // input type
   type Answer   // output type
 
   def h(l: List[Answer]) : List[Answer]
-  val cyclic = false // is the problem cyclic
-  val window = 0     // windowing size, 0=infinite
+  val cyclic = false // cyclic problem
+  val window = 0     // windowing size, 0=disabled
 }
 
 trait CodeGen { this:Signature =>
@@ -62,7 +62,7 @@ trait CodeGen { this:Signature =>
   case class CEq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta=='b'
 
   def gen:String = {
-    println("Problem type: "+(if (twotracks) "sequence alignment" else if (cyclic) "cyclic" else "standard" ));
+    println("Problem type: "+(if (twotracks) "sequence alignment" else if (cyclic) "cyclic" else "standard" )+(if (window>0) ", window="+window else ""));
     println("------------ rules ------------")
     for((n,p) <- rules) println( n+"[i,j] => "+emit(p.makeTree))
     println("------------- end -------------")
@@ -72,12 +72,15 @@ trait CodeGen { this:Signature =>
   // 1. Assign to each node its bounds (i,j)
   // 2. Collect all the conditions from the tree and its content body
   // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
+  type map_f = Function1[List[Any],List[Any]] @unchecked
   def gen(q:PTree,i:Var,j:Var,g:FreeVar):(List[Cond],String) = q match {
+    // AST Transforms
+    case PAggr(h:map_f,POr(l,r)) => gen(POr(PAggr(h,l),PAggr(h,r)),i,j,g)
+    //case PMap(f:map_tp,PFilter(f2,p)) => gen(PFilter(f2,PMap(f,p)),i,j,g)
+
+    // Application
     case PTerminal(f) => f(i,j)
-    case PAggr(h:Function1[List[Any],List[Any]] @unchecked,p) => p match {
-      case POr(l,r) => gen(POr(PAggr(h,l),PAggr(h,r)),i,j,g)
-      case _ => val (c,b)=gen(p,i,j,g); (c, "Aggr("+b+")")
-    }
+    case PAggr(h,p) => val (c,b)=gen(p,i,j,g); (c, "Aggr("+b+")")
     case POr(l,r) => (Nil, emit(gen(l,i,j,g.dup))+"\n       ++ "+emit(gen(r,i,j,g.dup)))
     case PMap(f,p) => val (c,b)=gen(p,i,j,g); (c, "Map("+b+")")
     case PFilter(f,p) => val (c,b)=gen(p,i,j,g); (c, "Filter("+b+")")
@@ -104,11 +107,9 @@ trait CodeGen { this:Signature =>
         case (iL,iU,jL,jU) if (iL==iU) => (bf1(iL,jL,jU), i.add(iL))
         case (iL,iU,jL,jU) if (jL==jU) => (bf1(jL,iL,iU), j.add(-jL))
         // most general case
-        case (iL,iU,jL,jU) =>
-          val k0=g.get;
-          var cs:List[Cond] = Nil
-          if (jU>0) j.leq(k0,-jU)
-          if (iU>0) i.leq(k0,iU)
+        case (iL,iU,jL,jU) => val k0=g.get; var cs:List[Cond]=Nil;
+          if (jU>0) cs = j.leq(k0,-jU) :: cs
+          if (iU>0) cs = i.leq(k0,iU) :: cs
           // we might want to simplify if min_k==i || max_k==j
           (CFor(k0.v,i.v,iL,j.v,jL)::cs, k0)
       }

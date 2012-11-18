@@ -16,9 +16,7 @@ trait TTParsers extends CodeGen { this:Signature =>
   def size2:Int = input2.size
 
   def parse(p:Parser[Answer])(in1:Input,in2:Input):List[Answer] = {
-    input1=in1; input2=in2
-    val res=p(size1,size2)
-    input1=null; input2=null; res
+    input1=in1; input2=in2; val res=p(size1,size2); input1=null; input2=null; res
   }
 
   // Memoization through tabulation
