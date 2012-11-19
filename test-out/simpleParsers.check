@@ -1,0 +1,45 @@
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test1 extends ((Array[Char])=>(Char)) {
+def apply(x0:Array[Char]): Char = {
+val x1 = 0 + 1
+val x2 = x1 == 1
+val x4 = if (x2) {
+val x3 = x0(0)
+x3
+} else {
+'-'
+}
+x4
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test2 extends ((Array[Char])=>(Char)) {
+def apply(x5:Array[Char]): Char = {
+val x1 = 0 + 1
+val x2 = x1 == 1
+val x6 = x5(0)
+val x7 = x6 == 'm'
+val x8 = x2 && x7
+val x10 = if (x8) {
+val x9 = if (x2) {
+x6
+} else {
+'-'
+}
+x9
+} else {
+'-'
+}
+x10
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
