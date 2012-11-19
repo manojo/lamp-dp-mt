@@ -43,7 +43,7 @@ trait TTParsers extends CodeGen { this:Signature =>
       def apply(sw: Subword) = inner(sw)++that(sw)
       def tree = POr(inner.tree, that.tree)
     }
-    def aggregate[U](h: List[T] => List[U]) = new Parser[U] {
+    def aggregate(h: List[T] => List[T]) = new Parser[T] {
       def apply(sw: Subword) = h(inner(sw))
       def tree = PAggr(h,inner.tree)
     }

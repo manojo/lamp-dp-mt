@@ -51,7 +51,7 @@ trait ADPParsers extends CodeGen { this:Signature =>
     // Aggregate combinator.
     // Takes a function which modifies the list of a parse. Usually used
     // for max or min functions (but can also be a prettyprint).
-    def aggregate[U](h: List[T] => List[U]) = new Parser[U] {
+    def aggregate(h: List[T] => List[T]) = new Parser[T] {
       def apply(sw: Subword) = h(inner(sw))
       def tree = PAggr(h,inner.tree)
     }
