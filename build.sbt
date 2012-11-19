@@ -19,3 +19,5 @@ libraryDependencies ++= Seq(
 parallelExecution in Test := false
 
 scalacOptions += "-Yvirtualize"
+
+scalacOptions += "-deprecation"
