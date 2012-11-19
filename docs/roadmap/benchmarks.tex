@@ -92,5 +92,8 @@ Which shows that our algorithm is comparable to theirs. However, we must avoid a
 As a conclusion, (1) we must remain away to invalidate their result as previous hardware generations might be subject to more constraint to our hardware and (2) we are on par, if not better with one of the best current implementation.
 
 \item Reducing the number of threads launched at different splits of the algorithm (especially in latest splits in rectangular and triangular shapes) does not bring any speedup. Even worse, it slows down slightly the computation. We might attribute this to a better constant transformation by the compiler. Hence, having many idle threads does not impede performance.
+
+\item Unrolling the inner loops (non-serial dependencies) a small number of time provide some speedup, for a 2048-matrix respectively 10.9\% (rectangle, $2.765\to 2.464$), 14.1\% (triangle, $1.427\to 1.225$) and 9.7\% (parallelogram $1.539\to 1.389$).
+
 \ule
 
