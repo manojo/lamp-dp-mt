@@ -10,12 +10,12 @@ import scala.tools.reflect.ReflectGlobal
 import scala.reflect.internal.util.NoSourceFile
 import java.lang.{Class => jClass}
 
-// From ToolBoxFactory
+// From scala.tools.reflect.ToolBoxFactory (compiler)
+// http://stackoverflow.com/questions/11055210/whats-the-easiest-way-to-use-reify-get-an-ast-of-an-expression-in-scala
 class MyToolBox {
   class ToolBoxGlobal(settings: Settings, reporter: Reporter) extends ReflectGlobal(settings, reporter, classLoader) {
       import definitions._
 
-      private final val wrapperMethodName = "wrapper"
       private var wrapCount = 0
       private def nextWrapperModuleName() = {
         wrapCount += 1
@@ -62,6 +62,7 @@ class MyToolBox {
       }
 
       def compile(expr0: Tree): () => Any = {
+        val wrapperMethodName = "wrapper"
         val expr = if (!expr0.isTerm) Block(List(expr0), Literal(Constant(()))) else expr0
         val freeTerms = expr.freeTerms // need to calculate them here, because later on they will be erased
         val thunks = freeTerms map (fte => () => fte.value) // need to be lazy in order not to distort evaluation order
@@ -74,6 +75,12 @@ class MyToolBox {
           val minfo = ClassInfoType(List(ObjectClass.tpe), newScope, obj.moduleClass)
           obj.moduleClass setInfo minfo
           obj setInfo obj.moduleClass.tpe
+
+          val funs:List[DefDef] = expr match {
+            case Block(stats, expr) => stats.filter{case d:DefDef => true case _ => false }.asInstanceOf[List[DefDef]]
+            case d:DefDef => List(d)
+            case _ => Nil
+          }
 
           val meth = obj.moduleClass.newMethod(newTermName(wrapperMethodName))
           def makeParam(schema: (FreeTermSymbol, TermName)) = {
@@ -89,16 +96,29 @@ class MyToolBox {
 
           // XXX: at some point here we must keep the functions out instead of burying all in an expression
 
+          // XXX: make it inherit from Signature
+
           val methdef = DefDef(meth, expr changeOwner (defOwner(expr) -> meth))
           val moduledef = ModuleDef(obj, Template(
                   List(TypeTree(ObjectClass.tpe)),
                   emptyValDef, NoMods, List(), List(List()),
-                  List(methdef), NoPosition))
+                  List(methdef):::funs, NoPosition))
           var cleanedUp = resetLocalAttrs(moduledef)
           cleanedUp.asInstanceOf[ModuleDef]
         }
 
+        println("--------------------------------")
+        println(u show expr0)
+        println("--------------------------------")
+        println(u show expr)
+        println("--------------------------------")
+
         val mdef = wrap(expr)
+
+        println(u show mdef)
+        println("--------------------------------")
+
+
         val pdef = PackageDef(Ident(mdef.name), List(mdef))
         val unit = new CompilationUnit(NoSourceFile)
         unit.body = pdef
@@ -139,14 +159,20 @@ class MyToolBox {
   def compile(tree: u.Tree): () => Any = compiler.compile(importer.importTree(tree))
 }
 
+trait Signature {
+  def f(x:Int):Int
+  def g(x:Int):Int
+}
+
 object ToolBoxApp extends App {
   import scala.reflect.runtime.{universe => u}
 
   val c=new MyToolBox()
+  val k = 3
   val x = u.reify {
-    def f(x:Int):Int = x+5
-    def g(x:Int):Int = x*2
-    f(g(3))
+    def f(x:Int):Int = x+k
+    def g(x:Int):Int = x*k
+    f(g(k))
   }
   println(u showRaw x);
   println(c.compile(x.tree)())
