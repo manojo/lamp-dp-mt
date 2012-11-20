@@ -3,7 +3,7 @@ name := "lamp-dp-mt"
 resolvers ++= Seq(
   ScalaToolsSnapshots,
   //needed for custom build of scala test
-  "XXX" at "https://oss.sonatype.org/content/groups/public"
+  "ScalaTest" at "https://oss.sonatype.org/content/groups/public"
 )
 
 scalaOrganization := "org.scala-lang.virtualized"
