@@ -1,5 +1,5 @@
 package toolbox
-
+/*
 import scala.tools.nsc.reporters._
 import scala.tools.nsc.CompilerCommand
 import scala.tools.nsc.Global
@@ -12,6 +12,37 @@ import java.lang.{Class => jClass}
 
 // From scala.tools.reflect.ToolBoxFactory (compiler)
 // http://stackoverflow.com/questions/11055210/whats-the-easiest-way-to-use-reify-get-an-ast-of-an-expression-in-scala
+/*
+ClassDef(Modifiers(), newTypeName("Y"), List(),
+  Template(
+    List(Ident(newTypeName("AnyRef"))),
+    emptyValDef,
+    List(
+      DefDef(Modifiers(), nme.CONSTRUCTOR, List(), List(List()), TypeTree(),
+        Block(List(Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR), List())), Literal(Constant(())))
+      ),
+      DefDef(Modifiers(), newTermName("f"), List(), List(List(ValDef(Modifiers(PARAM), newTermName("x"), Ident(scala.Int), EmptyTree))), Ident(scala.Int),
+        Apply(Select(Ident(newTermName("x")), newTermName("$plus")), List(Select(This(newTypeName("ToolBoxApp")), newTermName("k"))))
+      )
+    )
+  )
+)
+
+ClassDef(Modifiers(), newTypeName("Y"), List(),
+  Template(
+    List(Ident(toolbox.Signature)), <<----------- MIND HERE THE TYPE
+    emptyValDef,
+    List(
+      DefDef(Modifiers(), nme.CONSTRUCTOR, List(), List(List()), TypeTree(),
+        Block(List(Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR), List())), Literal(Constant(())))
+    ),
+    DefDef(Modifiers(), newTermName("f"), List(), List(List(ValDef(Modifiers(PARAM), newTermName("x"), Ident(scala.Int), EmptyTree))), Ident(scala.Int),
+      Apply(Select(Ident(newTermName("x")), newTermName("$plus")), List(Select(This(newTypeName("ToolBoxApp")), newTermName("k"))))))
+    )
+  )
+)
+*/
+
 class MyToolBox {
   class ToolBoxGlobal(settings: Settings, reporter: Reporter) extends ReflectGlobal(settings, reporter, classLoader) {
       import definitions._
@@ -62,14 +93,34 @@ class MyToolBox {
       }
 
       def compile(expr0: Tree): () => Any = {
-        val wrapperMethodName = "wrapper"
-        val expr = if (!expr0.isTerm) Block(List(expr0), Literal(Constant(()))) else expr0
-        val freeTerms = expr.freeTerms // need to calculate them here, because later on they will be erased
-        val thunks = freeTerms map (fte => () => fte.value) // need to be lazy in order not to distort evaluation order
-        verify(expr)
+        val expr1 = if (!expr0.isTerm) Block(List(expr0), Literal(Constant(()))) else expr0
+        val thunks = expr1.freeTerms map (fte => () => fte.value)
+        verify(expr1)
 
-        def wrap(expr0: Tree): ModuleDef = {
-          val (expr, freeTerms) = extractFreeTerms(expr0, wrapFreeTermRefs = true)
+/*
+ClassDef(Modifiers(), newTypeName("Y"), List(),
+  Template(
+    List(Ident(toolbox.Signature)), <<----------- MIND HERE THE TYPE
+    emptyValDef,
+    List(
+      DefDef(Modifiers(), nme.CONSTRUCTOR, List(), List(List()), TypeTree(),
+        Block(List(Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR), List())), Literal(Constant(())))
+    ),
+    DefDef(Modifiers(), newTermName("f"), List(), List(List(ValDef(Modifiers(PARAM), newTermName("x"), Ident(scala.Int), EmptyTree))), Ident(scala.Int),
+      Apply(Select(Ident(newTermName("x")), newTermName("$plus")), List(Select(This(newTypeName("ToolBoxApp")), newTermName("k"))))))
+    )
+  )
+)
+*/
+
+            // XXX: how to get companion object
+          // XXX: make it inherit from Signature
+            val parent = Ident(toolbox.Signature.toString)
+
+
+
+        //def wrap(expr0: Tree): ModuleDef = {
+          val (expr, freeTerms) = extractFreeTerms(expr1, wrapFreeTermRefs = true)
           val (obj, mclazz) = rootMirror.EmptyPackageClass.newModuleAndClassSymbol(nextWrapperModuleName())
 
           val minfo = ClassInfoType(List(ObjectClass.tpe), newScope, obj.moduleClass)
@@ -82,6 +133,7 @@ class MyToolBox {
             case _ => Nil
           }
 
+          val wrapperMethodName = "wrapper"
           val meth = obj.moduleClass.newMethod(newTermName(wrapperMethodName))
           def makeParam(schema: (FreeTermSymbol, TermName)) = {
             val (fv, name) = schema
@@ -94,26 +146,25 @@ class MyToolBox {
             case _ => NoSymbol
           }
 
-          // XXX: at some point here we must keep the functions out instead of burying all in an expression
-
-          // XXX: make it inherit from Signature
-
-          val methdef = DefDef(meth, expr changeOwner (defOwner(expr) -> meth))
+          val methdef = DefDef(meth, This(tpnme.EMPTY) /*expr changeOwner (defOwner(expr) -> meth)*/)
           val moduledef = ModuleDef(obj, Template(
                   List(TypeTree(ObjectClass.tpe)),
                   emptyValDef, NoMods, List(), List(List()),
                   List(methdef):::funs, NoPosition))
+
           var cleanedUp = resetLocalAttrs(moduledef)
-          cleanedUp.asInstanceOf[ModuleDef]
-        }
+          
+
+
+        //}
 
         println("--------------------------------")
         println(u show expr0)
         println("--------------------------------")
-        println(u show expr)
+        println(u show expr1)
         println("--------------------------------")
 
-        val mdef = wrap(expr)
+        val mdef = cleanedUp.asInstanceOf[ModuleDef]
 
         println(u show mdef)
         println("--------------------------------")
@@ -129,8 +180,7 @@ class MyToolBox {
 
         val className = mdef.symbol.fullName
         if (settings.debug.value) println("generated: "+className)
-        def moduleFileName(className: String) = className + "$"
-        val jclazz = jClass.forName(moduleFileName(className), true, classLoader)
+        val jclazz = jClass.forName(className + "$", true, classLoader)
         val jmeth = jclazz.getDeclaredMethods.find(_.getName == wrapperMethodName).get
         val jfield = jclazz.getDeclaredFields.find(_.getName == "MODULE$").get
         val singleton = jfield.get(null)
@@ -155,25 +205,64 @@ class MyToolBox {
   } catch {
     case ex: Throwable => sys.error("reflective compilation has failed: cannot initialize the compiler due to %s".format(ex.toString))
   }
-
   def compile(tree: u.Tree): () => Any = compiler.compile(importer.importTree(tree))
 }
 
 trait Signature {
   def f(x:Int):Int
-  def g(x:Int):Int
+//  def g(x:Int):Int
 }
-
+object Signature {} // XXX: extends ?
+*/
 object ToolBoxApp extends App {
   import scala.reflect.runtime.{universe => u}
+  //import scala.reflect.runtime.universe._
+
+
+/*
+  println(u.typeOf[Signature].toString) // This is exactely the class we want to extend
+
+
+  val y = u.reify {
+    class Y extends Signature {
+      def f(x:Int):Int = x+k
+      def foo:Y = this
+    }
+  }
+  println(u showRaw y);
+  println(u show y);
+
 
   val c=new MyToolBox()
   val k = 3
   val x = u.reify {
     def f(x:Int):Int = x+k
     def g(x:Int):Int = x*k
-    f(g(k))
+    this
   }
   println(u showRaw x);
-  println(c.compile(x.tree)())
+
+  val w = c.compile(x.tree)()
+
+  println(w)
+*/
+
+  val ff = u.reify {
+    //def f(x:Int):Int = x*2
+    (x:Int) => x*2
+  }
+
+  println(u showRaw ff)
+
+  import scala.tools.reflect.Eval
+  def g = ff.eval
+
+  println(g)
+  println(g(3))
+  
+
+  
+
+
+
 }
