@@ -21,3 +21,5 @@ parallelExecution in Test := false
 scalacOptions += "-Yvirtualize"
 
 scalacOptions += "-deprecation"
+
+scalacOptions += "-feature"
