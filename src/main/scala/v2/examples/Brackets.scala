@@ -5,20 +5,15 @@ import v2._
 // Correct parenthesization problem
 // Also examplifies the windowing
 trait BracketsSignature extends Signature {
-  def bracket(l: Alphabet, s: Answer, r: Alphabet) : Answer
-  def split(s: Answer, t: Answer): Answer
+  type Answer = Int
+  override type Alphabet = Char
 }
 
 trait BracketsAlgebra extends BracketsSignature {
-  type Answer = Int
-  override type Alphabet = Char
-
-  def bracket(l: Char, s: Int, r: Char) = s
-  def split(s: Int, t: Int) = s+t
   def h(l : List[Int]) = if(l.isEmpty) List() else List(l.max)
 }
 
-object BracketsApp extends LexicalParsers with BracketsAlgebra {
+object Brackets extends LexicalParsers with BracketsAlgebra {
   def bracketize(c:Char,s:String) = "("+c+","+s+")"
 
   def areBrackets(sw: Subword) = sw match {
@@ -39,5 +34,18 @@ object BracketsApp extends LexicalParsers with BracketsAlgebra {
   def main(args: Array[String]) = {
     println(parse(myParser)("(((3)))((2))(1)((6))((((8))))".toArray))
     println(gen)
+
+    /*
+    import scala.reflect.runtime.{universe => u}
+    import scala.tools.reflect.Eval
+    val ff:u.Expr[Function1[Int,Int]] = u.reify {
+      (x:Int) => x*2
+    }
+    println(u showRaw ff)
+    lazy val g = ff.eval
+    println(g(3))
+    println(g(5))
+    */
+
   }
 }
