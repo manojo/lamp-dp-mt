@@ -9,6 +9,7 @@ import scala.tools.nsc.interpreter.AbstractFileClassLoader
 import scala.tools.reflect.ReflectGlobal
 import scala.reflect.internal.util.NoSourceFile
 import java.lang.{Class => jClass}
+*/
 
 // From scala.tools.reflect.ToolBoxFactory (compiler)
 // http://stackoverflow.com/questions/11055210/whats-the-easiest-way-to-use-reify-get-an-ast-of-an-expression-in-scala
@@ -43,6 +44,7 @@ ClassDef(Modifiers(), newTypeName("Y"), List(),
 )
 */
 
+/*
 class MyToolBox {
   class ToolBoxGlobal(settings: Settings, reporter: Reporter) extends ReflectGlobal(settings, reporter, classLoader) {
       import definitions._
@@ -97,21 +99,6 @@ class MyToolBox {
         val thunks = expr1.freeTerms map (fte => () => fte.value)
         verify(expr1)
 
-/*
-ClassDef(Modifiers(), newTypeName("Y"), List(),
-  Template(
-    List(Ident(toolbox.Signature)), <<----------- MIND HERE THE TYPE
-    emptyValDef,
-    List(
-      DefDef(Modifiers(), nme.CONSTRUCTOR, List(), List(List()), TypeTree(),
-        Block(List(Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR), List())), Literal(Constant(())))
-    ),
-    DefDef(Modifiers(), newTermName("f"), List(), List(List(ValDef(Modifiers(PARAM), newTermName("x"), Ident(scala.Int), EmptyTree))), Ident(scala.Int),
-      Apply(Select(Ident(newTermName("x")), newTermName("$plus")), List(Select(This(newTypeName("ToolBoxApp")), newTermName("k"))))))
-    )
-  )
-)
-*/
 
             // XXX: how to get companion object
           // XXX: make it inherit from Signature
@@ -146,14 +133,14 @@ ClassDef(Modifiers(), newTypeName("Y"), List(),
             case _ => NoSymbol
           }
 
-          val methdef = DefDef(meth, This(tpnme.EMPTY) /*expr changeOwner (defOwner(expr) -> meth)*/)
+          val methdef = DefDef(meth, This(tpnme.EMPTY)) // expr changeOwner (defOwner(expr) -> meth)
           val moduledef = ModuleDef(obj, Template(
                   List(TypeTree(ObjectClass.tpe)),
                   emptyValDef, NoMods, List(), List(List()),
                   List(methdef):::funs, NoPosition))
 
           var cleanedUp = resetLocalAttrs(moduledef)
-          
+
 
 
         //}
@@ -199,7 +186,7 @@ ClassDef(Modifiers(), newTypeName("Y"), List(),
   lazy val classLoader = new AbstractFileClassLoader(virtualDirectory, mirror.classLoader)
   lazy val importer = compiler.mkImporter(u)
   lazy val compiler: ToolBoxGlobal = try {
-    val command = new CompilerCommand(List() /* compiler arguments */, msg => sys.error(msg))
+    val command = new CompilerCommand(List(), msg => sys.error(msg)) // compiler arguments
     command.settings.outputDirs setSingleOutput virtualDirectory
     new ToolBoxGlobal(command.settings, new ConsoleReporter(command.settings))
   } catch {
@@ -247,10 +234,14 @@ object ToolBoxApp extends App {
   println(w)
 */
 
-  val ff = u.reify {
+  val ff:u.Expr[Function1[Int,Int]] = u.reify {
     //def f(x:Int):Int = x*2
     (x:Int) => x*2
   }
+
+  // scala.reflect.api.Exprs$ExprImpl
+
+  println(ff.getClass)
 
   println(u showRaw ff)
 
@@ -259,9 +250,9 @@ object ToolBoxApp extends App {
 
   println(g)
   println(g(3))
-  
 
-  
+
+
 
 
 
