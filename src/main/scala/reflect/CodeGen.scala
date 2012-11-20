@@ -1,11 +1,17 @@
-package v2
+package reflect
+
+import scala.reflect.runtime.{universe => u}
+//import scala.reflect.runtime.universe.Expr
+import scala.reflect.runtime.universe._
+import scala.tools.reflect.Eval
+import scala.language.reflectiveCalls
 
 class Dummy // empty parser match
 trait Signature {
   type Alphabet // input type
   type Answer   // output type
 
-  def h(l: List[Answer]) : List[Answer]
+  val h:Expr[Function1[List[Answer],List[Answer]]]
   val cyclic = false // cyclic problem
   val window = 0     // windowing size, 0=disabled
 }
@@ -30,10 +36,10 @@ trait CodeGen { this:Signature =>
   // Tree structure for recurrences generation
   sealed abstract class PTree
   case class PTerminal[T](f: (Var,Var) => (List[Cond],String)) extends PTree
-  case class PAggr[T](h: List[T] => List[T], p: PTree) extends PTree
+  case class PAggr[T](h: Expr[Function1[List[T],List[T]]], p: PTree) extends PTree
   case class POr(l: PTree, r: PTree) extends PTree
-  case class PMap[T,U](f: T => U, p: PTree) extends PTree
-  case class PFilter(f: Subword => Boolean, p: PTree) extends PTree
+  case class PMap[T,U](f: Expr[Function1[T,U]], p: PTree, tag:u.TypeTag[U]) extends PTree
+  case class PFilter(f: Expr[Function1[Subword,Boolean]], p: PTree) extends PTree
   case class PRule(name: String) extends PTree
   case class PConcat(l: PTree, r: PTree, indices: (Int,Int,Int,Int)) extends PTree
   case class PConcatTT(l: PTree, r: PTree, track: Boolean, indices: (Int,Int)) extends PTree
@@ -65,14 +71,35 @@ trait CodeGen { this:Signature =>
     println("Problem type: "+(if (twotracks) "sequence alignment" else if (cyclic) "cyclic" else "standard" )+(if (window>0) ", window="+window else ""));
     println("------------ rules ------------")
     for((n,p) <- rules) println( n+"[i,j] => "+emit(p.makeTree))
+    println("----------- helpers ------------")
+    for((n,e) <- helpers) e match {
+      case (Expr(Function(ValDef(_,arg,tp,_)::Nil,body)),tag) =>
+        // filter: => boolean
+        // map: => ???
+        // aggr: T => T
+        println(n+"("+arg+": "+tp+"): "+tag+" = "+(u show body)+"\n")
+      case x => println("ERROR WITH : "+x)
+    }
     println("------------- end -------------")
     "Hash maps: "+tabs.size
+  }
+
+  // Store for all user-defined functions
+  import scala.collection.mutable.HashMap
+  val helpers = new HashMap[String,(Expr[Any],u.TypeTag[Any])] {
+    private var counter:Int=0
+    def add(n:String,e:Expr[Any],t:u.TypeTag[Any]):String = {
+      val id=n+counter; counter=counter+1
+      this += ((id,(e,t)));
+      if (n=="filter") println("Added filter: "+e)
+      id
+    }
   }
 
   // 1. Assign to each node its bounds (i,j)
   // 2. Collect all the conditions from the tree and its content body
   // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
-  type map_f = Function1[List[Any],List[Any]] @unchecked
+  type map_f = Expr[Function1[List[Any],List[Any]]] @unchecked
   def gen(q:PTree,i:Var,j:Var,g:FreeVar):(List[Cond],String) = q match {
     // AST Transforms
     case PAggr(h:map_f,POr(l,r)) => gen(POr(PAggr(h,l),PAggr(h,r)),i,j,g)
@@ -80,10 +107,10 @@ trait CodeGen { this:Signature =>
 
     // Application
     case PTerminal(f) => f(i,j)
-    case PAggr(h,p) => val (c,b)=gen(p,i,j,g); (c, "Aggr("+b+")")
+    case PAggr(h,p) => val (c,b)=gen(p,i,j,g); (c, helpers.add("aggr",h,null)+"("+b+")")
     case POr(l,r) => (Nil, emit(gen(l,i,j,g.dup))+"\n       ++ "+emit(gen(r,i,j,g.dup)))
-    case PMap(f,p) => val (c,b)=gen(p,i,j,g); (c, "Map("+b+")")
-    case PFilter(f,p) => val (c,b)=gen(p,i,j,g); (c, "Filter("+b+")")
+    case PMap(f,p,tag) => val (c,b)=gen(p,i,j,g); (c, helpers.add("map",f,tag)+"("+b+")")
+    case PFilter(f,p) => val (c,b)=gen(p,i,j,g); (c, helpers.add("filter",f,null)+"("+b+")")
     case PRule(name) => (Nil, name+"["+i+","+j+"]")
     case PConcatTT(l,r,track,indices) =>
       val (c,k):(List[Cond],Var) = (track,indices) match {

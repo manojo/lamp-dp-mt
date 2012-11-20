@@ -21,7 +21,7 @@ trait TTParsers extends CodeGen { this:Signature =>
 
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
-  def tabulate(name:String, inner:Parser[Answer]) = new Parser[Answer] {
+  def tabulate(name:String, inner: => Parser[Answer]) = new Parser[Answer] {
     val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[Answer]])
     rules += ((name,this))
     def apply(sw: Subword) = map.getOrElseUpdate(sw, inner(sw))
@@ -38,8 +38,8 @@ trait TTParsers extends CodeGen { this:Signature =>
       def apply(sw:Subword) = inner(sw) map f
       def tree = PMap(f,inner.tree)
     }
-    def |(that: => Parser[T]) = or(that)
-    private def or (that: => Parser[T]) = new Parser[T] {
+    def |(that:Parser[T]) = or(that)
+    private def or (that:Parser[T]) = new Parser[T] {
       def apply(sw: Subword) = inner(sw)++that(sw)
       def tree = POr(inner.tree, that.tree)
     }
@@ -53,7 +53,7 @@ trait TTParsers extends CodeGen { this:Signature =>
     }
     // ========================== duplicated end
 
-    def concat1[U](l:Int,u:Int)(that: => Parser[U]) = new Parser[(T,U)] {
+    def concat1[U](l:Int,u:Int)(that:Parser[U]) = new Parser[(T,U)] {
       def tree = PConcatTT(inner.tree,that.tree,false,(l,u))
       def apply(sw: Subword) = sw match {
         case (i,j) =>
@@ -66,11 +66,11 @@ trait TTParsers extends CodeGen { this:Signature =>
         case _ => List()
       }
     }
-    def ++~ [U](that: => Parser[U]) = concat1(0,1)(that)
-    def +~~ [U](that: => Parser[U]) = concat1(0,0)(that)
-    def -~~ [U](that: => Parser[U]) = concat1(1,1)(that)
+    def ++~ [U](that:Parser[U]) = concat1(0,1)(that)
+    def +~~ [U](that:Parser[U]) = concat1(0,0)(that)
+    def -~~ [U](that:Parser[U]) = concat1(1,1)(that)
 
-    def concat2[U](l:Int,u:Int)(that: => Parser[U]) = new Parser[(T,U)] {
+    def concat2[U](l:Int,u:Int)(that:Parser[U]) = new Parser[(T,U)] {
       def tree = PConcatTT(inner.tree,that.tree,true,(l,u))
       def apply(sw: Subword) = sw match {
         case (i,j) =>
@@ -83,9 +83,9 @@ trait TTParsers extends CodeGen { this:Signature =>
         case _ => List()
       }
     }
-    def ~++ [U](that: => Parser[U]) = concat2(0,1)(that)
-    def ~~+ [U](that: => Parser[U]) = concat2(0,0)(that)
-    def ~~- [U](that: => Parser[U]) = concat2(1,1)(that)
+    def ~++ [U](that:Parser[U]) = concat2(0,1)(that)
+    def ~~+ [U](that:Parser[U]) = concat2(0,0)(that)
+    def ~~- [U](that:Parser[U]) = concat2(1,1)(that)
   }
 
   def empty = new Parser[Dummy] {
