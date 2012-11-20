@@ -157,7 +157,93 @@ val x5 = List()
 x5
 }
 val x41 = x37 ::: x40
-x41
+val x42 = x41.head
+val x43 = List(x42)
+x43
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test6 extends ((Array[Char])=>(scala.collection.immutable.List[scala.Tuple2[Char, Char]])) {
+def apply(x44:Array[Char]): scala.collection.immutable.List[scala.Tuple2[Char, Char]] = {
+val x45 = 0 < 2
+val x79 = if (x45) {
+val x46 = 0 == 0
+val x50 = if (x46) {
+val x47 = 0 + 0
+x47
+} else {
+val x47 = 0 + 0
+val x48 = 2 - 0
+val x49 = java.lang.Math.max(x47, x48)
+x49
+}
+val x53 = if (x46) {
+val x51 = 2 - 1
+x51
+} else {
+val x47 = 0 + 0
+val x51 = 2 - 1
+val x52 = java.lang.Math.min(x51, x47)
+x52
+}
+val x54 = x53 + 1
+val x55 = x50 until x54
+val x56 = x55.toList
+val x5 = List()
+val x1 = 0 + 1
+val x59 = x44(0)
+val x60 = x59 == 'm'
+val x62 = List(x59)
+val x78 = x56.flatMap { x57 => 
+val x58 = x1 == x57
+val x61 = x58 && x60
+val x64 = if (x61) {
+val x63 = if (x58) {
+x62
+} else {
+x5
+}
+x63
+} else {
+x5
+}
+val x66 = x57 + 1
+val x67 = x66 == 2
+val x68 = x44(x57)
+val x69 = x68 == 'a'
+val x70 = x67 && x69
+val x73 = if (x70) {
+val x72 = if (x67) {
+val x71 = List(x68)
+x71
+} else {
+x5
+}
+x72
+} else {
+x5
+}
+val x77 = x64.flatMap { x65 => 
+val x76 = x73.map{
+x74 => 
+val x75 = (x65,x74)
+x75
+}
+x76
+}
+x77
+}
+x78
+} else {
+val x5 = List()
+x5
+}
+x79
 }
 }
 /*****************************************

@@ -23,6 +23,11 @@ trait ParsersProg extends Parsers {
     p(0,1)
   }
 
+  def test6(in: Rep[Array[Char]]) : Rep[List[(Char,Char)]] = {
+    val p = (charf(in, 'm') ~~+ charf(in, 'a'))
+    p(0,2)
+  }
+
 }
 
 class TestSimpleParsers extends FileDiffSuite {
@@ -33,13 +38,15 @@ class TestSimpleParsers extends FileDiffSuite {
     withOutFile(prefix+"simpleParsers"){
        new ParsersProg with ParsersExp { self =>
         val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
-          with ScalaGenEqual{ val IR: self.type = self }
+          with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
+          with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
 
         codegen.emitSource(test1 _ , "test1", new java.io.PrintWriter(System.out))
         codegen.emitSource(test2 _ , "test2", new java.io.PrintWriter(System.out))
         codegen.emitSource(test3 _ , "test3", new java.io.PrintWriter(System.out))
         codegen.emitSource(test4 _ , "test4", new java.io.PrintWriter(System.out))
-        codegen.emitSource(test4 _ , "test5", new java.io.PrintWriter(System.out))
+        codegen.emitSource(test5 _ , "test5", new java.io.PrintWriter(System.out))
+        codegen.emitSource(test6 _ , "test6", new java.io.PrintWriter(System.out))
       }
     }
 
