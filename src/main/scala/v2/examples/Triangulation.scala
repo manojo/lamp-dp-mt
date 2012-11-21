@@ -11,7 +11,7 @@ trait TriangulationAlgebra extends TriangulationSignature {
   override type Alphabet = Char // name of the vertex
 
   type Answer = (Int,Int,Int,String) // start, end, cost, pretty-print
-  def h(l:List[Answer]) = if(l.isEmpty) List() else List(l.minBy(_._3))
+  override val h = (l:List[Answer]) => if(l.isEmpty) List() else List(l.minBy(_._3))
 }
 
 object Triangulation extends LexicalParsers with TriangulationAlgebra {

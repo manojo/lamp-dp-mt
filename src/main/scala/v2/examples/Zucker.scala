@@ -47,7 +47,7 @@ trait ZuckerBasePairMax extends ZuckerSig {
   def ssadd(e:SSeq, x:Answer) = x
   def nil(d:Dummy) = 0
 
-  def h(l : List[Answer]) = if(l.isEmpty) List() else List(l.max)
+  override val h = (l:List[Answer]) => if(l.isEmpty) List() else List(l.max)
 }
 
 trait ZuckerPrettyPrint extends ZuckerSig {
@@ -69,7 +69,7 @@ trait ZuckerPrettyPrint extends ZuckerSig {
   def ssadd(e:SSeq, x:Answer) = dots(e)+x
   def nil(d:Dummy) = ""
 
-  def h(l : List[Answer]) = l
+  override val h = (l:List[Answer]) => l
 }
 
 /*

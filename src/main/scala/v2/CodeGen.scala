@@ -5,9 +5,26 @@ trait Signature {
   type Alphabet // input type
   type Answer   // output type
 
-  def h(l: List[Answer]) : List[Answer]
+  val h:List[Answer]=>List[Answer] = l=>l
   val cyclic = false // cyclic problem
   val window = 0     // windowing size, 0=disabled
+
+  def max[T:Numeric] = new (List[T]=>List[T]) {
+    def apply(l:List[T]) = if (l.isEmpty) Nil else List(l.max)
+    override def toString = "$$max$$"
+  }
+  def min[T:Numeric] = new (List[T]=>List[T]) {
+    def apply(l:List[T]) = if (l.isEmpty) Nil else List(l.min)
+    override def toString = "$$min$$"
+  }
+  def count[T:Numeric] = new (List[T]=>List[T]) {
+    def apply(l:List[T]) = if (l.isEmpty) Nil else List(l.length.asInstanceOf[T])
+    override def toString = "$$count$$"
+  }
+  def sum[T:Numeric] = new (List[T]=>List[T]) {
+    def apply(l:List[T]) = if (l.isEmpty) Nil else List(l.sum)
+    override def toString = "$$sum$$"
+  }
 }
 
 trait CodeGen { this:Signature =>
@@ -69,18 +86,38 @@ trait CodeGen { this:Signature =>
     "Hash maps: "+tabs.size
   }
 
+  type map_f = Function1[List[Any],List[Any]] @unchecked
+  // Normalization of the parser AST
+  def norm(q:PTree):PTree = q match {
+    case PAggr(h:map_f,p) => norm(p) match {
+      case PFilter(f,pp) => PFilter(f,norm(PAggr(h,pp)))
+      case POr(l,r) => POr(norm(PAggr(h,l)),norm(PAggr(h,r)))
+      case pp => PAggr(h,pp)
+    }
+    case PMap(f:map_f,p) => norm(p) match {
+      case PFilter(f,pp) => PFilter(f,norm(PMap(f,pp)))
+      case pp => PMap(f,pp)
+    }
+    case PFilter(f,p) => PFilter(f,norm(p))
+    case POr(l,r) => POr(norm(l),norm(r))
+    case PConcat(l,r,i) => PConcat(norm(l),norm(r),i)
+    case PConcatTT(l,r,t,i) => PConcatTT(norm(l),norm(r),t,i)
+    case _ => q
+  }
+
   // 1. Assign to each node its bounds (i,j)
   // 2. Collect all the conditions from the tree and its content body
   // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
-  type map_f = Function1[List[Any],List[Any]] @unchecked
   def gen(q:PTree,i:Var,j:Var,g:FreeVar):(List[Cond],String) = q match {
-    // AST Transforms
-    case PAggr(h:map_f,POr(l,r)) => gen(POr(PAggr(h,l),PAggr(h,r)),i,j,g)
-    //case PMap(f:map_tp,PFilter(f2,p)) => gen(PFilter(f2,PMap(f,p)),i,j,g)
-
-    // Application
     case PTerminal(f) => f(i,j)
-    case PAggr(h,p) => val (c,b)=gen(p,i,j,g); (c, "Aggr("+b+")")
+    case PAggr(h,p) => val (c,b)=gen(p,i,j,g);
+      h.toString match {
+        case "$$max$$" => (c, "max("+b+")")
+        case "$$min$$" => (c, "min("+b+")")
+        case "$$count$$" => (c, "count("+b+")")
+        case "$$sum$$" => (c, "sum("+b+")")
+        case _ => (c, "Aggr_"+h.toString+"("+b+")")
+      }
     case POr(l,r) => (Nil, emit(gen(l,i,j,g.dup))+"\n       ++ "+emit(gen(r,i,j,g.dup)))
     case PMap(f,p) => val (c,b)=gen(p,i,j,g); (c, "Map("+b+")")
     case PFilter(f,p) => val (c,b)=gen(p,i,j,g); (c, "Filter("+b+")")
@@ -143,7 +180,7 @@ trait CodeGen { this:Signature =>
       cs
   }
 
-  def emit(p:PTree):String = emit(gen(p,Var('i',0),Var('j',0),new FreeVar('k')))
+  def emit(p:PTree):String = emit(gen(norm(p),Var('i',0),Var('j',0),new FreeVar('k')))
   def emit(d:(List[Cond],String)):String = d match { case (cs,body) =>
     cs.map {
       case CFor(v,l,ld,u,0) => "for("+l+(if(ld>0)"+"+ld else "")+" <= "+v+" <= "+u+")"

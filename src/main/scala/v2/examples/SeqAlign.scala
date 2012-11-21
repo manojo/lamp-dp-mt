@@ -19,7 +19,7 @@ trait SmithWatermanAlgebra extends SeqAlignSignature {
 
   def gap(score:Int, g:(Int,Int)) = { val size=g._2-g._1; Math.max(0, score + ( open + (size-1) * extend )) }
   def pair(a:Char,b:Char) = if (a==b) 10 else -3
-  def h(l:List[Answer]) = if(l.isEmpty) Nil else List(l.maxBy(_._1))
+  override val h = (l:List[Answer]) => if(l.isEmpty) Nil else List(l.maxBy(_._1))
 }
 
 // Needleman-Wunsch algebra
@@ -29,7 +29,7 @@ trait NeedlemanWunschAlgebra extends SeqAlignSignature {
 
   def gap(score:Int, g:(Int,Int)) = { val size=g._2-g._1; score + ( open + (size-1) * extend ) }
   def pair(a:Char,b:Char) = if (a==b) 4 else -3
-  def h(l:List[Answer]) = if(l.isEmpty) Nil else List(l.maxBy(_._1))
+  override val h = (l:List[Answer]) => if(l.isEmpty) Nil else List(l.maxBy(_._1))
 }
 
 trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {

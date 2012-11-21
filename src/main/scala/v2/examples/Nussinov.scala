@@ -57,7 +57,7 @@ trait PrettyPairingAlgebra extends PairingSig {
   def pair(l: Alphabet, a: Answer, r: Alphabet) = (a._1 + 1, "("+a._2+")")
   def split(l: Answer, r: Answer) = (l._1 + r._1, l._2 + r._2)
 
-  def h(l :List[Answer]) = l match {
+  override val h = (l:List[Answer]) => l match {
     case Nil => Nil
     case _ => l.maxBy(_._1)::Nil
   }

@@ -10,7 +10,8 @@ trait BracketsSignature extends Signature {
 }
 
 trait BracketsAlgebra extends BracketsSignature {
-  def h(l : List[Int]) = if(l.isEmpty) List() else List(l.max)
+  //def h(l : List[Int]) = if(l.isEmpty) List() else List(l.max)
+  override val h = max[Answer] _
 }
 
 object Brackets extends LexicalParsers with BracketsAlgebra {
