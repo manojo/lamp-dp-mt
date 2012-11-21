@@ -1,0 +1,58 @@
+error: illegal sharing of mutable objects Sym(7)
+at Sym(8)=Reflect(ArrayUpdate(Sym(3),Const(0),Sym(7)),Summary(false,false,false,false,false,List(Sym(3), Sym(7)),List(Sym(3), Sym(7)),List(Sym(3)),List(Sym(3))),List(Sym(7)))
+error: write to non-mutable Sym(12) -> Some(TP(Sym(12),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(10)))))
+at Sym(22)=Reflect(ArrayUpdate(Sym(12),Const(1),Sym(21)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(12)),List(Sym(12))),List(Sym(3), Sym(10), Sym(12)))
+error: illegal sharing of mutable objects Sym(3)
+at Sym(22)=Reflect(ArrayUpdate(Sym(12),Const(1),Sym(21)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(12)),List(Sym(12))),List(Sym(3), Sym(10), Sym(12)))
+error: write to non-mutable Sym(12) -> Some(TP(Sym(12),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(10)))))
+at Sym(25)=Reflect(IfThenElse(Sym(11),Block(Sym(24)),Block(Sym(19))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(Sym(12)),List()),List(Sym(3), Sym(10)))
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test-tabulation extends ((Array[Char])=>(scala.collection.immutable.List[Char])) {
+def apply(x0:Array[Char]): scala.collection.immutable.List[Char] = {
+val x1 = x0.length
+val x2 = x1 + 1
+val x3 = new Array[Array[scala.collection.immutable.List[Char]]](x2)
+val x4 = x1 + 2
+var x6 : Int = 0
+val x10 = while (x6 < x4) {
+val x7 = new Array[scala.collection.immutable.List[Char]](x2)
+val x8 = x3(0) = x7
+x8
+x6 = x6 + 1
+}
+val x11 = 0 <= 1
+val x25 = if (x11) {
+val x12 = x3(0)
+val x13 = 0 + 1
+val x14 = x13 == 1
+val x15 = x0(0)
+val x16 = x15 == 'm'
+val x17 = x14 && x16
+val x21 = if (x17) {
+val x20 = if (x14) {
+val x18 = List(x15)
+x18
+} else {
+val x19 = List()
+x19
+}
+x20
+} else {
+val x19 = List()
+x19
+}
+val x22 = x12(1) = x21
+val x23 = x12(1)
+x23
+} else {
+val x19 = List()
+x19
+}
+x25
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/

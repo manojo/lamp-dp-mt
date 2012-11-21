@@ -2,9 +2,22 @@ package lms
 
 import scala.virtualization.lms.common._
 
+/** Signature, taken from vanilla version */
+/*trait Signature {
+  type Alphabet // input type
+  type Answer   // output type
+
+//  def h(l: List[Answer]) : List[Answer]
+//  val cyclic = false // cyclic problem
+//  val window = 0     // windowing size, 0=disabled
+}*/
+
 trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
                  with LiftNumeric with Equal with BooleanOps with OrderingOps
                  with MathOps with HackyRangeOps with TupleOps{
+
+  //DSL related type aliases and info
+  //type Input = Rep[Array[Alphabet]]
 
   abstract class Parser[T:Manifest] extends ((Rep[Int], Rep[Int]) => Rep[List[T]]){inner =>
 
@@ -56,20 +69,106 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
     def ~~- [U:Manifest](that: => Parser[U]) = concat(0,0,1,1)(that)
   }
 
-  def char(in: Rep[Array[Char]]) = new Parser[Char]{
-    def apply(i: Rep[Int], j: Rep[Int]): Rep[List[Char]] = if(i+1 == j) List(in(i)) else List()
+  // Memoization through tabulation
+ /* import scala.collection.mutable.HashMap
+  def tabulate(name:String, inner: => Parser[Answer]) = new Parser[Answer] {
+    val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[Answer]])
+    rules += ((name,this))
+
+    def apply(sw: Subword) = sw match {
+      case (i,j) if(i <= j) => map.getOrElseUpdate(if(cyclic) (i%size, j%size) else sw, inner(sw))
+      case _ => List()
+    }
+  }*/
+
+  /*************** simple parsers below *****************/
+
+/*  def el(in: Input) = new Parser[Alphabet] {
+    def apply(i: Rep[Int], j : Rep[Int]) =
+      if(i+1==j) List(in(i)) else Nil
   }
 
-  def charf(in: Rep[Array[Char]], c: Rep[Char]) = char(in) filter { (i: Rep[Int], j: Rep[Int]) =>
+  def eli(in: Input) = new Parser[Int] {
+    def apply(i: Rep[Int], j : Rep[Int]) =
+      if(i+1==j) List(i) else Nil
+  }
+*/
+}
+
+trait LexicalParsers extends Parsers{
+
+  type Input = Rep[Array[Char]]
+
+  //tabulation for Char parsers
+  // Memoization through tabulation
+  import scala.collection.mutable.HashSet
+  //val costMatrices = new HashMap[String,Rep[Array[Array[List[List[Char]]]]]]
+
+  val productions = new HashSet[String]
+  def tabulate[T: Manifest](name:String,
+    inner: Parser[T], mat: Rep[Array[Array[List[T]]]]
+  ) = new Parser[T] {
+    def apply(i: Rep[Int], j: Rep[Int]) =
+      if(i <= j){
+
+        if(!(productions contains(name)) /*&& res.isEmpty*/){
+          productions += name
+          mat(i)(j) = inner(i,j);
+          productions -= name
+          val a = mat(i)
+          a(j)
+        } else {
+          val tmp = mat(i)
+          tmp(j)
+        }
+      } else List()
+  }
+
+  //bottomup parsing
+  /*def bottomUp(in: Input, p : Parser[List[Char]], costMatrix: Rep[Array[Array[List[List[Char]]]]]) = {
+    //initialising the cost matrix
+    (0 until in.length + 1).foreach{i =>
+      (0 until in.length + 1).foreach{j =>
+        val a = costMatrix(i)
+        a(j) = List()
+      }
+    }
+
+    (0 until in.length + 1).foreach{j =>
+      (0 until j+1).foreach{i =>
+        //TODO: extend range ops for descending ranges
+        val a = costMatrix(j-i)
+        a(j) = p(j-i,j)
+      }
+    }
+  }*/
+
+  def char(in: Input) = new Parser[Char]{
+    def apply(i: Rep[Int], j : Rep[Int]) =
+      if(i+1==j) List(in(i)) else List()
+  }
+
+  def charf(in: Input, c: Rep[Char]) = char(in) filter { (i: Rep[Int], j: Rep[Int]) =>
     (i + 1 == j) && in(i) == c
   }
 
-  def myParser(in: Rep[Array[Char]]) : Parser[Char] =
-    char(in) ^^ (x=>x)
 
-  def bla(in: Rep[Array[Char]]) : Rep[List[Char]] = {
-    def p : Parser[List[Char]] = (charf(in, 'm') -~~ p) ^^ concatenate
-    p(0,in.length).head
+  def myParser(in: Input) : Parser[Char] = {
+    val a : Rep[Array[Array[List[Char]]]] = NewArray(in.length+1)
+    (0 until in.length + 2).foreach{ i=>
+      a(0) = NewArray(in.length+1)
+    }
+
+    tabulate("myParser",
+      charf(in, 'm'),
+      a
+    )
+  }
+
+
+  def bla(in: Input) : Rep[List[Char]] = {
+    //def p : Parser[List[Char]] = (charf(in, 'm') -~~ p) ^^ concatenate
+    myParser(in)(0,in.length)//.head
   }
 
   def concatenate(t : Rep[(Char, List[Char])]) = t._1 :: t._2
@@ -84,7 +183,7 @@ object HelloParsers extends App {
 
   //import LoopsProgExp._
 
-  val concreteProg = new Parsers with ParsersExp { self =>
+  val concreteProg = new LexicalParsers with ParsersExp { self =>
     val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
       with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
       with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }

@@ -1,0 +1,111 @@
+error: illegal sharing of mutable objects Sym(7)
+at Sym(8)=Reflect(ArrayUpdate(Sym(3),Const(0),Sym(7)),Summary(false,false,false,false,false,List(Sym(3), Sym(7)),List(Sym(3), Sym(7)),List(Sym(3)),List(Sym(3))),List(Sym(7)))
+error: write to non-mutable Sym(12) -> Some(TP(Sym(12),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(10)))))
+at Sym(54)=Reflect(ArrayUpdate(Sym(12),Sym(1),Sym(53)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(12)),List(Sym(12))),List(Sym(3), Sym(10), Sym(12)))
+error: illegal sharing of mutable objects Sym(3)
+at Sym(54)=Reflect(ArrayUpdate(Sym(12),Sym(1),Sym(53)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(12)),List(Sym(12))),List(Sym(3), Sym(10), Sym(12)))
+error: write to non-mutable Sym(12) -> Some(TP(Sym(12),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(10)))))
+at Sym(57)=Reflect(IfThenElse(Sym(11),Block(Sym(56)),Block(Sym(31))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(Sym(12)),List()),List(Sym(3), Sym(10)))
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test-recursion extends ((Array[Char])=>(scala.collection.immutable.List[Char])) {
+def apply(x0:Array[Char]): scala.collection.immutable.List[Char] = {
+val x1 = x0.length
+val x2 = x1 + 1
+val x3 = new Array[Array[scala.collection.immutable.List[scala.collection.immutable.List[Char]]]](x2)
+val x4 = x1 + 2
+var x6 : Int = 0
+val x10 = while (x6 < x4) {
+val x7 = new Array[scala.collection.immutable.List[scala.collection.immutable.List[Char]]](x2)
+val x8 = x3(0) = x7
+x8
+x6 = x6 + 1
+}
+val x11 = 0 <= x1
+val x57 = if (x11) {
+val x12 = x3(0)
+val x13 = 0 < x1
+val x48 = if (x13) {
+val x14 = 0 == 0
+val x15 = 0 + 1
+val x18 = if (x14) {
+x15
+} else {
+val x16 = x1 - 0
+val x17 = java.lang.Math.max(x15, x16)
+x17
+}
+val x19 = 1 == 0
+val x21 = if (x19) {
+val x16 = x1 - 0
+x16
+} else {
+val x16 = x1 - 0
+val x20 = java.lang.Math.min(x16, x15)
+x20
+}
+val x22 = x21 + 1
+val x23 = x18 until x22
+val x24 = x23.toList
+val x31 = List()
+val x27 = x0(0)
+val x28 = x27 == 'm'
+val x30 = List(x27)
+val x46 = x24.flatMap { x25 => 
+val x26 = x15 == x25
+val x29 = x26 && x28
+val x33 = if (x29) {
+val x32 = if (x26) {
+x30
+} else {
+x31
+}
+x32
+} else {
+x31
+}
+val x35 = x25 <= x1
+val x44 = x33.flatMap { x34 => 
+val x39 = if (x35) {
+val x36 = x3(x25)
+val x37 = x36(x1)
+x37
+} else {
+x31
+}
+val x42 = x39.map{
+x40 => 
+val x41 = (x34,x40)
+x41
+}
+x42
+}
+x44
+}
+x46
+} else {
+val x31 = List()
+x31
+}
+val x53 = x48.map{
+x49 => 
+val x50 = x49._1
+val x51 = x49._2
+val x52 = x50 :: x51
+x52
+}
+val x54 = x12(x1) = x53
+val x55 = x12(x1)
+x55
+} else {
+val x31 = List()
+x31
+}
+val x58 = x57.head
+x58
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
