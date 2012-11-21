@@ -43,7 +43,17 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
 
     def ~~~ [U:Manifest](that: => Parser[U]) = concat(0,0,0,0)(that)
     def ~~+ [U:Manifest](that: => Parser[U]) = concat(0,0,1,0)(that)
+    def +~~ [U:Manifest](that: => Parser[U]) = concat(1,0,0,0)(that)
+    def +~+ [U:Manifest](that: => Parser[U]) = concat(1,0,1,0)(that)
 
+    def *~~ [U:Manifest](lMin:Rep[Int], rRange:Pair[Int,Int], that: => Parser[U]) = concat(lMin,0,rRange._1,rRange._2)(that)
+    def ~~* [U:Manifest](lRange:Pair[Rep[Int],Rep[Int]], rMin:Rep[Int], that: => Parser[U]) = concat(lRange._1,lRange._2,rMin,0)(that)
+    def *~* [U:Manifest](lMin:Rep[Int], rMin:Rep[Int], that: => Parser[U]) = concat(lMin,0,rMin,0)(that)
+
+    def ~~ [U:Manifest](lRange:Pair[Rep[Int],Rep[Int]], rRange:Pair[Rep[Int],Rep[Int]], that: => Parser[U]) = concat(lRange._1,lRange._2,rRange._1,rRange._2)(that)
+
+    def -~~ [U:Manifest](that: => Parser[U]) = concat(1,1,0,0)(that)
+    def ~~- [U:Manifest](that: => Parser[U]) = concat(0,0,1,1)(that)
   }
 
   def char(in: Rep[Array[Char]]) = new Parser[Char]{
@@ -57,10 +67,12 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
   def myParser(in: Rep[Array[Char]]) : Parser[Char] =
     char(in) ^^ (x=>x)
 
-  def bla(in: Rep[Array[Char]]) : Rep[List[(Char,Char)]] = {
-    val p = (charf(in, 'm') ~~+ charf(in, 'a'))
-    p(0,2)
+  def bla(in: Rep[Array[Char]]) : Rep[List[Char]] = {
+    def p : Parser[List[Char]] = (charf(in, 'm') -~~ p) ^^ concatenate
+    p(0,in.length).head
   }
+
+  def concatenate(t : Rep[(Char, List[Char])]) = t._1 :: t._2
 
 }
 
