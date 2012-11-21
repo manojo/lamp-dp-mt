@@ -354,7 +354,7 @@ F_{(j)}&=&\min\left\{\begin{array}{l|l}
 \end{array}\right\} = BF_{(j)}
 \end{array}\]
 
-In practice, we don't go backward for larger values than 30, so we can replace $\min_{i<k<j}$ by $\min_{\max(i,j-30)<k<j}$ in the expressions of $VBI$.
+With $\delta$ a lookup table. In practice, we don't go backward for larger values than 30, so we can replace $\min_{i<k<j}$ by $\min_{\max(i,j-30)<k<j}$ in the expressions of $VBI$.
 
 \item Backtracking: Start at $BF_{(n)}$ using the recurrences
  \[\begin{array}{rcl}
