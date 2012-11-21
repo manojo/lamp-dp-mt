@@ -1,0 +1,30 @@
+import scala.language.experimental.macros
+import scala.reflect.macros.Context
+import collection.mutable.ListBuffer
+import collection.mutable.Stack
+
+//import scala.reflect.runtime.universe.Expr
+//import scala.reflect.runtime.universe.WeakTypeTag
+
+object Macros {
+  def tree[T,U](f:Function1[T,U]): Function1[T,U] = macro tree_impl[T,U]
+
+  def tree_impl[T:c.WeakTypeTag,U:c.WeakTypeTag](c: Context)
+      (f:c.Expr[Function1[T,U]]): c.Expr[Function1[T,U]] = {
+    import c.universe._
+
+    val ttag = c.weakTypeTag[U]
+
+    f match {
+      case Expr(Function(List(ValDef(_,n,_,_)),b)) =>
+        val template =
+          c.universe.reify(new (T => U) {
+            override def toString = c.literal(b.toString).splice
+            def apply(x: T): U = c.Expr[U](b)(ttag.asInstanceOf[c.WeakTypeTag[U]]).splice
+          })
+        val untyped = c.resetAllAttrs(template.tree)
+        c.Expr[T => U](untyped)
+      case _ => sys.error("Bad function type")
+    }
+  }
+}

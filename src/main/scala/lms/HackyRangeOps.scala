@@ -28,3 +28,13 @@ trait ScalaGenHackyRangeOps extends ScalaGenRangeOps {
     case _ => super.emitNode(sym, rhs)
   }
 }
+
+trait CudaGenHackyRangeOps extends CudaGenRangeOps {
+  val IR: HackyRangeOpsExp
+  import IR._
+
+  override def emitNode(sym: Sym[Any], rhs: Def[Any]) = rhs match {
+    case RangetoList(r) => emitValDef(sym, quote(r) + ".toList")
+    case _ => super.emitNode(sym, rhs)
+  }
+}

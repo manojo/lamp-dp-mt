@@ -1,0 +1,29 @@
+object TestMacros extends App {
+  import Macros._
+
+  def foo = tree{ (x:String) => x+x }
+
+  println(foo("123"))
+    // 123123
+  println(foo.toString)
+    // def apply(x: String):String = { x.+(x) }
+
+/*
+  import scala.reflect.runtime.{universe => u}
+  import scala.tools.reflect.Eval
+
+  val tr = u.reify {
+    def f:(String=>String) = new (String=>String) {
+      override def toString = "x+x"
+      def apply(x:String):String = x+x
+    }
+    f
+  }
+
+  println (u showRaw tr)
+  val f=tr.eval
+
+  println(f.toString)
+  println(f("123"))
+*/
+}

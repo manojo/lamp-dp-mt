@@ -53,5 +53,15 @@ object Brackets extends LexicalParsers with BracketsAlgebra {
     println(g(5))
     */
 
+
+  // LMS should be fine for filers:
+  //def myFilter(in: Rep[((Char,Int),Char)]) : Rep[Boolean] = if (in._1._2>10 || in._1._1==in._2) unit(true) else unit(false)
+  //
+  // Issue with aggregation: maxBy not defined / no implicit ordering on List[Int] (?!)
+  //def myAggr(in: Rep[List[(Char,Int,Char)]]): Rep[List[(Char,Int,Char)]] = if (in.isEmpty) Nil else List(in.maxBy(_._2))
+  // Suggested workaround => mapping to an "ranking" integer that is then used to compare
+  //
+  // Issue with mapping: type mismatch ??!
+  // def myMap(in: Rep[((Char,Int),Char)]) : Rep[((Char,Int),Char)] = ((in._1._1,in._1._2),in._2) // but (in._1,in._2) ok
   }
 }

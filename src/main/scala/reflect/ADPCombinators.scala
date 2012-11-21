@@ -66,7 +66,7 @@ trait ADPParsers extends CodeGen { this:Signature =>
 
     // Filter combinator.
     // Yields an empty list if the filter does not pass.
-    def filter (p: Expr[Function1[Subword,Boolean]]) = new Parser[T] {
+    def filter(p: Expr[Function1[Subword,Boolean]]) = new Parser[T] {
       lazy val pp=p.eval
       def apply(sw: Subword) = if(pp(sw)) inner(sw) else List[T]()
       def tree = PFilter(p, inner.tree)
@@ -127,8 +127,7 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
   override type Alphabet = Char
   def char = el
   def chari = eli
-  def charf(f: Expr[Function1[Char,Boolean]]) = el filter u.reify {
-    println(f)
+  def charf(f: Expr[Function1[Char,Boolean]]) = char filter u.reify {
     lazy val ff=f.eval
     (sw:Subword) => sw match {
       case(i,j) if(i+1==j) => ff(in(i))

@@ -78,7 +78,7 @@ trait CodeGen { this:Signature =>
         // map: => ???
         // aggr: T => T
         println(n+"("+arg+": "+tp+"): "+tag+" = "+(u show body)+"\n")
-      case x => println("ERROR WITH : "+x)
+      case x => println("ERROR WITH : "+(u showRaw x))
     }
     println("------------- end -------------")
     "Hash maps: "+tabs.size
