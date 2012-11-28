@@ -1,6 +1,7 @@
 package v3
 
 class Dummy // empty parser match
+
 trait Signature {
   type Alphabet // input type
   type Answer   // output type

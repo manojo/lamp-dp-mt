@@ -27,7 +27,7 @@ object Triangulation extends LexicalParsers with TriangulationAlgebra {
   val triangle = new Parser[Answer] {
     val tree = PTerminal{(_,_)=> (Nil,"triangle")}
     def apply(sw:Subword) = sw match { // we need to use in() instead of input for cyclic
-      case (i,j) if(j == i+2) => List(((i,j, edge(i,j), in(i)+""+in(j) ),Nil))
+      case (i,j) if(j == i+2) => List(((i,j, edge(i,j), in(i)+""+in(j) ),bt0))
       case (i,j) => List()
     }
   }

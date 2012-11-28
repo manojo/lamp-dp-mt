@@ -2,31 +2,23 @@ package v3
 
 trait CodeGen { this:Signature =>
   val twotracks = false
-  trait Treeable {
-    def makeTree = tree
-    val tree:PTree
+  trait Treeable { val tree:PTree } // parser abstraction
+  trait TreeRoot extends Treeable { // tabulation abstraction
+    def makeTree:PTree
+    var id:Int = -1 // subrules base index
   }
 
   import scala.collection.mutable.HashMap
-  val rules = new HashMap[String,Treeable]
+  val rules = new HashMap[String,TreeRoot]
 
   // Tree structure for recurrences generation
   sealed abstract class PTree {
-    var idxAlt = -1; // alternative(subrule) unique identifier
-    var idxCC = -1;  // concatenation backtrack index
-    lazy val (numAlt:Int,numCC:Int) = this match {
-      case PAggr(_,p) => (p.numAlt,p.numCC)
-      case PMap(_,p) => (p.numAlt,p.numCC)
-      case PFilter(_,p) => (p.numAlt,p.numCC)
-      case POr(l,r) => (l.numAlt+r.numAlt, Math.max(l.numCC,r.numCC))
-      case PConcat(l,r,indices) =>
-        val moving = (twotracks,indices) match { // refers to gen()
-          case (false,(0,0,0,0)) => 1
-          case (false,(a,b,c,d)) if (a==b || c==d) => 0
-          case (true,(a,b,_,_)) if (a==b && a>0) => 0
-          case _ => 1
-        }
-        (l.numAlt*r.numAlt, l.numCC+moving+r.numCC)
+    lazy val (alt:Int,ccat:Int) = this match {
+      case PAggr(_,p) => (p.alt,p.ccat)
+      case PMap(_,p) => (p.alt,p.ccat)
+      case PFilter(_,p) => (p.alt,p.ccat)
+      case POr(l,r) => (l.alt+r.alt, Math.max(l.ccat,r.ccat))
+      case p@PConcat(l,r,_) => (l.alt*r.alt, l.ccat+(if(p.bt)1 else 0)+r.ccat)
       case _ => (1,0)
     }
   }
@@ -36,7 +28,13 @@ trait CodeGen { this:Signature =>
   case class PMap[T,U](f: T => U, p: PTree) extends PTree
   case class PFilter(f: ((Int,Int)) => Boolean, p: PTree) extends PTree
   case class PRule(name: String) extends PTree
-  case class PConcat(l: PTree, r: PTree, indices:(Int,Int,Int,Int)) extends PTree
+  case class PConcat(l: PTree, r: PTree, indices:(Int,Int,Int,Int)) extends PTree {
+    lazy val bt:Boolean = (twotracks,indices) match {
+      case (false,(a,b,c,d)) if ((a==b && a>0) || (c==d && c>0)) => false
+      case (true,(a,b,_,_)) if (a==b && a>0) => false
+      case _ => true
+    }
+  }
 
   // A simple variable generator that sequentially issues free variables
   class FreeVar(v0:Char) {
@@ -68,14 +66,24 @@ trait CodeGen { this:Signature =>
   // 3) Compute cost storage (cuda: #define TC)
   // 4) Dependency analysis (order within the pass, possibly if multiple pass are needed)
 
+  private var cdefs:String=""
   private var analyzed=false;
   def analyze { if (!analyzed) { analyzed=true
-    println("Proceed with tree anlysis to define the backtrack")
-    for((n,p) <- rules) {
-      println(n+" => "+p+" ("+p.tree.numAlt+","+p.tree.numCC+")")
-    }
-  }}
+    var id=0; var bt=0; for((n,p) <- rules) { p.id=id; val t=p.makeTree; id=id+t.alt; bt=Math.max(bt,t.ccat); }
+    cdefs=cdefs+"typedef struct { short rule; short pos["+bt+"]; } back_t;\n#define TB back_t\n"
 
+    // XXX: TODO 3) and 4)
+    cdefs=cdefs+"typedef struct { ??? } cost_t;\n#define TC cost_t\n"
+    //println("Dependency analysis => return a define + ordered list of parsers");
+
+    println("---------- analysis -----------")
+    for((n,p) <- rules) {
+      val t = p.makeTree
+      println(n+": base_id="+p.id+", alternatives="+p.makeTree.alt+", concatMax="+p.makeTree.ccat);
+      //println(p.makeTree)
+    }
+    println("------------- end -------------")
+  }}
 /*
     val tc = scala.reflect.classTag[TC].runtimeClass.toString
     val ti:(String,String) = scala.reflect.classTag[TI].runtimeClass match {
@@ -91,44 +99,45 @@ trait CodeGen { this:Signature =>
          "    elem = env->GetObjectArrayElement(input, i);\n    TI* e = &((*in)[i]);\n    "+es.mkString("\n    ")+"\n  }\n")
     }
 */
-
-    //override def toString=
-    // manifest to grab class infos
-
-
+  // manifest to grab class infos
   // Get matrices storage type and backtracking length
-
-
   // XXX: prepare for the backtrack, to be called within parse, parse must take axiom as default argument
-
-  // val rules_anon
-/*
-  trait Treeable {
-    def treeSet(alt0:Int, pos0:Int) = { alt=alt0; pos=pos0; }
-    val altCount = 1 // (max) number of alternatives in the subtree
-    val posCount = 0 // (max) number of moving concat within the subtree
-    var alt = 0 // alternative id of the tabulated result
-    var pos = 0 // split to use in the backtrack
-  }
-
-  case class PConcatTT(l: PTree, r: PTree, track: Boolean, indices: (Int,Int)) extends PTree
-*/
-
   // we use the revert if the rule is within alt+altCount
   // XXX: add a revert(rule_id,backtrack):List[(rule_id,backtrack)] function to all parsers
-
+/*
+ * Parser construction:
+ * 1. Assign a "OR_id" (sub_rule_id) and "CONCAT_id" to all parsers so that we know which rule applies
+ *    How to skip some indices ?
+ *
+ * Scala running:
+ * 2. Provide meaningful backtrack: rule_id and list of concat indices
+ *
+ * Code generation:
+ * 1. Normalize rules (at hash-map insertion (?))
+ * 2. Compute dependency analysis between rules => order them into a list/queue
+ *    - If rule R contains another rule S unconcatenated (or concatenated with empty)
+ *      then we have S -> T (S before T)
+ * 3. Compute the maximal number of concatenation among each rule (field in Treeable(?))
+ * 4. Break rules into subrules (at each Or, which must be at top of the rule)
+ */
+/*
+  // we use the revert if the rule is within alt+altCount
+  // XXX: add a revert(rule_id,backtrack):List[(rule_id,backtrack)] function to all parsers
+*/
   // ------------------------------------------------------------------------------
   // C code generator
 
   def gen:String = {
+    println
     println("Problem type: "+(if (twotracks) "sequence alignment" else if (cyclic) "cyclic" else "standard" )+(if (window>0) ", window="+window else ""));
+    println("------------ defs -------------")
+    print(cdefs)
     println("------------ rules ------------")
     for((n,p) <- rules) {
-      println("Alt: "+p.makeTree.numAlt+" concatMax = "+p.makeTree.numCC);
       println( n+"[i,j] => "+emit(p.makeTree))
     }
     println("------------- end -------------")
-    "Done"
+    ""
   }
 
   type map_f = Function1[List[Any],List[Any]] @unchecked
@@ -236,83 +245,3 @@ trait CodeGen { this:Signature =>
   }
 
 }
-
-/*
- * Parser construction:
- * 1. Assign a "OR_id" (sub_rule_id) and "CONCAT_id" to all parsers so that we know which rule applies
- *    How to skip some indices ?
- *
- * Scala running:
- * 2. Provide meaningful backtrack: rule_id and list of concat indices
- *
- * Code generation:
- * 1. Normalize rules (at hash-map insertion (?))
- * 2. Compute dependency analysis between rules => order them into a list/queue
- *    - If rule R contains another rule S unconcatenated (or concatenated with empty)
- *      then we have S -> T (S before T)
- * 3. Compute the maximal number of concatenation among each rule (field in Treeable(?))
- * 4. Break rules into subrules (at each Or, which must be at top of the rule)
- */
-
-/*
-trait CodeGen { this:Signature =>
-  val twotracks = false
-  type Subword = (Int, Int)
-  type Backtrack = List[Int] // list of concat
-  type Input = Array[Alphabet]
-
-  // Memoization through tabulation
-  import scala.collection.mutable.HashMap
-  val tabs = new HashMap[String,HashMap[Subword,List[(Answer,Backtrack)]]]
-  val rules = new HashMap[String,Treeable]
-
-  // val rules_anon
-
-  trait Treeable {
-    def treeSet(alt0:Int, pos0:Int) = { alt=alt0; pos=pos0; }
-    var alt = 0 // alternative id of the tabulated result
-    var pos = 0 // split to use in the backtrack
-  }
-
-  // we use the revert if the rule is within alt+altCount
-  // XXX: add a revert(rule_id,backtrack):List[(rule_id,backtrack)] function to all parsers
-
-  // ------------------------------------------------------------------------------
-
-  // Tree structure for recurrences generation
-  sealed abstract class PTree
-  case class PTerminal[T](f: (Var,Var) => (List[Cond],String)) extends PTree
-  case class PAggr[T](h: List[T] => List[T], p: PTree) extends PTree
-  case class POr(l: PTree, r: PTree) extends PTree
-  case class PMap[T,U](f: T => U, p: PTree) extends PTree
-  case class PFilter(f: Subword => Boolean, p: PTree) extends PTree
-  case class PRule(name: String) extends PTree
-  case class PConcat(l: PTree, r: PTree, indices: (Int,Int,Int,Int)) extends PTree
-  case class PConcatTT(l: PTree, r: PTree, track: Boolean, indices: (Int,Int)) extends PTree
-
-  // A simple variable generator that sequentially issues free variables
-  class FreeVar(v0:Char) {
-    private var v=v0
-    def get = { var r=v; v=(v+1).toChar; Var(r,0) }
-    def dup = new FreeVar(v0)
-  }
-
-  // Variables : a name and an offset
-  case class Var(v:Char,d:Int) { // 'v'+d
-    override def toString = if (d==0) ""+v else if (d>0) v+"+"+d else v+""+d
-    def add(e:Int) = Var(v,d+e)
-    def loop(l:Var,u:Var) = CFor(v,l.v,d-l.d,u.v,d-u.d)
-    def leq(t:Var,e:Int) = CLeq(v,t.v,d-t.d+e)
-    def eq(t:Var,e:Int) = CEq(v,t.v,d-t.d+e)
-  }
-  val zero = Var('0',0) // 0+0
-
-  // Conditions on fresh variables variables
-  class Cond // Constraint that is put on variables
-  case class CFor(v:Char,l:Char,ld:Int,u:Char,ud:Int) extends Cond // for ('l'+ld<='v'<='u'-ud)
-  case class CLeq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta<='b'
-  case class CEq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta=='b'
-
-}
-
-*/

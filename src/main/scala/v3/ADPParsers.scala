@@ -10,7 +10,7 @@ class ADPParsers extends BaseParsers { this:Signature =>
     val res = if (cyclic) aggr( ((0 until size).flatMap{ x => p(x,size+x) }).toList, h )
               else if (window>0) aggr( ((0 to size-window).flatMap{ x => p(x,window+x) }).toList, h)
               else p(0,size)
-    input = null; res
+    input = null; reset(); res
   }
 
   // Concatenation operations
@@ -32,19 +32,19 @@ class ADPParsers extends BaseParsers { this:Signature =>
   // Terminal parsers
   def empty = new Parser[Dummy] {
     val tree = PTerminal{(i:Var,j:Var) => (List(i.eq(j,0)),"empty")}
-    def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((new Dummy,Nil)) else Nil }
+    def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((new Dummy,bt0)) else Nil }
   }
   def el = new Parser[Alphabet] {
     val tree = PTerminal{(i:Var,j:Var) => (List(i.eq(j,1)),"in["+i+"]")}
-    def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in(i),Nil)) else Nil }
+    def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in(i),bt0)) else Nil }
   }
   def eli = new Parser[Int] {
     val tree = PTerminal{(i:Var,j:Var) => (List(i.eq(j,1)),""+i)}
-    def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((i,Nil)) else Nil }
+    def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((i,bt0)) else Nil }
   }
   def seq(min:Int, max:Int) = new Parser[(Int,Int)] {
     val tree = PTerminal{(i:Var,j:Var) => (List(i.leq(j,min),(j.leq(i,max))),"in["+i+","+j+"]")}
-    def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==0 || i+max>=j)) List(((i,j),Nil)) else Nil }
+    def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==0 || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
 }
 
