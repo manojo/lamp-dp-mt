@@ -75,7 +75,6 @@ trait NussinovGrammar extends LexicalParsers with PrettyPairingAlgebra {
 }
 
 object Nussinov extends NussinovGrammar with App {
-  val input = "guaugu".toArray
-  println(parse(s)(input))
+  println(parse(s)("guaugu"))
   println(gen)
 }

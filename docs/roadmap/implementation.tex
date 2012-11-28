@@ -3,5 +3,26 @@
 % ------------------------------------------------------------------------------------------------
 \subsection{ADP parsers}
 \subsection{Transformations and simplifications}
+
+\begin{verbatim}
+ * Parser construction:
+ * 1. Assign a "OR_id" (sub_rule_id) and "CONCAT_id" to all parsers so that we know which rule applies
+ *    How to skip some indices ?
+ *
+ * Scala running:
+ * 2. Provide meaningful backtrack: rule_id and list of concat indices
+ *
+ * Code generation:
+ * 1. Normalize rules (at hash-map insertion (?))
+ * 2. Compute dependency analysis between rules => order them into a list/queue
+ *    - If rule R contains another rule S unconcatenated (or concatenated with empty)
+ *      then we have S -> T (S before T)
+ * 3. Compute the maximal number of concatenation among each rule (field in Treeable(?))
+ * 4. Break rules into subrules (at each Or, which must be at top of the rule)
+\end{verbatim}
+
+
+
+
 \subsection{LMS integration}
 \subsection{CUDA implementation}

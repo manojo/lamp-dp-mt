@@ -44,7 +44,7 @@ trait BillGrammar extends LexicalParsers with Bill {
   | (billGrammar ~~- times ~~~ billGrammar) ^^ { case ((a1,c),a2) => mul(a1,a2) }
   ) aggregate h)
 
-  def parse(in:Input):List[(Answer,Backtrack)] = parse(billGrammar)(in)
+  def parse(in:String):List[(Answer,Backtrack)] = parse(billGrammar)(in)
 }
 
 // User program
@@ -52,7 +52,7 @@ object ElMamun extends App {
   object buyer extends BillGrammar with BuyerAlgebra
   object seller extends BillGrammar with SellerAlgebra
 
-  val input = "1+2*3*4+5".toArray
+  val input = "1+2*3*4+5"
   println
   println("Buyer : "+buyer.parse(input).head)
   println(buyer.gen)

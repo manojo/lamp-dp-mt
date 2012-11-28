@@ -20,7 +20,7 @@ object Brackets extends LexicalParsers with BracketsAlgebra {
     case(i,j) => j > i+1 && in(i) == '(' && in(j-1) == ')'
   }
 
-  val myParser: Parser[Int] = tabulate("M",(
+  val myParser:Parser[Answer] = tabulate("M",(
       digit
     | (char -~~ myParser ~~- char).filter(areBrackets _).^^{ case (c1,(i,c2)) => i}
     | myParser +~+ myParser ^^ {case (x,y) => x+y}
@@ -32,7 +32,7 @@ object Brackets extends LexicalParsers with BracketsAlgebra {
   // Score of best valid subproblem of size exactely 8 := "(1)((6))"
   override val window = 8
   def main(args: Array[String]) = {
-    println(parse(myParser)("(((3)))((2))(1)((6))((((8))))".toArray))
+    println(parse(myParser)("(((3)))((2))(1)((6))((((8))))"))
     println(gen)
   }
 }

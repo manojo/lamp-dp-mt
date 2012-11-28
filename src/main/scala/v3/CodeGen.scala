@@ -4,7 +4,7 @@ trait CodeGen { this:Signature =>
   val twotracks = false
   trait Treeable {
     def makeTree = tree
-    def tree:PTree
+    val tree:PTree
   }
 
   import scala.collection.mutable.HashMap
@@ -12,8 +12,8 @@ trait CodeGen { this:Signature =>
 
   // Tree structure for recurrences generation
   sealed abstract class PTree {
-    // numAlt = number of alternatives in the subtree
-    // numCC = number of varying-index-concatenations in the subtree
+    var idxAlt = -1; // alternative(subrule) unique identifier
+    var idxCC = -1;  // concatenation backtrack index
     lazy val (numAlt:Int,numCC:Int) = this match {
       case PAggr(_,p) => (p.numAlt,p.numCC)
       case PMap(_,p) => (p.numAlt,p.numCC)
@@ -61,11 +61,45 @@ trait CodeGen { this:Signature =>
   case class CLeq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta<='b'
   case class CEq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta=='b'
 
+  // ------------------------------------------------------------------------------
+  // Recurrence analysis, done once when grammar is complete, before the computation.
+  // 1) Unique identifiers for subrules
+  // 2) Maximal backtrack size (cuda: #define TB)
+  // 3) Compute cost storage (cuda: #define TC)
+  // 4) Dependency analysis (order within the pass, possibly if multiple pass are needed)
+
+  private var analyzed=false;
+  def analyze { if (!analyzed) { analyzed=true
+    println("Proceed with tree anlysis to define the backtrack")
+    for((n,p) <- rules) {
+      println(n+" => "+p+" ("+p.tree.numAlt+","+p.tree.numCC+")")
+    }
+  }}
+
+/*
+    val tc = scala.reflect.classTag[TC].runtimeClass.toString
+    val ti:(String,String) = scala.reflect.classTag[TI].runtimeClass match {
+      case cl if (type_jni.contains(cl.toString)) => val cn=cl.toString;
+        ("#define TI "+type_c(cn),"  for (i=0;i<size;++i) (*in)[i] = (TI)env->Get"+up1(cn)+"ArrayElement(input, i);\n")
+      case cl =>
+        //println(manifest[T].erasure.getConstructors.mkString(", "))
+        val ts = cl.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
+        val ms = ts.map{ case(t,n)=> "env->GetMethodID(cls, \""+n+"\", \"()"+type_jni(t)+"\")," }
+        var es = ts.zipWithIndex.map{ case((t,n),i) => "e->"+n+" = env->Call"+up1(t)+"Method(elem, ms["+i+"]);" }
+        ("typedef struct { "+ts.map{case (t,n)=>type_c(t)+" "+n+";"}.mkString(" ")+" } in_t;\n#define TI in_t",
+         "  jmethodID ms[] = {\n    "+ms.mkString("\n    ")+"\n  };\n\n  for (i=0;i<size;++i) {\n"+
+         "    elem = env->GetObjectArrayElement(input, i);\n    TI* e = &((*in)[i]);\n    "+es.mkString("\n    ")+"\n  }\n")
+    }
+*/
+
+    //override def toString=
+    // manifest to grab class infos
+
+
+  // Get matrices storage type and backtracking length
+
 
   // XXX: prepare for the backtrack, to be called within parse, parse must take axiom as default argument
-  def analyze {
-    println("Proceed with tree anlysis to define the backtrack and such things")
-  }
 
   // val rules_anon
 /*
@@ -84,6 +118,7 @@ trait CodeGen { this:Signature =>
   // XXX: add a revert(rule_id,backtrack):List[(rule_id,backtrack)] function to all parsers
 
   // ------------------------------------------------------------------------------
+  // C code generator
 
   def gen:String = {
     println("Problem type: "+(if (twotracks) "sequence alignment" else if (cyclic) "cyclic" else "standard" )+(if (window>0) ", window="+window else ""));

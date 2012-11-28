@@ -43,7 +43,7 @@ trait PrettyMatrixAlgebra extends MatrixSig {
 }
 
 trait MatrixGrammar extends ADPParsers with MatrixSig {
-  val matrixGrammar: Parser[Answer] = tabulate("M",(
+  val matrixGrammar:Parser[Answer] = tabulate("M",(
     el ^^ single
   | (matrixGrammar +~+ matrixGrammar) ^^ { case (a1,a2) => mult(a1, a2) }
   ) aggregate h)
@@ -51,7 +51,6 @@ trait MatrixGrammar extends ADPParsers with MatrixSig {
 
 object MatrixMult extends MatrixGrammar with PrettyMatrixAlgebra with App {
   val input = List((10,100),(100,5),(5,50)).toArray
-
   println(parse(matrixGrammar)(input))
   println(gen)
 }

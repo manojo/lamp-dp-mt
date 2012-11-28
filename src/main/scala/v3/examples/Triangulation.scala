@@ -41,9 +41,7 @@ object Triangulation extends LexicalParsers with TriangulationAlgebra {
   ) aggregate h)
 
   def main(args: Array[String]) = {
-    def solve(s:String) = parse(triangulation)(s.toArray)
-
-    println(solve("abcdef"))
+    println(parse(triangulation)("abcdef"))
     println(gen)
   }
 }
