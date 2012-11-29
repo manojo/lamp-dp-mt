@@ -28,17 +28,7 @@ Since we construct the dependency tree bottom up, and since we need to work with
 {\color{red}
 Size analysis to know what storage size we require
 
-\textbf{=> have a pair of subwords for multiple sequences}
-
 We define the aggregate function h as $List[T]\to List[T]$ and a special string emitter for C code that produces the initial element and a comparator between two (cost) elements.
-
-What about the other way round for aggregation: instead of specifying List[U]->List[T] specify comparator of T and a k to keep the k bests(?)
-
-XXX: can we get rid of the "tabulate" by using the function name and saying that all rules are tabulated ?
-
-
-IS CYCLIC EQUIVALENT TO WINDOWING ??
-No: in cyclic we compute 2 triangles, in windowing we compute 3 (no reuse) => make graph to make this explicit
 }
 
 % ------------------------------------------------------------------------------------------------
@@ -62,7 +52,7 @@ to have equality on the following formula. We can solve it more easily if functi
 }
 
 \subsection{Backtracking}
-In order to do a clean and efficient transformation from ADP-like language to plain C recurrences, we need to construct bottom-up recurrences from top-down parser rules. To do that, we slightly need to modify the ADP language in order to separate the backtracking and the scoring, because we want to obtain an efficient algorithm: backtrack reads are in $O(n^2)$ whereas score reads are proportional to the algorithmic complexity ($O(n^3)$ or more for non-serial). To deal with this problem, we are facing two options:\ul
+In order to do a clean and efficient transformation from ADP-like language to plain C recurrences, we need to construct bottom-up recurrences from top-down parser rules. To do that, we slightly need to modify the ADP language in order to separate the backtracking and the scoring, because we want to obtain an efficient algorithm: backtrack writes are in $O(n^2)$ whereas score reads are proportional to the algorithmic complexity ($O(n^3)$ or more for non-serial). To deal with this problem, we are facing two options:\ul
 \item \textbf{Explicit backtracking:} requires clear syntactical separation between the score and the backtrack and is not implemented in vanilla ADP (unless the whole backtrack is made part of the scoring: big performance impact and non-constant memory requirement issues make its GPU implementation hard and not desirable). Since the backtracking is user-defined, there is no way to generate the backtracking algorithm automatically, hence the user also needs to provide it. 
 
 \item \textbf{Implicit backtracking:} implies that every rule needs to be normalized, and transformed such that given a rule identifier and a set of indices (subproblems breaking), it is possible to retrieve the subproblems combination that build the problem. To do that we need to apply the following transformations\ol
@@ -79,6 +69,39 @@ In order to do a clean and efficient transformation from ADP-like language to pl
 In short, we break parsers into normalized rules, the backtracking information is the rule id (which rule to unfold) and a list of indices (how to unfold it).
 \ule
 Assuming that the backtracking information is meant to guide further processing, we provide this information into a list constructed bottom-up: it can be simply processed by the user program in-order, applying for each user-defined rule the underlying transformation, and storing intermediate results (i.e. in a hash map) until they are processed by another rule. Since consumed sub-result can be dropped and since the backtracking contains only relevant sub-problems, ultimately, only the result will be stored.
+
+\subsubsection{Backtracking with multiple backtrack elements}
+The backtracking technique described above work fine when there is a single element stored per matrix cell (which is usually the case with min/max problems). However, in the generalization introduced by ADP, it is possible that a matrix cell stores multiple results. In such case, we need to select a correct result to avoid backtracking inconsistencies.
+
+Additionally, we need to keep track of the multiplicities of the solutions, that is if we want to obtain the $k$ best solutions, we need to make sure that we return $k$ different backtracks. To do that, we maintain a multiplicity counter at every step: \ul
+\item While there is a single solution for all possible incoming paths, we continue in this direction with the same multiplicity (we have no choice).
+\item When there is $r$ different solutions available, and the path multiplicity at this point is $k$ we have the following cases: \ol
+	\item If $k\ge r$: we explore all paths with multiplicity $k-r+1$. This is because each branch may produce only one solution and we don't know ahead of time which path will provide multiple solutions. Finally, we retain only the $k$ best solutions.
+	\item If $k<r$ (there is more paths than needed): we can only explore the $k$ first paths with multiplicity 1 and safely ignore the other (as we only need $k$ results).
+	\ole
+\ule
+
+Now it remains the problem to generate all possible results and check whether they are correct correct. To do that we can simply re-apply the parsers while maintaining the source elements of all production and then retain only those with desired score and backtrack. Since we know the backtrack for one element, we can do the following optimization at backtrack parser computation:\ol
+\item Defuse or's: since we know exactly (by the subrule id, maintained in the backtrack) which alternative has been taken to obtain the result, we can skip undesired branches of or parsers.
+\item Feed concatenation indices: since the backtrack stores the concatenation indices, we can reuse in the concatenation parsers. This removes the $f(n)$ factor in the backtrack complexity (as concatenation backtrack parsers <<know>> where to split).
+\item Skip filters: since filter are applied before their inner solution is computed, their are only position-dependent. Hence if a backtrack involves a filter, since its position is fixed, the filter must have been passed at matrix construction time.
+\ole
+
+\subsubsection{Backtracking complexity}
+We want to have an estimation of the complexity of the two operations to see what is the overhead of multiple backtracking. For single-element backtrack, we only need to revert the parser to find involved subwords, which is linear in the parser size (because the backtracking identifies uniquely the alternative in or's and indices in concatenations). At every backtrack step, either:\ul
+\item The word is removed at least one character, which leads to maximal backtrack length of $n$.
+\item The word is split in $s$ subwords, with recurrence $f(n)=2f(n/2)+1$ by solving this recurrence we see that there can be at most $n$ final nodes and $n$ intermediate nodes (when $s=2$). Hence the backtrack length is at most $2n$.
+\ule
+
+Hence for single backtrack we would have at most $O(2n) \cdot O({\rm parser})$ complexity. For the $k$-elements backtrack since we regenerate all possible solutions, that is $O(k^c)$ candidates (with $c$ the maximal number of concatenation in the parser), the overall complexity is $O(2n \cdot k^c) \cdot O({\rm parser})$. Hence there is a $k^c$ factor to pay if we want to backtrack the $k$ best solutions\footnote{Note that the same factor lies in the matrix computation complexity.}.
+
+
+
+
+%Algo: Read matrix, reapply the parser but by maintaining list of origins. Filter results to match multiplicities
+% à priori ça a une complexité en k^3*2n pour les k meilleurs backtracks
+
+
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Memory constraints}
