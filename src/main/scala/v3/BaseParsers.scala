@@ -21,7 +21,8 @@ trait BaseParsers extends CodeGen { this:Signature =>
   }
 
   // XXX: make tabulate a class / define as an abstract type in CodeGen
-  def tabulate(name:String, inner: => Parser[Answer]) = new Parser[Answer] with TreeRoot {
+  def tabulate(name:String, inner: => Parser[Answer]) = new Tabulate(name,inner)
+  class Tabulate(name:String, inner: => Parser[Answer]) extends Parser[Answer] with TreeRoot {
     val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[(Answer,Backtrack)]])
     reset = { val r0=reset; () => { r0(); map.clear; } }
     rules += ((name,this))
@@ -51,8 +52,8 @@ trait BaseParsers extends CodeGen { this:Signature =>
 
   type BTItem = (Subword,Answer,Backtrack)
   private def backtrack0(mult:Int,tail:List[Backtrack],pending:List[BTItem]):List[List[Backtrack]] = {
-    def tab(n:Int):Parser[Answer] with TreeRoot = rules.find {case (k,v) => v.id>=n && n < v.id+v.tree.alt} match {
-      case Some(t) => t.asInstanceOf[Parser[Answer] with TreeRoot] 
+    def tab(n:Int):Tabulate = rules.find {case (k,v) => v.id>=n && n < v.id+v.tree.alt} match {
+      case Some(t) => t.asInstanceOf[Tabulate]
       case None => sys.error("No parser for subrule "+n)
     }
     pending match {
