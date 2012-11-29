@@ -6,7 +6,11 @@ trait CodeGen { this:Signature =>
   trait TreeRoot extends Treeable { // tabulation abstraction
     def makeTree:PTree
     var id:Int = -1 // subrules base index
+
+    // XXX:
+    def unapply(mult:Int, from:((Int, Int),Answer,(Int,List[Int]))): List[(Int,List[((Int, Int),Answer,(Int,List[Int]))])]
   }
+  //type Tabulation <: Treeable
 
   import scala.collection.mutable.HashMap
   val rules = new HashMap[String,TreeRoot]
