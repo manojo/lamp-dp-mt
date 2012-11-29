@@ -25,30 +25,31 @@ Since we construct the dependency tree bottom up, and since we need to work with
 \item \textbf{Dependency analysis:} a precise order between the rules application must be given. This is required as we use a bottom-up approach where all previous results must be computed versus a top-down approach with a table where a fallback to computation always exist if the desired element is not present.
 \ule
 
-{\color{red}
-Size analysis to know what storage size we require
-
-We define the aggregate function h as $List[T]\to List[T]$ and a special string emitter for C code that produces the initial element and a comparator between two (cost) elements.
-}
+{\color{red} Size analysis to know what storage size we require: ex: Zucker requires $O(n^2)+O(n)$ storage...}
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Parsing grammar (ADP)}
-{\color{red}
-Borrowing from ADP XXX
+Borrowing from the ADP grammar, parsers operate on a subsequence of the input (sequence) and return a list of parse results on these subsequences.
+These results are obtained by the internal transformation that is defined within a parser. The parsers are classified by types:\ul
+\item \textbf{Terminal:} operates on a subsequence and returns its content or position (or nothing if the sequence does not fit the terminal).
+\item \textbf{Filter:} this parser accepts only subsequences matching a certain predicate
+\item \textbf{Union:} this parser expresses alternative between two different parsers
+\item \textbf{Concatenation:} construct a larger sequence from two subsequences. The subsequences can be of fixed or varying size and concatenation operators might impose restrictions on the subsequences length to be considered.
+\item \textbf{Transformation:} this parser transform its input using an arbitrary function. It is typically used to transform a parse list into a score that can later be aggregated.
+\item \textbf{Aggregation:} the aggregation reduces the list of results, typically using minimum or maximum but can be arbitrarily defined.
+\ule
 
+
+{\color{red}
 XXX: explain ADP concepts
 
 XXX: normalization, transforms applied
 
-XXX: Think how to implement {\tt cyclic} problems and {\tt windowing} properties within the language
-
 \begin{verbatim}
-restrict to only 1 max/min (more restrictive than ADP)
-for optimization we want to split grammar into binary productions, to do that we need
+Optimizations: we want to split grammar into binary productions, to do that we need
 to have equality on the following formula. We can solve it more easily if functions are linear
 \end{verbatim}
 \[\min\limits_{i<k_1<k_2<j}\big[ f(i,k_1,k_2,j) \big] \le  \min\limits_{i<k_2<j} \big[ g_2(i,\min\limits_{i<k_1<k_2} \big[ (g_1(i,k_1,k_2  ) \big],k_2,j) \big]  \]
-
 }
 
 \subsection{Backtracking}
