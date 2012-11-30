@@ -37,20 +37,15 @@ trait BaseParsers extends CodeGen { this:Signature =>
     }
 
     def unapply(mult:Int, from:BTItem): List[(Int,List[BTItem])] = from match { case (sw,a,(r,bt)) =>
-      println("Unapply("+mult+","+from+") => apply2("+sw+","+(r-id,bt)+")")
       val res: List[List[BTItem]] = inner.apply2(sw, (r-id,bt)).filter{case(r,l) => r==a }.map{case(r,l)=>l}.take(mult)
       countMap(res,(e:List[BTItem],n:Int)=>(n,e))
     }
   }
 
-  private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = {
-    val es = new HashMap[T,Int]
-    for (e<-ls) es.put(e,es.getOrElse(e,0)+1)
-    es.map { case(e,n) => f(e,n) }.toList
-  }
-
+  def backtrack(ends:List[BTItem]):List[List[Backtrack]] = countMap(ends,(e:BTItem,n:Int)=>backtrack0(n,Nil,List(e)) ).flatten
+  private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
   private def backtrack0(mult:Int,tail:List[Backtrack],pending:List[BTItem]):List[List[Backtrack]] = {
-    def tab(n:Int):Tabulate = rules.find {case (k,v) => v.id>=n && n < v.id+v.tree.alt} match {
+    def tab(n:Int):Tabulate = rules.find {case (k,t) => t.id<=n && n < t.id+t.makeTree.alt} match {
       case Some((k,t)) => t
       case None => sys.error("No parser for subrule "+n)
     }
@@ -63,10 +58,6 @@ trait BaseParsers extends CodeGen { this:Signature =>
   }
 
   // Compute multiplicity for each end and backtrack it
-  def backtrack(ends:List[BTItem]):List[List[Backtrack]] = {
-    countMap(ends,(e:BTItem,n:Int)=>backtrack0(n,Nil,List(e)) ).flatten
-  }
-
   // Keep multiplicities, but also split as often as possible and remove duplicate solutions
   // Parser.unapply() generates the list of possible origins (as list of chunks) for the given subword
   /*
@@ -185,6 +176,7 @@ trait BaseParsers extends CodeGen { this:Signature =>
 
   abstract class Parser[T] extends (Subword => List[(T,Backtrack)]) with Treeable { inner =>
     def apply(sw: Subword): List[(T,Backtrack)]
+    // XXX: also add the position so that we know where to apply ??
     def apply2(sw:Subword,bt:Backtrack): List[(T, List[BTItem])] = apply(sw).map{case(t,b)=>(t,Nil)} // default for terminals
 
     final def ^^[U](f: T => U) = p_map(inner,f)

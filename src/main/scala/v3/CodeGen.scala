@@ -66,7 +66,6 @@ trait CodeGen { this:Signature =>
   // 2) Maximal backtrack size (cuda: #define TB)
   // 3) Compute cost storage (cuda: #define TC)
   // 4) Dependency analysis (order within the pass, possibly if multiple pass are needed)
-
   private var cdefs:String=""
   private var analyzed=false;
   def analyze { if (!analyzed) { analyzed=true
@@ -109,10 +108,8 @@ trait CodeGen { this:Signature =>
  * Parser construction:
  * 1. Assign a "OR_id" (sub_rule_id) and "CONCAT_id" to all parsers so that we know which rule applies
  *    How to skip some indices ?
- *
  * Scala running:
  * 2. Provide meaningful backtrack: rule_id and list of concat indices
- *
  * Code generation:
  * 1. Normalize rules (at hash-map insertion (?))
  * 2. Compute dependency analysis between rules => order them into a list/queue
@@ -121,10 +118,7 @@ trait CodeGen { this:Signature =>
  * 3. Compute the maximal number of concatenation among each rule (field in Treeable(?))
  * 4. Break rules into subrules (at each Or, which must be at top of the rule)
  */
-/*
-  // we use the revert if the rule is within alt+altCount
-  // XXX: add a revert(rule_id,backtrack):List[(rule_id,backtrack)] function to all parsers
-*/
+
   // ------------------------------------------------------------------------------
   // C code generator
 
@@ -244,5 +238,4 @@ trait CodeGen { this:Signature =>
       case CLeq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"<="+b+")"
     }.map{x=>x+" { "}.mkString("")+body+cs.map{x=>" }"}.mkString("")
   }
-
 }
