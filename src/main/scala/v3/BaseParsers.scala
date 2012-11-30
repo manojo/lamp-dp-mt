@@ -25,49 +25,26 @@ trait BaseParsers extends CodeGen { this:Signature =>
     override def makeTree = inner.tree
     val tree = PRule(name)
 
-    private def key(sw:Subword) = { if (!twotracks) assert(sw._1<=sw._2); if (!cyclic||twotracks) sw else (sw._1%size, sw._2%size) }
-    def apply(sw: Subword) = map.getOrElseUpdate(key(sw), inner(sw).map{case(c,(r,b))=>(c,(id+r,b))} ) map {x=>(x._1,bt0)}
-    override def apply2(sw:Subword,bt:Backtrack) = map.get(key(sw)) match { case None => sys.error("Empty tab")
-      case Some(l) => l.map{ case (c,b) => (c,List((sw,c,b))) } 
-    }
-    def backtrack(sw:Subword):List[List[Backtrack]] = map.get(key(sw)) match { case None => sys.error("Empty tab")
-      // XXX: we know that we're in this parser in backtrack0
-      case Some(l) => countMap(l, (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))) ).flatten
+    private def get(sw:Subword) = { // get pristine content of map or build it
+      if (!twotracks) assert(sw._1<=sw._2); val key = if (!cyclic||twotracks) sw else (sw._1%size, sw._2%size)
+      map.getOrElseUpdate(key, inner(sw).map{case(c,(r,b))=>(c,(id+r,b))} )
     }
 
-    // --------------------------------------------------
-    // Backtracking helpers
+    def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
+    override def apply2(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) } 
+
+    def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))) ).flatten
     private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
-    /*
-    private def tab(n:Int):Tabulate = rules.find { case (k,t) => t.id<=n && n < t.id+t.makeTree.alt} match {
-      case Some((k,t)) => t
-      case None => sys.error("No parser for subrule "+n)
-    }
-    */
-    private def unapply(mult:Int, from:BTItem): List[(Int,List[BTItem])] = from match { case (sw,a,(r,bt)) =>
-      val res: List[List[BTItem]] = inner.apply2(sw, (r-id,bt)).filter{case(r,l) => r==a }.map{case(r,l)=>l}.take(mult)
-      countMap(res,(e:List[BTItem],n:Int)=>(n,e))
-    }
-    private def backtrack0(mult:Int,tail:List[Backtrack],pending:List[BTItem]):List[List[Backtrack]] = pending match {
+    private def backtrack0(mult:Int,tail:List[(Subword,Backtrack)],pending:List[BTItem]):List[List[(Subword,Backtrack)]] = pending match {
       case Nil => List(tail)
-      case (from@(sw,score,bt@(rule,_)))::ps =>
-        // XXX: PROBABLY MISSING THE REDUCTION OF MULTIPLICITY / MATCHING TO ANSWER ?
-        val candidates:List[(Int,List[BTItem])] = /*tab(rule).*/ unapply(mult,from)
-        candidates.flatMap{case (m,pl) => backtrack0(m, bt::tail, pl:::ps)}
+      case (sw,score,(rule,bt))::ps =>
+        val res = inner.apply2(sw, (rule-id,bt)).filter{case(r,l) => r==score }.map{case(r,l)=>l}.take(mult)
+        countMap(res,(pl:List[BTItem],mul:Int)=>backtrack0(mul,(sw,(rule,bt))::tail, pl:::ps)  ).flatten
     }
+
+    // XXX: How to pretty print efficiently a backtrack ?
     // --------------------------------------------------
   }
-
-  // Compute multiplicity for each end and backtrack it
-  // Keep multiplicities, but also split as often as possible and remove duplicate solutions
-  // Parser.unapply() generates the list of possible origins (as list of chunks) for the given subword
-  /*
-      // if there is more than 1, say k, split into k branches with each mult-k+1 as multiplicity (if mult-k+1<=0) take only the mult first result with mult=1
-      //   apply recursively, merge everything in a big list, take only k results out of the generated one
-      // else
-      //   find one valid candidate and apply recursively
-  How to pretty print efficiently a backtrack ?
-  */
 
   // Aggregate on T a (T,U) list, wrt to multiplicity and order
   def aggr[T,U](l:List[(T,U)], h: List[T] => List[T]):List[(T,U)] = {

@@ -101,9 +101,6 @@ trait CodeGen { this:Signature =>
 */
   // manifest to grab class infos
   // Get matrices storage type and backtracking length
-  // XXX: prepare for the backtrack, to be called within parse, parse must take axiom as default argument
-  // we use the revert if the rule is within alt+altCount
-  // XXX: add a revert(rule_id,backtrack):List[(rule_id,backtrack)] function to all parsers
 /*
  * Parser construction:
  * 1. Assign a "OR_id" (sub_rule_id) and "CONCAT_id" to all parsers so that we know which rule applies
