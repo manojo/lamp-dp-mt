@@ -16,7 +16,12 @@ class ADPParsers extends BaseParsers { this:Signature =>
     // XXX: need to avoid erasure of the backtrack
     // XXX: use run-main v3.examples.MatrixMult
     // due to fixed backtrack we only get 1 result instead of 2
-    println("Backtrack = {\n  "+backtrack(p(0,size).map{case(x,y)=>((0,size),x,(1,List(1)))})+"\n}")
+
+    if (!p.isInstanceOf[Tabulate]) sys.error("Cannot backtrack on non-tabulate parsers")
+    else {
+      val bs=p.asInstanceOf[Tabulate].backtrack(0,size)
+      println("Backtrack2 = {"); for(b<-bs) println("  "+b); println("}")
+    }
 
     input = null; reset(); res
   }
