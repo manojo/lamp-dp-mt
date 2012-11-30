@@ -8,8 +8,9 @@ trait CodeGen { this:Signature =>
     var id:Int = -1 // subrules base index
   }
 
+  type Tabulation <: TreeRoot
   import scala.collection.mutable.HashMap
-  val rules = new HashMap[String,TreeRoot]
+  val rules = new HashMap[String,Tabulation]
 
   // Tree structure for recurrences generation
   sealed abstract class PTree {

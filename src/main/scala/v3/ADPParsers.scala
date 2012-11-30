@@ -10,6 +10,13 @@ class ADPParsers extends BaseParsers { this:Signature =>
     val res = if (cyclic) aggr( ((0 until size).flatMap{ x => p(x,size+x) }).toList, h )
               else if (window>0) aggr( ((0 to size-window).flatMap{ x => p(x,window+x) }).toList, h)
               else p(0,size)
+
+    // XXX: make it clean
+    // XXX: does not work for the moment, find out why
+    println("Backtrack = {")
+    println(backtrack(p(0,size).map{case(x,y)=>((0,size),x,y)}))
+    println("}")
+
     input = null; reset(); res
   }
 

@@ -4,6 +4,7 @@ trait BaseParsers extends CodeGen { this:Signature =>
   type Input = Array[Alphabet]
   type Subword = (Int, Int)
   type Backtrack = (Int,List[Int]) // (rule_id, indices)
+  type BTItem = (Subword,Answer,Backtrack)
 
   val bt0 = (0,Nil) // default initial backtrack
   var size = 0 // for cyclic problems
@@ -11,16 +12,10 @@ trait BaseParsers extends CodeGen { this:Signature =>
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
   val tabs = new HashMap[String,HashMap[Subword,List[(Answer,Backtrack)]]]
-  var reset:(()=>Unit) = () => {
-    // XXX:Debug
-    for((n,t)<-tabs) { println(n+":")
-      for((k,v)<-t; (c,(r,bt))<-v) printf("  %-7s -> %-60s %d, %s\n",k.toString,c.toString,r,bt.toString)
-      println
-    }
-    // XXX: end
-  }
+  //var reset:(()=>Unit) = () => {}
+  var reset:(()=>Unit) = () => { for((n,t)<-tabs) { println(n+":"); for((k,v)<-t; (c,(r,bt))<-v) printf("  %-7s -> %-60s %d, %s\n",k.toString,c.toString,r,bt.toString); println } }
 
-  // XXX: make tabulate a class / define as an abstract type in CodeGen
+  override type Tabulation=Tabulate
   def tabulate(name:String, inner: => Parser[Answer]) = new Tabulate(name,inner)
   class Tabulate(name:String, inner: => Parser[Answer]) extends Parser[Answer] with TreeRoot {
     val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[(Answer,Backtrack)]])
@@ -41,35 +36,37 @@ trait BaseParsers extends CodeGen { this:Signature =>
       }
     }
 
-    def unapply(mult:Int, from:BTItem): List[(Int,List[BTItem])] = {
-      val res: List[(Answer, List[BTItem])] = inner.apply2(from._1 /*subword*/ ,from._3 /*backtrack*/)
-      // NEW: filter candidates such that you get enough valid candidates with sum of multiplicities = global multiplicity
-      // NEW: add from to tail and c.BTList to pending, proceed recursively
-      // A backtrack is valid if its rule applied to split gives the proper result
-      Nil
+    def unapply(mult:Int, from:BTItem): List[(Int,List[BTItem])] = from match { case (sw,a,(r,bt)) =>
+      println("Unapply("+mult+","+from+") => apply2("+sw+","+(r-id,bt)+")")
+      val res: List[List[BTItem]] = inner.apply2(sw, (r-id,bt)).filter{case(r,l) => r==a }.map{case(r,l)=>l}.take(mult)
+      countMap(res,(e:List[BTItem],n:Int)=>(n,e))
     }
   }
 
-  type BTItem = (Subword,Answer,Backtrack)
+  private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = {
+    val es = new HashMap[T,Int]
+    for (e<-ls) es.put(e,es.getOrElse(e,0)+1)
+    es.map { case(e,n) => f(e,n) }.toList
+  }
+
   private def backtrack0(mult:Int,tail:List[Backtrack],pending:List[BTItem]):List[List[Backtrack]] = {
     def tab(n:Int):Tabulate = rules.find {case (k,v) => v.id>=n && n < v.id+v.tree.alt} match {
-      case Some(t) => t.asInstanceOf[Tabulate]
+      case Some((k,t)) => t
       case None => sys.error("No parser for subrule "+n)
     }
     pending match {
       case Nil => List(tail)
-      case (from@(sw,score,(rule,bt)))::ps =>
+      case (from@(sw,score,bt@(rule,_)))::ps =>
         val candidates:List[(Int,List[BTItem])] = tab(rule).unapply(mult,from)
-        candidates.flatMap{case (m,pl) => backtrack0(m, (rule,bt) ::tail, pl:::ps)}
+        candidates.flatMap{case (m,pl) => backtrack0(m, bt::tail, pl:::ps)}
     }
   }
 
   // Compute multiplicity for each end and backtrack it
   def backtrack(ends:List[BTItem]):List[List[Backtrack]] = {
-    val es = new HashMap[BTItem,Int]
-    for (e <- ends) { es.put(e,es.getOrElse(e,0)+1) }
-    es.flatMap { case(e,m) => backtrack0(m,Nil,List(e)) }.toList
+    countMap(ends,(e:BTItem,n:Int)=>backtrack0(n,Nil,List(e)) ).flatten
   }
+
   // Keep multiplicities, but also split as often as possible and remove duplicate solutions
   // Parser.unapply() generates the list of possible origins (as list of chunks) for the given subword
   /*
@@ -151,14 +148,14 @@ trait BaseParsers extends CodeGen { this:Signature =>
           (x,xb) <- inner((i,k));
           (y,yb) <- that((k,j))
         ) yield(((x,y),bt(xb,yb,k)))
-      case (true,(i,j),(l,u,1,_)) if i<j => // tt:concat1
+      case (true,(i,j),(l,u,1,_)) => // tt:concat1
         val i0 = if (l==0) 0 else Math.max(i-l,0)
         for(
           k <- (i0 to i-u).toList;
           (x,xb) <- inner((k,i));
           (y,yb) <- that((k,j))
         ) yield(((x,y),bt(xb,yb,k)))
-      case (true,(i,j),(l,u,2,_)) if i<j => // tt:concat2
+      case (true,(i,j),(l,u,2,_)) => // tt:concat2
         val j0 = if (l==0) 0 else Math.max(j-l,0)
         for(
           k <- (j0 to j-u).toList;
@@ -168,14 +165,17 @@ trait BaseParsers extends CodeGen { this:Signature =>
       case _ => List()
     }
     override def apply2(sw:Subword,bt:Backtrack) = {
-      val (bl:Backtrack,br:Backtrack) = bt match { case (r,idx) => 
+      val (bl:Backtrack,br:Backtrack,kb:Int) = bt match { case (r,idx) => 
         val a:Int=that.tree.alt; val c:Int=inner.tree.ccat;
-        ((r/a,idx.take(c)), (r%a,idx.drop(c+(if (tree.bt)1 else 0))))  
+        ((r/a,idx.take(c)), (r%a,idx.drop(c+(if (tree.bt)1 else 0))), if (tree.bt)idx(c) else -1)
       }
-      // XXX: reapply the splitting but with known index
-      val swl=sw // XXX: fix this
-      val swr=sw // XXX: fix this
-      // XXX: end
+      val (swl:Subword,swr:Subword) = (twotracks,sw,indices) match {
+        case (false,(i,j),(lL,lU,rL,rU)) if i<j => // single track
+          val k=if(-1!=kb)kb else if (rU==0)i+lL else Math.max(i+lL,j-rU); ((i,k),(k,j))
+        case (true,(i,j),(l,u,1,_)) => val k=if(-1!=kb)kb else i-l; ((k,i),(k,j)) // tt:concat1
+        case (true,(i,j),(l,u,2,_)) => val k=if(-1!=kb)kb else j-l; ((i,k),(j,k)) // tt:concat2
+        case _ => ((0,0),(0,0))
+      }
       for (
         (x,xb) <- inner.apply2(swl,bl);
         (y,yb) <- that.apply2(swr,br)

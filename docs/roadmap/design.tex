@@ -74,7 +74,7 @@ Assuming that the backtracking information is meant to guide further processing,
 \subsubsection{Backtracking with multiple backtrack elements}
 The backtracking technique described above work fine when there is a single element stored per matrix cell (which is usually the case with min/max problems). However, in the generalization introduced by ADP, it is possible that a matrix cell stores multiple results. In such case, we need to select a correct result to avoid backtracking inconsistencies.
 
-Additionally, we need to keep track of the multiplicities of the solutions, that is if we want to obtain the $k$ best solutions, we need to make sure that we return $k$ different backtracks. To do that, we maintain a multiplicity counter at every step: \ul
+Additionally, we need to keep track of the multiplicities of the solutions, that is if we want to obtain the $k$ best solutions, we need to make sure that we return $k$ different backtracks. To do that, we maintain a multiplicity counter in each backtrack process: \ul
 \item While there is a single solution for all possible incoming paths, we continue in this direction with the same multiplicity (we have no choice).
 \item When there is $r$ different solutions available, and the path multiplicity at this point is $k$ we have the following cases: \ol
 	\item If $k\ge r$: we explore all paths with multiplicity $k-r+1$. This is because each branch may produce only one solution and we don't know ahead of time which path will provide multiple solutions. Finally, we retain only the $k$ best solutions.
@@ -94,15 +94,9 @@ We want to have an estimation of the complexity of the two operations to see wha
 \item The word is split in $s$ subwords, with recurrence $f(n)=2f(n/2)+1$ by solving this recurrence we see that there can be at most $n$ final nodes and $n$ intermediate nodes (when $s=2$). Hence the backtrack length is at most $2n$.
 \ule
 
-Hence for single backtrack we would have at most $O(2n) \cdot O({\rm parser})$ complexity. For the $k$-elements backtrack since we regenerate all possible solutions, that is $O(k^c)$ candidates (with $c$ the maximal number of concatenation in the parser), the overall complexity is $O(2n \cdot k^c) \cdot O({\rm parser})$. Hence there is a $k^c$ factor to pay if we want to backtrack the $k$ best solutions\footnote{Note that the same factor lies in the matrix computation complexity.}.
-
-
-
+Let one parser reversal complexity be $O(p)$, single backtrack has $O(2n\cdot p)$ complexity. For the $k$-elements backtrack, since we regenerate all possible solutions, that is $O(k^{c+1})$ candidates (with $c$ the maximal number of concatenation in the parser), the overall complexity is $O(2n \cdot k^{c+1} \cdot p)$. Hence there is a $k^{c+1}$ factor to pay if we want to backtrack the $k$ best solutions\footnote{Note that the same factor lies in the matrix computation complexity.}.
 
 %Algo: Read matrix, reapply the parser but by maintaining list of origins. Filter results to match multiplicities
-% à priori ça a une complexité en k^3*2n pour les k meilleurs backtracks
-
-
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Memory constraints}
