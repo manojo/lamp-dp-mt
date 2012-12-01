@@ -7,7 +7,6 @@ trait BaseParsers extends CodeGen { this:Signature =>
   type BTItem = (Subword,Answer,Backtrack)
 
   val bt0 = (0,Nil) // default initial backtrack
-  var size = 0 // for cyclic problems
 
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
@@ -25,10 +24,7 @@ trait BaseParsers extends CodeGen { this:Signature =>
     override def makeTree = inner.tree
     val tree = PRule(name)
 
-    private def get(sw:Subword) = { // get pristine content of map or build it
-      if (!twotracks) assert(sw._1<=sw._2); val key = if (!cyclic||twotracks) sw else (sw._1%size, sw._2%size)
-      map.getOrElseUpdate(key, inner(sw).map{case(c,(r,b))=>(c,(id+r,b))} )
-    }
+    private def get(sw:Subword) = { if (!twotracks) assert(sw._1<=sw._2); map.getOrElseUpdate(sw, inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}) }
 
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
     override def apply2(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) } 
@@ -49,7 +45,7 @@ trait BaseParsers extends CodeGen { this:Signature =>
 Ideas for a pretty printer:
 keep a List/HashMap of processed elements (aka pretty-printed)
 when adding a new element along backtrack
-1. forall elements inside that map, filter(contained in current).sort(along word length) // XXX: issues with cyclic, how to deal with that ?
+1. forall elements inside that map, filter(contained in current).sort(along word length)
 2. matching_name+"("+ sorted subwords +")"
 
 Use a function that take an integer and a list of Answers and combine them into a new answer

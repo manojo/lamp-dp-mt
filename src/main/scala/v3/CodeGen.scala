@@ -121,7 +121,7 @@ trait CodeGen { this:Signature =>
 
   def gen:String = {
     println
-    println("Problem type: "+(if (twotracks) "sequence alignment" else if (cyclic) "cyclic" else "standard" )+(if (window>0) ", window="+window else ""));
+    println("Problem type: "+(if (twotracks) "sequence alignment" else "standard" )+(if (window>0) ", window="+window else ""));
     println("------------ defs -------------")
     print(cdefs)
     println("------------ rules ------------")

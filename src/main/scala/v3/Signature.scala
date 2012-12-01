@@ -7,7 +7,6 @@ trait Signature {
   type Answer   // output type
 
   val h:List[Answer]=>List[Answer] = l=>l
-  val cyclic = false // cyclic problem
   val window = 0     // windowing size, 0=disabled
 
   def max[T:Numeric] = new (List[T]=>List[T]) {
