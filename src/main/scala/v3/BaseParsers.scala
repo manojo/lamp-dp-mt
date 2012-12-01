@@ -43,7 +43,22 @@ trait BaseParsers extends CodeGen { this:Signature =>
     }
 
     // XXX: How to pretty print efficiently a backtrack ?
+    // XXX: Idea: pass a list of strings matching the rules
     // --------------------------------------------------
+/*
+Ideas for a pretty printer:
+keep a List/HashMap of processed elements (aka pretty-printed)
+when adding a new element along backtrack
+1. forall elements inside that map, filter(contained in current).sort(along word length) // XXX: issues with cyclic, how to deal with that ?
+2. matching_name+"("+ sorted subwords +")"
+
+Use a function that take an integer and a list of Answers and combine them into a new answer
+
+type terminal
+
+*/
+    // --------------------------------------------------
+
   }
 
   // Aggregate on T a (T,U) list, wrt to multiplicity and order

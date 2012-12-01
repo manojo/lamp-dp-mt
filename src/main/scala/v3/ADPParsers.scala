@@ -5,26 +5,28 @@ class ADPParsers extends BaseParsers { this:Signature =>
   private var input: Input = null
   def in(k:Int):Alphabet = input(k % size) // to deal with cyclic
 
-  def parse(p:Parser[Answer])(in:Input):List[(Answer,Backtrack)] = {
+  def parse(p:Parser[Answer])(in:Input):List[Answer] = {
     analyze; input=in; size=in.size
     val res = if (cyclic) aggr( ((0 until size).flatMap{ x => p(x,size+x) }).toList, h )
               else if (window>0) aggr( ((0 to size-window).flatMap{ x => p(x,window+x) }).toList, h)
               else p(0,size)
 
-    // XXX: make it clean
-    // XXX: does not work for the moment, find out why
     // XXX: need to avoid erasure of the backtrack
     // XXX: use run-main v3.examples.MatrixMult
-    // due to fixed backtrack we only get 1 result instead of 2
+
+    // XXX: for varying aggregations, do the following: aggregate, then keep track of the resulting position and apply backtrack on that
 
     if (!p.isInstanceOf[Tabulate]) sys.error("Cannot backtrack on non-tabulate parsers")
     else {
       val bs=p.asInstanceOf[Tabulate].backtrack(0,size)
-      println("Backtrack2 = {"); for(b<-bs) println("  "+b); println("}")
+      println("Backtrack = {");
+      for(b<-bs) { for (((i,j),(r,bt)) <- b) { print("  ["+i+","+j+"]="+r+","+bt) }; println }
+      println("}")
     }
-
-    input = null; reset(); res
+    input = null; reset(); res.map{_._1}
   }
+
+  // XXX: implement a backtrack parse()() function
 
   // Concatenation operations
   class ADPParser[T](p:Parser[T]) {

@@ -20,6 +20,4 @@ parallelExecution in Test := false
 
 scalacOptions += "-Yvirtualize"
 
-scalacOptions += "-deprecation"
-
-scalacOptions += "-feature"
+scalacOptions ++= List("-deprecation", "-feature", "-unchecked")

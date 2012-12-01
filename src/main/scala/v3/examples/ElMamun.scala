@@ -44,7 +44,7 @@ trait BillGrammar extends LexicalParsers with Bill {
   | (billGrammar ~~- times ~~~ billGrammar) ^^ { case ((a1,c),a2) => mul(a1,a2) }
   ) aggregate h)
 
-  def parse(in:String):List[(Answer,Backtrack)] = parse(billGrammar)(in)
+  def parse(in:String):List[Answer] = parse(billGrammar)(in)
 }
 
 // User program
