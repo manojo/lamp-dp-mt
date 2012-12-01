@@ -73,7 +73,7 @@ trait ZuckerPrettyPrint extends ZuckerSig {
 
 /*
 trait ZuckerAlgebra extends ZuckerSig {
-  def h(l :List[Answer]) = l match {
+  val h = (l :List[Answer]) => l match {
     case Nil => Nil
     case _ => l.maxBy(_._1)::Nil
   }

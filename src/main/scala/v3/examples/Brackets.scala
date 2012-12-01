@@ -28,12 +28,14 @@ object Brackets extends LexicalParsers with BracketsAlgebra {
     //| (myParser ~~- char) ^^ { case (i,c) => i }
   ) aggregate h)
 
+  val axiom=myParser
+
   // Score of best valid subproblem of size=8 := "(1)((6))" => 7
   override val window = 8
   def main(args: Array[String]) = {
     val str = "(((3)))((2))(1)((6))((((8))))(3)((4))"
-    println(parse(myParser)(str))
-    printBT(backtrack(myParser)(str))
+    println(parse(str))
+    printBT(backtrack(str))
     println(gen)
   }
 }

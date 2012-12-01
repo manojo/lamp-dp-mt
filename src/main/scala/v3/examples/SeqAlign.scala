@@ -39,14 +39,16 @@ trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
   import scala.language.implicitConversions
   implicit def toCharArray(s:String):Array[Char] = s.toArray
 
-  def align(s1:String,s2:String) = parse(alignment)(s1,s2)
-  def trace(s1:String,s2:String) = backtrack(alignment)(s1,s2)
+  def align(s1:String,s2:String) = parse(s1,s2)
+  def trace(s1:String,s2:String) = backtrack(s1,s2)
   val alignment:Tabulate = tabulate("M",(
     empty                           ^^ { _ => (0,".",".") }
   | seq1() ++~ alignment            ^^ { case (g,(score,s1,s2)) => val (g1,g2)=prettyGap(g,in1); (gap(score,g),s1+g1,s2+g2) }
   |            alignment ~++ seq2() ^^ { case ((score,s1,s2),g) => val (g1,g2)=prettyGap(g,in2); (gap(score,g),s1+g2,s2+g1) }
   | el1    -~~ alignment ~~- el2    ^^ { case (c1,((score,s1,s2),c2)) => (score+pair(c1,c2),s1+c1, s2+c2) }
   ) aggregate h)
+
+  val axiom = alignment
 }
 
 // User program
@@ -62,10 +64,8 @@ object SeqAlign extends App {
   SWat.printBT(SWat.trace(seq1,seq2))
   println(SWat.gen)
 
-  /*
   println("---------------------------------------------------------------------------\n")
   val (nwScore,nw1,nw2) = NWun.align(seq1,seq2).head
   println("Needleman-Wunsch alignment\n- Score: "+nwScore+"\n- Seq1: "+nw1+"\n- Seq2: "+nw2+"\n")
   println(NWun.gen)
-  */
 }

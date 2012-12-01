@@ -1,24 +1,18 @@
 package v3
 
-class ADPParsers extends BaseParsers { this:Signature =>
+trait ADPParsers extends BaseParsers { this:Signature =>
   // I/O interface
   private var input: Input = null
   def in(k:Int):Alphabet = input(k)
-  def size:Int = input.size
-  def parse(p:Parser[Answer])(in:Input):List[Answer] = {
-    analyze; input=in; val res=if (window>0) aggr(((0 to size-window).flatMap{x=>p(x,window+x)}).toList, h) else p(0,size)
-    input = null; reset(); res.map{_._1}
+  def size:Int = input.size 
+  def parse(in:Input):List[Answer] = {
+    run(in,()=>(if (window>0) aggr(((0 to size-window).flatMap{x=>axiom(x,window+x)}).toList, h) else axiom(0,size)).map{_._1})
   }
-  def backtrack(p:Tabulate)(in:Input):List[(Answer,List[(Subword,Backtrack)])] = {
-    analyze; input=in; val res=if (window>0) aggr(((0 to size-window).flatMap{x =>p.backtrack(x,window+x)}).toList, h) else p.backtrack(0,size)
-    input = null; reset(); res
+  def backtrack(in:Input):List[(Answer,List[(Subword,Backtrack)])] = {
+    run(in,()=>if (window>0) aggr(((0 to size-window).flatMap{x=>axiom.backtrack(x,window+x)}).toList, h) else axiom.backtrack(0,size))
   }
-  def build(p:Tabulate)(in:Input,bt:List[(Subword,Backtrack)]):Answer = {
-    analyze; input=in; 
-    for((sw,b)<-bt) p.build(sw,b)
-    val l = bt.last; val res = p.build(l._1,l._2)
-    input = null; reset(); res
-  }
+  def build(in:Input,bt:List[(Subword,Backtrack)]):Answer = run(in, ()=>{ for((sw,b)<-bt) axiom.build(sw,b); val l=bt.last; axiom.build(l._1,l._2) })
+  private def run[T](in:Input, f:()=>T) = { analyze; input=in; val res=f(); input=null; reset(); res }
 
   // Concatenation operations
   class ADPParser[T](p:Parser[T]) {

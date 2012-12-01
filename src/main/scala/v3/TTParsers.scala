@@ -1,7 +1,7 @@
 package v3
 
-class TTParsers extends BaseParsers { this:Signature =>
-  // Two-tracks combinators: subword := (end_in1, end_in2)
+trait TTParsers extends BaseParsers { this:Signature =>
+  // Two-tracks combinators. Subword := (end_in1, end_in2)
   // Main difference with ADP is the concat operators and use of 2 inputs.
 
   // I/O interface
@@ -12,12 +12,10 @@ class TTParsers extends BaseParsers { this:Signature =>
   def in2(k:Int):Alphabet = input2(k)
   def size1:Int = input1.size
   def size2:Int = input2.size
-  def parse(p:Parser[Answer])(in1:Input,in2:Input):List[Answer] = {
-    analyze; input1=in1; input2=in2; val res=p(input1.size,input2.size); input1=null; input2=null; reset(); res.map{_._1}
-  }
-  def backtrack(p:Tabulate)(in1:Input,in2:Input):List[(Answer,List[(Subword,Backtrack)])] = {
-    analyze; input1=in1; input2=in2; val res=p.backtrack(input1.size,input2.size); input1=null; input2=null; reset(); res
-  }
+  def parse(in1:Input,in2:Input):List[Answer] = run(in1,in2,()=>axiom(input1.size,input2.size).map{_._1} )
+  def backtrack(in1:Input,in2:Input):List[(Answer,List[(Subword,Backtrack)])] = run(in1,in2,()=>axiom.backtrack(input1.size,input2.size))
+  def build(in1:Input,in2:Input,bt:List[(Subword,Backtrack)]):Answer = run(in1,in2,()=>{ for((sw,b)<-bt) axiom.build(sw,b); val l=bt.last; axiom.build(l._1,l._2) })
+  private def run[T](in1:Input,in2:Input, f:()=>T) = { analyze; input1=in1; input2=in2; val res=f(); input1=null; input2=null; reset(); res }
 
   // Concat parsers
   class ParserTT[T](inner:Parser[T]) {

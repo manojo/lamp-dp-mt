@@ -10,24 +10,16 @@ trait Bill extends Signature {
 // Algebrae
 trait BuyerAlgebra extends Bill {
   override type Answer = Int
-
   def add(l: Answer, r: Answer) = l + r
   def mul(l: Answer, r: Answer) = l * r
-  def h(l :List[Answer]) = l match {
-    case Nil => Nil
-    case _ => l.min::Nil
-  }
+  override val h = min[Answer] _
 }
 
 trait SellerAlgebra extends Bill {
   override type Answer = Int
-
   def add(l: Answer, r: Answer) = l + r
   def mul(l: Answer, r: Answer) = l * r
-  def h(l :List[Answer]) = l match {
-    case Nil => Nil
-    case _ => l.max::Nil
-  }
+  override val h = max[Answer] _
 }
 
 // Common grammar
@@ -38,13 +30,14 @@ trait BillGrammar extends LexicalParsers with Bill {
   def plus = charf(_ == '+')
   def times = charf(_ == '*')
 
-  val billGrammar: Parser[Int] = tabulate("M",(
+  val billGrammar:Tabulate = tabulate("M",(
     digit
   | (billGrammar ~~- plus ~~~ billGrammar) ^^ { case ((a1,c),a2) => add(a1,a2) }
   | (billGrammar ~~- times ~~~ billGrammar) ^^ { case ((a1,c),a2) => mul(a1,a2) }
   ) aggregate h)
 
-  def parse(in:String):List[Answer] = parse(billGrammar)(in)
+  val axiom=billGrammar
+  def parse(in:String):List[Answer] = parse(in)
 }
 
 // User program

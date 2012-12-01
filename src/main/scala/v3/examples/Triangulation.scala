@@ -28,9 +28,11 @@ object Triangulation extends LexicalParsers with TriangulationAlgebra {
     }
   ) aggregate h)
 
+  val axiom=triangulation
+
   def main(args: Array[String]) = {
-    println(parse(triangulation)("abcdef"))
-    printBT(backtrack(triangulation)("abcdef"))
+    println(parse("abcdef"))
+    printBT(backtrack("abcdef"))
     println(gen)
   }
 }
