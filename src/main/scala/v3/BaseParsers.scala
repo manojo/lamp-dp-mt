@@ -11,8 +11,8 @@ trait BaseParsers extends CodeGen { this:Signature =>
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
   val tabs = new HashMap[String,HashMap[Subword,List[(Answer,Backtrack)]]]
-  //var reset:(()=>Unit) = () => {}
-  var reset:(()=>Unit) = () => { for((n,t)<-tabs) { println(n+":"); for((k,v)<-t; (c,(r,bt))<-v) printf("  %-7s -> %-60s %d, %s\n",k.toString,c.toString,r,bt.toString); println } }
+  var reset:(()=>Unit) = () => {}
+  //var reset:(()=>Unit) = () => { for((n,t)<-tabs) { println(n+":"); for((k,v)<-t; (c,(r,bt))<-v) printf("  %-7s -> %-60s %d, %s\n",k.toString,c.toString,r,bt.toString); println } }
 
   override type Tabulation=Tabulate
   def tabulate(name:String, inner: => Parser[Answer]) = new Tabulate(name,inner)
@@ -29,17 +29,18 @@ trait BaseParsers extends CodeGen { this:Signature =>
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
     override def apply2(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) } 
 
-    def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))) ).flatten
+    def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))).map{x=>(e._1,x)} ).flatten
     private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
     private def backtrack0(mult:Int,tail:List[(Subword,Backtrack)],pending:List[BTItem]):List[List[(Subword,Backtrack)]] = pending match {
       case Nil => List(tail)
       case (sw,score,(rule,bt))::ps =>
-        val res = inner.apply2(sw, (rule-id,bt)).filter{case(r,l) => r==score }.map{case(r,l)=>l}.take(mult)
+        val res = inner.apply2(sw, (rule-id,bt)).filter{case(r,l)=>r==score}.map{case(r,l)=>l}.take(mult)
         countMap(res,(pl:List[BTItem],mul:Int)=>backtrack0(mul,(sw,(rule,bt))::tail, pl:::ps)  ).flatten
     }
 
-    // XXX: How to pretty print efficiently a backtrack ?
-    // XXX: Idea: pass a list of strings matching the rules
+    // XXX: fix backtrack in TT parsers
+    // XXX: How to pretty print/execute efficiently a backtrack ?
+    // XXX: use a 2nd argument to mapper => 2nd grammar? match maps by function name?? (signature)
     // --------------------------------------------------
 /*
 Ideas for a pretty printer:
@@ -49,9 +50,6 @@ when adding a new element along backtrack
 2. matching_name+"("+ sorted subwords +")"
 
 Use a function that take an integer and a list of Answers and combine them into a new answer
-
-type terminal
-
 */
     // --------------------------------------------------
 
@@ -78,7 +76,7 @@ type terminal
     val tree = POr(inner.tree, that.tree)
     def apply(sw: Subword) = inner(sw) ++ that(sw).map{case(t,(r,b))=>(t,(r+inner.tree.alt,b))}
     override def apply2(sw:Subword,bt:Backtrack) = bt match {
-      case (r,idx) => if (r==0) inner.apply2(sw,(r,idx)) else that.apply2(sw,(r-inner.tree.alt,idx))
+      case (r,idx) => var a = inner.tree.alt-1; if (r<=a) inner.apply2(sw,(r,idx)) else that.apply2(sw,(r-a,idx)) 
     }
   }
 
@@ -153,13 +151,23 @@ type terminal
 
   abstract class Parser[T] extends (Subword => List[(T,Backtrack)]) with Treeable { inner =>
     def apply(sw: Subword): List[(T,Backtrack)]
-    // XXX: also add the position so that we know where to apply ??
     def apply2(sw:Subword,bt:Backtrack): List[(T, List[BTItem])] = apply(sw).map{case(t,b)=>(t,Nil)} // default for terminals
 
     final def ^^[U](f: T => U) = p_map(inner,f)
     final def |(that: Parser[T]) = p_or(inner,that)
     final def aggregate(h: List[T] => List[T]) = p_aggr(inner,h)
     final def filter (p: Subword => Boolean) = p_filter(inner,p)
+  }
+
+  // --------------------------------------------------------------------------
+  // Utilities for debugging and pretty-printing
+  def printBT(bs:List[(Answer,List[(Subword,Backtrack)])]) = {
+    println("{")
+    for(b<-bs) {
+      print("  "+b._1+"   BT =");
+      for (((i,j),(r,bt)) <- b._2) { print(" ["+i+","+j+"]="+r+","+bt+" ") }; println
+    }
+    println("}")
   }
 }
 

@@ -20,7 +20,7 @@ object Triangulation extends LexicalParsers with TriangulationAlgebra {
   // string concat with "-"
   def ccat(s1:String,s2:String) = s1+(if (s1!=""&&s2!="")"-" else "")+s2
 
-  val triangulation: Parser[Answer] = tabulate("M",(
+  val triangulation: Tabulate = tabulate("M",(
     chari ^^ { i => (i,i+1,0,"") }
   | triangulation +~+ triangulation ^^ { case((a1,b1,c1,s1),(a2,b2,c2,s2)) =>
       val (s,c) = if (Math.abs(a1%size-b2%size)<=1) ("",0) else (in(a1)+""+in(b2%size), edge(a1,b2))
@@ -30,6 +30,7 @@ object Triangulation extends LexicalParsers with TriangulationAlgebra {
 
   def main(args: Array[String]) = {
     println(parse(triangulation)("abcdef"))
+    printBT(backtrack(triangulation)("abcdef"))
     println(gen)
   }
 }

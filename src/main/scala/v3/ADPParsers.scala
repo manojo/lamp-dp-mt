@@ -1,32 +1,18 @@
 package v3
 
 class ADPParsers extends BaseParsers { this:Signature =>
-  // Processing interface
+  // I/O interface
   private var input: Input = null
   def in(k:Int):Alphabet = input(k)
   def size:Int = input.size
-
   def parse(p:Parser[Answer])(in:Input):List[Answer] = {
-    analyze; input=in;
-    val res = if (window>0) aggr( ((0 to size-window).flatMap{ x => p(x,window+x) }).toList, h)
-              else p(0,size)
-
-    // XXX: need to avoid erasure of the backtrack
-    // XXX: use run-main v3.examples.MatrixMult
-
-    // XXX: for varying aggregations, do the following: aggregate, then keep track of the resulting position and apply backtrack on that
-
-    if (!p.isInstanceOf[Tabulate]) sys.error("Cannot backtrack on non-tabulate parsers")
-    else {
-      val bs=p.asInstanceOf[Tabulate].backtrack(0,size)
-      println("Backtrack = {");
-      for(b<-bs) { for (((i,j),(r,bt)) <- b) { print("  ["+i+","+j+"]="+r+","+bt) }; println }
-      println("}")
-    }
+    analyze; input=in; val res=if (window>0) aggr(((0 to size-window).flatMap{x=>p(x,window+x)}).toList, h) else p(0,size)
     input = null; reset(); res.map{_._1}
   }
-
-  // XXX: implement a backtrack parse()() function
+  def backtrack(p:Tabulate)(in:Input):List[(Answer,List[(Subword,Backtrack)])] = {
+    analyze; input=in; val res=if (window>0) aggr(((0 to size-window).flatMap{x =>p.backtrack(x,window+x)}).toList, h) else p.backtrack(0,size)
+    input = null; reset(); res
+  }
 
   // Concatenation operations
   class ADPParser[T](p:Parser[T]) {

@@ -37,7 +37,7 @@ trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
   }
 
   def align(s1:String,s2:String) = parse(alignment)(s1.toArray,s2.toArray)
-  val alignment: Parser[Answer] = tabulate("M",(
+  val alignment:Tabulate = tabulate("M",(
     empty                       ^^ { _ => (0,".",".") }
   | seq1 ++~ alignment          ^^ { case (g,(score,s1,s2)) => val (g1,g2)=prettyGap(g,in1); (gap(score,g),s1+g1,s2+g2) }
   |          alignment ~++ seq2 ^^ { case ((score,s1,s2),g) => val (g1,g2)=prettyGap(g,in2); (gap(score,g),s1+g2,s2+g1) }
@@ -52,15 +52,20 @@ object SeqAlign extends App {
   // Needleman-Wunsch
   object NWun extends SeqAlignGrammar with NeedlemanWunschAlgebra
 
-  val seq1 = "GATTACA"
+  val seq1 = "CGATTACA"
   val seq2 = "CCCATTAGAG"
 
   // Usage
-  val ((swScore,sw1,sw2),swBt) = SWat.align(seq1,seq2).head
-  println("\nSmith-Waterman alignment  \n--------------------------\nScore: "+swScore+"\nSeq1: "+sw1+"\nSeq2: "+sw2+"\n")
-  println(SWat.gen)
+  val (swScore,sw1,sw2) = SWat.align(seq1,seq2).head
+  println("Smith-Waterman alignment\n- Score: "+swScore+"\n- Seq1: "+sw1+"\n- Seq2: "+sw2+"\n")
 
-  val ((nwScore,nw1,nw2),nwBt) = NWun.align(seq1,seq2).head
-  println("\nNeedleman-Wunsch alignment\n--------------------------\nScore: "+nwScore+"\nSeq1: "+nw1+"\nSeq2: "+nw2+"\n")
-  println(NWun.gen)
+  SWat.printBT(SWat.backtrack(SWat.alignment)(seq1.toArray,seq2.toArray))
+
+  //println(SWat.gen)
+
+  println("---------------------------------------------------------------------------\n")
+
+  val (nwScore,nw1,nw2) = NWun.align(seq1,seq2).head
+  println("Needleman-Wunsch alignment\n- Score: "+nwScore+"\n- Seq1: "+nw1+"\n- Seq2: "+nw2+"\n")
+  //println(NWun.gen)
 }
