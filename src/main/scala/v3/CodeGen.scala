@@ -62,14 +62,14 @@ trait CodeGen { this:Signature =>
 
   // ------------------------------------------------------------------------------
   // Recurrence analysis, done once when grammar is complete, before the computation.
-  // 1) Unique identifiers for subrules
+  // 1) Unique identifiers for subrules (sorted by name, ensures unique id within one grammar)
   // 2) Maximal backtrack size (cuda: #define TB)
   // 3) Compute cost storage (cuda: #define TC)
-  // 4) Dependency analysis (order within the pass, possibly if multiple pass are needed)
+  // 4) Dependency analysis (order within the pass, possibly if multiple pass are needed, check if all parsers are needed?)
   private var cdefs:String=""
   private var analyzed=false;
   def analyze { if (!analyzed) { analyzed=true
-    var id=0; var bt=0; for((n,p) <- rules) { p.id=id; val t=p.makeTree; id=id+t.alt; bt=Math.max(bt,t.ccat); }
+    var id=0; var bt=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; val t=p.makeTree; id=id+t.alt; bt=Math.max(bt,t.ccat); }
     cdefs=cdefs+"typedef struct { short rule; short pos["+bt+"]; } back_t;\n#define TB back_t\n"
 
     // XXX: 3) find the type of all involved recurrences

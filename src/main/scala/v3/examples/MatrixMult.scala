@@ -39,18 +39,44 @@ trait PrettyMatrixAlgebra extends MatrixSig {
 
   def single(i: Alphabet) = (m.single(i), p.single(i))
   def mult(l: Answer, r: Answer) = (m.mult(l._1,r._1), p.mult(l._2,r._2))
-  def h(l :List[Answer]) = { val s=m.h(l.map(_._1)).toSet; l.filter(e=>s.contains(e._1)) } 
+  def h(l :List[Answer]) = { val s=m.h(l.map(_._1)).toSet; l.filter(e=>s.contains(e._1)) }
 }
 
 trait MatrixGrammar extends ADPParsers with MatrixSig {
-  val matrixGrammar:Parser[Answer] = tabulate("M",(
+  val matrixGrammar:Tabulate = tabulate("M",(
     el ^^ single
   | (matrixGrammar +~+ matrixGrammar) ^^ { case (a1,a2) => mult(a1, a2) }
   ) aggregate h)
+  //def backtrack = backtrack(matrixGrammar)_
+  def parse(in: Input): List[Answer] = parse(matrixGrammar)(in)
+  def backtrack(in:Input):List[(Answer,List[(Subword,Backtrack)])] = backtrack(matrixGrammar)(in)
+  def build(in: Input, bt:List[(Subword,Backtrack)]):Answer = build(matrixGrammar)(in,bt)
+
+  //def apply2(sw:Subword,bt:Backtrack): List[(T, List[BTItem])] = apply(sw).map{case(t,b)=>(t,Nil)} // default for terminals
+  //def reapply(sw:Subword, bt:Backtrack):T =  apply(sw).map{_._1}.head // default for terminals
+
 }
 
+// Demonstration of the cross product algebra
 object MatrixMult extends MatrixGrammar with PrettyMatrixAlgebra with App {
   val input = List((10,100),(100,5),(5,50)).toArray
   println(parse(matrixGrammar)(input))
   println(gen)
+
+
+}
+
+// Demonstration of the separate DP-backtrack / build process
+object MatrixMult2 extends App {
+  object a extends MatrixGrammar with MatrixAlgebra
+  object b extends MatrixGrammar with PrettyPrintAlgebra
+  val input = List((10,100),(100,5),(5,50)).toArray
+//  println(parse(matrixGrammar)(input))
+//  println(gen)
+
+  val bt = a.backtrack(input).head._2
+  println(bt)
+  // XXX: null pointer exception here, find out why
+  println(b.build(input,bt))
+
 }

@@ -13,6 +13,12 @@ class ADPParsers extends BaseParsers { this:Signature =>
     analyze; input=in; val res=if (window>0) aggr(((0 to size-window).flatMap{x =>p.backtrack(x,window+x)}).toList, h) else p.backtrack(0,size)
     input = null; reset(); res
   }
+  def build(p:Tabulate)(in:Input,bt:List[(Subword,Backtrack)]):Answer = {
+    analyze; input=in; 
+    for((sw,b)<-bt) p.build(sw,b)
+    val l = bt.last; val res = p.build(l._1,l._2)
+    input = null; reset(); res
+  }
 
   // Concatenation operations
   class ADPParser[T](p:Parser[T]) {

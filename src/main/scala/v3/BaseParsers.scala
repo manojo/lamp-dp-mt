@@ -28,6 +28,13 @@ trait BaseParsers extends CodeGen { this:Signature =>
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
     override def apply2(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) } 
 
+    override def reapply(sw:Subword,bt:Backtrack) = map.get(sw) match {
+      case Some(v) => v.head._1
+      case _ => apply(sw).head._1 // XXX: are we sure we do not trigger subcomputations?
+    }
+
+    def build(sw:Subword, bt:Backtrack) = inner.reapply(sw,bt)
+
     def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))).map{x=>(e._1,x)} ).flatten
     private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
     private def backtrack0(mult:Int,tail:List[(Subword,Backtrack)],pending:List[BTItem]):List[List[(Subword,Backtrack)]] = pending match {
@@ -47,7 +54,6 @@ keep a List/HashMap of processed elements (aka pretty-printed)
 when adding a new element along backtrack
 1. forall elements inside that map, filter(contained in current).sort(along word length)
 2. matching_name+"("+ sorted subwords +")"
-
 Use a function that take an integer and a list of Answers and combine them into a new answer
 */
     // --------------------------------------------------
@@ -66,6 +72,7 @@ Use a function that take an integer and a list of Answers and combine them into 
     val tree = PMap(f,inner.tree)
     def apply(sw:Subword) = inner(sw) map { case (s,b) => (f(s),b) }
     override def apply2(sw:Subword,bt:Backtrack) = inner.apply2(sw,bt) map { case (s,b) => (f(s),b) }
+    override def reapply(sw:Subword, bt:Backtrack) = f(inner.reapply(sw,bt))
   }
 
   // Or combinator. Equivalent of ADP's ||| operator.
@@ -77,6 +84,9 @@ Use a function that take an integer and a list of Answers and combine them into 
     override def apply2(sw:Subword,bt:Backtrack) = bt match {
       case (r,idx) => var a = inner.tree.alt-1; if (r<=a) inner.apply2(sw,(r,idx)) else that.apply2(sw,(r-a,idx)) 
     }
+    override def reapply(sw:Subword, bt:Backtrack) = bt match {
+      case (r,idx) => var a = inner.tree.alt-1; if (r<=a) inner.reapply(sw,(r,idx)) else that.reapply(sw,(r-a,idx)) 
+    }
   }
 
   // Aggregate combinator.
@@ -86,6 +96,7 @@ Use a function that take an integer and a list of Answers and combine them into 
     val tree = PAggr(h,inner.tree)
     def apply(sw: Subword) = aggr(inner(sw),h)
     override def apply2(sw:Subword,bt:Backtrack) = aggr(inner.apply2(sw,bt),h)
+    override def reapply(sw:Subword, bt:Backtrack) = inner.reapply(sw,bt)
   }
 
   // Filter combinator.
@@ -94,6 +105,7 @@ Use a function that take an integer and a list of Answers and combine them into 
     val tree = PFilter(p, inner.tree)
     def apply(sw: Subword) = if(p(sw)) inner(sw) else List[(T,Backtrack)]()
     override def apply2(sw:Subword,bt:Backtrack) = inner.apply2(sw,bt) // filter must have matched at apply
+    override def reapply(sw:Subword, bt:Backtrack) = inner.reapply(sw,bt) // filter must have matched at apply
   }
 
   // Concatenate combinator.
@@ -146,11 +158,26 @@ Use a function that take an integer and a list of Answers and combine them into 
         (y,yb) <- that.apply2(swr,br)
       ) yield (((x,y), xb:::yb))
     }
+    override def reapply(sw:Subword,bt:Backtrack) = {
+      val (bl:Backtrack,br:Backtrack,kb:Int) = bt match { case (r,idx) => 
+        val a:Int=that.tree.alt; val c:Int=inner.tree.ccat;
+        ((r/a,idx.take(c)), (r%a,idx.drop(c+(if (tree.bt)1 else 0))), if (tree.bt)idx(c) else -1)
+      }
+      val (swl:Subword,swr:Subword) = (twotracks,sw,indices) match {
+        case (false,(i,j),(lL,lU,rL,rU)) if i<j => // single track
+          val k=if(-1!=kb)kb else if (rU==0)i+lL else Math.max(i+lL,j-rU); ((i,k),(k,j))
+        case (true,(i,j),(l,u,1,_)) => val k=if(-1!=kb)kb else i-l; ((k,i),(k,j)) // tt:concat1
+        case (true,(i,j),(l,u,2,_)) => val k=if(-1!=kb)kb else j-l; ((i,k),(k,j)) // tt:concat2
+        case _ => ((0,0),(0,0))
+      }
+      (inner.reapply(swl,bl), that.reapply(swr,br))
+    }
   }
 
   abstract class Parser[T] extends (Subword => List[(T,Backtrack)]) with Treeable { inner =>
     def apply(sw: Subword): List[(T,Backtrack)]
     def apply2(sw:Subword,bt:Backtrack): List[(T, List[BTItem])] = apply(sw).map{case(t,b)=>(t,Nil)} // default for terminals
+    def reapply(sw:Subword, bt:Backtrack):T = apply(sw).map{_._1}.head // default for terminals
 
     final def ^^[U](f: T => U) = p_map(inner,f)
     final def |(that: Parser[T]) = p_or(inner,that)
