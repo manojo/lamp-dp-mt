@@ -11,8 +11,7 @@ trait BaseParsers extends CodeGen { this:Signature =>
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
   val tabs = new HashMap[String,HashMap[Subword,List[(Answer,Backtrack)]]]
-  var reset:(()=>Unit) = () => {}
-  //var reset:(()=>Unit) = () => { for((n,t)<-tabs) { println(n+":"); for((k,v)<-t; (c,(r,bt))<-v) printf("  %-7s -> %-60s %d, %s\n",k.toString,c.toString,r,bt.toString); println } }
+  var reset:(()=>Unit) = () => { /*printTabs*/ }
 
   override type Tabulation=Tabulate
   def tabulate(name:String, inner: => Parser[Answer]) = new Tabulate(name,inner)
@@ -118,15 +117,15 @@ Use a function that take an integer and a list of Answers and combine them into 
         val i0 = if (l==0) 0 else Math.max(i-l,0)
         for(
           k <- (i0 to i-u).toList;
-          (x,xb) <- inner((k,i));
-          (y,yb) <- that((k,j))
+          (x,xb) <- inner((k,i)); // in1[k..i]
+          (y,yb) <- that((k,j))   // M[k,j]
         ) yield(((x,y),bt(xb,yb,k)))
       case (true,(i,j),(l,u,2,_)) => // tt:concat2
         val j0 = if (l==0) 0 else Math.max(j-l,0)
         for(
           k <- (j0 to j-u).toList;
-          (x,xb) <- inner((i,k));
-          (y,yb) <- that((k,j))
+          (x,xb) <- inner((i,k)); // M[i,k]
+          (y,yb) <- that((k,j))   // in2[k..j]
         ) yield(((x,y),bt(xb,yb,k)))
       case _ => List()
     }
@@ -139,7 +138,7 @@ Use a function that take an integer and a list of Answers and combine them into 
         case (false,(i,j),(lL,lU,rL,rU)) if i<j => // single track
           val k=if(-1!=kb)kb else if (rU==0)i+lL else Math.max(i+lL,j-rU); ((i,k),(k,j))
         case (true,(i,j),(l,u,1,_)) => val k=if(-1!=kb)kb else i-l; ((k,i),(k,j)) // tt:concat1
-        case (true,(i,j),(l,u,2,_)) => val k=if(-1!=kb)kb else j-l; ((i,k),(j,k)) // tt:concat2
+        case (true,(i,j),(l,u,2,_)) => val k=if(-1!=kb)kb else j-l; ((i,k),(k,j)) // tt:concat2
         case _ => ((0,0),(0,0))
       }
       for (
@@ -163,11 +162,15 @@ Use a function that take an integer and a list of Answers and combine them into 
   // Utilities for debugging and pretty-printing
   def printBT(bs:List[(Answer,List[(Subword,Backtrack)])]) = {
     println("{")
-    for(b<-bs) {
-      print("  "+b._1+"   BT =");
+    for(b<-bs) { print("  "+b._1+"   BT =")
       for (((i,j),(r,bt)) <- b._2) { print(" ["+i+","+j+"]="+r+","+bt+" ") }; println
     }
     println("}")
+  }
+  def printTabs {
+    for((n,t)<-tabs) { println(n+":")
+      for((k,v)<-t; (c,(r,bt))<-v) printf("  %-7s -> %-60s %d, %s\n",k,c,r,bt); println
+    }
   }
 }
 

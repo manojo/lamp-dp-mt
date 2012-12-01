@@ -37,20 +37,19 @@ class TTParsers extends BaseParsers { this:Signature =>
     def apply(sw:Subword) = sw match { case (i,j) => if(i==0 && j==0) List((new Dummy,bt0)) else Nil }
   }
   def el1 = new Parser[Alphabet] {
-    val tree = PTerminal{(i:Var,j:Var) => (List(zero.leq(i,1)),"in1["+i.add(-1)+"]")}
-    def apply(sw:Subword) = sw match { case (i,j) => if(0 < i) List((in1(i-1),bt0)) else Nil }
+    val tree = PTerminal{(i:Var,j:Var) => (List(i.eq(j,1)),"in1["+i+"]")}
+    def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in1(i),bt0)) else Nil }
   }
   def el2 = new Parser[Alphabet] {
-    val tree = PTerminal{(i:Var,j:Var) => (List(zero.leq(j,1)),"in2["+j.add(-1)+"]")}
-    def apply(sw:Subword) = sw match { case (i,j) => if(0 < j) List((in2(j-1),bt0)) else Nil }
+    val tree = PTerminal{(i:Var,j:Var) => (List(i.eq(j,1)),"in2["+i+"]")}
+    def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in2(i),bt0)) else Nil }
   }
-  // non-empty string, return (start,end)
-  def seq1 = new Parser[(Int,Int)] {
-    val tree = PTerminal{(i:Var,j:Var) => (List(zero.leq(j,1)),"seq1["+i+".."+j+"]")}
-    def apply(sw:Subword) = sw match { case (i,j) => if (0 < j) List(((i,j),bt0)) else Nil }
+  def seq1(min:Int=1, max:Int=0) = new Parser[(Int,Int)] {
+    val tree = PTerminal{(i:Var,j:Var) => val cm:List[Cond] = if(max==0) Nil else List(j.leq(i,max)); (i.leq(j,min)::cm, "in1["+i+".."+j+"]")}
+    def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==0 || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
-  def seq2 = new Parser[(Int,Int)] {
-    val tree = PTerminal{(i:Var,j:Var) => (List(zero.leq(j,1)),"seq2["+i+".."+j+"]")}
-    def apply(sw:Subword) = sw match { case (i,j) => if (0 < j) List(((i,j),bt0)) else Nil }
+  def seq2(min:Int=1, max:Int=0) = new Parser[(Int,Int)] {
+    val tree = PTerminal{(i:Var,j:Var) => val cm:List[Cond] = if(max==0) Nil else List(j.leq(i,max)); (i.leq(j,min)::cm, "in2["+i+".."+j+"]")}
+    def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==0 || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
 }

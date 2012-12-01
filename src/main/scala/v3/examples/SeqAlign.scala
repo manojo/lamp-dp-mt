@@ -36,36 +36,36 @@ trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
     val g=(sw._1 until sw._2).toList; (g.map{x=>in(x)}.mkString(""),g.map{x=>"-"}.mkString(""))
   }
 
-  def align(s1:String,s2:String) = parse(alignment)(s1.toArray,s2.toArray)
+  import scala.language.implicitConversions
+  implicit def toCharArray(s:String):Array[Char] = s.toArray
+
+  def align(s1:String,s2:String) = parse(alignment)(s1,s2)
+  def trace(s1:String,s2:String) = backtrack(alignment)(s1,s2)
   val alignment:Tabulate = tabulate("M",(
-    empty                       ^^ { _ => (0,".",".") }
-  | seq1 ++~ alignment          ^^ { case (g,(score,s1,s2)) => val (g1,g2)=prettyGap(g,in1); (gap(score,g),s1+g1,s2+g2) }
-  |          alignment ~++ seq2 ^^ { case ((score,s1,s2),g) => val (g1,g2)=prettyGap(g,in2); (gap(score,g),s1+g2,s2+g1) }
-  | el1  -~~ alignment ~~- el2  ^^ { case (c1,((score,s1,s2),c2)) => (score+pair(c1,c2),s1+c1, s2+c2) }
+    empty                           ^^ { _ => (0,".",".") }
+  | seq1() ++~ alignment            ^^ { case (g,(score,s1,s2)) => val (g1,g2)=prettyGap(g,in1); (gap(score,g),s1+g1,s2+g2) }
+  |            alignment ~++ seq2() ^^ { case ((score,s1,s2),g) => val (g1,g2)=prettyGap(g,in2); (gap(score,g),s1+g2,s2+g1) }
+  | el1    -~~ alignment ~~- el2    ^^ { case (c1,((score,s1,s2),c2)) => (score+pair(c1,c2),s1+c1, s2+c2) }
   ) aggregate h)
 }
 
 // User program
 object SeqAlign extends App {
-  // Smith-Waterman
-  object SWat extends SeqAlignGrammar with SmithWatermanAlgebra
-  // Needleman-Wunsch
-  object NWun extends SeqAlignGrammar with NeedlemanWunschAlgebra
-
+  object SWat extends SeqAlignGrammar with SmithWatermanAlgebra   // Smith-Waterman
+  object NWun extends SeqAlignGrammar with NeedlemanWunschAlgebra // Needleman-Wunsch
   val seq1 = "CGATTACA"
   val seq2 = "CCCATTAGAG"
 
   // Usage
   val (swScore,sw1,sw2) = SWat.align(seq1,seq2).head
   println("Smith-Waterman alignment\n- Score: "+swScore+"\n- Seq1: "+sw1+"\n- Seq2: "+sw2+"\n")
+  SWat.printBT(SWat.trace(seq1,seq2))
+  println(SWat.gen)
 
-  SWat.printBT(SWat.backtrack(SWat.alignment)(seq1.toArray,seq2.toArray))
-
-  //println(SWat.gen)
-
+  /*
   println("---------------------------------------------------------------------------\n")
-
   val (nwScore,nw1,nw2) = NWun.align(seq1,seq2).head
   println("Needleman-Wunsch alignment\n- Score: "+nwScore+"\n- Seq1: "+nw1+"\n- Seq2: "+nw2+"\n")
-  //println(NWun.gen)
+  println(NWun.gen)
+  */
 }

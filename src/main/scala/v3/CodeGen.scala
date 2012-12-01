@@ -72,9 +72,9 @@ trait CodeGen { this:Signature =>
     var id=0; var bt=0; for((n,p) <- rules) { p.id=id; val t=p.makeTree; id=id+t.alt; bt=Math.max(bt,t.ccat); }
     cdefs=cdefs+"typedef struct { short rule; short pos["+bt+"]; } back_t;\n#define TB back_t\n"
 
-    // XXX: TODO 3) and 4)
+    // XXX: 3) find the type of all involved recurrences
     cdefs=cdefs+"typedef struct { ??? } cost_t;\n#define TC cost_t\n"
-    //println("Dependency analysis => return a define + ordered list of parsers");
+    // XXX: 4) println("Dependency analysis => return a ordered list of parsers");
 
     println("---------- analysis -----------")
     for((n,p) <- rules) {
@@ -188,16 +188,15 @@ trait CodeGen { this:Signature =>
       val (rc,rb) = gen(r,k,j,g)
       (simplify(c ::: lc ::: rc), lb+" ~ "+rb)
 
-    case PConcat(l,r,indices) if (twotracks==true) =>
-      val track = indices._3;
-      val (c,k):(List[Cond],Var) = indices match {
-        case (a,b,1,_) if (a==b && a>0) => (List(zero.leq(i,1)),i.add(-a))
-        case (a,b,1,_) => val k0=g.get; (List(CFor(k0.v,'0',1,i.v,1)),k0)
-        case (a,b,2,_) if (a==b && a>0) => (List(zero.leq(j,1)),j.add(-a))
-        case (a,b,2,_) => val k0=g.get; (List(CFor(k0.v,'0',1,j.v,1)),k0)
+    case PConcat(l,r,(a,b,track,_)) if (twotracks==true) =>
+      val (c,(lc,lb),(rc,rb)) = track match {
+        case 1 => val (c,k) = if (a==b && a>0) (zero.leq(i,1), i.add(-a))
+                              else { val k0=g.get; (CFor(k0.v,'0',1,i.v,1), k0) }
+          (List(c),gen(l,k,i,g),gen(r,k,j,g))
+        case 2 => val (c,k) = if (a==b && a>0) (zero.leq(j,1), j.add(-a))
+                              else { val k0=g.get; (CFor(k0.v,'0',1,j.v,1), k0) }
+          (List(c),gen(l,i,k,g),gen(r,k,j,g))
       }
-      val (lc,lb) = gen(l,i,if (track==1) k else j,g)
-      val (rc,rb) = gen(r,if (track==2) k else i,j,g)
       (simplify(c ::: lc ::: rc), lb+" ~TT~ "+rb)
 
     case _ => (Nil,toString)
@@ -222,6 +221,7 @@ trait CodeGen { this:Signature =>
       cs.foreach {
         case CLeq(a,b,x) => cs=cs.filter { case CLeq(c,d,y) if (c==a && d==b && y<x) => false case _ => true }
         case CFor(v,l,_,u,_) => cs=cs.filter { case CLeq(c,d,_) if (c==l && d==v || c==v && d==u) => false case _ => true }
+        case _ =>
       }
       cs
   }
