@@ -194,20 +194,17 @@ apply out of the box here.
 % ----------------------------------------------
 \newpage
 \subsubsection{Convex polygon triangulation}\ol
-\item Problem: triangulating a polygon of $n$ vertices with least total cost for added edges. We denote the cost of adding an edge between the  pair of edges $i,j$ by $S(i,j)$, Where $S_{n \times n}$ is a lower triangular matrix compacted in memory (rows are contiguous) with a 0 diagonal that is omitted \footnote{Arbitrary convention for both architectural implementation and code generator. Rationale: in lower triangular matrix, element address is independent of the matrix size.}, hence $|S|=\tfrac{n^2}{2}=N$.
-
-\item Matrices: $M_{n\times 2n}, B_{n \times 2n}$ \textit{<<first edge, last edge>>} upper triangular including main diagonal 
+\item Problem: triangulating a polygon of $n$ vertices with least total cost for added edges. We denote the cost of adding an edge between the  pair of edges $i,j$ by $S(i,j)$, Where $S_{n \times n}$ is an upper triangular matrix with a 0 diagonal that is omitted, hence $|S|=\tfrac{n^2}{2}=N$.
+\item Matrices: $M_{n\times n}, B_{n \times n}$ \textit{<<first vertex, last vertex>>} upper triangular including main diagonal. Note that if the vertex $n$ is the same as the vertex $0$.
 \item Alphabets:\ul
 	\item Input: $\Sigma(S_{(i,j)})=\{0..m\}$ with $m=\max_S(i,j) \forall i,j$ determined at runtime\footnote{We need to scan/have stats about $S$ and that's where LMS plays a role}.
 	\item Cost matrix: $\Sigma(M)=\{0..z\}$ with $z = m \cdot (n-2)$ (we add at most $n-2$ edges).
 	\item Backtrack matrix: $\Sigma(B)=\{stop, 0..n\}$ (the index of the edge we add)
 	\ule
+{\color{red}
 \item Initialization: $M_{(i,i)}=0, M_{(i,i+1)}=0, B_{(i,i)}=stop \quad\forall i$
 
 \item Recurrence: \[M_{(i,j)}=\left\{ S(i,j) + \max_{i<k<j}M_{(i,k)}+M_{(k,j)} \,\,\rule[-.75em]{.5pt}{2em}\,\,  k \right\} = B_{(i,j)} \]
-	It is interesting to note that even in the sequential world, this problem is solved 
-	by filling the diagonals, ie. computing sub-solutions for all polygons of size $k$ before
-	those of size $k+1$.
 
 \item Backtracking: Start at $B_{(1,n)}$. Use the following recursive function for the smaller polygons:
 	\[{\rm BT}(B_{(i,j)}=k) \mapsto \left\{\begin{array}{ll} A_i & \text{if } k=0 \lor k=j \\
@@ -215,20 +212,22 @@ apply out of the box here.
 
 \item Visualization: the layout is the a matrix of size $n \times (2n-2)$, because of polygons being 
 "cyclical" in nature.
-\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(16,9)
+\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 	\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
 	\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
-	\Cfl{\Cg}\Cfd{\Cz}\Cfu{\Cg}
+	\Cfl{\Cg}
+	\Cfd{\Cz}
+	%\Cfu{\Cg}
 	\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
 	\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
 	\put(3.5,4.5){\line(3,-1){3}}
 	\put(4.5,4.5){\line(2,-2){2}}
 	\put(5.5,4.5){\line(1,-3){1}}
 	%\Cd[1,-1]{5,2}{0.8}
-\Cmlong\end{picture}\end{center}
-
-\item Optimizations: we need to rotate that matrix to progress in the same direction as usual, that is towards bottom right.
-{\color{red}}
+	\Cm %\Cmlong
+\end{picture}\end{center}
+}
+\item Optimizations: we need the cost of edges between contiguous polygon vertices to have a cost of 0, so that we do not need to have special cases in the DP program (i.e. edges are <<already present>>, hence we cannot add them).
 \ole
 
 % ----------------------------------------------

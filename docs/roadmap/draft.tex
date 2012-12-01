@@ -9,6 +9,7 @@
 
 \subsection*{Abstract}
 Dynamic programming is a common pattern of Computer Science used in various domains. Yet underlying matrix recurrences might be difficult to express and error prone. Additionally, domain experts might not have the skills to make an efficient parallel implementation. In this paper, we leverage the Scala / LMS infrastructure to implement a domain specific language (DSL) for dynamic programming on heterogeneous platforms, which allows to write concise and efficient programs. Our contributions are: \ul
+\item {\color{red} Reuse of existing compiler technology to a specific purpose}
 \item Classification of DP problems characteristics (matrix shape, dependency graph, ...)
 \item State of the art parallel implementation of these classes on GPUs
 \item Grammar embedded in Scala (DSL) to express DP problems efficiently

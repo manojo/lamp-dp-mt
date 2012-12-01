@@ -43,6 +43,8 @@ These results are obtained by the internal transformation that is defined within
 {\color{red}
 XXX: explain ADP concepts
 
+explain split into signature and grammar
+
 XXX: normalization, transforms applied
 
 \begin{verbatim}
@@ -94,9 +96,12 @@ We want to have an estimation of the complexity of the two operations to see wha
 \item The word is split in $s$ subwords, with recurrence $f(n)=2f(n/2)+1$ by solving this recurrence we see that there can be at most $n$ final nodes and $n$ intermediate nodes (when $s=2$). Hence the backtrack length is at most $2n$.
 \ule
 
-Let one parser reversal complexity be $O(p)$, single backtrack has $O(2n\cdot p)$ complexity. For the $k$-elements backtrack, since we regenerate all possible solutions, that is $O(k^{c+1})$ candidates (with $c$ the maximal number of concatenation in the parser), the overall complexity is $O(2n \cdot k^{c+1} \cdot p)$. Hence there is a $k^{c+1}$ factor to pay if we want to backtrack the $k$ best solutions\footnote{Note that the same factor lies in the matrix computation complexity.}.
+Let one parser reversal complexity be $O(p)$, single backtrack has $O(2n\cdot p)$ complexity. For the $k$-elements backtrack, since we regenerate all possible solutions, that is $O(k^{c+1})$ candidates (with $c$ the maximal number of concatenation in the parser), the overall complexity is $O(2n \cdot k^{c+1} \cdot p)$. Hence there is a $k^{c+1}$ factor to pay if we want to backtrack the $k$ best solutions\footnote{Note that the same $k^{c+1}$ factor lies in the forward matrix computation complexity.}.
 
-%Algo: Read matrix, reapply the parser but by maintaining list of origins. Filter results to match multiplicities
+\subsubsection{Backtrack utilization}
+Since the dynamic programming input may be a subset of the larger problem that we want to resolve\footnote{For instance in matrix chain multiplication, we only care about matrix dimensions for dynamic programming, however, we ultimately want to multiply the real matrices and obtain a result.}, we need to be able to apply the result of the dynamic programming computation on values in a different domain. The easiest way to do that, is to reuse the same grammar on a different domain, and only compute the resulting trace obtained from the DP solver.
+
+This step is pretty straightforward: since ADP parsers emphasize on the split between signature and grammar and decouples them, we only need to modify the signature to operate on another domain, and reuse the same grammar. The key point here is to notice that a backtrack trace on one parser can be reused on another, providing that they have the same grammar. For instance, to compute optimally a matrix chain multiplication, we solve the DP problem in a domain where matrices are represented by their dimensions, we obtain an optimal trace and feed it to a parser operating on the <<real matrices>> domain that will do the actual computation.
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Memory constraints}
