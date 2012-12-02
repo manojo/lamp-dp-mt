@@ -7,6 +7,24 @@ object TestMacros extends App {
 
   def foo2 = tree{ (x:(Int,(Int,Int))) => x._1 * x._2._1 + x._2._2 }
   println(foo2.toString)
+
+  type Subword = (Int,Int)
+  def in(x:Int):Char = ' '
+  /*
+  def areBrackets = tree { (sw: Subword) => sw match { case(i,j) => j > i+1 && in(i) == '(' && in(j-1) == ')' } }
+  def bracketSingle = tree { (in:(Char,(Int,Char))) => in match { case (c1,(i,c2)) => i } }
+  def bracketSum = tree { (in:(Int,Int)) => in match { case (x,y) => x+y } }
+  */
+  def areBrackets = tree { (sw: Subword) => sw._2 > sw._1+1 && in(sw._1) == '(' && in(sw._2-1) == ')' }
+  def bracketSingle = tree { (in:(Char,(Int,Char))) => in._2._1 }
+  def bracketSum = tree { (in:(Int,Int)) => in._1+in._2 }
+
+
+  println(areBrackets.toString)
+  println(bracketSingle.toString)
+  println(bracketSum.toString)
+
+
 }
 
 /*
