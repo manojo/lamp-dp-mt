@@ -1,8 +1,8 @@
 package v3.examples
 import v3._
 
-// Sequence alignment problem
-// We also want to pretty-print the two sequences aligned
+// Sequence alignment problem.
+// Demonstrates two algebrae for the same problem.
 trait SeqAlignSignature extends Signature {
   override type Alphabet = Char
   type Answer = (Int,String,String) // score, sequence1, sequence2
@@ -31,6 +31,7 @@ trait NeedlemanWunschAlgebra extends SeqAlignSignature {
   override val h = (l:List[Answer]) => if(l.isEmpty) Nil else List(l.maxBy(_._1))
 }
 
+// Sequence alignment grammar
 trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
   private def prettyGap(sw:Subword,in:Function1[Int,Char]):(String,String) = {
     val g=(sw._1 until sw._2).toList; (g.map{x=>in(x)}.mkString(""),g.map{x=>"-"}.mkString(""))

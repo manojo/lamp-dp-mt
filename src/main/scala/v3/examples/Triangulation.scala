@@ -1,7 +1,7 @@
 package v3.examples
 import v3._
 
-// Convex polygon triangulation problem
+// Convex polygon triangulation problem.
 trait TriangulationSignature extends Signature {
   override type Alphabet = Char // name of the vertex
 }

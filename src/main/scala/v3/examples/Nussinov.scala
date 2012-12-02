@@ -1,7 +1,7 @@
 package v3.examples
 import v3._
 
-// Nussinov
+// Nussinov RNA folding
 trait PairingSig extends Signature {
   def nil(a: Dummy): Answer
   def left(c: Alphabet, a: Answer): Answer
@@ -12,7 +12,6 @@ trait PairingSig extends Signature {
 
 trait PairingAlgebra extends PairingSig {
   type Answer = Int
-  type Alphabet = Char
 
   def nil(a: Dummy) = 0
   def left(c: Alphabet,a: Answer) = a
@@ -24,7 +23,7 @@ trait PairingAlgebra extends PairingSig {
 }
 
 /*
-trait PrettyPAlgebra extends PairingSig {
+trait PrettyPrintAlgebra extends PairingSig {
   type Answer = (String,String)
   type Alphabet = Char
 

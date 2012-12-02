@@ -1,15 +1,16 @@
 package v3.examples
 import v3._
 
-// Matrix multiplication
+// Matrix chain multiplication.
+// Also demonstrates how to backtrack and apply
+// efficiently the result to another domain/algebra.
 trait MatrixSig extends Signature {
-  type Alphabet = (Int,Int) // matrix dimensions: (rows, columns)
-
+  type Alphabet = (Int,Int) // matrix as (rows, columns)
   def single(i: Alphabet): Answer
   def mult(l: Answer, r: Answer): Answer
 }
 
-// Algebrae
+// Computation cost algebra (in # of multiplications)
 trait MatrixAlgebra extends MatrixSig {
   type Answer = (Int,Int,Int) // rows, cost, columns
 
@@ -23,13 +24,15 @@ trait MatrixAlgebra extends MatrixSig {
   }
 }
 
+// Pretty-print algebra (could also be concrete multiplication)
+// Note that the string grows along with the number of multiplications
 trait PrettyPrintAlgebra extends MatrixSig {
   type Answer = String
   def single(i: Alphabet) = "|"+i._1+"x"+i._2+"|"
   def mult(l: Answer, r: Answer) = "("+l+"*"+r+")"
 }
 
-// Combining two algebrae
+// Combining two algebra manually (inefficient)
 trait PrettyMatrixAlgebra extends MatrixSig {
   object m extends MatrixAlgebra
   object p extends PrettyPrintAlgebra
@@ -40,6 +43,7 @@ trait PrettyMatrixAlgebra extends MatrixSig {
   override val h = (l :List[Answer]) => { val s=m.h(l.map(_._1)).toSet; l.filter(e=>s.contains(e._1)) }
 }
 
+// Matrix multiplication grammar (rules)
 trait MatrixGrammar extends ADPParsers with MatrixSig {
   val matrixGrammar:Tabulate = tabulate("M",(
     el ^^ single
@@ -49,8 +53,8 @@ trait MatrixGrammar extends ADPParsers with MatrixSig {
   val axiom=matrixGrammar
 }
 
-// Demonstration of the cross product algebra
-object MatrixMult extends MatrixGrammar with /*Pretty*/ MatrixAlgebra with App {
+// Demonstration of the manual cross product algebra
+object MatrixMult extends MatrixGrammar with PrettyMatrixAlgebra with App {
   val input = List((10,100),(100,5),(5,50)).toArray
   println(parse(input))
   println(gen)
@@ -62,7 +66,11 @@ object MatrixMult2 extends App {
   object b extends MatrixGrammar with PrettyPrintAlgebra
   val input = List((10,100),(100,5),(5,50)).toArray
 
+  // Compute the matrix, and return the best solution's backtrack
   val bt = a.backtrack(input).head._2
   println(bt)
+
+  // Apply the backtrack to another parser sharing the same grammar,
+  // This will only compute 1 result in relevant cells, hence O(n).
   println(b.build(input,bt))
 }

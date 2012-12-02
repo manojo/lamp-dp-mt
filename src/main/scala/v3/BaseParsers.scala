@@ -161,7 +161,7 @@ trait BaseParsers extends CodeGen { this:Signature =>
   // --------------------------------------------------------------------------
   // Utilities for debugging and pretty-printing
   def printBT(bs:List[(Answer,List[(Subword,Backtrack)])]) = {
-    println("{")
+    println("Backtrack = {")
     for(b<-bs) { print("  "+b._1+"   BT =")
       for (((i,j),(r,bt)) <- b._2) { print(" ["+i+","+j+"]="+r+","+bt+" ") }; println
     }
