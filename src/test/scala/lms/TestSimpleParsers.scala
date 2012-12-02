@@ -63,10 +63,20 @@ trait ParsersProg extends LexicalParsers {
     }
 
     myParser(0,in.length).head
-
-
   }
 
+  def testMatMult(in : Input): Rep[Int] = {
+    val myParser : Parser[Int] = {
+      val a : Rep[Array[Array[List[Int]]]] = NewArray(in.length+1)
+      (0 until in.length + 2).foreach{ i=>
+        a(0) = NewArray(in.length+1)
+      }
+
+      lazy val p : Parser[Int] tabulate("mat",
+
+      )
+    }
+  }
 }
 
 class TestSimpleParsers extends FileDiffSuite {

@@ -2,22 +2,21 @@ package lms
 
 import scala.virtualization.lms.common._
 
-/** Signature, taken from vanilla version */
-/*trait Signature {
-  type Alphabet // input type
-  type Answer   // output type
+trait Sig{
+  type Alphabet
+  type Answer
 
-//  def h(l: List[Answer]) : List[Answer]
-//  val cyclic = false // cyclic problem
-//  val window = 0     // windowing size, 0=disabled
-}*/
+  //  def h(l: List[Answer]) : List[Answer]
+  //  val cyclic = false // cyclic problem
+  //  val window = 0     // windowing size, 0=disabled
+}
 
 trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
                  with LiftNumeric with Equal with BooleanOps with OrderingOps
-                 with MathOps with HackyRangeOps with TupleOps{
+                 with MathOps with HackyRangeOps with TupleOps{this: Sig =>
 
   //DSL related type aliases and info
-  //type Input = Rep[Array[Alphabet]]
+  type Input = Rep[Array[Alphabet]]
 
   abstract class Parser[T:Manifest] extends ((Rep[Int], Rep[Int]) => Rep[List[T]]){inner =>
 
@@ -80,29 +79,9 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
       case _ => List()
     }
   }*/
-
-  /*************** simple parsers below *****************/
-
-/*  def el(in: Input) = new Parser[Alphabet] {
-    def apply(i: Rep[Int], j : Rep[Int]) =
-      if(i+1==j) List(in(i)) else Nil
-  }
-
-  def eli(in: Input) = new Parser[Int] {
-    def apply(i: Rep[Int], j : Rep[Int]) =
-      if(i+1==j) List(i) else Nil
-  }
-*/
-}
-
-trait LexicalParsers extends Parsers{
-
-  type Input = Rep[Array[Char]]
-
   //tabulation for Char parsers
   // Memoization through tabulation
   import scala.collection.mutable.HashSet
-  //val costMatrices = new HashMap[String,Rep[Array[Array[List[List[Char]]]]]]
 
   val productions = new HashSet[String]
   def tabulate[T: Manifest](name:String,
@@ -124,6 +103,26 @@ trait LexicalParsers extends Parsers{
       } else List()
   }
 
+
+  /*************** simple parsers below *****************/
+
+/*  def el(in: Input) = new Parser[Alphabet] {
+    def apply(i: Rep[Int], j : Rep[Int]) =
+      if(i+1==j) List(in(i)) else Nil
+  }
+
+  def eli(in: Input) = new Parser[Int] {
+    def apply(i: Rep[Int], j : Rep[Int]) =
+      if(i+1==j) List(i) else Nil
+  }
+*/
+}
+
+trait LexicalParsers extends Parsers {this: Sig =>
+
+  type Alphabet = Char
+  //type Input = Rep[Array[Char]]
+
   //bottomup parsing
   /*def bottomUp(in: Input, p : Parser[List[Char]], costMatrix: Rep[Array[Array[List[List[Char]]]]]) = {
     //initialising the cost matrix
@@ -143,7 +142,7 @@ trait LexicalParsers extends Parsers{
     }
   }*/
 
-  def char(in: Input) = new Parser[Char]{
+  def char(in: Input) = new Parser[Char] {
     def apply(i: Rep[Int], j : Rep[Int]) =
       if(i+1==j) List(in(i)) else List()
   }
@@ -177,13 +176,14 @@ trait LexicalParsers extends Parsers{
 
 trait ParsersExp extends Parsers with ArrayOpsExp with ListOpsExp with LiftNumeric
     with NumericOpsExp with IfThenElseExp with EqualExp with BooleanOpsExp
-    with OrderingOpsExp with MathOpsExp with HackyRangeOpsExp with TupleOpsExp
+    with OrderingOpsExp with MathOpsExp with HackyRangeOpsExp with TupleOpsExp {this: Sig =>}
 
 object HelloParsers extends App {
 
   //import LoopsProgExp._
 
-  val concreteProg = new LexicalParsers with ParsersExp { self =>
+  val concreteProg = new LexicalParsers with ParsersExp with Sig { self =>
+    type Answer = Double
     val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
       with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
       with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
