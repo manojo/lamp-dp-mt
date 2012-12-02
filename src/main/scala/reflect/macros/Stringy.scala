@@ -92,7 +92,7 @@ object Stringy extends App {
   println(CLangParser.headers)
   println("------------------------------------------------------")
 
-  // Brackets
+  // Brackets (modified)
   CLangParser.fun("(Int, Int)","Boolean","_arg._2.>(_arg._1.+(1)).&&(TestMacros.this.in(_arg._1).==('(')).&&(TestMacros.this.in(_arg._2.-(1)).==(')'))")
   CLangParser.fun("(Char, (Int, Char))","Int","_arg._2._1")
   CLangParser.fun("(Int, Int)","Int","val z:String=\"foo\"; if (true) false else true; _arg._1.+(_arg._2)")
