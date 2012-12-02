@@ -12,17 +12,24 @@ object Macros {
   def tree_impl[T:c.WeakTypeTag,U:c.WeakTypeTag](c: Context)
       (f:c.Expr[Function1[T,U]]): c.Expr[Function1[T,U]] = {
     import c.universe._
-
     val ttag = c.weakTypeTag[U]
-
     f match {
-      case Expr(Function(List(ValDef(_,n,_,_)),b)) =>
+      case Expr(Function(List(ValDef(_,n,tp,_)),b)) =>
+        // normalize argument name
+        var b1 = new Transformer {
+          override def transform(tree: Tree): Tree = tree match {
+            case Ident(x) if (x==n) => Ident(newTermName("_arg"))
+            case _ => super.transform(tree)
+          }
+        }.transform(b)
+
         val template =
           c.universe.reify(new (T => U) {
-            override def toString = c.literal(b.toString).splice
-            def apply(x: T): U = c.Expr[U](b)(ttag.asInstanceOf[c.WeakTypeTag[U]]).splice
+            override def toString = c.literal(tp+" => "+ttag.tpe+" { "+b1.toString+" } ").splice
+            def apply(_arg: T): U = c.Expr[U](b1)(ttag.asInstanceOf[c.WeakTypeTag[U]]).splice
           })
         val untyped = c.resetAllAttrs(template.tree)
+
         c.Expr[T => U](untyped)
       case _ => sys.error("Bad function type")
     }

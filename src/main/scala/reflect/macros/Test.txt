@@ -1,12 +1,13 @@
 object TestMacros extends App {
   import Macros._
 
-  def foo = tree{ (x:String) => x+x }
-
-  println(foo("123"))
-    // 123123
+  case class Mat(rows:Int, cols:Int)
+  def foo = tree{ (x:Mat) => x.rows * x.cols }
   println(foo.toString)
-    // def apply(x: String):String = { x.+(x) }
+
+  def foo2 = tree{ (x:(Int,(Int,Int))) => x._1 * x._2._1 + x._2._2 }
+  println(foo2.toString)
+}
 
 /*
   import scala.reflect.runtime.{universe => u}
@@ -19,11 +20,6 @@ object TestMacros extends App {
     }
     f
   }
-
   println (u showRaw tr)
   val f=tr.eval
-
-  println(f.toString)
-  println(f("123"))
 */
-}
