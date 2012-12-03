@@ -1,5 +1,7 @@
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
+// This does not work with SBT script as the unwarping of the tree is
+// based on the latest AST (at least 2.10RC2 and 2.10RC3 compatible).
 object CLangParser extends StandardTokenParsers {
   lexical.delimiters ++= List("(", ")",".",",","*","+",";")
   lexical.reserved ++= List("Int","Double","Float","Short","Long","Char","Boolean","String")
@@ -65,7 +67,8 @@ object CLangParser extends StandardTokenParsers {
   }
 
   def fun(in:String, out:String, body:String):String = {
-    // Re-eval (to be done within macro BUT NOT the type transformation, so that we can keep track of multiple structs)
+    // Re-eval (cannot be done in macros since tightly connected with structs name)
+    // Maybe we can store the whole AST versus string (might avoid problems with case)
     val tb = m.mkToolBox()
     val b:String = tb.parse("def apply(_arg:"+in+"):"+out+" = { "+body+" }") match {
       case DefDef(_,_,_,_,_,rhs) => rhs match {

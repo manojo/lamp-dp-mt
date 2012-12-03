@@ -19,11 +19,13 @@ object TestMacros extends App {
   def bracketSingle = tree { (in:(Char,(Int,Char))) => in._2._1 }
   def bracketSum = tree { (in:(Int,Int)) => in._1+in._2 }
 
+  def bracketSum2 = tree { (in:(Int,Int)) => in match { case (x,y) => x+y } }
+
 
   println(areBrackets.toString)
   println(bracketSingle.toString)
   println(bracketSum.toString)
-
+  println(bracketSum2.toString)
 
 }
 
