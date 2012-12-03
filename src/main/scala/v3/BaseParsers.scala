@@ -29,10 +29,10 @@ trait BaseParsers extends CodeGen { this:Signature =>
     override def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) } 
     override def reapply(sw:Subword,bt:Backtrack) = map.get(sw) match {
       case Some(v) => v.head._1
-      case _ => apply(sw).head._1 // XXX: are we sure we do not trigger subcomputations?
+      case _ => sys.error("Failed reapply"+sw); apply(sw).head._1
     }
 
-    def build(sw:Subword, bt:Backtrack) = inner.reapply(sw,bt)
+    def build(sw:Subword, bt:Backtrack) = { val a=inner.reapply(sw,bt); map.put(sw,List((a,bt0))); a }
     def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))).map{x=>(e._1,x)} ).flatten
     private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
     private def backtrack0(mult:Int,tail:List[(Subword,Backtrack)],pending:List[BTItem]):List[List[(Subword,Backtrack)]] = pending match {
