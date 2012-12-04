@@ -1,16 +1,16 @@
 package v3.examples
 import v3._
 
-// Zucker folding
-// --------------
+// Zucker folding (Minimum Free Energy)
+// ----------------------------------------------------------------------------
+// Based on http://gapc.eu/grammar/adpfold.gap (gapc-2012.07.23/grammar/adpf.gap)
 // See p.147 of "Parallelization of Dynamic Programming Recurrences in Computational Biology"
-// Correct coefficients can be obtained at: http://www.tbi.univie.ac.at/~ivo/RNA/
-// Have a look in the *.par files of Vienna RNA (>250Kb plain text coefficients !)
-// Grammar from gapc/grammar2/adpfiupac.gap
+// Same coefficients as: http://www.tbi.univie.ac.at/~ivo/RNA/ (with parameters -noLP -d2)
 
 trait ZuckerSig extends Signature {
   type Alphabet = Char
   type SSeq = (Int,Int) // subsequence = subword
+  def stackpairing(s:SSeq):Boolean = true
 
   def sadd(lb:SSeq, e:Answer) : Answer
   def cadd(x:Answer, e:Answer) : Answer
@@ -28,25 +28,66 @@ trait ZuckerSig extends Signature {
   def nil(d:Dummy) : Answer
 }
 
-trait ZuckerBasePairMax extends ZuckerSig {
+trait ZuckerMFE extends ZuckerSig {
   type Answer = Int
+
+  // energy functions (to implement)
+  def ul_energy() = 0
+  def ml_energy() = 0
+  def hl_energy(x:SSeq) = 0
+  def ss_energy(e:SSeq) = 0
+  def sr_energy(bl:SSeq, br:SSeq) = 0
+  def bl_energy(x:SSeq, f2:SSeq) = 0
+  def br_energy(f1:SSeq, x:SSeq) = 0
+  def il_energy(r1:SSeq, r2:SSeq) = 0
+  def termau_energy(lb:SSeq, rb:SSeq) = 0
+  def ext_mismatch_energy(lb:SSeq, rb:SSeq) = 0
+  def ml_mismatch_energy(f1:SSeq, f2:SSeq) = 0
+  def basepairing(i:Int, j:Int):Boolean = true
+
+  /*
+  Functions of librna (GAPC)
+  - int termau_energy(const char *s, unsigned int i, unsigned int j);
+  - int hl_energy(const char *s, unsigned int i, unsigned int j);
+  UNUSED int hl_energy_stem(const char *s, unsigned int i, unsigned int j);
+  - int il_energy(const char *s, unsigned int i, unsigned int j, unsigned int k, unsigned int l);
+  - int bl_energy(const char *s, unsigned int bl, unsigned int i, unsigned int j, unsigned int br, unsigned int Xright);
+  - int br_energy(const char *s, unsigned int bl, unsigned int i, unsigned int j, unsigned int br, unsigned int Xleft);
+  - int sr_energy(const char *s, unsigned int i, unsigned int j);
+  UNUSED int sr_pk_energy(char a, char b, char c, char d);
+  UNUSED int dl_energy(const char *s, unsigned int i, unsigned int j);
+  UNUSED int dr_energy(const char *s, unsigned int i, unsigned int j, unsigned int n);
+  UNUSED int dli_energy(const char *s, unsigned int i, unsigned int j);
+  UNUSED int dri_energy(const char *s, unsigned int i, unsigned int j);
+  - int ext_mismatch_energy(const char *s, unsigned int i, unsigned int j, unsigned int n);
+  - int ml_mismatch_energy(const char *s, unsigned int i, unsigned int j);
+  - int ml_energy(void);
+  - int ul_energy(void);
+  UNUSED int sbase_energy(void);
+  - int ss_energy(unsigned int i, unsigned int j);
+  */
+
+  // Signature implementation
+  override def stackpairing(s:SSeq):Boolean = { val (i,j)=s; (i+3 < j) && basepairing(i, j) && basepairing(i+1, j-1) }
 
   def sadd(lb:SSeq, e:Answer) = e
   def cadd(x:Answer, e:Answer) = x + e
-  def dlr(lb:SSeq, e:Answer, rb:SSeq) = e
-  def sr(lb:SSeq, e:Answer, rb:SSeq) = e + 1
-  def hl(lb:SSeq, f1:SSeq, x:SSeq, f2:SSeq, rb:SSeq) = 2
-  def bl(bl:SSeq, f1:SSeq, x:SSeq, e:Answer, f2:SSeq, br:SSeq) = e + 2
-  def br(bl:SSeq, f1:SSeq, e:Answer, x:SSeq, f2:SSeq, br:SSeq) = e + 2
-  def il(f1:SSeq, f2:SSeq, r1:SSeq, x:Answer, r2:SSeq, f3:SSeq, f4:SSeq) = x + 2
-  def ml(bl:SSeq, f1:SSeq, x:Answer, f2:SSeq, br:SSeq) = x + 2
+  def dlr(lb:SSeq, e:Answer, rb:SSeq) = e + ext_mismatch_energy(lb, rb) + termau_energy(lb, rb)
+  def sr(lb:SSeq, e:Answer, rb:SSeq) = e + sr_energy(lb, rb)
+  def hl(lb:SSeq, f1:SSeq, x:SSeq, f2:SSeq, rb:SSeq) = hl_energy(x) + sr_energy(lb, rb)
+  def bl(bl:SSeq, f1:SSeq, x:SSeq, e:Answer, f2:SSeq, br:SSeq) = e + bl_energy(x, f2) + sr_energy(bl, br)
+  def br(bl:SSeq, f1:SSeq, e:Answer, x:SSeq, f2:SSeq, br:SSeq) = e + br_energy(f1, x) + sr_energy(bl, br)
+  def il(f1:SSeq, f2:SSeq, r1:SSeq, x:Answer, r2:SSeq, f3:SSeq, f4:SSeq) = x + il_energy(r1, r2) + sr_energy(f1, f4)
+  def ml(bl:SSeq, f1:SSeq, x:Answer, f2:SSeq, br:SSeq) = {
+    ml_energy() + ul_energy() + x + termau_energy(f1, f2) + sr_energy(bl, br) + ml_mismatch_energy(f1, f2)
+  }
   def app(c1:Answer, c:Answer) = c1 + c
-  def ul(c1:Answer) = c1
-  def addss(c1:Answer, e:SSeq) = c1
-  def ssadd(e:SSeq, x:Answer) = x
+  def ul(c1:Answer) = ul_energy() + c1
+  def addss(c1:Answer, e:SSeq) = c1 + ss_energy(e)
+  def ssadd(e:SSeq, x:Answer) = ul_energy() + x + ss_energy(e)
   def nil(d:Dummy) = 0
 
-  override val h = (l:List[Answer]) => if(l.isEmpty) List() else List(l.max)
+  override val h = min[Answer] _
 }
 
 trait ZuckerPrettyPrint extends ZuckerSig {
@@ -67,39 +108,42 @@ trait ZuckerPrettyPrint extends ZuckerSig {
   def addss(c1:Answer, e:SSeq) = c1+dots(e)
   def ssadd(e:SSeq, x:Answer) = dots(e)+x
   def nil(d:Dummy) = ""
-
-  override val h = (l:List[Answer]) => l
 }
 
-/*
-trait ZuckerAlgebra extends ZuckerSig {
-  val h = (l :List[Answer]) => l match {
-    case Nil => Nil
-    case _ => l.maxBy(_._1)::Nil
-  }
+trait ZuckerGrammar extends ADPParsers with ZuckerMFE {
+  def BASE = seq(1,1)
+  def LOC = BASE // XXX: implement the difference
+  def REGION = seq _ // XXX: no more restrictions? (like nonempty)
 
-  def es(a:Int,b:Int):Int = -2 // stacking energy
-  def eh(a:Int,b:Int):Int = 3 // hairpin loop energy
-  def ebi(from:(Int,Int),to:(Int,Int)):Int = 2 + from._2-from._1 + to._2-to._1
-}
-*/
-/*
-  def w:Parser[Answer] = tabulate("W",
-    empty ^^ { case x => (0,"??") }
-  )
+  def struct:Tabulate = tabulate("st",(
+      BASE   -~~ struct ^^ { case (b,s) => sadd(b,s) }
+    | dangle ~~~ struct ^^ { case (d,s) => cadd(d, s) }
+    | empty             ^^ nil
+    ) aggregate h);
 
-  def v:Parser[Answer] = tabulate("V",
-    empty ^^ { case x => (0,"??") }
-    // XXX: also include VBI
-  )
+  def dangle = LOC ~~~ closed ~~~ LOC ^^ { case ((l,e),r) => dlr(l,e,r) }
+  def closed:Tabulate = tabulate("cl",(
+    (stack | hairpin | leftB | rightB | iloop | multiloop) filter stackpairing
+    ) aggregate h)
 
-  def freeEnergy:Parser[Answer] = tabulate("F",
-    empty ^^ { case x => (0,"??") }
-  )
-*/
+  def stack = BASE ~~~ closed ~~~ BASE ^^ { case ((l,e),r) => sr(l,e,r) }
+  def hairpin = BASE ~~~ BASE ~~~ REGION(3,0) ~~~ BASE ~~~ BASE ^^ { case ((((lb,f1),x),f2),rb) => hl(lb,f1,x,f2,rb) }
+  def leftB = BASE ~~~ BASE ~~~ REGION(0,30) ~~~ closed ~~~ BASE ~~~ BASE ^^ { case (((((lb,f1),x),e),f2),rb) => bl(lb,f1,x,e,f2,rb) } aggregate h
+  def rightB = BASE ~~~ BASE ~~~ closed ~~~ REGION(0,30) ~~~ BASE ~~~ BASE ^^ { case (((((lb,f1),e),x),f2),rb) => br(lb,f1,e,x,f2,rb) } aggregate h
+  def iloop = BASE ~~~ BASE ~~~ REGION(0,30) ~~~ closed ~~~ REGION(0,30) ~~~ BASE ~~~ BASE ^^ { case ((((((f1,f2),r1),x),r2),f3),f4) => il(f1,f2,r1,x,r2,f3,f4) } aggregate h
 
-trait ZuckerGrammar extends ADPParsers with ZuckerSig {
-/*
+  def multiloop = BASE ~~~ BASE ~~~ ml_comps ~~~ BASE ~~~ BASE ^^ { case((((bl,f1),x),f2),br) => ml(bl,f1,x,f2,br) }
+  def ml_comps:Tabulate = tabulate("ml",(
+      BASE ~~~ ml_comps ^^ { case(b,s) => sadd(b,s) }
+    | (dangle ^^ ul) ~~~ ml_comps1 ^^ { case(c1,c) => app(c1,c) }
+    ) aggregate h)
+  def ml_comps1:Tabulate = tabulate("m1",(
+      BASE ~~~ ml_comps ^^ { case(b,s) => sadd(b,s) }
+    | (dangle ^^ ul) ~~~ ml_comps1 ^^ { case(c1,c) => app(c1,c) }
+    | dangle ^^ ul
+    | (dangle ^^ ul) ~~~ REGION(0,0) ^^ { case(c1,e) => addss(c1,e) }
+    ) aggregate h)
+  /*
   tabulated { struct, closed, ml_comps, ml_comps1 }
 
   struct = sadd(BASE, struct) | cadd(dangle, struct) | nil(EMPTY) # h ;
@@ -110,14 +154,13 @@ trait ZuckerGrammar extends ADPParsers with ZuckerSig {
   hairpin = hl(BASE, BASE, { REGION with minsize(3) }, BASE, BASE) ;
   leftB = bl( BASE, BASE, REGION with maxsize(30), closed, BASE, BASE) # h ;
   rightB = br( BASE, BASE, closed, REGION with maxsize(30), BASE, BASE) # h ;
-  iloop = il( BASE, BASE, REGION with maxsize(30), closed,
-              REGION with maxsize(30), BASE, BASE) with iupac("accyy") # h ;
+  iloop = il( BASE, BASE, REGION with maxsize(30), closed, REGION with maxsize(30), BASE, BASE) # h ;
 
   multiloop = ml( BASE, BASE, ml_comps, BASE, BASE) ;
   ml_comps = sadd(BASE, ml_comps) | app( { ul(dangle) } , ml_comps1) # h ;
   ml_comps1 = sadd(BASE, ml_comps1) | app(  ul(dangle)  , ml_comps1) |
               ul(dangle) | addss( ul(dangle), REGION)  # h ;
-*/
+  */
 }
 
 object Zucker extends App /*with ZuckerGrammar with ZuckerAlgebra*/ {
