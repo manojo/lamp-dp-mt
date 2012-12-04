@@ -7,6 +7,12 @@ import collection.mutable.Stack
 //import scala.reflect.runtime.universe.WeakTypeTag
 
 object Macros {
+  trait TypedFunction {
+    def tree: scala.reflect.runtime.universe.Tree
+    val typeIn: String
+    val typeOut: String
+  }
+
   def tree[T,U](f:Function1[T,U]): Function1[T,U] = macro tree_impl[T,U]
 
   def tree_impl[T:c.WeakTypeTag,U:c.WeakTypeTag](c: Context)
@@ -23,12 +29,17 @@ object Macros {
           }
         }.transform(b)
 
+        val reifiedTree = c.reifyTree(treeBuild.mkRuntimeUniverseRef, EmptyTree, b1)
+        val reifiedExpr = c.Expr[scala.reflect.runtime.universe.Expr[T => U]](reifiedTree)
         val template =
-          c.universe.reify(new (T => U) {
-            override def toString = c.literal(tp+" => "+ttag.tpe+" { "+b1.toString+" } ").splice
+          c.universe.reify(new (T => U) with TypedFunction {
+            //override def toString = c.literal(tp+" => "+ttag.tpe+" { "+b1.toString+" } ").splice
+            def tree = reifiedExpr.splice.tree
+            val typeIn = c.literal(tp.toString).splice
+            val typeOut = c.literal(ttag.tpe.toString).splice
             def apply(_arg: T): U = c.Expr[U](b1)(ttag.asInstanceOf[c.WeakTypeTag[U]]).splice
           })
-        val untyped = c.resetAllAttrs(template.tree)
+        val untyped = c.resetLocalAttrs(template.tree)
 
         c.Expr[T => U](untyped)
       case _ => sys.error("Bad function type")

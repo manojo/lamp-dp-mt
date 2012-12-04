@@ -41,7 +41,7 @@ object CLangParser extends StandardTokenParsers {
   );
 
   // XXX: need to pass back a type to cast properly the tuple into corresponding struct
-  def cc(tree:Tree):String = tree match {
+  def cc(tree:Tree):String = { println(tree.tpe); tree match {
     // see scala/reflect/internal/Trees.scala in scala-reflect-src
     case Apply(fun@Select(qual,name),args) => base_ops.get(name.toString) match {
       case Some(op) => "("+cc(qual)+" "+op+" "+cc(args.head)+")"
@@ -64,19 +64,21 @@ object CLangParser extends StandardTokenParsers {
     // Ident(newTermName("_arg"))
     //case _ => "unknown "+tree.getClass
     case _ => u.showRaw(tree)
-  }
+  }}
 
   def fun(in:String, out:String, body:String):String = {
     // Re-eval (cannot be done in macros since tightly connected with structs name)
     // Maybe we can store the whole AST versus string (might avoid problems with case)
     val tb = m.mkToolBox()
-    val b:String = tb.parse("def apply(_arg:"+in+"):"+out+" = { "+body+" }") match {
+    val b:String = tb.typeCheck(tb.parse("def apply(_arg:"+in+"):"+out+" = { "+body+" }")) match {
       case DefDef(_,_,_,_,_,rhs) => rhs match {
         case Block(stats, expr) => stats.map{x=>cc(x)+"; "}.mkString("")+"res="+cc(expr)
         case _ => "res="+cc(rhs)
       }
       case _ => sys.error("Parsing error")
     }
+    //val b2=tb.typeCheck(b);
+
     fn((parseType(in),parseType(out),b))
   }
 
@@ -89,22 +91,22 @@ object CLangParser extends StandardTokenParsers {
 }
 
 object Stringy extends App {
+  case class Mat(rows:Int, cols:Int)
   // Assuming mat_t { int rows; int cols; }
-  CLangParser.fun("TestMacros.Mat","Int","val x:Int=3; x*_arg.rows.*(_arg.cols)")
+  CLangParser.fun("Stringy.Mat","Int","val x:Int=3; x*_arg.rows.*(_arg.cols)")
   CLangParser.fun("(Int, (Int, Int))","Int","_arg._1.*(_arg._2._1).+(_arg._2._2)")
   println(CLangParser.headers)
   println("------------------------------------------------------")
 
   // Brackets (modified)
-  CLangParser.fun("(Int, Int)","Boolean","_arg._2.>(_arg._1.+(1)).&&(TestMacros.this.in(_arg._1).==('(')).&&(TestMacros.this.in(_arg._2.-(1)).==(')'))")
+  //CLangParser.fun("(Int, Int)","Boolean","_arg._2.>(_arg._1.+(1)).&&(TestMacros.this.in(_arg._1).==('(')).&&(TestMacros.this.in(_arg._2.-(1)).==(')'))")
   CLangParser.fun("(Char, (Int, Char))","Int","_arg._2._1")
   CLangParser.fun("(Int, Int)","Int","val z:String=\"foo\"; if (true) false else true; _arg._1.+(_arg._2)")
-  CLangParser.fun("(Int, Int)","Int","if (_arg._1>_arg._2 || _arg._1<_arg._2 || _arg._1>=_arg._2 || _arg._1<=_arg._2 ) (3, 2) else (2, 3)")
+  CLangParser.fun("(Int, Int)","(Int,Int)","if (_arg._1>_arg._2 || _arg._1<_arg._2 || _arg._1>=_arg._2 || _arg._1<=_arg._2 ) (3, 2) else (2, 3)")
   println(CLangParser.headers);
   println("------------------------------------------------------")
 
   //println("Apply("+CLangParser.fun("TestMacros.Mat","Int","_arg.rows.*(_arg.cols)")+")");
   //println("Apply("+CLangParser.fun("(Int, (Int, Int))","Int","_arg._1.*(_arg._2._1).+(_arg._2._2)")+")");
-
 
 }
