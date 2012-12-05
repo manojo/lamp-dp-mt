@@ -1,0 +1,63 @@
+#!/bin/sh
+# ------------------------------------------
+# System configuration
+
+JAVA_INC="$JAVA_HOME/include"; if [ "$OSTYPE" = "darwin" ]; then JAVA_INC="/System/Library/Frameworks/JavaVM.framework/Headers"; fi
+
+FLAGS_CC="-Wall -O2"
+FLAGS_CUDA="-arch=sm_30 -O2 --compiler-options -Wall --linker-options -rpath,/usr/local/cuda/lib"
+
+
+OUT=bin
+
+# ------------------------------------------
+# Helpers
+cd `dirname $0`; BASE=`pwd`; mkdir -p $OUT
+c_check() { h=`md5 -q -s "$*" | cut -c 1-10`; md5 $@ > $OUT/$h.tmp; diff $OUT/$h.md5 $OUT/$h.tmp 1>/dev/null 2>/dev/null; }
+c_sign() { h=`md5 -q -s "$*" | cut -c 1-10`; mv $OUT/$h.tmp $OUT/$h.md5; }
+c_scala() { # $@:files to compiles => $?: true if recompiled, false otherwise
+	if ! c_check "$@"; then echo "=== scalac $@ ==="; scalac -cp $OUT -d $OUT "$@" && c_sign "$@" || exit 1; fi
+}
+c_cc() { cc=$1; shift;
+	if ! c_check "$files"; then echo "=== $cc $files ===";
+		stripH=`ls -1 $files | sed 's/[^ ]*.h//g'`
+		$cc "$@" $stripH && c_sign "$files" || exit 1;
+	fi
+}
+
+case "$1" in
+	clean) rm -rf "$BASE/bin"; exit 0;;
+esac
+
+# ------------------------------------------
+# LibRNA
+files="src/librna/*.c src/librna/vienna/*.c"
+c_cc gcc $FLAGS_CC -std=c99 -shared -I$JAVA_INC -o $OUT/libRNA.jnilib
+c_scala src/librna/RNALib.scala
+
+# Parsers V3
+c_scala src/main/scala/v3/*.scala
+c_scala src/main/scala/v3/examples/*.scala
+
+# Scala CUDA/C compiler
+c_scala src/main/c/CCompiler.scala
+
+# Plain CUDA demo
+files="src/main/c/test.cu src/main/c/include/*.h"; touch $OUT/fake.h
+c_cc nvcc $FLAGS_CUDA -DSH_TRI -o $OUT/test_tri; files="$files $OUT/fake.h"
+c_cc nvcc $FLAGS_CUDA -DSH_RECT -o $OUT/test_rect; files="$files $OUT/fake.h"
+c_cc nvcc $FLAGS_CUDA -DSH_PARA -o $OUT/test_para; rm $OUT/fake.h
+
+# Scala Macros
+ln -s src/main/scala/reflect/macros/Macros.txt Macros.scala 2>/dev/null
+ln -s src/main/scala/reflect/macros/Test.txt Test.scala 2>/dev/null
+c_scala Macros.scala
+c_scala Test.scala
+rm Macros.scala Test.scala 2>/dev/null
+
+case "$1" in
+	cuda) bin/test_tri; bin/test_rect; bin/test_para;; # XXX: optirun ./test
+	ccomp) scala -cp bin TestCCompiler;;
+	macro) scala -cp bin TestMacros;;
+	ex) scala -cp bin v3.examples.$2;;
+esac

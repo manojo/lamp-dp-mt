@@ -1,4 +1,6 @@
-/** A library loader, library must be at the root of the class path */
+package rnalib
+
+// Library loader, libraries must be at the root of the class path
 object Loader {
   val libs = new scala.collection.mutable.HashSet[String]()
   val paths = (this.getClass.getClassLoader match {
@@ -53,6 +55,7 @@ object RNALib {
   // @native iupac_match(base:Byte, iupac_base:Byte):Boolean
 }
 
+/*
 object Test extends App {
   RNALib.setParams("vienna/rna_turner2004.par")
   RNALib.setSequence("acguacguacgu")
@@ -60,3 +63,4 @@ object Test extends App {
   println(RNALib.il_energy(0,2,4,6));
   RNALib.clear
 }
+*/

@@ -43,6 +43,8 @@ trait ZuckerMFE extends ZuckerSig {
   def termau_energy(lb:SSeq, rb:SSeq) = 0
   def ext_mismatch_energy(lb:SSeq, rb:SSeq) = 0
   def ml_mismatch_energy(f1:SSeq, f2:SSeq) = 0
+
+  def in(x:Int):Alphabet
   def basepairing(i:Int, j:Int):Boolean = {
     if (j<=i+1) false
     else (in(i),in(j-1)) match {
@@ -74,7 +76,7 @@ trait ZuckerMFE extends ZuckerSig {
   */
 
   // Signature implementation
-  override def stackpairing(s:SSeq):Boolean = { val (i,j)=s; (i+3 < j) && basepairing(i,j) && basepairing(i+1, j-1) }
+  override def stackpairing(s:SSeq):Boolean = { val (i,j)=s; (i+3 < j) && basepairing(i,j) && basepairing(i+1,j-1) }
 
   def sadd(lb:SSeq, e:Answer) = e
   def cadd(x:Answer, e:Answer) = x + e
