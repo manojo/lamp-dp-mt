@@ -54,7 +54,6 @@ double mk_pf(double x);
 // not in rna.hh
 double scale(int x);
 
-
-bool iupac_match(char base, char iupac_base);
+bool iupac_match(enum base_t base, unsigned char iupac_base);
 
 #endif

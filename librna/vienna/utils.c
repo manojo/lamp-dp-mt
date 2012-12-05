@@ -18,8 +18,6 @@
 #ifdef WITH_DMALLOC
 #include "dmalloc.h"
 #endif
-/*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.19 2008/12/16 22:30:30 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -802,7 +800,7 @@ PUBLIC int *get_indx(unsigned int length){
 }
 
 PUBLIC void getConstraint(char **cstruc, const char **lines, unsigned int option){
-  int r, i, j, l, cl, stop;
+  int r, i, l, cl, stop;
   char *c, *ptr;
   if(lines){
     if(option & VRNA_CONSTRAINT_ALL)
@@ -867,8 +865,8 @@ PUBLIC char *extract_record_rest_structure( const char **lines,
                                             unsigned int option){
 
   char *structure = NULL;
-  int r, i, j, l, cl, stop;
-  char *c, *ptr;
+  int r, i, l, cl, stop;
+  char *c;
 
   if(lines){
     for(r = i = stop = 0; lines[i]; i++){

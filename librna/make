@@ -3,7 +3,7 @@
 SCALA_HOME=/Developer/Scala
 JAVA_INCLUDE="$JAVA_HOME/include"
 if [ "$OSTYPE" = "darwin" ]; then
-	JAVA_INCLUDE="/System/Library/Frameworks/JavaVM.framework/Headers"
+  JAVA_INCLUDE="/System/Library/Frameworks/JavaVM.framework/Headers"
 fi
 
 # get base dir
@@ -17,10 +17,8 @@ mkdir -p bin
 scalac -d bin RNALib.scala || exit
 
 gcc -Wall -std=c99 -shared -I"$JAVA_INCLUDE" rnalib.c rnalib_jni.c \
-	vienna/energy_par.c vienna/fold_vars.c vienna/params.c vienna/read_epars.c vienna/utils.c \
-	-o bin/libRNA.jnilib
-
-exit
+  vienna/energy_par.c vienna/fold_vars.c vienna/params.c vienna/read_epars.c vienna/utils.c \
+  -o bin/libRNA.jnilib
 
 # execute
-#scala -cp bin Test
+scala -cp bin Test

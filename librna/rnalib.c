@@ -258,8 +258,8 @@ static int hl_ent(rsize l)
 static int hl_stack(const char *s, rsize i, rsize j)
 {
   int bp = bp_index(s[i], s[j]);
-  char lbase = s[getNext(s,i,1,j-1)];
-  char rbase = s[getPrev(s,j,1,i+1)];
+  unsigned char lbase = s[getNext(s,i,1,j-1)];
+  unsigned char rbase = s[getPrev(s,j,1,i+1)];
   return P->mismatchH[bp][lbase][rbase];
 }
 
@@ -408,8 +408,8 @@ static int il11_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
 {
   int closingBP = bp_index(s[i],   s[j]  );
   int enclosedBP = bp_index(s[getPrev(s,j,2,l)], s[getNext(s,i,2,k)]); //we know that the enclosed base pair is at exactly this position, since both unpaired regions have size 1.  Note, basepair is reversed to preserver 5'-3' order.
-  char lbase = s[getNext(s,i,1,k)];
-  char rbase = s[getPrev(s,j,1,l)];
+  unsigned char lbase = s[getNext(s,i,1,k)];
+  unsigned char rbase = s[getPrev(s,j,1,l)];
   return P->int11[closingBP][enclosedBP][lbase][rbase];
 }
 
@@ -440,9 +440,9 @@ static int il12_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
 {
   int closingBP = bp_index(s[i],   s[j]  );
   int enclosedBP = bp_index(s[getPrev(s,j,3,l)], s[getNext(s,i,2,k)]); // Note, basepair is reversed to preserver 5'-3' order
-  char lbase = s[getNext(s,i,1,k)];
-  char rbase = s[getPrev(s,j,2,l)];
-  char rrbase = s[getPrev(s,j,1,l)];
+  unsigned char lbase = s[getNext(s,i,1,k)];
+  unsigned char rbase = s[getPrev(s,j,2,l)];
+  unsigned char rrbase = s[getPrev(s,j,1,l)];
   return P->int21[closingBP][enclosedBP][lbase][rbase][rrbase];
 }
 
@@ -453,9 +453,9 @@ static int il21_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
 {
   int closingBP = bp_index(s[getPrev(s,j,2,l)], s[getNext(s,i,3,k)]); // Note, basepair is reversed to preserver 5'-3' order
   int enclosedBP = bp_index(s[i],   s[j]  );
-  char lbase = s[getPrev(s,j,1,l)];
-  char rbase = s[getNext(s,i,1,k)];
-  char rrbase = s[getNext(s,i,2,k)];
+  unsigned char lbase = s[getPrev(s,j,1,l)];
+  unsigned char rbase = s[getNext(s,i,1,k)];
+  unsigned char rrbase = s[getNext(s,i,2,k)];
   return P->int21[closingBP][enclosedBP][lbase][rbase][rrbase];
 }
 
@@ -488,10 +488,10 @@ static int il22_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
 {
   int closingBP = bp_index(s[i],   s[j]  );
   int enclosedBP = bp_index(s[getPrev(s,j,3,l)], s[getNext(s,i,3,k)]); // Note, basepair is reversed to preserver 5'-3' order
-  char lbase = s[getNext(s,i,1,k)];
-  char llbase = s[getNext(s,i,2,k)];
-  char rbase = s[getPrev(s,j,2,l)];
-  char rrbase = s[getPrev(s,j,1,l)];
+  unsigned char lbase = s[getNext(s,i,1,k)];
+  unsigned char llbase = s[getNext(s,i,2,k)];
+  unsigned char rbase = s[getPrev(s,j,2,l)];
+  unsigned char rrbase = s[getPrev(s,j,1,l)];
   return P->int22[closingBP][enclosedBP][lbase][llbase][rbase][rrbase];
 }
 
@@ -537,11 +537,11 @@ static int il_ent(rsize l)
 static int il_stack(const char *s, rsize i, rsize k, rsize l, rsize j)
 {
   int out_closingBP = bp_index(s[i], s[j]);
-  char out_lbase = s[getNext(s,i,1,j-1)];
-  char out_rbase = s[getPrev(s,j,1,i+1)];
-  int in_closingBP = bp_index(s[l], s[k]); // Note, basepair and stacking bases are reversed to preserver 5'-3' order
-  char in_lbase = s[getNext(s,l,1,j-1)];
-  char in_rbase = s[getPrev(s,k,1,i+1)];
+  unsigned char out_lbase = s[getNext(s,i,1,j-1)];
+  unsigned char out_rbase = s[getPrev(s,j,1,i+1)];
+  unsigned int in_closingBP = bp_index(s[l], s[k]); // Note, basepair and stacking bases are reversed to preserver 5'-3' order
+  unsigned char in_lbase = s[getNext(s,l,1,j-1)];
+  unsigned char in_rbase = s[getPrev(s,k,1,i+1)];
   return P->mismatchI[out_closingBP][out_lbase][out_rbase] + P->mismatchI[in_closingBP][in_lbase][in_rbase];
 }
 
@@ -791,7 +791,7 @@ int dl_energy(const char *s, rsize i, rsize j)
 {
   if (i == 0) return 0;
   int closingBP = bp_index(s[i], s[j]);
-  char dbase = s[getPrev(s,i,1,0)];
+  unsigned char dbase = s[getPrev(s,i,1,0)];
   int dd = P->dangle5[closingBP][dbase];
   return (dd>0) ? 0 : dd;  /* must be <= 0 */
 }
@@ -810,7 +810,7 @@ int dr_energy(const char *s, rsize i, rsize j, rsize n)
 {
   if ((j+1) >= n) return 0;
   int closingBP = bp_index(s[i], s[j]);
-  char dbase = s[getNext(s,j,1,n)];
+  unsigned char dbase = s[getNext(s,j,1,n)];
   int dd = P->dangle3[closingBP][dbase];
   return (dd>0) ? 0 : dd;  /* must be <= 0 */
 }
@@ -826,7 +826,7 @@ int dr_energy(const char *s, rsize i, rsize j, rsize n)
 int dli_energy(const char *s, rsize i, rsize j)
 {
   int closingBP = bp_index(s[j], s[i]); // Note, basepair is reversed to preserver 5'-3' order
-  char dbase = s[getNext(s,i,1,j-1)];
+  unsigned char dbase = s[getNext(s,i,1,j-1)];
   int dd = P->dangle3[closingBP][dbase];
   return (dd>0) ? 0 : dd;  /* must be <= 0 */
 }
@@ -842,7 +842,7 @@ int dli_energy(const char *s, rsize i, rsize j)
 int dri_energy(const char *s, rsize i, rsize j)
 {
   int closingBP = bp_index(s[j], s[i]); // Note, basepair is reversed to preserver 5'-3' order
-  char dbase = s[getPrev(s,j,1,i+1)];
+  unsigned char dbase = s[getPrev(s,j,1,i+1)];
   int dd = P->dangle5[closingBP][dbase];
   return (dd>0) ? 0 : dd;  /* must be <= 0 */
 }
@@ -996,18 +996,15 @@ int dr_dangle_dg(enum base_t i, enum base_t j, enum base_t dangle) {
 static const bool map_base_iupac[5][12] =
 {
              /*      { N    , A     , C     , G     , U     , _     , B     , D     , H     , R     , V     , Y     }  , */
-             /* N */ { true , true  , true  , true  , true  , true  , true  , true  , true  , true  , true  , true  }  , 
-             /* A */ { true , true  , false , false , false , false , false , true  , true  , true  , true  , false }  , 
-             /* C */ { true , false , true  , false , false , false , true  , false , true  , false , true  , true  }  , 
-             /* G */ { true , false , false , true  , false , false , true  , true  , false , true  , true  , false }  , 
-             /* U */ { true , false , false , false , true  , false , true  , true  , true  , false , false , true  }  , 
+             /* N */ { true , true  , true  , true  , true  , true  , true  , true  , true  , true  , true  , true  }  ,
+             /* A */ { true , true  , false , false , false , false , false , true  , true  , true  , true  , false }  ,
+             /* C */ { true , false , true  , false , false , false , true  , false , true  , false , true  , true  }  ,
+             /* G */ { true , false , false , true  , false , false , true  , true  , false , true  , true  , false }  ,
+             /* U */ { true , false , false , false , true  , false , true  , true  , true  , false , false , true  }  ,
 };
 
-bool iupac_match(char base, char iupac_base)
+bool iupac_match(enum base_t base, unsigned char iupac_base)
 {
-  assert(base>=0);
-  assert(base<5);
-  assert(iupac_base>=0);
   assert(iupac_base<12);
   return map_base_iupac[base][iupac_base];
 }

@@ -17,8 +17,6 @@
 #include "energy_par.h"
 #include "read_epars.h"
 
-static char rcsid[] = "$Id: read_epars.c,v 1.10 2004/12/10 16:32:35 ivo Exp $";
-
 #define PUBLIC
 #define PRIVATE   static
 #define PARSET 20
@@ -70,9 +68,6 @@ PRIVATE void  rd_5dim_slice(int *array,
                       int dim1, int dim2, int dim3, int dim4, int dim5,
                       int shift1, int shift2, int shift3, int shift4, int shift5,
                       int post1, int post2, int post3, int post4, int post5);
-PRIVATE void  rd_6dim(int *array,
-                      int dim1, int dim2, int dim3, int dim4, int dim5, int dim6,
-                      int shift1, int shift2, int shift3, int shift4, int shift5, int shift6);
 PRIVATE void  rd_6dim_slice(int *array,
                       int dim1, int dim2, int dim3, int dim4, int dim5, int dim6,
                       int shift1, int shift2, int shift3, int shift4, int shift5, int shift6,
@@ -450,15 +445,6 @@ PRIVATE void  rd_5dim_slice(int *array,
 *** \param dim1   The size of the first dimension
 *** \param shift1 The pre shift for the first dimension
 **/
-PRIVATE void  rd_6dim(int *array,
-                      int dim1, int dim2, int dim3, int dim4, int dim5, int dim6,
-                      int shift1, int shift2, int shift3, int shift4, int shift5, int shift6){
-  rd_6dim_slice(array,
-                dim1, dim2, dim3, dim4, dim5, dim6,
-                shift1, shift2, shift3, shift4, shift5, shift6,
-                0, 0, 0, 0, 0, 0);
-}
-
 PRIVATE void  rd_6dim_slice(int *array,
                       int dim1, int dim2, int dim3, int dim4, int dim5, int dim6,
                       int shift1, int shift2, int shift3, int shift4, int shift5, int shift6,
