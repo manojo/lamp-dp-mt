@@ -5,7 +5,8 @@ import scala.virtualization.lms.common._
 import java.io.PrintWriter
 import java.io.FileOutputStream
 
-trait ParsersProg extends LexicalParsers {
+trait ParsersProg extends LexicalParsers {this: Sig =>
+  type Answer = Char
 
   def test1(in: Rep[Array[Char]]) = char(in)(0, 1)
 
@@ -35,8 +36,8 @@ trait ParsersProg extends LexicalParsers {
         a(0) = NewArray(in.length+1)
       }
 
-      tabulate("myParser",
-        charf(in, 'm'),
+      tabulate(charf(in, 'm'),
+        "myParser",
         a
       )
     }
@@ -55,8 +56,8 @@ trait ParsersProg extends LexicalParsers {
       }
 
       lazy val p: Parser[List[Char]] =
-        tabulate("myParser",
-          (charf(in, 'm') -~~ p) ^^ concatenate,
+        tabulate((charf(in, 'm') -~~ p) ^^ concatenate,
+          "myParser",
           a
         )
       p
@@ -64,18 +65,53 @@ trait ParsersProg extends LexicalParsers {
 
     myParser(0,in.length).head
   }
+}
 
-  def testMatMult(in : Input): Rep[Int] = {
-    val myParser : Parser[Int] = {
-      val a : Rep[Array[Array[List[Int]]]] = NewArray(in.length+1)
+//matrix multiplication
+trait MatMultProg extends Parsers{ this: Sig =>
+  type Alphabet = (Int,Int)
+  type Answer = (Int, Int, Int)
+
+  def single(i: Rep[(Int,Int)]) = (i._1, unit(0), i._2)
+  def mult(l: Rep[Answer],r : Rep[Answer]) = {
+    (l._1, l._2 + r._2 + l._1 * l._3 * r._3 ,r._3)
+  }
+
+  def el(in: Input) = new Parser[Alphabet] {
+    def apply(i: Rep[Int], j : Rep[Int]) =
+      if(i+1==j) List(in(i)) else List()
+  }
+
+  def testMatMult(in : Input): Rep[Answer] = {
+    val myParser : Parser[Answer] = {
+      val a : Rep[Array[Array[List[Answer]]]] = NewArray(in.length+1)
       (0 until in.length + 2).foreach{ i=>
         a(0) = NewArray(in.length+1)
       }
 
-      lazy val p : Parser[Int] tabulate("mat",
-
+      lazy val p : Parser[Answer] = tabulate(
+       (el(in) ^^ single
+        | (p +~+ p) ^^ {x => mult(x._1,x._2)}
+       ),
+       "mat",
+       a
       )
+     p
     }
+
+    val sth : Int = myParser match {
+      case TabulatedParser(
+        OrParser(MapParser(_,_),p),
+        _,_) => p() match{
+          case MapParser(/*ConcatParser(_,_,_,_,_,_)*/_,_) => 1
+          case _ => 0
+      }
+      case _ => 0
+    }
+    println(sth)
+
+
+    myParser(0, in.length).head
   }
 }
 
@@ -85,7 +121,8 @@ class TestSimpleParsers extends FileDiffSuite {
 
   def testParsers = {
     withOutFile(prefix+"simpleParsers"){
-       new ParsersProg with ParsersExp { self =>
+       new ParsersProg with ParsersExp with Sig { self =>
+
         val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
@@ -105,7 +142,7 @@ class TestSimpleParsers extends FileDiffSuite {
 
   def testTabulation1 = {
     withOutFile(prefix+"tabulation1"){
-       new ParsersProg with ParsersExp { self =>
+       new ParsersProg with ParsersExp with Sig { self =>
         val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
@@ -118,7 +155,7 @@ class TestSimpleParsers extends FileDiffSuite {
 
   def testTabulation2 = {
     withOutFile(prefix+"tabulation2"){
-       new ParsersProg with ParsersExp { self =>
+       new ParsersProg with ParsersExp with Sig { self =>
         val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
@@ -127,5 +164,19 @@ class TestSimpleParsers extends FileDiffSuite {
       }
     }
     assertFileEqualsCheck(prefix+"tabulation2")
+  }
+
+  def testMatMult1 = {
+    withOutFile(prefix+"matmult"){
+       new MatMultProg with ParsersExp with Sig { self =>
+        val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
+          with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
+          with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
+
+        codegen.emitSource(testMatMult _ , "test-matmult", new java.io.PrintWriter(System.out))
+
+      }
+    }
+    assertFileEqualsCheck(prefix+"matmult")
   }
 }
