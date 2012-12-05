@@ -1,4 +1,4 @@
-#include "rnalib_jni.h"
+#include "librna.h"
 #include "rnalib.h"
 
 #include <stdio.h>
@@ -41,7 +41,7 @@ jint _fun(il_1energy)(JNIEnv *env, jobject obj, jint i, jint j, jint k, jint l) 
 jint _fun(bl_1energy)(JNIEnv *env, jobject obj, jint bl, jint i, jint j, jint br, jint Xright) { return bl_energy(seq,bl,i,j,br,Xright); }
 jint _fun(br_1energy)(JNIEnv *env, jobject obj, jint bl, jint i, jint j, jint br, jint Xleft) { return br_energy(seq,bl,i,j,br,Xleft); }
 jint _fun(sr_1energy)(JNIEnv *env, jobject obj, jint i, jint j) { return sr_energy(seq,i,j); }
-jint _fun(sr_1pk_1energy)(JNIEnv *env, jobject obj, jchar a, jchar b, jchar c, jchar d) { return sr_pk_energy(a,b,c,d); }
+jint _fun(sr_1pk_1energy)(JNIEnv *env, jobject obj, jbyte a, jbyte b, jbyte c, jbyte d) { return sr_pk_energy(a,b,c,d); }
 jint _fun(dl_1energy)(JNIEnv *env, jobject obj, jint i, jint j) { return dl_energy(seq,i,j); }
 jint _fun(dr_1energy)(JNIEnv *env, jobject obj, jint i, jint j, jint n) { return dr_energy(seq,i,j,n); }
 jint _fun(dli_1energy)(JNIEnv *env, jobject obj, jint i, jint j) { return dli_energy(seq,i,j); }
@@ -52,3 +52,5 @@ jint _fun(ml_1energy)(JNIEnv *env, jobject obj) { return ml_energy(); }
 jint _fun(ul_1energy)(JNIEnv *env, jobject obj) { return ul_energy(); }
 jint _fun(sbase_1energy)(JNIEnv *env, jobject obj) { return sbase_energy(); }
 jint _fun(ss_1energy)(JNIEnv *env, jobject obj, jint i, jint j) { return ss_energy(i,j); }
+jint _fun(dl_dangle_dg)(JNIEnv *env, jobject obj, jbyte dangle, jbyte i, jbyte j) { return dl_dangle_dg(dangle,i,j); }
+jint _fun(dr_dangle_dg)(JNIEnv *env, jobject obj, jbyte i, jbyte j, jbyte dangle) { return dl_dangle_dg(i,j,dangle); }

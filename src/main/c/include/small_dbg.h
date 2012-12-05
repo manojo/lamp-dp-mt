@@ -107,7 +107,7 @@ void dbg_compare() {
 #ifdef __CUDACC__
 	int err=0;
 	#ifdef SH_RECT // some extra memory is needed, we want to ignore it
-	for (int i=0;i<M_H;++i) for (int j=0;j<M_W;++j) { if (tc[idx(i,j)]!=c_cost[idx(i,j)]) ++err; }
+	for (unsigned i=0;i<M_H;++i) for (unsigned j=0;j<M_W;++j) { if (tc[idx(i,j)]!=c_cost[idx(i,j)]) ++err; }
 	// for (int j=0;j<M_W;++j) { for (int i=0;i<M_H;++i) printf("%c",tc[idx(i,j)]!=c_cost[idx(i,j)]?'!':' '); printf("\n"); }
 	#else
 	for (unsigned i=0;i<MEM_MATRIX;++i) { if (tc[i]!=c_cost[i]) ++err; }

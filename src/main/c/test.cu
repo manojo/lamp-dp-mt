@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 		#else
 		const unsigned loops=4;
 		#endif
-	for (int i=0;i<loops;++i) { t.start(); g_solve(); t.stop(); }
+	for (unsigned i=0;i<loops;++i) { t.start(); g_solve(); t.stop(); }
 	fprintf(stderr,"- GPU: "); t.print(); fprintf(stderr,"\n");
 	#endif
 

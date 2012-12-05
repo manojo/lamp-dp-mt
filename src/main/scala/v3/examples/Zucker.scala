@@ -31,11 +31,20 @@ trait ZuckerSig extends Signature {
 trait ZuckerMFE extends ZuckerSig {
   type Answer = Int
 
+  /*
+  import librna.LibRNA
+  def ul_energy() = LibRNA.ul_energy
+  def ml_energy() = LibRNA.ml_energy
+  def hl_energy(x:SSeq) = LibRNA.hl_energy(x._1,x._2)
+  def ss_energy(e:SSeq) = LibRNA.ss_energy(e._1,e._2)
+  */
+
   // energy functions (to implement)
   def ul_energy() = 0
   def ml_energy() = 0
   def hl_energy(x:SSeq) = 0
   def ss_energy(e:SSeq) = 0
+
   def sr_energy(bl:SSeq, br:SSeq) = 0
   def bl_energy(x:SSeq, f2:SSeq) = 0
   def br_energy(f1:SSeq, x:SSeq) = 0
@@ -52,28 +61,6 @@ trait ZuckerMFE extends ZuckerSig {
       case _ => false
     }
   }
-
-  /*
-  Functions of librna (GAPC)
-  - int termau_energy(const char *s, unsigned int i, unsigned int j);
-  - int hl_energy(const char *s, unsigned int i, unsigned int j);
-  UNUSED int hl_energy_stem(const char *s, unsigned int i, unsigned int j);
-  - int il_energy(const char *s, unsigned int i, unsigned int j, unsigned int k, unsigned int l);
-  - int bl_energy(const char *s, unsigned int bl, unsigned int i, unsigned int j, unsigned int br, unsigned int Xright);
-  - int br_energy(const char *s, unsigned int bl, unsigned int i, unsigned int j, unsigned int br, unsigned int Xleft);
-  - int sr_energy(const char *s, unsigned int i, unsigned int j);
-  UNUSED int sr_pk_energy(char a, char b, char c, char d);
-  UNUSED int dl_energy(const char *s, unsigned int i, unsigned int j);
-  UNUSED int dr_energy(const char *s, unsigned int i, unsigned int j, unsigned int n);
-  UNUSED int dli_energy(const char *s, unsigned int i, unsigned int j);
-  UNUSED int dri_energy(const char *s, unsigned int i, unsigned int j);
-  - int ext_mismatch_energy(const char *s, unsigned int i, unsigned int j, unsigned int n);
-  - int ml_mismatch_energy(const char *s, unsigned int i, unsigned int j);
-  - int ml_energy(void);
-  - int ul_energy(void);
-  UNUSED int sbase_energy(void);
-  - int ss_energy(unsigned int i, unsigned int j);
-  */
 
   // Signature implementation
   override def stackpairing(s:SSeq):Boolean = { val (i,j)=s; (i+3 < j) && basepairing(i,j) && basepairing(i+1,j-1) }
