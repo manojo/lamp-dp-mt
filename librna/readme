@@ -1,0 +1,6 @@
+copied from GAPC/librna
+
+from ViennaRNA-2.0.7 (not changed):
+  vienna/ folder
+imported from adpc 0.9 (heavily changed):
+  rnalib.[ch]

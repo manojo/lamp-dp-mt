@@ -1,0 +1,26 @@
+#!/bin/sh
+
+SCALA_HOME=/Developer/Scala
+JAVA_INCLUDE="$JAVA_HOME/include"
+if [ "$OSTYPE" = "darwin" ]; then
+	JAVA_INCLUDE="/System/Library/Frameworks/JavaVM.framework/Headers"
+fi
+
+# get base dir
+if [ "`echo $0 | grep '^/'`" != "" ]; then BASE="$0"; else BASE="$PWD/$0"; fi
+BASE="`echo $BASE | sed 's/\/[^/]*$/\//g' | sed 's/\/.\//\//g' | sed 's/\/$//g'`";
+cd $BASE || exit
+
+rm -r bin 2>/dev/null
+mkdir -p bin
+
+scalac -d bin RNALib.scala || exit
+
+gcc -Wall -std=c99 -shared -I"$JAVA_INCLUDE" rnalib.c rnalib_jni.c \
+	vienna/energy_par.c vienna/fold_vars.c vienna/params.c vienna/read_epars.c vienna/utils.c \
+	-o bin/libRNA.jnilib
+
+exit
+
+# execute
+#scala -cp bin Test
