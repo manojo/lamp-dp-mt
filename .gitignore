@@ -1,5 +1,6 @@
 *LatexianTemp*
 bin
+src/librna/rnafold/RNAfold
 src/main/c/test
 target/
 lib_managed/
