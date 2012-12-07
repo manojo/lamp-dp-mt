@@ -2,13 +2,13 @@ package v4.examples
 import v4._
 //import librna.LibRNA
 
-// Zucker folding (Minimum Free Energy)
+// Zuker folding (Minimum Free Energy)
 // ----------------------------------------------------------------------------
 // Based on http://gapc.eu/grammar/adpfold.gap (gapc-2012.07.23/grammar/adpf.gap)
 // See p.147 of "Parallelization of Dynamic Programming Recurrences in Computational Biology"
 // Same coefficients as: http://www.tbi.univie.ac.at/~ivo/RNA/ (with parameters -noLP -d2)
 
-trait ZuckerSig extends Signature {
+trait ZukerSig extends Signature {
   type Alphabet = Char
   type SSeq = (Int,Int) // subsequence = subword
   def stackpairing(s:SSeq):Boolean
@@ -30,7 +30,7 @@ trait ZuckerSig extends Signature {
   def nil(d:Dummy) : Answer
 }
 
-trait ZuckerMFE extends ZuckerSig {
+trait ZukerMFE extends ZukerSig {
   type Answer = Int
 
   object LibRNA { // Faking the library as there are SBT issues
@@ -93,14 +93,15 @@ trait ZuckerMFE extends ZuckerSig {
   override val h = max[Answer] _
 }
 
-trait ZuckerPrettyPrint extends ZuckerSig {
+trait ZukerPrettyPrint extends ZukerSig {
   type Answer = String
 
   def stackpairing(s:SSeq):Boolean = true
-  private def dots(s:SSeq) = (0 until s._2-s._1).map{_=>"."}.mkString
+  private def dots(s:SSeq,c:Char='.') = (0 until s._2-s._1).map{_=>c}.mkString
+
   def sadd(lb:Int, e:Answer) = "."+e
   def cadd(x:Answer, e:Answer) = x+e
-  def dlr(lb:SSeq, e:Answer, rb:SSeq) = e
+  def dlr(lb:SSeq, e:Answer, rb:SSeq) = dots(lb,'_')+e+dots(rb,'_')
   def sr(lb:Int, e:Answer, rb:Int) = "("+e+")"
   def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = "(("+dots(x)+"))"
   def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) = "(("+dots(x)+e+"))"
@@ -114,11 +115,11 @@ trait ZuckerPrettyPrint extends ZuckerSig {
   def nil(d:Dummy) = ""
 }
 
-trait ZuckerGrammar extends ADPParsers with ZuckerSig {
+trait ZukerGrammar extends ADPParsers with CodeGen with ZukerSig {
   def BASE = eli
   //def BASE = seq(1,1)
-  def LOC = seq(1,0) // XXX: implement the difference
-  def REGION = seq _ // XXX: no more restrictions? (like nonempty)
+  def LOC = seq(1,-1)
+  def REGION = seq _
 
   val struct:Tabulate = tabulate("st",(
       BASE   ~ struct ^^ { case (b,s) => sadd(b,s) }
@@ -126,11 +127,11 @@ trait ZuckerGrammar extends ADPParsers with ZuckerSig {
     | empty           ^^ nil
     ) aggregate h);
 
-  val dangle = LOC ~ closed ~ LOC ^^ { case ((l,e),r) => dlr(l,e,r) }
-  lazy val closed:Parser[Answer] = tabulate("cl", (stack | hairpin | leftB | rightB | iloop | multiloop) filter stackpairing aggregate h)
+  lazy val dangle = LOC ~ closed ~ LOC ^^ { case ((l,e),r) => dlr(l,e,r) }
+  val closed:Tabulate = tabulate("cl", (stack | hairpin | leftB | rightB | iloop | multiloop) filter stackpairing aggregate h)
 
   lazy val stack   = BASE ~ closed ~ BASE ^^ { case ((l,e),r) => sr(l,e,r) }
-  lazy val hairpin = BASE ~ BASE ~ REGION(3,0) ~ BASE ~ BASE ^^ { case ((((lb,f1),x),f2),rb) => hl(lb,f1,x,f2,rb) }
+  lazy val hairpin = BASE ~ BASE ~ REGION(3,-1) ~ BASE ~ BASE ^^ { case ((((lb,f1),x),f2),rb) => hl(lb,f1,x,f2,rb) }
   lazy val leftB   = BASE ~ BASE ~ REGION(1,30) ~ closed ~ BASE ~ BASE ^^ { case (((((lb,f1),x),e),f2),rb) => bl(lb,f1,x,e,f2,rb) } aggregate h
   lazy val rightB  = BASE ~ BASE ~ closed ~ REGION(1,30) ~ BASE ~ BASE ^^ { case (((((lb,f1),e),x),f2),rb) => br(lb,f1,e,x,f2,rb) } aggregate h
   lazy val iloop   = BASE ~ BASE ~ REGION(1,30) ~ closed ~ REGION(1,30) ~ BASE ~ BASE ^^ { case ((((((f1,f2),r1),x),r2),f3),f4) => il(f1,f2,r1,x,r2,f3,f4) } aggregate h
@@ -144,7 +145,7 @@ trait ZuckerGrammar extends ADPParsers with ZuckerSig {
       BASE ~ ml_comps ^^ { case(b,s) => sadd(b,s) }
     | (dangle ^^ ul) ~ ml_comps1 ^^ { case(c1,c) => app(c1,c) }
     | (dangle ^^ ul)
-    | (dangle ^^ ul) ~ REGION(1,0) ^^ { case(c1,e) => addss(c1,e) }
+    | (dangle ^^ ul) ~ REGION(1,-1) ^^ { case(c1,e) => addss(c1,e) }
     ) aggregate h)
 
   val axiom = struct
@@ -168,7 +169,7 @@ trait ZuckerGrammar extends ADPParsers with ZuckerSig {
   */
 }
 
-object Zucker extends App with ZuckerGrammar with ZuckerPrettyPrint {
+object Zuker extends App with ZukerGrammar with ZukerPrettyPrint {
   //LibRNA.setParams("src/librna/vienna/rna_turner2004.par")
   def parse(s:String) = {
     //LibRNA.setSequence(s)
@@ -178,5 +179,6 @@ object Zucker extends App with ZuckerGrammar with ZuckerPrettyPrint {
     res
   }
   println("PARTIAL IMPLEMENTATION")
-  println(parse("guacgucaguacguacgugacugucagucaac"))
+  println(parse("guacgucaguac"))
+  //println(parse("guacgucaguacguacgugacugucagucaac"))
 }

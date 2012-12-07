@@ -36,11 +36,11 @@ trait TTParsers extends BaseParsers { this:Signature =>
   def el2 = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (List(i.eq(j,1)),"in2["+i+"]")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in2(i),bt0)) else Nil }
   }
-  def seq1(min:Int=1,max:Int= -1) = new Terminal[(Int,Int)](min,max,
+  def seq1(min:Int=1,max:Int= -1) = new Terminal[Subword](min,max,
           (i:Var,j:Var) => { val cm:List[Cond] = if(max== -1) Nil else List(j.leq(i,max)); (i.leq(j,min)::cm, "in1["+i+".."+j+"]")}) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max== -1 || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
-  def seq2(min:Int=1, max:Int= -1) = new Terminal[(Int,Int)](min,max,
+  def seq2(min:Int=1, max:Int= -1) = new Terminal[Subword](min,max,
           (i:Var,j:Var) => { val cm:List[Cond] = if(max== -1) Nil else List(j.leq(i,max)); (i.leq(j,min)::cm, "in2["+i+".."+j+"]")}) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max== -1 || i+max>=j)) List(((i,j),bt0)) else Nil }
   }

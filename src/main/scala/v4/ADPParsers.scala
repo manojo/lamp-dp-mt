@@ -30,8 +30,8 @@ trait ADPParsers extends BaseParsers { this:Signature =>
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((i,bt0)) else Nil }
   }
   def seq(min:Int=1, max:Int=0) = new Terminal[Subword](min,max,
-         (i:Var,j:Var) => { val cm:List[Cond]=if(max==0) Nil else List(j.leq(i,max)); (i.leq(j,min)::cm, "in["+i+".."+j+"]") }) {
-    def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==0 || i+max>=j)) List(((i,j),bt0)) else Nil }
+         (i:Var,j:Var) => { val cm:List[Cond]=if(max== -1) Nil else List(j.leq(i,max)); (i.leq(j,min)::cm, "in["+i+".."+j+"]") }) {
+    def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max== -1 || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
 }
 
