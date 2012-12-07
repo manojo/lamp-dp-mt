@@ -21,3 +21,10 @@ parallelExecution in Test := false
 scalacOptions += "-Yvirtualize"
 
 scalacOptions ++= List("-deprecation", "-feature", "-unchecked")
+
+TaskKey[Unit]("librna") := {
+  println("hello world! "+System.getProperty("java.home"))
+  "./build ex Zuker".run.exitValue
+}
+
+
