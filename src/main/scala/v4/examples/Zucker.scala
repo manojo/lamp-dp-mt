@@ -11,7 +11,7 @@ import v4._
 trait ZuckerSig extends Signature {
   type Alphabet = Char
   type SSeq = (Int,Int) // subsequence = subword
-  def stackpairing(s:SSeq):Boolean = true
+  def stackpairing(s:SSeq):Boolean
 
   // XXX: what if it's not Int bit int => position
   def sadd(lb:Int, e:Answer) : Answer
@@ -67,7 +67,7 @@ trait ZuckerMFE extends ZuckerSig {
   }
 
   // Signature implementation
-  override def stackpairing(s:SSeq):Boolean = { val (i,j)=s; (i+3 < j) && basepairing(i,j) && basepairing(i+1,j-1) }
+  def stackpairing(s:SSeq):Boolean = { val (i,j)=s; (i+3 < j) && basepairing(i,j) && basepairing(i+1,j-1) }
 
   // XXX: missing a lot of loops here
   // XXX: but on the other side the loops are implicit in gapc !!
@@ -81,7 +81,7 @@ trait ZuckerMFE extends ZuckerSig {
   def br(lb:Int, f1:Int, e:Answer, x:SSeq, f2:Int, rb:Int) = e + LibRNA.br_energy(lb,f1,f2,rb,x._2-x._1) + LibRNA.sr_energy(lb, rb)
   def il(f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) = x + LibRNA.il_energy(r1._1, r1._2, r2._1, r2._2) + LibRNA.sr_energy(f1, f4)
   def ml(lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) = {
-    LibRNA.ml_energy + LibRNA.ul_energy + x + LibRNA.termau_energy(f1, f2) + 
+    LibRNA.ml_energy + LibRNA.ul_energy + x + LibRNA.termau_energy(f1, f2) +
     LibRNA.sr_energy(lb, rb) + LibRNA.ml_mismatch_energy(f1, f2)
   }
   def app(c1:Answer, c:Answer) = c1 + c
@@ -96,6 +96,7 @@ trait ZuckerMFE extends ZuckerSig {
 trait ZuckerPrettyPrint extends ZuckerSig {
   type Answer = String
 
+  def stackpairing(s:SSeq):Boolean = true
   private def dots(s:SSeq) = (0 until s._2-s._1).map{_=>"."}.mkString
   def sadd(lb:Int, e:Answer) = "."+e
   def cadd(x:Answer, e:Answer) = x+e
@@ -142,7 +143,7 @@ trait ZuckerGrammar extends ADPParsers with ZuckerSig {
   val ml_comps1:Tabulate = tabulate("ml1",(
       BASE ~ ml_comps ^^ { case(b,s) => sadd(b,s) }
     | (dangle ^^ ul) ~ ml_comps1 ^^ { case(c1,c) => app(c1,c) }
-    | dangle ^^ ul
+    | (dangle ^^ ul)
     | (dangle ^^ ul) ~ REGION(1,0) ^^ { case(c1,e) => addss(c1,e) }
     ) aggregate h)
 

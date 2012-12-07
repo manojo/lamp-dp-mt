@@ -33,9 +33,9 @@ c_cc gcc $FLAGS_CC -std=c99 -shared -I$JAVA_INC -o $OUT/libRNA.jnilib
 c_scala src/librna/LibRNA.scala
 	# if [ "$1" = "test" ]; then scala -cp bin librna.Test; fi
 
-# Parsers V3
-c_scala "src/main/scala/v3/*.scala"
-c_scala "src/main/scala/v3/examples/*.scala"
+# Parsers V4
+c_scala "src/main/scala/v4/*.scala"
+c_scala "src/main/scala/v4/examples/*.scala"
 
 # Scala CUDA/C compiler
 c_scala "src/main/c/CCompiler.scala"
@@ -57,5 +57,5 @@ case "$1" in
 	cuda) bin/test_tri; bin/test_rect; bin/test_para;; # XXX: optirun ./test
 	ccomp) scala -cp bin TestCCompiler;;
 	macro) scala -cp bin TestMacros;;
-	ex) scala -cp bin v3.examples.$2;;
+	ex) scala -cp bin v4.examples.$2;;
 esac
