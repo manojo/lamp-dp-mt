@@ -1,6 +1,31 @@
 package v4.examples
 import v4._
 //import librna.LibRNA
+object LibRNA { // Faking the library as there are SBT issues
+  def setParams(s:String) {}
+  def setSequence(s:String) {}
+  def clear {}
+  def termau_energy(i:Int, j:Int) = 0
+  def hl_energy(i:Int, j:Int) = 0
+  def hl_energy_stem(i:Int, j:Int) = 0
+  def il_energy(i:Int, j:Int, k:Int, l:Int) = 0
+  def bl_energy(bl:Int, i:Int, j:Int, br:Int, Xright:Int) = 0
+  def br_energy(bl:Int, i:Int, j:Int, br:Int, Xleft:Int) = 0
+  def sr_energy(i:Int, j:Int) = 0
+  def sr_pk_energy(a:Byte, b:Byte, c:Byte, d:Byte) = 0
+  def dl_energy(i:Int, j:Int) = 0
+  def dr_energy(i:Int, j:Int, n:Int) = 0
+  def dli_energy(i:Int, j:Int) = 0
+  def dri_energy(i:Int, j:Int) = 0
+  def ext_mismatch_energy(i:Int, j:Int, n:Int) = 0
+  def ml_mismatch_energy(i:Int, j:Int) = 0
+  def ml_energy = 0
+  def ul_energy = 0
+  def sbase_energy = 0
+  def ss_energy(i:Int, j:Int) = 0
+  def dl_dangle_dg(dangle:Byte, i:Byte, j:Byte) = 0
+  def dr_dangle_dg(i:Byte, j:Byte, dangle:Byte) = 0
+}
 
 // Zuker folding (Minimum Free Energy)
 // ----------------------------------------------------------------------------
@@ -32,30 +57,6 @@ trait ZukerSig extends Signature {
 
 trait ZukerMFE extends ZukerSig {
   type Answer = Int
-
-  object LibRNA { // Faking the library as there are SBT issues
-    def termau_energy(i:Int, j:Int) = 0
-    def hl_energy(i:Int, j:Int) = 0
-    def hl_energy_stem(i:Int, j:Int) = 0
-    def il_energy(i:Int, j:Int, k:Int, l:Int) = 0
-    def bl_energy(bl:Int, i:Int, j:Int, br:Int, Xright:Int) = 0
-    def br_energy(bl:Int, i:Int, j:Int, br:Int, Xleft:Int) = 0
-    def sr_energy(i:Int, j:Int) = 0
-    def sr_pk_energy(a:Byte, b:Byte, c:Byte, d:Byte) = 0
-    def dl_energy(i:Int, j:Int) = 0
-    def dr_energy(i:Int, j:Int, n:Int) = 0
-    def dli_energy(i:Int, j:Int) = 0
-    def dri_energy(i:Int, j:Int) = 0
-    def ext_mismatch_energy(i:Int, j:Int, n:Int) = 0
-    def ml_mismatch_energy(i:Int, j:Int) = 0
-    def ml_energy = 0
-    def ul_energy = 0
-    def sbase_energy = 0
-    def ss_energy(i:Int, j:Int) = 0
-    def dl_dangle_dg(dangle:Byte, i:Byte, j:Byte) = 0
-    def dr_dangle_dg(i:Byte, j:Byte, dangle:Byte) = 0
-  }
-
   def size:Int
   def in(x:Int):Alphabet
   def basepairing(i:Int, j:Int):Boolean = {
@@ -149,36 +150,12 @@ trait ZukerGrammar extends ADPParsers with CodeGen with ZukerSig {
     ) aggregate h)
 
   val axiom = struct
-  /*
-  tabulated { struct, closed, ml_comps, ml_comps1 }
-
-  struct = sadd(BASE, struct) | cadd(dangle, struct) | nil(EMPTY) # h ;
-  dangle = dlr(LOC, closed, LOC) ;
-  closed = { stack | hairpin | leftB | rightB | iloop | multiloop } with stackpairing # h ;
-
-  stack = sr(BASE, closed, BASE) ;
-  hairpin = hl(BASE, BASE, { REGION with minsize(3) }, BASE, BASE) ;
-  leftB = bl( BASE, BASE, REGION with maxsize(30), closed, BASE, BASE) # h ;
-  rightB = br( BASE, BASE, closed, REGION with maxsize(30), BASE, BASE) # h ;
-  iloop = il( BASE, BASE, REGION with maxsize(30), closed, REGION with maxsize(30), BASE, BASE) # h ;
-
-  multiloop = ml( BASE, BASE, ml_comps, BASE, BASE) ;
-  ml_comps = sadd(BASE, ml_comps) | app( { ul(dangle) } , ml_comps1) # h ;
-  ml_comps1 = sadd(BASE, ml_comps1) | app(  ul(dangle)  , ml_comps1) |
-              ul(dangle) | addss( ul(dangle), REGION)  # h ;
-  */
 }
 
 object Zuker extends App with ZukerGrammar with ZukerPrettyPrint {
-  //LibRNA.setParams("src/librna/vienna/rna_turner2004.par")
-  def parse(s:String) = {
-    //LibRNA.setSequence(s)
-    //println(LibRNA.ml_energy)
-    val res = super.parse(s.toArray)
-    //LibRNA.clear
-    res
-  }
-  println("PARTIAL IMPLEMENTATION")
-  println(parse("guacgucaguac"))
+  LibRNA.setParams("src/librna/vienna/rna_turner2004.par")
+  def parse(s:String) = { LibRNA.setSequence(s); val res=super.parse(s.toArray); LibRNA.clear; res }
+  println("WARNING: COEFFICIENTS ARE WRONG, FIX LINK WITH LIBRNA")
+  println(parse("guacgucagua"))
   //println(parse("guacgucaguacguacgugacugucagucaac"))
 }
