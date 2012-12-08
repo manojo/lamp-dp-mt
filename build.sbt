@@ -33,6 +33,5 @@ TaskKey[Unit]("librna") := {
 }
 
 TaskKey[Unit]("zuker") := {
-  // XXX: improve this
-  "/Developer/Scala/bin/scala -cp target/scala-2.10/classes v4.examples.Zuker".run.exitValue
+  "scala -cp target/scala-2.10/classes v4.examples.Zuker".run.exitValue
 }
