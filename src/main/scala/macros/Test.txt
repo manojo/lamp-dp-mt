@@ -80,7 +80,8 @@ class CCodeGen(within:Any) extends StandardTokenParsers {
           case None => f+"("+args.map{x=>cc(x)}.mkString(",")+")"
         }
     }
-    case ValDef(_,name,tp,rhs) => parseType(tp.toString)+" "+name.toString+" = "+cc(rhs)+"; "
+    case ValDef(_,name,tp,rhs) =>
+      (try { parseType(tp.toString) } catch { case _:Throwable => tp.toString }) +" "+name.toString+" = "+cc(rhs)+"; "
     case Literal(Constant(x)) =>
       if (x.isInstanceOf[Char]) "'"+x.toString+"'"
       else if (x.isInstanceOf[String]) "\""+x.toString.replace("\"","\\\"")+"\""
@@ -106,6 +107,17 @@ class CCodeGen(within:Any) extends StandardTokenParsers {
     val f = f0.asInstanceOf[TypedFunction];
     val in = parseType(f.typeIn)
     val out = parseType(f.typeOut)
+
+/*
+    // XXX: how to typecheck and infer types as much as possible (reuse compiler)
+    import scala.reflect.runtime.{universe => u}
+    import scala.tools.reflect.ToolBox
+    import scala.reflect.runtime.{currentMirror=>m}
+    //import u._
+    val tb = m.mkToolBox()
+    val b2 = tb.typeCheck(f.tree)
+*/
+
     val body = f.tree match {
       case Block(stats, expr) => stats.map{x=>cc(x)+"; "}.mkString("")+"_res="+cc(expr)
       case expr => "_res="+cc(expr)
@@ -119,13 +131,17 @@ class CCodeGen(within:Any) extends StandardTokenParsers {
               fs.map{case ((i,o,b),n) => "inline "+o+" "+n+"("+i+" _arg) { "+o+" _res; "+b+"; return _res; }" }.mkString("\n") + "\n"
     ts.clear(); fs.clear(); tid=0; fid=0; res
   }
+
+  // XXX: Get the type of a variable
+  // XXX: get the type of a function
+  // XXX: maintain a list of live variables in the function (?)
 }
 
 object TestMacros extends App {
   import Macros._
   val g=new CCodeGen(this)
   def cout = { println("-------------------------------------------------"); println(g.headers) }
-
+/*
   // External structures
   case class Mat(rows:Int, cols:Int)
   type Subword = (Int,Int)
@@ -153,10 +169,40 @@ object TestMacros extends App {
   def bAre2 = tree { (sw: Subword) => sw._2 > sw._1+1 && in(sw._1) == '(' && in(sw._2-1) == ')' }
   def bSingle2 = tree { (in:(Char,(Int,Char))) => in._2._1 }
   def bSum2 = tree { (in:(Int,Int)) => in._1+in._2 }
+  println("Brackets:")
   println("bAre2   : "+g.push(bAre2))
   println("bSingle2: "+g.push(bSingle2))
   println("bSum2   : "+g.push(bSum2))
   cout
+
+  // El Mamun
+  def eAdd = tree { (x:(Int,(Char,Int))) => x._1 + x._2._2 }
+  def eMul = tree { (x:(Int,(Char,Int))) => x._1 * x._2._2 }
+  def ePlusF = tree { (c:Char) => c == '+' }
+  def eTimesF = tree { (c:Char) => c == '*' }
+  println("El Mamun:")
+  println("eAdd    : "+g.push(eAdd))
+  println("eMul    : "+g.push(eMul))
+  println("ePlusF  : "+g.push(ePlusF))
+  println("eTimesF : "+g.push(eTimesF))
+  cout
+*/
+  // Matrix chain multiplication
+  //type mAlphabet = (Int,Int)
+  type mAnswer = (Int,Int,Int)
+  //def mSingle = tree { (i: mAlphabet) => (i._1, 0, i._2) }
+  def mMult = tree { (x:(mAnswer,mAnswer)) => { x match { case ((r1,m1,c1),(r2,m2,c2)) => (r1, m1 + m2 + r1 * c1 * c2, c2) } } }
+  //def mMult = tree { (x:(mAnswer,mAnswer)) => { val ((r1,m1,c1),(r2,m2,c2))=x; (r1, m1 + m2 + r1 * c1 * c2, c2) } }
+
+  //val mH = (l:List[mAnswer]) => l match { case Nil => Nil case _ => l.minBy(_._2)::Nil }
+  println("MatrixMult:")
+  //println("mSingle : "+g.push(mSingle))
+  println("mMult   : "+g.push(mMult))
+  //println("mH      : "+g.push(mH))
+  cout
+
+  val foox = (x:(mAnswer,mAnswer)) => { val ((r1,m1,c1),(r2,m2,c2)) = x; (r1, m1 + m2 + r1 * c1 * c2, c2) }
+
 
   /*
   CLangParser.fun("(Int, Int)","Boolean","_arg._2.>(_arg._1.+(1)).&&(TestMacros.this.in(_arg._1).==('(')).&&(TestMacros.this.in(_arg._2.-(1)).==(')'))")
@@ -165,27 +211,3 @@ object TestMacros extends App {
   CLangParser.fun("(Int, Int)","(Int,Int)","if (_arg._1>_arg._2 || _arg._1<_arg._2 || _arg._1>=_arg._2 || _arg._1<=_arg._2 ) (3, 2) else (2, 3)")
   */
 }
-
-/*
-  val f = foo.asInstanceOf[TypedFunction];
-  println("TypeIn: "+f.typeIn)
-  println("TypeOut: "+f.typeOut)
-  println("Tree.tpe: "+f.tree.tpe)
-  println("Tree: "+f.tree)
-*/
-
-//  c.reifyTree
-
-/*
-  import scala.reflect.runtime.{universe => u}
-  import scala.tools.reflect.Eval
-  val tr = u.reify {
-    def f:(String=>String) = new (String=>String) {
-      override def toString = "x+x"
-      def apply(x:String):String = x+x
-    }
-    f
-  }
-  println (u showRaw tr)
-  val f=tr.eval
-*/

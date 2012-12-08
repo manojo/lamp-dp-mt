@@ -27,7 +27,7 @@ trait BaseParsers { this:Signature =>
   val twotracks = false // whether grammar is multi-track
   final val bt0 = (0,Nil) // default initial backtrack
 
-  // Helpers 
+  // Helpers
   case class Var(v:Char,d:Int) { // Variables: name+offset => 'v'+d
     override def toString = if (d==0) ""+v else if (d>0) v+"+"+d else v+""+d
     def add(e:Int) = Var(v,d+e)
@@ -90,7 +90,7 @@ trait BaseParsers { this:Signature =>
       map.getOrElseUpdate(sw,{ map.put(sw,List()); inner(sw).map{case(c,(r,b))=>(c,(id+r,b))} })
     }
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
-    override def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) } 
+    override def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
     override def reapply(sw:Subword,bt:Backtrack) = map.get(sw) match {
       case Some(v) => v.head._1
       case _ => sys.error("Failed reapply"+sw); apply(sw).head._1
@@ -154,10 +154,10 @@ trait BaseParsers { this:Signature =>
     lazy val (alt,cat) = (left.alt+right.alt, Math.max(left.cat,right.cat))
     def apply(sw: Subword) = left(sw) ++ right(sw).map{ case (t,(r,b)) => (t,(r+left.alt,b)) }
     override def unapply(sw:Subword, bt:Backtrack) = bt match {
-      case (r,idx) => var a=left.alt-1; if (r<=a) left.unapply(sw,(r,idx)) else right.unapply(sw,(r-a,idx)) 
+      case (r,idx) => var a=left.alt-1; if (r<=a) left.unapply(sw,(r,idx)) else right.unapply(sw,(r-a,idx))
     }
     override def reapply(sw:Subword, bt:Backtrack) = bt match {
-      case (r,idx) => var a=left.alt-1; if (r<=a) left.reapply(sw,(r,idx)) else right.reapply(sw,(r-a,idx)) 
+      case (r,idx) => var a=left.alt-1; if (r<=a) left.reapply(sw,(r,idx)) else right.reapply(sw,(r-a,idx))
     }
   }
 
@@ -194,7 +194,7 @@ trait BaseParsers { this:Signature =>
         ) yield(((x,y),bt(xb,yb,k)))
       case (true,(i,j),(l,u,2,_)) => // tt:concat2
         val j0 = if (u== -1) 0 else Math.max(j-u,0)
-        for( 
+        for(
           k <- (j0 to j-l).toList;
           (x,xb) <- left((i,k)); // M[i,k]
           (y,yb) <- right((k,j)) // in2[k..j]
@@ -202,7 +202,7 @@ trait BaseParsers { this:Signature =>
       case _ => List()
     }
 
-    private def bt_split(bt:Backtrack):(Backtrack,Backtrack,Int) = bt match { case (r,idx) => 
+    private def bt_split(bt:Backtrack):(Backtrack,Backtrack,Int) = bt match { case (r,idx) =>
       val a:Int=right.alt; val c:Int=left.cat;
       ((r/a,idx.take(c)), (r%a,idx.drop(c+(if (hasBt)1 else 0))), if (hasBt)idx(c) else -1)
     }

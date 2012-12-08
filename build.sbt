@@ -22,9 +22,17 @@ scalacOptions += "-Yvirtualize"
 
 scalacOptions ++= List("-deprecation", "-feature", "-unchecked")
 
+// Adding LibRNA to Scala sources
+// We need the absolute file to avoid multiple compilation
+managedSources in Compile ++= List(file("src/librna/LibRNA.scala").getAbsoluteFile)
+
 TaskKey[Unit]("librna") := {
-  println("hello world! "+System.getProperty("java.home"))
-  "./build ex Zuker".run.exitValue
+  val out = "target/scala-2.10/classes" // see (classDirectory in Compile)
+  // nothing is easier than a shellscript compared to SBT vodoo
+  ("src/librna/make "+out).run.exitValue
 }
 
-
+TaskKey[Unit]("zuker") := {
+  // XXX: improve this
+  "/Developer/Scala/bin/scala -cp target/scala-2.10/classes v4.examples.Zuker".run.exitValue
+}

@@ -1,24 +1,24 @@
 #!/bin/sh
+# Mostly copied from GAPC/librna
+# from ViennaRNA-2.0.7 (not changed): vienna/ folder
+# imported from adpc 0.9 (heavily changed): rnalib.[ch]
 
-SCALA_HOME=/Developer/Scala
 JAVA_INCLUDE="$JAVA_HOME/include"
 if [ "$OSTYPE" = "darwin" ]; then
   JAVA_INCLUDE="/System/Library/Frameworks/JavaVM.framework/Headers"
 fi
 
-# get base dir
-if [ "`echo $0 | grep '^/'`" != "" ]; then BASE="$0"; else BASE="$PWD/$0"; fi
-BASE="`echo $BASE | sed 's/\/[^/]*$/\//g' | sed 's/\/.\//\//g' | sed 's/\/$//g'`";
-cd $BASE || exit
+if [ "$1" = "" ]; then out="bin"; rm -r "$out" 2>/dev/null;
+else from=`pwd`; mkdir -p "$1"; cd "$1"; out=`pwd`; cd $from; fi
+cd `dirname $0`;
 
-rm -r bin 2>/dev/null
-mkdir -p bin
+# scalac -d "$out" RNALib.scala || exit
 
-scalac -d bin RNALib.scala || exit
-
-gcc -Wall -std=c99 -shared -I"$JAVA_INCLUDE" rnalib.c rnalib_jni.c \
+printf "Compiling libRNA"
+gcc -Wall -std=c99 -shared -I"$JAVA_INCLUDE" rnalib.c librna.c \
   vienna/energy_par.c vienna/fold_vars.c vienna/params.c vienna/read_epars.c vienna/utils.c \
-  -o bin/libRNA.jnilib
+  -o "$out"/libRNA.jnilib
+echo '.'
 
 # execute
-scala -cp bin Test
+# scala -cp bin Test
