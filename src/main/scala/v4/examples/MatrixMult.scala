@@ -67,10 +67,11 @@ object MatrixMult2 extends App {
   val input = List((10,100),(100,5),(5,50)).toArray
 
   // Compute the matrix, and return the best solution's backtrack
-  val bt = a.backtrack(input).head._2
-  println(bt)
+  val (score,bt) = a.backtrack(input).head
+  println("Score     : "+score)
+  println("Backtrack : "+bt)
 
   // Apply the backtrack to another parser sharing the same grammar,
   // This will only compute 1 result in relevant cells, hence O(n).
-  println(b.build(input,bt))
+  println("Result    : "+b.build(input,bt))
 }

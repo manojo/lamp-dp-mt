@@ -47,8 +47,8 @@ c_cc nvcc $FLAGS_CUDA -DSH_RECT -o $OUT/test_rect; files="$files $OUT/fake.h"
 c_cc nvcc $FLAGS_CUDA -DSH_PARA -o $OUT/test_para; rm $OUT/fake.h
 
 # Scala Macros
-ln -s src/main/scala/reflect/macros/Macros.txt Macros.scala 2>/dev/null
-ln -s src/main/scala/reflect/macros/Test.txt Test.scala 2>/dev/null
+ln -fs src/main/scala/macros/Macros.txt Macros.scala 2>/dev/null
+ln -fs src/main/scala/macros/Test.txt Test.scala 2>/dev/null
 c_scala Macros.scala
 c_scala Test.scala
 rm Macros.scala Test.scala 2>/dev/null

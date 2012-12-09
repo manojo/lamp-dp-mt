@@ -58,14 +58,18 @@ trait BaseParsers { this:Signature =>
     final def filter (f: Subword => Boolean) = new Filter(this,f)
   }
 
-  private var analyzed=false;
-  def analyze:Boolean = { val res=analyzed; if (!res) return false; analyzed=true
+  private var analyzed=false
+  def analyze:Boolean = { if (analyzed) return false; analyzed=true
     var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.alt; }; true
   }
 
   // Aggregate on T a (T,U) list, wrt to multiplicity and order
   def aggr[T,U](l:List[(T,U)], h: List[T] => List[T]):List[(T,U)] = {
-    val a=l.toArray; var start=0; h(l.map(_._1)).map{ b => val i=a.indexWhere({x=>x._1==b},start); val r=a(i); a(i)=a(start); start=start+1; r }
+    val a=l.toArray; var start=0;
+    h(l.map(_._1)).map { b => val i=a.indexWhere({x=>x._1==b},start);
+      if (i== -1) (b,l.head._2) // aggregators such as count, sum do not have matching backtrack
+      else { val r=a(i); a(i)=a(start); start=start+1; r }
+    }
   }
 
   // --------------------------------------------------------------------------

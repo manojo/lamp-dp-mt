@@ -8,7 +8,7 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   def parse(in:Input):List[Answer] = {
     run(in,()=>(if (window>0) aggr(((0 to size-window).flatMap{x=>axiom(x,window+x)}).toList, h) else axiom(0,size)).map{_._1})
   }
-  def backtrack(in:Input):List[(Answer,List[(Subword,Backtrack)])] = {
+  def backtrack(in:Input):List[(Answer,List[(Subword,Backtrack)])] = { 
     run(in,()=>if (window>0) aggr(((0 to size-window).flatMap{x=>axiom.backtrack(x,window+x)}).toList, h) else axiom.backtrack(0,size))
   }
   def build(in:Input,bt:List[(Subword,Backtrack)]):Answer = run(in, ()=>{ for((sw,b)<-bt) axiom.build(sw,b); val l=bt.last; axiom.build(l._1,l._2) })
