@@ -1,0 +1,86 @@
+import scala.language.experimental.macros
+import scala.reflect.macros.Context
+import collection.mutable.ListBuffer
+import collection.mutable.Stack
+
+//import scala.reflect.runtime.universe.Expr
+//import scala.reflect.runtime.universe.WeakTypeTag
+
+object Macros {
+  trait TypedFunction {
+    def tree: scala.reflect.runtime.universe.Tree
+    val typeIn: String
+    val typeOut: String
+  }
+
+  def tree[T,U](f:Function1[T,U]): Function1[T,U] = macro tree_impl[T,U]
+
+  def tree_impl[T:c.WeakTypeTag,U:c.WeakTypeTag](c: Context)
+      (f:c.Expr[Function1[T,U]]): c.Expr[Function1[T,U]] = {
+    import c.universe._
+    val ttag = c.weakTypeTag[U]
+
+    val f1 = f match {
+      case Expr(ff@Function(List(ValDef(m,n,tp,rhs)),b)) => val t=new Transformer {
+        override def transform(tree: Tree): Tree = tree match {
+          case Ident(x) if (x==n) => Ident(newTermName("_arg")) // normalize argument name
+          case _ => super.transform(tree)
+        }
+      }
+       Function(List(ValDef(m,newTermName("_arg"),tp,rhs)),t.transform(b))
+      case _ => sys.error("Foo")
+    }
+    println(showRaw(f1));
+
+    val f2 = c.typeCheck(c.resetLocalAttrs(f1))
+
+
+    f2 match {
+      case Expr(ff@Function(List(ValDef(_,n,tp,_)),b)) =>
+
+/*
+    f match {
+      case Expr(ff@Function(List(ValDef(_,n,tp,_)),b)) =>
+        println("tp = "+tp)
+        var b1 = new Transformer {
+          override def transform(tree: Tree): Tree = tree match {
+            case Ident(x) if (x==n) => Ident(newTermName("_arg")) // normalize argument name
+
+            /*
+            case Typed(x,t1:TypeTree) =>
+              val o = transform(t1.original); t1.setOriginal(o);
+
+             println("TYPE = "+showRaw(o));
+
+
+             Typed(transform(x), t1) // remove type annotation (due to arg name change)
+
+            //case t@Typed(x,tp:TypeTree) => tp.setOriginal( transform(tp.original)); //Typed(transform(x),tp) transform(x)
+            //case a@Annotated(x) => println("Annot = "+showRaw(x)); a
+            case Annotated(ann,arg) => Annotated(transform(ann),transform(arg))
+            */
+            case _ => super.transform(tree)
+          }
+        }.transform(b)
+
+        val b2 = c.typeCheck(c.resetLocalAttrs(b1))
+*/
+
+
+        val reifiedTree = c.reifyTree(treeBuild.mkRuntimeUniverseRef, EmptyTree, b)
+        val reifiedExpr = c.Expr[scala.reflect.runtime.universe.Expr[T => U]](reifiedTree)
+        val template =
+          c.universe.reify(new (T => U) with TypedFunction {
+            //override def toString = c.literal(tp+" => "+ttag.tpe+" { "+b1.toString+" } ").splice
+            def tree = reifiedExpr.splice.tree
+            val typeIn = c.literal(tp.toString).splice
+            val typeOut = c.literal(ttag.tpe.toString).splice
+            def apply(_arg: T): U = c.Expr[U](b)(ttag.asInstanceOf[c.WeakTypeTag[U]]).splice
+          })
+        val untyped = c.resetLocalAttrs(template.tree)
+
+        c.Expr[T => U](untyped)
+      case _ => sys.error("Bad function type")
+    }
+  }
+}

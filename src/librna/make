@@ -14,10 +14,17 @@ cd `dirname $0`;
 
 # scalac -d "$out" RNALib.scala || exit
 
-printf "Compiling libRNA"
+name="libRNA.jnilib"
+md5 -q -s *.[ch] vienna/*.[ch] > "$out/$name.tmp"
+if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f "$out/$name" ] ; then
+	echo 'Already updated.'; exit;
+fi
+
+printf "Compiling $name"
 gcc -Wall -std=c99 -shared -I"$JAVA_INCLUDE" rnalib.c librna.c \
-  vienna/energy_par.c vienna/fold_vars.c vienna/params.c vienna/read_epars.c vienna/utils.c \
-  -o "$out"/libRNA.jnilib
+	vienna/energy_par.c vienna/fold_vars.c vienna/params.c vienna/read_epars.c vienna/utils.c \
+	-o "$out"/libRNA.jnilib || exit
+mv "$out/$name.tmp" "$out/$name.md5"
 echo '.'
 
 # execute

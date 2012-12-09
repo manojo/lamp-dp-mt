@@ -1,3 +1,5 @@
+package macros
+
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
 // This does not work with SBT script as the unwarping of the tree is

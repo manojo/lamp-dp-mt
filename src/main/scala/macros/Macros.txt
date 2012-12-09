@@ -3,9 +3,6 @@ import scala.reflect.macros.Context
 import collection.mutable.ListBuffer
 import collection.mutable.Stack
 
-//import scala.reflect.runtime.universe.Expr
-//import scala.reflect.runtime.universe.WeakTypeTag
-
 object Macros {
   trait TypedFunction {
     def tree: scala.reflect.runtime.universe.Tree
@@ -25,6 +22,14 @@ object Macros {
         var b1 = new Transformer {
           override def transform(tree: Tree): Tree = tree match {
             case Ident(x) if (x==n) => Ident(newTermName("_arg"))
+            /*
+            case Typed(x,t:TypeTree) =>
+              val t2=TypeTree().setOriginal(transform(t.original))
+              val tt=Typed(transform(x),t2)
+              println(showRaw(tt))
+              tt
+            case Annotated(an,arg) => Annotated(an,transform(arg))
+            */
             case _ => super.transform(tree)
           }
         }.transform(b)
@@ -33,7 +38,7 @@ object Macros {
         val reifiedExpr = c.Expr[scala.reflect.runtime.universe.Expr[T => U]](reifiedTree)
         val template =
           c.universe.reify(new (T => U) with TypedFunction {
-            //override def toString = c.literal(tp+" => "+ttag.tpe+" { "+b1.toString+" } ").splice
+            override def toString = c.literal(tp+" => "+ttag.tpe+" { "+b1.toString+" } ").splice // DEBUG
             def tree = reifiedExpr.splice.tree
             val typeIn = c.literal(tp.toString).splice
             val typeOut = c.literal(ttag.tpe.toString).splice
@@ -46,3 +51,7 @@ object Macros {
     }
   }
 }
+
+//import scala.reflect.runtime.universe.Expr
+//import scala.reflect.runtime.universe.WeakTypeTag
+
