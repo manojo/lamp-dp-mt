@@ -1,6 +1,8 @@
 package v4.examples
 import v4._
-//import librna.LibRNA
+
+import librna.LibRNA
+/*
 object LibRNA { // Faking the library as there are SBT issues
   def setParams(s:String) {}
   def setSequence(s:String) {}
@@ -26,6 +28,7 @@ object LibRNA { // Faking the library as there are SBT issues
   def dl_dangle_dg(dangle:Byte, i:Byte, j:Byte) = 0
   def dr_dangle_dg(i:Byte, j:Byte, dangle:Byte) = 0
 }
+*/
 
 // Zuker folding (Minimum Free Energy)
 // ----------------------------------------------------------------------------
@@ -116,9 +119,8 @@ trait ZukerPrettyPrint extends ZukerSig {
   def nil(d:Dummy) = ""
 }
 
-trait ZukerGrammar extends ADPParsers with CodeGen with ZukerSig {
+trait ZukerGrammar extends ADPParsers with ZukerSig {
   def BASE = eli
-  //def BASE = seq(1,1)
   def LOC = seq(1,-1)
   def REGION = seq _
 
@@ -152,10 +154,29 @@ trait ZukerGrammar extends ADPParsers with CodeGen with ZukerSig {
   val axiom = struct
 }
 
-object Zuker extends App with ZukerGrammar with ZukerPrettyPrint {
-  LibRNA.setParams("src/librna/vienna/rna_turner2004.par")
-  def parse(s:String) = { LibRNA.setSequence(s); val res=super.parse(s.toArray); LibRNA.clear; res }
-  println("WARNING: COEFFICIENTS ARE WRONG, FIX LINK WITH LIBRNA")
+object Zuker extends App {
+  object mfe extends ZukerGrammar with ZukerMFE //with CodeGen
+  object pretty extends ZukerGrammar with ZukerPrettyPrint
+  def parse(s:String) = {
+    LibRNA.setParams("src/librna/vienna/rna_turner2004.par")
+    LibRNA.setSequence(s);
+    val res=mfe.parse(s.toArray);
+    val (score,bt) = mfe.backtrack(s.toArray).head;
+    println("Score     : "+score);
+    println("Backtrack : "+bt);
+
+    //XXX: issue, the max cat on the left in Or does not match the actual cat on the left
+    //println("Split("+a+","+c+"): "+bt)
+    //println("Result    : "+pretty.build(s.toArray,bt));
+
+    LibRNA.clear; res
+  }
+
+  println("1. make sure you have done sbt> librna")
+  println("2. JNI multiple load issue in interactive mode. Run with")
+  println("     sbt 'run-main v4.examples.Zuker'")
+  println("3. COEFFICIENTS ARE WRONG, FIX LINK WITH LIBRNA")
+
   println(parse("guacgucagua"))
   //println(parse("guacgucaguacguacgugacugucagucaac"))
 }

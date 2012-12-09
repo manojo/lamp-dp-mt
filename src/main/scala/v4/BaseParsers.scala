@@ -60,7 +60,7 @@ trait BaseParsers { this:Signature =>
 
   private var analyzed=false
   def analyze:Boolean = { if (analyzed) return false; analyzed=true
-    var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.alt; }; true
+    var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.inner.alt; }; true
   }
 
   // Aggregate on T a (T,U) list, wrt to multiplicity and order
@@ -102,14 +102,25 @@ trait BaseParsers { this:Signature =>
 
     def build(sw:Subword, bt:Backtrack) = { val a=inner.reapply(sw,bt); map.put(sw,List((a,bt0))); a }
     def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))).map{x=>(e._1,x)} ).flatten
-    private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
-    private def backtrack0(mult:Int,tail:List[(Subword,Backtrack)],pending:List[BTItem]):List[List[(Subword,Backtrack)]] = pending match {
-      case Nil => List(tail)
-      case (sw,score,(rule,bt))::ps =>
-        val res = inner.unapply(sw, (rule-id,bt)).filter{case(r,l)=>r==score}.map{case(r,l)=>l}.take(mult)
-        countMap(res,(pl:List[BTItem],mul:Int)=>backtrack0(mul,(sw,(rule,bt))::tail, pl:::ps)  ).flatten
+  }
+
+  // XXX: cleanup this code
+  private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
+  private def backtrack0(mult:Int,tail:List[(Subword,Backtrack)],pending:List[BTItem]):List[List[(Subword,Backtrack)]] = pending match {
+    case Nil => List(tail)
+    case (sw,score,(rule,bt))::ps =>
+      val (ii,rr) = find(rule)
+      val res = ii.unapply(sw, (rr,bt)).filter{case(r,l)=>r==score}.map{case(r,l)=>l}.take(mult)
+      //val res = inner.unapply(sw, (rule-id,bt)).filter{case(r,l)=>r==score}.map{case(r,l)=>l}.take(mult)
+      countMap(res,(pl:List[BTItem],mul:Int)=>backtrack0(mul,(sw,(rule,bt))::tail, pl:::ps)  ).flatten
+  }
+  private def find(rule:Int):(Parser[Answer],Int) = {
+    rules.find{ case (n,t)=> val rr=rule-t.id; rr >= 0 && rr < t.inner.alt} match {
+      case Some((n,t)) => (t.inner,rule-t.id)
+      case None => sys.error("No table for subrule #"+rule)
     }
   }
+  // XXX: end cleanup
 
   // --------------------------------------------------------------------------
   // Terminal abstraction
@@ -212,7 +223,7 @@ trait BaseParsers { this:Signature =>
     }
     private def sw_split(sw:Subword,kb:Int) = (twotracks,sw,indices) match {
       case (false,(i,j),(lL,lU,rL,rU)) if i<j => // single track
-        val k=if(-1!=kb)kb else if (rU==0)i+lL else Math.max(i+lL,j-rU); ((i,k),(k,j))
+        val k=if(-1!=kb)kb else if (rU== -1)i+lL else Math.max(i+lL,j-rU); ((i,k),(k,j))
       case (true,(i,j),(l,u,1,_)) => val k=if(-1!=kb)kb else i-l; ((k,i),(k,j)) // tt:concat1
       case (true,(i,j),(l,u,2,_)) => val k=if(-1!=kb)kb else j-l; ((i,k),(k,j)) // tt:concat2
       case _ => ((0,0),(0,0))
