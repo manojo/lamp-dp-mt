@@ -10,29 +10,47 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   // ------------------------------------------------------------------------------
   // Recurrence analysis, done once when grammar is complete, before the computation.
-  // 1) Unique identifiers for subrules (sorted by name, ensures unique id within one grammar)
+  // 1) Unique identifiers for subrules (sorted by name, ensures unique id within one grammar, done in super=BaseParsers)
   // 2) Maximal backtrack size (cuda: #define TB)
   // 3) Compute cost storage (cuda: #define TC)
   // 4) Dependency analysis (order within the pass, possibly if multiple pass are needed, check if all parsers are needed?)
   private var cdefs:String=""
   override def analyze:Boolean = { if (!super.analyze) return false;
-    var bt=0; for((n,p) <- rules) { bt=Math.max(bt,p.cat); }
+    var bt=0; for((n,p) <- rules) bt=Math.max(bt,p.cat)
     cdefs=cdefs+"typedef struct { short rule; short pos["+bt+"]; } back_t;\n#define TB back_t\n"
+    // XXX: issue, we might have multiple backtrack in different tabulations at the same position
 
-    // XXX: 3) find the type of all involved recurrences
+    // XXX: 3) find the type of all involved recurrences: TypeOf[Answer]
+    //type T = Array[String]
+    //println("4: " + classOf[T])
     cdefs=cdefs+"typedef struct { ??? } cost_t;\n#define TC cost_t\n"
-    // XXX: 4) println("Dependency analysis => return a ordered list of parsers");
+
+    val order=tabsOrder // dependency analysis
 
     println("---------- analysis -----------")
-    for((n,p) <- rules) {
-      println(n+": base_id="+p.id+", alternatives="+p.alt+", concatMax="+p.cat);
-    }
+    for((n,p) <- rules) println(n+": base_id="+p.id+", alternatives="+p.alt+", concatMax="+p.cat);
+    println("Order in which to process tabulations: "+order)
     println("------------- end -------------")
     true
   }
 
-  // XXX: idea: fill the matrix with an EMPTY value, then whenever we hit this value, we ignore the result
+  // Dependency analysis: give the computation order between tabulations
+  def tabsOrder:List[String] = {
+    def deps[T](q:Parser[T]): List[String] = q match {
+      case Aggregate(p,_) => deps(p) case Filter(p,_) => deps(p) case Map(p,_) => deps(p) case Or(l,r) => deps(l)++deps(r)
+      case Concat(_,_,_) => Nil // always access previous element within concat
+      case _ => if (q.isInstanceOf[Tabulate]) List(q.asInstanceOf[Tabulate].name) else Nil
+    }
+    var order = List[String]()
+    val cs = rules.map{case (n,p)=>(n,deps(p.inner)) }
+    while (!cs.isEmpty) { var rem=false;
+      cs.foreach { case (n,ds) if (ds.isEmpty||(true/:ds.map{d=>order.contains(d)}){case(a,b)=>a&&b}) => rem=true; order=n::order; cs.remove(n); case _ => }
+      if (rem==false) sys.error("Loop between tabulations, error in grammar")
+    }
+    order.reverse
+  }
 
+  // XXX: idea: fill the matrix with an EMPTY value, then whenever we hit this value, we ignore the result
     /*
     val tc = scala.reflect.classTag[TC].runtimeClass.toString
     val ti:(String,String) = scala.reflect.classTag[TI].runtimeClass match {
@@ -51,11 +69,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // manifest to grab class infos
   // Get matrices storage type and backtracking length
 /*
- * Parser construction:
- * 1. Assign a "OR_id" (sub_rule_id) and "CONCAT_id" to all parsers so that we know which rule applies
- *    How to skip some indices ?
- * Scala running:
- * 2. Provide meaningful backtrack: rule_id and list of concat indices
  * Code generation:
  * 1. Normalize rules (at hash-map insertion (?))
  * 2. Compute dependency analysis between rules => order them into a list/queue

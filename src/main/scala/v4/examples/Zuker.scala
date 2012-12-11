@@ -38,10 +38,9 @@ object LibRNA { // Faking the library as there are SBT issues
 
 trait ZukerSig extends Signature {
   type Alphabet = Char
-  type SSeq = (Int,Int) // subsequence = subword
+  type SSeq = (Int,Int) // = Subword
   def stackpairing(s:SSeq):Boolean
 
-  // XXX: what if it's not Int bit int => position
   def sadd(lb:Int, e:Answer) : Answer
   def cadd(x:Answer, e:Answer) : Answer
   def dlr(lb:SSeq, e:Answer, rb:SSeq) : Answer
@@ -73,9 +72,8 @@ trait ZukerMFE extends ZukerSig {
   // Signature implementation
   def stackpairing(s:SSeq):Boolean = { val (i,j)=s; (i+3 < j) && basepairing(i,j) && basepairing(i+1,j-1) }
 
-  // XXX: missing a lot of loops here
-  // XXX: but on the other side the loops are implicit in gapc !!
-  // XXX: read more in librna/rnalib.c, it seems we could get valuable information there
+  // XXX: missing a lot of loops here, but on the other side the loops are implicit in GAPC!!
+  // Read more in librna/rnalib.c, we could get valuable information there
   def sadd(lb:Int, e:Answer) = e
   def cadd(x:Answer, e:Answer) = x + e
   def dlr(lb:SSeq, e:Answer, rb:SSeq) = e + LibRNA.ext_mismatch_energy(lb._1, rb._2, size) + LibRNA.termau_energy(lb._1, rb._2)
@@ -155,7 +153,7 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
 }
 
 object Zuker extends App {
-  object mfe extends ZukerGrammar with ZukerMFE //with CodeGen
+  object mfe extends ZukerGrammar with ZukerMFE with CodeGen
   object pretty extends ZukerGrammar with ZukerPrettyPrint
   def parse(s:String) = {
     LibRNA.setParams("src/librna/vienna/rna_turner2004.par")
@@ -173,7 +171,6 @@ object Zuker extends App {
   // Having separate instances of sbt is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   println("Coefficients are WRONG! Fix computations involving LibRNA")
-
 
   println(parse("guacgucaguacguacgugacugucagucaac"))
 
