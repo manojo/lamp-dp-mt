@@ -164,19 +164,20 @@ object Zuker extends App {
     val (score,bt) = mfe.backtrack(s.toArray).head;
     println("Score     : "+score);
     println("Backtrack : "+bt);
-
-    //XXX: issue, the max cat on the left in Or does not match the actual cat on the left
-    //println("Split("+a+","+c+"): "+bt)
-    //println("Result    : "+pretty.build(s.toArray,bt));
-
+    println("Result    : "+pretty.build(s.toArray,bt));
     LibRNA.clear; res
   }
 
-  println("1. make sure you have done sbt> librna")
-  println("2. JNI multiple load issue in interactive mode. Run with")
-  println("     sbt 'run-main v4.examples.Zuker'")
-  println("3. COEFFICIENTS ARE WRONG, FIX LINK WITH LIBRNA")
+  println("Build JNI > sbt librna")
+  println("Run using > sbt 'run-main v4.examples.Zuker'")
+  // Having separate instances of sbt is required due to issue described in
+  // http://codethesis.com/sites/default/index.php?servlet=4&content=2
+  println("Coefficients are WRONG! Fix computations involving LibRNA")
 
-  println(parse("guacgucagua"))
-  //println(parse("guacgucaguacguacgugacugucagucaac"))
+
+  println(parse("guacgucaguacguacgugacugucagucaac"))
+
+  // References for guacgucaguacguacgugacugucagucaac
+  // GAPC  : -970   ((((((....)))))).((((.....))))..
+  // Vienna: -9.50  ((((((....)))))).(((((...)))))..
 }

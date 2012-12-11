@@ -84,7 +84,7 @@ trait BaseParsers { this:Signature =>
     lazy val inner = in
     val (alt,cat) = (1,0)
     val (min,max) = (0,-1)
-    val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[(Answer,Backtrack)]])
+    private val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[(Answer,Backtrack)]])
     reset = { val r0=reset; () => { r0(); map.clear; } }
     rules += ((name,this))
 
@@ -94,40 +94,39 @@ trait BaseParsers { this:Signature =>
       map.getOrElseUpdate(sw,{ map.put(sw,List()); inner(sw).map{case(c,(r,b))=>(c,(id+r,b))} })
     }
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
-    override def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
-    override def reapply(sw:Subword,bt:Backtrack) = map.get(sw) match {
-      case Some(v) => v.head._1
-      case _ => sys.error("Failed reapply"+sw); apply(sw).head._1
-    }
+    def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
+    def reapply(sw:Subword,bt:Backtrack) = map.get(sw) match { case Some(v) => v.head._1 case _ => sys.error("Failed reapply"+sw); apply(sw).head._1 }
 
-    def build(sw:Subword, bt:Backtrack) = { val a=inner.reapply(sw,bt); map.put(sw,List((a,bt0))); a }
     def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))).map{x=>(e._1,x)} ).flatten
-  }
+    def build(bt:List[(Subword,Backtrack)]):Answer = {
+      for((sw,(rule,b))<-bt) { val (t,rr)=find(rule); t.map.put(sw,List((t.inner.reapply(sw,(rr,b)),bt0))) }
+      val (sw,(rule,b))=bt.last; inner.reapply(sw,(rule-id,b))
+    }
 
-  // XXX: cleanup this code
-  private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
-  private def backtrack0(mult:Int,tail:List[(Subword,Backtrack)],pending:List[BTItem]):List[List[(Subword,Backtrack)]] = pending match {
-    case Nil => List(tail)
-    case (sw,score,(rule,bt))::ps =>
-      val (ii,rr) = find(rule)
-      val res = ii.unapply(sw, (rr,bt)).filter{case(r,l)=>r==score}.map{case(r,l)=>l}.take(mult)
-      //val res = inner.unapply(sw, (rule-id,bt)).filter{case(r,l)=>r==score}.map{case(r,l)=>l}.take(mult)
-      countMap(res,(pl:List[BTItem],mul:Int)=>backtrack0(mul,(sw,(rule,bt))::tail, pl:::ps)  ).flatten
-  }
-  private def find(rule:Int):(Parser[Answer],Int) = {
-    rules.find{ case (n,t)=> val rr=rule-t.id; rr >= 0 && rr < t.inner.alt} match {
-      case Some((n,t)) => (t.inner,rule-t.id)
-      case None => sys.error("No table for subrule #"+rule)
+    private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
+    private def backtrack0(mult:Int,tail:List[(Subword,Backtrack)],pending:List[BTItem]):List[List[(Subword,Backtrack)]] = pending match {
+      case Nil => List(tail)
+      case (sw,score,(rule,bt))::ps => val (t,rr) = find(rule)
+        val res = t.inner.unapply(sw, (rr,bt)).filter{case(r,l)=>r==score}.map{case(r,l)=>l}.take(mult)
+        countMap(res,(pl:List[BTItem],mul:Int)=>backtrack0(mul,(sw,(rule,bt))::tail, pl:::ps)).flatten
+    }
+    private def find(rule:Int):(Tabulate,Int) = {
+      rules.find{ case (n,t)=> val rr=rule-t.id; rr >= 0 && rr < t.inner.alt} match {
+        case Some((n,t)) => (t,rule-t.id)
+        case None => sys.error("No tabulation for subrule #"+rule)
+      }
     }
   }
-  // XXX: end cleanup
 
   // --------------------------------------------------------------------------
   // Terminal abstraction
   abstract case class Terminal[T](min:Int,max:Int, f:(Var,Var)=>(List[Cond],String)) extends Parser[T] {
     final val (alt,cat) = (1,0)
-    def unapply(sw:Subword,bt:Backtrack): List[(T, List[BTItem])] = apply(sw).map{ case(t,b) => (t,Nil) }
-    def reapply(sw:Subword,bt:Backtrack): T = apply(sw).map{ _._1 }.head
+    def unapply(sw:Subword,bt:Backtrack) = apply(sw).map{ case(t,b) => (t,Nil) }
+    def reapply(sw:Subword,bt:Backtrack) = {
+      if (apply(sw).isEmpty) sys.error("Empty apply"+sw+" for "+bt)
+      apply(sw).map{ _._1 }.head
+    }
   }
 
   // Aggregate combinator.
@@ -137,8 +136,8 @@ trait BaseParsers { this:Signature =>
     lazy val (min,max) = (inner.min,inner.max)
     lazy val (alt,cat) = (inner.alt,inner.cat)
     def apply(sw: Subword) = aggr(inner(sw),h)
-    override def unapply(sw:Subword,bt:Backtrack) = aggr(inner.unapply(sw,bt),h)
-    override def reapply(sw:Subword,bt:Backtrack) = inner.reapply(sw,bt)
+    def unapply(sw:Subword,bt:Backtrack) = aggr(inner.unapply(sw,bt),h)
+    def reapply(sw:Subword,bt:Backtrack) = inner.reapply(sw,bt)
   }
 
   // Filter combinator.
@@ -147,8 +146,8 @@ trait BaseParsers { this:Signature =>
     lazy val (min,max) = (inner.min,inner.max)
     lazy val (alt,cat) = (inner.alt,inner.cat)
     def apply(sw: Subword) = if(pred(sw)) inner(sw) else Nil
-    override def unapply(sw:Subword,bt:Backtrack) = inner.unapply(sw,bt) // filter matched at apply
-    override def reapply(sw:Subword,bt:Backtrack) = inner.reapply(sw,bt) // ditto
+    def unapply(sw:Subword,bt:Backtrack) = inner.unapply(sw,bt) // filter matched at apply
+    def reapply(sw:Subword,bt:Backtrack) = inner.reapply(sw,bt) // ditto
   }
 
   // Mapper. Equivalent of ADP's <<< operator.
@@ -157,8 +156,8 @@ trait BaseParsers { this:Signature =>
     lazy val (min,max) = (inner.min,inner.max)
     lazy val (alt,cat) = (inner.alt,inner.cat)
     def apply(sw:Subword) = inner(sw) map { case (s,b) => (f(s),b) }
-    override def unapply(sw:Subword,bt:Backtrack) = inner.unapply(sw,bt).map{ case (s,b) => (f(s),b) }
-    override def reapply(sw:Subword,bt:Backtrack) = f(inner.reapply(sw,bt))
+    def unapply(sw:Subword,bt:Backtrack) = inner.unapply(sw,bt).map{ case (s,b) => (f(s),b) }
+    def reapply(sw:Subword,bt:Backtrack) = f(inner.reapply(sw,bt))
   }
 
   // Or combinator. Equivalent of ADP's ||| operator.
@@ -168,16 +167,12 @@ trait BaseParsers { this:Signature =>
     lazy val (min,max) = (Math.min(left.min,right.min),if (left.max == -1 || right.max == -1) -1 else Math.max(left.max,right.max))
     lazy val (alt,cat) = (left.alt+right.alt, Math.max(left.cat,right.cat))
     def apply(sw: Subword) = left(sw) ++ right(sw).map{ case (t,(r,b)) => (t,(r+left.alt,b)) }
-    override def unapply(sw:Subword, bt:Backtrack) = bt match {
-      case (r,idx) => var a=left.alt-1; if (r<=a) left.unapply(sw,(r,idx)) else right.unapply(sw,(r-a,idx))
-    }
-    override def reapply(sw:Subword, bt:Backtrack) = bt match {
-      case (r,idx) => var a=left.alt-1; if (r<=a) left.reapply(sw,(r,idx)) else right.reapply(sw,(r-a,idx))
-    }
+    def unapply(sw:Subword, bt:Backtrack) = { val (r,idx)=bt; var a=left.alt-1; if (r<=a) left.unapply(sw,(r,idx)) else right.unapply(sw,(r-a,idx)) }
+    def reapply(sw:Subword, bt:Backtrack) = { val (r,idx)=bt; var a=left.alt-1; if (r<=a) left.reapply(sw,(r,idx)) else right.reapply(sw,(r-a,idx)) }
   }
 
   // Concatenate combinator.
-  // Parses a concatenation of string left~right with length(left) in [lL,lU]
+  // Parses a concatenation of string " left ~ right " with length(left) in [lL,lU]
   // and length(right) in [rL,rU], lU,rU=0 means unbounded (infinity).
   case class Concat[T,U](left: Parser[T], right:Parser[U], indices:(Int,Int,Int,Int)) extends Parser[(T,U)] {
     lazy val (min,max) = (left.min+right.min,if (left.max == -1 || right.max == -1) -1 else left.max+right.max)
@@ -228,11 +223,11 @@ trait BaseParsers { this:Signature =>
       case (true,(i,j),(l,u,2,_)) => val k=if(-1!=kb)kb else j-l; ((i,k),(k,j)) // tt:concat2
       case _ => ((0,0),(0,0))
     }
-    override def unapply(sw:Subword,bt:Backtrack) = {
+    def unapply(sw:Subword,bt:Backtrack) = {
       val (bl,br,k)=bt_split(bt); val (swl,swr)=sw_split(sw,k)
       for ((l,lb)<-left.unapply(swl,bl); (r,rb)<-right.unapply(swr,br)) yield (((l,r), lb:::rb))
     }
-    override def reapply(sw:Subword,bt:Backtrack) = {
+    def reapply(sw:Subword,bt:Backtrack) = {
       val (bl,br,k)=bt_split(bt); val (swl,swr)=sw_split(sw,k)
       (left.reapply(swl,bl), right.reapply(swr,br))
     }
