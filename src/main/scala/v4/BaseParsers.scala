@@ -58,8 +58,10 @@ trait BaseParsers { this:Signature =>
     final def filter (f: Subword => Boolean) = new Filter(this,f)
   }
 
+  // Recurrence analysis, done once when grammar is complete, before the computation.
   private var analyzed=false
   def analyze:Boolean = { if (analyzed) return false; analyzed=true
+    // Identify subrules (uniquely within the same grammar as sorted by name)
     var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.inner.alt; }; true
   }
 

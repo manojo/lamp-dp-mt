@@ -1,64 +1,16 @@
-import scala.util.parsing.combinator.syntactical.StandardTokenParsers
-class CCodeGen(within:Any) extends StandardTokenParsers {
-  import scala.collection.mutable.HashMap
-  import lexical.NumericLit
-  import lexical.StringLit
-  import Macros._
+import v4.{CodeHeader,CodeFun}
+
+class CCodeGen(within:Any) extends CodeHeader(within) {
   import scala.reflect.runtime.universe._
-
-  // --------------------------------------------------------------------------
-  // Types (parser)
-  private var tid=0;
-  private def tn(tp:String) = ts.getOrElseUpdate(tp,{ val r=tid; tid=tid+1; "tp"+r })
-  private def tp_norm(s:String) = s.substring(s.lastIndexOf('.')+1).toLowerCase+"_t" // normalize type name
-  val ts=new HashMap[String,String](); // struct body => name
-  val c_types = Map(("Boolean","bool"),("Byte","unsigned char"),("Char","char"),("Short","short"),("Int","int"),("Long","long"),
-                    ("Float","float"),("Double","double"),("String","const char*"))
-  lexical.reserved ++= c_types.keys.toList
-  lexical.delimiters ++= List("(", ")",".",",","*","+",";")
-
-  def tpe:Parser[String]=( "Boolean" ^^^ "bool" | "Byte" ^^^ "unsigned char" | "String" ^^^ "const char*"
-    | ("Char"|"Short"|"Int"|"Long"|"Float"|"Double") ^^ { _.toLowerCase }
-    | "(" ~> repsep(tpe,",") <~ ")" ^^ { a=>tn(a.zipWithIndex.map{case(s,i)=>s+" _"+(i+1) }.mkString("; ")) }
-    | repsep(ident,".") ^^ { n=>tp_norm(n.mkString(".")) }
-    | failure("illegal expression type")
-  )
-  def parseType(str:String):String = phrase(tpe)(new lexical.Scanner(str)) match {
-    case Success(ccode, _) => ccode
-    case e => sys.error(e.toString)
-  }
-
-  // --------------------------------------------------------------------------
-  // Case classes types
-  val ctx = within.getClass.getCanonicalName
-  def addClass(n:String):String = {
-    val cls = Class.forName(ctx+n)
-    // try mutliple attempt to find that class: absoulte class
-    // within.getDeclaredClasses() ...
-    // getDeclaringClass, getEnclosingClass, getSuperclass
-    cls.toString match {
-      case cn if (c_types.contains(cn)) => c_types(cn)
-      case _ => val td = cls.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
-        val tp = td.map{case (t,n)=>c_types(t.substring(0,1).toUpperCase+t.substring(1))+" "+n}.mkString("; ")
-        ts.getOrElseUpdate(tp,tp_norm(n))
-    }
-  }
+  import Macros._
 
   // try to find a constructor for an existing class
   def constr(n:String):Option[String] = { // XXX: pass data types (to create on the fly the struct)
     if (!n.endsWith(".apply")) None
-    else { val cl=n.substring(0,n.length-6); val tp=tp_norm(n.substring(0,n.length-6))
-      if (ts.values.toSet.contains(tp)) Some(tp)
-      else try { Some(addClass(cl)) } catch { case _:Throwable => None }
-    }
+    else { try { Some(addType(n.substring(0,n.length-6))) } catch { case _:Throwable => None } }
   }
 
-  // --------------------------------------------------------------------------
-  // Functions (tree traversal)
-  private var fid=0;
-  private def fn(fun:(String,String,String)) = fs.getOrElseUpdate(fun,{ val r=fid; fid=fid+1; "fun"+r })
-  val fs=new HashMap[(String,String,String),String](); // function (in,out,body) => name
-
+  import scala.collection.mutable.HashMap
   val base_ops= HashMap[String,String](
     ("$times","*"),("$plus","+"),("$minus","-"),("$div","/"),("$percent","%"),
     ("$greater",">"),("$greater$eq",">="),("$less","<"),("$less$eq","<="),
@@ -81,7 +33,7 @@ class CCodeGen(within:Any) extends StandardTokenParsers {
         }
     }
     case ValDef(_,name,tp,rhs) =>
-      (try { parseType(tp.toString) } catch { case _:Throwable => tp.toString }) +" "+name.toString+" = "+cc(rhs)+"; "
+      (try { addType(tp.toString) } catch { case _:Throwable => tp.toString }) +" "+name.toString+" = "+cc(rhs)+"; "
     case Literal(Constant(x)) =>
       if (x.isInstanceOf[Char]) "'"+x.toString+"'"
       else if (x.isInstanceOf[String]) "\""+x.toString.replace("\"","\\\"")+"\""
@@ -89,27 +41,33 @@ class CCodeGen(within:Any) extends StandardTokenParsers {
     case Select(This(_),name) => name.toString
     case Select(qual,name) => cc(qual)+"."+name
     case If(cond,thenp,elsep) => "(("+cc(cond)+")?("+cc(thenp)+"):("+cc(elsep)+"))"
-
     case Ident(name) => name.toString
     // Ident(newTermName("_arg"))
     //case _ => "unknown "+tree.getClass
-
     // XXX: issue: we don't know exactely how to bind
     //case Match(selector, cases) => selector+" match { \n"+cases.map{c=>cc(c)}.mkString("\n")+"} "
     //case CaseDef(pat, guard, body) => "if( is("+cc(pat)+" && "+cc(guard)+") { "+cc(body)+" } "
     case Match(sel,List(CaseDef(pat,guard,body))) => cc(body)
-
-
     case Bind(name, body) => name.toString
-
     case _ => showRaw(tree)
   }
 
   def push[T,U](f0:T=>U) = {
     if (!f0.isInstanceOf[TypedFunction]) sys.error("Push only accepts typed functions.")
     val f = f0.asInstanceOf[TypedFunction];
-    val in = parseType(f.typeIn)
-    val out = parseType(f.typeOut)
+    add(new CodeFun {
+      val tpIn = f.typeIn
+      val tpOut = f.typeOut
+      val body = f.tree match {
+        case Block(stats, expr) => stats.map{x=>cc(x)+"; "}.mkString("")+"_res="+cc(expr)
+        case expr => "_res="+cc(expr)
+      }
+    });
+  }
+  // XXX: Get the type of a variable
+  // XXX: get the type of a function
+  // XXX: maintain a list of live variables in the function (?)
+}
 
 /*
     // XXX: how to typecheck and infer types as much as possible (reuse compiler)
@@ -121,30 +79,10 @@ class CCodeGen(within:Any) extends StandardTokenParsers {
     val b2 = tb.typeCheck(f.tree)
 */
 
-    val body = f.tree match {
-      case Block(stats, expr) => stats.map{x=>cc(x)+"; "}.mkString("")+"_res="+cc(expr)
-      case expr => "_res="+cc(expr)
-    }
-    fn((in,out,body))
-  }
-
-  def headers = {
-    val res = ts.map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
-              ts.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n\n" +
-              fs.map{case ((i,o,b),n) => "inline "+o+" "+n+"("+i+" _arg) { "+o+" _res; "+b+"; return _res; }" }.mkString("\n") + "\n"
-    ts.clear(); fs.clear(); tid=0; fid=0; res
-  }
-
-  // XXX: Get the type of a variable
-  // XXX: get the type of a function
-  // XXX: maintain a list of live variables in the function (?)
-}
-
-
 object TestMacros extends App {
   import Macros._
   val g=new CCodeGen(this)
-  def cout = { println("-------------------------------------------------"); println(g.headers) }
+  def cout = { println("-------------------------------------------------"); println(g.flush) }
 
   // External structures
   case class Mat(rows:Int, cols:Int)

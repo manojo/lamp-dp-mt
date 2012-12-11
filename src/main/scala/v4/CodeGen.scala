@@ -1,38 +1,8 @@
 package v4
 
 trait CodeGen extends BaseParsers { this:Signature =>
-  // A simple variable generator that sequentially issues free variables
-  class FreeVar(v0:Char) {
-    private var v=v0
-    def get = { var r=v; v=(v+1).toChar; Var(r,0) }
-    def dup = new FreeVar(v0)
-  }
-
-  // ------------------------------------------------------------------------------
-  // Recurrence analysis, done once when grammar is complete, before the computation.
-  // 1) Unique identifiers for subrules (sorted by name, ensures unique id within one grammar, done in super=BaseParsers)
-  // 2) Maximal backtrack size (cuda: #define TB)
-  // 3) Compute cost storage (cuda: #define TC)
-  // 4) Dependency analysis (order within the pass, possibly if multiple pass are needed, check if all parsers are needed?)
-  private var cdefs:String=""
-  override def analyze:Boolean = { if (!super.analyze) return false;
-    var bt=0; for((n,p) <- rules) bt=Math.max(bt,p.cat)
-    cdefs=cdefs+"typedef struct { short rule; short pos["+bt+"]; } back_t;\n#define TB back_t\n"
-    // XXX: issue, we might have multiple backtrack in different tabulations at the same position
-
-    // XXX: 3) find the type of all involved recurrences: TypeOf[Answer]
-    //type T = Array[String]
-    //println("4: " + classOf[T])
-    cdefs=cdefs+"typedef struct { ??? } cost_t;\n#define TC cost_t\n"
-
-    val order=tabsOrder // dependency analysis
-
-    println("---------- analysis -----------")
-    for((n,p) <- rules) println(n+": base_id="+p.id+", alternatives="+p.alt+", concatMax="+p.cat);
-    println("Order in which to process tabulations: "+order)
-    println("------------- end -------------")
-    true
-  }
+  private val head = new CodeHeader(this) // User code and helpers store
+  private var order:List[String]=Nil // Order of parsers evaluation
 
   // Dependency analysis: give the computation order between tabulations
   def tabsOrder:List[String] = {
@@ -50,24 +20,56 @@ trait CodeGen extends BaseParsers { this:Signature =>
     order.reverse
   }
 
-  // XXX: idea: fill the matrix with an EMPTY value, then whenever we hit this value, we ignore the result
+  override def analyze:Boolean = { if (!super.analyze) return false; order=tabsOrder;
+    // Backtracking struct back_t : parser_name -> (rule, positions)
+    head.add("typedef struct {\n  "+rules.map{case(n,t)=>"struct { short rule; short pos["+t.inner.cat+"]; } "+n+";"}.mkString("\n  ")+"\n} back_t;\n#define TB back_t")
+
+    // Cost storage (cuda: #define TC)
+    //head.add("typedef struct {\n  "+rules.map{case(n,t)=>"answer_t "+n+";"}.mkString("\n  ")+"\n} cost_t;\n#define TB cost_t")
+    //println(scala.reflect.classTag[Answer].runtimeClass.toString) => see playground.Play
+    // http://stackoverflow.com/questions/9044808/is-there-a-manifest-for-abstract-types-like-there-is-for-parameterized-types
+
+    println("---------- analysis -----------")
+    for((n,p) <- rules) println(n+": base_id="+p.id+", alternatives="+p.alt+", concatMax="+p.inner.cat);
+    println("Order in which to process tabulations: "+order)
+    println("------------- end -------------")
+    true
+  }
+
+  /*
+  Steps:
+  0. Analyze, order tabulations
+  1. Make all the function implement CodeFun
+  2. Get all the declarations (user method, input and output types, backtrack, alphabet class)
+     - convert values to C
+     - convert types to C (see playground.Play)
+     - convert functions ot C
+  3. Generate code for the kernel
+  */
+  // Define the 'init' value (for max/min) and the 'empty' value for the initialization of cells (break loops)
+  def setDefaults(init:Answer,empty:Answer)/*FIXME*/(tpAnswer:String) {
+    println("init = "+init)
+    println("empty = "+empty)
+    val atp=head.addType(tpAnswer)
+
+    // Demo (assumes   case class Mat(rows:Int, cols:Int)   in the final class)
     /*
-    val tc = scala.reflect.classTag[TC].runtimeClass.toString
-    val ti:(String,String) = scala.reflect.classTag[TI].runtimeClass match {
-      case cl if (type_jni.contains(cl.toString)) => val cn=cl.toString;
-        ("#define TI "+type_c(cn),"  for (i=0;i<size;++i) (*in)[i] = (TI)env->Get"+up1(cn)+"ArrayElement(input, i);\n")
-      case cl =>
-        //println(manifest[T].erasure.getConstructors.mkString(", "))
-        val ts = cl.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
-        val ms = ts.map{ case(t,n)=> "env->GetMethodID(cls, \""+n+"\", \"()"+type_jni(t)+"\")," }
-        var es = ts.zipWithIndex.map{ case((t,n),i) => "e->"+n+" = env->Call"+up1(t)+"Method(elem, ms["+i+"]);" }
-        ("typedef struct { "+ts.map{case (t,n)=>type_c(t)+" "+n+";"}.mkString(" ")+" } in_t;\n#define TI in_t",
-         "  jmethodID ms[] = {\n    "+ms.mkString("\n    ")+"\n  };\n\n  for (i=0;i<size;++i) {\n"+
-         "    elem = env->GetObjectArrayElement(input, i);\n    TI* e = &((*in)[i]);\n    "+es.mkString("\n    ")+"\n  }\n")
+    val foo = new CodeFun{ // tree{ (x:Mat) => Mat(x.cols,x.rows) }
+      val tpIn="Mat"
+      val tpOut="Mat"
+      val body="_res=(mat_t){_arg.cols,_arg.rows}"
     }
+    val foo2 = new CodeFun { //(x:(Int,(Int,Int))) => x._1 * x._2._1 + x._2._2
+      val tpIn="(Int,(Int,Int))"
+      val tpOut="Int"
+      val body="_res=_arg._1 * _arg._2._1 + _arg._2._2"
+    }
+    println(head.add(foo))
+    println(head.add(foo2))
     */
-  // manifest to grab class infos
-  // Get matrices storage type and backtracking length
+    //addClass("Answer")
+  }
+  // XXX: idea: fill the matrix with an EMPTY value, then whenever we hit this value, we ignore the result
 /*
  * Code generation:
  * 1. Normalize rules (at hash-map insertion (?))
@@ -84,11 +86,16 @@ trait CodeGen extends BaseParsers { this:Signature =>
   def gen:String = {
     println
     println("Problem type: "+(if (twotracks) "sequence alignment" else "standard" )+(if (window>0) ", window="+window else ""));
+    analyze
     println("------------ defs -------------")
-    print(cdefs)
+    print(head.flush)
     println("------------ rules ------------")
-    for((n,p) <- rules) {
-      println( n+"[i,j] => "+emit(p.inner))
+    println("back_t b = STOP_ALL;")
+    println("cost_t c=INIT_ALL,c2;")
+
+    order.foreach { n=> val r=rules(n);
+      println("// --- "+n+"[i,j] ---")
+      println(emit(r.inner))
     }
     println("------------- end -------------")
     ""
@@ -109,6 +116,13 @@ trait CodeGen extends BaseParsers { this:Signature =>
     case Or(l,r) => Or(norm(l),norm(r))
     case Concat(l,r,i) => Concat(norm(l),norm(r),i)
     case _ => parser
+  }
+
+  // A simple variable generator that sequentially issues free variables
+  class FreeVar(v0:Char) {
+    private var v=v0
+    def get = { var r=v; v=(v+1).toChar; Var(r,0) }
+    def dup = new FreeVar(v0)
   }
 
   // 1. Assign to each node its bounds (i,j)

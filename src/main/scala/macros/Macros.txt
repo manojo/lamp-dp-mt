@@ -10,8 +10,29 @@ object Macros {
     val typeOut: String
   }
 
-  def tree[T,U](f:Function1[T,U]): Function1[T,U] = macro tree_impl[T,U]
+  /*
+  def tree0[T](f:Function0[T]): Function0[T] = macro tree0_impl[T]
+  def tree0_impl[T:c.WeakTypeTag](c: Context)(f:c.Expr[Function0[T]]): c.Expr[Function0[T]] = {
+    import c.universe._
+    val ttag = c.weakTypeTag[T]
+    f match {
+      case Expr(Function(List(),b)) =>
+        val reifiedTree = c.reifyTree(treeBuild.mkRuntimeUniverseRef, EmptyTree, b)
+        val reifiedExpr = c.Expr[scala.reflect.runtime.universe.Expr[() => T]](reifiedTree)
+        val template = c.universe.reify(new (() => T) with TypedFunction {
+            def tree = reifiedExpr.splice.tree
+            val typeIn = null
+            val typeOut = c.literal(ttag.tpe.toString).splice
+            def apply(): T = c.Expr[T](b)(ttag.asInstanceOf[c.WeakTypeTag[T]]).splice
+          })
+        val untyped = c.resetLocalAttrs(template.tree) // XXX: necessary ?
+        c.Expr[() => T](untyped)
+      case _ => sys.error("Bad function type")
+    }
+  }
+  */
 
+  def tree[T,U](f:Function1[T,U]): Function1[T,U] = macro tree_impl[T,U]
   def tree_impl[T:c.WeakTypeTag,U:c.WeakTypeTag](c: Context)
       (f:c.Expr[Function1[T,U]]): c.Expr[Function1[T,U]] = {
     import c.universe._
@@ -36,9 +57,8 @@ object Macros {
 
         val reifiedTree = c.reifyTree(treeBuild.mkRuntimeUniverseRef, EmptyTree, b1)
         val reifiedExpr = c.Expr[scala.reflect.runtime.universe.Expr[T => U]](reifiedTree)
-        val template =
-          c.universe.reify(new (T => U) with TypedFunction {
-            override def toString = c.literal(tp+" => "+ttag.tpe+" { "+b1.toString+" } ").splice // DEBUG
+        val template = c.universe.reify(new (T => U) with TypedFunction {
+            //override def toString = c.literal(tp+" => "+ttag.tpe+" { "+b1.toString+" } ").splice // DEBUG
             def tree = reifiedExpr.splice.tree
             val typeIn = c.literal(tp.toString).splice
             val typeOut = c.literal(ttag.tpe.toString).splice

@@ -3,8 +3,7 @@ package v4
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
 // Signature for C-generable functions
-trait CFun {
-  val name:String // Scala name
+trait CodeFun {
   val tpIn:String // Scala type (as you would write in 'type Foo = ...')
   val tpOut:String // Scala type
   val body:String // C code 'int x=33; _res=x'
@@ -12,7 +11,7 @@ trait CFun {
 }
 
 // Helper to decode types uniquely and store functions
-class CHeader(within:Any) extends StandardTokenParsers {
+class CodeHeader(within:Any) extends StandardTokenParsers {
   import scala.collection.mutable.HashMap
   import lexical.{NumericLit,StringLit}
   val c_types = Map(("Boolean","bool"),("Byte","unsigned char"),("Char","char"),("Short","short"),("Int","int"),("Long","long"),
@@ -28,7 +27,7 @@ class CHeader(within:Any) extends StandardTokenParsers {
     | "(" ~> repsep(tpp,",") <~ ")" ^^ { a=>tpn(a.zipWithIndex.map{case(s,i)=>s+" _"+(i+1) }.mkString("; ")) }
     | repsep(ident,".") ^^ { x=>tp_cls(x.mkString(".")) } | failure("Illegal type expression"))
 
-  def tpParse(str:String):String = phrase(tpp)(new lexical.Scanner(str)) match { case Success(ccode, _) => ccode case e => sys.error(e.toString) }
+  def addType(str:String):String = phrase(tpp)(new lexical.Scanner(str)) match { case Success(ccode, _) => ccode case e => sys.error(e.toString) }
 
   private val tp_ctx = within.getClass.getCanonicalName
   private def tp_cls(n:String):String = {
@@ -41,40 +40,20 @@ class CHeader(within:Any) extends StandardTokenParsers {
   }
 
   // Functions
-  private var fid=0;
-  val fs=new HashMap[(String,String,String),String](); // function (in,out,body) => name
-  def add(f:CFun):String = {
-    val in = tpParse(f.tpIn); val out=tpParse(f.tpOut); val fun=(in,out,f.body)
-    fs.getOrElseUpdate(fun,{ val r=fid; fid=fid+1; "fun"+r })
+  private var fnc=0;
+  private val fns=new HashMap[(String,String,String),String](); // function (in,out,body) => name
+  def add(f:CodeFun):String = {
+    val in = addType(f.tpIn); val out=addType(f.tpOut); val fun=(in,out,f.body)
+    fns.getOrElseUpdate(fun,{ val r=fnc; fnc=fnc+1; "fun"+r })
   }
 
-  def code = {
+  // Raw C code (put after all definitions)
+  private var raw=""
+  def add(str:String) { raw = raw + str + "\n" }
+  def flush = {
     val res = tps.map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
-              tps.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n\n" +
-              fs.map{case ((i,o,b),n) => "inline "+o+" "+n+"("+i+" _arg) { "+o+" _res; "+b+"; return _res; }" }.mkString("\n") + "\n"
-    tps.clear(); tpc=0; res
+              tps.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" +
+              fns.map{case ((i,o,b),n) => "inline "+o+" "+n+"("+i+" _arg) { "+o+" _res; "+b+"; return _res; }" }.mkString("\n") + "\n" + raw
+    tps.clear(); fns.clear(); tpc=0; fnc=0; raw=""; res
   }
 }
-
-object CodeHeaderTest extends App {
-  val h=new CHeader(this)
-  case class Mat(rows:Int, cols:Int)
-
-  val foo = new CFun{ // tree{ (x:Mat) => Mat(x.cols,x.rows) }
-    val name="foo"
-    val tpIn="Mat"
-    val tpOut="Mat"
-    val body="_res=(mat_t){_arg.cols,_arg.rows}"
-  }
-  val foo2 = new CFun { //(x:(Int,(Int,Int))) => x._1 * x._2._1 + x._2._2
-    val name="foo2"
-    val tpIn="(Int,(Int,Int))"
-    val tpOut="Int"
-    val body="_res=_arg._1 * _arg._2._1 + _arg._2._2"
-  }
-
-  println(h.add(foo))
-  println(h.add(foo2))
-  println(h.code)
-}
-
