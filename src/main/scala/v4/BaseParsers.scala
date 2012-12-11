@@ -4,7 +4,7 @@ class Dummy // empty parser match
 
 trait Signature {
   type Alphabet // input type
-  type Answer   // output type
+  type Answer // output type
 
   val window = 0 // windowing size, 0=disabled
   val h:List[Answer]=>List[Answer] = l=>l // optimization function
@@ -86,6 +86,7 @@ trait BaseParsers { this:Signature =>
     val (min,max) = (0,-1)
     private val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[(Answer,Backtrack)]])
     reset = { val r0=reset; () => { r0(); map.clear; } }
+    if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
 
     var id:Int = -1 // subrules base index
