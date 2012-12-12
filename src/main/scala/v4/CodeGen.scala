@@ -8,8 +8,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   def tabsOrder:List[String] = {
     def deps[T](q:Parser[T]): List[String] = q match {
       case Aggregate(p,_) => deps(p) case Filter(p,_) => deps(p) case Map(p,_) => deps(p) case Or(l,r) => deps(l)++deps(r)
-      case Concat(l,r,_) => (if (l.min==0) deps(r) else Nil) ::: (if (r.min==0) deps(l) else Nil) // always access previous element within concat
-        // XXX: if such case happen, then increase the size of the righthandside
+      case Concat(l,r,_) => (if (l.min==0) deps(r) else Nil) ::: (if (r.min==0) deps(l) else Nil) // access same element when other is empty
       case _ => if (q.isInstanceOf[Tabulate]) List(q.asInstanceOf[Tabulate].name) else Nil
     }
     var order = List[String]()
@@ -33,19 +32,39 @@ trait CodeGen extends BaseParsers { this:Signature =>
   var (vInit,vEmpty,tpAnswer):(String,String,String)=(null,null,null)
   def setDefaults(init:Answer,empty:Answer) { tpAnswer=head.addType(head.tpOf(init)); vInit=head.getVal(init.toString); vEmpty=head.getVal(empty.toString) }
 
-  // Normalization: we want to achieve something similar to
-  // [ThisTabulate] > Or > Filter > Aggregate > Map > Concat > (Tabulate | Terminal)
-  // - Aggregate is a boundary for Or's hoisting (but not for Filters)
-  // - Concat is a hoisting boundary for Filter
-  // - Or is a hoisting boundary for Filter
-  // - Tabulate & Terminal could generate their own conditions
-  //
-  // Ultimately, the C code should have a shape that looks more like
-  // Or > ForLoops+Filters > Aggregate > Map > Tabulate|Terminal
+  // Parser normalization
+  // Canonical : [Tabulate] > Aggregate > Or > Filter > Map > Concat > (Tabulate | Terminal)
+  // C code    : [Tabulate] > Or > ForLoop+Filter > Aggregate1 > Map > (Tabulate | Terminal)
+  // Invariant : Aggregate > Map > Concat (due to domain change)
+  def norm[T](parser:Parser[T]):Parser[T] = parser match {
+    case Or(l,r) => Or(norm(l),norm(r))
+    case Filter(p0,c) => norm(p0) match {
+      case Or(l,r) => Or(norm(Filter(l,c)),norm(Filter(r,c)))
+      case p => Filter(p,c)
+    } 
+    case Aggregate(p0,h) => norm(p0) match {
+      case Filter(p,f) => Filter(norm(Aggregate(p,h)),f)
+      case Or(l,r) => Or(norm(Aggregate(l,h)),norm(Aggregate(r,h)))
+      case p => Aggregate(p,h)
+    }
+    case Map(p0,f) => norm(p0) match {
+      case Filter(p,c) => Filter(norm(Map(p,f)),c)
+      case Or(l,r) => Or(norm(Map(l,f)),norm(Map(r,f)))
+      case p => Map(p,f)
+    }
+    // XXX: does this preserve the alternative numbering ? make sure...
+    case Concat(l0,r0,t) => (norm(l0),norm(r0)) match {
+      case (Or(a,b),r) => Or(norm(Concat(a,r,t)),norm(Concat(b,r,t)))
+      case (l,Or(a,b)) => Or(norm(Concat(l,a,t)),norm(Concat(l,b,t)))
+      case (l,r) => Concat(l,r,t)
+    }
+    case _ => parser
+  }
+
+
 
   /*
   Steps:
-  0. Analyze, order tabulations
   1. Make all the function implement CodeFun
   2. Get all the declarations (user method, input and output types, backtrack, alphabet class)
      - convert values to C
@@ -53,8 +72,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
      - convert functions ot C
   3. Generate code for the kernel
   */
-    // Demo (assumes   case class Mat(rows:Int, cols:Int)   in the final class)
-    /*
+  // Demo (assumes   case class Mat(rows:Int, cols:Int)   in the final class)
+  /*
     val foo = new CodeFun{ // tree{ (x:Mat) => Mat(x.cols,x.rows) }
       val tpIn="Mat"
       val tpOut="Mat"
@@ -67,21 +86,10 @@ trait CodeGen extends BaseParsers { this:Signature =>
     }
     println(head.add(foo))
     println(head.add(foo2))
-    */
-    //addClass("Answer")
-
+  */
   // XXX: idea: fill the matrix with an EMPTY value, then whenever we hit this value, we ignore the result
-/*
- * Code generation:
- * 1. Normalize rules (at hash-map insertion (?))
- * 2. Compute dependency analysis between rules => order them into a list/queue
- *    - If rule R contains another rule S unconcatenated (or concatenated with empty)
- *      then we have S -> T (S before T)
- * 3. Compute the maximal number of concatenation among each rule (field in Treeable(?))
- * 4. Break rules into subrules (at each Or, which must be at top of the rule)
- */
 
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   // C code generator
 
   def gen:String = { analyze
@@ -99,23 +107,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
     }
     println("------------- end -------------")
     ""
-  }
-
-  // Normalize the parser
-  def norm[T](parser:Parser[T]):Parser[T] = parser match {
-    case Aggregate(p0,h) => norm(p0) match {
-      case Filter(p,f) => Filter(norm(Aggregate(p,h)),f)
-      case Or(l,r) => Or(norm(Aggregate(l,h)),norm(Aggregate(r,h)))
-      case p => Aggregate(p,h)
-    }
-    case Map(p0,f) => norm(p0) match {
-      case Filter(p,c) => Filter(norm(Map(p,f)),c)
-      case p => Map(p,f)
-    }
-    case Filter(p,c) => Filter(norm(p),c)
-    case Or(l,r) => Or(norm(l),norm(r))
-    case Concat(l,r,i) => Concat(norm(l),norm(r),i)
-    case _ => parser
   }
 
   // A simple variable generator that sequentially issues free variables
