@@ -13,8 +13,8 @@ trait Signature {
   def min[T:Numeric]: List[T]=>List[T]
   def sum[T:Numeric]: List[T]=>List[T]
   def count[T:Numeric]: List[T]=>List[T]
-  //def maxBy[T:Numeric](f:Answer=>T): List[Answer]=>List[Answer]
-  //def minBy[T:Numeric](f:Answer=>T): List[Answer]=>List[Answer]
+  def maxBy[T:Numeric](f:Answer=>T): List[Answer]=>List[Answer]
+  def minBy[T:Numeric](f:Answer=>T): List[Answer]=>List[Answer]
 }
 
 trait BaseParsers { this:Signature =>
@@ -254,6 +254,16 @@ trait BaseParsers { this:Signature =>
     def apply(l:List[T]) = if (l.isEmpty) Nil else List(l.length.asInstanceOf[T])
     override def toString = "$$count$$"
   }
+  case class MinBy[T:Numeric](f:Answer=>T) extends (List[Answer]=>List[Answer]) {
+    def apply(l:List[Answer]) = if (l.isEmpty) Nil else List(l.minBy(f))
+    override def toString = "$$minBy$$"
+  }
+  case class MaxBy[T:Numeric](f:Answer=>T) extends (List[Answer]=>List[Answer]) {
+    def apply(l:List[Answer]) = if (l.isEmpty) Nil else List(l.maxBy(f))
+    override def toString = "$$maxBy$$"
+  }
+  def maxBy[T:Numeric](f:Answer=>T) = MaxBy(f)
+  def minBy[T:Numeric](f:Answer=>T) = MinBy(f)
 
   // --------------------------------------------------------------------------
   // Utilities for debugging and pretty-printing

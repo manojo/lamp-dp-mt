@@ -43,7 +43,7 @@ trait ZukerSig extends Signature {
 
   def sadd(lb:Int, e:Answer) : Answer
   def cadd(x:Answer, e:Answer) : Answer
-  def dlr(lb:SSeq, e:Answer, rb:SSeq) : Answer
+  def dlr(lb:Int, e:Answer, rb:Int) : Answer
   def sr(lb:Int, e:Answer, rb:Int) : Answer
   def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) : Answer
   def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) : Answer
@@ -76,7 +76,7 @@ trait ZukerMFE extends ZukerSig {
   // Read more in librna/rnalib.c, we could get valuable information there
   def sadd(lb:Int, e:Answer) = e
   def cadd(x:Answer, e:Answer) = x + e
-  def dlr(lb:SSeq, e:Answer, rb:SSeq) = e + LibRNA.ext_mismatch_energy(lb._1, rb._2, size) + LibRNA.termau_energy(lb._1, rb._2)
+  def dlr(lb:Int, e:Answer, rb:Int) = e + LibRNA.ext_mismatch_energy(lb, rb, size) + LibRNA.termau_energy(lb, rb);
   def sr(lb:Int, e:Answer, rb:Int) = e + LibRNA.sr_energy(lb, rb)
   def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = LibRNA.hl_energy(x._1,x._2) + LibRNA.sr_energy(lb, rb)
   def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) = e + LibRNA.bl_energy(lb,f1,f2,rb,x._2-x._1) + LibRNA.sr_energy(lb, rb)
@@ -103,7 +103,7 @@ trait ZukerPrettyPrint extends ZukerSig {
 
   def sadd(lb:Int, e:Answer) = "."+e
   def cadd(x:Answer, e:Answer) = x+e
-  def dlr(lb:SSeq, e:Answer, rb:SSeq) = dots(lb,'_')+e+dots(rb,'_')
+  def dlr(lb:Int, e:Answer, rb:Int) = e
   def sr(lb:Int, e:Answer, rb:Int) = "("+e+")"
   def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = "(("+dots(x)+"))"
   def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) = "(("+dots(x)+e+"))"
@@ -119,7 +119,7 @@ trait ZukerPrettyPrint extends ZukerSig {
 
 trait ZukerGrammar extends ADPParsers with ZukerSig {
   def BASE = eli
-  def LOC = seq(1,-1)
+  def LOC = emptyi
   def REGION = seq _
 
   val struct:Tabulate = tabulate("st",(

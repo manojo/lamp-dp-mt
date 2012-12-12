@@ -32,6 +32,16 @@ trait CodeGen extends BaseParsers { this:Signature =>
   var (vInit,vEmpty,tpAnswer):(String,String,String)=(null,null,null)
   def setDefaults(init:Answer,empty:Answer) { tpAnswer=head.addType(head.tpOf(init)); vInit=head.getVal(init.toString); vEmpty=head.getVal(empty.toString) }
 
+  // Normalization: we want to achieve something similar to
+  // [ThisTabulate] > Or > Filter > Aggregate > Map > Concat > (Tabulate | Terminal)
+  // - Aggregate is a boundary for Or's hoisting (but not for Filters)
+  // - Concat is a hoisting boundary for Filter
+  // - Or is a hoisting boundary for Filter
+  // - Tabulate & Terminal could generate their own conditions
+  //
+  // Ultimately, the C code should have a shape that looks more like
+  // Or > ForLoops+Filters > Aggregate > Map > Tabulate|Terminal
+
   /*
   Steps:
   0. Analyze, order tabulations
@@ -119,7 +129,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
   def gen[T](q:Parser[T],i:Var,j:Var,g:FreeVar):(List[Cond],String) = q match {
     case Terminal(_,_,f) => f(i,j)
-    case Aggregate(p,h) => val (c,b)=gen(p,i,j,g);
+    case Aggregate(p,h) => val (c,b)=gen(p,i,j,g); // XXX: missing rule_id, backtrack and tabulate's (name,id)
       h.toString match {
         case "$$max$$" => (c, "max("+b+")")
         case "$$min$$" => (c, "min("+b+")")

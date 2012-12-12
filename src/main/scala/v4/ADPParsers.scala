@@ -23,6 +23,9 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   def empty = new Terminal[Dummy](0,0,(i:Var,j:Var) => (List(i.eq(j,0)),"EMPTY")) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((new Dummy,bt0)) else Nil }
   }
+  def emptyi = new Terminal[Int](0,0,(i:Var,j:Var) => (List(i.eq(j,0)),""+i)) {
+    def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((i,bt0)) else Nil }
+  }
   def el = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (List(i.eq(j,1)),"in["+i+"]")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in(i),bt0)) else Nil }
   }
