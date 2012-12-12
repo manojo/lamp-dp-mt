@@ -11,27 +11,48 @@ trait CodeFun {
 }
 
 // Helper to decode types uniquely and store functions
-class CodeHeader(within:Any) extends StandardTokenParsers {
+class CodeHeader(within:Any) {
   import scala.collection.mutable.HashMap
-  import lexical.{NumericLit,StringLit}
   val c_types = Map(("Boolean","bool"),("Byte","unsigned char"),("Char","char"),("Short","short"),("Int","int"),("Long","long"),
                     ("Float","float"),("Double","double"),("String","const char*"))
-  lexical.reserved ++= c_types.keys.toList
-  lexical.delimiters ++= List("(", ")",",",".")
+
+  private object typeParser extends StandardTokenParsers {
+    import lexical.{NumericLit,StringLit}
+    lexical.reserved ++= c_types.keys.toList
+    lexical.delimiters ++= List("(",")",",",".")
+    private def p:Parser[String]=( ("Boolean"|"Byte"|"String"|"Char"|"Short"|"Int"|"Long"|"Float"|"Double") ^^ { c_types(_) }
+      | "(" ~> repsep(p,",") <~ ")" ^^ { a=>tpn(a.zipWithIndex.map{case(s,i)=>s+" _"+(i+1) }.mkString("; ")) }
+      | repsep(ident,".") ^^ { x=>tp_cls(x.mkString(".")) } | failure("Illegal type expression"))
+    def parse(str:String):String = phrase(p)(new lexical.Scanner(str)) match { case Success(res, _)=>res case e=>sys.error(e.toString) }
+  }
+
+  private object valParser extends StandardTokenParsers {
+    import lexical.{NumericLit,StringLit}
+    lexical.reserved ++= c_types.keys.toList ++ List("e","E")
+    lexical.delimiters ++= List("(",")",",","-",".")
+    private def pr[T](o:Option[T]) = o match { case Some(v)=>v.toString case None => "" }
+    private def num:Parser[String] = opt("-") ~
+      ( opt(numericLit)~("."~>numericLit)^^{case o~d=>pr(o)+"."+d} | numericLit ) ~
+      opt( ("e"|"E")~>(opt("-")~numericLit)^^{case o~d=> "e"+pr(o)+d} ) ^^ { case s~m~e => pr(s)+m+pr(e) }
+    private def p:Parser[String] = (num ^^ { n=>n.toString }
+      | "(" ~> repsep(p,",") <~ ")" ^^ { a=>"{"+a.mkString(",")+"}" }
+      | repsep(ident,".") ^^ { x=> "("+x.mkString(".")+")" } | failure("Illegal type expression"))
+    def parse(str:String):String = phrase(p)(new lexical.Scanner(str)) match { case Success(res, _)=>res case e=>sys.error(e.toString) }
+  }
 
   // XXX: do we want to alias equivalent types/classes ? prepare a section '#define fancy_class_t tpXX' ahead of struct definition
   // XXX: do we want to get the subtypes of some elements ?
   // XXX: reverse lookup to get the correct type for one element ?
+  // Values (ScalaExpr,CTypeName => CExpr,CTypeName)
+  // def value(v:String,tp:String):(String,String) = {}
 
   // Structs and types management
   private var tpc=0;
   private val tps=new HashMap[String,String](); // struct body -> name
   private def tpn(tp:String) = tps.getOrElseUpdate(tp,{ val r=tpc; tpc=tpc+1; "tp"+r })
-  private def tpp:Parser[String]=( ("Boolean"|"Byte"|"String"|"Char"|"Short"|"Int"|"Long"|"Float"|"Double") ^^ { c_types(_) }
-    | "(" ~> repsep(tpp,",") <~ ")" ^^ { a=>tpn(a.zipWithIndex.map{case(s,i)=>s+" _"+(i+1) }.mkString("; ")) }
-    | repsep(ident,".") ^^ { x=>tp_cls(x.mkString(".")) } | failure("Illegal type expression"))
-
-  def addType(str:String):String = phrase(tpp)(new lexical.Scanner(str)) match { case Success(ccode, _) => ccode case e => sys.error(e.toString) }
+  def addType(str:String):String = typeParser.parse(str)
+  def getVal(str:String):String = valParser.parse(str)
+  // def typeNamed(n:String):String = XXX: maintain revert hash map
 
   private val tp_ctx = within.getClass.getCanonicalName
   private def tp_cls(n:String):String = {
@@ -71,7 +92,4 @@ class CodeHeader(within:Any) extends StandardTokenParsers {
               fns.map{case ((i,o,b),n) => "inline "+o+" "+n+"("+i+" _arg) { "+o+" _res; "+b+"; return _res; }" }.mkString("\n") + "\n" + raw
     tps.clear(); fns.clear(); tpc=0; fnc=0; raw=""; res
   }
-
-  // Values (ScalaExpr,CTypeName => CExpr,CTypeName)
-  // def value(v:String,tp:String):(String,String) = {}
 }

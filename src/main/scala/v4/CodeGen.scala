@@ -30,7 +30,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   // Define the 'init' value (for max/min) and the 'empty' value for the initialization of cells (break loops)
   var (vInit,vEmpty,tpAnswer):(String,String,String)=(null,null,null)
-  def setDefaults(init:Answer,empty:Answer) { vInit=init.toString; vEmpty=empty.toString; tpAnswer=head.addType(head.tpOf(init)) }
+  def setDefaults(init:Answer,empty:Answer) { tpAnswer=head.addType(head.tpOf(init)); vInit=head.getVal(init.toString); vEmpty=head.getVal(empty.toString) }
 
   /*
   Steps:
@@ -80,15 +80,11 @@ trait CodeGen extends BaseParsers { this:Signature =>
     println("------------ defs -------------")
     print(head.flush)
     println("------------ rules ------------")
-    // All backtracks to stop (rule -1)
     println("back_t b = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0)",{"+(0 until c).map{"0"}.mkString(",")+"}"else"")+"}"}.mkString(",")+"};")
-    // All costs to INIT
-    // XXX: fix conversion to scala
-    println("cost_t c={"+order.map{n=>vInit}.mkString(",")+"},c2;")
-
+    println("cost_t c = {"+order.map{n=>vInit}.mkString(",")+"},c2;")
     order.foreach { n=> val r=rules(n);
       println("// --- "+n+"[i,j] ---")
-      println(emit(r.inner))
+      println(emit(r.inner)) // XXX: resolve this point
     }
     println("------------- end -------------")
     ""
@@ -165,8 +161,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
           (List(c),gen(l,i,k,g),gen(r,k,j,g))
       }
       (simplify(c ::: lc ::: rc), lb+" ~TT~ "+rb)
-    //case Tabulate(p,name) => (Nil, name+"["+i+","+j+"]")
-    case _ =>
+    case _ => // Tabulate(_,name) => (Nil, name+"["+i+","+j+"]")
       if (q.isInstanceOf[Tabulate]) {
         (Nil, q.asInstanceOf[Tabulate].name+"["+i+","+j+"]")
       }
