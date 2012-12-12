@@ -54,6 +54,24 @@ to have equality on the following formula. We can solve it more easily if functi
 \[\min\limits_{i<k_1<k_2<j}\big[ f(i,k_1,k_2,j) \big] \le  \min\limits_{i<k_2<j} \big[ g_2(i,\min\limits_{i<k_1<k_2} \big[ (g_1(i,k_1,k_2  ) \big],k_2,j) \big]  \]
 }
 
+\subsection{Recurrences analysis}
+Since the original ADP introduces many concatenation combinators to differentiate between empty/non-empty, and floating/fixed concatenations, it might become quite involved for the programmer to make sure that the concatenation operator exactly matches the size of each sub-word involved. Additionally the priority of operators might vary in Scala, depending the operator's first character whereas it is possible to define arbitrary priorities in Haskell. To overcome these problems, we propose to automate the computation of the length of the left and right handside subwords of concat operators.
+
+Let us introduce the concept of dependency: a dependency between tabulations $A,B$ denoted $A\to B$ exists if $B_{(i,j)} = f(A_{(i,j)})$, that is if the result of $B$ depends of the result on the \textit{same} subproblem computed in $A$. A grammar is unsolvable if there exist a dependency loop between parsers ($A\to ... \to A$). Such case only happen when there is no concatenation or a concatenation with an empty word.
+
+Knowing that fact we can now easily track the dependencies of tabulations and infer an order of computation between them. Although unnecessary in a top-down approach (Scala), this order becomes essential in a bottom-up approach (CUDA) to make sure we always have all dependencies computed. Once we have such an order we can also trigger a min/max analysis on parsers length. Since a parser is made of terminals, concat, operations (aggregate, map, filter) and tabulations and since the min/max length of terminals is fixed, we only need to assign appropriate size to tabulations,  other operation simply need to propagate the information.
+
+It is possible to obtain the yield size using the following algorithm (assuming all parser loops contain at least one tabulation):\ol
+\item Set the yield minimum size of all tabulations to a large
+\item Repeat $k$ times ($k$ is the number of tabulations): for each tabulation, compute its minimum yield size and update its value (without recursion at tabulations). This would lead to a correct minimum yield size because the terminals provide a minimum size and this might need at most $k$ iteration to propagate across all tabulations.
+\item Set the maximal yield of all the tabulations to the minimal value. For each tabulation, compute recursively up to depth $k$ (where the depth is computed as the number of tabulation traversed) the maximum yield size. If the depth reach the maximum, return infinity.
+\ole
+
+The last part of this algorithm seems to have an exponential complexity, however, if we consider depth-first search and return as soon as we reach infinity, we might reduce its complexity to $O(k^2)$. Obtaining the yield size of tabulations provides the following benefits:\ul
+\item Minimum size: prevents self-loops (computing one matrix cell using its result) and avoid considering subsequences that would yield empty result (hence reducing time complexity).
+\item Maximum size: allows to reduce the size of the result and backtrack matrix to $O(k\cdot n)$ instead of $O(n^2)$ (where $k$ is the maximum yield size), possibly providing substantial space savings.
+\ule
+
 \subsection{Backtracking}
 In order to do a clean and efficient transformation from ADP-like language to plain C recurrences, we need to construct bottom-up recurrences from top-down parser rules. To do that, we slightly need to modify the ADP language in order to separate the backtracking and the scoring, because we want to obtain an efficient algorithm: backtrack writes are in $O(n^2)$ whereas score reads are proportional to the algorithmic complexity ($O(n^3)$ or more for non-serial). To deal with this problem, we are facing two options:\ul
 \item \textbf{Explicit backtracking:} requires clear syntactical separation between the score and the backtrack and is not implemented in vanilla ADP (unless the whole backtrack is made part of the scoring: big performance impact and non-constant memory requirement issues make its GPU implementation hard and not desirable). Since the backtracking is user-defined, there is no way to generate the backtracking algorithm automatically, hence the user also needs to provide it. 
