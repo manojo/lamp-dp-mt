@@ -32,6 +32,16 @@ trait Foo {
 
   case class Mat(rows:Int, cols:Int)
 
+
+  def tpof2[T](a:T):String = {
+    val s=a.getClass.toString;
+    if (a.isInstanceOf[Product] && s.startsWith("class scala.")) { val p=a.asInstanceOf[Product]; "("+(0 until p.productArity).map{x=>tpof2(p.productElement(x))}.mkString(",")+")" }
+    else s match {
+      case "boolean"|"byte"|"char"|"short"|"int"|"long"|"float"|"double" => s.substring(0,1).toUpperCase+s.substring(1,s.length)
+      case _ if (s.startsWith("class java.lang.")) => s.substring(16) match { case "Character"=>"Char" case "Integer"=>"Int" case t=>t }
+      case _ => s.substring(6)
+    }
+  }
 }
 
 object Play extends App with Foo {
@@ -39,7 +49,9 @@ object Play extends App with Foo {
 
   //tpof((1,2))
   //tpof(1)
-  tpof(("foo",2.toChar,3.toLong,4.toShort,Mat(1,3),(1.toFloat,(0.toByte,2))))
+  //tpof(("foo",2.toChar,3.toLong,4.toShort,Mat(1,3),(1.toFloat,(0.toByte,2))))
+
+  println(tpof2(("foo",2.toChar,3.toLong,4.toShort,Mat(1,3),(1.toFloat,(0.toByte,2)))))
 
   //println(tp1((1,2)))
 

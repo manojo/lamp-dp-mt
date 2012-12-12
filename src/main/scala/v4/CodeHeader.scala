@@ -19,6 +19,10 @@ class CodeHeader(within:Any) extends StandardTokenParsers {
   lexical.reserved ++= c_types.keys.toList
   lexical.delimiters ++= List("(", ")",",",".")
 
+  // XXX: do we want to alias equivalent types/classes ? prepare a section '#define fancy_class_t tpXX' ahead of struct definition
+  // XXX: do we want to get the subtypes of some elements ?
+  // XXX: reverse lookup to get the correct type for one element ?
+
   // Structs and types management
   private var tpc=0;
   private val tps=new HashMap[String,String](); // struct body -> name
@@ -39,6 +43,17 @@ class CodeHeader(within:Any) extends StandardTokenParsers {
     tps.getOrElseUpdate(tp, n.substring(n.lastIndexOf('.')+1).toLowerCase+"_t")
   }
 
+  // Scala Type of an composite Tuple/case classes/primary types
+  def tpOf[T](a:T):String = {
+    val s=a.getClass.toString;
+    if (a.isInstanceOf[Product]) { val p=a.asInstanceOf[Product]; "("+(0 until p.productArity).map{x=>tpOf(p.productElement(x))}.mkString(",")+")" }
+    else s match {
+      case "boolean"|"byte"|"char"|"short"|"int"|"long"|"float"|"double" => s.substring(0,1).toUpperCase+s.substring(1,s.length)
+      case _ if (s.startsWith("class java.lang.")) => s.substring(16) match { case "Character"=>"Char" case "Integer"=>"Int" case t=>t }
+      case _ => s.substring(6) // seems that case classes extend Product, enforce that?
+    }
+  }
+
   // Functions
   private var fnc=0;
   private val fns=new HashMap[(String,String,String),String](); // function (in,out,body) => name
@@ -56,4 +71,7 @@ class CodeHeader(within:Any) extends StandardTokenParsers {
               fns.map{case ((i,o,b),n) => "inline "+o+" "+n+"("+i+" _arg) { "+o+" _res; "+b+"; return _res; }" }.mkString("\n") + "\n" + raw
     tps.clear(); fns.clear(); tpc=0; fnc=0; raw=""; res
   }
+
+  // Values (ScalaExpr,CTypeName => CExpr,CTypeName)
+  // def value(v:String,tp:String):(String,String) = {}
 }

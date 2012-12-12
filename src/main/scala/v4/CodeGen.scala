@@ -20,21 +20,17 @@ trait CodeGen extends BaseParsers { this:Signature =>
     order.reverse
   }
 
+  // Cost matrix : cost_t = parser_name -> cost
+  // Backtracking: back_t = parser_name -> (rule, positions)
   override def analyze:Boolean = { if (!super.analyze) return false; order=tabsOrder;
-    // Backtracking struct back_t : parser_name -> (rule, positions)
-    head.add("typedef struct {\n  "+rules.map{case(n,t)=>"struct { short rule; short pos["+t.inner.cat+"]; } "+n+";"}.mkString("\n  ")+"\n} back_t;\n#define TB back_t")
-
-    // Cost storage (cuda: #define TC)
-    //head.add("typedef struct {\n  "+rules.map{case(n,t)=>"answer_t "+n+";"}.mkString("\n  ")+"\n} cost_t;\n#define TB cost_t")
-    //println(scala.reflect.classTag[Answer].runtimeClass.toString) => see playground.Play
-    // http://stackoverflow.com/questions/9044808/is-there-a-manifest-for-abstract-types-like-there-is-for-parameterized-types
-
-    println("---------- analysis -----------")
-    for((n,p) <- rules) println(n+": base_id="+p.id+", alternatives="+p.alt+", concatMax="+p.inner.cat);
-    println("Order in which to process tabulations: "+order)
-    println("------------- end -------------")
+    head.add("typedef struct { "+order.map{n=>tpAnswer+" "+n+";"}.mkString(" ")+" } cost_t;\n#define TC cost_t")
+    head.add("typedef struct {\n  "+order.map{n=>val c=rules(n).inner.cat; "struct { short rule;"+(if(c>0)" short pos["+c+"];"else"")+" } "+n+";"}.mkString("\n  ")+"\n} back_t;\n#define TB back_t")
     true
   }
+
+  // Define the 'init' value (for max/min) and the 'empty' value for the initialization of cells (break loops)
+  var (vInit,vEmpty,tpAnswer):(String,String,String)=(null,null,null)
+  def setDefaults(init:Answer,empty:Answer) { vInit=init.toString; vEmpty=empty.toString; tpAnswer=head.addType(head.tpOf(init)) }
 
   /*
   Steps:
@@ -46,12 +42,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
      - convert functions ot C
   3. Generate code for the kernel
   */
-  // Define the 'init' value (for max/min) and the 'empty' value for the initialization of cells (break loops)
-  def setDefaults(init:Answer,empty:Answer)/*FIXME*/(tpAnswer:String) {
-    println("init = "+init)
-    println("empty = "+empty)
-    val atp=head.addType(tpAnswer)
-
     // Demo (assumes   case class Mat(rows:Int, cols:Int)   in the final class)
     /*
     val foo = new CodeFun{ // tree{ (x:Mat) => Mat(x.cols,x.rows) }
@@ -68,7 +58,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     println(head.add(foo2))
     */
     //addClass("Answer")
-  }
+
   // XXX: idea: fill the matrix with an EMPTY value, then whenever we hit this value, we ignore the result
 /*
  * Code generation:
@@ -83,15 +73,18 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // ------------------------------------------------------------------------------
   // C code generator
 
-  def gen:String = {
-    println
+  def gen:String = { analyze
     println("Problem type: "+(if (twotracks) "sequence alignment" else "standard" )+(if (window>0) ", window="+window else ""));
-    analyze
+    println("---------- analysis -----------")
+    order.zipWithIndex.foreach{case (n,i)=>val p=rules(n); println("Rule #"+i+" '"+n+"': base_id="+p.id+", alternatives="+p.inner.alt+", concatMax="+p.inner.cat) }
     println("------------ defs -------------")
     print(head.flush)
     println("------------ rules ------------")
-    println("back_t b = STOP_ALL;")
-    println("cost_t c=INIT_ALL,c2;")
+    // All backtracks to stop (rule -1)
+    println("back_t b = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0)",{"+(0 until c).map{"0"}.mkString(",")+"}"else"")+"}"}.mkString(",")+"};")
+    // All costs to INIT
+    // XXX: fix conversion to scala
+    println("cost_t c={"+order.map{n=>vInit}.mkString(",")+"},c2;")
 
     order.foreach { n=> val r=rules(n);
       println("// --- "+n+"[i,j] ---")
