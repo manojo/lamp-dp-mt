@@ -20,16 +20,15 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
 
   abstract class Parser[T:Manifest] extends ((Rep[Int], Rep[Int]) => Rep[List[T]]){inner =>
 
-    def filter (p: (Rep[Int], Rep[Int]) => Rep[Boolean]) =
-      FilterParser(this, p)
+    def filter (p: (Rep[Int], Rep[Int]) => Rep[Boolean]) = FilterParser(this, p)
 
     def ^^[U:Manifest](f: Rep[T] => Rep[U]) = this.map(f)
     private def map[U:Manifest](f: Rep[T] => Rep[U]) = MapParser(this, f)
 
     def |(that: => Parser[T]) = or(that)
-    private def or (that: => Parser[T]) = OrParser(inner, () => that)
+    private def or(that: => Parser[T]) = OrParser(inner, () => that)
 
-    def aggregate(h: Rep[List[T]] => Rep[List[T]]) = AggregateParser(inner, h)
+    def aggregate[U:Manifest](h: Rep[List[T]] => Rep[List[U]]) = AggregateParser(inner, h)
 
     // Concatenate combinator.
     // Parses a concatenation of string left~right with length(left) in [lL,lU]
@@ -52,24 +51,12 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
     def ~~- [U:Manifest](that: => Parser[U]) = concat(0,0,1,1)(that)
   }
 
-   // Memoization through tabulation
-  /* import scala.collection.mutable.HashMap
-   def tabulate(name:String, inner: => Parser[Answer]) = new Parser[Answer] {
-     val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[Answer]])
-     rules += ((name,this))
+  // Memoization through tabulation
+  import scala.collection.mutable.HashSet
 
-     def apply(sw: Subword) = sw match {
-       case (i,j) if(i <= j) => map.getOrElseUpdate(if(cyclic) (i%size, j%size) else sw, inner(sw))
-       case _ => List()
-     }
-   }*/
-   //tabulation for Char parsers
-   // Memoization through tabulation
-   import scala.collection.mutable.HashSet
-
-   val productions = new HashSet[String]
-   def tabulate[T: Manifest](inner: Parser[T],
-    name:String, mat: Rep[Array[Array[List[T]]]]
+  val productions = new HashSet[String]
+  def tabulate[T: Manifest](inner: Parser[T],
+    name:String, mat: Rep[Array[Array[T]]]
    ) = TabulatedParser(inner, name, mat)
 
    /*** case classes for matching on Parsers */
@@ -83,10 +70,10 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
   }
 
   case class OrParser[T:Manifest](inner: Parser[T], that: () => Parser[T]) extends Parser[T]{
-    def apply(i: Rep[Int], j: Rep[Int]) = inner(i,j)++that()(i,j)
+    def apply(i: Rep[Int], j: Rep[Int]) = inner(i,j) ++ that()(i,j)
   }
 
-  case class AggregateParser[T:Manifest](inner: Parser[T], h: Rep[List[T]] => Rep[List[T]]) extends Parser[T]{
+  case class AggregateParser[T:Manifest, U:Manifest](inner: Parser[T], h: Rep[List[T]] => Rep[List[U]]) extends Parser[U]{
     def apply(i: Rep[Int], j: Rep[Int]) = h(inner(i,j))
   }
 
@@ -94,31 +81,49 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
     def apply(i: Rep[Int], j: Rep[Int]) = if(i<j){
       val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
       val max_k = if (lU==0) j-rL else Math.min(j-rL,i+lU)
-      for(
+      (for(
         k <- (min_k until max_k+1).toList;
         x <- inner(i,k);
         y <- that()(k,j)
-      ) yield((x,y))
+      ) yield((x,y)))
+
     } else List()
   }
 
+  /**
+   * an opti-concat parser is a better concat
+   */
+//  case class OptiConcatParser[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: () => Parser[U])
+
+
+  /*
+   * an extractor for MParser: to force the match of a MapParser(ConcatParser)
+   */
+   object MParser{
+    def unapply[T:Manifest,U:Manifest,V:Manifest](mp: MapParser[(U,V),T]) : Option[(ConcatParser[U,V], (Rep[(U,V)] => Rep[T]))] = mp.inner match {
+      case c: ConcatParser[U,V] =>
+        Some((c, mp.f))
+      case _ => None
+    }
+   }
+
+
   case class TabulatedParser[T: Manifest](inner: Parser[T], name: String,
-    mat: Rep[Array[Array[List[T]]]]) extends Parser[T]{
+    mat: Rep[Array[Array[T]]]) extends Parser[T]{
       def apply(i: Rep[Int], j: Rep[Int]) =
         if(i <= j){
-          if(!(productions contains(name)) /*&& res.isEmpty*/){
+          if(!(productions contains(name)) /*|| mat(i)(j) == null*/){
             productions += name
-            mat(i)(j) = inner(i,j)
+            mat(i)(j) = inner(i,j).head //we expect one element
             productions -= name
             val a = mat(i)
-            a(j)
+            List(a(j))
           } else {
             val tmp = mat(i)
-            tmp(j)
+            List(tmp(j))
           }
         } else List()
   }
-
 
   /*************** simple parsers below *****************/
 
@@ -151,6 +156,45 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
     }
   }
 }*/
+
+
+/**
+ * transform and optimize some trees y'all\
+ * TabulatedParser(inner: Parser[T], name: String, mat: Rep[Array[Array[List[T]]]])
+ * ConcatParser(inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: () => Parser[U])
+ * AggregateParser(inner: Parser[S], h: Rep[List[T]] => Rep[List[U]])
+ * OrParser(inner: Parser[T], that: () => Parser[S])
+ * MapParser(inner: Parser[S], f: Rep[T] => Rep[U])
+ * FilterParser(inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean])
+ */
+
+ def transform[T: Manifest](p: TabulatedParser[T]): Parser[T] = p match {
+  case TabulatedParser(inner, n, m: Rep[Array[Array[T]]]) =>
+    TabulatedParser(transform(inner), p.name, p.mat)
+ }
+
+ def transform[T:Manifest](p: Parser[T]): Parser[T] = p match{
+    case MParser(ConcatParser(inner,lL,lU,rL,rU,that), f) =>
+      new Parser[T]{
+        def apply(i: Rep[Int], j: Rep[Int]) = if(i<j){
+          val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
+          val max_k = if (lU==0) j-rL else Math.min(j-rL,i+lU)
+          for(
+           k <- (min_k until max_k+1).toList;
+           x <- inner(i,k);
+           y <- that()(k,j)
+          ) yield(f(x,y))
+        } else List()
+      }
+    case OrParser(p,q) =>
+      val transformed = transform(q())
+      OrParser(transform(p), () => transformed)
+    case AggregateParser(p,h: (Rep[List[T]] => Rep[List[T]])) =>
+      AggregateParser(transform(p),h)
+    case FilterParser(p,f) => FilterParser(transform(p), f)
+    case _ => p
+ }
+
 }
 
 trait LexicalParsers extends Parsers {this: Sig =>

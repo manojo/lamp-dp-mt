@@ -9,7 +9,7 @@ at Sym(80)=Reflect(IfThenElse(Sym(11),Block(Sym(79)),Block(Sym(17))),Summary(fal
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
-class test-matmult extends ((Array[scala.Tuple2[Int, Int]])=>(scala.Tuple3[Int, Int, Int])) {
+class test-matmult2 extends ((Array[scala.Tuple2[Int, Int]])=>(scala.Tuple3[Int, Int, Int])) {
 def apply(x0:Array[scala.Tuple2[Int, Int]]): scala.Tuple3[Int, Int, Int] = {
 val x1 = x0.length
 val x2 = x1 + 1
