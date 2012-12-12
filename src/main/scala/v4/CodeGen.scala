@@ -4,11 +4,12 @@ trait CodeGen extends BaseParsers { this:Signature =>
   private val head = new CodeHeader(this) // User code and helpers store
   private var order:List[String]=Nil // Order of parsers evaluation
 
-  // Dependency analysis: give the computation order between tabulations
+  // Dependency analysis: computation order between tabulations
   def tabsOrder:List[String] = {
     def deps[T](q:Parser[T]): List[String] = q match {
       case Aggregate(p,_) => deps(p) case Filter(p,_) => deps(p) case Map(p,_) => deps(p) case Or(l,r) => deps(l)++deps(r)
-      case Concat(_,_,_) => Nil // always access previous element within concat
+      case Concat(l,r,_) => (if (l.min==0) deps(r) else Nil) ::: (if (r.min==0) deps(l) else Nil) // always access previous element within concat
+        // XXX: if such case happen, then increase the size of the righthandside
       case _ => if (q.isInstanceOf[Tabulate]) List(q.asInstanceOf[Tabulate].name) else Nil
     }
     var order = List[String]()
@@ -86,7 +87,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   def gen:String = { analyze
     println("Problem type: "+(if (twotracks) "sequence alignment" else "standard" )+(if (window>0) ", window="+window else ""));
     println("---------- analysis -----------")
-    order.zipWithIndex.foreach{case (n,i)=>val p=rules(n); println("Rule #"+i+" '"+n+"': base_id="+p.id+", alternatives="+p.inner.alt+", concatMax="+p.inner.cat) }
+    order.zipWithIndex.foreach{case (n,i)=>val p=rules(n); println("Rule #"+i+" '"+n+"': base_id="+p.id+", alts="+p.inner.alt+", ccats="+p.inner.cat+" min="+p.min+", max="+p.max) }
     println("------------ defs -------------")
     print(head.flush)
     println("------------ rules ------------")
@@ -140,9 +141,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
     case Or(l,r) => (Nil, emit(gen(l,i,j,g.dup))+"\n       ++ "+emit(gen(r,i,j,g.dup)))
     case Map(p,f) => val (c,b)=gen(p,i,j,g); (c, "Map("+b+")")
     case Filter(p,f) => val (c,b)=gen(p,i,j,g); (c, "Filter("+b+")")
-    case Concat(l,r,indices) if (twotracks==false) =>
+    case cc@Concat(l,r,0) =>
       def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u>0) j.leq(i,-f-u)::ls else ls }
-      val (c,k):(List[Cond],Var) = indices match {
+      val (c,k):(List[Cond],Var) = cc.indices match {
         // low=up in at least one side
         case (0,0,0,0) => val k0=g.get; (List(k0.loop(i,j)), k0)
         case (iL,iU,0,0) if (iL==iU) => (List(i.leq(j,iL)), i.add(iL))
@@ -160,22 +161,20 @@ trait CodeGen extends BaseParsers { this:Signature =>
       val (lc,lb) = gen(l,i,k,g)
       val (rc,rb) = gen(r,k,j,g)
       (simplify(c ::: lc ::: rc), lb+" ~ "+rb)
-
-    case Concat(l,r,(a,b,track,_)) if (twotracks==true) =>
-      val (c,(lc,lb),(rc,rb)) = track match {
-        case 1 => val (c,k) = if (a==b && a>0) (zero.leq(i,1), i.add(-a))
-                              else { val k0=g.get; (CFor(k0.v,'0',1,i.v,1), k0) }
-          (List(c),gen(l,k,i,g),gen(r,k,j,g))
-        case 2 => val (c,k) = if (a==b && a>0) (zero.leq(j,1), j.add(-a))
-                              else { val k0=g.get; (CFor(k0.v,'0',1,j.v,1), k0) }
-          (List(c),gen(l,i,k,g),gen(r,k,j,g))
-      }
-      (simplify(c ::: lc ::: rc), lb+" ~TT~ "+rb)
-    case _ => // Tabulate(_,name) => (Nil, name+"["+i+","+j+"]")
-      if (q.isInstanceOf[Tabulate]) {
-        (Nil, q.asInstanceOf[Tabulate].name+"["+i+","+j+"]")
-      }
-      else (Nil,toString)
+    case cc@Concat(l,r,1) => val (a,b,_,_)=cc.indices
+      val (c,k) = if (a==b && a>0) (zero.leq(i,1), i.add(-a))
+                  else { val k0=g.get; (CFor(k0.v,'0',1,i.v,1), k0) }
+      val (lc,lb) = gen(l,k,i,g)
+      val (rc,rb) = gen(r,k,j,g)
+      (simplify(c :: lc ::: rc), lb+" ~TT~ "+rb)
+    case cc@Concat(l,r,2) => val (_,_,a,b)=cc.indices
+      val (c,k) = if (a==b && a>0) (zero.leq(j,1), j.add(-a))
+                  else { val k0=g.get; (CFor(k0.v,'0',1,j.v,1), k0) }
+      val (lc,lb) = gen(l,i,k,g)
+      val (rc,rb) = gen(r,k,j,g)
+      (simplify(c :: lc ::: rc), lb+" ~TT~ "+rb)
+    case t:Tabulate => (Nil, t.name+"["+i+","+j+"]")
+    case _ => (Nil,toString)
   }
 
   // Optimizations and conditions simplifications

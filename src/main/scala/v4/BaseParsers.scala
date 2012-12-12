@@ -43,8 +43,8 @@ trait BaseParsers { this:Signature =>
   case class CEq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta=='b'
 
   sealed abstract class Parser[T] extends (Subword => List[(T,Backtrack)]) {
-    val min:Int // subword minimal size
-    val max:Int // subword maximal size, -1=infinity
+    def min:Int // subword minimal size
+    def max:Int // subword maximal size, -1=infinity
     val alt:Int // alternative (subrule_id)
     val cat:Int // concatenation split (offset in backtrack)
 
@@ -62,7 +62,22 @@ trait BaseParsers { this:Signature =>
   private var analyzed=false
   def analyze:Boolean = { if (analyzed) return false; analyzed=true
     // Identify subrules (uniquely within the same grammar as sorted by name)
-    var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.inner.alt; }; true
+    var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.inner.alt; }
+    // Yield analysis
+    val sz = rules.size
+    (0 until sz).foreach{ _ => for((n,t) <- rules) t.minv=t.inner.min }
+    for((n,t)<-rules) t.maxv=t.minv
+    for((n,t)<-rules) t.maxv=rmax(t.inner,sz)
+    def rmax[T](p0:Parser[T],d:Int):Int = p0 match {
+      case Terminal(_,max,_) => max
+      case Filter(p,f) => rmax(p,d)
+      case Aggregate(p,h) => rmax(p,d)
+      case Map(p,f) => rmax(p,d)
+      case Or(l,r) => val ml=rmax(l,d); if (ml== -1) -1 else { val mr=rmax(r,d); if (mr== -1) -1 else Math.max(ml,mr) }
+      case Concat(l,r,_) => val ml=rmax(l,d); if (ml== -1) -1 else { val mr=rmax(r,d); if (mr== -1) -1 else ml+mr }
+      case p:Tabulate => if (d==1) -1 else rmax(p.inner,d-1)
+    }
+    true
   }
 
   // Aggregate on T a (T,U) list, wrt to multiplicity and order
@@ -85,7 +100,10 @@ trait BaseParsers { this:Signature =>
   class Tabulate(in: => Parser[Answer], val name:String) extends Parser[Answer] {
     lazy val inner = in
     val (alt,cat) = (1,0)
-    val (min,max) = (0,-1)
+    def min = minv
+    def max = maxv
+    var minv = 1000
+    var maxv = 1000
     private val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[(Answer,Backtrack)]])
     reset = { val r0=reset; () => { r0(); map.clear; } }
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
@@ -136,7 +154,8 @@ trait BaseParsers { this:Signature =>
   // Takes a function which modifies the list of a parse. Usually used
   // for max or min functions (but can also be a prettyprint).
   case class Aggregate[T](inner:Parser[T], h: List[T] => List[T]) extends Parser[T] {
-    lazy val (min,max) = (inner.min,inner.max)
+    def min = inner.min
+    def max = inner.max
     lazy val (alt,cat) = (inner.alt,inner.cat)
     def apply(sw: Subword) = aggr(inner(sw),h)
     def unapply(sw:Subword,bt:Backtrack) = aggr(inner.unapply(sw,bt),h)
@@ -146,7 +165,8 @@ trait BaseParsers { this:Signature =>
   // Filter combinator.
   // Yields an empty list if the filter does not pass.
   case class Filter[T](inner:Parser[T], pred: Subword => Boolean) extends Parser[T] {
-    lazy val (min,max) = (inner.min,inner.max)
+    def min = inner.min
+    def max = inner.max
     lazy val (alt,cat) = (inner.alt,inner.cat)
     def apply(sw: Subword) = if(pred(sw)) inner(sw) else Nil
     def unapply(sw:Subword,bt:Backtrack) = inner.unapply(sw,bt) // filter matched at apply
@@ -156,7 +176,8 @@ trait BaseParsers { this:Signature =>
   // Mapper. Equivalent of ADP's <<< operator.
   // To separate left and right hand side of a grammar rule
   case class Map[T,U](inner:Parser[T], f: T => U) extends Parser[U] {
-    lazy val (min,max) = (inner.min,inner.max)
+    def min = inner.min
+    def max = inner.max
     lazy val (alt,cat) = (inner.alt,inner.cat)
     def apply(sw:Subword) = inner(sw) map { case (s,b) => (f(s),b) }
     def unapply(sw:Subword,bt:Backtrack) = inner.unapply(sw,bt).map{ case (s,b) => (f(s),b) }
@@ -167,7 +188,8 @@ trait BaseParsers { this:Signature =>
   // In ADP semantics we concatenate the results of the parse
   // of 'this' with the parse of 'that'
   case class Or[T](left:Parser[T], right:Parser[T]) extends Parser[T] {
-    lazy val (min,max) = (Math.min(left.min,right.min),if (left.max == -1 || right.max == -1) -1 else Math.max(left.max,right.max))
+    def min = Math.min(left.min,right.min)
+    def max = if (left.max == -1 || right.max == -1) -1 else Math.max(left.max,right.max)
     lazy val (alt,cat) = (left.alt+right.alt, Math.max(left.cat,right.cat))
     def apply(sw: Subword) = left(sw) ++ right(sw).map{ case (t,(r,b)) => (t,(r+left.alt,b)) }
     def unapply(sw:Subword, bt:Backtrack) = { val (r,idx)=bt; var a=left.alt-1; if (r<=a) left.unapply(sw,(r,idx)) else right.unapply(sw,(r-a,idx)) }
@@ -177,20 +199,22 @@ trait BaseParsers { this:Signature =>
   // Concatenate combinator.
   // Parses a concatenation of string " left ~ right " with length(left) in [lL,lU]
   // and length(right) in [rL,rU], lU,rU=0 means unbounded (infinity).
-  case class Concat[T,U](left: Parser[T], right:Parser[U], indices:(Int,Int,Int,Int)) extends Parser[(T,U)] {
-    lazy val (min,max) = (left.min+right.min,if (left.max == -1 || right.max == -1) -1 else left.max+right.max)
+  case class Concat[T,U](left: Parser[T], right:Parser[U], track:Int) extends Parser[(T,U)] {
+    def min = left.min+right.min
+    def max = if (left.max == -1 || right.max == -1) -1 else left.max+right.max
     lazy val (alt,cat) = (left.alt*right.alt, left.cat+(if(hasBt)1 else 0)+right.cat)
-    lazy val hasBt:Boolean = (twotracks,indices) match {
-      case (false,(a,b,c,d)) if ((a==b && a>=0) || (c==d && c>=0)) => false
-      case (true,(a,b,_,_)) if (a==b && a>=0) => false
+    lazy val hasBt:Boolean = (track,left.min,left.max,right.min,right.max) match {
+      case (0,a,b,c,d) if ((a==b && a>=0) || (c==d && c>=0)) => false
+      case (1,a,b,_,_) if (a==b && a>=0) => false
+      case (2,_,_,a,b) if (a==b && a>=0) => false
       case _ => true
     }
-
+    lazy val indices = { assert(analyzed==true); (left.min,left.max,right.min,right.max) }
     private def bt(bl:Backtrack,br:Backtrack,k:Int):Backtrack = {
       (bl._1*right.alt+br._1, bl._2:::(if (hasBt)List(k) else Nil):::br._2)
     }
-    def apply(sw:Subword) = (twotracks,sw,indices) match {
-      case (false,(i,j),(lL,lU,rL,rU)) if i<j => // single track
+    def apply(sw:Subword) = (sw,track,indices) match {
+      case ((i,j),0,(lL,lU,rL,rU)) if i<j => // single track
         val min_k = if (rU == -1) i+lL else Math.max(i+lL,j-rU)
         val max_k = if (lU == -1) j-rL else Math.min(j-rL,i+lU)
         for(
@@ -198,14 +222,14 @@ trait BaseParsers { this:Signature =>
           (x,xb) <- left((i,k));
           (y,yb) <- right((k,j))
         ) yield(((x,y),bt(xb,yb,k)))
-      case (true,(i,j),(l,u,1,_)) => // tt:concat1
+      case ((i,j),1,(l,u,_,_)) => // tt:concat1
         val i0 = if (u== -1) 0 else Math.max(i-u,0)
         for(
           k <- (i0 to i-l).toList;
           (x,xb) <- left((k,i)); // in1[k..i]
           (y,yb) <- right((k,j)) // M[k,j]
         ) yield(((x,y),bt(xb,yb,k)))
-      case (true,(i,j),(l,u,2,_)) => // tt:concat2
+      case ((i,j),2,(_,_,l,u)) => // tt:concat2
         val j0 = if (u== -1) 0 else Math.max(j-u,0)
         for(
           k <- (j0 to j-l).toList;
@@ -219,11 +243,11 @@ trait BaseParsers { this:Signature =>
       val a:Int=right.alt; val c:Int=left.cat;
       ((r/a,idx.take(c)), (r%a,idx.drop(c+(if (hasBt)1 else 0))), if (hasBt)idx(c) else -1)
     }
-    private def sw_split(sw:Subword,kb:Int) = (twotracks,sw,indices) match {
-      case (false,(i,j),(lL,lU,rL,rU)) if i<j => // single track
+    private def sw_split(sw:Subword,kb:Int) = (sw,track,indices) match {
+      case ((i,j),0,(lL,lU,rL,rU)) if i<j => // single track
         val k=if(-1!=kb)kb else if (rU== -1)i+lL else Math.max(i+lL,j-rU); ((i,k),(k,j))
-      case (true,(i,j),(l,u,1,_)) => val k=if(-1!=kb)kb else i-l; ((k,i),(k,j)) // tt:concat1
-      case (true,(i,j),(l,u,2,_)) => val k=if(-1!=kb)kb else j-l; ((i,k),(k,j)) // tt:concat2
+      case ((i,j),1,(l,u,_,_)) => val k=if(-1!=kb)kb else i-l; ((k,i),(k,j)) // tt:concat1
+      case ((i,j),2,(_,_,l,u)) => val k=if(-1!=kb)kb else j-l; ((i,k),(k,j)) // tt:concat2
       case _ => ((0,0),(0,0))
     }
     def unapply(sw:Subword,bt:Backtrack) = {

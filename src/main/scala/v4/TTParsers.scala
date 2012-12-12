@@ -21,8 +21,8 @@ trait TTParsers extends BaseParsers { this:Signature =>
   import scala.language.implicitConversions
   implicit def parserTT[T](p1:Parser[T]) = new ParserTT(p1)
   class ParserTT[T](p1:Parser[T]) {
-    def -~ [U](p2:Parser[U]) = new Concat(p1,p2,(p1.min,p1.max,1, -1)) // index 4 unused
-    def ~- [U](p2:Parser[U]) = new Concat(p1,p2,(p2.min,p2.max,2, -1))
+    def -~ [U](p2:Parser[U]) = new Concat(p1,p2,1)
+    def ~- [U](p2:Parser[U]) = new Concat(p1,p2,2)
     // XXX: improve to support more concatenations along one direction (?)
   }
 
