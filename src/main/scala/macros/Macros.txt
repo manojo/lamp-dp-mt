@@ -43,14 +43,8 @@ object Macros {
         var b1 = new Transformer {
           override def transform(tree: Tree): Tree = tree match {
             case Ident(x) if (x==n) => Ident(newTermName("_arg"))
-            /*
-            case Typed(x,t:TypeTree) =>
-              val t2=TypeTree().setOriginal(transform(t.original))
-              val tt=Typed(transform(x),t2)
-              println(showRaw(tt))
-              tt
-            case Annotated(an,arg) => Annotated(an,transform(arg))
-            */
+            case Annotated(annot, arg) => treeCopy.Annotated(tree, transform(annot).duplicate, transform(arg))
+            case tt@TypeTree() if tt.original != null => TypeTree(tt.tpe) setOriginal transform(tt.original)
             case _ => super.transform(tree)
           }
         }.transform(b)

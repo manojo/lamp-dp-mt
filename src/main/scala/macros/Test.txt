@@ -120,9 +120,9 @@ object TestMacros extends App {
   type mAlph = (Int,Int)
   type mAns = (Int,Int,Int)
   def mSingle = tree { (i:mAlph) => (i._1, 0, i._2) }
-  def mMult = tree { (x:(mAns,mAns)) => val m1=x._1; val m2=x._2; (m1._1, m1._2 + m2._2 + m1._1 * m1._3 * m2._3, m2._3) }
-  //def mMult = tree { (x:(mAnswer,mAnswer)) => { x match { case ((r1,m1,c1),(r2,m2,c2)) => (r1, m1 + m2 + r1 * c1 * c2, c2) } } }
-  //def mMult = tree { (x:(mAnswer,mAnswer)) => { val y=x; val ((r1,m1,c1),(r2,m2,c2))=y; (r1, m1 + m2 + r1 * c1 * c2, c2) } }
+  //def mMult = tree { (x:(mAns,mAns)) => val m1=x._1; val m2=x._2; (m1._1, m1._2 + m2._2 + m1._1 * m1._3 * m2._3, m2._3) }
+  //def mMult = tree { (x:(mAns,mAns)) => { x match { case ((r1,m1,c1),(r2,m2,c2)) => (r1, m1 + m2 + r1 * c1 * c2, c2) } } }
+  def mMult = tree { (x:(mAns,mAns)) => { val ((r1,m1,c1),(r2,m2,c2))=x; (r1, m1 + m2 + r1 * c1 * c2, c2) } }
   //val mH = (l:List[mAnswer]) => l match { case Nil => Nil case _ => l.minBy(_._2)::Nil }
   println("MatrixMult:")
   println("mSingle : "+g.push(mSingle))
