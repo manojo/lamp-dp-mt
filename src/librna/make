@@ -6,7 +6,12 @@
 JAVA_INC="-I$JAVA_HOME/include -I$JAVA_HOME/include/linux"
 if [ "$OSTYPE" = "darwin" ]; then
   JAVA_INC="$JAVA_INC -I/System/Library/Frameworks/JavaVM.framework/Headers"
+md5_hash() { md5 -q -s $@; }
+else
+md5_hash() { md5sum $@; }
 fi
+
+
 
 if [ "$1" = "" ]; then out="bin"; rm -r "$out" 2>/dev/null; mkdir -p "$out";
 else from=`pwd`; mkdir -p "$1"; cd "$1"; out=`pwd`; cd $from; fi
@@ -15,13 +20,13 @@ cd `dirname $0`;
 # scalac -d "$out" RNALib.scala || exit
 
 name="libRNA.jnilib"
-md5 -q -s *.[ch] vienna/*.[ch] > "$out/$name.tmp"
+md5_hash *.[ch] vienna/*.[ch] > "$out/$name.tmp"
 if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f "$out/$name" ] ; then
 	echo 'Already updated.'; exit;
 fi
 
 printf "Compiling $name"
-gcc -Wall -std=c99 -shared $JAVA_INC rnalib.c librna.c \
+gcc -Wall -std=c99 -fPIC -shared $JAVA_INC rnalib.c librna.c \
 	vienna/energy_par.c vienna/fold_vars.c vienna/params.c vienna/read_epars.c vienna/utils.c \
 	-o "$out"/libRNA.jnilib || exit
 mv "$out/$name.tmp" "$out/$name.md5"
