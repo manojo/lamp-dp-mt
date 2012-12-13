@@ -52,8 +52,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       case Or(l,r) => Or(norm(Map(l,f)),norm(Map(r,f)))
       case p => Map(p,f)
     }
-    // XXX: does this preserve the alternative numbering ? make sure...
-    case Concat(l0,r0,t) => (norm(l0),norm(r0)) match {
+    case Concat(l0,r0,t) => (norm(l0),norm(r0)) match { // Preserves alternatives numbering
       case (Or(a,b),r) => Or(norm(Concat(a,r,t)),norm(Concat(b,r,t)))
       case (l,Or(a,b)) => Or(norm(Concat(l,a,t)),norm(Concat(l,b,t)))
       case (l,r) => Concat(l,r,t)
@@ -61,6 +60,32 @@ trait CodeGen extends BaseParsers { this:Signature =>
     case _ => parser
   }
 
+  // New generation function (notice the pun)
+  /*
+  def genTab(t:Tabulate):String = {
+    def gen[T](p0:Parser[T],i:Var,j:Var,g:FreeVar,rule:Int,bti:List[Int]):(List[Cond],String) = p0 match {
+      case Terminal(min,max,f) =>
+
+        if(max==maxN) Nil else List(j.leq(i,-max)); (i.leq(j,min)::cm
+
+        if (min==max) List(i.eq(j,min))
+        (if (max==maxN) Nil else List(j.leq(i,max)))   if (min>0) List(i.leq(j,min))
+        
+
+
+       f(i,j)
+       // generate additional conditions based on min max + cond, invoke expression
+      case p:Tabulate => // generate additional conditions, call lookup
+      case Aggregate(p,h) => // generate finite function within the set min,max,count,sum,minBy,maxBy: c2=p; if (c2 betterThan c) { c=c2; bt=(rule,bti) }
+      case Filter(p,f) => // surround by an if the enclosing p
+      case Map(p,f) => // put f in header, invoke f around p
+      case Or(l,r) => // spit one block after another
+      case cc@Concat(l,r,0) =>
+      case cc@Concat(l,r,1) =>
+      case cc@Concat(l,r,2) =>
+    }
+  }
+  */
 
 
   /*
@@ -99,7 +124,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     println("------------ defs -------------")
     print(head.flush)
     println("------------ rules ------------")
-    println("back_t b = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0)",{"+(0 until c).map{"0"}.mkString(",")+"}"else"")+"}"}.mkString(",")+"};")
+    println("back_t b = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};")
     println("cost_t c = {"+order.map{n=>vInit}.mkString(",")+"},c2;")
     order.foreach { n=> val r=rules(n);
       println("// --- "+n+"[i,j] ---")

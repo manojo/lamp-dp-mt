@@ -36,6 +36,7 @@ trait BaseParsers { this:Signature =>
     def eq(t:Var,e:Int) = CEq(v,t.v,d-t.d+e)
   }
   final val zero = Var('0',0) // 0+0
+  final val maxN = -1 // infinity for Parser.max
 
   sealed abstract class Cond // Constraint on variables
   case class CFor(v:Char,l:Char,ld:Int,u:Char,ud:Int) extends Cond // for ('l'+ld<='v'<='u'-ud)
@@ -61,10 +62,9 @@ trait BaseParsers { this:Signature =>
   // Recurrence analysis, done once when grammar is complete, before the computation.
   private var analyzed=false
   def analyze:Boolean = { if (analyzed) return false; analyzed=true
-    // Identify subrules (uniquely within the same grammar as sorted by name)
-    var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.inner.alt; }
     // Yield analysis
     val sz = rules.size
+    for((n,t)<-rules) t.minv=3000 // very large number
     (0 until sz).foreach{ _ => for((n,t) <- rules) t.minv=t.inner.min }
     for((n,t)<-rules) t.maxv=t.minv
     for((n,t)<-rules) t.maxv=rmax(t.inner,sz)
@@ -73,10 +73,12 @@ trait BaseParsers { this:Signature =>
       case Filter(p,f) => rmax(p,d)
       case Aggregate(p,h) => rmax(p,d)
       case Map(p,f) => rmax(p,d)
-      case Or(l,r) => val ml=rmax(l,d); if (ml== -1) -1 else { val mr=rmax(r,d); if (mr== -1) -1 else Math.max(ml,mr) }
-      case Concat(l,r,_) => val ml=rmax(l,d); if (ml== -1) -1 else { val mr=rmax(r,d); if (mr== -1) -1 else ml+mr }
-      case p:Tabulate => if (d==1) -1 else rmax(p.inner,d-1)
+      case Or(l,r) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else Math.max(ml,mr) }
+      case Concat(l,r,_) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else ml+mr }
+      case p:Tabulate => if (d==1) maxN else rmax(p.inner,d-1)
     }
+    // Identify subrules (uniquely within the same grammar as sorted by name)
+    var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.inner.alt; }
     true
   }
 
@@ -100,16 +102,15 @@ trait BaseParsers { this:Signature =>
   class Tabulate(in: => Parser[Answer], val name:String) extends Parser[Answer] {
     lazy val inner = in
     val (alt,cat) = (1,0)
-    def min = minv
-    def max = maxv
-    var minv = 1000
-    var maxv = 1000
+    def min = minv; var minv = 0
+    def max = maxv; var maxv = 0
     private val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[(Answer,Backtrack)]])
     reset = { val r0=reset; () => { r0(); map.clear; } }
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
 
     var id:Int = -1 // subrules base index
+    // XXX: use min/max here to reduce the search space by returning Nil whenever needed
     private def get(sw:Subword) = {
       if (!twotracks) assert(sw._1<=sw._2); // Note the map padding to avoid infinite recursion
       map.getOrElseUpdate(sw,{ map.put(sw,List()); inner(sw).map{case(c,(r,b))=>(c,(id+r,b))} })
@@ -189,7 +190,7 @@ trait BaseParsers { this:Signature =>
   // of 'this' with the parse of 'that'
   case class Or[T](left:Parser[T], right:Parser[T]) extends Parser[T] {
     def min = Math.min(left.min,right.min)
-    def max = if (left.max == -1 || right.max == -1) -1 else Math.max(left.max,right.max)
+    def max = if (left.max==maxN || right.max==maxN) maxN else Math.max(left.max,right.max)
     lazy val (alt,cat) = (left.alt+right.alt, Math.max(left.cat,right.cat))
     def apply(sw: Subword) = left(sw) ++ right(sw).map{ case (t,(r,b)) => (t,(r+left.alt,b)) }
     def unapply(sw:Subword, bt:Backtrack) = { val (r,idx)=bt; var a=left.alt-1; if (r<=a) left.unapply(sw,(r,idx)) else right.unapply(sw,(r-a,idx)) }
@@ -201,7 +202,7 @@ trait BaseParsers { this:Signature =>
   // and length(right) in [rL,rU], lU,rU=0 means unbounded (infinity).
   case class Concat[T,U](left: Parser[T], right:Parser[U], track:Int) extends Parser[(T,U)] {
     def min = left.min+right.min
-    def max = if (left.max == -1 || right.max == -1) -1 else left.max+right.max
+    def max = if (left.max==maxN || right.max==maxN) maxN else left.max+right.max
     lazy val (alt,cat) = (left.alt*right.alt, left.cat+(if(hasBt)1 else 0)+right.cat)
     lazy val hasBt:Boolean = (track,left.min,left.max,right.min,right.max) match {
       case (0,a,b,c,d) if ((a==b && a>=0) || (c==d && c>=0)) => false
@@ -215,22 +216,22 @@ trait BaseParsers { this:Signature =>
     }
     def apply(sw:Subword) = (sw,track,indices) match {
       case ((i,j),0,(lL,lU,rL,rU)) if i<j => // single track
-        val min_k = if (rU == -1) i+lL else Math.max(i+lL,j-rU)
-        val max_k = if (lU == -1) j-rL else Math.min(j-rL,i+lU)
+        val min_k = if (rU==maxN) i+lL else Math.max(i+lL,j-rU)
+        val max_k = if (lU==maxN) j-rL else Math.min(j-rL,i+lU)
         for(
           k <- (min_k to max_k).toList;
           (x,xb) <- left((i,k));
           (y,yb) <- right((k,j))
         ) yield(((x,y),bt(xb,yb,k)))
       case ((i,j),1,(l,u,_,_)) => // tt:concat1
-        val i0 = if (u== -1) 0 else Math.max(i-u,0)
+        val i0 = if (u==maxN) 0 else Math.max(i-u,0)
         for(
           k <- (i0 to i-l).toList;
           (x,xb) <- left((k,i)); // in1[k..i]
           (y,yb) <- right((k,j)) // M[k,j]
         ) yield(((x,y),bt(xb,yb,k)))
       case ((i,j),2,(_,_,l,u)) => // tt:concat2
-        val j0 = if (u== -1) 0 else Math.max(j-u,0)
+        val j0 = if (u==maxN) 0 else Math.max(j-u,0)
         for(
           k <- (j0 to j-l).toList;
           (x,xb) <- left((i,k)); // M[i,k]
@@ -245,11 +246,12 @@ trait BaseParsers { this:Signature =>
     }
     private def sw_split(sw:Subword,kb:Int) = (sw,track,indices) match {
       case ((i,j),0,(lL,lU,rL,rU)) if i<j => // single track
-        val k=if(-1!=kb)kb else if (rU== -1)i+lL else Math.max(i+lL,j-rU); ((i,k),(k,j))
-      case ((i,j),1,(l,u,_,_)) => val k=if(-1!=kb)kb else i-l; ((k,i),(k,j)) // tt:concat1
-      case ((i,j),2,(_,_,l,u)) => val k=if(-1!=kb)kb else j-l; ((i,k),(k,j)) // tt:concat2
+        val k=if(kb!=maxN)kb else if (rU==maxN)i+lL else Math.max(i+lL,j-rU); ((i,k),(k,j))
+      case ((i,j),1,(l,u,_,_)) => val k=if(kb!=maxN)kb else i-l; ((k,i),(k,j)) // tt:concat1
+      case ((i,j),2,(_,_,l,u)) => val k=if(kb!=maxN)kb else j-l; ((i,k),(k,j)) // tt:concat2
       case _ => ((0,0),(0,0))
     }
+
     def unapply(sw:Subword,bt:Backtrack) = {
       val (bl,br,k)=bt_split(bt); val (swl,swr)=sw_split(sw,k)
       for ((l,lb)<-left.unapply(swl,bl); (r,rb)<-right.unapply(swr,br)) yield (((l,r), lb:::rb))
