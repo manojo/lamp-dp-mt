@@ -87,7 +87,7 @@ trait MatMultProg extends Parsers{ this: Sig =>
 
   def myParser(in:Input) : Parser[Answer] = {
     val a : Rep[Array[Array[Answer]]] = NewArray(in.length+1)
-    (0 until in.length + 2).foreach{ i=>
+    (0 until in.length + 1).foreach{ i=>
       a(0) = NewArray(in.length+1)
     }
 
@@ -106,7 +106,7 @@ trait MatMultProg extends Parsers{ this: Sig =>
   }
 
   def testMult2(in: Input) : Rep[Answer] = {
-    val opti = transform(myParser(in)).asInstanceOf[Parser[Answer]]
+    val opti = transform(myParser(in))//.asInstanceOf[Parser[Answer]]
     opti(0, in.length).head
   }
 }

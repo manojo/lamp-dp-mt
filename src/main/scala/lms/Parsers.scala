@@ -93,7 +93,15 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
   /**
    * an opti-concat parser is a better concat
    */
-//  case class OptiConcatParser[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: () => Parser[U])
+   case class OptiConcatParser[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: () => Parser[U])
+     extends Parser[(T,U)]{
+     def apply(i: Rep[Int], j: Rep[Int]) = if(i<j){
+       val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
+       val max_k = if (lU==0) j-rL else Math.min(j-rL,i+lU)
+       for(k <- (min_k until max_k+1).toList)
+         yield((inner(i,k).head,that()(k,j).head))
+     } else List()
+    }
 
 
   /*
@@ -169,30 +177,37 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
  */
 
  def transform[T: Manifest](p: TabulatedParser[T]): Parser[T] = p match {
-  case TabulatedParser(inner, n, m: Rep[Array[Array[T]]]) =>
+  case TabulatedParser(inner, n, m: Rep[Array[Array[T]]] @unchecked) =>
     TabulatedParser(transform(inner), p.name, p.mat)
  }
 
- def transform[T:Manifest](p: Parser[T]): Parser[T] = p match{
+ def transform[T:Manifest](p: Parser[T]): Parser[T] = {
+  p match{
     case MParser(ConcatParser(inner,lL,lU,rL,rU,that), f) =>
+      println("Map Concat parser match")
       new Parser[T]{
         def apply(i: Rep[Int], j: Rep[Int]) = if(i<j){
           val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
           val max_k = if (lU==0) j-rL else Math.min(j-rL,i+lU)
           for(
-           k <- (min_k until max_k+1).toList;
-           x <- inner(i,k);
-           y <- that()(k,j)
-          ) yield(f(x,y))
+           k <- ((min_k until max_k+1).toList)
+          ) yield(f(inner(i,k).head,that()(k,j).head))
         } else List()
       }
+//    case ConcatParser(inner,lL,lU,rL,rU,that) =>
+//      val transformed = transform(that())
+//      OptiConcatParser(transform(inner),lL,lU,rL,rU,() => transformed)
     case OrParser(p,q) =>
-      val transformed = transform(q())
-      OrParser(transform(p), () => transformed)
-    case AggregateParser(p,h: (Rep[List[T]] => Rep[List[T]])) =>
+      println("Or Parser match")
+      OrParser(transform(p), () => transform(q()))
+    case AggregateParser(p,h: (Rep[List[T]] => Rep[List[T]]) @unchecked) =>
+      println("Aggregate Parser match")
       AggregateParser(transform(p),h)
-    case FilterParser(p,f) => FilterParser(transform(p), f)
+    case FilterParser(p,f) =>
+      println("FilterParser match")
+      FilterParser(transform(p), f)
     case _ => p
+  }
  }
 
 }
