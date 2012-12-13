@@ -17,9 +17,9 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   // Concatenation operations
   import scala.language.implicitConversions
   implicit def parserADP[T](p1:Parser[T]) = new ParserADP(p1)
-  class ParserADP[T](p1:Parser[T]) {
-    def ~ [U](p2:Parser[U]) = new Concat(p1,p2,0)
-    def ~~ [U](p2:Parser[U]) = new Concat(p1,p2,0,(false,false)) // do not allow empty at either end
+  class ParserADP[T](p1:Parser[T],idx:(Int,Int,Int,Int)=null) {
+    def ~ [U](p2:Parser[U]) = if (idx!=null) new Concat(p1,p2,0) { override lazy val indices=idx } else new Concat(p1,p2,0)
+    def ~ (minl:Int,maxl:Int,minr:Int,maxr:Int):ParserADP[T] = new ParserADP[T](p1,(minl,maxl,minr,maxr))
   }
 
   // Terminal parsers

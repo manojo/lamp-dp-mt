@@ -24,14 +24,17 @@ trait BracketsGrammar extends LexicalParsers with BracketsSignature {
       digit
     | (char ~ axiom ~ char).filter(areBrackets _) ^^ { case ((c1,i),c2) => i }
     | axiom ~ axiom ^^ { case (x,y) => x+y }
-    // Also test correct parentesization: "()()(())" => List(0), "))()(())" => List()
-    // | (char ~ char).filter(areBrackets _) ^^ { case _ => 0 }
-    // Variant:
-    // | empty ^^ { _=> 0 } and use "axiom ~~ axiom" instead
-
     // Sum all digits of the string
     // | char~axiom ^^ {case (c,i)=>i} | axiom~char ^^ {case (i,c)=>i}
   ) aggregate h)
+
+  // Test correct parentesization: good => List(0), bad => List()
+  val paren:Tabulate = tabulate("N",(
+      empty ^^ { _=>0 } 
+    | (char ~ paren ~ char).filter(areBrackets _) ^^ { case ((c1,i),c2) => i }
+    | paren ~(1,-1,1,-1)~ paren ^^ { case (x,y) => x+y }
+  ) aggregate h)
+
 }
 
 object Brackets extends App with BracketsGrammar with BracketsAlgebra with CodeGen {

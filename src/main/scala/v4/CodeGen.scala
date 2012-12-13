@@ -8,7 +8,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   def tabsOrder:List[String] = {
     def deps[T](q:Parser[T]): List[String] = q match {
       case Aggregate(p,_) => deps(p) case Filter(p,_) => deps(p) case Map(p,_) => deps(p) case Or(l,r) => deps(l)++deps(r)
-      case cc@Concat(l,r,_,_) => val (lm,_,rm,_)=cc.indices; (if (lm==0) deps(r) else Nil) ::: (if (rm==0) deps(l) else Nil)
+      case cc@Concat(l,r,_) => val(lm,_,rm,_)=cc.indices; (if (lm==0) deps(r) else Nil) ::: (if (rm==0) deps(l) else Nil)
       case _ => if (q.isInstanceOf[Tabulate]) List(q.asInstanceOf[Tabulate].name) else Nil
     }
     var order = List[String]()
@@ -52,11 +52,13 @@ trait CodeGen extends BaseParsers { this:Signature =>
       case Or(l,r) => Or(norm(Map(l,f)),norm(Map(r,f)))
       case p => Map(p,f)
     }
-    case Concat(l0,r0,t,e) => (norm(l0),norm(r0)) match { // Preserves alternatives numbering
-      case (Or(a,b),r) => Or(norm(Concat(a,r,t,e)),norm(Concat(b,r,t,e)))
-      case (l,Or(a,b)) => Or(norm(Concat(l,a,t,e)),norm(Concat(l,b,t,e)))
-      case (l,r) => Concat(l,r,t,e)
-    }
+    case cc@Concat(l0,r0,t) => // Preserves alternatives numbering and correct min/max indices
+      def c[T,U](l:Parser[T],r:Parser[U]) = new Concat(l,r,t){override lazy val indices=cc.indices}
+      (norm(l0),norm(r0)) match {
+        case (Or(a,b),r) => Or(norm(c(a,r)),norm(c(b,r)))
+        case (l,Or(a,b)) => Or(norm(c(l,a)),norm(c(l,b)))
+        case (l,r) => c(l,r)
+      }
     case _ => parser
   }
 
@@ -72,7 +74,14 @@ trait CodeGen extends BaseParsers { this:Signature =>
       var cs = conds.distinct.filter { case CEq(a,b,0) if (a==b) => false case _ => true } // 1. filter x+0=x
 
       // XXX: add some condition to drop loops when we have equality constraints
-
+      /*
+      CFor CFor --> does not happen
+      CLeq CEq --> TODO
+      CLeq CLeq --> done
+      CEq CEq --> TODO
+      CFor CEq --> TODO
+      CFor CLeq --> done
+      */
       cs = cs.map { case CFor(v,l,ld,u,ud) => var lm=ld; var um=ud; // 2. minimize the range of for loop
           cs.foreach { case CLeq(a,b,d) => if (a==l && b==v && d>lm) lm=d; if (a==v && b==u && d>um) um=d; case _ => }
           CFor(v,l,lm,u,um)
@@ -117,7 +126,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       case Or(l,r) => (Nil, emit(gen(l,i,j,g.dup,rule,bti))+"\n"+emit(gen(r,i,j,g.dup,rule,bti)))
       case Map(p,f) => val (c,b)=gen(p,i,j,g,rule,bti); (c, "Map("+b+")")
       case Filter(p,f) => val (c,b)=gen(p,i,j,g,rule,bti); (c, "Filter("+b+")")
-      case cc@Concat(l,r,0,_) =>
+      case cc@Concat(l,r,0) =>
         def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u>0) j.leq(i,-f-u)::ls else ls }
         val (c,k):(List[Cond],Var) = cc.indices match {
           // low=up in at least one side
@@ -137,13 +146,13 @@ trait CodeGen extends BaseParsers { this:Signature =>
         val (lc,lb) = gen(l,i,k,g,rule,bti)
         val (rc,rb) = gen(r,k,j,g,rule,bti)
         (simplify(c ::: lc ::: rc), lb+" ~ "+rb)
-      case cc@Concat(l,r,1,_) => val (a,b,_,_)=cc.indices
+      case cc@Concat(l,r,1) => val (a,b,_,_)=cc.indices
         val (c,k) = if (a==b && a>0) (zero.leq(i,1), i.add(-a))
                     else { val k0=g.get; (CFor(k0.v,'0',1,i.v,1), k0) }
         val (lc,lb) = gen(l,k,i,g,rule,bti)
         val (rc,rb) = gen(r,k,j,g,rule,bti)
         (simplify(c :: lc ::: rc), lb+" ~TT~ "+rb)
-      case cc@Concat(l,r,2,_) => val (_,_,a,b)=cc.indices
+      case cc@Concat(l,r,2) => val (_,_,a,b)=cc.indices
         val (c,k) = if (a==b && a>0) (zero.leq(j,1), j.add(-a))
                     else { val k0=g.get; (CFor(k0.v,'0',1,j.v,1), k0) }
         val (lc,lb) = gen(l,i,k,g,rule,bti)

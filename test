@@ -1,0 +1,2 @@
+#!/bin/sh
+sbt 'clean' 'librna' 'run-main v4.examples.Tests'
