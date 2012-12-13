@@ -8,7 +8,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   def tabsOrder:List[String] = {
     def deps[T](q:Parser[T]): List[String] = q match {
       case Aggregate(p,_) => deps(p) case Filter(p,_) => deps(p) case Map(p,_) => deps(p) case Or(l,r) => deps(l)++deps(r)
-      case Concat(l,r,_) => (if (l.min==0) deps(r) else Nil) ::: (if (r.min==0) deps(l) else Nil) // access same element when other is empty
+      case cc@Concat(l,r,_,_) => val (lm,_,rm,_)=cc.indices; (if (lm==0) deps(r) else Nil) ::: (if (rm==0) deps(l) else Nil)
       case _ => if (q.isInstanceOf[Tabulate]) List(q.asInstanceOf[Tabulate].name) else Nil
     }
     var order = List[String]()
@@ -32,7 +32,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   var (vInit,vEmpty,tpAnswer):(String,String,String)=(null,null,null)
   def setDefaults(init:Answer,empty:Answer) { tpAnswer=head.addType(head.tpOf(init)); vInit=head.getVal(init.toString); vEmpty=head.getVal(empty.toString) }
 
-  // Parser normalization
+  // Normalize the parsers towards code generation
   // Canonical : [Tabulate] > Aggregate > Or > Filter > Map > Concat > (Tabulate | Terminal)
   // C code    : [Tabulate] > Or > ForLoop+Filter > Aggregate1 > Map > (Tabulate | Terminal)
   // Invariant : Aggregate > Map > Concat (due to domain change)
@@ -52,30 +52,47 @@ trait CodeGen extends BaseParsers { this:Signature =>
       case Or(l,r) => Or(norm(Map(l,f)),norm(Map(r,f)))
       case p => Map(p,f)
     }
-    case Concat(l0,r0,t) => (norm(l0),norm(r0)) match { // Preserves alternatives numbering
-      case (Or(a,b),r) => Or(norm(Concat(a,r,t)),norm(Concat(b,r,t)))
-      case (l,Or(a,b)) => Or(norm(Concat(l,a,t)),norm(Concat(l,b,t)))
-      case (l,r) => Concat(l,r,t)
+    case Concat(l0,r0,t,e) => (norm(l0),norm(r0)) match { // Preserves alternatives numbering
+      case (Or(a,b),r) => Or(norm(Concat(a,r,t,e)),norm(Concat(b,r,t,e)))
+      case (l,Or(a,b)) => Or(norm(Concat(l,a,t,e)),norm(Concat(l,b,t,e)))
+      case (l,r) => Concat(l,r,t,e)
     }
     case _ => parser
   }
 
-  // New generation function (notice the pun)
-  /*
+  // A simple variable generator that sequentially issues free variables
+  class FreeVar(v0:Char) {
+    private var v=v0
+    def get = { var r=v; v=(v+1).toChar; Var(r,0) }
+    def dup = new FreeVar(v0)
+  }
+
+  // Optimizations and conditions simplifications
+  def simplify(conds: List[Cond]):List[Cond] = {
+      var cs = conds.distinct.filter { case CEq(a,b,0) if (a==b) => false case _ => true } // 1. filter x+0=x
+
+      // XXX: add some condition to drop loops when we have equality constraints
+
+      cs = cs.map { case CFor(v,l,ld,u,ud) => var lm=ld; var um=ud; // 2. minimize the range of for loop
+          cs.foreach { case CLeq(a,b,d) => if (a==l && b==v && d>lm) lm=d; if (a==v && b==u && d>um) um=d; case _ => }
+          CFor(v,l,lm,u,um)
+        case x => x
+      }
+      cs.foreach { // 3. drop useless Leq (either contained by a for or superseded by another constraint on the same pair)
+        case CLeq(a,b,x) => cs=cs.filter { case CLeq(c,d,y) if (c==a && d==b && y<x) => false case _ => true }
+        case CFor(v,l,_,u,_) => cs=cs.filter { case CLeq(c,d,_) if (c==l && d==v || c==v && d==u) => false case _ => true }
+        case _ =>
+      }; cs
+  }
+
+  // Tabulation code generation
   def genTab(t:Tabulate):String = {
+    def scs(min:Int,max:Int,i:Var,j:Var) = if (min==max) List(i.eq(j,min)) else (if (max==maxN) Nil else List(j.leq(i,-max))):::(if (min>0) List(i.leq(j,min)) else Nil)
+
     def gen[T](p0:Parser[T],i:Var,j:Var,g:FreeVar,rule:Int,bti:List[Int]):(List[Cond],String) = p0 match {
-      case Terminal(min,max,f) =>
-
-        if(max==maxN) Nil else List(j.leq(i,-max)); (i.leq(j,min)::cm
-
-        if (min==max) List(i.eq(j,min))
-        (if (max==maxN) Nil else List(j.leq(i,max)))   if (min>0) List(i.leq(j,min))
-        
-
-
-       f(i,j)
-       // generate additional conditions based on min max + cond, invoke expression
-      case p:Tabulate => // generate additional conditions, call lookup
+      case Terminal(min,max,f) => val (cs,s)=f(i,j); (scs(min,max,i,j):::cs,s)
+      case p:Tabulate => (scs(p.min,p.max,i,j), p.name+"["+i+","+j+"]")
+      /*
       case Aggregate(p,h) => // generate finite function within the set min,max,count,sum,minBy,maxBy: c2=p; if (c2 betterThan c) { c=c2; bt=(rule,bti) }
       case Filter(p,f) => // surround by an if the enclosing p
       case Map(p,f) => // put f in header, invoke f around p
@@ -83,10 +100,75 @@ trait CodeGen extends BaseParsers { this:Signature =>
       case cc@Concat(l,r,0) =>
       case cc@Concat(l,r,1) =>
       case cc@Concat(l,r,2) =>
-    }
-  }
-  */
+      */
 
+      // LEGACY
+      // 1. Assign to each node its bounds (i,j)
+      // 2. Collect all the conditions from the tree and its content body
+      // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
+      case Aggregate(p,h) => val (c,b)=gen(p,i,j,g,rule,bti); // XXX: missing rule_id, backtrack and tabulate's (name,id)
+        h.toString match {
+          case "$$max$$" => (c, "max("+b+")")
+          case "$$min$$" => (c, "min("+b+")")
+          case "$$count$$" => (c, "count("+b+")")
+          case "$$sum$$" => (c, "sum("+b+")")
+          case _ => (c, "Aggr_"+h.toString+"("+b+")")
+        }
+      case Or(l,r) => (Nil, emit(gen(l,i,j,g.dup,rule,bti))+"\n"+emit(gen(r,i,j,g.dup,rule,bti)))
+      case Map(p,f) => val (c,b)=gen(p,i,j,g,rule,bti); (c, "Map("+b+")")
+      case Filter(p,f) => val (c,b)=gen(p,i,j,g,rule,bti); (c, "Filter("+b+")")
+      case cc@Concat(l,r,0,_) =>
+        def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u>0) j.leq(i,-f-u)::ls else ls }
+        val (c,k):(List[Cond],Var) = cc.indices match {
+          // low=up in at least one side
+          case (0,0,0,0) => val k0=g.get; (List(k0.loop(i,j)), k0)
+          case (iL,iU,0,0) if (iL==iU) => (List(i.leq(j,iL)), i.add(iL))
+          case (0,0,jL,jU) if (jL==jU) => (List(i.leq(j,jL)), j.add(-jL))
+          case (iL,iU,jL,jU) if (iL==iU && jL==jU) => (List(i.eq(j,iL+jL)), i.add(iL))
+          case (iL,iU,jL,jU) if (iL==iU) => (bf1(iL,jL,jU), i.add(iL))
+          case (iL,iU,jL,jU) if (jL==jU) => (bf1(jL,iL,iU), j.add(-jL))
+          // most general case
+          case (iL,iU,jL,jU) => val k0=g.get; var cs:List[Cond]=Nil;
+            if (jU>0) cs = j.leq(k0,-jU) :: cs
+            if (iU>0) cs = i.leq(k0,iU) :: cs
+            // we might want to simplify if min_k==i || max_k==j
+            (CFor(k0.v,i.v,iL,j.v,jL)::cs, k0)
+        }
+        val (lc,lb) = gen(l,i,k,g,rule,bti)
+        val (rc,rb) = gen(r,k,j,g,rule,bti)
+        (simplify(c ::: lc ::: rc), lb+" ~ "+rb)
+      case cc@Concat(l,r,1,_) => val (a,b,_,_)=cc.indices
+        val (c,k) = if (a==b && a>0) (zero.leq(i,1), i.add(-a))
+                    else { val k0=g.get; (CFor(k0.v,'0',1,i.v,1), k0) }
+        val (lc,lb) = gen(l,k,i,g,rule,bti)
+        val (rc,rb) = gen(r,k,j,g,rule,bti)
+        (simplify(c :: lc ::: rc), lb+" ~TT~ "+rb)
+      case cc@Concat(l,r,2,_) => val (_,_,a,b)=cc.indices
+        val (c,k) = if (a==b && a>0) (zero.leq(j,1), j.add(-a))
+                    else { val k0=g.get; (CFor(k0.v,'0',1,j.v,1), k0) }
+        val (lc,lb) = gen(l,i,k,g,rule,bti)
+        val (rc,rb) = gen(r,k,j,g,rule,bti)
+        (simplify(c :: lc ::: rc), lb+" ~TT~ "+rb)
+
+      // XXX: in concats also maintain the type of the expression so that we can construct structures on the fly
+      // LEGACY-END
+
+
+      case _ => sys.error("Unknown parser")
+
+    }
+    // Generate the loops and size conditions
+    def emit(cb:(List[Cond],String)):String = cb match { case (cs,body) => simplify(cs).map {
+      case CFor(v,l,ld,u,ud) => "for(int "+v+"="+l+(if(ld>0)"+"+ld else "")+(ud match {
+          case 0 => "; "+v+"<="+u case 1 => "; "+v+"<"+u
+          case _ => ","+v+"u="+u+"-"+ud+"; "+v+"<="+v+"u"
+        })+"; ++"+v+")"
+      case CEq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"=="+b+")"
+      case CLeq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"<="+b+")"
+    }.map{x=>x+" { "}.mkString("")+body+cs.map{x=>" }"}.mkString("")}
+    // Generate code for the whole tabulation
+    emit(gen(norm(t.inner),Var('i',0),Var('j',0),new FreeVar('k'),t.id,Nil))
+  }
 
   /*
   Steps:
@@ -128,102 +210,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
     println("cost_t c = {"+order.map{n=>vInit}.mkString(",")+"},c2;")
     order.foreach { n=> val r=rules(n);
       println("// --- "+n+"[i,j] ---")
-      println(emit(r.inner)) // XXX: resolve this point
+      println(genTab(r))
     }
     println("------------- end -------------")
     ""
-  }
-
-  // A simple variable generator that sequentially issues free variables
-  class FreeVar(v0:Char) {
-    private var v=v0
-    def get = { var r=v; v=(v+1).toChar; Var(r,0) }
-    def dup = new FreeVar(v0)
-  }
-
-  // 1. Assign to each node its bounds (i,j)
-  // 2. Collect all the conditions from the tree and its content body
-  // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
-  def gen[T](q:Parser[T],i:Var,j:Var,g:FreeVar):(List[Cond],String) = q match {
-    case Terminal(_,_,f) => f(i,j)
-    case Aggregate(p,h) => val (c,b)=gen(p,i,j,g); // XXX: missing rule_id, backtrack and tabulate's (name,id)
-      h.toString match {
-        case "$$max$$" => (c, "max("+b+")")
-        case "$$min$$" => (c, "min("+b+")")
-        case "$$count$$" => (c, "count("+b+")")
-        case "$$sum$$" => (c, "sum("+b+")")
-        case _ => (c, "Aggr_"+h.toString+"("+b+")")
-      }
-    case Or(l,r) => (Nil, emit(gen(l,i,j,g.dup))+"\n       ++ "+emit(gen(r,i,j,g.dup)))
-    case Map(p,f) => val (c,b)=gen(p,i,j,g); (c, "Map("+b+")")
-    case Filter(p,f) => val (c,b)=gen(p,i,j,g); (c, "Filter("+b+")")
-    case cc@Concat(l,r,0) =>
-      def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u>0) j.leq(i,-f-u)::ls else ls }
-      val (c,k):(List[Cond],Var) = cc.indices match {
-        // low=up in at least one side
-        case (0,0,0,0) => val k0=g.get; (List(k0.loop(i,j)), k0)
-        case (iL,iU,0,0) if (iL==iU) => (List(i.leq(j,iL)), i.add(iL))
-        case (0,0,jL,jU) if (jL==jU) => (List(i.leq(j,jL)), j.add(-jL))
-        case (iL,iU,jL,jU) if (iL==iU && jL==jU) => (List(i.eq(j,iL+jL)), i.add(iL))
-        case (iL,iU,jL,jU) if (iL==iU) => (bf1(iL,jL,jU), i.add(iL))
-        case (iL,iU,jL,jU) if (jL==jU) => (bf1(jL,iL,iU), j.add(-jL))
-        // most general case
-        case (iL,iU,jL,jU) => val k0=g.get; var cs:List[Cond]=Nil;
-          if (jU>0) cs = j.leq(k0,-jU) :: cs
-          if (iU>0) cs = i.leq(k0,iU) :: cs
-          // we might want to simplify if min_k==i || max_k==j
-          (CFor(k0.v,i.v,iL,j.v,jL)::cs, k0)
-      }
-      val (lc,lb) = gen(l,i,k,g)
-      val (rc,rb) = gen(r,k,j,g)
-      (simplify(c ::: lc ::: rc), lb+" ~ "+rb)
-    case cc@Concat(l,r,1) => val (a,b,_,_)=cc.indices
-      val (c,k) = if (a==b && a>0) (zero.leq(i,1), i.add(-a))
-                  else { val k0=g.get; (CFor(k0.v,'0',1,i.v,1), k0) }
-      val (lc,lb) = gen(l,k,i,g)
-      val (rc,rb) = gen(r,k,j,g)
-      (simplify(c :: lc ::: rc), lb+" ~TT~ "+rb)
-    case cc@Concat(l,r,2) => val (_,_,a,b)=cc.indices
-      val (c,k) = if (a==b && a>0) (zero.leq(j,1), j.add(-a))
-                  else { val k0=g.get; (CFor(k0.v,'0',1,j.v,1), k0) }
-      val (lc,lb) = gen(l,i,k,g)
-      val (rc,rb) = gen(r,k,j,g)
-      (simplify(c :: lc ::: rc), lb+" ~TT~ "+rb)
-    case t:Tabulate => (Nil, t.name+"["+i+","+j+"]")
-    case _ => (Nil,toString)
-  }
-
-  // Optimizations and conditions simplifications
-  def simplify(conds: List[Cond]):List[Cond] = {
-      var cs = conds
-      // 1. filter x+0=x
-      cs = cs.filter { case CEq(a,b,0) if (a==b) => false case _ => true }
-      // 2. minimize the range of for loop
-      cs = cs.map { case CFor(v,l,ld,u,ud) => var lm=ld; var um=ud;
-          cs.foreach { case CLeq(a,b,d) =>
-              if (a==l && b==v) { if (d>lm) lm=d; }
-              if (a==v && b==u) { if (d>um) um=d; }
-            case _ =>
-          }
-          CFor(v,l,lm,u,um)
-        case x => x
-      }
-      // 3. drop useless Leq (either contained by a for or superseded by another constraint on the same pair)
-      cs.foreach {
-        case CLeq(a,b,x) => cs=cs.filter { case CLeq(c,d,y) if (c==a && d==b && y<x) => false case _ => true }
-        case CFor(v,l,_,u,_) => cs=cs.filter { case CLeq(c,d,_) if (c==l && d==v || c==v && d==u) => false case _ => true }
-        case _ =>
-      }
-      cs
-  }
-
-  def emit[T](p:Parser[T]):String = emit(gen(norm(p),Var('i',0),Var('j',0),new FreeVar('k')))
-  def emit(d:(List[Cond],String)):String = d match { case (cs,body) =>
-    cs.map {
-      case CFor(v,l,ld,u,0) => "for("+l+(if(ld>0)"+"+ld else "")+" <= "+v+" <= "+u+")"
-      case CFor(v,l,ld,u,ud) => v+"u="+u+"-"+ud+"; for("+l+(if(ld>0)"+"+ld else "")+" <= "+v+" <= "+v+"u)"
-      case CEq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"=="+b+")"
-      case CLeq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"<="+b+")"
-    }.map{x=>x+" { "}.mkString("")+body+cs.map{x=>" }"}.mkString("")
   }
 }

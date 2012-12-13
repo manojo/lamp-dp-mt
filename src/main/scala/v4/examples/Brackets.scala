@@ -26,6 +26,8 @@ trait BracketsGrammar extends LexicalParsers with BracketsSignature {
     | axiom ~ axiom ^^ { case (x,y) => x+y }
     // Also test correct parentesization: "()()(())" => List(0), "))()(())" => List()
     // | (char ~ char).filter(areBrackets _) ^^ { case _ => 0 }
+    // Variant:
+    // | empty ^^ { _=> 0 } and use "axiom ~~ axiom" instead
 
     // Sum all digits of the string
     // | char~axiom ^^ {case (c,i)=>i} | axiom~char ^^ {case (i,c)=>i}

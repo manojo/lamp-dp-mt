@@ -74,7 +74,7 @@ trait BaseParsers { this:Signature =>
       case Aggregate(p,h) => rmax(p,d)
       case Map(p,f) => rmax(p,d)
       case Or(l,r) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else Math.max(ml,mr) }
-      case Concat(l,r,_) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else ml+mr }
+      case Concat(l,r,_,_) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else ml+mr }
       case p:Tabulate => if (d==1) maxN else rmax(p.inner,d-1)
     }
     // Identify subrules (uniquely within the same grammar as sorted by name)
@@ -196,7 +196,7 @@ trait BaseParsers { this:Signature =>
   // Concatenate combinator.
   // Parses a concatenation of string " left ~ right " with length(left) in [lL,lU]
   // and length(right) in [rL,rU], lU,rU=0 means unbounded (infinity).
-  case class Concat[T,U](left: Parser[T], right:Parser[U], track:Int) extends Parser[(T,U)] {
+  case class Concat[T,U](left: Parser[T], right:Parser[U], track:Int, allowEmpty:(Boolean,Boolean)=(true,true)) extends Parser[(T,U)] {
     def min = left.min+right.min
     def max = if (left.max==maxN || right.max==maxN) maxN else left.max+right.max
     lazy val (alt,cat) = (left.alt*right.alt, left.cat+(if(hasBt)1 else 0)+right.cat)
@@ -206,7 +206,12 @@ trait BaseParsers { this:Signature =>
       case (2,_,_,a,b) if (a==b && a>=0) => false
       case _ => true
     }
-    lazy val indices = { assert(analyzed==true); (left.min,left.max,right.min,right.max) }
+    lazy val indices = {
+      assert(analyzed==true);
+      var lm = left.min; if (!allowEmpty._1 && lm==0) lm=1
+      var rm = right.min; if (!allowEmpty._2 && rm==0) rm=1
+      (lm,left.max,rm,right.max)
+    }
     private def bt(bl:Backtrack,br:Backtrack,k:Int):Backtrack = {
       (bl._1*right.alt+br._1, bl._2:::(if (hasBt)List(k) else Nil):::br._2)
     }
