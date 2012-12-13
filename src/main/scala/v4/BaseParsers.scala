@@ -110,11 +110,7 @@ trait BaseParsers { this:Signature =>
     rules += ((name,this))
 
     var id:Int = -1 // subrules base index
-    // XXX: use min/max here to reduce the search space by returning Nil whenever needed
-    private def get(sw:Subword) = {
-      if (!twotracks) assert(sw._1<=sw._2); // Note the map padding to avoid infinite recursion
-      map.getOrElseUpdate(sw,{ map.put(sw,List()); inner(sw).map{case(c,(r,b))=>(c,(id+r,b))} })
-    }
+    private def get(sw:Subword) = { if (!twotracks) assert(sw._1<=sw._2); map.getOrElseUpdate(sw,inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}) }
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
     def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
     def reapply(sw:Subword,bt:Backtrack) = map.get(sw) match { case Some(v) => v.head._1 case _ => sys.error("Failed reapply"+sw); apply(sw).head._1 }

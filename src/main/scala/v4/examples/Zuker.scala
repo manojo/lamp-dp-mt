@@ -158,21 +158,21 @@ object Zuker extends App {
   def parse(s:String) = {
     LibRNA.setParams("src/librna/vienna/rna_turner2004.par")
     LibRNA.setSequence(s);
-    val res=mfe.parse(s.toArray);
     val (score,bt) = mfe.backtrack(s.toArray).head;
-    println("Score     : "+score);
-    println("Backtrack : "+bt);
-    println("Result    : "+pretty.build(s.toArray,bt));
-    LibRNA.clear; res
+    val res = pretty.build(s.toArray,bt)
+    LibRNA.clear; (score,bt,res)
   }
-
+  
   println("Build JNI > sbt librna")
   println("Run using > sbt 'run-main v4.examples.Zuker'")
   // Having separate instances of sbt is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   println("Coefficients are WRONG! Fix computations involving LibRNA")
 
-  println(parse("guacgucaguacguacgugacugucagucaac"))
+  val (score,bt,res)=parse("guacgucaguacguacgugacugucagucaac")
+  println("Score     : "+score);
+  println("Backtrack : "+bt);
+  println("Result    : "+res);
 
   // References for guacgucaguacguacgugacugucagucaac
   // GAPC  : -970   ((((((....)))))).((((.....))))..
