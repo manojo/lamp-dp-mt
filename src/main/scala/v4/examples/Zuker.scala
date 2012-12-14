@@ -131,22 +131,22 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
   lazy val dangle = LOC ~ closed ~ LOC ^^ { case ((l,e),r) => dlr(l,e,r) }
   val closed:Tabulate = tabulate("cl", (stack | hairpin | leftB | rightB | iloop | multiloop) filter stackpairing aggregate h)
 
-  lazy val stack   = BASE ~ closed ~ BASE ^^ { case ((l,e),r) => sr(l,e,r) }
-  lazy val hairpin = BASE ~ BASE ~ REGION(3,-1) ~ BASE ~ BASE ^^ { case ((((lb,f1),x),f2),rb) => hl(lb,f1,x,f2,rb) }
-  lazy val leftB   = BASE ~ BASE ~ REGION(1,30) ~ closed ~ BASE ~ BASE ^^ { case (((((lb,f1),x),e),f2),rb) => bl(lb,f1,x,e,f2,rb) } aggregate h
-  lazy val rightB  = BASE ~ BASE ~ closed ~ REGION(1,30) ~ BASE ~ BASE ^^ { case (((((lb,f1),e),x),f2),rb) => br(lb,f1,e,x,f2,rb) } aggregate h
-  lazy val iloop   = BASE ~ BASE ~ REGION(1,30) ~ closed ~ REGION(1,30) ~ BASE ~ BASE ^^ { case ((((((f1,f2),r1),x),r2),f3),f4) => il(f1,f2,r1,x,r2,f3,f4) } aggregate h
+  lazy val stack   = BASE ~ closed ~ BASE ^^ sr
+  lazy val hairpin = BASE ~ BASE ~ REGION(3,-1) ~ BASE ~ BASE ^^ hl
+  lazy val leftB   = BASE ~ BASE ~ REGION(1,30) ~ closed ~ BASE ~ BASE ^^ bl aggregate h
+  lazy val rightB  = BASE ~ BASE ~ closed ~ REGION(1,30) ~ BASE ~ BASE ^^ br aggregate h
+  lazy val iloop   = BASE ~ BASE ~ REGION(1,30) ~ closed ~ REGION(1,30) ~ BASE ~ BASE ^^ il aggregate h
 
-  lazy val multiloop = BASE ~ BASE ~ ml_comps ~ BASE ~ BASE ^^ { case ((((bl,f1),x),f2),br) => ml(bl,f1,x,f2,br) }
+  lazy val multiloop = BASE ~ BASE ~ ml_comps ~ BASE ~ BASE ^^ ml
   val ml_comps:Tabulate = tabulate("ml",(
-      BASE ~ ml_comps ^^ { case(b,s) => sadd(b,s) }
-    | (dangle ^^ ul) ~ ml_comps1 ^^ { case(c1,c) => app(c1,c) }
+      BASE ~ ml_comps ^^ sadd
+    | (dangle ^^ ul) ~ ml_comps1 ^^ app
     ) aggregate h)
   val ml_comps1:Tabulate = tabulate("ml1",(
-      BASE ~ ml_comps ^^ { case(b,s) => sadd(b,s) }
-    | (dangle ^^ ul) ~ ml_comps1 ^^ { case(c1,c) => app(c1,c) }
+      BASE ~ ml_comps ^^ sadd
+    | (dangle ^^ ul) ~ ml_comps1 ^^ app
     | (dangle ^^ ul)
-    | (dangle ^^ ul) ~ REGION(1,-1) ^^ { case(c1,e) => addss(c1,e) }
+    | (dangle ^^ ul) ~ REGION(1,-1) ^^ addss
     ) aggregate h)
 
   val axiom = struct
@@ -175,6 +175,6 @@ object Zuker extends App {
   println("Result    : "+res);
 
   // References for guacgucaguacguacgugacugucagucaac
-  // GAPC  : -970   ((((((....)))))).((((.....))))..
-  // Vienna: -9.50  ((((((....)))))).(((((...)))))..
+  // GAPC     : -970   ((((((....)))))).((((.....))))..
+  // ViennaRNA: -9.50  ((((((....)))))).(((((...)))))..
 }

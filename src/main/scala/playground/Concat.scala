@@ -76,7 +76,6 @@ object Concat extends App {
   println((f _)(arg))
   */
 
-
   import scala.language.implicitConversions
   implicit def detuple2[A,B,R](fn:Function2[A,B,R]) = new (((A,B))=>R) {
     def apply(t:(A,B)) = { val (a,b)=t; fn(a,b) } }
