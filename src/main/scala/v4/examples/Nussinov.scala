@@ -56,15 +56,14 @@ trait NussinovGrammar extends LexicalParsers with CodeGen with PrettyPairingAlge
   def isBasePair(a: Char, b: Char) = basePairs contains (a,b)
 
   val s:Tabulate = tabulate("s",(
-    empty ^^ nil
-  | s ~ char ^^ {case (a,c) => right(a,c)}
-  | s ~ t ^^ {case (a,b) => split(a,b)}
+    empty    ^^ nil
+  | s ~ char ^^ right
+  | s ~ t    ^^ split
   ) aggregate h)
 
   val t:Tabulate = tabulate("t",
     ((char ~ s ~ char)
-      filter {case (i,j) => isBasePair(in(i),in(j-1))})
-     ^^ {case ((c1,a),c2) => pair(c1,a,c2)}
+      filter {case (i,j) => isBasePair(in(i),in(j-1))}) ^^ pair
   )
 
   val axiom=s

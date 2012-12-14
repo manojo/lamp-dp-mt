@@ -7,7 +7,7 @@ import v4._
 trait MatrixSig extends Signature {
   type Alphabet = (Int,Int) // matrix as (rows, columns)
   val single:Alphabet=>Answer
-  val mult:((Answer,Answer))=>Answer
+  val mult:(Answer,Answer)=>Answer
 }
 
 // Computation cost algebra (in # of multiplications)
@@ -15,7 +15,7 @@ trait MatrixAlgebra extends MatrixSig {
   type Answer = (Int,Int,Int) // rows, cost, columns
 
   val single = (i: Alphabet) => (i._1, 0, i._2)
-  val mult = (a:(Answer,Answer)) => a match {
+  val mult = (l:Answer,r:Answer) => (l,r) match {
     case((r1,m1,c1),(r2,m2,c2)) => (r1, m1 + m2 + r1 * c1 * c2, c2)
   }
   override val h = (l:List[Answer]) => l match {
@@ -29,7 +29,7 @@ trait MatrixAlgebra extends MatrixSig {
 trait PrettyPrintAlgebra extends MatrixSig {
   type Answer = String
   val single = (i:Alphabet) => "|"+i._1+"x"+i._2+"|"
-  val mult = (a:(Answer,Answer)) => "("+a._1+"*"+a._2+")"
+  val mult = (l:Answer,r:Answer) => "("+l+"*"+r+")"
 }
 
 // Combining two algebra manually (inefficient)
@@ -39,7 +39,7 @@ trait PrettyMatrixAlgebra extends MatrixSig {
   type Answer = (m.Answer,p.Answer)
 
   val single = (i: Alphabet) => (m.single(i), p.single(i))
-  val mult = (a:(Answer,Answer)) => (m.mult((a._1._1,a._2._1)), p.mult((a._1._2,a._2._2)))
+  val mult = (l:Answer,r:Answer) => (m.mult(l._1,r._1), p.mult(l._2,r._2))
   override val h = (l :List[Answer]) => { val s=m.h(l.map(_._1)).toSet; l.filter(e=>s.contains(e._1)) }
 }
 

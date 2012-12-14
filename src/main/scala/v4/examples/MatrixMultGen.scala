@@ -24,8 +24,8 @@ trait MatrixAlgebraGen extends MatrixSig {
     val tpOut = "(Int,Int,Int)"
     val body = "_res={_arg._1,0,_arg._2}"
   }
-  val mult = new (((Answer,Answer))=>Answer) with CodeFun {
-    def apply(a:(Answer,Answer)) = { val ((r1,m1,c1),(r2,m2,c2))=a; (r1, m1 + m2 + r1 * c1 * c2, c2) }
+  val mult = new ((Answer,Answer)=>Answer) with CodeFun {
+    def apply(l:Answer,r:Answer) = { val ((r1,m1,c1),(r2,m2,c2))=(l,r); (r1, m1 + m2 + r1 * c1 * c2, c2) }
     val tpIn = "((Int,Int,Int),(Int,Int,Int))"
     val tpOut = "(Int,Int,Int)"
     val body = "_res={_arg._1._1, _arg._1._2 + _arg._2._2 + _arg._1._1 * _arg._1._3 * _arg._2._3, _arg._2._3}"

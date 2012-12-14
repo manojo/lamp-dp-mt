@@ -6,8 +6,8 @@ import v4._
 // Full story: http://bibiserv.techfak.uni-bielefeld.de/adp/ps/elmamun.pdf
 trait Bill extends Signature {
   override type Answer = Int
-  def add(l: Int, r: Int) = l + r
-  def mul(l: Int, r: Int) = l * r
+  def add(l:Int, c:Char, r:Int) = l + r
+  def mul(l:Int, c:Char, r:Int) = l * r
 }
 
 // Algebrae
@@ -28,8 +28,8 @@ trait BillGrammar extends LexicalParsers with CodeGen with Bill {
 
   val billGrammar:Tabulate = tabulate("M",(
     digit
-  | (billGrammar ~ plus ~ billGrammar) ^^ { case ((a1,c),a2) => add(a1,a2) }
-  | (billGrammar ~ times ~ billGrammar) ^^ { case ((a1,c),a2) => mul(a1,a2) }
+  | (billGrammar ~ plus ~ billGrammar) ^^ add
+  | (billGrammar ~ times ~ billGrammar) ^^ mul
   ) aggregate h)
   
   val axiom=billGrammar

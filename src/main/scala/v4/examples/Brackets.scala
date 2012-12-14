@@ -13,9 +13,7 @@ trait BracketsAlgebra extends BracketsSignature {
 }
 
 trait BracketsGrammar extends LexicalParsers with BracketsSignature {
-  def areBrackets(sw: Subword) = sw match {
-    case(i,j) => j > i+1 && in(i) == '(' && in(j-1) == ')'
-  }
+  def areBrackets(i:Int, j:Int) = j > i+1 && in(i) == '(' && in(j-1) == ')'
 
   // Limits the size of the problem to 8 at most
   override val window = 8

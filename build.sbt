@@ -8,10 +8,10 @@ resolvers ++= Seq(
 
 scalaOrganization := "org.scala-lang.virtualized"
 
-scalaVersion := "2.10.0-RC2"
+scalaVersion := "2.10.0-RC3"
 
 libraryDependencies ++= Seq(
-    "org.scalatest" % "scalatest_2.10.0-RC2" % "2.0.M4-B2" % "test",
+    "org.scalatest" % "scalatest_2.10.0-RC3" % "2.0.M5-B1" % "test",
     "EPFL" %% "lms" % "0.3-SNAPSHOT")
 
 

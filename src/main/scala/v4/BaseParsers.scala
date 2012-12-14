@@ -288,6 +288,22 @@ trait BaseParsers { this:Signature =>
   def minBy[T:Numeric](f:Answer=>T) = MinBy(f)
 
   // --------------------------------------------------------------------------
+  // Implicit conversion, to allow 'flat' arguments functions (instead of recursive pairs)
+  import scala.language.implicitConversions
+  implicit def detuple2[A,B,R](fn:Function2[A,B,R]) = new (((A,B))=>R) {
+    def apply(t:(A,B)) = { val (a,b)=t; fn(a,b) } }
+  implicit def detuple3[A,B,C,R](fn:Function3[A,B,C,R]) = new ((((A,B),C))=>R) {
+    def apply(t:((A,B),C)) = { val ((a,b),c)=t; fn(a,b,c) } }
+  implicit def detuple4[A,B,C,D,R](fn:Function4[A,B,C,D,R]) = new (((((A,B),C),D))=>R) {
+    def apply(t:(((A,B),C),D)) = { val (((a,b),c),d)=t; fn(a,b,c,d) } }
+  implicit def detuple5[A,B,C,D,E,R](fn:Function5[A,B,C,D,E,R]) = new ((((((A,B),C),D),E))=>R) {
+    def apply(t:((((A,B),C),D),E)) = { val ((((a,b),c),d),e)=t; fn(a,b,c,d,e) } }
+  implicit def detuple6[A,B,C,D,E,F,R](fn:Function6[A,B,C,D,E,F,R]) = new (((((((A,B),C),D),E),F))=>R) {
+    def apply(t:(((((A,B),C),D),E),F)) = { val (((((a,b),c),d),e),f)=t; fn(a,b,c,d,e,f) } }
+  implicit def detuple7[A,B,C,D,E,F,G,R](fn:Function7[A,B,C,D,E,F,G,R]) = new ((((((((A,B),C),D),E),F),G))=>R) {
+    def apply(t:((((((A,B),C),D),E),F),G)) = { val ((((((a,b),c),d),e),f),g)=t; fn(a,b,c,d,e,f,g) } }
+
+  // --------------------------------------------------------------------------
   // Utilities for debugging and pretty-printing
   def printBT(bs:List[(Answer,List[(Subword,Backtrack)])]) = {
     println("Backtrack = {")
