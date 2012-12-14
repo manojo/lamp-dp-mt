@@ -21,7 +21,7 @@ class CodeHeader(within:Any) {
     lexical.reserved ++= c_types.keys.toList
     lexical.delimiters ++= List("(",")",",",".")
     private def p:Parser[String]=( ("Boolean"|"Byte"|"String"|"Char"|"Short"|"Int"|"Long"|"Float"|"Double") ^^ { c_types(_) }
-      | "(" ~> repsep(p,",") <~ ")" ^^ { a=>tpn(a.zipWithIndex.map{case(s,i)=>s+" _"+(i+1) }.mkString("; ")) }
+      | "(" ~> repsep(p,",") <~ ")" ^^ { a=>tpe(a.zipWithIndex.map{case(s,i)=>s+" _"+(i+1) }.mkString("; ")) }
       | repsep(ident,".") ^^ { x=>tp_cls(x.mkString(".")) } | failure("Illegal type expression"))
     def parse(str:String):String = phrase(p)(new lexical.Scanner(str)) match { case Success(res, _)=>res case e=>sys.error(e.toString) }
   }
@@ -49,7 +49,7 @@ class CodeHeader(within:Any) {
   // Structs and types management
   private var tpc=0;
   private val tps=new HashMap[String,String](); // struct body -> name
-  private def tpn(tp:String) = tps.getOrElseUpdate(tp,{ val r=tpc; tpc=tpc+1; "tp"+r })
+  def tpe(tp:String) = tps.getOrElseUpdate(tp,{ val r=tpc; tpc=tpc+1; "_tp"+r })
   def addType(str:String):String = typeParser.parse(str)
   def getVal(str:String):String = valParser.parse(str)
   // def typeNamed(n:String):String = XXX: maintain revert hash map

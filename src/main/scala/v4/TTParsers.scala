@@ -30,18 +30,16 @@ trait TTParsers extends BaseParsers { this:Signature =>
   def empty = new Terminal[Dummy](0,0,(i:Var,j:Var) => (List(zero.leq(i,1),zero.leq(j,1)),"EMPTY")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i==0 && j==0) List((new Dummy,bt0)) else Nil }
   }
-  def el1 = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (List(i.eq(j,1)),"in1["+i+"]")) {
+  def el1 = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"in1["+i+"]")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in1(i),bt0)) else Nil }
   }
-  def el2 = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (List(i.eq(j,1)),"in2["+i+"]")) {
+  def el2 = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"in2["+i+"]")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in2(i),bt0)) else Nil }
   }
-  def seq1(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,
-          (i:Var,j:Var) => { val cm:List[Cond] = if(max==maxN) Nil else List(j.leq(i,-max)); (i.leq(j,min)::cm, "in1["+i+".."+j+"]")}) {
+  def seq1(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"in1["+i+".."+j+"]")) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
-  def seq2(min:Int=1, max:Int=maxN) = new Terminal[Subword](min,max,
-          (i:Var,j:Var) => { val cm:List[Cond] = if(max==maxN) Nil else List(j.leq(i,-max)); (i.leq(j,min)::cm, "in2["+i+".."+j+"]")}) {
+  def seq2(min:Int=1, max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil, "in2["+i+".."+j+"]")) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
 }

@@ -22,9 +22,10 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   // Cost matrix : cost_t = parser_name -> cost
   // Backtracking: back_t = parser_name -> (rule, positions)
+  def btTpe(n:Int) = head.tpe("short rule"+(if(n>0)"; short pos["+n+"]"else""))
   override def analyze:Boolean = { if (!super.analyze) return false; order=tabsOrder;
     head.add("typedef struct { "+order.map{n=>tpAnswer+" "+n+";"}.mkString(" ")+" } cost_t;\n#define TC cost_t")
-    head.add("typedef struct {\n  "+order.map{n=>val c=rules(n).inner.cat; "struct { short rule;"+(if(c>0)" short pos["+c+"];"else"")+" } "+n+";"}.mkString("\n  ")+"\n} back_t;\n#define TB back_t")
+    head.add("typedef struct { "+order.map{n=>val c=rules(n).inner.cat; btTpe(c)+" "+n+";"}.mkString(" ")+" } back_t;\n#define TB back_t")
     true
   }
 
@@ -69,25 +70,15 @@ trait CodeGen extends BaseParsers { this:Signature =>
     def dup = new FreeVar(v0)
   }
 
-  // Optimizations and conditions simplifications
+  // Optimizations and conditions simplifications, voluntarily not comprehensive as C compiler re-optimize them later
   def simplify(conds: List[Cond]):List[Cond] = {
       var cs = conds.distinct.filter { case CEq(a,b,0) if (a==b) => false case _ => true } // 1. filter x+0=x
-
-      // XXX: add some condition to drop loops when we have equality constraints
-      /*
-      CFor CFor --> does not happen
-      CLeq CEq --> TODO
-      CLeq CLeq --> done
-      CEq CEq --> TODO
-      CFor CEq --> TODO
-      CFor CLeq --> done
-      */
       cs = cs.map { case CFor(v,l,ld,u,ud) => var lm=ld; var um=ud; // 2. minimize the range of for loop
           cs.foreach { case CLeq(a,b,d) => if (a==l && b==v && d>lm) lm=d; if (a==v && b==u && d>um) um=d; case _ => }
           CFor(v,l,lm,u,um)
         case x => x
       }
-      cs.foreach { // 3. drop useless Leq (either contained by a for or superseded by another constraint on the same pair)
+      cs.foreach { // 3. drop useless Leq (either contained by a For or superseded by another constraint on the same pair)
         case CLeq(a,b,x) => cs=cs.filter { case CLeq(c,d,y) if (c==a && d==b && y<x) => false case _ => true }
         case CFor(v,l,_,u,_) => cs=cs.filter { case CLeq(c,d,_) if (c==l && d==v || c==v && d==u) => false case _ => true }
         case _ =>
@@ -97,35 +88,38 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // Tabulation code generation
   def genTab(t:Tabulate):String = {
     def scs(min:Int,max:Int,i:Var,j:Var) = if (min==max) List(i.eq(j,min)) else (if (max==maxN) Nil else List(j.leq(i,-max))):::(if (min>0) List(i.leq(j,min)) else Nil)
-
+    def genFun[T,U](f:T=>U):String = if (f.isInstanceOf[CodeFun]) head.add(f.asInstanceOf[CodeFun]) else "UnsupportedFunction" // TODO: error
     def gen[T](p0:Parser[T],i:Var,j:Var,g:FreeVar,rule:Int,bti:List[Int]):(List[Cond],String) = p0 match {
       case Terminal(min,max,f) => val (cs,s)=f(i,j); (scs(min,max,i,j):::cs,s)
-      case p:Tabulate => (scs(p.min,p.max,i,j), p.name+"["+i+","+j+"]")
+      case p:Tabulate => (scs(p.min,p.max,i,j), "cost[idx("+i+","+j+")]."+p.name)
+      case Aggregate(p,h) => val (c,b)=gen(p,i,j,g,rule,bti);
+        val tc = "_cost."+t.name
+        val ccu = "{ "+tc+"=_c; _back."+t.name+"=("+btTpe(t.inner.cat)+"){"+rule+(if (t.inner.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
+        val cc = h.toString match {
+          case "$$max$$" => "if (_c>"+tc+") "+ccu
+          case "$$min$$" => "if (_c<"+tc+") "+ccu
+          case "$$count$$" => return (c,tc+"+=1;") // don't compute (count only)
+          case "$$sum$$" => tc+"+=_c;"
+          case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any]].f); "if ("+f+"(_c)>"+f+"("+tc+")) "+ccu
+          case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any]].f); "if ("+f+"(_c)<"+f+"("+tc+")) "+ccu
+          case _ => "UnsupportedAggr("+b+")" // TODO: error
+        }
+        (c, "_c="+b+"; "+cc)
+      case Or(l,r) => (Nil, emit(gen(l,i,j,g.dup,rule,bti))+"\n"+emit(gen(r,i,j,g.dup,rule+l.alt,bti)))
+      case Map(p,f) => val (c,b)=gen(p,i,j,g,rule,bti);
+       val tpIn = if (f.isInstanceOf[CodeFun]) head.addType(f.asInstanceOf[CodeFun].tpIn) else "UnknownType" // TODO: error
+       (c,genFun(f)+"(("+tpIn+")"+b+")") // XXX
+      case Filter(p,f) => val (c,b)=gen(p,i,j,g,rule,bti); (c,"if ("+genFun(f)+"(("+head.addType("(Int,Int)")+"){"+i+","+j+"})) { "+b+" }")
       /*
-      case Aggregate(p,h) => // generate finite function within the set min,max,count,sum,minBy,maxBy: c2=p; if (c2 betterThan c) { c=c2; bt=(rule,bti) }
-      case Filter(p,f) => // surround by an if the enclosing p
-      case Map(p,f) => // put f in header, invoke f around p
-      case Or(l,r) => // spit one block after another
-      case cc@Concat(l,r,0) =>
+      case cc@Concat(l,r,0) => // XXX: track indices in bti
       case cc@Concat(l,r,1) =>
       case cc@Concat(l,r,2) =>
       */
-
       // LEGACY
       // 1. Assign to each node its bounds (i,j)
       // 2. Collect all the conditions from the tree and its content body
       // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
-      case Aggregate(p,h) => val (c,b)=gen(p,i,j,g,rule,bti); // XXX: missing rule_id, backtrack and tabulate's (name,id)
-        h.toString match {
-          case "$$max$$" => (c, "max("+b+")")
-          case "$$min$$" => (c, "min("+b+")")
-          case "$$count$$" => (c, "count("+b+")")
-          case "$$sum$$" => (c, "sum("+b+")")
-          case _ => (c, "Aggr_"+h.toString+"("+b+")")
-        }
-      case Or(l,r) => (Nil, emit(gen(l,i,j,g.dup,rule,bti))+"\n"+emit(gen(r,i,j,g.dup,rule,bti)))
-      case Map(p,f) => val (c,b)=gen(p,i,j,g,rule,bti); (c, "Map("+b+")")
-      case Filter(p,f) => val (c,b)=gen(p,i,j,g,rule,bti); (c, "Filter("+b+")")
+      // XXX: in functions body, obtain the appropriate type as return type
       case cc@Concat(l,r,0) =>
         def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u>0) j.leq(i,-f-u)::ls else ls }
         val (c,k):(List[Cond],Var) = cc.indices match {
@@ -145,26 +139,23 @@ trait CodeGen extends BaseParsers { this:Signature =>
         }
         val (lc,lb) = gen(l,i,k,g,rule,bti)
         val (rc,rb) = gen(r,k,j,g,rule,bti)
-        (simplify(c ::: lc ::: rc), lb+" ~ "+rb)
+        (simplify(c ::: lc ::: rc), "{"+lb+","+rb+"}")
       case cc@Concat(l,r,1) => val (a,b,_,_)=cc.indices
         val (c,k) = if (a==b && a>0) (zero.leq(i,1), i.add(-a))
                     else { val k0=g.get; (CFor(k0.v,'0',1,i.v,1), k0) }
         val (lc,lb) = gen(l,k,i,g,rule,bti)
         val (rc,rb) = gen(r,k,j,g,rule,bti)
-        (simplify(c :: lc ::: rc), lb+" ~TT~ "+rb)
+        (simplify(c :: lc ::: rc), "{"+lb+","+rb+"}")
       case cc@Concat(l,r,2) => val (_,_,a,b)=cc.indices
         val (c,k) = if (a==b && a>0) (zero.leq(j,1), j.add(-a))
                     else { val k0=g.get; (CFor(k0.v,'0',1,j.v,1), k0) }
         val (lc,lb) = gen(l,i,k,g,rule,bti)
         val (rc,rb) = gen(r,k,j,g,rule,bti)
-        (simplify(c :: lc ::: rc), lb+" ~TT~ "+rb)
-
+        (simplify(c :: lc ::: rc), "{"+lb+","+rb+"}")
       // XXX: in concats also maintain the type of the expression so that we can construct structures on the fly
       // LEGACY-END
 
-
       case _ => sys.error("Unknown parser")
-
     }
     // Generate the loops and size conditions
     def emit(cb:(List[Cond],String)):String = cb match { case (cs,body) => simplify(cs).map {
@@ -209,18 +200,22 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // C code generator
 
   def gen:String = { analyze
+    val sb=new StringBuilder
+    sb.append("back_t _back = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n")
+    sb.append("cost_t _cost = {"+order.map{n=>vInit}.mkString(",")+"};\n")
+    sb.append(tpAnswer+" _c;\n")
+    order.foreach { n=> val r=rules(n);
+      sb.append("/* --- "+n+"[i,j] --- */\n")
+      sb.append(genTab(r)+"\n")
+    }
+
     println("Problem type: "+(if (twotracks) "sequence alignment" else "standard" )+(if (window>0) ", window="+window else ""));
     println("---------- analysis -----------")
     order.zipWithIndex.foreach{case (n,i)=>val p=rules(n); println("Rule #"+i+" '"+n+"': base_id="+p.id+", alts="+p.inner.alt+", ccats="+p.inner.cat+" min="+p.min+", max="+p.max) }
     println("------------ defs -------------")
     print(head.flush)
-    println("------------ rules ------------")
-    println("back_t b = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};")
-    println("cost_t c = {"+order.map{n=>vInit}.mkString(",")+"},c2;")
-    order.foreach { n=> val r=rules(n);
-      println("// --- "+n+"[i,j] ---")
-      println(genTab(r))
-    }
+    println("------------ kernel -----------")
+    print(sb.toString)
     println("------------- end -------------")
     ""
   }
