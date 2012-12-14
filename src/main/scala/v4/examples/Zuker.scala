@@ -162,7 +162,7 @@ object Zuker extends App {
     val res = pretty.build(s.toArray,bt)
     LibRNA.clear; (score,bt,res)
   }
-  
+
   println("Build JNI > sbt librna")
   println("Run using > sbt 'run-main v4.examples.Zuker'")
   // Having separate instances of sbt is required due to issue described in

@@ -30,7 +30,7 @@ trait BracketsGrammar extends LexicalParsers with BracketsSignature {
 
   // Test correct parentesization: good => List(0), bad => List()
   val paren:Tabulate = tabulate("N",(
-      empty ^^ { _=>0 } 
+      empty ^^ { _=>0 }
     | (char ~ paren ~ char).filter(areBrackets _) ^^ { case ((c1,i),c2) => i }
     | paren ~(1,-1,1,-1)~ paren ^^ { case (x,y) => x+y }
   ) aggregate h)
