@@ -63,11 +63,10 @@ trait BaseParsers { this:Signature =>
   private var analyzed=false
   def analyze:Boolean = { if (analyzed) return false; analyzed=true
     // Yield analysis
-    val sz = rules.size
-    for((n,t)<-rules) t.minv=3000 // very large number
-    (0 until sz).foreach{ _ => for((n,t) <- rules) t.minv=t.inner.min }
+    for((n,t)<-rules) t.minv=100000 // upper bound on minimum yields
+    (0 until rules.size).foreach{ _ => for((n,t) <- rules) t.minv=t.inner.min }
     for((n,t)<-rules) t.maxv=t.minv
-    for((n,t)<-rules) t.maxv=rmax(t.inner,sz)
+    for((n,t)<-rules) t.maxv=rmax(t.inner, rules.size)
     def rmax[T](p0:Parser[T],d:Int):Int = p0 match {
       case Terminal(_,max,_) => max
       case Filter(p,f) => rmax(p,d)

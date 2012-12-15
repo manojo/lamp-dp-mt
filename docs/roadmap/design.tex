@@ -54,6 +54,7 @@ to have equality on the following formula. We can solve it more easily if functi
 \[\min\limits_{i<k_1<k_2<j}\big[ f(i,k_1,k_2,j) \big] \le  \min\limits_{i<k_2<j} \big[ g_2(i,\min\limits_{i<k_1<k_2} \big[ (g_1(i,k_1,k_2  ) \big],k_2,j) \big]  \]
 }
 
+% ------------------------------------------------------------------------------------------------
 \subsection{Recurrences analysis}
 Since the original ADP introduces many concatenation combinators to differentiate between empty/non-empty, and floating/fixed concatenations, it might become quite involved for the programmer to make sure that the concatenation operator exactly matches the size of each sub-word involved. Additionally the priority of operators might vary in Scala, depending the operator's first character whereas it is possible to define arbitrary priorities in Haskell. To overcome these problems, we propose to automate the computation of the length of the left and right handside subwords of concat operators.
 
@@ -64,7 +65,7 @@ Knowing that fact we can now easily track the dependencies of tabulations and in
 It is possible to obtain the yield size using the following algorithm (assuming all parser loops contain at least one tabulation):\ol
 \item Set the yield minimum size of all tabulations to a large
 \item Repeat $k$ times ($k$ is the number of tabulations): for each tabulation, compute its minimum yield size and update its value (without recursion at tabulations). This would lead to a correct minimum yield size because the terminals provide a minimum size and this might need at most $k$ iteration to propagate across all tabulations.
-\item Set the maximal yield of all the tabulations to the minimal value. For each tabulation, compute recursively up to depth $k$ (where the depth is computed as the number of tabulation traversed) the maximum yield size. If the depth reach the maximum, return infinity.
+\item Set the maximal yield of all the tabulations to the minimal value. For each tabulation, compute recursively up to depth $k$ (where the depth is computed as the number of tabulation traversed) the maximum yield size. If the depth reaches the maximum $k$, there is a loop between tabulations, hence return infinity.
 \ole
 
 The last part of this algorithm seems to have an exponential complexity, however, if we consider depth-first search and return as soon as we reach infinity, we might reduce its complexity to $O(k^2)$. Obtaining the yield size of tabulations provides the following benefits:\ul
@@ -72,10 +73,10 @@ The last part of this algorithm seems to have an exponential complexity, however
 \item Maximum size: allows to reduce the size of the result and backtrack matrix to $O(k\cdot n)$ instead of $O(n^2)$ (where $k$ is the maximum yield size), possibly providing substantial space savings.
 \ule
 
+% ------------------------------------------------------------------------------------------------
 \subsection{Backtracking}
 In order to do a clean and efficient transformation from ADP-like language to plain C recurrences, we need to construct bottom-up recurrences from top-down parser rules. To do that, we slightly need to modify the ADP language in order to separate the backtracking and the scoring, because we want to obtain an efficient algorithm: backtrack writes are in $O(n^2)$ whereas score reads are proportional to the algorithmic complexity ($O(n^3)$ or more for non-serial). To deal with this problem, we are facing two options:\ul
 \item \textbf{Explicit backtracking:} requires clear syntactical separation between the score and the backtrack and is not implemented in vanilla ADP (unless the whole backtrack is made part of the scoring: big performance impact and non-constant memory requirement issues make its GPU implementation hard and not desirable). Since the backtracking is user-defined, there is no way to generate the backtracking algorithm automatically, hence the user also needs to provide it. 
-
 \item \textbf{Implicit backtracking:} implies that every rule needs to be normalized, and transformed such that given a rule identifier and a set of indices (subproblems breaking), it is possible to retrieve the subproblems combination that build the problem. To do that we need to apply the following transformations\ol
 	\item Normalize rules and identify them uniquely by \ul
 		\item Removing all the <<or>> operators by breaking a parser into multiple subrules
@@ -91,6 +92,7 @@ In short, we break parsers into normalized rules, the backtracking information i
 \ule
 Assuming that the backtracking information is meant to guide further processing, we provide this information into a list constructed bottom-up: it can be simply processed by the user program in-order, applying for each user-defined rule the underlying transformation, and storing intermediate results (i.e. in a hash map) until they are processed by another rule. Since consumed sub-result can be dropped and since the backtracking contains only relevant sub-problems, ultimately, only the result will be stored.
 
+% ----------------------------------------------
 \subsubsection{Backtracking with multiple backtrack elements}
 The backtracking technique described above work fine when there is a single element stored per matrix cell (which is usually the case with min/max problems). However, in the generalization introduced by ADP, it is possible that a matrix cell stores multiple results. In such case, we need to select a correct result to avoid backtracking inconsistencies.
 
@@ -108,6 +110,7 @@ Now it remains the problem to generate all possible results and check whether th
 \item Skip filters: since filter are applied before their inner solution is computed, their are only position-dependent. Hence if a backtrack involves a filter, since its position is fixed, the filter must have been passed at matrix construction time.
 \ole
 
+% ----------------------------------------------
 \subsubsection{Backtracking complexity}
 We want to have an estimation of the complexity of the two operations to see what is the overhead of multiple backtracking. For single-element backtrack, we only need to revert the parser to find involved subwords, which is linear in the parser size (because the backtracking identifies uniquely the alternative in or's and indices in concatenations). At every backtrack step, either:\ul
 \item The word is removed at least one character, which leads to maximal backtrack length of $n$.
@@ -116,6 +119,7 @@ We want to have an estimation of the complexity of the two operations to see wha
 
 Let one parser reversal complexity be $O(p)$, single backtrack has $O(2n\cdot p)$ complexity. For the $k$-elements backtrack, since we regenerate all possible solutions, that is $O(k^{c+1})$ candidates (with $c$ the maximal number of concatenation in the parser), the overall complexity is $O(2n \cdot k^{c+1} \cdot p)$. Hence there is a $k^{c+1}$ factor to pay if we want to backtrack the $k$ best solutions\footnote{Note that the same $k^{c+1}$ factor lies in the forward matrix computation complexity.}.
 
+% ----------------------------------------------
 \subsubsection{Backtrack utilization}
 Since the dynamic programming input may be a subset of the larger problem that we want to resolve\footnote{For instance in matrix chain multiplication, we only care about matrix dimensions for dynamic programming, however, we ultimately want to multiply the real matrices and obtain a result.}, we need to be able to apply the result of the dynamic programming computation on values in a different domain. The easiest way to do that, is to reuse the same grammar on a different domain, and only compute the resulting trace obtained from the DP solver.
 
