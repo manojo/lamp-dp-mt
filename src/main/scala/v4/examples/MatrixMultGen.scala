@@ -9,26 +9,26 @@ import v4._
 trait MatrixAlgebraGen extends MatrixSig {
   type Answer = (Int,Int,Int) // rows, cost, columns
   
-  val hf = new (Answer=>Int) with CodeFun {
+  val hf = new (Answer=>Int) with CFun {
     def apply(a:Answer) = a._2
-    val tpIn="(Int,Int,Int)"
-    val tpOut="Int"
-    val body="_res=_arg._2"
+    val args=List(("a","(Int,Int,Int)"))
+    val body="return a._2;"
+    val tpe ="Int"
   }
 
   override val h = minBy(hf)
 
-  val single = new (Alphabet=>Answer) with CodeFun {
+  val single = new (Alphabet=>Answer) with CFun {
     def apply(i: Alphabet) = (i._1, 0, i._2)
-    val tpIn = "(Int,Int)"
-    val tpOut = "(Int,Int,Int)"
-    val body = "_res={_arg._1,0,_arg._2}"
+    val args=List(("i","(Int,Int)"))
+    val body="return (T3iii){i._1,0,i._2};"
+    val tpe ="(Int,Int,Int)"
   }
-  val mult = new ((Answer,Answer)=>Answer) with CodeFun {
+  val mult = new ((Answer,Answer)=>Answer) with CFun {
     def apply(l:Answer,r:Answer) = { val ((r1,m1,c1),(r2,m2,c2))=(l,r); (r1, m1 + m2 + r1 * c1 * c2, c2) }
-    val tpIn = "((Int,Int,Int),(Int,Int,Int))"
-    val tpOut = "(Int,Int,Int)"
-    val body = "_res={_arg._1._1, _arg._1._2 + _arg._2._2 + _arg._1._1 * _arg._1._3 * _arg._2._3, _arg._2._3}"
+    val args=List(("l","(Int,Int,Int)"),("r","(Int,Int,Int)"))
+    val body = "return (T3iii){l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3};"
+    val tpe ="(Int,Int,Int)"
   }
 }
 
@@ -49,9 +49,10 @@ trait MatrixGrammarGen extends ADPParsers with CodeGen with MatrixSig {
 object MatrixMultGen extends MatrixGrammarGen with MatrixAlgebraGen with App {
   val input = List((10,100),(100,5),(5,50)).toArray
 
-  // Extra codegen initialization
+  // ------- Extra codegen initialization
   val infty = 2147483647
-  setDefaults((0,infty,0),(-1,infty,-1))
+  setDefaults((0,infty,0),(-1,infty,-1),"(Int,Int)")
+  // ------- Extra codegen initialization
 
   println(gen)
 }

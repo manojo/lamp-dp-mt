@@ -3,29 +3,43 @@ package v4
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
 // Signature for C-generable functions
-trait CodeFun {
-  val tpIn:String // Scala type (as you would write in 'type Foo = ...')
-  val tpOut:String // Scala type
-  val body:String // C code 'int x=33; _res=x'
-  // val tps:Map[String,String] // additional types used in the body: name->type
+trait CFun {
+  val body:String // C function body
+  val args:List[(String,String)] // arguments as (name,Scala type)
+  val tpe:String // result's Scala type (format as in 'type Foo = ...')
+  override def hashCode = (body+args+tpe).hashCode
+  override def equals(that:Any) = that match {
+    case f:CFun => f.body==body && f.args==args && f.tpe==tpe
+    case _ => false
+  }
 }
 
+// -----------------------------------------------------------
 // Helper to decode types uniquely and store functions
 class CodeHeader(within:Any) {
   import scala.collection.mutable.HashMap
   val c_types = Map(("Boolean","bool"),("Byte","unsigned char"),("Char","char"),("Short","short"),("Int","int"),("Long","long"),
                     ("Float","float"),("Double","double"),("String","const char*"))
 
+  // Struct name of a typed tuple
+  def tupleStruct(tps:List[String]) = { "T"+tps.size+tps.map {n=>n match {
+    case "bool"|"char"|"short"|"int"|"long"|"float"|"double" => n.substring(0,1)
+    case "unsigned char" => "a" case "const char*" => "e" // primitives
+    case _ => "_"+n.substring(n.lastIndexOf('.')+1).toLowerCase // custom class
+  }}.mkString("")}
+
+  // Converts Scala type into C type
   private object typeParser extends StandardTokenParsers {
     import lexical.{NumericLit,StringLit}
     lexical.reserved ++= c_types.keys.toList
     lexical.delimiters ++= List("(",")",",",".")
     private def p:Parser[String]=( ("Boolean"|"Byte"|"String"|"Char"|"Short"|"Int"|"Long"|"Float"|"Double") ^^ { c_types(_) }
-      | "(" ~> repsep(p,",") <~ ")" ^^ { a=>tpe(a.zipWithIndex.map{case(s,i)=>s+" _"+(i+1) }.mkString("; ")) }
+      | "(" ~> repsep(p,",") <~ ")" ^^ { a=>tps.getOrElseUpdate(a.zipWithIndex.map{case(s,i)=>s+" _"+(i+1) }.mkString("; "),tupleStruct(a)) }
       | repsep(ident,".") ^^ { x=>tp_cls(x.mkString(".")) } | failure("Illegal type expression"))
     def parse(str:String):String = phrase(p)(new lexical.Scanner(str)) match { case Success(res, _)=>res case e=>sys.error(e.toString) }
   }
 
+  // Converts a Scala value into its C representation
   private object valParser extends StandardTokenParsers {
     import lexical.{NumericLit,StringLit}
     lexical.reserved ++= c_types.keys.toList ++ List("e","E")
@@ -40,6 +54,7 @@ class CodeHeader(within:Any) {
     def parse(str:String):String = phrase(p)(new lexical.Scanner(str)) match { case Success(res, _)=>res case e=>sys.error(e.toString) }
   }
 
+  // XXX: normalize the structures names instead of an incrementing counter => avoids interoperability problems
   // XXX: do we want to alias equivalent types/classes ? prepare a section '#define fancy_class_t tpXX' ahead of struct definition
   // XXX: do we want to get the subtypes of some elements ?
   // XXX: reverse lookup to get the correct type for one element ?
@@ -48,8 +63,9 @@ class CodeHeader(within:Any) {
 
   // Structs and types management
   private var tpc=0;
-  private val tps=new HashMap[String,String](); // struct body -> name
-  def tpe(tp:String) = tps.getOrElseUpdate(tp,{ val r=tpc; tpc=tpc+1; "_tp"+r })
+  val tps=new HashMap[String,String](); // struct body -> name
+
+  def addTypeC(tp:String,name:String):String = tps.getOrElseUpdate(tp,name)
   def addType(str:String):String = typeParser.parse(str)
   def getVal(str:String):String = valParser.parse(str)
   // def typeNamed(n:String):String = XXX: maintain revert hash map
@@ -77,10 +93,10 @@ class CodeHeader(within:Any) {
 
   // Functions
   private var fnc=0;
-  private val fns=new HashMap[(String,String,String),String](); // function (in,out,body) => name
-  def add(f:CodeFun):String = {
-    val in = addType(f.tpIn); val out=addType(f.tpOut); val fun=(in,out,f.body)
-    fns.getOrElseUpdate(fun,{ val r=fnc; fnc=fnc+1; "fun"+r })
+  private val fns=new HashMap[CFun,String](); // function => name
+  def add(f:CFun):String = {
+    f.args.foreach { case (n,tp)=> addType(tp) }; addType(f.tpe)
+    fns.getOrElseUpdate(f,{ val r=fnc; fnc=fnc+1; "fun"+r })
   }
 
   // Raw C code (put after all definitions)
@@ -89,7 +105,8 @@ class CodeHeader(within:Any) {
   def flush = {
     val res = tps.map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
               tps.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" +
-              fns.map{case ((i,o,b),n) => "inline "+o+" "+n+"("+i+" _arg) { "+o+" _res; "+b+"; return _res; }" }.mkString("\n") + "\n" + raw
+              fns.map{case (f,n) => "inline "+addType(f.tpe)+" "+n+"("+
+                           f.args.map{case (n,tp)=>(addType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n") + "\n" + raw
     tps.clear(); fns.clear(); tpc=0; fnc=0; raw=""; res
   }
 }

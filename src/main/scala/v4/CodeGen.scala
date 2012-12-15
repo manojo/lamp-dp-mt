@@ -22,16 +22,17 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   // Cost matrix : cost_t = parser_name -> cost
   // Backtracking: back_t = parser_name -> (rule, positions)
-  def btTpe(n:Int) = head.tpe("short rule"+(if(n>0)"; short pos["+n+"]"else""))
+  def btTpe(n:Int) = head.addTypeC("short rule"+(if(n>0)"; short pos["+n+"]"else""),"bt"+n)
   override def analyze:Boolean = { if (!super.analyze) return false; order=tabsOrder;
+    head.add("#define TI "+tpInput)
     head.add("typedef struct { "+order.map{n=>tpAnswer+" "+n+";"}.mkString(" ")+" } cost_t;\n#define TC cost_t")
     head.add("typedef struct { "+order.map{n=>val c=rules(n).inner.cat; btTpe(c)+" "+n+";"}.mkString(" ")+" } back_t;\n#define TB back_t")
     true
   }
 
   // Define the 'init' value (for max/min) and the 'empty' value for the initialization of cells (break loops)
-  var (vInit,vEmpty,tpAnswer):(String,String,String)=(null,null,null)
-  def setDefaults(init:Answer,empty:Answer) { tpAnswer=head.addType(head.tpOf(init)); vInit=head.getVal(init.toString); vEmpty=head.getVal(empty.toString) }
+  var (vInit,vEmpty,tpAnswer,tpInput):(String,String,String,String)=(null,null,null,null)
+  def setDefaults(init:Answer,empty:Answer,tpIn:String) { tpInput=head.addType(tpIn); tpAnswer=head.addType(head.tpOf(init)); vInit=head.getVal(init.toString); vEmpty=head.getVal(empty.toString) }
 
   // Normalize the parsers towards code generation
   // Canonical : [Tabulate] > Aggregate > Or > Filter > Map > Concat > (Tabulate | Terminal)
@@ -88,38 +89,31 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // Tabulation code generation
   def genTab(t:Tabulate):String = {
     def scs(min:Int,max:Int,i:Var,j:Var) = if (min==max) List(i.eq(j,min)) else (if (max==maxN) Nil else List(j.leq(i,-max))):::(if (min>0) List(i.leq(j,min)) else Nil)
-    def genFun[T,U](f:T=>U):String = if (f.isInstanceOf[CodeFun]) head.add(f.asInstanceOf[CodeFun]) else "UnsupportedFunction" // TODO: error
-    def gen[T](p0:Parser[T],i:Var,j:Var,g:FreeVar,rule:Int,bti:List[Int]):(List[Cond],String) = p0 match {
-      case Terminal(min,max,f) => val (cs,s)=f(i,j); (scs(min,max,i,j):::cs,s)
-      case p:Tabulate => (scs(p.min,p.max,i,j), "cost[idx("+i+","+j+")]."+p.name)
-      case Aggregate(p,h) => val (c,b)=gen(p,i,j,g,rule,bti);
+    def genFun[T,U](f0:T=>U):String = { val f1 = f0 match { case d:DeTuple => d.f case f => f }
+      f1 match { case f:CFun => head.add(f) case _ => "UnsupportedFunction" } // TODO: error
+    }
+    // Generate C parser for subword (i,j): collect conditions, content and backtrack indices
+    def gen[T](p0:Parser[T],i:Var,j:Var,g:FreeVar,rule:Int):(List[Cond],String,List[String]) = p0 match {
+      case Terminal(min,max,f) => val (cs,s)=f(i,j); (scs(min,max,i,j):::cs,s,Nil)
+      case p:Tabulate => (scs(p.min,p.max,i,j), "cost[idx("+i+","+j+")]."+p.name,Nil)
+      case Aggregate(p,h) => val (c,b,bti)=gen(p,i,j,g,rule);
         val tc = "_cost."+t.name
         val ccu = "{ "+tc+"=_c; _back."+t.name+"=("+btTpe(t.inner.cat)+"){"+rule+(if (t.inner.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
         val cc = h.toString match {
           case "$$max$$" => "if (_c>"+tc+") "+ccu
           case "$$min$$" => "if (_c<"+tc+") "+ccu
-          case "$$count$$" => return (c,tc+"+=1;") // don't compute (count only)
+          case "$$count$$" => return (c,tc+"+=1;",Nil) // don't compute (count only)
           case "$$sum$$" => tc+"+=_c;"
           case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any]].f); "if ("+f+"(_c)>"+f+"("+tc+")) "+ccu
           case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any]].f); "if ("+f+"(_c)<"+f+"("+tc+")) "+ccu
           case _ => "UnsupportedAggr("+b+")" // TODO: error
         }
-        (c, "_c="+b+"; "+cc)
-      case Or(l,r) => (Nil, emit(gen(l,i,j,g.dup,rule,bti))+"\n"+emit(gen(r,i,j,g.dup,rule+l.alt,bti)))
-      case Map(p,f) => val (c,b)=gen(p,i,j,g,rule,bti);
-       val tpIn = if (f.isInstanceOf[CodeFun]) head.addType(f.asInstanceOf[CodeFun].tpIn) else "UnknownType" // TODO: error
-       (c,genFun(f)+"(("+tpIn+")"+b+")") // XXX
-      case Filter(p,f) => val (c,b)=gen(p,i,j,g,rule,bti); (c,"if ("+genFun(f)+"(("+head.addType("(Int,Int)")+"){"+i+","+j+"})) { "+b+" }")
-      /*
-      case cc@Concat(l,r,0) => // XXX: track indices in bti
-      case cc@Concat(l,r,1) =>
-      case cc@Concat(l,r,2) =>
-      */
+        (c, "_c="+b+"; "+cc,Nil)
+      case Or(l,r) => (Nil, emit(gen(l,i,j,g.dup,rule))+"\n"+emit(gen(r,i,j,g.dup,rule+l.alt)),Nil)
+      case Map(p,f) => val (c,b,bti)=gen(p,i,j,g,rule); (c,genFun(f)+"("+b+")",bti)
+      case Filter(p,f) => val (c,b,bti)=gen(p,i,j,g,rule); (c,"if ("+genFun(f)+"(("+head.addType("(Int,Int)")+"){"+i+","+j+"})) { "+b+" }",bti)
       // LEGACY
-      // 1. Assign to each node its bounds (i,j)
-      // 2. Collect all the conditions from the tree and its content body
-      // Given bounds [i,j] and a FreeVar generator, returns a list of conditions/loops and the body of the operator
-      // XXX: in functions body, obtain the appropriate type as return type
+      // XXX: we have a limitation: we cannot support concat(map(concat(...)),...) otherwise weird indexing => how can it be solved ???
       case cc@Concat(l,r,0) =>
         def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u>0) j.leq(i,-f-u)::ls else ls }
         val (c,k):(List[Cond],Var) = cc.indices match {
@@ -137,28 +131,27 @@ trait CodeGen extends BaseParsers { this:Signature =>
             // we might want to simplify if min_k==i || max_k==j
             (CFor(k0.v,i.v,iL,j.v,jL)::cs, k0)
         }
-        val (lc,lb) = gen(l,i,k,g,rule,bti)
-        val (rc,rb) = gen(r,k,j,g,rule,bti)
-        (simplify(c ::: lc ::: rc), "{"+lb+","+rb+"}")
+        val (lc,lb,btl) = gen(l,i,k,g,rule)
+        val (rc,rb,btr) = gen(r,k,j,g,rule)
+        (simplify(c ::: lc ::: rc), lb+","+rb, btl::: List(k.toString) :::btr)
       case cc@Concat(l,r,1) => val (a,b,_,_)=cc.indices
         val (c,k) = if (a==b && a>0) (zero.leq(i,1), i.add(-a))
                     else { val k0=g.get; (CFor(k0.v,'0',1,i.v,1), k0) }
-        val (lc,lb) = gen(l,k,i,g,rule,bti)
-        val (rc,rb) = gen(r,k,j,g,rule,bti)
-        (simplify(c :: lc ::: rc), "{"+lb+","+rb+"}")
+        val (lc,lb,btl) = gen(l,k,i,g,rule)
+        val (rc,rb,btr) = gen(r,k,j,g,rule)
+        (simplify(c :: lc ::: rc), lb+","+rb, btl::: List(k.toString) :::btr)
       case cc@Concat(l,r,2) => val (_,_,a,b)=cc.indices
         val (c,k) = if (a==b && a>0) (zero.leq(j,1), j.add(-a))
                     else { val k0=g.get; (CFor(k0.v,'0',1,j.v,1), k0) }
-        val (lc,lb) = gen(l,i,k,g,rule,bti)
-        val (rc,rb) = gen(r,k,j,g,rule,bti)
-        (simplify(c :: lc ::: rc), "{"+lb+","+rb+"}")
-      // XXX: in concats also maintain the type of the expression so that we can construct structures on the fly
+        val (lc,lb,btl) = gen(l,i,k,g,rule)
+        val (rc,rb,btr) = gen(r,k,j,g,rule)
+        (simplify(c :: lc ::: rc), lb+","+rb, btl::: List(k.toString) :::btr)
       // LEGACY-END
 
       case _ => sys.error("Unknown parser")
     }
     // Generate the loops and size conditions
-    def emit(cb:(List[Cond],String)):String = cb match { case (cs,body) => simplify(cs).map {
+    def emit(cb:(List[Cond],String,List[String])):String = cb match { case (cs,body,_) => simplify(cs).map {
       case CFor(v,l,ld,u,ud) => "for(int "+v+"="+l+(if(ld>0)"+"+ld else "")+(ud match {
           case 0 => "; "+v+"<="+u case 1 => "; "+v+"<"+u
           case _ => ","+v+"u="+u+"-"+ud+"; "+v+"<="+v+"u"
@@ -167,7 +160,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       case CLeq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"<="+b+")"
     }.map{x=>x+" { "}.mkString("")+body+cs.map{x=>" }"}.mkString("")}
     // Generate code for the whole tabulation
-    emit(gen(norm(t.inner),Var('i',0),Var('j',0),new FreeVar('k'),t.id,Nil))
+    emit(gen(norm(t.inner),Var('i',0),Var('j',0),new FreeVar('k'),t.id))
   }
 
   /*
@@ -179,21 +172,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
      - convert functions ot C
   3. Generate code for the kernel
   */
-  // Demo (assumes   case class Mat(rows:Int, cols:Int)   in the final class)
-  /*
-    val foo = new CodeFun{ // tree{ (x:Mat) => Mat(x.cols,x.rows) }
-      val tpIn="Mat"
-      val tpOut="Mat"
-      val body="_res=(mat_t){_arg.cols,_arg.rows}"
-    }
-    val foo2 = new CodeFun { //(x:(Int,(Int,Int))) => x._1 * x._2._1 + x._2._2
-      val tpIn="(Int,(Int,Int))"
-      val tpOut="Int"
-      val body="_res=_arg._1 * _arg._2._1 + _arg._2._2"
-    }
-    println(head.add(foo))
-    println(head.add(foo2))
-  */
+  // XXX: make sure we handle case class appropriately in codegen
   // XXX: idea: fill the matrix with an EMPTY value, then whenever we hit this value, we ignore the result
 
   // --------------------------------------------------------------------------
@@ -215,7 +194,10 @@ trait CodeGen extends BaseParsers { this:Signature =>
     println("------------ defs -------------")
     print(head.flush)
     println("------------ kernel -----------")
+    // #define idx(i,j) 0
+    // int main(int argc, char** argv) { TI in[1]; cost_t cost[1]; int i=0,j=0;
     print(sb.toString)
+    // }
     println("------------- end -------------")
     ""
   }
