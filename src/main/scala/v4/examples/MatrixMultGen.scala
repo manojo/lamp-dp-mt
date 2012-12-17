@@ -39,8 +39,13 @@ trait MatrixGrammarGen extends ADPParsers with CodeGen with MatrixSig {
   | (matrixGrammar ~ matrixGrammar) ^^ mult
   ) aggregate h)
 
-  // Let us be more fancy and define useless rules
+  // Let us be more fancy and define testing
   val fooBar:Tabulate = tabulate("m2",matrixGrammar aggregate h)
+
+  val nestedAggr = tabulate("aggr",( // complexity = O(n^2) / element
+    (matrixGrammar ~ matrixGrammar ^^ mult aggregate h) ~
+    (matrixGrammar ~ matrixGrammar ^^ mult aggregate h) ^^ mult
+  ) aggregate h)
 
   val axiom=matrixGrammar
 }
