@@ -7,8 +7,8 @@ class Dummy // empty parser match
 trait Signature  {
   type Alphabet // input type
   type Answer // output type
-  val mAlphabet:Manifest[Alphabet]
-  val mAnswer:Manifest[Answer]
+  implicit val mAlphabet:Manifest[Alphabet]
+  implicit val mAnswer:Manifest[Answer]
 
   val window = 0 // windowing size, 0=disabled
   val h:List[Answer]=>List[Answer] = l=>l // optimization function

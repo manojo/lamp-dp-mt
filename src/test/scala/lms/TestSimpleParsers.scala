@@ -85,13 +85,13 @@ trait MatMultProg extends Parsers{ this: Sig =>
       if(i+1==j) List(in(i)) else List()
   }
 
-  def myParser(in:Input) : TabulatedParser[Answer] = {
+  def myParser(in:Input) : TabulatedParser = {
     val a : Rep[Array[Array[Answer]]] = NewArray(in.length+1)
     (0 until in.length + 1).foreach{ i=>
       a(0) = NewArray(in.length+1)
     }
 
-    lazy val p : TabulatedParser[Answer] = tabulate(
+    lazy val p : TabulatedParser = tabulate(
      (el(in) ^^ single
       | (p +~+ p) ^^ {(x: Rep[(Answer,Answer)]) => mult(x._1,x._2)}
      ).aggregate{x: Rep[List[Answer]] => if(x.isEmpty) x else List(list_minby(x, {elem:Rep[Answer] => elem._2}))},

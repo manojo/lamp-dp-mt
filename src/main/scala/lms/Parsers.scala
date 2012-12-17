@@ -138,14 +138,14 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
 
   /*************** simple parsers below *****************/
 
-/*   def el(in: Input) = new Parser[Alphabet] {
+   def el(in: Input)(implicit mAlph: Manifest[Alphabet]) = new Parser[Alphabet] {
     def apply(i: Rep[Int], j : Rep[Int]) =
-      if(i+1==j) List(in(i)) else Nil
+      if(i+1==j) List(in(i)) else List()
   }
 
-  def eli(in: Input) = new Parser[Int] {
+/*  def eli(in: Input) = new Parser[Int] {
     def apply(i: Rep[Int], j : Rep[Int]) =
-      if(i+1==j) List(i) else Nil
+      if(i+1==j) List(i) else List()
   }
 */
 
