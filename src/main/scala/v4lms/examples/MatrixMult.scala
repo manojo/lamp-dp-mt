@@ -29,7 +29,7 @@ trait MatrixGrammar extends ADPParsers with MatrixSig {
   val matrixGrammar:Tabulate = tabulate("M",(
  //   el ^^ single
 //  |
-    (matrixGrammar ~ matrixGrammar) ^^ mult // { case (a1,a2) => mult(a1, a2) }
+    (parserADP(matrixGrammar)(mAnswer).~(matrixGrammar)(mAnswer)).^^(mult)(mAnswer) // { case (a1,a2) => mult(a1, a2) }
   ) aggregate h)
 
   val axiom=matrixGrammar

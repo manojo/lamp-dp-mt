@@ -6,6 +6,9 @@ trait Sig{
   type Alphabet
   type Answer
 
+  val mAlph: Manifest[Alphabet]
+  val mAns : Manifest[Answer]
+
   //  def h(l: List[Answer]) : List[Answer]
   //  val cyclic = false // cyclic problem
   //  val window = 0     // windowing size, 0=disabled
@@ -55,9 +58,9 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
   import scala.collection.mutable.HashSet
 
   val productions = new HashSet[String]
-  def tabulate[T: Manifest](inner: Parser[T],
-    name:String, mat: Rep[Array[Array[T]]]
-   ) = TabulatedParser(inner, name, mat)
+  def tabulate(inner: Parser[Answer],
+    name:String, mat: Rep[Array[Array[Answer]]]
+   ) = TabulatedParser(inner, name, mat)(mAns)
 
    /*** case classes for matching on Parsers */
 
@@ -116,8 +119,8 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
    }
 
 
-  case class TabulatedParser[T: Manifest](inner: Parser[T], name: String,
-    mat: Rep[Array[Array[T]]]) extends Parser[T]{
+  case class TabulatedParser(inner: Parser[Answer], name: String,
+    mat: Rep[Array[Array[Answer]]])(implicit val mAns: Manifest[Answer]) extends Parser[Answer]{
       def apply(i: Rep[Int], j: Rep[Int]) =
         if(i <= j){
           if(!(productions contains(name)) /*|| mat(i)(j) == null*/){
@@ -176,9 +179,9 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
  * FilterParser(inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean])
  */
 
- def transform[T: Manifest](p: TabulatedParser[T]): Parser[T] = p match {
-  case TabulatedParser(inner, n, m: Rep[Array[Array[T]]] @unchecked) =>
-    TabulatedParser(transform(inner), p.name, p.mat)
+ def transform(p: TabulatedParser): TabulatedParser = p match {
+  case t@TabulatedParser(inner, n, m: Rep[Array[Array[Answer]]] @unchecked) =>
+    TabulatedParser(transform(inner)(t.mAns), p.name, p.mat)(t.mAns)
  }
 
  def transform[T:Manifest](p: Parser[T]): Parser[T] = {
@@ -268,6 +271,10 @@ object HelloParsers extends App {
 
   val concreteProg = new LexicalParsers with ParsersExp with Sig { self =>
     type Answer = Double
+
+    val mAns = manifest[Answer]
+    val mAlph = manifest[Alphabet]
+
     val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
       with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
       with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }

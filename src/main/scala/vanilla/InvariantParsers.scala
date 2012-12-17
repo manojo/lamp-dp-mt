@@ -12,7 +12,7 @@ trait InvariantParsers{
     def |(that: Parser[T]) = or(that)
     private def or(that: Parser[T]) = OrParser(inner, that)
 
-    def aggregate[U](h: List[T] => List[U]) = AggregateParser(inner, h)
+    def aggregate(h: List[T] => List[T]) = AggregateParser(inner, h)
     def min(implicit e: Ordering[T]) = {
       AggregateMin(inner)
     }
@@ -66,7 +66,7 @@ trait InvariantParsers{
     override def toString = "Or("+inner+","+that+")"
   }
 
-  case class AggregateParser[T, U](inner: Parser[T], h: List[T] => List[U]) extends Parser[U]{
+  case class AggregateParser[T](inner: Parser[T], h: List[T] => List[T]) extends Parser[T]{
     def apply(i: Int, j: Int) = h(inner(i,j))
     override def toString = "Aggregate("+inner+")"
   }
@@ -200,8 +200,18 @@ trait InvariantParsers{
       println("Or parser match")
       OrParser(transform(p), transform(q))
     case AggregateParser(p,h:(List[T] => List[T])) =>
-      println("Aggregate parser match")
-      AggregateParser(transform(p),h)
+    println("Aggregate parser match")
+    transform(p) match {
+      case OrParser(l,r) =>
+        AggregateParser(
+          OrParser(
+            AggregateParser(transform(l),h),
+            AggregateParser(transform(r),h)
+          ), h
+        )
+      case q => AggregateParser(q,h)
+    }
+
     case FilterParser(p,f) => FilterParser(transform(p), f)
     case _ => p
   }
@@ -218,7 +228,7 @@ object InvariantMatMult extends InvariantParsers{
   def bottomUp[T](in: Input, p :  => Parser[T], costMatrix: Array[Array[T]]) : T = {
     (0 until in.length + 1).foreach{j =>
       (0 until j+1).foreach{i =>
-        println((j-i,j))
+        //println((j-i,j))
         val a = costMatrix(j-i)
         a(j) = p(j-i,j).head
       }
@@ -274,7 +284,7 @@ object InvariantMatMult extends InvariantParsers{
     lazy val p : TabulatedParser[Answer] = tabulate(
       (el(in) ^^ single
        | (p +~+ p) ^^ {(x: (Answer,Answer)) => mult(x)}
-      ).min,
+      ).aggregate{x : List[Answer]=> if(x.isEmpty) x else List(x.minBy(_._2))},
       "mat",
       a
     )
