@@ -31,9 +31,9 @@ class CodeHeader(within:Any) {
   // Converts Scala type into C type
   private object typeParser extends StandardTokenParsers {
     import lexical.{NumericLit,StringLit}
-    lexical.reserved ++= c_types.keys.toList
+    lexical.reserved ++= c_types.keys.toList ++ List("scala")
     lexical.delimiters ++= List("(",")",",",".")
-    private def p:Parser[String]=( ("Boolean"|"Byte"|"String"|"Char"|"Short"|"Int"|"Long"|"Float"|"Double") ^^ { c_types(_) }
+    private def p:Parser[String]=(opt("scala"~".")~>("Boolean"|"Byte"|"String"|"Char"|"Short"|"Int"|"Long"|"Float"|"Double") ^^ { c_types(_) }
       | "(" ~> repsep(p,",") <~ ")" ^^ { a=>tps.getOrElseUpdate(a.zipWithIndex.map{case(s,i)=>s+" _"+(i+1) }.mkString("; "),tupleStruct(a)) }
       | repsep(ident,".") ^^ { x=>tp_cls(x.mkString(".")) } | failure("Illegal type expression"))
     def parse(str:String):String = phrase(p)(new lexical.Scanner(str)) match { case Success(res, _)=>res case e=>sys.error(e.toString) }
@@ -64,15 +64,14 @@ class CodeHeader(within:Any) {
   // Structs and types management
   private var tpc=0;
   val tps=new HashMap[String,String](); // struct body -> name
-
-  def addTypeC(tp:String,name:String):String = tps.getOrElseUpdate(tp,name)
-  def addType(str:String):String = typeParser.parse(str)
+  def getTypeC(tp:String,name:String):String = tps.getOrElseUpdate(tp,name)
+  def getType(str:String):String = typeParser.parse(str)
   def getVal(str:String):String = valParser.parse(str)
   // def typeNamed(n:String):String = XXX: maintain revert hash map
 
   private val tp_ctx = within.getClass.getCanonicalName
   private def tp_cls(n:String):String = {
-    val cls = Class.forName(tp_ctx+n)
+    val cls = Class.forName(tp_ctx+n.substring(n.lastIndexOf('.')+1))
     // try mutliple attempt to find that class: absolute class
     // within.getDeclaredClasses(), getDeclaringClass, getEnclosingClass, getSuperclass
     val td = cls.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
@@ -95,7 +94,7 @@ class CodeHeader(within:Any) {
   private var fnc=0;
   private val fns=new HashMap[CFun,String](); // function => name
   def add(f:CFun):String = {
-    f.args.foreach { case (n,tp)=> addType(tp) }; addType(f.tpe)
+    f.args.foreach { case (n,tp)=> getType(tp) }; getType(f.tpe)
     fns.getOrElseUpdate(f,{ val r=fnc; fnc=fnc+1; "fun"+r })
   }
 
@@ -105,8 +104,8 @@ class CodeHeader(within:Any) {
   def flush = {
     val res = tps.map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
               tps.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" +
-              fns.map{case (f,n) => "inline "+addType(f.tpe)+" "+n+"("+
-                           f.args.map{case (n,tp)=>(addType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n") + "\n" + raw
+              fns.map{case (f,n) => "inline "+getType(f.tpe)+" "+n+"("+
+                           f.args.map{case (n,tp)=>(getType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n") + "\n" + raw
     tps.clear(); fns.clear(); tpc=0; fnc=0; raw=""; res
   }
 }

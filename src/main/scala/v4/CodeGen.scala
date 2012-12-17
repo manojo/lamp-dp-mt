@@ -22,17 +22,21 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   // Cost matrix : cost_t = parser_name -> cost
   // Backtracking: back_t = parser_name -> (rule, positions)
-  def btTpe(n:Int) = head.addTypeC("short rule"+(if(n>0)"; short pos["+n+"]"else""),"bt"+n)
+  def btTpe(n:Int) = head.getTypeC("short rule"+(if(n>0)"; short pos["+n+"]"else""),"bt"+n)
   override def analyze:Boolean = { if (!super.analyze) return false; order=tabsOrder;
-    head.add("#define TI "+tpInput)
+    head.add("#define TI "+tpAlphabet)
     head.add("typedef struct { "+order.map{n=>tpAnswer+" "+n+";"}.mkString(" ")+" } cost_t;\n#define TC cost_t")
     head.add("typedef struct { "+order.map{n=>val c=rules(n).inner.cat; btTpe(c)+" "+n+";"}.mkString(" ")+" } back_t;\n#define TB back_t")
     true
   }
 
   // Define the 'init' value (for max/min) and the 'empty' value for the initialization of cells (break loops)
-  var (vInit,vEmpty,tpAnswer,tpInput):(String,String,String,String)=(null,null,null,null)
-  def setDefaults(init:Answer,empty:Answer,tpIn:String) { tpInput=head.addType(tpIn); tpAnswer=head.addType(head.tpOf(init)); vInit=head.getVal(init.toString); vEmpty=head.getVal(empty.toString) }
+//  var tpAnswer:String = head.getType(scala.reflect.runtime.universe.typeTag[Answer].tpe.toString)
+  import scala.reflect.runtime.universe.TypeTag
+  val tags:(TypeTag[Alphabet],TypeTag[Answer]) = (null,null)
+  lazy val tpAlphabet = head.getType(tags._1.tpe.toString)
+  lazy val tpAnswer = head.getType(tags._1.tpe.toString)
+
 
   // Normalize the parsers towards code generation
   // Canonical : [Tabulate] > Aggregate > Or > Filter > Map > Concat > (Tabulate | Terminal)
@@ -43,7 +47,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     case Filter(p0,c) => norm(p0) match {
       case Or(l,r) => Or(norm(Filter(l,c)),norm(Filter(r,c)))
       case p => Filter(p,c)
-    } 
+    }
     case Aggregate(p0,h) => norm(p0) match {
       case Filter(p,f) => Filter(norm(Aggregate(p,h)),f)
       case Or(l,r) => Or(norm(Aggregate(l,h)),norm(Aggregate(r,h)))
@@ -100,28 +104,24 @@ trait CodeGen extends BaseParsers { this:Signature =>
       case p:Tabulate => (scs(p.min,p.max,i,j),"","cost[idx("+i+","+j+")]."+p.name,Nil)
       case Aggregate(p,h) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr+1);
         val (tc,tb) = if(aggr==0) ("_cost."+t.name,"_back."+t.name) else { aid=aid+1; ("_c"+aid, "_b"+aid) }
-        val btt = btTpe(p.cat)
         // Generate aggregation body
-        val updt = "{ "+tc+"=_c; "+tb+"=("+btt+"){"+rule+(if (p.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
+        val updt = "{ "+tc+"=_c; "+tb+"=("+btTpe(p.cat)+"){"+rule+(if (p.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
         val cc = h.toString match {
-          case "$$max$$" => "_c="+b+"; if (_c>"+tc+" || "+tb+".rule==-1) "+updt
-          case "$$min$$" => "_c="+b+"; if (_c<"+tc+" || "+tb+".rule==-1) "+updt
+          case "$$max$$" => "XXX _c="+b+"; if (_c>"+tc+" || "+tb+".rule==-1) "+updt
+          case "$$min$$" => "XXX _c="+b+"; if (_c<"+tc+" || "+tb+".rule==-1) "+updt
           case "$$count$$" => tc+"+=1;"
           case "$$sum$$" => tc+"+="+b+";"
-          case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); "_c="+b+"; if ("+f+"(_c)>"+f+"("+tc+") || "+tb+".rule==-1) "+updt
-          case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); "_c="+b+"; if ("+f+"(_c)<"+f+"("+tc+") || "+tb+".rule==-1) "+updt
+          case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); "XXX _c="+b+"; if ("+f+"(_c)>"+f+"("+tc+") || "+tb+".rule==-1) "+updt
+          case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); "XXX _c="+b+"; if ("+f+"(_c)<"+f+"("+tc+") || "+tb+".rule==-1) "+updt
           case _ => "UnsupportedAggr("+b+")" // TODO: error
         }
         if (aggr==0) (c,hb,cc,bti)
         else { // hoist aggregation if contained
-          val nv = "XXX "+tc+"; "+btt+" "+tb+"={-1"+(if (p.cat>0)",{}" else "")+"};\n"; // XXX: fix the temporary result here type here
+          val nv = "XXX "+tc+"; "+btTpe(p.cat)+" "+tb+"={-1"+(if (p.cat>0)",{}" else "")+"};\n"; // XXX: fix the temporary result type here
           // XXX: we also may need to have multiple <_c> due to different types
           (Nil,nv+emit((c,hb,cc,bti)),tc,(0 until p.cat).map{x=>tb+".pos["+x+"]"}.toList)
         }
-      // XXX: param = 'output' for aggregate result + backtrack
-      // XXX: we have a limitation: we cannot support aggregate(concat(aggregate(concat(...)),...)) otherwise weird indexing => how can it be solved ???
-      // XXX: in aggregate we need to have our own temporary _c variable
-
+        // XXX: in aggregate we need to have our own temporary _c variable
         // At each step: have a temporary backtrack for each rule: _b = {r,a,b,0,0}... at each step
         // at level 0  : push back the backtrack in the main structure
         // XXX: create a typing function that returns out type of parser
@@ -129,16 +129,14 @@ trait CodeGen extends BaseParsers { this:Signature =>
         // case 1: proceed as usual (writeback directly in backtrack value)
         // case 2: each aggregation needs to return a (value,indices) pair !!
         //         type = inner_map.tpe,short[inner.]
-
-      /*
-      1. Hoist the internal => temporary cost, XXX: backtrack is written immediately at destination (only relevant indices)
-      2. map temporary cost as usual
-      3. backtrack write = rule + indices_offset + list of indices
-      */
-
+        /*
+        1. Hoist the internal => temporary cost, XXX: backtrack is written immediately at destination (only relevant indices)
+        2. map temporary cost as usual
+        3. backtrack write = rule + indices_offset + list of indices
+        */
       case Or(l,r) => (Nil,"",emit(gen(l,i,j,g.dup,rule,aggr))+"\n"+emit(gen(r,i,j,g.dup,rule+l.alt,aggr)),Nil)
       case Map(p,f) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr); (c,hb,genFun(f)+"("+b+")",bti)
-      case Filter(p,f) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr); (c,hb,"if ("+genFun(f)+"(("+head.addType("(Int,Int)")+"){"+i+","+j+"})) { "+b+" }",bti)
+      case Filter(p,f) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr); (c,hb,"if ("+genFun(f)+"(("+head.getType("(Int,Int)")+"){"+i+","+j+"})) { "+b+" }",bti)
       case cc@Concat(l,r,tt) =>
         def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u>0) j.leq(i,-f-u)::ls else ls }
         val (c,k):(List[Cond],Var) = (tt,cc.indices) match {
@@ -176,6 +174,56 @@ trait CodeGen extends BaseParsers { this:Signature =>
     emit(gen(norm(t.inner),Var('i',0),Var('j',0),new FreeVar('k'),t.id,0))
   }
 
+  // this functions read one element, go to appropriate places, collect the backtracks infos there and push them back into the list
+  def genBT:String = {
+    val btTpMax=btTpe(rules.map{case (n,t)=>t.inner.cat}.max)
+    println(btTpMax+" backtrack;")
+    println("size_t bt_size = 0;")
+
+// XXX: we want to have something that looks like this
+/*
+typedef struct { short i,j,rule; short pos[MAX]; } trace_t;
+trace_t trace = trace_t[2*n];
+// number of indices for the given rule
+static int trace_len[rules_max] = {3,0,1,0};
+
+// function
+void do_backtrack() {
+trace_t *rd=trace, *wr=trace;
+*wr=(trace_t){0,n,axiom_rule}; ++wr;
+for(rd<wr;++rd) {
+  back_t* back=g_back[idx(rd->i,rd->j)];
+  btMax bt;
+  switch(rd->rule) {
+    case 0: bt=back.aggr;
+    case 1: bt=back.m;
+    case 2: bt=back.m;
+    case 0: bt=back.m2;
+  }
+  // decode fully the read indices
+  rd.rule = bt->rule; // fix the origin rule
+  for (int i=0,l=trace_len[rd->rule]; i<l; ++i) rd.pos[i]=bt->pos[i];
+  // lookup for the next traces to add
+  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; }
+  switch(rd->rule) {
+    // aggr[i,j]
+    case 0: PUSH_BACK(rd->i,rd->pos[0],1 /*or 2, as rule ID */); PUSH_BACK(rd->pos[1],rd->pos[2],1); ... break;
+    // m[i,j]
+    case 1: break;
+    case 2: PUSH_BACK(rd->i,rd->pos[0],1); PUSH_BACK(rd->pos[0],rd->j,1); break;
+    // m2[i,j]
+    case 3: PUSH_BACK(rd->i,rd->j,1); break;
+  }
+}
+}
+*/
+    // define queue as maximum-length backtrack
+    // decode the rules number : get the rules by increasing number => read appropriate backtrack
+
+    println("}")
+    ""
+  }
+
   /*
   TODO:
   0. Fix the aggregation variables
@@ -193,14 +241,15 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // C code generator
 
   def gen:String = { analyze
+    // Generate code for parsers
     val sb=new StringBuilder
     sb.append("back_t _back = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n")
-    sb.append("cost_t _cost = {"+order.map{n=>vInit}.mkString(",")+"};\n")
-    sb.append(tpAnswer+" _c;\n")
+    sb.append("cost_t _cost = {};\n")
     order.foreach { n=> val r=rules(n);
       sb.append("/* --- "+n+"[i,j] --- */\n")
       sb.append(genTab(r)+"\n")
     }
+    // Generate code for backtrack
 
     println("Problem type: "+(if (twotracks) "sequence alignment" else "standard" )+(if (window>0) ", window="+window else ""));
     println("---------- analysis -----------")
@@ -212,6 +261,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
     // int main(int argc, char** argv) { TI in[1]; cost_t cost[1]; int i=0,j=0;
     print(sb.toString)
     // }
+    println("---------- backtrack ----------")
+    print(genBT)
     println("------------- end -------------")
     ""
   }

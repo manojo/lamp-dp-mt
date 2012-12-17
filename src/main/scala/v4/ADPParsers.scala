@@ -23,7 +23,7 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   }
 
   // Terminal parsers
-  def empty = new Terminal[Dummy](0,0,(i:Var,j:Var) => (Nil,"EMPTY")) {
+  def empty = new Terminal[Dummy](0,0,(i:Var,j:Var) => (Nil,"0")) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((new Dummy,bt0)) else Nil }
   }
   def emptyi = new Terminal[Int](0,0,(i:Var,j:Var) => (Nil,"("+i+")")) {

@@ -8,7 +8,7 @@ import v4._
 // Computation cost algebra (in # of multiplications)
 trait MatrixAlgebraGen extends MatrixSig {
   type Answer = (Int,Int,Int) // rows, cost, columns
-  
+
   val hf = new (Answer=>Int) with CFun {
     def apply(a:Answer) = a._2
     val args=List(("a","(Int,Int,Int)"))
@@ -33,7 +33,7 @@ trait MatrixAlgebraGen extends MatrixSig {
 }
 
 // Matrix multiplication grammar (rules)
-trait MatrixGrammarGen extends ADPParsers with CodeGen with MatrixSig {
+trait MatrixGrammarGen extends ADPParsers with MatrixSig {
   val matrixGrammar:Tabulate = tabulate("m",(
     el ^^ single
   | (matrixGrammar ~ matrixGrammar) ^^ mult
@@ -51,12 +51,28 @@ trait MatrixGrammarGen extends ADPParsers with CodeGen with MatrixSig {
 }
 
 // Code generator only
-object MatrixMultGen extends MatrixGrammarGen with MatrixAlgebraGen with App {
+object MatrixMultGen extends MatrixGrammarGen with MatrixAlgebraGen with App with CodeGen {
   val input = List((10,100),(100,5),(5,50)).toArray
 
+  def hh(l:List[(Int,Int)]):List[(Int,Int)] = l
+  println((hh _).getClass.toString)
+
+/*
+  import scala.language.implicitConversions
+  import scala.reflect.runtime.universe.TypeTag;
+  trait AggrF[T] { val inner:List[T]=>List[T]; val tpe:String }
+  implicit def toAggrF[T](h:List[T]=>List[T])(implicit tt:TypeTag[T]):AggrF[T] = new AggrF[T] {
+    val inner:List[T]=>List[T] = h
+    val tpe:String = tt.tpe.toString
+  }
+  def printType[T](a:AggrF[T]) = println(a.tpe)
+  def hh(l:List[(Int,Int)]):List[(Int,Int)] = l
+  printType(hh _)
+*/
+
   // ------- Extra codegen initialization
-  val infty = 2147483647
-  setDefaults((0,infty,0),(-1,infty,-1),"(Int,Int)")
+  import scala.reflect.runtime.universe.typeTag;
+  override val tags=(typeTag[Alphabet],typeTag[Answer])
   // ------- Extra codegen initialization
 
   println(gen)
