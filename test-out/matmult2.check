@@ -1,11 +1,14 @@
-error: illegal sharing of mutable objects Sym(7)
-at Sym(8)=Reflect(ArrayUpdate(Sym(3),Const(0),Sym(7)),Summary(false,false,false,false,false,List(Sym(3), Sym(7)),List(Sym(3), Sym(7)),List(Sym(3)),List(Sym(3))),List(Sym(7)))
-error: write to non-mutable Sym(12) -> Some(TP(Sym(12),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(10)))))
-at Sym(76)=Reflect(ArrayUpdate(Sym(12),Sym(1),Sym(75)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(12)),List(Sym(12))),List(Sym(3), Sym(10), Sym(12)))
+error: illegal sharing of mutable objects Sym(6)
+at Sym(7)=Reflect(ArrayUpdate(Sym(3),Const(0),Sym(6)),Summary(false,false,false,false,false,List(Sym(3), Sym(6)),List(Sym(3), Sym(6)),List(Sym(3)),List(Sym(3))),List(Sym(6)))
+Aggregate Parser match
+Or Parser match
+Map Concat parser match
+error: write to non-mutable Sym(11) -> Some(TP(Sym(11),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(9)))))
+at Sym(76)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(75)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(9), Sym(11)))
 error: illegal sharing of mutable objects Sym(3)
-at Sym(76)=Reflect(ArrayUpdate(Sym(12),Sym(1),Sym(75)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(12)),List(Sym(12))),List(Sym(3), Sym(10), Sym(12)))
-error: write to non-mutable Sym(12) -> Some(TP(Sym(12),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(10)))))
-at Sym(80)=Reflect(IfThenElse(Sym(11),Block(Sym(79)),Block(Sym(17))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(Sym(12)),List()),List(Sym(3), Sym(10)))
+at Sym(76)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(75)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(9), Sym(11)))
+error: write to non-mutable Sym(11) -> Some(TP(Sym(11),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(9)))))
+at Sym(80)=Reflect(IfThenElse(Sym(10),Block(Sym(79)),Block(Sym(16))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(Sym(11)),List()),List(Sym(3), Sym(9)))
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -14,116 +17,116 @@ def apply(x0:Array[scala.Tuple2[Int, Int]]): scala.Tuple3[Int, Int, Int] = {
 val x1 = x0.length
 val x2 = x1 + 1
 val x3 = new Array[Array[scala.Tuple3[Int, Int, Int]]](x2)
-val x4 = x1 + 2
-var x6 : Int = 0
-val x10 = while (x6 < x4) {
-val x7 = new Array[scala.Tuple3[Int, Int, Int]](x2)
-val x8 = x3(0) = x7
-x8
-x6 = x6 + 1
+var x5 : Int = 0
+val x9 = while (x5 < x2) {
+val x6 = new Array[scala.Tuple3[Int, Int, Int]](x2)
+val x7 = x3(0) = x6
+x7
+x5 = x5 + 1
 }
-val x11 = 0 <= x1
-val x80 = if (x11) {
-val x12 = x3(0)
-val x24 = 0 < x1
-val x13 = 0 + 1
-val x58 = if (x24) {
-val x25 = 0 == 0
-val x28 = if (x25) {
-x13
+val x10 = 0 <= x1
+val x80 = if (x10) {
+val x11 = x3(0)
+val x23 = 0 < x1
+val x12 = 0 + 1
+val x65 = if (x23) {
+val x24 = 0 == 0
+val x27 = if (x24) {
+x12
 } else {
-val x26 = x1 - 0
-val x27 = java.lang.Math.max(x13, x26)
-x27
+val x25 = x1 - 0
+val x26 = java.lang.Math.max(x12, x25)
+x26
 }
-val x32 = if (x25) {
-val x29 = x1 - 1
-x29
+val x31 = if (x24) {
+val x28 = x1 - 1
+x28
 } else {
-val x29 = x1 - 1
-val x30 = 0 + 0
-val x31 = java.lang.Math.min(x29, x30)
-x31
+val x28 = x1 - 1
+val x29 = 0 + 0
+val x30 = java.lang.Math.min(x28, x29)
+x30
 }
-val x33 = x32 + 1
-val x34 = x28 until x33
-val x35 = x34.toList
-val x17 = List()
-val x56 = x35.flatMap { x36 => 
-val x37 = 0 <= x36
-val x42 = if (x37) {
-val x38 = x3(0)
-val x39 = x38(x36)
-val x40 = List(x39)
-x40
+val x32 = x31 + 1
+val x33 = x27 until x32
+val x34 = x33.toList
+val x16 = List()
+val x63 = x34.map{
+x35 => 
+val x36 = 0 <= x35
+val x41 = if (x36) {
+val x37 = x3(0)
+val x38 = x37(x35)
+val x39 = List(x38)
+x39
 } else {
-x17
-}
-val x44 = x36 <= x1
-val x54 = x42.flatMap { x43 => 
-val x49 = if (x44) {
-val x45 = x3(x36)
-val x46 = x45(x1)
-val x47 = List(x46)
-x47
-} else {
-x17
-}
-val x52 = x49.map{
-x50 => 
-val x51 = (x43,x50)
-x51
-}
-x52
-}
-x54
-}
-x56
-} else {
-val x17 = List()
-x17
-}
-val x14 = x13 == x1
-val x18 = if (x14) {
-val x15 = x0(0)
-val x16 = List(x15)
 x16
+}
+val x43 = x35 <= x1
+val x48 = if (x43) {
+val x44 = x3(x35)
+val x45 = x44(x1)
+val x46 = List(x45)
+x46
 } else {
-val x17 = List()
-x17
+x16
 }
-val x23 = x18.map{
-x19 => 
-val x20 = x19._1
-val x21 = x19._2
-val x22 = (x20,0,x21)
-x22
+val x42 = x41.head
+val x51 = x42._1
+val x49 = x48.head
+val x56 = x49._3
+val x52 = x42._2
+val x55 = x49._2
+val x57 = x52 + x55
+val x53 = x42._3
+val x58 = x51 * x53
+val x59 = x58 * x56
+val x60 = x57 + x59
+val x61 = (x51,x60,x56)
+x61
 }
-val x73 = x58.map{
-x59 => 
-val x60 = x59._1
-val x62 = x60._1
-val x61 = x59._2
-val x67 = x61._3
-val x63 = x60._2
-val x66 = x61._2
-val x68 = x63 + x66
-val x64 = x60._3
-val x69 = x62 * x64
-val x70 = x69 * x67
-val x71 = x68 + x70
-val x72 = (x62,x71,x67)
-x72
+x63
+} else {
+val x16 = List()
+x16
 }
-val x74 = x23 ::: x73
+val x13 = x12 == x1
+val x17 = if (x13) {
+val x14 = x0(0)
+val x15 = List(x14)
+x15
+} else {
+val x16 = List()
+x16
+}
+val x22 = x17.map{
+x18 => 
+val x19 = x18._1
+val x20 = x18._2
+val x21 = (x19,0,x20)
+x21
+}
+val x66 = x22 ::: x65
+val x67 = x66.isEmpty
+val x74 = if (x67) {
+x66
+} else {
+val x72 = x66.minBy{
+x68 => 
+val x70 = x68._2
+x70
+}
+val x73 = List(x72)
+x73
+}
 val x75 = x74.head
-val x76 = x12(x1) = x75
-val x77 = x12(x1)
+val x76 = x11(x1) = x75
+val x77 = x11(x1)
 val x78 = List(x77)
 x78
 } else {
-val x17 = List()
-x17
+val x16 = List()
+x16
 }
 val x81 = x80.head
 x81
