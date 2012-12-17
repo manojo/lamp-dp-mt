@@ -1,6 +1,8 @@
 package v4lms.examples
 import v4lms._
 
+import scala.virtualization.lms.common._
+
 // Matrix chain multiplication.
 // Also demonstrates how to backtrack and apply
 // efficiently the result to another domain/algebra.
@@ -27,9 +29,8 @@ trait MatrixAlgebra extends MatrixSig {
 // Matrix multiplication grammar (rules)
 trait MatrixGrammar extends ADPParsers with MatrixSig {
   val matrixGrammar:Tabulate = tabulate("M",(
- //   el ^^ single
-//  |
-    (parserADP(matrixGrammar)(mAnswer).~(matrixGrammar)(mAnswer)).^^(mult)(mAnswer) // { case (a1,a2) => mult(a1, a2) }
+    el.^^(single)(mAnswer)
+  | (parserADP(matrixGrammar)(mAnswer).~(matrixGrammar)(mAnswer)).^^(mult)(mAnswer) // { case (a1,a2) => mult(a1, a2) }
   ) aggregate h)
 
   val axiom=matrixGrammar
@@ -39,6 +40,10 @@ trait MatrixGrammar extends ADPParsers with MatrixSig {
 object MatrixMult extends MatrixGrammar with MatrixAlgebra with App {
   val mAlphabet = manifest[Alphabet]
   val mAnswer = manifest[Answer]
+
+  //override type Rep[+A] = A
+  //override def unit[A : Manifest](a: A) = a
+
 
   val input = List((10,100),(100,5),(5,50)).toArray
   println(parse(input))

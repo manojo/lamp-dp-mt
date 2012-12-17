@@ -1,5 +1,7 @@
 package v4lms
 
+import scala.virtualization.lms.common._
+
 trait ADPParsers extends BaseParsers { this:Signature =>
   // I/O interface
   private var input: Input = null

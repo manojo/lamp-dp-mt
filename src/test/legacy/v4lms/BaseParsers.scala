@@ -1,8 +1,10 @@
 package v4lms
 
+import scala.virtualization.lms.common._
+
 class Dummy // empty parser match
 
-trait Signature {
+trait Signature  {
   type Alphabet // input type
   type Answer // output type
   val mAlphabet:Manifest[Alphabet]
@@ -19,7 +21,7 @@ trait Signature {
   def minBy[T,U:Numeric](f:T=>U): List[T]=>List[T]
 }
 
-trait BaseParsers { this:Signature =>
+trait BaseParsers extends ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables { this:Signature =>
   type Input = Array[Alphabet]
   type Subword = (Int, Int)
   type Backtrack = (Int,List[Int]) // (subrule_id, indices)
@@ -74,7 +76,7 @@ trait BaseParsers { this:Signature =>
       case Filter(p,f) => rmax(p,d)
       case Aggregate(p,h) => rmax(p,d)
       case Map(p,f) => rmax(p,d)
-      case Or(l,r) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else Math.max(ml,mr) }
+      case Or(l,r) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else java.lang.Math.max(ml,mr) }
       case Concat(l,r,_) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else ml+mr }
       case p:Tabulate => if (d==1) maxN else rmax(p.inner,d-1)
     }
