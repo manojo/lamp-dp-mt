@@ -92,85 +92,99 @@ trait CodeGen extends BaseParsers { this:Signature =>
     def genFun[T,U](f0:T=>U):String = { val f1 = f0 match { case d:DeTuple => d.f case f => f }
       f1 match { case f:CFun => head.add(f) case _ => "UnsupportedFunction" } // TODO: error
     }
+    var aid=0; // aggregate id
     // Generate C parser for subword (i,j): collect conditions, content and backtrack indices
-    def gen[T](p0:Parser[T],i:Var,j:Var,g:FreeVar,rule:Int):(List[Cond],String,List[String]) = p0 match {
-      case Terminal(min,max,f) => val (cs,s)=f(i,j); (scs(min,max,i,j):::cs,s,Nil)
-      case p:Tabulate => (scs(p.min,p.max,i,j), "cost[idx("+i+","+j+")]."+p.name,Nil)
-      case Aggregate(p,h) => val (c,b,bti)=gen(p,i,j,g,rule);
-        val tc = "_cost."+t.name
-        val ccu = "{ "+tc+"=_c; _back."+t.name+"=("+btTpe(t.inner.cat)+"){"+rule+(if (t.inner.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
+    // [ parser, i,j,k?, subrule(backtrack), aggregation_depth ] => [ Conditions(for loops), hoisted_body, body, backtrack indices ]
+    def gen[T](p0:Parser[T],i:Var,j:Var,g:FreeVar,rule:Int,aggr:Int):(List[Cond],String,String,List[String]) = p0 match {
+      case Terminal(min,max,f) => val (cs,s)=f(i,j); (scs(min,max,i,j):::cs,"",s,Nil)
+      case p:Tabulate => (scs(p.min,p.max,i,j),"","cost[idx("+i+","+j+")]."+p.name,Nil)
+      case Aggregate(p,h) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr+1);
+        val (tc,tb) = if(aggr==0) ("_cost."+t.name,"_back."+t.name) else { aid=aid+1; ("_c"+aid, "_b"+aid) }
+        val btt = btTpe(p.cat)
+        // Generate aggregation body
+        val updt = "{ "+tc+"=_c; "+tb+"=("+btt+"){"+rule+(if (p.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
         val cc = h.toString match {
-          case "$$max$$" => "if (_c>"+tc+") "+ccu
-          case "$$min$$" => "if (_c<"+tc+") "+ccu
-          case "$$count$$" => return (c,tc+"+=1;",Nil) // don't compute (count only)
-          case "$$sum$$" => tc+"+=_c;"
-          case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any]].f); "if ("+f+"(_c)>"+f+"("+tc+")) "+ccu
-          case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any]].f); "if ("+f+"(_c)<"+f+"("+tc+")) "+ccu
+          case "$$max$$" => "_c="+b+"; if (_c>"+tc+" || "+tb+".rule==-1) "+updt
+          case "$$min$$" => "_c="+b+"; if (_c<"+tc+" || "+tb+".rule==-1) "+updt
+          case "$$count$$" => tc+"+=1;"
+          case "$$sum$$" => tc+"+="+b+";"
+          case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); "_c="+b+"; if ("+f+"(_c)>"+f+"("+tc+") || "+tb+".rule==-1) "+updt
+          case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); "_c="+b+"; if ("+f+"(_c)<"+f+"("+tc+") || "+tb+".rule==-1) "+updt
           case _ => "UnsupportedAggr("+b+")" // TODO: error
         }
-        (c, "_c="+b+"; "+cc,Nil)
-      case Or(l,r) => (Nil, emit(gen(l,i,j,g.dup,rule))+"\n"+emit(gen(r,i,j,g.dup,rule+l.alt)),Nil)
-      case Map(p,f) => val (c,b,bti)=gen(p,i,j,g,rule); (c,genFun(f)+"("+b+")",bti)
-      case Filter(p,f) => val (c,b,bti)=gen(p,i,j,g,rule); (c,"if ("+genFun(f)+"(("+head.addType("(Int,Int)")+"){"+i+","+j+"})) { "+b+" }",bti)
-      // LEGACY
-      // XXX: we have a limitation: we cannot support concat(map(concat(...)),...) otherwise weird indexing => how can it be solved ???
-      case cc@Concat(l,r,0) =>
-        def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u>0) j.leq(i,-f-u)::ls else ls }
-        val (c,k):(List[Cond],Var) = cc.indices match {
-          // low=up in at least one side
-          case (0,0,0,0) => val k0=g.get; (List(k0.loop(i,j)), k0)
-          case (iL,iU,0,0) if (iL==iU) => (List(i.leq(j,iL)), i.add(iL))
-          case (0,0,jL,jU) if (jL==jU) => (List(i.leq(j,jL)), j.add(-jL))
-          case (iL,iU,jL,jU) if (iL==iU && jL==jU) => (List(i.eq(j,iL+jL)), i.add(iL))
-          case (iL,iU,jL,jU) if (iL==iU) => (bf1(iL,jL,jU), i.add(iL))
-          case (iL,iU,jL,jU) if (jL==jU) => (bf1(jL,iL,iU), j.add(-jL))
-          // most general case
-          case (iL,iU,jL,jU) => val k0=g.get; var cs:List[Cond]=Nil;
-            if (jU>0) cs = j.leq(k0,-jU) :: cs
-            if (iU>0) cs = i.leq(k0,iU) :: cs
-            // we might want to simplify if min_k==i || max_k==j
-            (CFor(k0.v,i.v,iL,j.v,jL)::cs, k0)
+        if (aggr==0) (c,hb,cc,bti)
+        else { // hoist aggregation if contained
+          val nv = "XXX "+tc+"; "+btt+" "+tb+"={-1"+(if (p.cat>0)",{}" else "")+"};\n"; // XXX: fix the temporary result here type here
+          // XXX: we also may need to have multiple <_c> due to different types
+          (Nil,nv+emit((c,hb,cc,bti)),tc,(0 until p.cat).map{x=>tb+".pos["+x+"]"}.toList)
         }
-        val (lc,lb,btl) = gen(l,i,k,g,rule)
-        val (rc,rb,btr) = gen(r,k,j,g,rule)
-        (simplify(c ::: lc ::: rc), lb+","+rb, btl::: List(k.toString) :::btr)
-      case cc@Concat(l,r,1) => val (a,b,_,_)=cc.indices
-        val (c,k) = if (a==b && a>0) (zero.leq(i,1), i.add(-a))
-                    else { val k0=g.get; (CFor(k0.v,'0',1,i.v,1), k0) }
-        val (lc,lb,btl) = gen(l,k,i,g,rule)
-        val (rc,rb,btr) = gen(r,k,j,g,rule)
-        (simplify(c :: lc ::: rc), lb+","+rb, btl::: List(k.toString) :::btr)
-      case cc@Concat(l,r,2) => val (_,_,a,b)=cc.indices
-        val (c,k) = if (a==b && a>0) (zero.leq(j,1), j.add(-a))
-                    else { val k0=g.get; (CFor(k0.v,'0',1,j.v,1), k0) }
-        val (lc,lb,btl) = gen(l,i,k,g,rule)
-        val (rc,rb,btr) = gen(r,k,j,g,rule)
-        (simplify(c :: lc ::: rc), lb+","+rb, btl::: List(k.toString) :::btr)
-      // LEGACY-END
+      // XXX: param = 'output' for aggregate result + backtrack
+      // XXX: we have a limitation: we cannot support aggregate(concat(aggregate(concat(...)),...)) otherwise weird indexing => how can it be solved ???
+      // XXX: in aggregate we need to have our own temporary _c variable
 
+        // At each step: have a temporary backtrack for each rule: _b = {r,a,b,0,0}... at each step
+        // at level 0  : push back the backtrack in the main structure
+        // XXX: create a typing function that returns out type of parser
+        // XXX: split 2 cases: simple backtrack, recursive aggregation within the parser
+        // case 1: proceed as usual (writeback directly in backtrack value)
+        // case 2: each aggregation needs to return a (value,indices) pair !!
+        //         type = inner_map.tpe,short[inner.]
+
+      /*
+      1. Hoist the internal => temporary cost, XXX: backtrack is written immediately at destination (only relevant indices)
+      2. map temporary cost as usual
+      3. backtrack write = rule + indices_offset + list of indices
+      */
+
+      case Or(l,r) => (Nil,"",emit(gen(l,i,j,g.dup,rule,aggr))+"\n"+emit(gen(r,i,j,g.dup,rule+l.alt,aggr)),Nil)
+      case Map(p,f) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr); (c,hb,genFun(f)+"("+b+")",bti)
+      case Filter(p,f) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr); (c,hb,"if ("+genFun(f)+"(("+head.addType("(Int,Int)")+"){"+i+","+j+"})) { "+b+" }",bti)
+      case cc@Concat(l,r,tt) =>
+        def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u>0) j.leq(i,-f-u)::ls else ls }
+        val (c,k):(List[Cond],Var) = (tt,cc.indices) match {
+          // low=up in at least one side
+          case (0,(0,0,0,0)) => val k0=g.get; (List(k0.loop(i,j)), k0)
+          case (0,(iL,iU,0,0)) if (iL==iU) => (List(i.leq(j,iL)), i.add(iL))
+          case (0,(0,0,jL,jU)) if (jL==jU) => (List(i.leq(j,jL)), j.add(-jL))
+          case (0,(iL,iU,jL,jU)) if (iL==iU && jL==jU) => (List(i.eq(j,iL+jL)), i.add(iL))
+          case (0,(iL,iU,jL,jU)) if (iL==iU) => (bf1(iL,jL,jU), i.add(iL))
+          case (0,(iL,iU,jL,jU)) if (jL==jU) => (bf1(jL,iL,iU), j.add(-jL))
+          // most general case
+          case (0,(iL,iU,jL,jU)) => val k0=g.get; var cs:List[Cond]=Nil;
+            if (jU>0) cs = j.leq(k0,-jU) :: cs
+            if (iU>0) cs = i.leq(k0,iU) :: cs // we might want to simplify if min_k==i || max_k==j
+            (CFor(k0.v,i.v,iL,j.v,jL)::cs, k0)
+          // concat[12]
+          case (1,(a,b,_,_)) => if (a==b && a>0) (List(zero.leq(i,1)), i.add(-a)) else { val k0=g.get; (List(CFor(k0.v,'0',1,i.v,1)), k0) }
+          case (2,(_,_,a,b)) => if (a==b && a>0) (List(zero.leq(j,1)), j.add(-a)) else { val k0=g.get; (List(CFor(k0.v,'0',1,j.v,1)), k0) }
+        }
+        val (lc,lhb,lb,lbt) = if (tt==1) gen(l,k,i,g,rule,aggr) else gen(l,i,k,g,rule,aggr)
+        val (rc,rhb,rb,rbt) = gen(r,k,j,g,rule,aggr)
+        (simplify(c:::lc:::rc), lhb+rhb, lb+","+rb, lbt:::(if(cc.hasBt) List(k.toString) else Nil):::rbt)
       case _ => sys.error("Unknown parser")
     }
-    // Generate the loops and size conditions
-    def emit(cb:(List[Cond],String,List[String])):String = cb match { case (cs,body,_) => simplify(cs).map {
+    // Generate the loops and size conditions (conditions, hoisted, body, indices)
+    def emit(cb:(List[Cond],String,String,List[String])):String = cb match { case (cs,hbody,body,_) => simplify(cs).map {
       case CFor(v,l,ld,u,ud) => "for(int "+v+"="+l+(if(ld>0)"+"+ld else "")+(ud match {
           case 0 => "; "+v+"<="+u case 1 => "; "+v+"<"+u
           case _ => ","+v+"u="+u+"-"+ud+"; "+v+"<="+v+"u"
         })+"; ++"+v+")"
       case CEq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"=="+b+")"
       case CLeq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"<="+b+")"
-    }.map{x=>x+" { "}.mkString("")+body+cs.map{x=>" }"}.mkString("")}
+    }.map{x=>x+" { "}.mkString("")+hbody+body+cs.map{x=>" }"}.mkString("")+"\n"}
     // Generate code for the whole tabulation
-    emit(gen(norm(t.inner),Var('i',0),Var('j',0),new FreeVar('k'),t.id))
+    emit(gen(norm(t.inner),Var('i',0),Var('j',0),new FreeVar('k'),t.id,0))
   }
 
   /*
-  Steps:
-  1. Make all the function implement CodeFun
-  2. Get all the declarations (user method, input and output types, backtrack, alphabet class)
-     - convert values to C
-     - convert types to C (see playground.Play)
-     - convert functions ot C
-  3. Generate code for the kernel
+  TODO:
+  0. Fix the aggregation variables
+  1. Automatically transform plain Scala function to CFun functions => Macros/LMS
+  2. Automate JNI transfer to and from CUDA arrays for
+     - Input/s (arbitrary type)
+     - Bactrack (array of varying-length structures) => fixed-length to max
+     - Can we backtrack on GPU ? how ? => write program that re-execute the computation and adds it to backtrack
+  3. Use CCompiler-like to wire everything together and execute it
   */
   // XXX: make sure we handle case class appropriately in codegen
   // XXX: idea: fill the matrix with an EMPTY value, then whenever we hit this value, we ignore the result
