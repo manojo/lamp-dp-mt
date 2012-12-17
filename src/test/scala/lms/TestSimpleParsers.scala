@@ -85,16 +85,16 @@ trait MatMultProg extends Parsers{ this: Sig =>
       if(i+1==j) List(in(i)) else List()
   }
 
-  def myParser(in:Input) : Parser[Answer] = {
+  def myParser(in:Input) : TabulatedParser[Answer] = {
     val a : Rep[Array[Array[Answer]]] = NewArray(in.length+1)
     (0 until in.length + 1).foreach{ i=>
       a(0) = NewArray(in.length+1)
     }
 
-    lazy val p : Parser[Answer] = tabulate(
+    lazy val p : TabulatedParser[Answer] = tabulate(
      (el(in) ^^ single
       | (p +~+ p) ^^ {(x: Rep[(Answer,Answer)]) => mult(x._1,x._2)}
-     ),
+     ).aggregate{x: Rep[List[Answer]] => if(x.isEmpty) x else List(list_minby(x, {elem:Rep[Answer] => elem._2}))},
      "mat",
      a
     )
@@ -119,7 +119,7 @@ class TestSimpleParsers extends FileDiffSuite {
     withOutFile(prefix+"simpleParsers"){
        new ParsersProg with ParsersExp with Sig { self =>
 
-        val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
+        val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
 
@@ -138,7 +138,7 @@ class TestSimpleParsers extends FileDiffSuite {
   def testTabulation1 = {
     withOutFile(prefix+"tabulation1"){
        new ParsersProg with ParsersExp with Sig { self =>
-        val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
+        val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
 
@@ -151,7 +151,7 @@ class TestSimpleParsers extends FileDiffSuite {
   def testTabulation2 = {
     withOutFile(prefix+"tabulation2"){
        new ParsersProg with ParsersExp with Sig { self =>
-        val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
+        val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
 
@@ -164,7 +164,7 @@ class TestSimpleParsers extends FileDiffSuite {
   def testMatMult1 = {
     withOutFile(prefix+"matmult"){
        new MatMultProg with ParsersExp with Sig { self =>
-        val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
+        val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
 
@@ -178,7 +178,7 @@ class TestSimpleParsers extends FileDiffSuite {
   def testMatMult2 = {
     withOutFile(prefix+"matmult2"){
        new MatMultProg with ParsersExp with Sig { self =>
-        val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
+        val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
 

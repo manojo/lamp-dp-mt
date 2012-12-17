@@ -13,6 +13,9 @@ trait InvariantParsers{
     private def or(that: Parser[T]) = OrParser(inner, that)
 
     def aggregate[U](h: List[T] => List[U]) = AggregateParser(inner, h)
+    def min(implicit e: Ordering[T]) = {
+      AggregateMin(inner)
+    }
 
     // Concatenate combinator.
     // Parses a concatenation of string left~right with length(left) in [lL,lU]
@@ -66,6 +69,14 @@ trait InvariantParsers{
   case class AggregateParser[T, U](inner: Parser[T], h: List[T] => List[U]) extends Parser[U]{
     def apply(i: Int, j: Int) = h(inner(i,j))
     override def toString = "Aggregate("+inner+")"
+  }
+
+  case class AggregateMin[T:Ordering](inner: Parser[T]) extends Parser[T]{
+    def apply(i: Int, j: Int) = {
+      val tmp = inner(i,j)
+      if(tmp.isEmpty) tmp else List(tmp.min)
+    }
+    override def toString = "AggregateMin("+inner+")"
   }
 
   case class ConcatParser[T, U](inner: Parser[T], lL:Int, lU:Int, rL:Int, rU:Int, that: Parser[U]) extends Parser[(T,U)]{
@@ -232,7 +243,7 @@ object InvariantMatMult extends InvariantParsers{
     lazy val p : TabulatedParser[Answer] = tabulate(
       (el(in) ^^ single
        | (p +~+ p) ^^ {(x: (Answer,Answer)) => mult(x)}
-      ).aggregate{x : List[Answer]=> if(x.isEmpty) x else List(x.min)},
+      ).aggregate{x : List[Answer]=> if(x.isEmpty) x else List(x.minBy(_._2))},
       "mat",
       a
     )
@@ -263,7 +274,7 @@ object InvariantMatMult extends InvariantParsers{
     lazy val p : TabulatedParser[Answer] = tabulate(
       (el(in) ^^ single
        | (p +~+ p) ^^ {(x: (Answer,Answer)) => mult(x)}
-      ).aggregate{x : List[Answer]=> if(x.isEmpty) x else List(x.min)},
+      ).min,
       "mat",
       a
     )

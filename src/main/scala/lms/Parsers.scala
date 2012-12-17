@@ -11,7 +11,7 @@ trait Sig{
   //  val window = 0     // windowing size, 0=disabled
 }
 
-trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
+trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
                  with LiftNumeric with Equal with BooleanOps with OrderingOps
                  with MathOps with HackyRangeOps with TupleOps{this: Sig =>
 
@@ -183,7 +183,7 @@ trait Parsers extends ArrayOps with ListOps with NumericOps with IfThenElse
 
  def transform[T:Manifest](p: Parser[T]): Parser[T] = {
   p match{
-    case MParser(ConcatParser(inner,lL,lU,rL,rU,that), f) =>
+    case MParser((ConcatParser(inner,lL,lU,rL,rU,that), f)) =>
       println("Map Concat parser match")
       new Parser[T]{
         def apply(i: Rep[Int], j: Rep[Int]) = if(i<j){
@@ -249,7 +249,7 @@ trait LexicalParsers extends Parsers {this: Sig =>
 
 }
 
-trait ParsersExp extends Parsers with ArrayOpsExp with ListOpsExp with LiftNumeric
+trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNumeric
     with NumericOpsExp with IfThenElseExp with EqualExp with BooleanOpsExp
     with OrderingOpsExp with MathOpsExp with HackyRangeOpsExp with TupleOpsExp {this: Sig =>}
 
@@ -268,7 +268,7 @@ object HelloParsers extends App {
 
   val concreteProg = new LexicalParsers with ParsersExp with Sig { self =>
     type Answer = Double
-    val codegen = new ScalaGenArrayOps with ScalaGenListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
+    val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
       with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
       with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
 
