@@ -34,7 +34,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   import scala.reflect.runtime.universe.TypeTag
   val tags:(TypeTag[Alphabet],TypeTag[Answer]) = (null,null)
   lazy val tpAlphabet = head.getType(tags._1.tpe.toString)
-  lazy val tpAnswer = head.getType(tags._1.tpe.toString)
+  lazy val tpAnswer = head.getType(tags._2.tpe.toString)
 
   // Normalize the parsers towards code generation
   // Canonical : [Tabulate] > Aggregate > Or > Filter > Map > Concat > (Tabulate | Terminal)
@@ -118,7 +118,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
         val (tc,tb) = if(aggr==0) ("_cost."+t.name,"_back."+t.name) else { aid=aid+1; ("_c"+aid, "_b"+aid) }
         // Generate aggregation body
-        val updt = "{ "+tc+"=_c; "+tb+"=("+btTpe(p.cat)+"){"+rule+(if (p.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
+        val updt = "{ "+tc+"=_c; "+tb+"=("+btTpe(if (aggr==0) t.inner.cat else p.cat)+"){"+rule+(if (p.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
         val cc = h.toString match {
           case "$$max$$" => tpe+" _c="+b+"; if (_c>"+tc+" || "+tb+".rule==-1) "+updt
           case "$$min$$" => tpe+" _c="+b+"; if (_c<"+tc+" || "+tb+".rule==-1) "+updt
@@ -210,7 +210,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     sb.append("  size_t size = 0;\n  trace_t *rd=trace, *wr=trace;\n")
     sb.append("  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++size; }\n")
     sb.append("  PUSH_BACK(i0,j0,"+axiom.id+");\n")
-    sb.append("  for(rd<wr;++rd) {\n")
+    sb.append("  for(;rd<wr;++rd) {\n")
     sb.append("    "+btTpe(catMax)+"* bt;\n")
     sb.append(switch((x:Int)=>" bt=("+btTpe(catMax)+"*)&g_back[idx(rd->i,rd->j)]."+findTab(x)._1.name+";"))
     sb.append("    rd->rule=bt->rule;\n")  // parser_id -> actual_subrule
@@ -243,8 +243,10 @@ trait CodeGen extends BaseParsers { this:Signature =>
     if (twotracks) println("#define SH_RECT") else println("#define SH_TRI")
     print(head.flush)
     println("------------ kernel -----------")
+    // #include <unistd.h>
     // #define idx(i,j) 0
-    // int main(int argc, char** argv) { TI in[1]; cost_t cost[1]; int i=0,j=0;
+    // back_t g_back[0]; cost_t cost[1]; TI in[1];
+    // int main(int argc, char** argv) { int i=0,j=0;
     print(ind(kern,3))
     // }
     println("---------- backtrack ----------")
