@@ -30,13 +30,11 @@ trait CodeGen extends BaseParsers { this:Signature =>
     true
   }
 
-  // Define the 'init' value (for max/min) and the 'empty' value for the initialization of cells (break loops)
-//  var tpAnswer:String = head.getType(scala.reflect.runtime.universe.typeTag[Answer].tpe.toString)
+  // Typing informations
   import scala.reflect.runtime.universe.TypeTag
   val tags:(TypeTag[Alphabet],TypeTag[Answer]) = (null,null)
   lazy val tpAlphabet = head.getType(tags._1.tpe.toString)
   lazy val tpAnswer = head.getType(tags._1.tpe.toString)
-
 
   // Normalize the parsers towards code generation
   // Canonical : [Tabulate] > Aggregate > Or > Filter > Map > Concat > (Tabulate | Terminal)
@@ -174,54 +172,47 @@ trait CodeGen extends BaseParsers { this:Signature =>
     emit(gen(norm(t.inner),Var('i',0),Var('j',0),new FreeVar('k'),t.id,0))
   }
 
-  // this functions read one element, go to appropriate places, collect the backtracks infos there and push them back into the list
+  def genUnapp[T](p0:Parser[T],sw:(String,String),rule:Int,bti:Int) : List[((String,String),Int)] = p0 match { // i,j,rule
+    case Terminal(_,_,_) => Nil
+    case p:Tabulate => List((sw,p.id))
+    case Aggregate(p,h) => genUnapp(p,sw,rule,bti)
+    case Filter(p,f) => genUnapp(p,sw,rule,bti)
+    case Map(p,f) => genUnapp(p,sw,rule,bti)
+    case Or(l,r) => var a=l.alt-1; if (rule<=a) genUnapp(l,sw,rule,bti) else genUnapp(r,sw,rule-a,bti)
+    case cc@Concat(left,right,track) => val a:Int=right.alt; val c:Int=left.cat; val kb = "rd->pos["+(bti+c)+"]"
+      val (swl,swr):((String,String),(String,String)) = (sw,track,cc.indices) match {
+        case ((i,j),0,(lL,lU,rL,rU)) =>
+          val k=if (cc.hasBt) kb else if (rU==maxN) i+"+"+lL else "MAX("+i+"+"+lL+","+j+"-"+rU+")"; ((i,k),(k,j))
+        case ((i,j),1,(l,u,_,_)) => val k=if (cc.hasBt) kb else i+"-"+l; ((k,i),(k,j)) // tt:concat1
+        case ((i,j),2,(_,_,l,u)) => val k=if (cc.hasBt) kb else j+"-"+l; ((i,k),(k,j)) // tt:concat2
+        case _ => (("0","0"),("0","0"))
+      }
+      genUnapp(left,swl,rule/a,bti) ::: genUnapp(right,swr,rule%a,bti+c+(if (cc.hasBt)1 else 0))
+    case _ => sys.error("Unknown parser")
+  }
+
   def genBT:String = {
-    val btTpMax=btTpe(rules.map{case (n,t)=>t.inner.cat}.max)
-    println(btTpMax+" backtrack;")
-    println("size_t bt_size = 0;")
-
-// XXX: we want to have something that looks like this
-/*
-typedef struct { short i,j,rule; short pos[MAX]; } trace_t;
-trace_t trace = trace_t[2*n];
-// number of indices for the given rule
-static int trace_len[rules_max] = {3,0,1,0};
-
-// function
-void do_backtrack() {
-trace_t *rd=trace, *wr=trace;
-*wr=(trace_t){0,n,axiom_rule}; ++wr;
-for(rd<wr;++rd) {
-  back_t* back=g_back[idx(rd->i,rd->j)];
-  btMax bt;
-  switch(rd->rule) {
-    case 0: bt=back.aggr;
-    case 1: bt=back.m;
-    case 2: bt=back.m;
-    case 0: bt=back.m2;
-  }
-  // decode fully the read indices
-  rd.rule = bt->rule; // fix the origin rule
-  for (int i=0,l=trace_len[rd->rule]; i<l; ++i) rd.pos[i]=bt->pos[i];
-  // lookup for the next traces to add
-  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; }
-  switch(rd->rule) {
-    // aggr[i,j]
-    case 0: PUSH_BACK(rd->i,rd->pos[0],1 /*or 2, as rule ID */); PUSH_BACK(rd->pos[1],rd->pos[2],1); ... break;
-    // m[i,j]
-    case 1: break;
-    case 2: PUSH_BACK(rd->i,rd->pos[0],1); PUSH_BACK(rd->pos[0],rd->j,1); break;
-    // m2[i,j]
-    case 3: PUSH_BACK(rd->i,rd->j,1); break;
-  }
-}
-}
-*/
-    // define queue as maximum-length backtrack
-    // decode the rules number : get the rules by increasing number => read appropriate backtrack
-
-    println("}")
-    ""
+    val catMax=rules.map{case (n,t)=>t.inner.cat}.max
+    val altMax=rules.map{case (n,t)=>t.inner.alt}.sum
+    head.getTypeC("short i,j,rule; short pos["+catMax+"]","trace_t")
+    val sb=new StringBuilder
+    sb.append("size_t g_backtrack(trace_t* trace, int i0, int j0) {\n"); // from (i0,j0), trace=trace_t[2*N], provided by CPU
+    sb.append("  const int tlen["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};\n"); // subrule->#indices
+    sb.append("  size_t size = 0;\n  trace_t *rd=trace, *wr=trace;\n")
+    sb.append("  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++size; }\n")
+    sb.append("  PUSH_BACK(i0,j0,"+axiom.id+");\n")
+    sb.append("  for(rd<wr;++rd) {\n")
+    sb.append("    "+btTpe(catMax)+"* bt;\n")
+    sb.append("    switch (rd->rule) {\n")
+    (0 until altMax).foreach{x=>sb.append("      case "+x+": bt=("+btTpe(catMax)+"*)&g_back[idx(rd->i,rd->j)]."+findTab(x)._1.name+"; break;\n") }
+    sb.append("    }\n")
+    sb.append("    rd->rule=bt->rule;\n")  // parser_id -> actual subrule id
+    sb.append("    for (int i=0,l=tlen[rd->rule]; i<l; ++i) rd->pos[i]=bt->pos[i];\n"); // decode fully the read indices
+    sb.append("    switch (rd->rule) {\n") // lookup for the next traces to add
+    (0 until altMax).foreach{x=> val t=findTab(x)._1; val bt=genUnapp(t.inner,("rd->i","rd->j"),x-t.id,0)
+      sb.append("      case "+x+": "+bt.map{case ((i,j),r) => "PUSH_BACK("+i+","+j+","+r+"); " }.mkString("")+"break;\n")
+    }
+    sb.append("    }\n  }\n  return size;\n}\n"); sb.toString
   }
 
   /*
@@ -231,11 +222,9 @@ for(rd<wr;++rd) {
   2. Automate JNI transfer to and from CUDA arrays for
      - Input/s (arbitrary type)
      - Bactrack (array of varying-length structures) => fixed-length to max
-     - Can we backtrack on GPU ? how ? => write program that re-execute the computation and adds it to backtrack
   3. Use CCompiler-like to wire everything together and execute it
   */
   // XXX: make sure we handle case class appropriately in codegen
-  // XXX: idea: fill the matrix with an EMPTY value, then whenever we hit this value, we ignore the result
 
   // --------------------------------------------------------------------------
   // C code generator
@@ -250,6 +239,7 @@ for(rd<wr;++rd) {
       sb.append(genTab(r)+"\n")
     }
     // Generate code for backtrack
+    val bt = genBT
 
     println("Problem type: "+(if (twotracks) "sequence alignment" else "standard" )+(if (window>0) ", window="+window else ""));
     println("---------- analysis -----------")
@@ -262,7 +252,7 @@ for(rd<wr;++rd) {
     print(sb.toString)
     // }
     println("---------- backtrack ----------")
-    print(genBT)
+    print(bt)
     println("------------- end -------------")
     ""
   }

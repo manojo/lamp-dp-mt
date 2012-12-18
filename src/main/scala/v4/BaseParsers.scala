@@ -116,24 +116,26 @@ trait BaseParsers { this:Signature =>
 
     def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))).map{x=>(e._1,x)} ).flatten
     def build(bt:List[(Subword,Backtrack)]):Answer = {
-      for((sw,(rule,b))<-bt) { val (t,rr)=find(rule); t.map.put(sw,List((t.inner.reapply(sw,(rr,b)),bt0))) }
+      for((sw,(rule,b))<-bt) { val (t,rr)=findTab(rule); t.map.put(sw,List((t.inner.reapply(sw,(rr,b)),bt0))) }
       val (sw,(rule,b))=bt.last; inner.reapply(sw,(rule-id,b))
     }
 
     private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
     private def backtrack0(mult:Int,tail:List[(Subword,Backtrack)],pending:List[BTItem]):List[List[(Subword,Backtrack)]] = pending match {
       case Nil => List(tail)
-      case (sw,score,(rule,bt))::ps => val (t,rr) = find(rule)
+      case (sw,score,(rule,bt))::ps => val (t,rr) = findTab(rule)
         val res = t.inner.unapply(sw, (rr,bt)).filter{case(r,l)=>r==score}.map{case(r,l)=>l}.take(mult)
         countMap(res,(pl:List[BTItem],mul:Int)=>backtrack0(mul,(sw,(rule,bt))::tail, pl:::ps)).flatten
     }
-    private def find(rule:Int):(Tabulate,Int) = {
-      rules.find{ case (n,t)=> val rr=rule-t.id; rr >= 0 && rr < t.inner.alt} match {
-        case Some((n,t)) => (t,rule-t.id)
-        case None => sys.error("No tabulation for subrule #"+rule)
-      }
+  }
+
+  def findTab(rule:Int):(Tabulate,Int) = {
+    rules.find{ case (n,t)=> val rr=rule-t.id; rr >= 0 && rr < t.inner.alt} match {
+      case Some((n,t)) => (t,rule-t.id)
+      case None => sys.error("No tabulation for subrule #"+rule)
     }
   }
+
 
   // --------------------------------------------------------------------------
   // Terminal abstraction
@@ -241,9 +243,9 @@ trait BaseParsers { this:Signature =>
     }
     private def sw_split(sw:Subword,kb:Int) = (sw,track,indices) match {
       case ((i,j),0,(lL,lU,rL,rU)) if i<j => // single track
-        val k=if(kb!=maxN)kb else if (rU==maxN)i+lL else Math.max(i+lL,j-rU); ((i,k),(k,j))
-      case ((i,j),1,(l,u,_,_)) => val k=if(kb!=maxN)kb else i-l; ((k,i),(k,j)) // tt:concat1
-      case ((i,j),2,(_,_,l,u)) => val k=if(kb!=maxN)kb else j-l; ((i,k),(k,j)) // tt:concat2
+        val k=if(hasBt)kb else if (rU==maxN)i+lL else Math.max(i+lL,j-rU); ((i,k),(k,j))
+      case ((i,j),1,(l,u,_,_)) => val k=if(hasBt)kb else i-l; ((k,i),(k,j)) // tt:concat1
+      case ((i,j),2,(_,_,l,u)) => val k=if(hasBt)kb else j-l; ((i,k),(k,j)) // tt:concat2
       case _ => ((0,0),(0,0))
     }
 
