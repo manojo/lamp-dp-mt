@@ -167,10 +167,13 @@ trait CodeGen extends BaseParsers { this:Signature =>
         })+"; ++"+v+")"
       case CEq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"=="+b+")"
       case CLeq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"<="+b+")"
-    }.map{x=>x+" { "}.mkString("")+hbody+body+cs.map{x=>" }"}.mkString("")+"\n"}
-    // Generate code for the whole tabulation
+    }.map{x=>x+" { "}.mkString("")+hbody+body+cs.map{x=>" }"}.mkString("")}
+    // Generate the whole tabulation
     emit(gen(norm(t.inner),Var('i',0),Var('j',0),new FreeVar('k'),t.id,0))
   }
+
+  // --------------------------------------------------------------------------
+  // Backtrack generation
 
   def genUnapp[T](p0:Parser[T],sw:(String,String),rule:Int,bti:Int) : List[((String,String),Int)] = p0 match { // i,j,rule
     case Terminal(_,_,_) => Nil
@@ -194,25 +197,21 @@ trait CodeGen extends BaseParsers { this:Signature =>
   def genBT:String = {
     val catMax=rules.map{case (n,t)=>t.inner.cat}.max
     val altMax=rules.map{case (n,t)=>t.inner.alt}.sum
+    def switch(f:Int=>String) = "    switch (rd->rule) {\n"+(0 until altMax).map{x=>"      case "+x+":"+f(x)+" break;"}.mkString("\n")+"\n    }\n"
     head.getTypeC("short i,j,rule; short pos["+catMax+"]","trace_t")
     val sb=new StringBuilder
-    sb.append("size_t g_backtrack(trace_t* trace, int i0, int j0) {\n"); // from (i0,j0), trace=trace_t[2*N], provided by CPU
-    sb.append("  const int tlen["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};\n"); // subrule->#indices
+    sb.append("const int trace_len["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};\n"); // subrule->#indices
+    sb.append("size_t gpu_backtrack(trace_t* trace, int i0, int j0) {\n"); // from (i0,j0), trace=trace_t[2*N], provided by CPU
     sb.append("  size_t size = 0;\n  trace_t *rd=trace, *wr=trace;\n")
     sb.append("  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++size; }\n")
     sb.append("  PUSH_BACK(i0,j0,"+axiom.id+");\n")
     sb.append("  for(rd<wr;++rd) {\n")
     sb.append("    "+btTpe(catMax)+"* bt;\n")
-    sb.append("    switch (rd->rule) {\n")
-    (0 until altMax).foreach{x=>sb.append("      case "+x+": bt=("+btTpe(catMax)+"*)&g_back[idx(rd->i,rd->j)]."+findTab(x)._1.name+"; break;\n") }
-    sb.append("    }\n")
-    sb.append("    rd->rule=bt->rule;\n")  // parser_id -> actual subrule id
-    sb.append("    for (int i=0,l=tlen[rd->rule]; i<l; ++i) rd->pos[i]=bt->pos[i];\n"); // decode fully the read indices
-    sb.append("    switch (rd->rule) {\n") // lookup for the next traces to add
-    (0 until altMax).foreach{x=> val t=findTab(x)._1; val bt=genUnapp(t.inner,("rd->i","rd->j"),x-t.id,0)
-      sb.append("      case "+x+": "+bt.map{case ((i,j),r) => "PUSH_BACK("+i+","+j+","+r+"); " }.mkString("")+"break;\n")
-    }
-    sb.append("    }\n  }\n  return size;\n}\n"); sb.toString
+    sb.append(switch((x:Int)=>" bt=("+btTpe(catMax)+"*)&g_back[idx(rd->i,rd->j)]."+findTab(x)._1.name+";"))
+    sb.append("    rd->rule=bt->rule;\n")  // parser_id -> actual_subrule
+    sb.append("    for (int i=0,l=trace_len[rd->rule]; i<l; ++i) rd->pos[i]=bt->pos[i];\n"); // decode fully the read indices
+    sb.append(switch((x:Int)=>{val t=findTab(x)._1; genUnapp(t.inner,("rd->i","rd->j"),x-t.id,0).map{case((i,j),r)=>" PUSH_BACK("+i+","+j+","+r+");" }.mkString("")}))
+    sb.append("  }\n  return size;\n}\n"); sb.toString
   }
 
   /*
@@ -230,30 +229,29 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // C code generator
 
   def gen:String = { analyze
-    // Generate code for parsers
-    val sb=new StringBuilder
-    sb.append("back_t _back = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n")
-    sb.append("cost_t _cost = {};\n")
-    order.foreach { n=> val r=rules(n);
-      sb.append("/* --- "+n+"[i,j] --- */\n")
-      sb.append(genTab(r)+"\n")
-    }
-    // Generate code for backtrack
+    val kern="back_t _back = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n"+
+             "cost_t _cost = {};\n"+order.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)}.mkString("\n")
     val bt = genBT
+    val info = "// Type: "+(if (twotracks) "sequence alignment" else "parser" )+(if (window>0) ", window="+window else "")+"\n"+order.zipWithIndex.map { case(n,i)=>
+      val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d, max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max)
+    }.mkString
 
-    println("Problem type: "+(if (twotracks) "sequence alignment" else "standard" )+(if (window>0) ", window="+window else ""));
-    println("---------- analysis -----------")
-    order.zipWithIndex.foreach{case (n,i)=>val p=rules(n); println("Rule #"+i+" '"+n+"': base_id="+p.id+", alts="+p.inner.alt+", ccats="+p.inner.cat+" min="+p.min+", max="+p.max) }
-    println("------------ defs -------------")
+    
+    print(info)
+    if (twotracks) println("#define SH_RECT") else println("#define SH_TRI")
     print(head.flush)
     println("------------ kernel -----------")
     // #define idx(i,j) 0
     // int main(int argc, char** argv) { TI in[1]; cost_t cost[1]; int i=0,j=0;
-    print(sb.toString)
+    print(kern)
     // }
+    println
     println("---------- backtrack ----------")
     print(bt)
     println("------------- end -------------")
+    val s:String = String.format("Foo %20s","bar")
+    println(s)
+
     ""
   }
 }
