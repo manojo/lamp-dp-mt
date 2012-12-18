@@ -88,6 +88,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
       }; cs
   }
 
+  def ind(s:String,n:Int=1) = { val i="  "*n; i+s.replaceAll(" +$","").replace("\n","\n"+i)+"\n" }
+
   // Tabulation code generation
   def genTab(t:Tabulate):String = {
     def scs(min:Int,max:Int,i:Var,j:Var) = if (min==max) List(i.eq(j,min)) else (if (max==maxN) Nil else List(j.leq(i,-max))):::(if (min>0) List(i.leq(j,min)) else Nil)
@@ -126,25 +128,10 @@ trait CodeGen extends BaseParsers { this:Signature =>
           case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)<"+f+"("+tc+") || "+tb+".rule==-1) "+updt
           case _ => "UnsupportedAggr("+b+")" // TODO: error
         }
-        if (aggr==0) (c,hb,cc,bti)
-        else { // hoist aggregation if contained
-          val nv = tpe+" "+tc+"; "+btTpe(p.cat)+" "+tb+"={-1"+(if (p.cat>0)",{}" else "")+"};\n";
-          // XXX: we also may need to have multiple <_c> due to different types
+        if (aggr==0) (c,hb,cc,bti) // hoist aggregation if contained
+        else { val nv = tpe+" "+tc+"; "+btTpe(p.cat)+" "+tb+"={-1"+(if (p.cat>0)",{}" else "")+"};\n";
           (Nil,nv+emit((c,hb,cc,bti)),tc,(0 until p.cat).map{x=>tb+".pos["+x+"]"}.toList)
         }
-        // XXX: in aggregate we need to have our own temporary _c variable
-        // At each step: have a temporary backtrack for each rule: _b = {r,a,b,0,0}... at each step
-        // at level 0  : push back the backtrack in the main structure
-        // XXX: create a typing function that returns out type of parser
-        // XXX: split 2 cases: simple backtrack, recursive aggregation within the parser
-        // case 1: proceed as usual (writeback directly in backtrack value)
-        // case 2: each aggregation needs to return a (value,indices) pair !!
-        //         type = inner_map.tpe,short[inner.]
-        /*
-        1. Hoist the internal => temporary cost, XXX: backtrack is written immediately at destination (only relevant indices)
-        2. map temporary cost as usual
-        3. backtrack write = rule + indices_offset + list of indices
-        */
       case Or(l,r) => (Nil,"",emit(gen(l,i,j,g.dup,rule,aggr))+"\n"+emit(gen(r,i,j,g.dup,rule+l.alt,aggr)),Nil)
       case Map(p,f) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr); (c,hb,genFun(f)+"("+b+")",bti)
       case Filter(p,f) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr); (c,hb,"if ("+genFun(f)+"(("+head.getType("(Int,Int)")+"){"+i+","+j+"})) { "+b+" }",bti)
@@ -173,21 +160,26 @@ trait CodeGen extends BaseParsers { this:Signature =>
       case _ => sys.error("Unknown parser")
     }
     // Generate the loops and size conditions (conditions, hoisted, body, indices)
-    def emit(cb:(List[Cond],String,String,List[String])):String = cb match { case (cs,hbody,body,_) => simplify(cs).map {
-      case CFor(v,l,ld,u,ud) => "for(int "+v+"="+l+(if(ld>0)"+"+ld else "")+(ud match {
-          case 0 => "; "+v+"<="+u case 1 => "; "+v+"<"+u
-          case _ => ","+v+"u="+u+"-"+ud+"; "+v+"<="+v+"u"
-        })+"; ++"+v+")"
-      case CEq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"=="+b+")"
-      case CLeq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"<="+b+")"
-    }.map{x=>x+" { "}.mkString("")+hbody+body+cs.map{x=>" }"}.mkString("")}
+    def emit(cb:(List[Cond],String,String,List[String])):String = cb match { case (cs0,hbody,body,_) => val cs=simplify(cs0)
+      val nl=cs.exists{case CFor(_,_,_,_,_)=>true case _=>false}
+      val cc = cs.map{
+        case CFor(v,l,ld,u,ud) => "for(int "+v+"="+l+(if(ld>0)"+"+ld else "")+(ud match {
+            case 0 => "; "+v+"<="+u case 1 => "; "+v+"<"+u
+            case _ => ","+v+"u="+u+"-"+ud+"; "+v+"<="+v+"u"
+          })+"; ++"+v+")"
+        case CEq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"=="+b+")"
+        case CLeq(a,b,d) => "if ("+a+(if(d>0)"+"+d else "")+"<="+b+")"
+      }
+      val a = cc.map{x=>x+" { "}.mkString("")
+      val b = cc.map{x=>" }"}.mkString("")
+      if (nl) a+"\n"+ind(hbody+body)+b.trim+"\n" else a+hbody+body+b
+    }
     // Generate the whole tabulation
     emit(gen(norm(t.inner),Var('i',0),Var('j',0),new FreeVar('k'),t.id,0))
   }
 
   // --------------------------------------------------------------------------
   // Backtrack generation
-
   def genUnapp[T](p0:Parser[T],sw:(String,String),rule:Int,bti:Int) : List[((String,String),Int)] = p0 match { // i,j,rule
     case Terminal(_,_,_) => Nil
     case p:Tabulate => List((sw,p.id))
@@ -211,9 +203,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
     val catMax=rules.map{case (n,t)=>t.inner.cat}.max
     val altMax=rules.map{case (n,t)=>t.inner.alt}.sum
     def switch(f:Int=>String) = "    switch (rd->rule) {\n"+(0 until altMax).map{x=>"      case "+x+":"+f(x)+" break;"}.mkString("\n")+"\n    }\n"
-    head.getTypeC("short i,j,rule; short pos["+catMax+"]","trace_t")
+    head.add("typedef struct { short i,j,rule; short pos["+catMax+"]; } trace_t;")
+    head.add("const int trace_len["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};") // subrule->#indices
     val sb=new StringBuilder
-    sb.append("const int trace_len["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};\n"); // subrule->#indices
     sb.append("size_t gpu_backtrack(trace_t* trace, int i0, int j0) {\n"); // from (i0,j0), trace=trace_t[2*N], provided by CPU
     sb.append("  size_t size = 0;\n  trace_t *rd=trace, *wr=trace;\n")
     sb.append("  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++size; }\n")
@@ -229,41 +221,35 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   /*
   TODO:
-  0. Fix the aggregation variables
   1. Automatically transform plain Scala function to CFun functions => Macros/LMS
   2. Automate JNI transfer to and from CUDA arrays for
      - Input/s (arbitrary type)
      - Bactrack (array of varying-length structures) => fixed-length to max
   3. Use CCompiler-like to wire everything together and execute it
   */
-  // XXX: make sure we handle case class appropriately in codegen
+  // XXX: make sure we handle case class as I/O appropriately in codegen
 
   // --------------------------------------------------------------------------
   // C code generator
 
   def gen:String = { analyze
     val kern="back_t _back = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n"+
-             "cost_t _cost = {};\n"+order.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)}.mkString("\n")
+             "cost_t _cost = {};\n"+order.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)}.mkString
     val bt = genBT
     val info = "// Type: "+(if (twotracks) "sequence alignment" else "parser" )+(if (window>0) ", window="+window else "")+"\n"+order.zipWithIndex.map { case(n,i)=>
       val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d, max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max)
     }.mkString
-
-
     print(info)
     if (twotracks) println("#define SH_RECT") else println("#define SH_TRI")
     print(head.flush)
     println("------------ kernel -----------")
     // #define idx(i,j) 0
     // int main(int argc, char** argv) { TI in[1]; cost_t cost[1]; int i=0,j=0;
-    print(kern)
+    print(ind(kern,3))
     // }
-    println
     println("---------- backtrack ----------")
     print(bt)
     println("------------- end -------------")
-    val s:String = String.format("Foo %20s","bar")
-    println(s)
     ""
   }
 }

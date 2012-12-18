@@ -100,9 +100,9 @@ class CodeHeader(within:Any) {
   private var raw=""
   def add(str:String) { raw = raw + str + "\n" }
   def flush = {
-    val res = tps.map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
-              tps.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" +
-              fns.map{case (f,n) => "inline "+getType(f.tpe)+" "+n+"("+
+    val res = tps.toList.sortBy(_._2).map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
+              tps.toList.sortBy(_._2).map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" +
+              fns.toList.sortBy(_._2).map{case (f,n) => "inline "+getType(f.tpe)+" "+n+"("+
                            f.args.map{case (n,tp)=>(getType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n") + "\n" + raw
     tps.clear(); fns.clear(); tpc=0; fnc=0; raw=""; res
   }
