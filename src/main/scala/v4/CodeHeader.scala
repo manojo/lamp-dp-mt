@@ -54,13 +54,6 @@ class CodeHeader(within:Any) {
     def parse(str:String):String = phrase(p)(new lexical.Scanner(str)) match { case Success(res, _)=>res case e=>sys.error(e.toString) }
   }
 
-  // XXX: normalize the structures names instead of an incrementing counter => avoids interoperability problems
-  // XXX: do we want to alias equivalent types/classes ? prepare a section '#define fancy_class_t tpXX' ahead of struct definition
-  // XXX: do we want to get the subtypes of some elements ?
-  // XXX: reverse lookup to get the correct type for one element ?
-  // Values (ScalaExpr,CTypeName => CExpr,CTypeName)
-  // def value(v:String,tp:String):(String,String) = {}
-
   // Structs and types management
   private var tpc=0;
   val tps=new HashMap[String,String](); // struct body -> name
@@ -68,6 +61,11 @@ class CodeHeader(within:Any) {
   def getType(str:String):String = typeParser.parse(str)
   def getVal(str:String):String = valParser.parse(str)
   // def typeNamed(n:String):String = XXX: maintain revert hash map
+  // XXX: do we want to alias equivalent types/classes ? prepare a section '#define fancy_class_t tpXX' ahead of struct definition
+  // XXX: do we want to get the subtypes of some elements ?
+  // XXX: reverse lookup to get the correct type for one element ?
+  // Values (ScalaExpr,CTypeName => CExpr,CTypeName)
+  // def value(v:String,tp:String):(String,String) = {}
 
   private val tp_ctx = within.getClass.getCanonicalName
   private def tp_cls(n:String):String = {
@@ -102,9 +100,9 @@ class CodeHeader(within:Any) {
   private var raw=""
   def add(str:String) { raw = raw + str + "\n" }
   def flush = {
-    val res = tps.map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
-              tps.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" +
-              fns.map{case (f,n) => "inline "+getType(f.tpe)+" "+n+"("+
+    val res = tps.toList.sortBy(_._2).map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
+              tps.toList.sortBy(_._2).map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" +
+              fns.toList.sortBy(_._2).map{case (f,n) => "inline "+getType(f.tpe)+" "+n+"("+
                            f.args.map{case (n,tp)=>(getType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n") + "\n" + raw
     tps.clear(); fns.clear(); tpc=0; fnc=0; raw=""; res
   }

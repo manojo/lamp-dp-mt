@@ -51,14 +51,14 @@ trait MatrixGrammarGen extends ADPParsers with MatrixSig {
 }
 
 // Code generator only
-object MatrixMultGen extends MatrixGrammarGen with MatrixAlgebraGen with App with CodeGen {
+object MatrixMultGen extends MatrixGrammarGen with MatrixAlgebraGen with CodeGen with App {
   val input = List((10,100),(100,5),(5,50)).toArray
 
-  def hh(l:List[(Int,Int)]):List[(Int,Int)] = l
-  println((hh _).getClass.toString)
-
-/*
+  // XXX: idea: use dumb variable to do traversal of the parsers to obtain type ?
+  // http://stackoverflow.com/questions/11628379/how-to-know-if-an-object-is-an-instance-of-a-typetags-type
+  /*
   import scala.language.implicitConversions
+  import scala.reflect.ClassTag;
   import scala.reflect.runtime.universe.TypeTag;
   trait AggrF[T] { val inner:List[T]=>List[T]; val tpe:String }
   implicit def toAggrF[T](h:List[T]=>List[T])(implicit tt:TypeTag[T]):AggrF[T] = new AggrF[T] {
@@ -68,12 +68,11 @@ object MatrixMultGen extends MatrixGrammarGen with MatrixAlgebraGen with App wit
   def printType[T](a:AggrF[T]) = println(a.tpe)
   def hh(l:List[(Int,Int)]):List[(Int,Int)] = l
   printType(hh _)
-*/
+  */
 
   // ------- Extra codegen initialization
   import scala.reflect.runtime.universe.typeTag;
   override val tags=(typeTag[Alphabet],typeTag[Answer])
   // ------- Extra codegen initialization
-
   println(gen)
 }

@@ -4,11 +4,11 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   // I/O interface
   private var input: Input = null
   def in(k:Int):Alphabet = input(k)
-  def size:Int = input.size 
+  def size:Int = input.size
   def parse(in:Input):List[Answer] = {
     run(in,()=>(if (window>0) aggr(((0 to size-window).flatMap{x=>axiom(x,window+x)}).toList, h) else axiom(0,size)).map{_._1})
   }
-  def backtrack(in:Input):List[(Answer,List[(Subword,Backtrack)])] = { 
+  def backtrack(in:Input):List[(Answer,List[(Subword,Backtrack)])] = {
     run(in,()=>if (window>0) aggr(((0 to size-window).flatMap{x=>axiom.backtrack(x,window+x)}).toList, h) else axiom.backtrack(0,size))
   }
   def build(in:Input,bt:List[(Subword,Backtrack)]):Answer = run(in, ()=>axiom.build(bt))
