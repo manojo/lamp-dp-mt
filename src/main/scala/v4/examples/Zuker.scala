@@ -128,7 +128,7 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
     | empty           ^^ nil
     ) aggregate h);
 
-  lazy val dangle = LOC ~ closed ~ LOC ^^ { case ((l,e),r) => dlr(l,e,r) }
+  lazy val dangle = LOC ~ closed ~ LOC ^^ dlr
   val closed:Tabulate = tabulate("cl", (stack | hairpin | leftB | rightB | iloop | multiloop) filter stackpairing aggregate h)
 
   lazy val stack   = BASE ~ closed ~ BASE ^^ sr

@@ -101,21 +101,34 @@ trait CodeGen extends BaseParsers { this:Signature =>
       case Terminal(min,max,f) => val (cs,s)=f(i,j); (scs(min,max,i,j):::cs,"",s,Nil)
       case p:Tabulate => (scs(p.min,p.max,i,j),"","cost[idx("+i+","+j+")]."+p.name,Nil)
       case Aggregate(p,h) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr+1);
+
+        def bodyTpe:String = { // typeof(body with no fresh variable)
+          val g0:FreeVar = new FreeVar('0') { override def get=zero; override def dup=this }
+          val (_,_,lb,_)=gen(p,zero,zero,g0,0,0); "typeof("+lb+")"
+        }
+        val tpe = (p,h) match {
+          case (_,MinBy(f:CFun)) => head.getType(f.args.head._2)
+          case (_,MaxBy(f:CFun)) => head.getType(f.args.head._2)
+          case (Map(_,f0),_) => val f1 = f0 match { case d:DeTuple => d.f case f => f }
+            f1 match { case f:CFun => head.getType(f.tpe) case _ => bodyTpe }
+          case _ => bodyTpe
+        }
+
         val (tc,tb) = if(aggr==0) ("_cost."+t.name,"_back."+t.name) else { aid=aid+1; ("_c"+aid, "_b"+aid) }
         // Generate aggregation body
         val updt = "{ "+tc+"=_c; "+tb+"=("+btTpe(p.cat)+"){"+rule+(if (p.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
         val cc = h.toString match {
-          case "$$max$$" => "XXX _c="+b+"; if (_c>"+tc+" || "+tb+".rule==-1) "+updt
-          case "$$min$$" => "XXX _c="+b+"; if (_c<"+tc+" || "+tb+".rule==-1) "+updt
+          case "$$max$$" => tpe+" _c="+b+"; if (_c>"+tc+" || "+tb+".rule==-1) "+updt
+          case "$$min$$" => tpe+" _c="+b+"; if (_c<"+tc+" || "+tb+".rule==-1) "+updt
           case "$$count$$" => tc+"+=1;"
           case "$$sum$$" => tc+"+="+b+";"
-          case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); "XXX _c="+b+"; if ("+f+"(_c)>"+f+"("+tc+") || "+tb+".rule==-1) "+updt
-          case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); "XXX _c="+b+"; if ("+f+"(_c)<"+f+"("+tc+") || "+tb+".rule==-1) "+updt
+          case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)>"+f+"("+tc+") || "+tb+".rule==-1) "+updt
+          case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)<"+f+"("+tc+") || "+tb+".rule==-1) "+updt
           case _ => "UnsupportedAggr("+b+")" // TODO: error
         }
         if (aggr==0) (c,hb,cc,bti)
         else { // hoist aggregation if contained
-          val nv = "XXX "+tc+"; "+btTpe(p.cat)+" "+tb+"={-1"+(if (p.cat>0)",{}" else "")+"};\n"; // XXX: fix the temporary result type here
+          val nv = tpe+" "+tc+"; "+btTpe(p.cat)+" "+tb+"={-1"+(if (p.cat>0)",{}" else "")+"};\n";
           // XXX: we also may need to have multiple <_c> due to different types
           (Nil,nv+emit((c,hb,cc,bti)),tc,(0 until p.cat).map{x=>tb+".pos["+x+"]"}.toList)
         }
@@ -236,7 +249,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d, max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max)
     }.mkString
 
-    
+
     print(info)
     if (twotracks) println("#define SH_RECT") else println("#define SH_TRI")
     print(head.flush)
@@ -251,7 +264,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
     println("------------- end -------------")
     val s:String = String.format("Foo %20s","bar")
     println(s)
-
     ""
   }
 }
