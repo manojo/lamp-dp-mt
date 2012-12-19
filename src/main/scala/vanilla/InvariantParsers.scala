@@ -1,6 +1,14 @@
 package vanilla
 
-trait InvariantParsers{
+trait Sig{
+  type Alphabet
+  type Answer
+
+}
+
+trait InvariantParsers{ this: Sig =>
+
+  type Input = Array[Alphabet]
 
   abstract class Parser[T] extends ((Int, Int) => List[T]){inner =>
 
@@ -13,8 +21,8 @@ trait InvariantParsers{
     private def or(that: Parser[T]) = OrParser(inner, that)
 
     def aggregate(h: List[T] => List[T]) = AggregateParser(inner, h)
-    def min(implicit e: Ordering[T]) = {
-      AggregateMin(inner)
+    def aggfold(z: T, f: (T, T) => T ) = {
+      AggregateFold(inner, z, f)
     }
 
     // Concatenate combinator.
@@ -71,12 +79,12 @@ trait InvariantParsers{
     override def toString = "Aggregate("+inner+")"
   }
 
-  case class AggregateMin[T:Ordering](inner: Parser[T]) extends Parser[T]{
+  case class AggregateFold[T](inner: Parser[T], z: T, f: (T,T) => T) extends Parser[T]{
     def apply(i: Int, j: Int) = {
       val tmp = inner(i,j)
-      if(tmp.isEmpty) tmp else List(tmp.min)
+      List(tmp.fold(z)(f))
     }
-    override def toString = "AggregateMin("+inner+")"
+    override def toString = "AggregateFold("+inner+")"
   }
 
   case class ConcatParser[T, U](inner: Parser[T], lL:Int, lU:Int, rL:Int, rU:Int, that: Parser[U]) extends Parser[(T,U)]{
@@ -149,16 +157,28 @@ trait InvariantParsers{
 
   /*************** simple parsers below *****************/
 
-/*   def el(in: Input) = new Parser[Alphabet] {
-    def apply(i: Rep[Int], j : Rep[Int]) =
+   def el(in: Input) = new Parser[Alphabet] {
+    def apply(i: Int, j : Int) =
       if(i+1==j) List(in(i)) else Nil
   }
 
+
   def eli(in: Input) = new Parser[Int] {
-    def apply(i: Rep[Int], j : Rep[Int]) =
+    def apply(i: Int, j : Int) =
       if(i+1==j) List(i) else Nil
   }
-*/
+
+  //bottomup parsing
+  def bottomUp[T](in: Input, p :  => Parser[T], costMatrix: Array[Array[T]]) : T = {
+    (0 until in.length + 1).foreach{j =>
+      (0 until j+1).foreach{i =>
+        //println((j-i,j))
+        val a = costMatrix(j-i)
+        a(j) = p(j-i,j).head
+      }
+    }
+    costMatrix(0)(in.length)
+  }
 
 /**
  * transform and optimize some trees y'all\
@@ -172,7 +192,7 @@ trait InvariantParsers{
 
  def asString[T](p: TabulatedParser[T]): String = p.name + "("+p.inner()+")"
 
- def transform[T](p: TabulatedParser[T]): Parser[T] = {
+ def transform[T](p: TabulatedParser[T]): TabulatedParser[T] = {
   val transformed = transform(p.inner())
   TabulatedParser(() => transformed, p.name, p.mat)
  }
@@ -211,6 +231,17 @@ trait InvariantParsers{
         )
       case q => AggregateParser(q,h)
     }
+    case AggregateFold(p, z, f) =>
+      println("Aggregate fold parser")
+      transform(p) match {
+        case OrParser(l,r:Parser[T]) => new Parser[T] {
+          def apply(i: Int, j: Int) = if(i < j){
+            val res = transform(AggregateFold(l,z,f))(i,j)
+            transform(AggregateFold(r, res.head, f))(i,j)
+          }else List()
+        }
+        case q => AggregateFold(q,z,f)
+      }
 
     case FilterParser(p,f) => FilterParser(transform(p), f)
     case _ => p
@@ -219,45 +250,38 @@ trait InvariantParsers{
 
 }
 
-object InvariantMatMult extends InvariantParsers{
+object InvariantMatMult extends InvariantParsers with Sig{
   type Alphabet = (Int,Int)
   type Answer = (Int, Int, Int)
-  type Input = Array[Alphabet]
 
-  //bottomup parsing
-  def bottomUp[T](in: Input, p :  => Parser[T], costMatrix: Array[Array[T]]) : T = {
-    (0 until in.length + 1).foreach{j =>
-      (0 until j+1).foreach{i =>
-        //println((j-i,j))
-        val a = costMatrix(j-i)
-        a(j) = p(j-i,j).head
-      }
-    }
-    costMatrix(0)(in.length)
-  }
 
   def single(i: (Int,Int)) = (i._1, 0, i._2)
   def mult(x: (Answer,Answer)) = x match {
     case (l,r) => (l._1, l._2 + r._2 + l._1 * l._3 * r._3 ,r._3)
   }
 
-  def el(in: Input) = new Parser[Alphabet] {
+/*  def el(in: Input) = new Parser[Alphabet] {
     def apply(i: Int, j : Int) =
       if(i+1==j) List(in(i)) else List()
   }
+*/
 
-  def myParser(in:Input) : Answer = {
-    val a : Array[Array[Answer]] =
-      Array.ofDim(in.length+1,in.length+1)
+  def multParser(in:Input, a: Array[Array[Answer]]) : TabulatedParser[Answer] = {
 
     lazy val p : TabulatedParser[Answer] = tabulate(
       (el(in) ^^ single
        | (p +~+ p) ^^ {(x: (Answer,Answer)) => mult(x)}
-      ).aggregate{x : List[Answer]=> if(x.isEmpty) x else List(x.minBy(_._2))},
+      ).aggfold((0,100000,0),{(x, y) => if(x._2 < y._2) x else y}),
       "mat",
       a
     )
     p
+  }
+
+  def myParser(in:Input) = {
+
+    val a: Array[Array[Answer]] = Array.ofDim(in.length+1,in.length+1)
+    val p = multParser(in, a)
 
     println("String rep of parser")
     println(asString(p))
@@ -281,19 +305,12 @@ object InvariantMatMult extends InvariantParsers{
     val a : Array[Array[Answer]] =
       Array.ofDim(in.length+1,in.length+1)
 
-    lazy val p : TabulatedParser[Answer] = tabulate(
-      (el(in) ^^ single
-       | (p +~+ p) ^^ {(x: (Answer,Answer)) => mult(x)}
-      ).aggregate{x : List[Answer]=> if(x.isEmpty) x else List(x.minBy(_._2))},
-      "mat",
-      a
-    )
+    val p = transform(multParser(in, a))
 
     //transform(p)(0, in.length).head
-    val transfo = transform(p).asInstanceOf[TabulatedParser[Answer]]
     println("String rep of parser")
-    println(asString(transfo))
-    val res = bottomUp(in, transfo, a)
+    println(asString(p))
+    val res = bottomUp(in, p, a)
     println("the resulting array is : ")
     for(i <- 0 to in.length){
       for(j <- 0 to in.length){

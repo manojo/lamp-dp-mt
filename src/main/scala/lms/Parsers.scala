@@ -143,31 +143,23 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
       if(i+1==j) List(in(i)) else List()
   }
 
-/*  def eli(in: Input) = new Parser[Int] {
+  def eli(in: Input) = new Parser[Int] {
     def apply(i: Rep[Int], j : Rep[Int]) =
       if(i+1==j) List(i) else List()
   }
-*/
 
-//bottomup parsing
-/*def bottomUp(in: Input, p : Parser[List[Char]], costMatrix: Rep[Array[Array[List[List[Char]]]]]) = {
-  //initialising the cost matrix
-  (0 until in.length + 1).foreach{i =>
+  //bottomup parsing
+  def bottomUp(in: Input, p :  => TabulatedParser, costMatrix: Rep[Array[Array[Answer]]])(implicit mAlph: Manifest[Alphabet], mA: Manifest[Answer]) : Rep[Answer] = {
     (0 until in.length + 1).foreach{j =>
-      val a = costMatrix(i)
-      a(j) = List()
+      (0 until j+1).foreach{i =>
+        //println((j-i,j))
+        val a = costMatrix(j-i)
+        a(j) = p(j-i,j).head
+      }
     }
+    val temp = costMatrix(0)
+    temp(in.length)
   }
-
-  (0 until in.length + 1).foreach{j =>
-    (0 until j+1).foreach{i =>
-      //TODO: extend range ops for descending ranges
-      val a = costMatrix(j-i)
-      a(j) = p(j-i,j)
-    }
-  }
-}*/
-
 
 /**
  * transform and optimize some trees y'all\
@@ -218,6 +210,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
 trait LexicalParsers extends Parsers {this: Sig =>
 
   type Alphabet = Char
+  val mAlph = manifest[Char]
 
   def char(in: Input) = new Parser[Char] {
     def apply(i: Rep[Int], j : Rep[Int]) =
@@ -271,9 +264,7 @@ object HelloParsers extends App {
 
   val concreteProg = new LexicalParsers with ParsersExp with Sig { self =>
     type Answer = Double
-
     val mAns = manifest[Answer]
-    val mAlph = manifest[Alphabet]
 
     val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
       with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps

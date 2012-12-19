@@ -52,7 +52,12 @@ object TestCGen extends App {
     }
     def emitAll(): Unit = {
       assert(codegen ne null) //careful about initialization order
-      val stream = new PrintWriter(System.out)
+
+      import java.io.ByteArrayOutputStream
+
+      val os = new ByteArrayOutputStream();
+      val stream = new PrintWriter(os)
+
       for ((_,v) <- rec) { v match {
         case TopLevel1(name, mA, mR, _) => codegen.emitForwardDef(mtype(mA)::Nil, name, stream)(mtype(mR))
         case TopLevel2(name, mA, mB, mR, _) => codegen.emitForwardDef(mtype(mA)::mtype(mB)::Nil, name, stream)(mtype(mR))
@@ -69,6 +74,17 @@ object TestCGen extends App {
           case _ => ()
         }
       }
+
+      val methods = os.toString("UTF-8")
+      //stream.clear
+      os.reset
+      codegen.emitDataStructures(stream)
+      val structs = os.toString("UTF-8")
+
+      System.out.println(structs + methods)
+
+      os.close
+      stream.close
     }
     emitAll()
   }
