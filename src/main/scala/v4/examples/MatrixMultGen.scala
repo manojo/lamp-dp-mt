@@ -42,10 +42,19 @@ trait MatrixGrammarGen extends ADPParsers with MatrixSig {
   // Let us be more fancy and define testing
   val fooBar:Tabulate = tabulate("m2",matrixGrammar aggregate h)
 
+  val ps = new ((Int,Int)=>Boolean) with CFun {
+    def apply(i:Int,j:Int) = i%2==j%2
+    val args=List(("i","Int"),("j","Int"))
+    val body = "return i%2==j%2;"
+    val tpe ="Boolean"
+  }
+
   val nestedAggr = tabulate("aggr",( // complexity = O(n^2) / element
     (matrixGrammar ~ matrixGrammar ^^ mult aggregate h) ~
-    (matrixGrammar ~ matrixGrammar ^^ mult aggregate h) ^^ mult
+    ((matrixGrammar filter ps filter ps) ~ matrixGrammar ^^ mult aggregate h) ^^ mult
   ) aggregate h)
+
+  // XXX: use a filter
 
   val axiom=matrixGrammar
 }
@@ -53,26 +62,10 @@ trait MatrixGrammarGen extends ADPParsers with MatrixSig {
 // Code generator only
 object MatrixMultGen extends MatrixGrammarGen with MatrixAlgebraGen with CodeGen with App {
   val input = List((10,100),(100,5),(5,50)).toArray
-
-  // XXX: idea: use dumb variable to do traversal of the parsers to obtain type ?
-  // http://stackoverflow.com/questions/11628379/how-to-know-if-an-object-is-an-instance-of-a-typetags-type
-  /*
-  import scala.language.implicitConversions
-  import scala.reflect.ClassTag;
-  import scala.reflect.runtime.universe.TypeTag;
-  trait AggrF[T] { val inner:List[T]=>List[T]; val tpe:String }
-  implicit def toAggrF[T](h:List[T]=>List[T])(implicit tt:TypeTag[T]):AggrF[T] = new AggrF[T] {
-    val inner:List[T]=>List[T] = h
-    val tpe:String = tt.tpe.toString
-  }
-  def printType[T](a:AggrF[T]) = println(a.tpe)
-  def hh(l:List[(Int,Int)]):List[(Int,Int)] = l
-  printType(hh _)
-  */
-
   // ------- Extra codegen initialization
   import scala.reflect.runtime.universe.typeTag;
   override val tags=(typeTag[Alphabet],typeTag[Answer])
+  //setEmpty((-1,-1,-1))
   // ------- Extra codegen initialization
   println(gen)
 }

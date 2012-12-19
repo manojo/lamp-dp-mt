@@ -42,6 +42,7 @@ trait BaseParsers { this:Signature =>
   case class CFor(v:Char,l:Char,ld:Int,u:Char,ud:Int) extends Cond // for ('l'+ld<='v'<='u'-ud)
   case class CLeq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta<='b'
   case class CEq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta=='b'
+  case class CUser(cond:String) extends Cond // user condition
 
   sealed abstract class Parser[T] extends (Subword => List[(T,Backtrack)]) {
     def min:Int // subword minimal size
@@ -135,7 +136,6 @@ trait BaseParsers { this:Signature =>
       case None => sys.error("No tabulation for subrule #"+rule)
     }
   }
-
 
   // --------------------------------------------------------------------------
   // Terminal abstraction

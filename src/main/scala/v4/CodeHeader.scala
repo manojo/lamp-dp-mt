@@ -28,7 +28,24 @@ class CodeHeader(within:Any) {
     case _ => "_"+n.substring(n.lastIndexOf('.')+1).toLowerCase // custom class
   }}.mkString("")}
 
+  private val tp_ctx = within.getClass.getCanonicalName
+  class TypeParser(base_f:String=>String,tuple_f:List[String]=>String,class_f:(String,List[(String,String)])=>String) extends StandardTokenParsers {
+    import lexical.{NumericLit,StringLit}
+    lexical.reserved ++= c_types.keys.toList ++ List("scala")
+    lexical.delimiters ++= List("(",")",",",".")
+    private def p:Parser[String]=(opt("scala"~".")~>("Boolean"|"Byte"|"String"|"Char"|"Short"|"Int"|"Long"|"Float"|"Double") ^^ base_f
+      | "(" ~> repsep(p,",") <~ ")" ^^ tuple_f
+      | repsep(ident,".") ^^ { x=> val n=x.mkString("."); val cls=Class.forName(tp_ctx+n.substring(n.lastIndexOf('.')+1))
+            // do mutliple attempt to find class: absolute, within.getDeclaredClasses, getDeclaringClass, getEnclosingClass, getSuperclass
+            class_f(n.substring(n.lastIndexOf('.')+1),cls.getDeclaredFields.map{f=>(f.getType.toString,f.getName)}.toList) }
+      | failure("Illegal type expression"))
+    def parse(str:String):String = phrase(p)(new lexical.Scanner(str)) match { case Success(res, _)=>res case e=>sys.error(e.toString) }
+  }
+
   // Converts Scala type into C type
+  val typeParser = new TypeParser(c_types(_),a=>tps.getOrElseUpdate(a.zipWithIndex.map{case(s,i)=>s+" _"+(i+1) }.mkString("; "),tupleStruct(a)),
+    (n,a)=>{val tp=a.map{case (t,n)=>c_types(t.substring(0,1).toUpperCase+t.substring(1))+" "+n}.mkString("; "); tps.getOrElseUpdate(tp, n.toLowerCase+"_t") })
+  /*
   private object typeParser extends StandardTokenParsers {
     import lexical.{NumericLit,StringLit}
     lexical.reserved ++= c_types.keys.toList ++ List("scala")
@@ -38,6 +55,16 @@ class CodeHeader(within:Any) {
       | repsep(ident,".") ^^ { x=>tp_cls(x.mkString(".")) } | failure("Illegal type expression"))
     def parse(str:String):String = phrase(p)(new lexical.Scanner(str)) match { case Success(res, _)=>res case e=>sys.error(e.toString) }
   }
+
+  private def tp_cls(n:String):String = {
+    val cls = Class.forName(tp_ctx+n.substring(n.lastIndexOf('.')+1))
+    // try mutliple attempt to find that class: absolute class
+    // within.getDeclaredClasses(), getDeclaringClass, getEnclosingClass, getSuperclass
+    val td = cls.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
+    val tp = td.map{case (t,n)=>c_types(t.substring(0,1).toUpperCase+t.substring(1))+" "+n}.mkString("; ")
+    tps.getOrElseUpdate(tp, n.substring(n.lastIndexOf('.')+1).toLowerCase+"_t")
+  }
+  */
 
   // Converts a Scala value into its C representation
   private object valParser extends StandardTokenParsers {
@@ -66,16 +93,6 @@ class CodeHeader(within:Any) {
   // XXX: reverse lookup to get the correct type for one element ?
   // Values (ScalaExpr,CTypeName => CExpr,CTypeName)
   // def value(v:String,tp:String):(String,String) = {}
-
-  private val tp_ctx = within.getClass.getCanonicalName
-  private def tp_cls(n:String):String = {
-    val cls = Class.forName(tp_ctx+n.substring(n.lastIndexOf('.')+1))
-    // try mutliple attempt to find that class: absolute class
-    // within.getDeclaredClasses(), getDeclaringClass, getEnclosingClass, getSuperclass
-    val td = cls.getDeclaredFields.map{x=>(x.getType.toString,x.getName)}
-    val tp = td.map{case (t,n)=>c_types(t.substring(0,1).toUpperCase+t.substring(1))+" "+n}.mkString("; ")
-    tps.getOrElseUpdate(tp, n.substring(n.lastIndexOf('.')+1).toLowerCase+"_t")
-  }
 
   // Scala Type of an composite Tuple/case classes/primary types
   def tpOf[T](a:T):String = {
