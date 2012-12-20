@@ -34,7 +34,7 @@ trait MatrixAlgebraGen extends MatrixSig {
 
 // Matrix multiplication grammar (rules)
 trait MatrixGrammarGen extends ADPParsers with MatrixSig {
-  val matrixGrammar:Tabulate = tabulate("m",(
+  val matrixGrammar:Tabulate = tabulate("m1",(
     el ^^ single
   | (matrixGrammar ~ matrixGrammar) ^^ mult
   ) aggregate h)
@@ -65,7 +65,6 @@ object MatrixMultGen extends MatrixGrammarGen with MatrixAlgebraGen with CodeGen
   // ------- Extra codegen initialization
   import scala.reflect.runtime.universe.typeTag;
   override val tags=(typeTag[Alphabet],typeTag[Answer])
-  //setEmpty((-1,-1,-1))
   // ------- Extra codegen initialization
   println(gen)
 }
