@@ -100,7 +100,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // --------------------------------------------------------------------------
   // Tabulation code generation
   def genTab(t:Tabulate):String = {
-    var aggid=0; // id for intermediate results in nested aggregation
+    var aggid=0; // nested aggregation intermediate result id
     def scs(min:Int,max:Int,i:Var,j:Var) = if (min==max) List(i.eq(j,min)) else (if (max==maxN) Nil else List(j.leq(i,-max))):::(if (min>0) List(i.leq(j,min)) else Nil)
     def genFun[T,U](f0:T=>U):String = { val f1 = f0 match { case d:DeTuple => d.f case f => f }
       f1 match { case f:CFun => head.add(f) case _ => "UnsupportedFunction" } // TODO: error

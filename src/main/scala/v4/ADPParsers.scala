@@ -23,19 +23,19 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   }
 
   // Terminal parsers
-  def empty = new Terminal[Dummy](0,0,(i:Var,j:Var) => (Nil,"0")) {
+  val empty = new Terminal[Dummy](0,0,(i:Var,j:Var) => (Nil,"0")) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((new Dummy,bt0)) else Nil }
   }
-  def emptyi = new Terminal[Int](0,0,(i:Var,j:Var) => (Nil,"("+i+")")) {
+  val emptyi = new Terminal[Int](0,0,(i:Var,j:Var) => (Nil,"("+i+")")) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((i,bt0)) else Nil }
   }
-  def el = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"in["+i+"]")) {
+  val el = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"in["+i+"]")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in(i),bt0)) else Nil }
   }
-  def eli = new Terminal[Int](1,1,(i:Var,j:Var) => (Nil,"("+i+")")) {
+  val eli = new Terminal[Int](1,1,(i:Var,j:Var) => (Nil,"("+i+")")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((i,bt0)) else Nil }
   }
-  def seq(min:Int=1, max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"in["+i+".."+j+"]")) {
+  def seq(min:Int=1, max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(Tii){"+i+","+j+"}")) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
 }
