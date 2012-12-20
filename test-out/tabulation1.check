@@ -9,8 +9,8 @@ at Sym(27)=Reflect(IfThenElse(Sym(11),Block(Sym(26)),Block(Sym(19))),Summary(fal
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
-class test-tabulation extends ((Array[Char])=>(scala.collection.immutable.List[Char])) {
-def apply(x0:Array[Char]): scala.collection.immutable.List[Char] = {
+class test-tabulation extends ((Array[Char])=>(Char)) {
+def apply(x0:Array[Char]): Char = {
 val x1 = x0.length
 val x2 = x1 + 1
 val x3 = new Array[Array[Char]](x2)
@@ -52,7 +52,8 @@ x25
 val x19 = List()
 x19
 }
-x27
+val x28 = x27.head
+x28
 }
 }
 /*****************************************
