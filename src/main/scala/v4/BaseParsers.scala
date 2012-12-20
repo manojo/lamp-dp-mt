@@ -98,8 +98,8 @@ trait BaseParsers { this:Signature =>
   val tabs = new HashMap[String,HashMap[Subword,List[(Answer,Backtrack)]]]
   var reset:(()=>Unit) = () => { /*printTabs*/ }
 
-  def tabulate(name:String, inner: => Parser[Answer]) = new Tabulate(inner,name)
-  class Tabulate(in: => Parser[Answer], val name:String) extends Parser[Answer] {
+  def tabulate(name:String, inner: => Parser[Answer], alwaysValid:Boolean=false) = new Tabulate(inner,name,alwaysValid)
+  class Tabulate(in: => Parser[Answer], val name:String, val alwaysValid:Boolean=false) extends Parser[Answer] {
     lazy val inner = in
     val (alt,cat) = (1,0)
     def min = minv; var minv = 0

@@ -37,7 +37,7 @@ trait MatrixGrammarGen extends ADPParsers with MatrixSig {
   val matrixGrammar:Tabulate = tabulate("m1",(
     el ^^ single
   | (matrixGrammar ~ matrixGrammar) ^^ mult
-  ) aggregate h)
+  ) aggregate h,true)
 
   // Let us be more fancy and define testing
   val fooBar:Tabulate = tabulate("m2",matrixGrammar aggregate h)
@@ -49,12 +49,11 @@ trait MatrixGrammarGen extends ADPParsers with MatrixSig {
     val tpe ="Boolean"
   }
 
+  val ffail = new Terminal[Answer](0,0,(i:Var,j:Var)=>(List(CUser("1==0")),"(T3iii){}") ) { def apply(sw:Subword) = Nil }
   val nestedAggr = tabulate("aggr",( // complexity = O(n^2) / element
-    (matrixGrammar ~ matrixGrammar ^^ mult aggregate h) ~
+    (ffail /*matrixGrammar*/ ~ matrixGrammar ^^ mult aggregate h) ~
     ((matrixGrammar filter ps filter ps) ~ matrixGrammar ^^ mult aggregate h) ^^ mult
   ) aggregate h)
-
-  // XXX: use a filter
 
   val axiom=matrixGrammar
 }

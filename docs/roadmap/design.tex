@@ -153,14 +153,13 @@ Concat				& ---			& swap$_R$	& ---		& ---			& ---\\
 
 Note that there can be no swap with Map and Concat internal parsers due to domain change. Fusing is done by the C compiler (declaring mapping functions inline).
 
-
 \item \textbf{Handling nested aggregations:} since the parser might contain nested aggregation, they must be preserved in order not to increase its time complexity. To do that, each internal aggregation has to define its own intermediate variables and backtrack, whereas outermost aggregation can directly write in the cell of the cost/backtrack matrix.
-\item \textbf{Failure handling:} a parser can either be successful and return a valid result or fail and return no result, {\color{red} XXX: also for terminals!! hence we need to encode the failure either in the result or in the backtrack. We discuss advantages of each strategy:\ul
-	\item Special 'empty' value:
-	\item Backtrack encoding:
+\item \textbf{Failure handling:} a parser can either be successful and return a valid result or fail and return no result; failure can happen in terminals, (source) tabulations and filters. These 3 cases can be reduced to one by wrapping terminals and tabulations into a filter that checks validity conditions. It remains to discuss failure encoding strategies:\ul
+	\item \textbf{Special <<empty>> value: }The benefit of such encoding is a reduced number of memory accesses, indeed since we need to access anyway the value to make computations, we do not generate additional memory accesses to check the validity of the value. The drawback of such approach is that it becomes necessary to specify a special <<empty>> value that cannot be used, except to denote the absence of result. Since types can be arbitrary at every step of the parser, it becomes cumbersome to ask the DSL user to provide a special value for every intermediate result.
+	\item \textbf{Backtrack encoding:} Reusing the backtrack to encode the validity of a result is a more general approach, and allow greater flexibility for the user. Indeed, since we maintain subrules in the backtrack, it suffice to use a special subrule number to denote that related value is invalid.
+	This approach also work with nested aggregations by storing an <<intermediate subrule>> temporary that would only grant validity of the related value.
 	\ule
-	XXX: this is a more serious problem
-}
+Since backtrack encoding comes at the price of an additional memory access to test the validity (memory accesses usually accounts for most of the time on CUDA devices), it is also relevant to allow the user to completely disable this test to speed-up computations.
 \ule
 
 % ------------------------------------------------------------------------------------------------
