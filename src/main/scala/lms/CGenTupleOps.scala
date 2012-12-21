@@ -39,7 +39,7 @@ trait CLikeGenTupleOps extends CLikeGenBase{
     case e5@ETuple5(a,b,c,d,e) =>
       registerType(sym.tp,rhs)
       emitValDef(sym, "("+tupleClassName(sym.tp)+"){"+ quote(a) + "," + quote(b) + "," + quote(c) + "," + quote(d) + ","
-                         + remap(e5.m5) + " t5 = " + quote(e) + "}")
+                         + quote(e) + "}")
     case Tuple5Access1(t) => emitValDef(sym, quote(t) + ".t1")
     case Tuple5Access2(t) => emitValDef(sym, quote(t) + ".t2")
     case Tuple5Access3(t) => emitValDef(sym, quote(t) + ".t3")
@@ -80,11 +80,11 @@ trait CLikeGenTupleOps extends CLikeGenBase{
           case e2@ETuple2(a,b) =>
             "struct "+name+"{"+ remap(e2.m1) + " t1; " + remap(e2.m2) + " t2 }"
           case e3@ETuple3(a,b,c) =>
-            "struct "+name+"{"+ remap(e3.m1) + " t1; " + remap(e3.m2) + " t2; "+ remap(e3.m3) +"t3 }"
+            "struct "+name+"{"+ remap(e3.m1) + " t1; " + remap(e3.m2) + " t2; "+ remap(e3.m3) +" t3 }"
           case e4@ETuple4(a,b,c,d) =>
-            "struct "+name+"{"+ remap(e4.m1) + " t1; " + remap(e4.m2) + " t2; "+ remap(e4.m3) +"t3; " + remap(e4.m4) +"t4 }"
+            "struct "+name+"{"+ remap(e4.m1) + " t1; " + remap(e4.m2) + " t2; "+ remap(e4.m3) +" t3; " + remap(e4.m4) +" t4 }"
           case e5@ETuple5(a,b,c,d,e) =>
-            "struct "+name+"{"+ remap(e5.m1) + " t1; " + remap(e5.m2) + " t2; "+ remap(e5.m3) +"t3; " + remap(e5.m4) +"t4; " + remap(e5.m5) +"t5 }"
+            "struct "+name+"{"+ remap(e5.m1) + " t1; " + remap(e5.m2) + " t2; "+ remap(e5.m3) +" t3; " + remap(e5.m4) +" t4; " + remap(e5.m5) +" t5 }"
         }
         }
 //        stream.println("case class " + name + "(" + (for ((n, e) <- fields) yield n + ": " + remap(e.tp)).mkString(", ") + ")")

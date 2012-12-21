@@ -185,7 +185,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
           val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
           val max_k = if (lU==0) j-rL else Math.min(j-rL,i+lU)
           for(
-           k <- ((min_k until max_k+1).toList)
+            k <- ((min_k until max_k+1).toList)
           ) yield(f(inner(i,k).head,that()(k,j).head))
         } else List()
       }
