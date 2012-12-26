@@ -28,7 +28,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   // Cost matrix : cost_t = parser_name -> cost
   // Backtracking: back_t = parser_name -> (rule, positions)
-  def btTpe(n:Int) = head.getTypeC("short rule"+(if(n>0)"; short pos["+n+"]"else""),"bt"+n)
+  def btTpe(n:Int) = head.addType("short rule"+(if(n>0)"; short pos["+n+"]"else""),"bt"+n)
   override def analyze:Boolean = { if (!super.analyze) return false; order=tabsOrder;
     head.add("#define TI "+tpAlphabet)
     head.add("typedef struct { "+order.map{n=>tpAnswer+" "+n+";"}.mkString(" ")+" } cost_t;\n#define TC cost_t")
@@ -105,11 +105,11 @@ trait CodeGen extends BaseParsers { this:Signature =>
     def genFun[T,U](f0:T=>U):String = { val f1 = f0 match { case d:DeTuple => d.f case f => f }
       f1 match { case f:CFun => head.add(f) case _ => "UnsupportedFunction" } // TODO: error
     }
-    // Generate C parser for subword (i,j): collect conditions, content and backtrack indices
-    // [ parser, i,j,k?, subrule(backtrack), aggregation_depth ] => [ Conditions(for loops), hoisted_body, body, backtrack indices ]
+    // Generate C parser for subword (i,j): collect conditions, hoisted/content and backtrack indices
+    // (parser, i,j,k?, subrule, aggregation_depth) => (Conditions+for loops, hoisted, body, backtrack indices)
     def gen[T](p0:Parser[T],i:Var,j:Var,g:FreeVar,rule:Int,aggr:Int):(List[Cond],String,String,List[String]) = p0 match {
       case Terminal(min,max,f) => val (cs,s)=f(i,j); (scs(min,max,i,j):::cs,"",s,Nil)
-      case p:Tabulate => ( (if (t.alwaysValid||p.alwaysValid) Nil else List(CUser("VALID("+i+","+j+","+p.name+")"))):::scs(p.min,p.max,i,j),"","cost[idx("+i+","+j+")]."+p.name,Nil)
+      case p:Tabulate => ( (if (p.alwaysValid) Nil else List(CUser("VALID("+i+","+j+","+p.name+")"))):::scs(p.min,p.max,i,j),"","cost[idx("+i+","+j+")]."+p.name,Nil)
       case Aggregate(p,h) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr+1);
         def bodyTpe:String = { // fallback if untypable: typeof(body) where body has no fresh variable
           val g0:FreeVar = new FreeVar('0') { override def get=zero; override def dup=this }
@@ -136,7 +136,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
         }
         if (aggr==0) (c,hb,cc,bti) // hoist aggregation if contained
         else { val nv = tpe+" "+tc+"; "+btTpe(p.cat)+" "+tb+"={-1"+(if (p.cat>0)",{}" else "")+"};\n";
-          ((if (t.alwaysValid)Nil else List(CUser(tb+".rule!=-1"))),nv+emit((c,hb,cc,bti)),tc,(0 until p.cat).map{x=>tb+".pos["+x+"]"}.toList)
+          (List(CUser(tb+".rule!=-1")),nv+emit((c,hb,cc,bti)),tc,(0 until p.cat).map{x=>tb+".pos["+x+"]"}.toList)
         }
       case Or(l,r) => (Nil,"",emit(gen(l,i,j,g.dup,rule,aggr))+"\n"+emit(gen(r,i,j,g.dup,rule+l.alt,aggr)),Nil)
       case Map(p,f) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr); (c,hb,genFun(f)+"("+b+")",bti)
@@ -229,7 +229,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
   }
 
   // XXX: write the CPU transformer to create the Java trace
-  // XXX: we need an empty value to denote the no-solution case, we also need to propagate it up to the aggregator
   /*
   TODO:
   1. Automatically transform plain Scala function to CFun functions => Macros/LMS
