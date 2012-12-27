@@ -21,7 +21,7 @@ class CodeHeader(within:Any) {
   sealed abstract class Tp {
     def name:String = this match {
       case TPri(_,_,n) => n.substring(0,1).toLowerCase
-      case TTuple(a) => "t"+a.size+a.map{_.name}.mkString
+      case TTuple(a) => "T"+a.size+a.map{_.name}.mkString
       case TClass(n,_) => "_"+n.toLowerCase
     }
     override def toString = this match {
@@ -84,46 +84,10 @@ class CodeHeader(within:Any) {
   def flush = {
     val res = tps.toList.sortBy(_._2).map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
               tps.toList.sortBy(_._2).map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" +
-              fns.toList.sortBy(_._2).map{case (f,n) => "inline "+getType(f.tpe)+" "+n+"("+
+              fns.toList.sortBy(_._2).map{case (f,n) => "__device__ inline "+getType(f.tpe)+" "+n+"("+
                            f.args.map{case (n,tp)=>(getType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n") + "\n" + raw
     tps.clear(); fns.clear(); tpc=0; fnc=0; raw=""; res
   }
-
-  //def getVal(str:String):String = valParser.parse(str)
-  // def typeNamed(n:String):String = XXX: maintain revert hash map
-  // XXX: do we want to alias equivalent types/classes ? prepare a section '#define fancy_class_t tpXX' ahead of struct definition
-  // XXX: do we want to get the subtypes of some elements ?
-  // XXX: reverse lookup to get the correct type for one element ?
-  // Values (ScalaExpr,CTypeName => CExpr,CTypeName)
-  // def value(v:String,tp:String):(String,String) = {}
-
-  /*
-  // Converts a Scala value into its C representation
-  private object valParser extends StandardTokenParsers {
-    import lexical.{NumericLit,StringLit}
-    lexical.reserved ++= c_types.keys.toList ++ List("e","E")
-    lexical.delimiters ++= List("(",")",",","-",".")
-    private def pr[T](o:Option[T]) = o match { case Some(v)=>v.toString case None => "" }
-    private def num:Parser[String] = opt("-") ~
-      ( opt(numericLit)~("."~>numericLit)^^{case o~d=>pr(o)+"."+d} | numericLit ) ~
-      opt( ("e"|"E")~>(opt("-")~numericLit)^^{case o~d=> "e"+pr(o)+d} ) ^^ { case s~m~e => pr(s)+m+pr(e) }
-    private def p:Parser[String] = (num ^^ { n=>n.toString }
-      | "(" ~> repsep(p,",") <~ ")" ^^ { a=>"{"+a.mkString(",")+"}" }
-      | repsep(ident,".") ^^ { x=> "("+x.mkString(".")+")" } | failure("Illegal type expression"))
-    def parse(str:String):String = phrase(p)(new lexical.Scanner(str)) match { case Success(res, _)=>res case e=>sys.error(e.toString) }
-  }
-
-  // Scala Type of an composite Tuple/case classes/primary types
-  def tpOf[T](a:T):String = {
-    val s=a.getClass.toString;
-    if (a.isInstanceOf[Product]) { val p=a.asInstanceOf[Product]; "("+(0 until p.productArity).map{x=>tpOf(p.productElement(x))}.mkString(",")+")" }
-    else s match {
-      case "boolean"|"byte"|"char"|"short"|"int"|"long"|"float"|"double" => s.substring(0,1).toUpperCase+s.substring(1,s.length)
-      case _ if (s.startsWith("class java.lang.")) => s.substring(16) match { case "Character"=>"Char" case "Integer"=>"Int" case t=>t }
-      case _ => s.substring(6) // seems that case classes extend Product, enforce that?
-    }
-  }
-  */
 
   // --------------------------------------------------------------------------
   // JNI transfers
@@ -204,6 +168,37 @@ class CodeHeader(within:Any) {
   }
 }
 
+  //def getVal(str:String):String = valParser.parse(str)
+  // def typeNamed(n:String):String = XXX: maintain revert hash map
+  // XXX: do we want to alias equivalent types/classes ? prepare a section '#define fancy_class_t tpXX' ahead of struct definition
+  // XXX: reverse lookup to get the correct type for one element ?
+  /*
+  // Converts a Scala value into its C representation
+  private object valParser extends StandardTokenParsers {
+    import lexical.{NumericLit,StringLit}
+    lexical.reserved ++= c_types.keys.toList ++ List("e","E")
+    lexical.delimiters ++= List("(",")",",","-",".")
+    private def pr[T](o:Option[T]) = o match { case Some(v)=>v.toString case None => "" }
+    private def num:Parser[String] = opt("-") ~
+      ( opt(numericLit)~("."~>numericLit)^^{case o~d=>pr(o)+"."+d} | numericLit ) ~
+      opt( ("e"|"E")~>(opt("-")~numericLit)^^{case o~d=> "e"+pr(o)+d} ) ^^ { case s~m~e => pr(s)+m+pr(e) }
+    private def p:Parser[String] = (num ^^ { n=>n.toString }
+      | "(" ~> repsep(p,",") <~ ")" ^^ { a=>"{"+a.mkString(",")+"}" }
+      | repsep(ident,".") ^^ { x=> "("+x.mkString(".")+")" } | failure("Illegal type expression"))
+    def parse(str:String):String = phrase(p)(new lexical.Scanner(str)) match { case Success(res, _)=>res case e=>sys.error(e.toString) }
+  }
+  // Scala Type of an composite Tuple/case classes/primary types
+  def tpOf[T](a:T):String = {
+    val s=a.getClass.toString;
+    if (a.isInstanceOf[Product]) { val p=a.asInstanceOf[Product]; "("+(0 until p.productArity).map{x=>tpOf(p.productElement(x))}.mkString(",")+")" }
+    else s match {
+      case "boolean"|"byte"|"char"|"short"|"int"|"long"|"float"|"double" => s.substring(0,1).toUpperCase+s.substring(1,s.length)
+      case _ if (s.startsWith("class java.lang.")) => s.substring(16) match { case "Character"=>"Char" case "Integer"=>"Int" case t=>t }
+      case _ => s.substring(6) // seems that case classes extend Product, enforce that?
+    }
+  }
+  */
+
 /*
 JNIEXPORT jobject JNICALL Java_{className}_apply(JNIEnv* env, jobject obj, jobjectArray input1, jobjectArray input2) {
   // 1. Initialize
@@ -221,6 +216,7 @@ JNIEXPORT jobject JNICALL Java_{className}_apply(JNIEnv* env, jobject obj, jobje
 }
 */
 
+/*
 object JNI extends App {
   val h = new CodeHeader(this)
   case class A(x:Int,y:Int)
@@ -240,3 +236,4 @@ object JNI extends App {
   println(h.jniRead(h.parse(ti)))
   println(h.jniWrite(h.parse(tc)))
 }
+*/

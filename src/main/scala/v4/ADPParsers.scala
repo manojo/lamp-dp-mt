@@ -29,13 +29,13 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   val emptyi = new Terminal[Int](0,0,(i:Var,j:Var) => (Nil,"("+i+")")) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((i,bt0)) else Nil }
   }
-  val el = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"in["+i+"]")) {
+  val el = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"in1["+i+"]")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in(i),bt0)) else Nil }
   }
   val eli = new Terminal[Int](1,1,(i:Var,j:Var) => (Nil,"("+i+")")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((i,bt0)) else Nil }
   }
-  def seq(min:Int=1, max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(Tii){"+i+","+j+"}")) {
+  def seq(min:Int=1, max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(T2ii){"+i+","+j+"}")) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
 }

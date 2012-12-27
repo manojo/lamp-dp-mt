@@ -35,10 +35,10 @@ trait TTParsers extends BaseParsers { this:Signature =>
   val el2 = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"in2["+i+"]")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in2(i),bt0)) else Nil }
   }
-  def seq1(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(Tii){"+i+","+j+"}")) { // in1[i]..in1[j]
+  def seq1(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(T2ii){"+i+","+j+"}")) { // in1[i]..in1[j]
     def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
-  def seq2(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(Tii){"+i+","+j+"}")) { // in2[i]..in2[j]
+  def seq2(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(T2ii){"+i+","+j+"}")) { // in2[i]..in2[j]
     def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
 }

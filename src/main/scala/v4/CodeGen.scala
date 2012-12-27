@@ -187,6 +187,22 @@ trait CodeGen extends BaseParsers { this:Signature =>
     emit(gen(norm(Aggregate(t.inner,h)),Var('i',0),Var('j',0),new FreeVar('k'),t.id,0))
   }
 
+  def genKern = {
+    val kern="back_t _back = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n"+
+             "cost_t _cost = {}; // init to 0\n#define VALID(I,J,RULE) (back[idx(I,J)].RULE.rule!=-1)\n"+
+             order.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)}.mkString+"\ncost[idx(i,j)] = _cost;\nback[idx(i,j)] = _back;"
+    val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
+      (if (twotracks) "  for (unsigned i=tI; i<M_H; i+=tN) {\n    unsigned j = jj-tI;"
+                 else "  for (unsigned ii=tI; ii<M_H; ii+=tN) {\n    unsigned i = M_H-1-ii, j = i+jj;")
+    "__global__ void gpu_solve(const TI* in1, const TI* in2, TC* cost, TB* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {\n"+
+    "  const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x;\n"+
+    "  const unsigned tN = blockDim.x * gridDim.x;\n"+
+    "  const unsigned tB = blockIdx.x;\n"+
+    "  unsigned tP=s_start; // block progress\n"+ind(loops,1)+"      if (j<M_W) {\n"+ind(kern,4)+"      }\n"+
+    "    }\n    // Sync between blocks, removing __threadfence() here is incorrect but works\n    // __threadfence();\n"+
+    "    if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }\n    __syncthreads();\n  }\n}\n"
+  }
+
   // --------------------------------------------------------------------------
   // Backtrack generation
   def genUnapp[T](p0:Parser[T],sw:(String,String),rule:Int,bti:Int) : List[((String,String),Int)] = p0 match { // i,j,rule
@@ -208,60 +224,128 @@ trait CodeGen extends BaseParsers { this:Signature =>
     case _ => sys.error("Unknown parser")
   }
 
-  def genBT:String = {
+  def genBT = {
     val catMax=rules.map{case (n,t)=>t.inner.cat}.max
     val altMax=rules.map{case (n,t)=>t.inner.alt}.sum
     def switch(f:Int=>String) = "    switch (rd->rule) {\n"+(0 until altMax).map{x=>"      case "+x+":"+f(x)+" break;"}.mkString("\n")+"\n    }\n"
     head.add("typedef struct { short i,j,rule; short pos["+catMax+"]; } trace_t;")
-    head.add("const int trace_len["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};") // subrule->#indices
     val sb=new StringBuilder
-    sb.append("size_t gpu_backtrack(trace_t* trace, int i0, int j0) {\n"); // from (i0,j0), trace=trace_t[2*N], provided by CPU
-    sb.append("  size_t size = 0;\n  trace_t *rd=trace, *wr=trace;\n")
-    sb.append("  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++size; }\n")
+    sb.append("__global__ void gpu_backtrack(trace_t* trace, unsigned* size, TB* back, int i0, int j0) {\n"); // from (i0,j0), trace=trace_t[2*N], provided by CPU
+    sb.append("  const unsigned trace_len["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};\n") // subrule->#indices
+    sb.append("  trace_t *rd=trace, *wr=trace; *size=0;\n")
+    sb.append("  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++(*size); }\n")
     sb.append("  PUSH_BACK(i0,j0,"+axiom.id+");\n")
     sb.append("  for(;rd<wr;++rd) {\n")
     sb.append("    "+btTpe(catMax)+"* bt;\n")
-    sb.append(switch((x:Int)=>" bt=("+btTpe(catMax)+"*)&g_back[idx(rd->i,rd->j)]."+findTab(x)._1.name+";"))
+    sb.append(switch((x:Int)=>" bt=("+btTpe(catMax)+"*)&back[idx(rd->i,rd->j)]."+findTab(x)._1.name+";"))
     sb.append("    rd->rule=bt->rule;\n")  // parser_id -> actual_subrule
     sb.append("    for (int i=0,l=trace_len[rd->rule]; i<l; ++i) rd->pos[i]=bt->pos[i];\n"); // decode fully the read indices
     sb.append(switch((x:Int)=>{val t=findTab(x)._1; genUnapp(t.inner,("rd->i","rd->j"),x-t.id,0).map{case((i,j),r)=>" PUSH_BACK("+i+","+j+","+r+");" }.mkString("")}))
-    sb.append("  }\n  return size;\n}\n"); sb.toString
+    sb.append("  }\n}\n"); sb.toString
   }
 
-  // XXX: write the CPU transformer to create the Java trace
-  /*
-  TODO:
-  1. Automatically transform plain Scala function to CFun functions => Macros/LMS
-  2. Automate JNI transfer to and from CUDA arrays for
-     - Input/s (arbitrary type)
-     - Bactrack (array of varying-length structures) => fixed-length to max
-  3. Use CCompiler-like to wire everything together and execute it
-  */
-  // XXX: make sure we handle case class as I/O appropriately in codegen
+  // --------------------------------------------------------------------------
+  // CUDA helpers
+  def genHelpers = {
+    if (twotracks) {
+      head.add("#define B_H 32") // blocks stripe height (coalesce stripe diagonals)
+      head.add("#define MEM_MATRIX (M_W* ((M_H+B_H-1)/B_H)*B_H  +B_H*B_H)")
+      head.add("#define idx(i,j) ({ unsigned _i=(i); (B_H*((j)+(_i%B_H)) + (_i%B_H) + (_i/B_H)*M_W*B_H); })")
+    } else {
+      // idx(i,j) = MEM_MATRIX - UP_TRI + i
+      //   UP_TRI = d*(d+1)/2, where d = M_H+1+_i-_j (smallest triangle including position element)
+      head.add("#define MEM_MATRIX ((M_H*(M_H+1))/2)") // upper right triangle, including diagonal
+      head.add("#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })")
+    }
+    head.add("static TI *g_in1 = NULL, *g_in2 = NULL;\nstatic cost_t *g_cost = NULL;\nstatic back_t *g_back = NULL;")
+    head.add("void g_init(TI* in1, TI* in2);\nvoid g_free();\nvoid g_solve();\n"+tpAnswer+" g_backtrack(trace_t* trace, unsigned* size);")
+
+    val h1 = "void g_init(TI* in1, TI* in2) {\n"+ind("cuMalloc(g_in1,sizeof(TI)*(M_H-1));\ncuPut(in1,g_in1,sizeof(TI)*(M_H-1),NULL);\n"+
+      (if (twotracks) "cuMalloc(g_in2,sizeof(TI)*(M_W-1));\ncuPut(in2,g_in2,sizeof(TI)*(M_W-1),NULL);\n" else "g_in2=NULL;\n")+
+      "cuMalloc(g_cost,sizeof(TC)*MEM_MATRIX);\ncuMalloc(g_back,sizeof(TB)*MEM_MATRIX);",1)+"}\n\nvoid g_free() { "+
+      "cuFree(g_in1); "+(if(twotracks)"cuFree(g_in2); " else "")+"cuFree(g_cost); cuFree(g_back); cudaDeviceReset(); }\n"
+
+    // XXX: (splits:Int = 1)
+    val h2 = """
+void g_solve() {
+  #define WARP_SIZE 32 // constant over CUDA devices
+  unsigned blk_size = WARP_SIZE;
+  unsigned blk_num = (M_H+blk_size-1)/blk_size;
+  unsigned* lock;
+  cuMalloc(lock,sizeof(unsigned)*blk_num);
+  cuErr(cudaMemset(lock,0,sizeof(unsigned)*blk_num));
+#ifdef SPLITS
+  cudaStream_t stream;
+  cuErr(cudaStreamCreate(&stream));
+  for (int i=0;i<SPLITS;++i) {
+    #ifdef SH_RECT
+    unsigned s0=((M_H+M_W)*i)/SPLITS;
+    unsigned s1=((M_H+M_W)*(i+1))/SPLITS;
+    #else
+    unsigned s0=(M_W*i)/SPLITS;
+    unsigned s1=(M_W*(i+1))/SPLITS;
+    #endif
+    gpu_solve<<<blk_num, blk_size, 0, stream>>>(g_in1, g_in2, g_cost, g_back, lock, s0, s1);
+  }
+  cuSync(stream);
+  cuErr(cudaStreamDestroy(stream));
+#else
+  #ifdef SH_RECT
+  unsigned s1 = M_W+M_H;
+  #else
+  unsigned s1 = M_W;
+  #endif
+  gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in1, g_in2, g_cost, g_back, lock, 0, s1);
+#endif
+  cuFree(lock);
+}
+
+"""
+
+    // XXX: find i0,j0 where cost is maximum if windowed using axiom.id / aggregation h
+    if (window>0) sys.error("XXX: Find max(i0,j0) in window not implemented")
+    // XXX: i0,j0 depends on ADP/ADP_win/TT => if window, need extra kernel to find max along window diagonal
+
+    val h3 = tpAnswer+" g_backtrack(trace_t** trace, unsigned* size) {\n"+
+    "  unsigned mem=(M_W+M_H)*sizeof(trace_t);\n"+
+    "  trace_t *g_trace=NULL; cuMalloc(g_trace,mem);\n"+
+    "  unsigned *g_size=NULL; cuMalloc(g_size,sizeof(unsigned));\n"+
+    "  unsigned i0="+(if(twotracks) "M_H-1" else "0")+", j0=M_W-1;\n"+
+    "  gpu_backtrack<<<1,1,0,NULL>>>(g_trace, g_size, g_back, i0, j0);\n"+
+    "  cuGet(size,g_size,sizeof(unsigned),NULL); cuFree(g_size); mem=(*size)*sizeof(trace_t);\n"+
+    "  *trace=(trace_t*)malloc(mem); cuGet(*trace,g_trace,mem,NULL); cuFree(g_trace);\n"+
+    "  "+tpAnswer+" res; cuGet(&res,&g_cost[idx(i0,j0)]."+axiom.name+",sizeof("+tpAnswer+"),NULL);\n"+
+    "  return res;\n}\n"
+
+    h1+h2+h3
+  }
+
+
+
+
 
   // --------------------------------------------------------------------------
   // C code generator
 
+  // XXX: write the CPU transformer to create the Java trace
+  // TODO: 1. Automatically transform plain Scala function to CFun functions => Macros/LMS
+  // TODO: 2. Use CCompiler-like to wire everything together and execute it
+  // XXX: make sure we handle case class as I/O appropriately in codegen
+  // XXX: add unrolling instructions
+
   def gen:String = { analyze
-    val kern="back_t _back = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n"+
-             "cost_t _cost = {}; // init to 0\n#define VALID(I,J,RULE) (back[idx(I,J)].RULE.rule!=-1)\n"+order.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)}.mkString
+    val kern = genKern
     val bt = genBT
-    val info = "// Type: "+(if (twotracks) "sequence alignment" else "parser" )+(if (window>0) ", window="+window else "")+"\n"+order.zipWithIndex.map { case(n,i)=>
+    var hlp = genHelpers
+    val info = "// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+"\n"+order.zipWithIndex.map { case(n,i)=>
       val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d, max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max)
     }.mkString
-    print(info)
-    if (twotracks) println("#define SH_RECT") else println("#define SH_TRI")
-    print(head.flush)
-    println("------------ kernel -----------")
-    // #include <unistd.h>
-    // #include <stdbool.h>
-    // #define idx(i,j) 0
-    // back_t g_back[0]; cost_t cost[1]; back_t back[1]; TI in[1];
-    // int main(int argc, char** argv) { int i=0,j=0;
-    print(ind(kern,3))
-    // }
-    println("---------- backtrack ----------")
-    print(bt)
+    println("------------ begin ------------")
+    println(info+head.flush)
+    println(kern)
+    println(bt)
+    println(hlp)
+    
     println("------------- end -------------")
     ""
   }
