@@ -79,14 +79,17 @@ class CodeHeader(within:Any) {
   }
 
   // Raw C code (put after all definitions)
-  private var raw=""
-  def add(str:String) { raw = raw + str + "\n" }
-  def flush = {
-    val res = tps.toList.sortBy(_._2).map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
-              tps.toList.sortBy(_._2).map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" +
-              fns.toList.sortBy(_._2).map{case (f,n) => "__device__ inline "+getType(f.tpe)+" "+n+"("+
-                           f.args.map{case (n,tp)=>(getType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n") + "\n" + raw
-    tps.clear(); fns.clear(); tpc=0; fnc=0; raw=""; res
+  private var user="" // user declarations
+  private var priv="" // private declarations
+  def add(str:String) { user = user + str + "\n" }
+  def addPriv(str:String) { priv = priv + str + "\n" }
+
+  def flush:(String,String) = {
+    val h1 = tps.toList.sortBy(_._2).map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
+             tps.toList.sortBy(_._2).map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" + user
+    val h2 = priv + "\n" + fns.toList.sortBy(_._2).map{case (f,n) => "__device__ inline "+getType(f.tpe)+" "+n+"("+
+             f.args.map{case (n,tp)=>(getType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n")+"\n"
+    tps.clear(); fns.clear(); tpc=0; fnc=0; user=""; priv=""; (h1,h2)
   }
 
   // --------------------------------------------------------------------------

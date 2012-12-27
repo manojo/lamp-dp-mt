@@ -30,9 +30,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // Backtracking: back_t = parser_name -> (rule, positions)
   def btTpe(n:Int) = head.addType("short rule"+(if(n>0)"; short pos["+n+"]"else""),"bt"+n)
   override def analyze:Boolean = { if (!super.analyze) return false; order=tabsOrder;
-    head.add("#define TI "+tpAlphabet)
-    head.add("typedef struct { "+order.map{n=>tpAnswer+" "+n+";"}.mkString(" ")+" } cost_t;\n#define TC cost_t")
-    head.add("typedef struct { "+order.map{n=>val c=rules(n).inner.cat; btTpe(c)+" "+n+";"}.mkString(" ")+" } back_t;\n#define TB back_t")
+    head.add("#define input_t "+tpAlphabet)
+    head.add("typedef struct { "+order.map{n=>tpAnswer+" "+n+";"}.mkString(" ")+" } cost_t;")
+    head.add("typedef struct { "+order.map{n=>val c=rules(n).inner.cat; btTpe(c)+" "+n+";"}.mkString(" ")+" } back_t;")
     true
   }
 
@@ -194,7 +194,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
       (if (twotracks) "  for (unsigned i=tI; i<M_H; i+=tN) {\n    unsigned j = jj-tI;"
                  else "  for (unsigned ii=tI; ii<M_H; ii+=tN) {\n    unsigned i = M_H-1-ii, j = i+jj;")
-    "__global__ void gpu_solve(const TI* in1, const TI* in2, TC* cost, TB* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {\n"+
+    "__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {\n"+
     "  const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x;\n"+
     "  const unsigned tN = blockDim.x * gridDim.x;\n"+
     "  const unsigned tB = blockIdx.x;\n"+
@@ -230,7 +230,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     def switch(f:Int=>String) = "    switch (rd->rule) {\n"+(0 until altMax).map{x=>"      case "+x+":"+f(x)+" break;"}.mkString("\n")+"\n    }\n"
     head.add("typedef struct { short i,j,rule; short pos["+catMax+"]; } trace_t;")
     val sb=new StringBuilder
-    sb.append("__global__ void gpu_backtrack(trace_t* trace, unsigned* size, TB* back, int i0, int j0) {\n"); // from (i0,j0), trace=trace_t[2*N], provided by CPU
+    sb.append("__global__ void gpu_backtrack(trace_t* trace, unsigned* size, back_t* back, int i0, int j0) {\n"); // from (i0,j0), trace=trace_t[2*N], provided by CPU
     sb.append("  const unsigned trace_len["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};\n") // subrule->#indices
     sb.append("  trace_t *rd=trace, *wr=trace; *size=0;\n")
     sb.append("  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++(*size); }\n")
@@ -246,61 +246,46 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   // --------------------------------------------------------------------------
   // CUDA helpers
-  def genHelpers = {
+  def genHelpers(splits:Int=1) = {
+    // XXX: add additional parameters
+    // XXX: B_H
+    // 
     if (twotracks) {
-      head.add("#define B_H 32") // blocks stripe height (coalesce stripe diagonals)
-      head.add("#define MEM_MATRIX (M_W* ((M_H+B_H-1)/B_H)*B_H  +B_H*B_H)")
-      head.add("#define idx(i,j) ({ unsigned _i=(i); (B_H*((j)+(_i%B_H)) + (_i%B_H) + (_i/B_H)*M_W*B_H); })")
+      head.addPriv("#define B_H 32") // blocks stripe height (coalesce stripe diagonals)
+      head.addPriv("#define MEM_MATRIX (M_W* ((M_H+B_H-1)/B_H)*B_H  +B_H*B_H)")
+      head.addPriv("#define idx(i,j) ({ unsigned _i=(i); (B_H*((j)+(_i%B_H)) + (_i%B_H) + (_i/B_H)*M_W*B_H); })")
     } else {
       // idx(i,j) = MEM_MATRIX - UP_TRI + i
       //   UP_TRI = d*(d+1)/2, where d = M_H+1+_i-_j (smallest triangle including position element)
-      head.add("#define MEM_MATRIX ((M_H*(M_H+1))/2)") // upper right triangle, including diagonal
-      head.add("#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })")
+      head.addPriv("#define MEM_MATRIX ((M_H*(M_H+1))/2)") // upper right triangle, including diagonal
+      head.addPriv("#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })")
     }
-    head.add("static TI *g_in1 = NULL, *g_in2 = NULL;\nstatic cost_t *g_cost = NULL;\nstatic back_t *g_back = NULL;")
-    head.add("void g_init(TI* in1, TI* in2);\nvoid g_free();\nvoid g_solve();\n"+tpAnswer+" g_backtrack(trace_t* trace, unsigned* size);")
+    head.addPriv("static input_t *g_in1 = NULL, *g_in2 = NULL;\nstatic cost_t *g_cost = NULL;\nstatic back_t *g_back = NULL;")
+    head.add("void g_init(input_t* in1, input_t* in2);\nvoid g_free();\nvoid g_solve();\n"+tpAnswer+" g_backtrack(trace_t* trace, unsigned* size);")
 
-    val h1 = "void g_init(TI* in1, TI* in2) {\n"+ind("cuMalloc(g_in1,sizeof(TI)*(M_H-1));\ncuPut(in1,g_in1,sizeof(TI)*(M_H-1),NULL);\n"+
-      (if (twotracks) "cuMalloc(g_in2,sizeof(TI)*(M_W-1));\ncuPut(in2,g_in2,sizeof(TI)*(M_W-1),NULL);\n" else "g_in2=NULL;\n")+
-      "cuMalloc(g_cost,sizeof(TC)*MEM_MATRIX);\ncuMalloc(g_back,sizeof(TB)*MEM_MATRIX);",1)+"}\n\nvoid g_free() { "+
-      "cuFree(g_in1); "+(if(twotracks)"cuFree(g_in2); " else "")+"cuFree(g_cost); cuFree(g_back); cudaDeviceReset(); }\n"
+    val h1 = "void g_init(input_t* in1, input_t* in2) {\n"+ind("cuMalloc(g_in1,sizeof(input_t)*(M_H-1));\ncuPut(in1,g_in1,sizeof(input_t)*(M_H-1),NULL);\n"+
+      (if (twotracks) "cuMalloc(g_in2,sizeof(input_t)*(M_W-1));\ncuPut(in2,g_in2,sizeof(input_t)*(M_W-1),NULL);\n" else "g_in2=NULL;\n")+
+      "cuMalloc(g_cost,sizeof(cost_t)*MEM_MATRIX);\ncuMalloc(g_back,sizeof(back_t)*MEM_MATRIX);",1)+"}\n\nvoid g_free() { "+
+      "cuFree(g_in1); "+(if(twotracks)"cuFree(g_in2); " else "")+"cuFree(g_cost); cuFree(g_back); cudaDeviceReset(); }\n\n"
 
-    // XXX: (splits:Int = 1)
-    val h2 = """
-void g_solve() {
-  #define WARP_SIZE 32 // constant over CUDA devices
-  unsigned blk_size = WARP_SIZE;
-  unsigned blk_num = (M_H+blk_size-1)/blk_size;
-  unsigned* lock;
-  cuMalloc(lock,sizeof(unsigned)*blk_num);
-  cuErr(cudaMemset(lock,0,sizeof(unsigned)*blk_num));
-#ifdef SPLITS
-  cudaStream_t stream;
-  cuErr(cudaStreamCreate(&stream));
-  for (int i=0;i<SPLITS;++i) {
-    #ifdef SH_RECT
-    unsigned s0=((M_H+M_W)*i)/SPLITS;
-    unsigned s1=((M_H+M_W)*(i+1))/SPLITS;
-    #else
-    unsigned s0=(M_W*i)/SPLITS;
-    unsigned s1=(M_W*(i+1))/SPLITS;
-    #endif
-    gpu_solve<<<blk_num, blk_size, 0, stream>>>(g_in1, g_in2, g_cost, g_back, lock, s0, s1);
-  }
-  cuSync(stream);
-  cuErr(cudaStreamDestroy(stream));
-#else
-  #ifdef SH_RECT
-  unsigned s1 = M_W+M_H;
-  #else
-  unsigned s1 = M_W;
-  #endif
-  gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in1, g_in2, g_cost, g_back, lock, 0, s1);
-#endif
-  cuFree(lock);
-}
 
-"""
+    val steps = "(M_W"+(if(twotracks) "+M_H" else "")+")"
+    val h2 = "void g_solve() {\n"+
+    "  #define WARP_SIZE 32 // constant over CUDA devices\n"+
+    "  unsigned blk_size = WARP_SIZE;\n"+
+    "  unsigned blk_num = (M_H+blk_size-1)/blk_size;\n"+
+    "  unsigned* lock; cuMalloc(lock,sizeof(unsigned)*blk_num);\n"+
+    "  cuErr(cudaMemset(lock,0,sizeof(unsigned)*blk_num));\n"+
+    (if (splits>1)
+      "  cudaStream_t stream; cuErr(cudaStreamCreate(&stream));\n"+
+      "  for (int i=0;i<"+splits+";++i) {\n"+
+      "    unsigned s0=("+steps+"*i)/"+splits+", s1=("+steps+"*(i+1))/"+splits+";\n"+
+      "    gpu_solve<<<blk_num, blk_size, 0, stream>>>(g_in1, g_in2, g_cost, g_back, lock, s0, s1);\n"+
+      "  }\n"+
+      "  cuSync(stream);\n"+
+      "  cuErr(cudaStreamDestroy(stream));\n"
+    else "  gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in1, g_in2, g_cost, g_back, lock, 0, "+steps+");\n"
+    )+"  cuFree(lock);\n}\n\n"
 
     // XXX: find i0,j0 where cost is maximum if windowed using axiom.id / aggregation h
     if (window>0) sys.error("XXX: Find max(i0,j0) in window not implemented")
@@ -336,16 +321,13 @@ void g_solve() {
   def gen:String = { analyze
     val kern = genKern
     val bt = genBT
-    var hlp = genHelpers
+    var hlp = genHelpers()
+    var (hpub,hpriv) = head.flush
     val info = "// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+"\n"+order.zipWithIndex.map { case(n,i)=>
-      val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d, max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max)
+      val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max)
     }.mkString
     println("------------ begin ------------")
-    println(info+head.flush)
-    println(kern)
-    println(bt)
-    println(hlp)
-    
+    print(info+hpub+"\n// -------------------\n\n"+hpriv+"\n"+kern+"\n"+bt+"\n"+hlp)
     println("------------- end -------------")
     ""
   }

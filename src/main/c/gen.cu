@@ -8,9 +8,9 @@
 // -----------------------------------------------------------------------------
 
 // Type: sequence parser
-// Rule #0  'm1'     : id=1  alt=2  cat=1  min=1 , max=-1
-// Rule #1  'aggr'   : id=0  alt=1  cat=2  min=3 , max=-1
-// Rule #2  'm2'     : id=3  alt=1  cat=0  min=1 , max=-1
+// Rule #0  'm1'     : id=1  alt=2  cat=1  min=1  max=-1
+// Rule #1  'aggr'   : id=0  alt=1  cat=2  min=3  max=-1
+// Rule #2  'm2'     : id=3  alt=1  cat=0  min=1  max=-1
 typedef struct __T2ii T2ii;
 typedef struct __T3iii T3iii;
 typedef struct __bt0 bt0;
@@ -21,27 +21,29 @@ struct __T3iii { int _1; int _2; int _3; };
 struct __bt0 { short rule; };
 struct __bt1 { short rule; short pos[1]; };
 struct __bt2 { short rule; short pos[2]; };
-__device__ inline T3iii fun0(T2ii i) { return (T3iii){i._1,0,i._2}; }
-__device__ inline int fun1(T3iii a) { return a._2; }
-__device__ inline T3iii fun2(T3iii l, T3iii r) { return (T3iii){l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3}; }
-__device__ inline bool fun3(int i, int j) { return i%2==j%2; }
-#define TI T2ii
+#define input_t T2ii
 typedef struct { T3iii m1; T3iii aggr; T3iii m2; } cost_t;
-#define TC cost_t
 typedef struct { bt1 m1; bt2 aggr; bt0 m2; } back_t;
-#define TB back_t
 typedef struct { short i,j,rule; short pos[2]; } trace_t;
-#define MEM_MATRIX ((M_H*(M_H+1))/2)
-#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })
-static TI *g_in1 = NULL, *g_in2 = NULL;
-static cost_t *g_cost = NULL;
-static back_t *g_back = NULL;
-void g_init(TI* in1, TI* in2);
+void g_init(input_t* in1, input_t* in2);
 void g_free();
 void g_solve();
 T3iii g_backtrack(trace_t* trace, unsigned* size);
 
-__global__ void gpu_solve(const TI* in1, const TI* in2, TC* cost, TB* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {
+// -------------------
+
+#define MEM_MATRIX ((M_H*(M_H+1))/2)
+#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })
+static input_t *g_in1 = NULL, *g_in2 = NULL;
+static cost_t *g_cost = NULL;
+static back_t *g_back = NULL;
+
+__device__ inline T3iii fun0(T2ii i) { return (T3iii){i._1,0,i._2}; }
+__device__ inline int fun1(T3iii a) { return a._2; }
+__device__ inline T3iii fun2(T3iii l, T3iii r) { return (T3iii){l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3}; }
+__device__ inline bool fun3(int i, int j) { return i%2==j%2; }
+
+__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {
   const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x;
   const unsigned tN = blockDim.x * gridDim.x;
   const unsigned tB = blockIdx.x;
@@ -91,7 +93,7 @@ __global__ void gpu_solve(const TI* in1, const TI* in2, TC* cost, TB* back, vola
   }
 }
 
-__global__ void gpu_backtrack(trace_t* trace, unsigned* size, TB* back, int i0, int j0) {
+__global__ void gpu_backtrack(trace_t* trace, unsigned* size, back_t* back, int i0, int j0) {
   const unsigned trace_len[4] = {2,1,1,0};
   trace_t *rd=trace, *wr=trace; *size=0;
   #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++(*size); }
@@ -115,12 +117,12 @@ __global__ void gpu_backtrack(trace_t* trace, unsigned* size, TB* back, int i0, 
   }
 }
 
-void g_init(TI* in1, TI* in2) {
-  cuMalloc(g_in1,sizeof(TI)*(M_H-1));
-  cuPut(in1,g_in1,sizeof(TI)*(M_H-1),NULL);
+void g_init(input_t* in1, input_t* in2) {
+  cuMalloc(g_in1,sizeof(input_t)*(M_H-1));
+  cuPut(in1,g_in1,sizeof(input_t)*(M_H-1),NULL);
   g_in2=NULL;
-  cuMalloc(g_cost,sizeof(TC)*MEM_MATRIX);
-  cuMalloc(g_back,sizeof(TB)*MEM_MATRIX);
+  cuMalloc(g_cost,sizeof(cost_t)*MEM_MATRIX);
+  cuMalloc(g_back,sizeof(back_t)*MEM_MATRIX);
 }
 
 void g_free() { cuFree(g_in1); cuFree(g_cost); cuFree(g_back); cudaDeviceReset(); }
@@ -129,32 +131,9 @@ void g_solve() {
   #define WARP_SIZE 32 // constant over CUDA devices
   unsigned blk_size = WARP_SIZE;
   unsigned blk_num = (M_H+blk_size-1)/blk_size;
-  unsigned* lock;
-  cuMalloc(lock,sizeof(unsigned)*blk_num);
+  unsigned* lock; cuMalloc(lock,sizeof(unsigned)*blk_num);
   cuErr(cudaMemset(lock,0,sizeof(unsigned)*blk_num));
-#ifdef SPLITS
-  cudaStream_t stream;
-  cuErr(cudaStreamCreate(&stream));
-  for (int i=0;i<SPLITS;++i) {
-    #ifdef SH_RECT
-    unsigned s0=((M_H+M_W)*i)/SPLITS;
-    unsigned s1=((M_H+M_W)*(i+1))/SPLITS;
-    #else
-    unsigned s0=(M_W*i)/SPLITS;
-    unsigned s1=(M_W*(i+1))/SPLITS;
-    #endif
-    gpu_solve<<<blk_num, blk_size, 0, stream>>>(g_in1, g_in2, g_cost, g_back, lock, s0, s1);
-  }
-  cuSync(stream);
-  cuErr(cudaStreamDestroy(stream));
-#else
-  #ifdef SH_RECT
-  unsigned s1 = M_W+M_H;
-  #else
-  unsigned s1 = M_W;
-  #endif
-  gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in1, g_in2, g_cost, g_back, lock, 0, s1);
-#endif
+  gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in1, g_in2, g_cost, g_back, lock, 0, (M_W));
   cuFree(lock);
 }
 
@@ -174,21 +153,16 @@ T3iii g_backtrack(trace_t** trace, unsigned* size) {
 
 int main() {
 	cudaDeviceReset();
-	TI a[8] = {{1,2},{2,20},{20,2},{2,4},    {4,2},{2,1},{1,7},{7,3}};
-	// 1,2,2,20,20,2,2,4,4,2,2,1,1,7,7,3
+	input_t a[8] = {{1,2},{2,20},{20,2},{2,4}, {4,2},{2,1},{1,7},{7,3}};
+	// gapc.eu: 1,2,2,20,20,2,2,4,4,2,2,1,1,7,7,3 -> 122, 1, 3
 	g_init(a,NULL);
-
 	g_solve();
-	trace_t* t;
-	unsigned sz;
+	trace_t* t; unsigned sz;
 	T3iii res = g_backtrack(&t,&sz);
 	for (unsigned i=0;i<sz;++i) {
-		printf("Trace: %2d,%2d : %2d [%d,%d]\n",t[i].i,t[i].j,t[i].rule,
-								t[i].pos[0],t[i].pos[1]);
+		printf("Trace: %2d,%2d : %2d [%d,%d]\n",t[i].i,t[i].j,t[i].rule,t[i].pos[0],t[i].pos[1]);
 	}
-
 	printf("Result = (%d, %d, %d)\n",res._1,res._2,res._3);
-
 	g_free();
 	cudaDeviceReset();
 	return 0;
