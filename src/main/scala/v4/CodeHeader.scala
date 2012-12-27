@@ -102,10 +102,10 @@ class CodeHeader(within:Any) {
   }
 
   def jniRead(tp:Tp):String = {
-    "static unsigned jni_read(JNIEnv* env, jobjectArray input, TI** in) {\n"+
+    "static unsigned jni_read(JNIEnv* env, jobjectArray input, input_t** in) {\n"+
     "  if (*in) free(*in); *in=NULL; if (input==NULL) return 0;\n"+
     "  jsize i,size = env->GetArrayLength(input); if (size==0) return 0;\n"+
-    "  *in=(TI*)malloc(size*sizeof(TI)); if (!*in) { fprintf(stderr,\"Not enough memory.\\n\"); exit(1); }\n"+
+    "  *in=(input_t*)malloc(size*sizeof(input_t)); if (!*in) { fprintf(stderr,\"Not enough memory.\\n\"); exit(1); }\n"+
     (jniNorm(tp) match {
       case TPri(s,c,_) => "for (i=0;i<size;++i) (*in)[i] = ("+c+")env->Get"+s+"ArrayElement(input, i);\n"
       case tc:TClass =>
@@ -143,8 +143,9 @@ class CodeHeader(within:Any) {
       case _ => sys.error("Bad normalization")
     }
 
-    "static jobject jni_write(JNIEnv* env, TC score, trace_t* trace, size_t size) {\n"+
+    "static jobject jni_write(JNIEnv* env, "+tp0+" score, trace_t* trace, size_t size) {\n"+
     "  // Result object\n"+wr(jniNorm(tp0),"","")+"  // Backtrack trace\n"+
+    "  if (trace==NULL) return res;\n"+
     "  jclass cl2 = env->FindClass(\"scala/Tuple2\");\n"+
     "  jmethodID ct2 = env->GetMethodID(cl2, \"<init>\", \"(Ljava/lang/Object;Ljava/lang/Object;)V\");\n"+
     "  #define J_PAIR(A,B) env->NewObject(cl2, ct2, A, B)\n"+
@@ -201,24 +202,6 @@ class CodeHeader(within:Any) {
     }
   }
   */
-
-/*
-JNIEXPORT jobject JNICALL Java_{className}_apply(JNIEnv* env, jobject obj, jobjectArray input1, jobjectArray input2) {
-  // 1. Initialize
-  TI *in1=NULL,*in2=NULL; jni_read(env,input1,&in1); jni_read(env,input2,&in2);
-  g_init(in1,in2); free(in1); free(in2);
-  // 2. Solve
-  g_solve();
-  // 3. Backtrack
-  unsigned *bt,size;
-  TC cost=g_backtrack(&bt,&size);
-  jobject result = jni_write(cost,bt,size)
-  // 4. Cleanup
-  g_free();
-  return result;
-}
-*/
-
 /*
 object JNI extends App {
   val h = new CodeHeader(this)

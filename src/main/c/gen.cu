@@ -1,10 +1,10 @@
 #include "include/common.h"
 
-// XXX: place unroll appropriately in code (generated)
-#define _unroll _Pragma ("unroll 5") // Optimized by hand for my GPU
+#define _unroll _Pragma("unroll 5") // Optimized by hand for my GPU
 #define M_W 9UL // == size(input1) + 1
 #define M_H 9UL // == M_W || size(input2) + 1 if (twotracks)
 
+// GENERATED
 // -----------------------------------------------------------------------------
 
 // Type: sequence parser
@@ -25,12 +25,12 @@ struct __bt2 { short rule; short pos[2]; };
 typedef struct { T3iii m1; T3iii aggr; T3iii m2; } cost_t;
 typedef struct { bt1 m1; bt2 aggr; bt0 m2; } back_t;
 typedef struct { short i,j,rule; short pos[2]; } trace_t;
+#define input_t T2ii
+const unsigned trace_len[4] = {2,1,1,0};
 void g_init(input_t* in1, input_t* in2);
 void g_free();
 void g_solve();
-T3iii g_backtrack(trace_t* trace, unsigned* size);
-
-// -------------------
+T3iii g_backtrack(trace_t** trace, unsigned* size);
 
 #define MEM_MATRIX ((M_H*(M_H+1))/2)
 #define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })
@@ -59,7 +59,7 @@ __global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, 
         if (i+1==j) {
           T3iii _c=fun0(in1[i]); if (fun1(_c)<fun1(_cost.m1) || _back.m1.rule==-1) { _cost.m1=_c; _back.m1=(bt1){1}; }
         }
-        for(int k=i+1; k<j; ++k) {
+        _unroll for(int k=i+1; k<j; ++k) {
           T3iii _c=fun2(cost[idx(i,k)].m1,cost[idx(k,j)].m1); if (fun1(_c)<fun1(_cost.m1) || _back.m1.rule==-1) { _cost.m1=_c; _back.m1=(bt1){2,{k}}; }
         }
         /* --- aggr[i,j] --- */
@@ -69,7 +69,7 @@ __global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, 
             T3iii _c=fun2((T3iii){},cost[idx(i,k)].m1); if (fun1(_c)<fun1(_c1) || _b1.rule==-1) { _c1=_c; _b1=(bt0){0}; }
           }
           T3iii _c2; bt1 _b2={-1,{}};
-          for(int l=k+1; l<j; ++l) {
+          _unroll for(int l=k+1; l<j; ++l) {
             if (fun3(k,l)) {
               T3iii _c=fun2(cost[idx(k,l)].m1,cost[idx(l,j)].m1); if (fun1(_c)<fun1(_c2) || _b2.rule==-1) { _c2=_c; _b2=(bt1){0,{l}}; }
             }
@@ -94,8 +94,7 @@ __global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, 
 }
 
 __global__ void gpu_backtrack(trace_t* trace, unsigned* size, back_t* back, int i0, int j0) {
-  const unsigned trace_len[4] = {2,1,1,0};
-  trace_t *rd=trace, *wr=trace; *size=0;
+  const unsigned trace_len[4] = {2,1,1,0};  trace_t *rd=trace, *wr=trace; *size=0;
   #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++(*size); }
   PUSH_BACK(i0,j0,1);
   for(;rd<wr;++rd) {
@@ -138,18 +137,21 @@ void g_solve() {
 }
 
 T3iii g_backtrack(trace_t** trace, unsigned* size) {
-  unsigned mem=(M_W+M_H)*sizeof(trace_t);
-  trace_t *g_trace=NULL; cuMalloc(g_trace,mem);
-  unsigned *g_size=NULL; cuMalloc(g_size,sizeof(unsigned));
   unsigned i0=0, j0=M_W-1;
-  gpu_backtrack<<<1,1,0,NULL>>>(g_trace, g_size, g_back, i0, j0);
-  cuGet(size,g_size,sizeof(unsigned),NULL); cuFree(g_size); mem=(*size)*sizeof(trace_t);
-  *trace=(trace_t*)malloc(mem); cuGet(*trace,g_trace,mem,NULL); cuFree(g_trace);
+  if (trace && size) {
+    unsigned mem=(M_W+M_H)*sizeof(trace_t);
+    trace_t *g_trace=NULL; cuMalloc(g_trace,mem);
+    unsigned *g_size=NULL; cuMalloc(g_size,sizeof(unsigned));
+    gpu_backtrack<<<1,1,0,NULL>>>(g_trace, g_size, g_back, i0, j0);
+    cuGet(size,g_size,sizeof(unsigned),NULL); cuFree(g_size); mem=(*size)*sizeof(trace_t);
+    *trace=(trace_t*)malloc(mem); cuGet(*trace,g_trace,mem,NULL); cuFree(g_trace);
+  }
   T3iii res; cuGet(&res,&g_cost[idx(i0,j0)].m1,sizeof(T3iii),NULL);
   return res;
 }
 
 // -----------------------------------------------------------------------------
+// GENERATED END
 
 int main() {
 	cudaDeviceReset();

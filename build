@@ -1,0 +1,12 @@
+#!/bin/sh
+cd `dirname $0`;
+BASE=`pwd`;
+
+rm -r bin 2>/dev/null
+mkdir -p bin
+echo 'Compiling parsers'
+scalac -classpath bin -d bin src/main/scala/v4/*.scala
+echo 'Compiling MatrixMult'
+scalac -classpath bin -d bin src/main/scala/v4/examples/MatrixMult*.scala
+echo 'Running demo'
+scala -cp bin v4.examples.MatrixMultGen
