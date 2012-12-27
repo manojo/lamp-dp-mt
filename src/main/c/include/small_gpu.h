@@ -29,14 +29,6 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 	unsigned tP=s_start; // block progress
 
 #ifdef SH_RECT
-	#ifdef SPLITS
-	s_start += (tN*s_start)/M_W;
-	s_stop += (tN*s_stop)/M_W;
-	tP=s_start;
-	#else
-	s_stop+=tN;
-	#endif
-
 	for (unsigned jj=s_start; jj<s_stop; ++jj) {
 		for (unsigned i=tI; i<M_H; i+=tN) {
 			unsigned j = jj-tI;
@@ -92,14 +84,24 @@ void g_solve() {
 	cudaStream_t stream;
 	cuErr(cudaStreamCreate(&stream));
 	for (int i=0;i<SPLITS;++i) {
+		#ifdef SH_RECT
+		unsigned s0=((M_H+M_W)*i)/SPLITS;
+		unsigned s1=((M_H+M_W)*(i+1))/SPLITS;
+		#else
 		unsigned s0=(M_W*i)/SPLITS;
 		unsigned s1=(M_W*(i+1))/SPLITS;
+		#endif
 		gpu_solve<<<blk_num, blk_size, 0, stream>>>(g_in[0], g_in[1], g_cost, g_back, lock, s0, s1);
 	}
 	cuSync(stream);
 	cuErr(cudaStreamDestroy(stream));
 #else
-	gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in[0], g_in[1], g_cost, g_back, lock, 0, M_W);
+	#ifdef SH_RECT
+	unsigned s1 = M_W+M_H;
+	#else
+	unsigned s1 = M_W;
+	#endif
+	gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in[0], g_in[1], g_cost, g_back, lock, 0, s1);
 #endif
 	cuFree(lock);
 }
