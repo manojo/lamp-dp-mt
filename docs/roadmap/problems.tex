@@ -12,7 +12,7 @@
 \ule
 
 \subsubsection{Litterature classification}
-In the literature, dynamic programming problems (DP) are classified according to two criteria:\ul
+In the literature, dynamic programming problems are classified according to two criteria:\ul
 \item \textbf{Monadic/polyadic:} a problem is monadic when only one of the previously computed term appears in the right hand-side of the recurrence formula (ex: Smith-Waterman). When two or more terms appear, the problem is polyadic (ex: Fibonacci, $F_n = F_{n-1} + F_{n-2}$).
 When a problem is polyadic with index $p$, it also means that its backtracking forms a $p$-ary tree (where each node has at most $p$ children).
 
@@ -38,7 +38,7 @@ Although this simplification removes some non-serial dependencies at the cost of
 We usually focus on problem that have an underlying bi-dimensional matrix ($d=2$) because they can be parallelized (as opposed to be serial if $d=1$) and can solve large problems (of size $n$). Problems of higher matrix dimensionality ($d\ge3$) require substantial memory which severely impacts their scalability. Also we tend to limit algorithmic complexity of the problems as from $O(n^4)$ on, running time becomes a severely limiting factor.
 
 We describe problems structures: inputs, cost matrices and backtracking matrix. These all have an alphabet (that must be bounded in terms of bit-size). Unless otherwise specified, we adopt the following conventions:\ul
-\item Matrices dimensions are implicitly specified by number of indices and their number of elements is usually the same as the input length.
+\item Matrices dimensions are implicitly specified by number of indices and their number of elements is usually the same as the input length (possibly with 1 extra row/column).
 \item Number are all unsigned integers
 \item Problem dimension is $m,n$ (or $n$) indices $i,j$ ranges are respectively $0\le i<m$, $0\le j<n$.
 \item Unless otherwise specified, the recurrence applies to all non-initialized matrix elements.
@@ -60,6 +60,7 @@ We describe the problem processing in terms of both initialization and recurrenc
 
 % ----------------------------------------------
 \newpage
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 \subsubsection{Smith-Waterman (simple)}\label{sswat}\ol
 \item Problem: matching two strings $S$, $T$ with $|S_{\rm padded}|=m, |T_{\rm padded}|=n$.
 \item Matrices: $M_{m \times n}, B_{m \times n}$

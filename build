@@ -8,5 +8,7 @@ echo 'Compiling parsers'
 scalac -classpath bin -d bin src/main/scala/v4/*.scala
 echo 'Compiling MatrixMult'
 scalac -classpath bin -d bin src/main/scala/v4/examples/MatrixMult*.scala
-echo 'Running demo'
+echo 'Running MatrixMultGen'
 scala -cp bin v4.examples.MatrixMultGen
+echo 'Running MatrixMultGen2'
+scala -cp bin v4.examples.MatrixMultGen2

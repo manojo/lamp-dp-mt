@@ -7,20 +7,33 @@ Dynamic programming consists of solving a problem by reusing subproblems solutio
 which expands to (first 21 numbers)
 \[1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, ...\]
 
-A typical characteristic is that an intermediate solution is reused multiple times to construct larger solutions (here $F(3)$ helps constructing $F(4)$ and $F(5)$). Reusing an existing solution avoid redoing expensive computations: with memoization (memorizing all the intermediate results we obtain) the solution of $F(n)$ would be obtained after only $n$ additions whereas without memoization it would require $F(n)-1$ additions !
+A typical characteristic is that an intermediate solution is reused multiple times to construct larger solutions (here $F(3)$ helps constructing $F(4)$ and $F(5)$). Reusing an existing solution avoid redoing expensive computations: with memoization (memorizing intermediate results), the solution of $F(n)$ would be obtained after $n$ additions whereas without memoization it requires $F(n)-1$ additions ! 
 
-Given that characteristic, there exist various categories of dynamic programming:\ul
-\item Series that operates usually on a single dimension
-\item Sequences alignment (matching two sequences at best), top-down grammar analysis, ...
+Formally, dynamic programming problems respect the Bellman's principle of optimality: \textit{<<An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision>>}. This means that every intermediate result is computed only once, although it might be reused as basis for multiple larger problems, hence our first observation.
+
+
+
+There exist various categories of dynamic programming:\ul
+\item Series that operates usually on a single dimension (like Fibonacci)
+\item Sequences alignment (matching two sequences at best), top-down grammar analysis (parenthesizing), sequence folding, ...
 \item Tree-related algorithms: phylogenetic, trees raking, maximum tree independent set, ...
 \ule
 
-Since the first category is inherently sequential and the third category is both hard to parallelize efficiently (similar to a sparse version of the second category) and does not share much with other classes, we focus on the second type of problems, which is also the most common.
+Since the first category is inherently sequential (progress cannot be faster than one element at a time) and the third category is both hard to parallelize efficiently (similar to a sparse version of the second category) and does not share much with the previous category, we focus on the second type of problems, which is also the most common.
 
-Taking real-world examples, the average input size for sequence alignment is around 300K whereas problems like RNA folding input are usually around few thousands. Multiple input problems also require more memory: for instance matching 3 is $O(n^3)$-space complex. Since we target a single computer with one or more attached devices (GPUs, FPGAs), the available storage is relatively small if we compare it to a cluster of machines. Hence in general, we would focus on problems that are around $O(n^2)$-space and $O(n^3)$-time complexity. We encourage you to refer to the section~\ref{problems} for further classification and examples.
+Taking real-world examples, the average input size for sequence alignment is around 300K whereas for problems like RNA folding, input are usually around few thousands. Multiple input problems also require more memory: for instance matching 3 sequences is $O(n^3)$-space complex. Since we target a single computer with one or more attached devices (GPUs, FPGAs), and since we plan to maintain data in memory (due to the multiple reuse of intermediate solutions) the storage complexity must be relatively limited, compared to other problem that could leverage the disk storage. Hence in general, we focus on problems that have $O(n^2)$-space complexity whereas time complexity is usually $O(n^3)$ or larger. We encourage you to refer to the section~\ref{problems} for further classification and examples.
 
 % ------------------------------------------------------------------------------------------------
+\newpage
 \subsection{Scala and LMS}
 \textit{<<Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way. It smoothly integrates features of object-oriented and functional languages, enabling programmers to be more productive. Many companies depending on Java for business critical applications are turning to Scala to boost their development productivity, applications scalability and overall reliability.>>}\footnote{\url{http://www.scala-lang.org}}
 
+As the Scala programming language is initially developed by the LAMP, it seems natural to use it as host language for our project, however, we would list its features that makes it an interesting development language for this project:\ul
+\item The functional programming style and syntactic sugar offered by Scala allows concise writing of implementation, analysis and transformations of our DSL, which would have been much more complex and tiresome in an imperative language like C.
+\item Scala is largely adopted in the industry, which makes both the adoption of related project easier and offer a steeper learning curve to their potential users.
+\item Finally, through the Java VM and JNI interface, Scala offers the possibility to load dynamically external libraries, to leverage best underlying hardware by mixing with CUDA kernels to obtain optimal performance.
+\ule
+
 Lightweight Modular Staging (LMS) is a runtime code generation framework built on top of Scala that uses only types to distinguish between code being transformed at compilation and at runtime. Through extensive use of component technology, lightweight modular staging makes an optimizing compiler framework available at the library level, allowing programmers to tightly integrate domain-specific abstractions and optimizations into the generation process.
+
+LMS can be leveraged to transform Scala code into its C-like equivalent. However, the concern in this project is that the code for the GPU would be sensibly different from the original CPU code as both implementation serve different purposes: CPU version (Scala) is more general whereas the GPU version trades some functionalities for performance and suffer additional restrictions, in particular for memory management and alignment. Hence the use of LMS would be restricted to user-specific function, over which our DSL has no control.

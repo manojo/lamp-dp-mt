@@ -3,12 +3,13 @@ package v4
 trait CodeGen extends BaseParsers { this:Signature =>
   private val head = new CodeHeader(this) // User code and helpers store
   private var order:List[String]=Nil // Order of parsers evaluation
-  private lazy val tpAlphabet = if (tags._1==null) "XXX" else head.getType(tags._1.tpe.toString) // XXX: bad fix to avoid initialization issues
-  private lazy val tpAnswer = if (tags._1==null) "XXX" else head.getType(tags._2.tpe.toString)
+  private lazy val tpAlphabet = if (tps._1==null) "XXX" else head.getType(tps._1.toString) // XXX: bad fix to avoid initialization issues
+  private lazy val tpAnswer = if (tps._2==null) "XXX" else head.getType(tps._2.toString)
   
-  // Additional typing informations required for codegen
-  import scala.reflect.runtime.universe.TypeTag
-  val tags:(TypeTag[Alphabet],TypeTag[Answer]) = (null,null)
+  // Additional typing informations required for codegen. We need to use Manifest due to following limitations:
+  // - TypeTag: type (i.e. (Int,Int)) not necessary linked to class (examples.Test.Alphabet instead of examples.TestSig$Mat)
+  // - ClassTag: provides only the class, no insight of Tuple inner types
+  val tps:(Manifest[Alphabet],Manifest[Answer]) = (null,null)
   
   // Dependency analysis: computation order between tabulations
   def tabsOrder:List[String] = {
@@ -322,7 +323,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
                 else "  g_init(in1,NULL);")+" free(in1); g_solve();\n"
     "#include <jni.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include \"{file}.h\"\n#ifdef __cplusplus\n"+
     "extern \"C\" {\n#endif\n"+call+"parse"+parm+";\n"+call+"backtrack"+parm+";\n#ifdef __cplusplus\n}\n#endif\n\n"+
-    head.jniRead(head.parse(tags._1.tpe.toString))+"\n"+head.jniWrite(head.parse(tags._2.tpe.toString))+"\n"+
+    head.jniRead(head.parse(tps._1.toString))+"\n"+head.jniWrite(head.parse(tps._2.toString))+"\n"+
     "jobject Java_{className}_parse"+parm+" {\n"+solve+
     "  "+tpAnswer+" score=g_backtrack(NULL,NULL);\n"+
     "  jobject result = jni_write(env, score, NULL, 0);\n"+
@@ -355,6 +356,14 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // TODO: 1. Automatically transform plain Scala function to CFun functions => Macros/LMS
   // TODO: 2. Use CCompiler-like to wire everything together and execute it
   // XXX: make sure we handle case class as I/O appropriately in codegen
+  // 1. Finish the I/O with classes (MatrixMultGen2)
+  // 2. Add the "windowing" function to CUDA (use a window kernel to get best position)
+  // 3. Add the two-track for CUDA (SequAlign)
+  // 4. Fix the Zuker coefficients (Scala)
+  // 5. Make the Zuker coefficients work for CUDA
+  // Manohar: Integrate code generator for user functions
+  // Write report => make implementation detailed plan and benchmarking strategy
+  // Benchmark
 
   def gen:String = {
     "------------ begin ------------\n"+code_h+

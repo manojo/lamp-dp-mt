@@ -64,8 +64,7 @@ object MatrixMultGen extends MatrixGrammarGen with MatrixAlgebraGen with CodeGen
   val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray // -> 1x3, 122 multiplications
 
   // ------- Extra codegen initialization
-  import scala.reflect.runtime.universe.typeTag;
-  override val tags=(typeTag[Alphabet],typeTag[Answer])
+  override val tps=(manifest[Alphabet],manifest[Answer])
   // ------- Extra codegen initialization
   //println(gen)
   println(backtrackCU(input))

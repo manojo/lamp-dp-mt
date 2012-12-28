@@ -2,23 +2,27 @@
 \input{inc/style.sty}
 
 \title{DynaProg for Scala}
-\subtitle{A Scala DSL for Dynamic Programming on GPU and FPGA}
+\subtitle{A Scala DSL for Dynamic Programming on CPU and GPU}
 \begin{document}
-%\maketitle
-\shorttitle
+\maketitle
+%\shorttitle
 
 \subsection*{Abstract}
-Dynamic programming is a common pattern of Computer Science used in various domains. Yet underlying matrix recurrences might be difficult to express and error prone. Additionally, domain experts might not have the skills to make an efficient parallel implementation. In this paper, we leverage the Scala / LMS infrastructure to implement a domain specific language (DSL) for dynamic programming on heterogeneous platforms, which allows to write concise and efficient programs. Our contributions are: \ul
-\item Reuse of existing compiler technology (fusion) for a specific purpose
-%\item Classification of DP problems characteristics (matrix shape, dependency graph, ...)
-\item Grammar embedded in Scala (DSL) to express DP problems concisely
+Dynamic programming is a common pattern of Computer Science used in various domains. Yet underlying matrix recurrences might be difficult to express and error prone. Additionally, domain experts might not have the skills to make an efficient parallel implementation. In this project, we leverage the Scala and LMS infrastructure to implement a domain specific language (DSL) for dynamic programming on heterogeneous platforms, which allows to write concise and efficient programs. Our contributions are: \ul
+\item A classification of DP problems characteristics (matrix shape, dependency graph, ...)
+\item A systematic approach to process data (top-down/bottom-up) and backtracking information (focus on running time and memory efficiency)
+\item A language embedded in Scala (DSL) to express DP problems concisely (based on ADP)
+\item Two implementations: Scala for CPU (features) and an CUDA for GPU (efficiency)
+%\item Reuse of existing compiler technology (fusion) for a specific purpose
 %\item State of the art parallel implementation of these classes on GPUs
 %\item Normalization of the grammar into efficient productions
-\item Systematic approach to generate and process data (top-down/bottom-up) and backtracking information (focus on running time and memory efficiency)
-\item Code generator to transform a grammar into efficient code for CPU, GPU (and FPGA)
+%\item Code generator to transform a grammar into efficient code for CPU, GPU (and FPGA)
 \ule
+\vfill
+This project has been achieved in collaboration with Manohar Jonnalagedda. I would like to thank the LAMP team, including Eugene Burmako, Andro Stucki, Vojin Jovanovic and Tiark Rompf who provided insightful advices and suggestions. I hope you will enjoy your reading. \vspace{.3cm}\\ 
+\textit{Thierry Coppey}
 
-\pagestyle{headings}
+\newpage
 \setcounter{tocdepth}{2} \tableofcontents
 
 \input{introduction}

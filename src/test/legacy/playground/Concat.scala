@@ -1,6 +1,6 @@
 package playground
 
-// XXX: see function tupling and tuples flattening
+// See function tupling and tuples flattening
 // http://trac.assembla.com/metascala/browser/src/metascala/HLists.scala
 // http://stackoverflow.com/questions/2354277/function-tupled-and-placeholder-syntax
 

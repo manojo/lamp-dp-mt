@@ -93,6 +93,32 @@
 }
 \makeatother
 
+% new XeTeX title page
+\usepackage[T1]{fontenc}
+\usepackage{fontspec}
+\newfontfamily\fonth{Helvetica}
+\newfontfamily\fonthn{Helvetica Neue}
+\newfontfamily\fonthc{Helvetica Neue Condensed Bold}
+\newfontfamily\fonthl{Helvetica Neue UltraLight}
+
+\makeatletter
+\renewcommand{\maketitle}{
+	%\begin{titlepage}
+	\setcounter{page}{0}\thispagestyle{empty}
+	\hfill \includegraphics[width=8.5cm]{inc/logo_epfl.pdf} \vfill
+	{\fontsize{25pt}{11pt}\fonthc Master project report \vspace{0.5cm}} \\
+	{\fontsize{40pt}{11pt}\fonthl \@title} \vspace{0.2cm} \\ {\fontsize{20pt}{11pt}\fonthl \@subtitle} \\
+	\vspace{1.5cm} \\
+	{\begin{tabular}{ll}
+	Laboratory	& Programming Methods Laboratory, LAMP, EPFL \\	Professor		& \href{mailto:martin.odersky@epfl.ch}{Martin Odersky} \\
+	Supervisors	& \href{mailto:vojin.jovanovic@epfl.ch}{Vojin Jovanovic}, \href{mailto:manohar.jonnalagedda@epfl.ch}{Manohar Jonnalagedda}   \\	Expert		& \href{mailto:mirco.dotta@typesafe.com}{Mirco Dotta}, Typesafe \\	Student		& \href{mailto:thierry.coppey@epfl.ch}{Thierry Coppey} \\	Semester		& Autumn 2012 \\
+	\end{tabular}}
+	\my@heading
+	\newpage
+	%\end{titlepage}
+}
+\makeatother
+
 % appendix
 \makeatletter
 \let\origappendix\appendix

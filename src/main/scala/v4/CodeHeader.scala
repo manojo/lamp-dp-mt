@@ -22,7 +22,7 @@ class CodeHeader(within:Any) {
     def name:String = this match {
       case TPri(_,_,n) => n.substring(0,1).toLowerCase
       case TTuple(a) => "T"+a.size+a.map{_.name}.mkString
-      case TClass(n,_) => "_"+n.toLowerCase
+      case TClass(n,_) => "_"+n.replaceAll("[0-9a-zA-Z]+[.$]","").toLowerCase
     }
     override def toString = this match {
       case TPri(_,c,_) => c
@@ -51,13 +51,14 @@ class CodeHeader(within:Any) {
     def apply(str:String):Tp = parseAll(p,str) match { case Success(res,_) => res case e:NoSuccess => sys.error(e.msg) }
     def p:Parser[Tp]=(("boolean"|"byte"|"char"|"short"|"int"|"long"|"float"|"double") ^^ { x=>pri(up1(x)) }
       | opt(("scala")~".")~>("Boolean"|"Byte"|"String"|"Char"|"Short"|"Int"|"Long"|"Float"|"Double") ^^ { x=>pri(x) }
-      | "(" ~> repsep(p,",") <~ ")" ^^ { a => TTuple(a) }
-      | opt("class")~>repsep("[a-zA-Z0-9]+".r,"."|"$") ^^ { x=>val n0=x.last; x.mkString(".") match {
+      | "(" ~> repsep(p,",") <~ ")" ^^ { a => TTuple(a) } // TypeTag notation
+      | "scala.Tuple[0-9]+\\[".r ~> repsep(p,",") <~ "]" ^^ { a => TTuple(a) } // Manifest notation
+      | opt("class")~>"[a-zA-Z0-9]+([.$][a-zA-Z0-9]+)*".r ^^ { x => val n0=x.replaceAll(".*[.$]",""); x match {
           case "java.lang.Integer" => pri("Int")
           case n if n.startsWith("java.lang.") => val c=n.substring(10); pri.get(c) match { case Some(p)=>p case None=>sys.error(n+" unsupported") }
           case n if n.startsWith("scala.Tuple") => sys.error("Tuples unsupported")
           case n => try { val cls:Class[_<:Any] = try { Class.forName(ctx+n0) } catch { case _ => Class.forName(n) }
-            TClass(cls.getName,cls.getDeclaredFields.map{f=>(apply(f.getType.toString),f.getName)}.toList)
+            TClass(cls.getName,cls.getDeclaredFields.filter{_.getName!="$outer"}.map{f=>(apply(f.getType.toString),f.getName)}.toList)
           } catch { case e:Exception => throw new Exception(e.getMessage+" in "+n) }}}
       | failure("Illegal type expression"))
   }
@@ -66,6 +67,7 @@ class CodeHeader(within:Any) {
   // Types declarations
   import scala.collection.mutable.HashMap
   private var tpc=0;
+  // XXX: types declared must be written down in the same order to avoid incomplete type issues
   val tps=new HashMap[String,String](); // struct body -> name
   def addType(tp:String,name:String):String = tps.getOrElseUpdate(tp,name)
   def getType(str:String):String = parse(str).toString
@@ -85,8 +87,8 @@ class CodeHeader(within:Any) {
   def addPriv(str:String) { priv = priv + str + "\n" }
 
   def flush:(String,String) = {
-    val h1 = tps.toList.sortBy(_._2).map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
-             tps.toList.sortBy(_._2).map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" + user
+    val h1 = tps.toList.map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
+             tps.toList.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" + user
     val h2 = priv + "\n" + fns.toList.sortBy(_._2).map{case (f,n) => "__device__ inline "+getType(f.tpe)+" "+n+"("+
              f.args.map{case (n,tp)=>(getType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n")+"\n"
     tps.clear(); fns.clear(); tpc=0; fnc=0; user=""; priv=""; (h1,h2)
@@ -94,6 +96,8 @@ class CodeHeader(within:Any) {
 
   // --------------------------------------------------------------------------
   // JNI transfers
+
+  // XXX: fix here: tuples use objects, user classes use primary types
 
   def jniNorm(tp:Tp):Tp = tp match {
     case TTuple(a) => TClass("scala/Tuple"+a.size,(a map jniNorm).zipWithIndex.map{case(t,n)=>(t,"_"+(n+1))})
@@ -171,13 +175,9 @@ class CodeHeader(within:Any) {
     "  return J_PAIR(res,jtrace);\n}\n"
   }
 }
-
-  //def getVal(str:String):String = valParser.parse(str)
-  // def typeNamed(n:String):String = XXX: maintain revert hash map
-  // XXX: do we want to alias equivalent types/classes ? prepare a section '#define fancy_class_t tpXX' ahead of struct definition
-  // XXX: reverse lookup to get the correct type for one element ?
   /*
   // Converts a Scala value into its C representation
+  def getVal(str:String):String = valParser.parse(str)
   private object valParser extends StandardTokenParsers {
     import lexical.{NumericLit,StringLit}
     lexical.reserved ++= c_types.keys.toList ++ List("e","E")
@@ -202,24 +202,3 @@ class CodeHeader(within:Any) {
     }
   }
   */
-/*
-object JNI extends App {
-  val h = new CodeHeader(this)
-  case class A(x:Int,y:Int)
-  case class Alphabet(rows:Int,cols:Int)
-  //type Alphabet = (Int,Int)
-  type Answer = (Int,Int,Int)
-
-  import scala.reflect.runtime.universe.typeTag
-  val ti = typeTag[Alphabet].tpe.toString
-  val tc = typeTag[Answer].tpe.toString
-  // Faking a bit surrounding program
-  h.add("#define TI "+h.getType(ti))
-  h.add("#define TC "+h.getType(tc))
-  h.add("typedef struct { short i,j,rule; short pos[3]; } trace_t;")
-  h.add("const int trace_len[4] = {3,1,1,0};")
-  println(h.flush)
-  println(h.jniRead(h.parse(ti)))
-  println(h.jniWrite(h.parse(tc)))
-}
-*/
