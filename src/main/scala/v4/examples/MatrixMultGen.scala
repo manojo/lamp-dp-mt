@@ -5,7 +5,6 @@ import v4._
 // We make all compromises to be able to generate code.
 // Ultimately, we might want to infer as much information as possible instead of making it explicit
 
-// Computation cost algebra (in # of multiplications)
 trait MatrixAlgebraGen extends MatrixSig {
   type Answer = (Int,Int,Int) // rows, cost, columns
 
@@ -15,7 +14,6 @@ trait MatrixAlgebraGen extends MatrixSig {
     val body="return a._2;"
     val tpe ="Int"
   }
-
   override val h = minBy(hf)
 
   val single = new (Alphabet=>Answer) with CFun {
@@ -32,36 +30,9 @@ trait MatrixAlgebraGen extends MatrixSig {
   }
 }
 
-// Matrix multiplication grammar (rules)
-trait MatrixGrammarGen extends ADPParsers with MatrixSig {
-  val matrixGrammar:Tabulate = tabulate("m1",(
-    el ^^ single
-  | (matrixGrammar ~ matrixGrammar) ^^ mult
-  ) aggregate h,true)
-
-  // Let us be more fancy and define testing
-  val fooBar:Tabulate = tabulate("m2",matrixGrammar aggregate h)
-
-  val ps = new ((Int,Int)=>Boolean) with CFun {
-    def apply(i:Int,j:Int) = i%2==j%2
-    val args=List(("i","Int"),("j","Int"))
-    val body = "return i%2==j%2;"
-    val tpe ="Boolean"
-  }
-
-  val ffail = new Terminal[Answer](0,0,(i:Var,j:Var)=>(List(CUser("1==0")),"(T3iii){}") ) { def apply(sw:Subword) = Nil }
-  val nestedAggr = tabulate("aggr",( // complexity = O(n^2) / element
-    (ffail /*matrixGrammar*/ ~ matrixGrammar ^^ mult aggregate h) ~
-    ((matrixGrammar filter ps filter ps) ~ matrixGrammar ^^ mult aggregate h) ^^ mult
-  ) aggregate h)
-
-  val axiom=matrixGrammar
-}
-
 // Code generator only
-object MatrixMultGen extends MatrixGrammarGen with MatrixAlgebraGen with CodeGen with App {
-  //val input = List((10,100),(100,5),(5,50)).toArray
-  val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray // -> 1x3, 122 multiplications
+object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen with App {
+  val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray // -> 1x3 matrix, 122 multiplications
 
   // ------- Extra codegen initialization
   override val tps=(manifest[Alphabet],manifest[Answer])

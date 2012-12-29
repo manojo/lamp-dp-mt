@@ -101,12 +101,13 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // --------------------------------------------------------------------------
   // Tabulation and kernel code generation
 
+  def genFun[T,U](f0:T=>U):String = { val f1 = f0 match { case d:DeTuple => d.f case f => f }
+    f1 match { case f:CFun => head.add(f) case _ => "UnsupportedFunction" } // TODO: error
+  }
+
   def genTab(t:Tabulate):String = {
     var aggid=0; // nested aggregation intermediate result id
     def scs(min:Int,max:Int,i:Var,j:Var) = if (min==max) List(i.eq(j,min)) else (if (max==maxN) Nil else List(j.leq(i,-max))):::(if (min>0) List(i.leq(j,min)) else Nil)
-    def genFun[T,U](f0:T=>U):String = { val f1 = f0 match { case d:DeTuple => d.f case f => f }
-      f1 match { case f:CFun => head.add(f) case _ => "UnsupportedFunction" } // TODO: error
-    }
     // Generate C parser for subword (i,j): collect conditions, hoisted/content and backtrack indices
     // (parser, i,j,k?, subrule, aggregation_depth) => (Conditions+for loops, hoisted, body, backtrack indices)
     def gen[T](p0:Parser[T],i:Var,j:Var,g:FreeVar,rule:Int,aggr:Int):(List[Cond],String,String,List[String]) = p0 match {
@@ -277,7 +278,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "cuMalloc(g_cost,sizeof(cost_t)*MEM_MATRIX);\ncuMalloc(g_back,sizeof(back_t)*MEM_MATRIX);",1)+"}\n\nvoid g_free() { "+
       "cuFree(g_in1); "+(if(twotracks)"cuFree(g_in2); " else "")+"cuFree(g_cost); cuFree(g_back); cudaDeviceReset(); }\n\n"
 
-    val steps = "(M_W"+(if(twotracks) "+M_H" else "")+")"
+// XXX: fix this
+    val steps = if (!twotracks&&window>0) ""+(window+1) else "(M_W"+(if(twotracks) "+M_H" else "")+")"
+
     val solve = "void g_solve() {\n"+
     "  #define WARP_SIZE 32 // constant over CUDA devices\n"+
     "  unsigned blk_size = WARP_SIZE;\n"+
@@ -294,10 +297,32 @@ trait CodeGen extends BaseParsers { this:Signature =>
     else "  gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in1, g_in2, g_cost, g_back, lock, 0, "+steps+");\n"
     )+"  cuFree(lock);\n}\n\n"
 
+
+    val aggr=h.toString match {
+      case "$$count$$"|"$$sum$$" => "true"
+      case "$$max$$" => "c>(*res)"
+      case "$$min$$" => "c<(*res)"
+      case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); f+"(c)>"+f+"(*res)"
+      case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); f+"(c)<"+f+"(*res)"
+      case _ => "UnsupportedAggr("+h+")" // TODO: error
+    }
+    val best = if (window==0) "" else 
+      "__global__ void gpu_window(cost_t* cost, back_t* back, unsigned* pos, "+tpAnswer+"* res) {\n  bool valid=false;\n"+
+      "  for (unsigned i=0,j="+window+"; j<M_W; ++i, ++j) "+(if (axiom.alwaysValid)"" else "if (back[idx(i,j)]."+axiom.name+".rule!=-1) ")+"{\n"+
+      "    "+tpAnswer+" c = cost[idx(i,j)]."+axiom.name+";\n    if (!valid || "+aggr+") { "+
+      "*res"+(h.toString match {case "$$count$$"=>"+=1" case "$$sum$$"=>"+=c" case _=>"=c"})+"; pos[0]=i; pos[1]=j; valid=true; }\n  }\n}\n\n"
     val backtrack = tpAnswer+" g_backtrack(trace_t** trace, unsigned* size) {\n"+
-    "  unsigned i0="+(if(twotracks) "M_H-1" else "0")+", j0=M_W-1;\n"+
-    // XXX: if (window>0) find (i0,j0) where cost is best wrt 'h' in cost[].'axiom.name'
-    (if (window>0) sys.error("windowed best(i0,j0) unimplemented") else "")+
+    "  "+tpAnswer+" res; unsigned i0="+(if(twotracks) "M_H-1" else "0")+", j0=M_W-1;\n"+
+    (if (window>0)
+      "  unsigned* g_pos; cuMalloc(g_pos,sizeof(unsigned)*2);\n"+
+      "  "+tpAnswer+"* g_res; cuMalloc(g_res,sizeof("+tpAnswer+"));\n"+
+      "  gpu_window<<<1,1,0,NULL>>>(g_cost, g_back, g_pos, g_res);\n"+
+      "  cuGet(&res,g_res,sizeof("+tpAnswer+"),NULL); cuFree(g_res);\n"+
+      "  unsigned pos[2]; cuGet(pos,g_pos,sizeof(unsigned)*2,NULL); cuFree(g_pos); i0=pos[0]; j0=pos[1];\n"
+      //"  printf(\"i,j = %d,%d\\n\",i0,j0); return res;\n"
+      // XXX: bug after this
+
+    else "  cuGet(&res,&g_cost[idx(i0,j0)]."+axiom.name+",sizeof("+tpAnswer+"),NULL);\n")+ // get value at position
     "  if (trace && size) {\n"+
     "    unsigned mem=(M_W+M_H)*sizeof(trace_t);\n"+
     "    trace_t *g_trace=NULL; cuMalloc(g_trace,mem);\n"+
@@ -306,10 +331,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
     "    cuGet(size,g_size,sizeof(unsigned),NULL); cuFree(g_size); mem=(*size)*sizeof(trace_t);\n"+
     "    *trace=(trace_t*)malloc(mem); cuGet(*trace,g_trace,mem,NULL); cuFree(g_trace);\n"+
     "  }\n"+
-    "  "+tpAnswer+" res; cuGet(&res,&g_cost[idx(i0,j0)]."+axiom.name+",sizeof("+tpAnswer+"),NULL);\n"+
     "  return res;\n}\n"
 
-    init+solve+backtrack
+    best+init+solve+backtrack
   }
 
   // --------------------------------------------------------------------------
@@ -352,13 +376,10 @@ trait CodeGen extends BaseParsers { this:Signature =>
   }
 
   // ------------------------
-  // TODO: Automatically transform plain Scala function to CFun functions => Macros/LMS
-  // XXX: make sure we handle case class as I/O appropriately in codegen
-  // 2. Add the "windowing" function to CUDA (use a window kernel to get best position)
-  // 3. Add the two-track for CUDA (SequAlign)
-  // 4. Fix the Zuker coefficients (Scala)
-  // 5. Make the Zuker coefficients work for CUDA
-  // Manohar: Integrate code generator for user functions
+  // XXX: (Manohar) Transform plain Scala function to CFun functions using Macros or LMS
+  // XXX: 3. Add the two-track for CUDA (SequAlign)
+  // XXX: 4. Fix the Zuker coefficients (Scala)
+  // XXX: 5. Make the Zuker coefficients work for CUDA
   // Write report => make implementation detailed plan and benchmarking strategy
   // Benchmark
 

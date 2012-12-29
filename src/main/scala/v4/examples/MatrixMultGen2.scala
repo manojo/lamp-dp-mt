@@ -66,11 +66,11 @@ trait MatrixMultGen2Grammar extends ADPParsers with MatrixMultGen2Sig {
 object MatrixMultGen2 extends MatrixMultGen2Grammar with CodeGen with App {
   //val input = List((10,100),(100,5),(5,50)).toArray
   val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).map{case (a,b)=>Mat(Num(a,0),Num(b,0)) }.toArray // -> 1x3, 122 multiplications
+  override val window = 3 // only 3 consecutive matrices (aka 2x4, 4x2, 2x1 => 16)
 
   // ------- Extra codegen initialization
   override val tps = (manifest[Alphabet],manifest[Answer])
   // ------- Extra codegen initialization
-
   //println(gen)
   println(backtrackCU(input))
 }
