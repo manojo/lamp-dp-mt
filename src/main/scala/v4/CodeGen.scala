@@ -415,8 +415,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   lazy val parseCU = (in1:Input) => {
     val className = compiler.genCode(in1.size,in1.size)
     val f = compiler.compile[Input=>Answer](className,"class "+className+" extends Function1[Array[Any],Any] {\n"+
-      "@native def parse(in1:Array[Any]):Any\n"+
-      "@native def backtrack(in1:Array[Any]):Any\n"+
+      "@native def parse(in1:Array[Any]):Any\n@native def backtrack(in1:Array[Any]):Any\n"+
       "override def apply(in1:Array[Any]) = this.parse(in1)\n}")
     f(in1)
   }
@@ -424,10 +423,11 @@ trait CodeGen extends BaseParsers { this:Signature =>
   lazy val backtrackCU = (in1:Input) => {
     val className = compiler.genCode(in1.size,in1.size)
     val f = compiler.compile[Input=>(Answer,List[(Subword,Backtrack)])](className,"class "+className+" extends Function1[Array[Any],Any] {\n"+
-      "@native def parse(in1:Array[Any]):Any\n"+
-      "@native def backtrack(in1:Array[Any]):Any\n"+
+      "@native def parse(in1:Array[Any]):Any\n@native def backtrack(in1:Array[Any]):Any\n"+
       "override def apply(in1:Array[Any]) = this.backtrack(in1)\n}")
     f(in1)
   }
+
+  // XXX: add two-track support here
 
 }

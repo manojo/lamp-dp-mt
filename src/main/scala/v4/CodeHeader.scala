@@ -67,7 +67,7 @@ class CodeHeader(within:Any) {
   // Types declarations
   import scala.collection.mutable.HashMap
   private var tpc=0;
-  // XXX: types declared must be written down in the same order to avoid incomplete type issues
+  
   val tps=new HashMap[String,String](); // struct body -> name
   def addType(tp:String,name:String):String = tps.getOrElseUpdate(tp,name)
   def getType(str:String):String = parse(str).toString
@@ -86,7 +86,7 @@ class CodeHeader(within:Any) {
   def add(str:String) { user = user + str + "\n" }
   def addPriv(str:String) { priv = priv + str + "\n" }
 
-  def flush:(String,String) = {
+  def flush:(String,String) = { // declared types must be written down in order to avoid 'incomplete type' issues
     val h1 = tps.toList.map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
              tps.toList.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" + user
     val h2 = priv + "\n" + fns.toList.sortBy(_._2).map{case (f,n) => "__device__ inline "+getType(f.tpe)+" "+n+"("+
@@ -96,7 +96,6 @@ class CodeHeader(within:Any) {
 
   // --------------------------------------------------------------------------
   // JNI transfers
-
   def jniRead(tp:Tp):String = {
     def norm(tp:Tp):Tp = tp match {
       case TTuple(a) => TClass("scala/Tuple"+a.size,(a map norm).zipWithIndex.map{case(t,n)=>(t,"_"+(n+1))})
@@ -112,7 +111,7 @@ class CodeHeader(within:Any) {
       case tc:TClass =>
         def decl(tc:TClass,s:String):String = "  jclass cls"+s+" = env->GetObjectClass(el"+s+");\n"+tc.a.map{
           case (TPri(_,_,j),n) => "  jmethodID m"+s+n+" = env->GetMethodID(cls"+s+", \""+n+"\", \"()"+j+"\");\n"
-          case (c@TClass(cl,a),n) => // XXX: test if java/lang/Object works -- "()Ljava/lang/String;" <=> String f();
+          case (c@TClass(cl,a),n) =>
             "  jmethodID m"+s+n+" = env->GetMethodID(cls"+s+", \""+n+"\", \"()L"+cl+";\");\n"+
             "  jobject el"+s+n+" = env->CallObjectMethod(el"+s+", m"+s+n+");\n"+decl(c,s+n)
           case _ => ""
