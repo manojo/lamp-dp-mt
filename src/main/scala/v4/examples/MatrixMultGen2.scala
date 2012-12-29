@@ -3,15 +3,16 @@ import v4._
 
 // Matrix chain multiplication with outrageously complicated structures.
 
+case class Num(i:Int,f:Float)
+case class Mat(rows:Num,cols:Num)
+
 trait MatrixMultGen2Sig extends Signature {
-  case class Num(i:Int,f:Float)
-  case class Mat(rows:Num,cols:Num)
 
   type Alphabet = Mat
   type Answer = (Num,Mat) // cost, (rows,columns)
 
-  val tpAlph = "v4.examples.MatrixMultGen2Sig$Mat"
-  val tpAns = "scala.Tuple2[v4.examples.MatrixMultGen2Sig$Num, v4.examples.MatrixMultGen2Sig$Mat]"
+  val tpAlph = "v4.examples.Mat"
+  val tpAns = "scala.Tuple2[v4.examples.Num, v4.examples.Mat]"
 
   val hf = new (Answer=>Int) with CFun {
     def apply(a:Answer) = a._1.i

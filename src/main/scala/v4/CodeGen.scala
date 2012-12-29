@@ -352,11 +352,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
   }
 
   // ------------------------
-  // XXX: write the CPU transformer to create the Java trace
-  // TODO: 1. Automatically transform plain Scala function to CFun functions => Macros/LMS
-  // TODO: 2. Use CCompiler-like to wire everything together and execute it
+  // TODO: Automatically transform plain Scala function to CFun functions => Macros/LMS
   // XXX: make sure we handle case class as I/O appropriately in codegen
-  // 1. Finish the I/O with classes (MatrixMultGen2)
   // 2. Add the "windowing" function to CUDA (use a window kernel to get best position)
   // 3. Add the two-track for CUDA (SequAlign)
   // 4. Fix the Zuker coefficients (Scala)

@@ -58,7 +58,7 @@ class CodeHeader(within:Any) {
           case n if n.startsWith("java.lang.") => val c=n.substring(10); pri.get(c) match { case Some(p)=>p case None=>sys.error(n+" unsupported") }
           case n if n.startsWith("scala.Tuple") => sys.error("Tuples unsupported")
           case n => try { val cls:Class[_<:Any] = try { Class.forName(ctx+n0) } catch { case _ => Class.forName(n) }
-            TClass(cls.getName,cls.getDeclaredFields.filter{_.getName!="$outer"}.map{f=>(apply(f.getType.toString),f.getName)}.toList)
+            TClass(cls.getName,cls.getDeclaredFields.map{f=>if (f.getName=="$outer") sys.error("Nested class "+n+" not supported"); (apply(f.getType.toString),f.getName)}.toList)
           } catch { case e:Exception => throw new Exception(e.getMessage+" in "+n) }}}
       | failure("Illegal type expression"))
   }
@@ -97,26 +97,23 @@ class CodeHeader(within:Any) {
   // --------------------------------------------------------------------------
   // JNI transfers
 
-  // XXX: fix here: tuples use objects, user classes use primary types
-
-  def jniNorm(tp:Tp):Tp = tp match {
-    case TTuple(a) => TClass("scala/Tuple"+a.size,(a map jniNorm).zipWithIndex.map{case(t,n)=>(t,"_"+(n+1))})
-    case TClass(n,a)=> TClass(n,a map {case(t,n) => (jniNorm(t),n)})
-    case _ => tp
-  }
-
   def jniRead(tp:Tp):String = {
+    def norm(tp:Tp):Tp = tp match {
+      case TTuple(a) => TClass("scala/Tuple"+a.size,(a map norm).zipWithIndex.map{case(t,n)=>(t,"_"+(n+1))})
+      case TClass(n,a)=> TClass(n.replaceAll("\\.","/"),a map {case(t,n) => (norm(t),n)})
+      case _ => tp
+    }
     "static unsigned jni_read(JNIEnv* env, jobjectArray input, input_t** in) {\n"+
     "  if (*in) free(*in); *in=NULL; if (input==NULL) return 0;\n"+
     "  jsize i,size = env->GetArrayLength(input); if (size==0) return 0;\n"+
     "  *in=(input_t*)malloc(size*sizeof(input_t)); if (!*in) { fprintf(stderr,\"Not enough memory.\\n\"); exit(1); }\n"+
-    (jniNorm(tp) match {
+    (norm(tp) match {
       case TPri(s,c,_) => "for (i=0;i<size;++i) (*in)[i] = ("+c+")env->Get"+s+"ArrayElement(input, i);\n"
       case tc:TClass =>
         def decl(tc:TClass,s:String):String = "  jclass cls"+s+" = env->GetObjectClass(el"+s+");\n"+tc.a.map{
           case (TPri(_,_,j),n) => "  jmethodID m"+s+n+" = env->GetMethodID(cls"+s+", \""+n+"\", \"()"+j+"\");\n"
-          case (c@TClass(_,a),n) => // XXX: test if java/lang/Object works -- "()Ljava/lang/String;" <=> String f();
-            "  jmethodID m"+s+n+" = env->GetMethodID(cls"+s+", \""+n+"\", \"()Ljava/lang/Object;\");\n"+
+          case (c@TClass(cl,a),n) => // XXX: test if java/lang/Object works -- "()Ljava/lang/String;" <=> String f();
+            "  jmethodID m"+s+n+" = env->GetMethodID(cls"+s+", \""+n+"\", \"()L"+cl+";\");\n"+
             "  jobject el"+s+n+" = env->CallObjectMethod(el"+s+", m"+s+n+");\n"+decl(c,s+n)
           case _ => ""
         }.mkString
@@ -140,15 +137,22 @@ class CodeHeader(within:Any) {
         "  jclass cls"+s+" = env->FindClass(\"java/lang/"+(if (n=="Int")"Integer" else n)+"\");\n"+
         "  jmethodID ctr"+s+" = env->GetMethodID(cls"+s+",\"<init>\",\"("+j+")V\");\n"+
         "  jobject res"+s+" = env->NewObject(cls"+s+",ctr"+s+",score"+e+");\n"
-      case TClass(n,a) => a.map{case (t,n)=>wr(t,s+n,e+"."+n) }.mkString+
-        "  jclass cls"+s+" = env->FindClass(\""+n+"\");\n"+
+      case TTuple(a) => a.zipWithIndex.map{case (t,n)=>wr(t,s+"_"+(n+1),e+"._"+(n+1)) }.mkString+
+        "  jclass cls"+s+" = env->FindClass(\"scala/Tuple"+a.size+"\");\n"+
         "  jmethodID ctr"+s+" = env->GetMethodID(cls"+s+",\"<init>\",\"("+a.map{_=>"Ljava/lang/Object;"}.mkString+")V\");\n"+
-        "  jobject res"+s+" = env->NewObject(cls"+s+",ctr"+s+","+a.map{case(t,n)=>"res"+s+n}.mkString(",")+");\n" // XXX
+        "  jobject res"+s+" = env->NewObject(cls"+s+",ctr"+s+","+(1 to a.size).map{n=>"res"+s+"_"+n}.mkString(",")+");\n"
+      case TClass(n,a) => a.filter{case(TPri(_,_,_),n)=>false case _=>true}.map{case (t,n)=>wr(t,s+n,e+"."+n) }.mkString+
+        "  jclass cls"+s+" = env->FindClass(\""+n.replaceAll("\\.","/")+"\");\n"+
+        "  jmethodID ctr"+s+" = env->GetMethodID(cls"+s+",\"<init>\",\"("+a.map{
+          case(TPri(_,_,j),_)=>j
+          case(TTuple(a),_) => "Lscala/Tuple"+a.size+";"
+          case(TClass(n,_),_) => "L"+n.replaceAll("\\.","/")+";"
+        }.mkString+")V\");\n"+
+        "  jobject res"+s+" = env->NewObject(cls"+s+",ctr"+s+","+a.map{case(TPri(_,_,_),n)=>"score"+e+"."+n case(t,n)=>"res"+s+n}.mkString(",")+");\n"
       case _ => sys.error("Bad normalization")
     }
-
     "static jobject jni_write(JNIEnv* env, "+tp0+" score, trace_t* trace, size_t size) {\n"+
-    "  // Result object\n"+wr(jniNorm(tp0),"","")+"  // Backtrack trace\n"+
+    "  // Result object\n"+wr(tp0,"","")+"  // Backtrack trace\n"+
     "  if (trace==NULL) return res;\n"+
     "  jclass cl2 = env->FindClass(\"scala/Tuple2\");\n"+
     "  jmethodID ct2 = env->GetMethodID(cl2, \"<init>\", \"(Ljava/lang/Object;Ljava/lang/Object;)V\");\n"+
