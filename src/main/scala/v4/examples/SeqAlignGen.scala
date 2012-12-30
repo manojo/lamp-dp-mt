@@ -50,10 +50,8 @@ object SeqAlignGen extends SeqAlignGrammarGen with SWatAlgGen with CodeGen with 
   val seq2 = "CCCATTAGAG".toArray
 
   // Usage
-  // XXX: investigate why this is wrong
-  val swScore = backtrackCUTT(seq1,seq2)
-  //val swScore = parse(seq1,seq2)
+  println(gen)
+  val (swScore,swBt) = backtrackCUTT(seq1,seq2)
   println("Smith-Waterman alignment\n- Score: "+swScore)
-  //println(gen)
-
+  printBT(List((swScore,swBt)))
 }
