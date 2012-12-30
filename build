@@ -17,7 +17,6 @@ scalac2 'LibRNA' _rna src/librna/*.scala
 if scalac2 'Base parsers' _v4 src/main/scala/v4/*.scala; then rm bin/_ex.md5; fi
 scalac2 'Examples' _ex src/main/scala/v4/examples/*.scala
 
-#echo 'Running MatrixMultGen'; scala -cp bin v4.examples.MatrixMultGen
-#echo 'Running MatrixMultGen2'; scala -cp bin v4.examples.MatrixMultGen2
-
+echo 'Running MatrixMultGen'; scala -cp bin v4.examples.MatrixMultGen
+echo 'Running MatrixMultGen2'; scala -cp bin v4.examples.MatrixMultGen2
 echo 'Running SeqAlignGen'; scala -cp bin v4.examples.SeqAlignGen

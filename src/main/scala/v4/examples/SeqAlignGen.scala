@@ -6,7 +6,7 @@ trait SeqAlignSig extends Signature {
   override type Alphabet = Char
   val gap: (Answer,(Int,Int))=>Answer
   val pair: (Alphabet,Answer,Alphabet)=>Answer
-  val zro: Dummy=>Answer
+  val zro: Unit=>Answer
 }
 
 // Costing algebrae
@@ -23,8 +23,8 @@ trait SWatAlgGen extends SeqAlignSig {
     val (args,tpe) = (List(("a","Char"),("score","Int"),("b","Char")),"Int")
     val body = "return score + (a==b?10:-3);"
   }
-  val zro = new (Dummy=>Int) with CFun {
-    def apply(d:Dummy):Int = 0
+  val zro = new (Unit=>Int) with CFun {
+    def apply(d:Unit):Int = 0
     val (args,tpe) = (Nil,"Int")
     val body = "return 0;"
   }
@@ -50,7 +50,7 @@ object SeqAlignGen extends SeqAlignGrammarGen with SWatAlgGen with CodeGen with 
   val seq2 = "CCCATTAGAG".toArray
 
   // Usage
-  println(gen)
+  //println(gen)
   val (swScore,swBt) = backtrackCUTT(seq1,seq2)
   println("Smith-Waterman alignment\n- Score: "+swScore)
   printBT(List((swScore,swBt)))

@@ -3,7 +3,7 @@ import v4._
 
 // Nussinov RNA folding
 trait PairingSig extends Signature {
-  def nil(a: Dummy): Answer
+  def nil(a: Unit): Answer
   def left(c: Alphabet, a: Answer): Answer
   def right(a: Answer, c: Alphabet): Answer
   def pair(l: Alphabet, a: Answer, r: Alphabet): Answer
@@ -13,7 +13,7 @@ trait PairingSig extends Signature {
 trait PairingAlgebra extends PairingSig {
   type Answer = Int
 
-  def nil(a: Dummy) = 0
+  def nil(a: Unit) = 0
   def left(c: Alphabet,a: Answer) = a
   def right(a: Answer, c:Alphabet) = a
   def pair(l: Alphabet, a: Answer, r: Alphabet) = a+1
@@ -27,7 +27,7 @@ trait PrettyPrintAlgebra extends PairingSig {
   type Answer = (String,String)
   type Alphabet = Char
 
-  def nil(a:Dummy) = ("","")
+  def nil(a:Unit) = ("","")
   def left(c: Alphabet,a: Answer) = ("."+a._1, c+a._2)
   def right(a: Answer, c:Alphabet) = (a._1+".", a._2 + c)
   def pair(l: Alphabet, a: Answer, r: Alphabet) = ("("+a._1+")", l+a._2+r)
@@ -39,7 +39,7 @@ trait PrettyPrintAlgebra extends PairingSig {
 trait PrettyPairingAlgebra extends PairingSig {
   type Answer = (Int, String)
 
-  def nil(a: Dummy) = (0, "")
+  def nil(a: Unit) = (0, "")
   def left(c: Alphabet,a: Answer) = (a._1, "."+a._2)
   def right(a: Answer, c:Alphabet) = (a._1, a._2+".")
   def pair(l: Alphabet, a: Answer, r: Alphabet) = (a._1 + 1, "("+a._2+")")

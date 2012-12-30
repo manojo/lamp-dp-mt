@@ -23,8 +23,8 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   }
 
   // Terminal parsers
-  val empty = new Terminal[Dummy](0,0,(i:Var,j:Var) => (Nil,"")) {
-    def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((new Dummy,bt0)) else Nil }
+  val empty = new Terminal[Unit](0,0,(i:Var,j:Var) => (Nil,"")) {
+    def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List(({},bt0)) else Nil }
   }
   val emptyi = new Terminal[Int](0,0,(i:Var,j:Var) => (Nil,"("+i+")")) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((i,bt0)) else Nil }

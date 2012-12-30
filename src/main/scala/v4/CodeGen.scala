@@ -353,48 +353,12 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // --------------------------------------------------------------------------
   // C code generator
 
-  lazy val (code_h,code_cu,code_c) = {
-    analyze
-    val kern = genKern
-    val bt = genBT
-    var hlp = genHelpers()
-    var jni = genJNI
-    var (hpub,hpriv) = head.flush
-    val info = "// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+"\n"+order.zipWithIndex.map { case(n,i)=>
-      val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max)
+  lazy val (code_h,code_cu,code_c) = { analyze
+    val kern=genKern; val bt=genBT; var hlp=genHelpers(); var jni=genJNI; var (hpub,hpriv) = head.flush
+    val info="// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+"\n"+order.zipWithIndex.map {
+      case(n,i)=> val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max)
     }.mkString
     (info+hpub, hpriv+"\n"+kern+"\n"+bt+"\n"+hlp, jni)
-  }
-
-  // ------------------------
-  // XXX: (Manohar) Transform plain Scala function to CFun functions using Macros or LMS
-  // XXX: 3. Add the two-track for CUDA (SequAlign)
-  // XXX: 4. Fix the Zuker coefficients (Scala)
-  // XXX: 5. Make the Zuker coefficients work for CUDA
-  // Write report => make implementation detailed plan and benchmarking strategy
-  // Benchmark
-  // XXX: Dummy => Unit ?
-
-  def gen:String = {
-    "------------ begin ------------\n"+code_h+
-    "------------- gpu -------------\n"+code_cu+
-    "------------- jni -------------\n"+code_c+
-    "------------- end -------------\n"
-  }
-
-  // ------------------------
-
-  abstract class CodeCompiler extends CCompiler with ScalaCompiler {
-    def genCode(size1:Int,size2:Int):String = {
-      val className = "CompWrapper"+CompileCount.get // fresh namespace for the problem (code+in1+in2)
-      val map = scala.collection.immutable.Map(("className",className),("MAT_HEIGHT",""+(size1+1)),("MAT_WIDTH",""+(size2+1)))
-      add("h", code_h, map)
-      add("c", code_c, map)
-      add("cu", "#include \"{file}.h\"\n#include \"../src/main/c/include/common.h\"\n"+ // XXX: fix path or inline
-                "#define _unroll _Pragma(\"unroll 5\")\n#define M_W {MAT_WIDTH}\n#define M_H {MAT_HEIGHT}\n"+code_cu, map)
-      gen; className
-    }
-    def genWrap
   }
 
   val compiler = new CodeCompiler {
@@ -405,23 +369,43 @@ trait CodeGen extends BaseParsers { this:Signature =>
     override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
   }
 
-  private def cuWrap(cn:String,bt:Boolean,tt:Boolean) = {
-    val at = "Array["+(head.parse(tps._1.toString) match {case head.TPri(s,_,_)=>s case _=>"Any"})+"]"
-    "class "+cn+" extends Function"+(if(tt)"2["+at+"," else "1[")+at+",Any] {\n"+
-    "@native def parse(in1:"+at+(if(tt)",in2:"+at else "")+"):Any\n@native def backtrack(in1:"+at+(if(tt)",in2:"+at else "")+"):Any\n"+
-    "override def apply(in1:"+at+(if(tt)",in2:"+at else "")+") = this."+(if (bt) "backtrack" else "parse")+"(in1"+(if(tt)",in2" else "")+")\n}"
+  abstract class CodeCompiler extends CCompiler with ScalaCompiler {
+    def genDP[T](size1:Int,size2:Int,bt:Boolean,tt:Boolean)(implicit mT: scala.reflect.ClassTag[T]):T = {
+      val className = "CompWrapper"+CompileCount.get // fresh namespace for the problem (code+in1+in2)
+      val map = scala.collection.immutable.Map(("className",className),("MAT_HEIGHT",""+(size1+1)),("MAT_WIDTH",""+(size2+1)))
+      add("h", code_h, map)
+      add("c", code_c, map)
+      add("cu", "#include \"{file}.h\"\n#include \"../src/main/c/include/common.h\"\n"+ // XXX: fix path or inline
+                "#define _unroll _Pragma(\"unroll 5\")\n#define M_W {MAT_WIDTH}\n#define M_H {MAT_HEIGHT}\n"+code_cu, map)
+      gen;
+      val at = "Array["+(head.parse(tps._1.toString) match {case head.TPri(s,_,_)=>s case _=>"Any"})+"]"
+      val wrap = "class "+className+" extends Function"+(if(tt)"2["+at+"," else "1[")+at+",Any] {\n"+
+        "@native def parse(in1:"+at+(if(tt)",in2:"+at else "")+"):Any\n@native def backtrack(in1:"+at+(if(tt)",in2:"+at else "")+"):Any\n"+
+        "override def apply(in1:"+at+(if(tt)",in2:"+at else "")+") = this."+(if (bt) "backtrack" else "parse")+"(in1"+(if(tt)",in2" else "")+")\n}"
+      compile[T](className,wrap)
+    }
   }
 
-  def parseCU(in1:Input) = { val cn = compiler.genCode(in1.size,in1.size)
-    val f = compiler.compile[Input=>Answer](cn,cuWrap(cn,false,false)); f(in1)
+  def parseCU(in1:Input) = { val f=compiler.genDP[Input=>Answer](in1.size,in1.size,false,false); f(in1) }
+  def backtrackCU(in1:Input) = { val f = compiler.genDP[Input=>(Answer,List[(Subword,Backtrack)])](in1.size,in1.size,true,false); f(in1) }
+  def parseCUTT(in1:Input,in2:Input) = { val f = compiler.genDP[(Input,Input)=>Answer](in1.size,in2.size,false,true); f(in1,in2) }
+  def backtrackCUTT(in1:Input,in2:Input) = { val f = compiler.genDP[(Input,Input)=>(Answer,List[(Subword,Backtrack)])](in1.size,in2.size,true,true); f(in1,in2) }
+
+  // ------------------------
+  // Debug
+
+  def gen:String = {
+    "----------- headers -----------\n"+code_h+
+    "------------- gpu -------------\n"+code_cu+
+    "------------- jni -------------\n"+code_c+
+    "------------- end -------------\n"
   }
-  def backtrackCU(in1:Input) = { val cn = compiler.genCode(in1.size,in1.size)
-    val f = compiler.compile[Input=>(Answer,List[(Subword,Backtrack)])](cn,cuWrap(cn,true,false)); f(in1)
-  }
-  def parseCUTT(in1:Input,in2:Input) = { val cn = compiler.genCode(in1.size,in2.size)
-    val f = compiler.compile[(Input,Input)=>Answer](cn,cuWrap(cn,false,true)); f(in1,in2)
-  }
-  def backtrackCUTT(in1:Input,in2:Input) = { val cn = compiler.genCode(in1.size,in2.size)
-    val f = compiler.compile[(Input,Input)=>(Answer,List[(Subword,Backtrack)])](cn,cuWrap(cn,true,true)); f(in1,in2)
-  }
+
+  // ------------------------
+  // XXX: (Manohar) Transform plain Scala function to CFun functions using Macros or LMS
+  // XXX: 4. Fix the Zuker coefficients (Scala)
+  // XXX: 5. Make the Zuker coefficients work for CUDA
+  // Write report => make implementation detailed plan and benchmarking strategy
+  // Benchmark
+  // Make presentation
 }

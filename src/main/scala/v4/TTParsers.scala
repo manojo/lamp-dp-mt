@@ -26,8 +26,8 @@ trait TTParsers extends BaseParsers { this:Signature =>
   }
 
   // Terminal parsers
-  val empty = new Terminal[Dummy](0,0,(i:Var,j:Var) => (List(zero.eq(i,0),zero.eq(j,0)),"")) {
-    def apply(sw:Subword) = sw match { case (i,j) => if(i==0 && j==0) List((new Dummy,bt0)) else Nil }
+  val empty = new Terminal[Unit](0,0,(i:Var,j:Var) => (List(zero.eq(i,0),zero.eq(j,0)),"")) {
+    def apply(sw:Subword) = sw match { case (i,j) => if(i==0 && j==0) List(({},bt0)) else Nil }
   }
   val el1 = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"in1["+i+"]")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in1(i),bt0)) else Nil }

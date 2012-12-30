@@ -54,7 +54,7 @@ trait ZukerSig extends Signature {
   def ul(c1:Answer) : Answer
   def addss(c1:Answer, e:SSeq) : Answer
   def ssadd(e:SSeq, x:Answer) : Answer
-  def nil(d:Dummy) : Answer
+  def nil(d:Unit) : Answer
 }
 
 trait ZukerMFE extends ZukerSig {
@@ -90,7 +90,7 @@ trait ZukerMFE extends ZukerSig {
   def ul(c1:Answer) = LibRNA.ul_energy + c1
   def addss(c1:Answer, e:SSeq) = c1 + LibRNA.ss_energy(e._1,e._2)
   def ssadd(e:SSeq, x:Answer) = LibRNA.ul_energy + x + LibRNA.ss_energy(e._1,e._2)
-  def nil(d:Dummy) = 0
+  def nil(d:Unit) = 0
 
   override val h = max[Answer] _
 }
@@ -114,7 +114,7 @@ trait ZukerPrettyPrint extends ZukerSig {
   def ul(c1:Answer) = c1
   def addss(c1:Answer, e:SSeq) = c1+dots(e)
   def ssadd(e:SSeq, x:Answer) = dots(e)+x
-  def nil(d:Dummy) = ""
+  def nil(d:Unit) = ""
 }
 
 trait ZukerGrammar extends ADPParsers with ZukerSig {
