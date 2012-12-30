@@ -171,17 +171,17 @@ trait CodeGen extends BaseParsers { this:Signature =>
     // Generate the loops and size conditions (conditions, hoisted, body, indices)
     def emit(cb:(List[Cond],String,String,List[String])):String = cb match { case (cs0,hbody,body,_) =>
       val cs = (simplify(cs0).map{ 
-        case CEq(a,b,d) => CUser(a+(if(d>0)"+"+d else "")+"=="+b)
-        case CLeq(a,b,d) => CUser(a+(if(d>0)"+"+d else "")+"<="+b)
+        case CEq(a,b,d) => CUser(Var(a,d)+"=="+b)
+        case CLeq(a,b,d) => CUser(Var(a,d)+"<="+b)
         case c => c
       } foldRight List[Cond]()) { case (CUser(c1),CUser(c2)::as) => CUser(c1+" && "+c2)::as case (c,acc)=>c::acc }
       var hb=false; var br=false
       val cc=(cs foldRight body){
         case (CFor(v,l,ld,u,ud),b) => val b2=(if ((hbody+body).contains("_unroll")) "" else "_unroll ")+
-          "for(int "+v+"="+l+(if(ld>0)"+"+ld else "")+(ud match {
+          "for(int "+v+"="+Var(l,ld)+(ud match {
             case 0 => "; "+v+"<="+u case 1 => "; "+v+"<"+u
             case _ => ","+v+"u="+u+"-"+ud+"; "+v+"<="+v+"u"
-          })+"; ++"+v+") {\n"+ind((if (!hb) hbody else "")+b)+"}\n"; hb=true; br=true; b2
+          })+"; ++"+v+") {\n"+ind((if (!hb) hbody else "")+b)+"}"; hb=true; br=true; b2
         case (CUser(c),b) => val b2="if ("+c+") "+(if (!br) "{\n"+ind(b)+"}" else b); br=true; b2
         case _ => "" // does not happen
       }
@@ -319,9 +319,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "  gpu_window<<<1,1,0,NULL>>>(g_cost, g_back, g_pos, g_res);\n"+
       "  cuGet(&res,g_res,sizeof("+tpAnswer+"),NULL); cuFree(g_res);\n"+
       "  unsigned pos[2]; cuGet(pos,g_pos,sizeof(unsigned)*2,NULL); cuFree(g_pos); i0=pos[0]; j0=pos[1];\n"
-      //"  printf(\"i,j = %d,%d\\n\",i0,j0); return res;\n"
-      // XXX: bug after this
-
     else "  cuGet(&res,&g_cost[idx(i0,j0)]."+axiom.name+",sizeof("+tpAnswer+"),NULL);\n")+ // get value at position
     "  if (trace && size) {\n"+
     "    unsigned mem=(M_W+M_H)*sizeof(trace_t);\n"+
@@ -340,8 +337,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // JNI transfers
 
   def genJNI = {
+    val jtp = head.jniTp(head.parse(tps._1.toString))
     val call = "JNIEXPORT jobject JNICALL Java_{className}_"
-    val parm = "(JNIEnv* env, jobject obj, jobjectArray input1"+(if (twotracks) ", jobjectArray input2" else "")+")"
+    val parm = "(JNIEnv* env, jobject obj, "+jtp+"Array input1"+(if (twotracks) ", "+jtp+"Array input2" else "")+")"
     val solve = "  input_t *in1=NULL; jni_read(env,input1,&in1);\n"+
      (if (twotracks) "  input_t *in2=NULL; jni_read(env,input2,&in2);\n  g_init(in1,in2); free(in2);"
                 else "  g_init(in1,NULL);")+" free(in1); g_solve();\n"
@@ -382,6 +380,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // XXX: 5. Make the Zuker coefficients work for CUDA
   // Write report => make implementation detailed plan and benchmarking strategy
   // Benchmark
+  // XXX: Dummy => Unit ?
 
   def gen:String = {
     "------------ begin ------------\n"+code_h+
@@ -412,21 +411,51 @@ trait CodeGen extends BaseParsers { this:Signature =>
     override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
   }
 
-  lazy val parseCU = (in1:Input) => {
-    val className = compiler.genCode(in1.size,in1.size)
-    val f = compiler.compile[Input=>Answer](className,"class "+className+" extends Function1[Array[Any],Any] {\n"+
-      "@native def parse(in1:Array[Any]):Any\n@native def backtrack(in1:Array[Any]):Any\n"+
-      "override def apply(in1:Array[Any]) = this.parse(in1)\n}")
-    f(in1)
+  private def cuWrap(cn:String,bt:Boolean,tt:Boolean) = {
+    val at = "Array["+(head.parse(tps._1.toString) match {case head.TPri(s,_,_)=>s case _=>"Any"})+"]"
+    "class "+cn+" extends Function"+(if(tt)"2["+at+"," else "1[")+at+",Any] {\n"+
+    "@native def parse(in1:"+at+(if(tt)",in2:"+at else "")+"):Any\n@native def backtrack(in1:"+at+(if(tt)",in2:"+at else "")+"):Any\n"+
+    "override def apply(in1:"+at+(if(tt)",in2:"+at else "")+") = this."+(if (bt) "backtrack" else "parse")+"(in1"+(if(tt)",in2" else "")+")\n}"
   }
+/*
+   "class "+cn+" extends Function"+(if(tt)"2[Array[Any]," else "1[")+"Array[Any],Any] {\n"+
+      "@native def parse(in1:Array[Any]"+(if(tt)",in2:Array[Any]" else "")+"):Any\n@native def backtrack(in1:Array[Any]"+(if(tt)",in2:Array[Any]" else "")+"):Any\n"+
+      "override def apply(in1:Array[Any]"+(if(tt)",in2:Array[Any]" else "")+") = this."+(if (bt) "backtrack" else "parse")+"(in1"+(if(tt)",in2" else "")+")\n}"
+  */
 
+  lazy val parseCU = (in1:Input) => {
+    val cn = compiler.genCode(in1.size,in1.size)
+    val f = compiler.compile[Input=>Answer](cn,cuWrap(cn,false,false)); f(in1)
+  }
   lazy val backtrackCU = (in1:Input) => {
-    val className = compiler.genCode(in1.size,in1.size)
+    val cn = compiler.genCode(in1.size,in1.size)
+    val f = compiler.compile[Input=>(Answer,List[(Subword,Backtrack)])](cn,cuWrap(cn,true,false)); f(in1)
+  }
+  lazy val parseCUTT = (in1:Input,in2:Input) => {
+    val cn = compiler.genCode(in1.size,in2.size)
+    val f = compiler.compile[(Input,Input)=>Answer](cn,cuWrap(cn,false,true));
+    f(in1,in2)
+  }
+  lazy val backtrackCUTT = (in1:Input,in2:Input) => {
+    val cn = compiler.genCode(in1.size,in2.size)
+    val f = compiler.compile[(Input,Input)=>(Answer,List[(Subword,Backtrack)])](cn,cuWrap(cn,true,true)); f(in1,in2)
+  }
+  
+/*
+    val f = compiler.compile[Input=>Answer](className,"class "+className+" extends Function2[Array[Any],Array[Any],Any] {\n"+
+      "@native def parse(in1:Array[Any],in2:Array[Any]):Any\n@native def backtrack(in1:Array[Any]):Any\n"+
+      "override def apply(in1:Array[Any]) = this.parse(in1)\n}")
+
+  lazy val backtrackCU = (in1:Input,in2:Input) => {
+    val className = compiler.genCode(in1.size,in2.size)
     val f = compiler.compile[Input=>(Answer,List[(Subword,Backtrack)])](className,"class "+className+" extends Function1[Array[Any],Any] {\n"+
       "@native def parse(in1:Array[Any]):Any\n@native def backtrack(in1:Array[Any]):Any\n"+
       "override def apply(in1:Array[Any]) = this.backtrack(in1)\n}")
     f(in1)
   }
+*/
+
+
 
   // XXX: add two-track support here
 

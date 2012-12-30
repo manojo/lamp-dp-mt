@@ -96,18 +96,24 @@ class CodeHeader(within:Any) {
 
   // --------------------------------------------------------------------------
   // JNI transfers
+
+  def jniTp(tp:Tp):String = tp match { case TPri(s,_,_) => "j"+s.toLowerCase case _ => "jobject" }
   def jniRead(tp:Tp):String = {
     def norm(tp:Tp):Tp = tp match {
       case TTuple(a) => TClass("scala/Tuple"+a.size,(a map norm).zipWithIndex.map{case(t,n)=>(t,"_"+(n+1))})
       case TClass(n,a)=> TClass(n.replaceAll("\\.","/"),a map {case(t,n) => (norm(t),n)})
       case _ => tp
     }
-    "static unsigned jni_read(JNIEnv* env, jobjectArray input, input_t** in) {\n"+
+    val jtp = jniTp(tp)
+    "static unsigned jni_read(JNIEnv* env, "+jtp+"Array input, input_t** in) {\n"+
     "  if (*in) free(*in); *in=NULL; if (input==NULL) return 0;\n"+
     "  jsize i,size = env->GetArrayLength(input); if (size==0) return 0;\n"+
     "  *in=(input_t*)malloc(size*sizeof(input_t)); if (!*in) { fprintf(stderr,\"Not enough memory.\\n\"); exit(1); }\n"+
     (norm(tp) match {
-      case TPri(s,c,_) => "for (i=0;i<size;++i) (*in)[i] = ("+c+")env->Get"+s+"ArrayElement(input, i);\n"
+      case TPri(s,c,j) =>
+         "  jboolean isCopy=false; "+jtp+"* jarray = env->Get"+s+"ArrayElements(input,&isCopy);\n"+
+         "  for (i=0;i<size;++i) (*in)[i] = ("+c+")jarray[i];\n"+
+         "  env->Release"+s+"ArrayElements(input,jarray,0);\n"
       case tc:TClass =>
         def decl(tc:TClass,s:String):String = "  jclass cls"+s+" = env->GetObjectClass(el"+s+");\n"+tc.a.map{
           case (TPri(_,_,j),n) => "  jmethodID m"+s+n+" = env->GetMethodID(cls"+s+", \""+n+"\", \"()"+j+"\");\n"

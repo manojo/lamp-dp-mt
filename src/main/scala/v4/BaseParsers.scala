@@ -29,7 +29,7 @@ trait BaseParsers { this:Signature =>
 
   // Helpers
   case class Var(v:Char,d:Int) { // Variables: name+offset => 'v'+d
-    override def toString = if (d==0) ""+v else if (d>0) v+"+"+d else v+""+d
+    override def toString = if (v=='0') ""+d else if (d==0) ""+v else if (d>0) v+"+"+d else v+""+d
     def add(e:Int) = Var(v,d+e)
     def loop(l:Var,u:Var) = CFor(v,l.v,d-l.d,u.v,d-u.d)
     def leq(t:Var,e:Int) = CLeq(v,t.v,d-t.d+e)

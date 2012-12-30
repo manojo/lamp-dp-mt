@@ -26,7 +26,7 @@ trait TTParsers extends BaseParsers { this:Signature =>
   }
 
   // Terminal parsers
-  val empty = new Terminal[Dummy](0,0,(i:Var,j:Var) => (List(zero.leq(i,1),zero.leq(j,1)),"EMPTY")) {
+  val empty = new Terminal[Dummy](0,0,(i:Var,j:Var) => (List(zero.eq(i,0),zero.eq(j,0)),"")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i==0 && j==0) List((new Dummy,bt0)) else Nil }
   }
   val el1 = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"in1["+i+"]")) {
@@ -40,5 +40,14 @@ trait TTParsers extends BaseParsers { this:Signature =>
   }
   def seq2(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(T2ii){"+i+","+j+"}")) { // in2[i]..in2[j]
     def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
+  }
+
+  // Extra niceties
+  import scala.language.implicitConversions
+  implicit def detupleTT[A,B,C,R](fn:Function3[A,B,C,R]) = new (((A,(B,C)))=>R) with DeTuple { override val f=fn
+    def apply(t:(A,(B,C))) = { val (a,(b,c))=t; fn(a,b,c) } }
+  implicit def swapTT[A,B,R](fn:Function2[A,B,R]) = new (((B,A))=>R) with CFun {
+    def apply(t:(B,A)) = { val (b,a)=t; fn(a,b) }
+    val (body,args,tpe) = fn match {case f:CFun=>(f.body,f.args.reverse,f.tpe) case _=>("ERR",Nil,"ERR")} // XXX
   }
 }

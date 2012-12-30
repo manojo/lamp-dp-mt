@@ -1,14 +1,23 @@
 #!/bin/sh
-cd `dirname $0`;
-BASE=`pwd`;
+cd `dirname $0`
 
-rm -r bin 2>/dev/null
-mkdir -p bin
-echo 'Compiling parsers'
-scalac -classpath bin -d bin src/main/scala/v4/*.scala
-echo 'Compiling MatrixMult'
-scalac -classpath bin -d bin src/main/scala/v4/examples/MatrixMult*.scala
-echo 'Running MatrixMultGen'
-scala -cp bin v4.examples.MatrixMultGen
-echo 'Running MatrixMultGen2'
-scala -cp bin v4.examples.MatrixMultGen2
+if [ "$OSTYPE" = "darwin" ]; then md5_hash() { md5 -s $@; }
+else md5_hash() { md5sum $@; }; fi
+
+scalac2() {
+	printf "Compiling %s ... " "$1"; shift; f=$1; shift; md5_hash $@ > bin/$f.tmp
+	if diff "bin/$f.md5" "bin/$f.tmp" 1>/dev/null 2>/dev/null; then rm "bin/$f.tmp"; echo 'up to date.'; false
+	else scalac -classpath bin -d bin $@ || exit; mv "bin/$f.tmp" "bin/$f.md5"; echo 'done.'; true; fi
+}
+
+if [ "$1" = "clean" ]; then printf 'Cleaning ... '; rm -rf bin; echo 'done.'; exit; fi
+
+printf 'LibRNA JNI: '; src/librna/make bin
+scalac2 'LibRNA' _rna src/librna/*.scala
+if scalac2 'Base parsers' _v4 src/main/scala/v4/*.scala; then rm bin/_ex.md5; fi
+scalac2 'Examples' _ex src/main/scala/v4/examples/*.scala
+
+#echo 'Running MatrixMultGen'; scala -cp bin v4.examples.MatrixMultGen
+#echo 'Running MatrixMultGen2'; scala -cp bin v4.examples.MatrixMultGen2
+
+echo 'Running SeqAlignGen'; scala -cp bin v4.examples.SeqAlignGen
