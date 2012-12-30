@@ -45,6 +45,8 @@ We describe problems structures: inputs, cost matrices and backtracking matrix. 
 \ule
 We describe the problem processing in terms of both initialization and recurrences.
 
+Although not necessary to understand the project, the description of some of the most common dynamic programming problem is relevant to capture the essence of the dynamic programming processes and be able to compare and search for similarities among problems. Would the reader be familiar with dynamic programming, he could immediately jump to the next section.
+
 % ------------------------------------------------------------------------------------------------
 % Recurrence visualization helpers
 \newcommand\Cd[3][0,-1]{\put(#2){\put(.5,.5){\circle*{.3}}\put(.5,.5){\linethickness{1.5pt}\vector(#1){#3}}}} % dependency [dx,dy]{x,y}{len}
@@ -60,9 +62,8 @@ We describe the problem processing in terms of both initialization and recurrenc
 
 % ----------------------------------------------
 \newpage
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 \subsubsection{Smith-Waterman (simple)}\label{sswat}\ol
-\item Problem: matching two strings $S$, $T$ with $|S_{\rm padded}|=m, |T_{\rm padded}|=n$.
+\item Problem: matching two strings $S$, $T$ with $|S|=m-1, |T|=n-1$.
 \item Matrices: $M_{m \times n}, B_{m \times n}$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
@@ -75,7 +76,7 @@ We describe the problem processing in terms of both initialization and recurrenc
 	\ule
 \item Recurrence: \[M_{(i,j)}=\max\left\{\begin{array}{l|l}
 		0 & stop\\
-		M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
+		M_{(i-1,j-1)}+{\rm cost}(S(i-1),T(j-1)) & NW\\
 		M_{(i-1,j)}-d & N\\
 		M_{(i,j-1)}-d & W
 	\end{array}\right\}=B_{(i,j)} \]
@@ -95,14 +96,16 @@ the first cell containing a $0$.
 
 \item Optimizations:\ul
 	\item In serial (monadic) problems we can avoid building the matrix $M$ by only maintaining the 3 last diagonals in memory (one for the diagonal element, one for horizontal/vertical, and one being built). This construction extends easily to polyadic problems where we need to maintain $k+2$ diagonals in memory where $k$ is the maximum backward lookup.
-	\item Padding: since first line and column of the matrix are zeroes, their initialization might be omitted, but this would implies more involved initialization and computations, which is cumbersome. Also since to fill the $i^{\rm th}$ row we refer to the $(i-1)^{\rm th}$ character of string $S$ thus we prepend to both $S$ and $T$ an unused character, so that matrix and input lines are aligned. Hence valid input indices are $S[1 \cdots m-1]$ and $T[1 \cdots n-1]$. We refer as such strings as padded strings hereafter (with $|S_{\rm padded}| = |S| + 1$).
+	\item Since first line and column of the matrix (corresponding to a matching with one string being empty) are zeroed, their initialization might be omitted, but this would implies more involved initialization and computations, which is cumbersome.
+	\item Padding: since to fill the $i^{\rm th}$ row we refer to the $(i-1)^{\rm th}$ character of string $S$ thus we could prepend to both $S$ and $T$ an unused character, so that matrix and input lines are aligned. Hence valid input indices would become $S[1 \cdots m-1]$ and $T[1 \cdots n-1]$. We refer as such strings as padded strings hereafter (with $|S_{\rm padded}| = |S| + 1$).
 	\ule
 \ole
 
 % ----------------------------------------------
 \newpage
 \subsubsection{Smith-Waterman with affine gap extension cost}\ol
-\item Problem: matching two strings $S$, $T$ with $|S_{\rm padded}|=m, |T_{\rm padded}|=n$.
+
+\item Problem: matching two strings $S$, $T$ with $|S|=m-1, |T|=n-1$.
 \item Matrices: $M_{m \times n}, E_{m \times n}, F_{m \times n}, B_{m \times n}$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
@@ -119,7 +122,7 @@ the first cell containing a $0$.
 \[\begin{array}{rcl}
 M_{(i,j)}&=&\max\left\{\begin{array}{l|l}
 	0 & stop\\
-	M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
+	M_{(i-1,j-1)}+{\rm cost}(S(i-1),T(j-1)) & NW\\
 	E_{(i,j)} & N\\
 	F_{(i,j)} & W
 \end{array}\right\}=B_{(i,j)}\\
@@ -138,7 +141,7 @@ F_{(i,j)}&=&\max\left\{\begin{array}{l|l}
 That can be written alternatively as:
 \[M_{(i,j)}=\max\left\{\begin{array}{l|l}
 	0 & stop\\
-	M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
+	M_{(i-1,j-1)}+{\rm cost}(S(i-1),T(j-1)) & NW\\
 	\max_{1 \le k \le j-1} M_{(i,k)} - \alpha - (j-1-k) \cdot \beta & N\\
 	\max_{1 \le k \le i-1} M_{(k,j)} - \alpha - (i-1-k) \cdot \beta & W\\
 \end{array}\right\}=B_{(i,j)} \]
@@ -154,7 +157,11 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 
 % ----------------------------------------------
 \newpage
-\subsubsection{Smith-Waterman with arbitrary gap cost}\label{aswat}\ol
+\subsubsection{Smith-Waterman with arbitrary gap cost}\label{aswat}
+
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
+\ol
 \item Problem: matching two strings $S$, $T$ with $|S_{\rm padded}|=m, |T_{\rm padded}|=n$ with an arbitrary gap function $g(x)\ge 0$ where $x$ is the size of the gap. Without loss of generality, let $m\ge n$\footnote{Otherwise if $|T|>|N|$ we only need to swap both the inputs and backtracking pairs.}. Example penalty function could be\footnote{Intuition: long gaps penalize less, at some point, one large gap is better than matching and smaller gaps.} $g(x)=m-x$.
 \item Matrices: $M_{m \times n}, B_{m \times n \times m}$
 \item Alphabets:\ul
