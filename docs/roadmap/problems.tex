@@ -38,6 +38,7 @@ Although this simplification removes some non-serial dependencies at the cost of
 We usually focus on problem that have an underlying bi-dimensional matrix ($d=2$) because they can be parallelized (as opposed to be serial if $d=1$) and can solve large problems (of size $n$). Problems of higher matrix dimensionality ($d\ge3$) require substantial memory which severely impacts their scalability. Also we tend to limit algorithmic complexity of the problems as from $O(n^4)$ on, running time becomes a severely limiting factor.
 
 We describe problems structures: inputs, cost matrices and backtracking matrix. These all have an alphabet (that must be bounded in terms of bit-size). Unless otherwise specified, we adopt the following conventions:\ul
+\item Vectors of size $n$ are indexed from 0 to $n-1$, matrices follow the same convention
 \item Matrices dimensions are implicitly specified by number of indices and their number of elements is usually the same as the input length (possibly with 1 extra row/column).
 \item Number are all unsigned integers
 \item Problem dimension is $m,n$ (or $n$) indices $i,j$ ranges are respectively $0\le i<m$, $0\le j<n$.
@@ -46,6 +47,8 @@ We describe problems structures: inputs, cost matrices and backtracking matrix. 
 We describe the problem processing in terms of both initialization and recurrences.
 
 Although not necessary to understand the project, the description of some of the most common dynamic programming problem is relevant to capture the essence of the dynamic programming processes and be able to compare and search for similarities among problems. Would the reader be familiar with dynamic programming, he could immediately jump to the next section.
+
+A tighter analysis on the alphabet and intermediate results size is done because FPGA was also considered as a possible execution platform.\footnote{Initially, the project envisioned a collaboration with \href{mailto:nithin.george@epfl.ch}{Nithin George}, a PhD student at Processor Laboratory (LAP), EPFL. Unfortunately, at the time of writing, progress in this direction is not sufficient to be covered in this report. However, FPGA is considered as a future deployment platform for a particular class of problems.}
 
 % ------------------------------------------------------------------------------------------------
 % Recurrence visualization helpers
@@ -63,11 +66,11 @@ Although not necessary to understand the project, the description of some of the
 % ----------------------------------------------
 \newpage
 \subsubsection{Smith-Waterman (simple)}\label{sswat}\ol
-\item Problem: matching two strings $S$, $T$ with $|S|=m-1, |T|=n-1$.
-\item Matrices: $M_{m \times n}, B_{m \times n}$
+\item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$.
+\item Matrices: $M_{(m+1) \times (n+1)}, B_{(m+1) \times (n+1)}$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
-	\item Cost matrix: $\Sigma(M) = [0..z], z=\max({\rm cost(\_)}) \cdot \min(m,n)$
+	\item Cost matrix: $\Sigma(M) = [0..z], z=\max({\rm cost(\_,\_)}) \cdot \min(m,n)$
 	\item Backtrack matrix: $\Sigma(B)=\{stop,W,N,NW\}$
 	\ule
 \item Initialization:\ul
@@ -81,8 +84,7 @@ Although not necessary to understand the project, the description of some of the
 		M_{(i,j-1)}-d & W
 	\end{array}\right\}=B_{(i,j)} \]
 
-\item Backtracking: starts from the cell $\max \{M_{(m,j)} \cup M_{(i,n)}\}$, stops at
-the first cell containing a $0$.
+\item Backtracking: starts from the cell $M_{(m,n)}$ and stops at the first cell containing a $0$.
 \item Visualization: by convention, we put the longest string vertically ($m\ge n$):
 \begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 	\put(-.5,7.5){S}\put(-.35,7.4){\linethickness{1pt}\vector(0,-1){2}}
@@ -97,7 +99,7 @@ the first cell containing a $0$.
 \item Optimizations:\ul
 	\item In serial (monadic) problems we can avoid building the matrix $M$ by only maintaining the 3 last diagonals in memory (one for the diagonal element, one for horizontal/vertical, and one being built). This construction extends easily to polyadic problems where we need to maintain $k+2$ diagonals in memory where $k$ is the maximum backward lookup.
 	\item Since first line and column of the matrix (corresponding to a matching with one string being empty) are zeroed, their initialization might be omitted, but this would implies more involved initialization and computations, which is cumbersome.
-	\item Padding: since to fill the $i^{\rm th}$ row we refer to the $(i-1)^{\rm th}$ character of string $S$ thus we could prepend to both $S$ and $T$ an unused character, so that matrix and input lines are aligned. Hence valid input indices would become $S[1 \cdots m-1]$ and $T[1 \cdots n-1]$. We refer as such strings as padded strings hereafter (with $|S_{\rm padded}| = |S| + 1$).
+	\item Padding: since to fill the $i^{\rm th}$ row we refer to the $(i-1)^{\rm th}$ character of string $S$, we could prepend to both $S$ and $T$ an unused character, so that matrix and input lines are aligned. Hence valid input indices would become $S[1 \cdots m]$ and $T[1 \cdots n]$.
 	\ule
 \ole
 
@@ -105,11 +107,11 @@ the first cell containing a $0$.
 \newpage
 \subsubsection{Smith-Waterman with affine gap extension cost}\ol
 
-\item Problem: matching two strings $S$, $T$ with $|S|=m-1, |T|=n-1$.
-\item Matrices: $M_{m \times n}, E_{m \times n}, F_{m \times n}, B_{m \times n}$
+\item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$.
+\item Matrices: $M_{(m+1) \times (n+1)}, E_{(m+1) \times (n+1)}, F_{(m+1) \times (n+1)}, B_{(m+1) \times (n+1)}$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
-	\item Cost matrices: $\Sigma(M) = \Sigma(E) = \Sigma(F) = [0..z], z=\max({\rm cost(\_)}) \cdot \min(m,n)$
+	\item Cost matrices: $\Sigma(M) = \Sigma(E) = \Sigma(F) = [0..z], z=\max({\rm cost(\_,\_)}) \cdot \min(m,n)$
 	\item Backtrack matrix: $\Sigma(B)=\{stop,W,N,NW\}$
 	\ule
 \item Initialization:\ul
@@ -150,23 +152,17 @@ Although the latter notation seems more explicit, it introduces non-serial depen
 \[ [M;E;F]_{(i,j)} = f_{\rm kernel} ( [M;E]_{(i,j-1)}, [M;F]_{(i-1,j)}, M_{(i-1,j-1)} ) \]
 Notice that this recurrence is very similar to \nameref{sswat} except that we propagate 3 values ($M,E,F$) instead of a single one ($M$). Also notice that it is possible to propagate $E$ and $F$ inside a resp. horizontal and vertical wavefront.
 
-\item Backtracking: same as \nameref{sswat}
-\item Visualization: same as \nameref{sswat}
-\item Optimizations: same as \nameref{sswat}
+\item Backtracking, visualization and optimizations are the same as in \nameref{sswat}
 \ole
 
 % ----------------------------------------------
 \newpage
-\subsubsection{Smith-Waterman with arbitrary gap cost}\label{aswat}
-
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
-
-\ol
-\item Problem: matching two strings $S$, $T$ with $|S_{\rm padded}|=m, |T_{\rm padded}|=n$ with an arbitrary gap function $g(x)\ge 0$ where $x$ is the size of the gap. Without loss of generality, let $m\ge n$\footnote{Otherwise if $|T|>|N|$ we only need to swap both the inputs and backtracking pairs.}. Example penalty function could be\footnote{Intuition: long gaps penalize less, at some point, one large gap is better than matching and smaller gaps.} $g(x)=m-x$.
-\item Matrices: $M_{m \times n}, B_{m \times n \times m}$
+\subsubsection{Smith-Waterman with arbitrary gap cost}\label{aswat}\ol
+\item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$ with an arbitrary gap function $g(x)\ge 0$ where $x$ is the size of the gap. Without loss of generality, let $m\ge n$ (swap inputs if necessary). Example penalty function could be\footnote{Intuition: long gaps penalize less, at some point, one large gap is better than matching with smaller gaps.} $g(x)=m-x$.
+\item Matrices: $M_{(m+1) \times (n+1)}, B_{(m+1) \times (n+1)}$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\Sigma(T)=\{a,c,g,t\}$.
-	\item Cost matrix: $\Sigma(M) = [0..z], z=\max({\rm cost(\_)}) \cdot \min(m,n)$
+	\item Cost matrix: $\Sigma(M) = [0..z], z=\max({\rm cost(\_,\_)}) \cdot \min(m,n)$
 	\item Backtrack matrix: $\Sigma(B)=\{stop,NW,N_{\{0..m\}},W_{\{0..n\}}\}$
 	\ule
 
@@ -177,12 +173,12 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 
 \item Recurrence: \[M_{(i,j)}=\max\left\{\begin{array}{l|l}
 	0 & stop\\
-	M_{(i-1,j-1)}+{\rm cost}(S(i),T(j)) & NW\\
+	M_{(i-1,j-1)}+{\rm cost}(S(i-1),T(j-1)) & NW\\
 	\max_{1 \le k \le j-1} M_{(i,j-k)} - g(k) & N_k\\
 	\max_{1 \le k \le i-1} M_{(i-k,j)} - g(k) & W_k\\
 \end{array}\right\}=B_{(i,j)} \]
 
-\item Backtracking: similar to \nameref{sswat} except that you can jump of $k$ cells.
+\item Backtracking: similar to \nameref{sswat} except that you can jump of $k$ cells along the rows or along the columns.
 \item Visualization:
 	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 		\put(-.5,7.5){S}\put(-.35,7.4){\linethickness{1pt}\vector(0,-1){2}}
@@ -194,32 +190,31 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 		\Cd[1,-1]{5,5}{0.8}
 	\Cm\end{picture}\end{center}
 
-\item Optimizations: The dependencies here are non-serial, there is no optimization that we can 
-apply out of the box here.
+\item Optimizations: The dependencies here are non-serial, there is no optimization that we can apply out of the box here. In general, this problem has an $O(n^3)$ complexity (whereas simple and affine gap variants are $O(n^2)$).
 \ole
-
 
 % ----------------------------------------------
 \newpage
 \subsubsection{Convex polygon triangulation}\ol
-\item Problem: triangulating a polygon of $n$ vertices with least total cost for added edges. We denote the cost of adding an edge between the  pair of edges $i,j$ by $S(i,j)$, Where $S_{n \times n}$ is an upper triangular matrix with a 0 diagonal that is omitted, hence $|S|=\tfrac{n^2}{2}=N$.
-\item Matrices: $M_{n\times n}, B_{n \times n}$ \textit{<<first vertex, last vertex>>} upper triangular including main diagonal. Note that if the vertex $n$ is the same as the vertex $0$.
+\item Problem: triangulating a polygon of $n$ vertices with least total cost for added edges. We denote the cost of adding an edge between the  pair of edges $i,j$ by $S_{(i,j)}$, Where $S_{n \times n}$ is a symmetric matrix (can be stored as a triangular matrix with 0 diagonal that can be omitted), hence $|S|=\tfrac{n(n-1)}{2}=N$.
+\item Matrices: $M_{(n+1)\times (n+1)}, B_{(n+1)\times (n+1)}$ \textit{indices denote <<first vertex, last vertex>>}.\\ Upper triangular matrices including main diagonal. Note that the vertex $n$ is the same as the vertex $0$ due to the cyclic nature of the problem.
 \item Alphabets:\ul
-	\item Input: $\Sigma(S_{(i,j)})=\{0..m\}$ with $m=\max_S(i,j) \forall i,j$ determined at runtime\footnote{We need to scan/have stats about $S$ and that's where LMS plays a role}.
-	\item Cost matrix: $\Sigma(M)=\{0..z\}$ with $z = m \cdot (n-2)$ (we add at most $n-2$ edges).
-	\item Backtrack matrix: $\Sigma(B)=\{stop, 0..n\}$ (the index of the edge we add)
+	\item Input: $\Sigma(S_{(i,j)})=\{0..m\}$ with $m=\max_{i,j} S_{(i,j)}$ determined at runtime\footnote{We need to have statistics about $S$, this is where dynamic compilation might play a role}.
+	\item Cost matrix: $\Sigma(M)=\{0..z\}$ with $z = m \cdot (n-2)$ (a triangulation of a polygon of $n$ edges adds at most $n-2$ edges).
+	\item Backtrack matrix: $\Sigma(B)=\{stop, 0..n\}$ (index of intermediate edge)
 	\ule
-{\color{red}
-\item Initialization: $M_{(i,i)}=0, M_{(i,i+1)}=0, B_{(i,i)}=stop \quad\forall i$
-
+\item Initialization: $M_{(i,i)}=M_{(i,i+1)}=0, B_{(i,i)}=B_{(i,i+1)}=stop \quad\forall i$
 \item Recurrence: \[M_{(i,j)}=\left\{ S(i,j) + \max_{i<k<j}M_{(i,k)}+M_{(k,j)} \,\,\rule[-.75em]{.5pt}{2em}\,\,  k \right\} = B_{(i,j)} \]
-
-\item Backtracking: Start at $B_{(1,n)}$. Use the following recursive function for the smaller polygons:
-	\[{\rm BT}(B_{(i,j)}=k) \mapsto \left\{\begin{array}{ll} A_i & \text{if } k=0 \lor k=j \\
-		\Big( {\rm BT}(B_{(i,k)}) \Big) \cdot \Big( {\rm BT}(B_{(k+1,j)}) \Big) & \text{otherwise} \end{array}\right.\]
-
-\item Visualization: the layout is the a matrix of size $n \times (2n-2)$, because of polygons being 
-"cyclical" in nature.
+	Intuition: triangulate the partial polygon $(i,..j)$ recursively. For the last triangle of the polygon consider 3 cases:\ul
+	\item Given 2 triangulations $(1..k)$ and $(k..n)$, we close the polygon with $\bigtriangleup(1,k,n)$
+	\item Given a triangulation $(1..n-1)$, we close the polygon with $\bigtriangleup(1,n-1,n)$
+	\item Given a triangulation $(2..n)$, we close the polygon with $\bigtriangleup(1,2,n)$
+	\ule
+	Since the edge to close the last triangle is already part of the polygon, its cost is 0.
+\item Backtracking: Add the edges in the set given by the set ${\rm BT}(B_{(0,n)})$ where
+	\[{\rm BT}(B_{(i,j)}=k) \mapsto \left\{\begin{array}{ll} \{\} & \text{if } k=stop \\
+		 \{(i,j)\} \cup {\rm BT}(B_{(i,k)}) \cup {\rm BT}(B_{(k,j)}) & \text{otherwise} \end{array}\right.\]
+\item Visualization:
 \begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 	\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
 	\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
@@ -234,8 +229,8 @@ apply out of the box here.
 	%\Cd[1,-1]{5,2}{0.8}
 	\Cm %\Cmlong
 \end{picture}\end{center}
-}
-\item Optimizations: we need the cost of edges between contiguous polygon vertices to have a cost of 0, so that we do not need to have special cases in the DP program (i.e. edges are <<already present>>, hence we cannot add them).
+
+\item Optimizations: we need the cost of edges between contiguous polygon vertices to have a cost of 0, so that we do not need to handle special cases in the DP program (i.e. existing edges cannot be added).
 \ole
 
 % ----------------------------------------------
@@ -257,7 +252,7 @@ apply out of the box here.
 		M_{(i,k)}+M_{(k+1,j)}+r_i \cdot c_k \cdot c_j & k
 	\end{array}\right\}=B_{(i,j)} \]
 \item Backtracking: Start at $B_{(1,n)}$. Use the following recursive function for parenthesizing
-	\[{\rm BT}(B_{(i,j)}=k) \mapsto \left\{\begin{array}{ll} A_i & \text{if } k=0 \lor k=j \\
+	\[{\rm BT}(B_{(i,j)}=k) \mapsto \left\{\begin{array}{ll} A_i & \text{if } k=stop \\
 		\Big( {\rm BT}(B_{(i,k)}) \Big) \cdot \Big( {\rm BT}(B_{(k+1,j)}) \Big) & \text{otherwise} \end{array}\right.\]
 
 \item Visualization:
@@ -270,17 +265,21 @@ apply out of the box here.
 		\put(3.5,4.5){\line(3,-1){3}}\put(4.5,4.5){\line(2,-2){2}}\put(5.5,4.5){\line(1,-3){1}}
 	\Cm\end{picture}\end{center}
 
-\item Optimizations:\ul
-	\item We need to swap vertically the matrix to have a normalized progression towards bottom right. To do that, we need to map all indices $i \mapsto n-1-i$ and we obtain a new recurrence relation:
-	\[M_{(i,j)}=\min_{i\le k<j}\left\{\begin{array}{l} M_{(i,k)}+M_{(2i-1 -k,j)}+r_i \cdot c_k \cdot c_j \end{array}\right. \]
-	With the initialization at $M_{(i,n-i-1)}$
-	\ule
+\item Optimizations: we might want to normalize the semantics of indices and use $(n+1) \times (n+1)$ matrices where the meaning of cell $(i,j)$ would be $\underset{i\le k<j}{\rm chain}(A_k)$.
+	%\ul
+	%\item We need to swap vertically the matrix to have a normalized progression towards bottom right. To do that, we need to map all indices $i \mapsto n-1-i$ and we obtain a new recurrence relation:
+	%\[M_{(i,j)}=\min_{i\le k<j}\left\{\begin{array}{l} M_{(i,k)}+M_{(2i-1 -k,j)}+r_i \cdot c_k \cdot c_j \end{array}\right. \]
+	%With the initialization at $M_{(i,n-i-1)}$
+	%\ule
 \ole
 
 % ----------------------------------------------
 \newpage
-\subsubsection{Nussinov algorithm}\ol
-\item Problem: folding a RNA string $S$ over itself $\left\lfloor |S| / 2 \right\rfloor = n$.
+\subsubsection{Nussinov algorithm}
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
+\ol
+\item Problem: folding a RNA string $S$ over itself $|S|=n$.
 \item Matrices: $M_{n\times n}, B_{n \times n}$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\{A,C,G,U\}$.

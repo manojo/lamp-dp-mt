@@ -7,7 +7,7 @@ trait TriangulationSignature extends Signature {
 }
 
 trait TriangulationAlgebra extends TriangulationSignature {
-  type Answer = (Int,Int,Int,String) // start, end, cost, pretty-print
+  type Answer = (Int,Int,Int,String) // start_vertex, end_vertex, cost, pretty-print
   override val h = (l:List[Answer]) => if(l.isEmpty) List() else List(l.minBy(_._3))
 }
 
