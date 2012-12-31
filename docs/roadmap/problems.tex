@@ -38,7 +38,7 @@ Although this simplification removes some non-serial dependencies at the cost of
 We usually focus on problem that have an underlying bi-dimensional matrix ($d=2$) because they can be parallelized (as opposed to be serial if $d=1$) and can solve large problems (of size $n$). Problems of higher matrix dimensionality ($d\ge3$) require substantial memory which severely impacts their scalability. Also we tend to limit algorithmic complexity of the problems as from $O(n^4)$ on, running time becomes a severely limiting factor.
 
 We describe problems structures: inputs, cost matrices and backtracking matrix. These all have an alphabet (that must be bounded in terms of bit-size). Unless otherwise specified, we adopt the following conventions:\ul
-\item Vectors of size $n$ are indexed from 0 to $n-1$, matrices follow the same convention
+\item Vectors of size $n$ are indexed from 0 to $n-1$, matrices follow the same convention ($M_{(m,n)}$ is indexed from $(0,0)$ to $(m-1,n-1)$)
 \item Matrices dimensions are implicitly specified by number of indices and their number of elements is usually the same as the input length (possibly with 1 extra row/column).
 \item Number are all unsigned integers
 \item Problem dimension is $m,n$ (or $n$) indices $i,j$ ranges are respectively $0\le i<m$, $0\le j<n$.
@@ -59,9 +59,10 @@ A tighter analysis on the alphabet and intermediate results size is done because
 \def\Cfl#1{#1{0,6}#1{0,5}#1{1,5}#1{0,4}#1{1,4}#1{2,4}#1{0,3}#1{1,3}#1{2,3}#1{3,3}#1{0,2}#1{1,2}#1{2,2}#1{3,2}#1{4,2}
 	#1{0,1}#1{1,1}#1{2,1}#1{3,1}#1{4,1}#1{5,1}#1{0,0}#1{1,0}#1{2,0}#1{3,0}#1{4,0}#1{5,0}#1{6,0}} % triangular lower (function)
 \def\Cfd#1{#1{0,7}#1{1,6}#1{2,5}#1{3,4}#1{4,3}#1{5,2}#1{6,1}#1{7,0}} % main diagonal
+\def\Cfdu#1{#1{7,1}#1{6,2}#1{5,3}#1{4,4}#1{3,5}#1{2,6}#1{1,7}} % upper diagonal
 
-\def\Cmlong{\put(6.5,4.5){\circle*{.4}}\multiput(0,0)(1,0){16}{\line(0,1){8}}\multiput(0,0)(0,1){9}{\line(1,0){15}}} % matrix base
-\def\Cfu#1{#1{8,7}#1{9,7}#1{10,7}#1{11,7}#1{12,7}#1{13,7}#1{14,7}#1{9,6}#1{10,6}#1{11,6}#1{12,6}#1{13,6}#1{14,6}#1{10,5}#1{11,5}#1{12,5}#1{13,5}#1{14,5}#1{11,4}#1{12,4}#1{13,4}#1{14,4}#1{12,3}#1{13,3}#1{14,3}#1{13,2}#1{14,2}#1{14,1}} % triangular upper (function)
+%\def\Cmlong{\put(6.5,4.5){\circle*{.4}}\multiput(0,0)(1,0){16}{\line(0,1){8}}\multiput(0,0)(0,1){9}{\line(1,0){15}}} % matrix base
+%\def\Cfu#1{#1{8,7}#1{9,7}#1{10,7}#1{11,7}#1{12,7}#1{13,7}#1{14,7}#1{9,6}#1{10,6}#1{11,6}#1{12,6}#1{13,6}#1{14,6}#1{10,5}#1{11,5}#1{12,5}#1{13,5}#1{14,5}#1{11,4}#1{12,4}#1{13,4}#1{14,4}#1{12,3}#1{13,3}#1{14,3}#1{13,2}#1{14,2}#1{14,1}} % triangular upper (function)
 
 % ----------------------------------------------
 \newpage
@@ -219,8 +220,7 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 	\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
 	\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
 	\Cfl{\Cg}
-	\Cfd{\Cz}
-	%\Cfu{\Cg}
+	\Cfd{\Cz}\Cfdu{\Cz}
 	\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
 	\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
 	\put(3.5,4.5){\line(3,-1){3}}
@@ -251,7 +251,7 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 	\[M_{(i,j)}=\min_{i\le k<j}\left\{\begin{array}{l|l}
 		M_{(i,k)}+M_{(k+1,j)}+r_i \cdot c_k \cdot c_j & k
 	\end{array}\right\}=B_{(i,j)} \]
-\item Backtracking: Start at $B_{(1,n)}$. Use the following recursive function for parenthesizing
+\item Backtracking: Start at $B_{(0,n-1)}$. Use the following recursive function for parenthesizing
 	\[{\rm BT}(B_{(i,j)}=k) \mapsto \left\{\begin{array}{ll} A_i & \text{if } k=stop \\
 		\Big( {\rm BT}(B_{(i,k)}) \Big) \cdot \Big( {\rm BT}(B_{(k+1,j)}) \Big) & \text{otherwise} \end{array}\right.\]
 
@@ -265,7 +265,7 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 		\put(3.5,4.5){\line(3,-1){3}}\put(4.5,4.5){\line(2,-2){2}}\put(5.5,4.5){\line(1,-3){1}}
 	\Cm\end{picture}\end{center}
 
-\item Optimizations: we might want to normalize the semantics of indices and use $(n+1) \times (n+1)$ matrices where the meaning of cell $(i,j)$ would be $\underset{i\le k<j}{\rm chain}(A_k)$.
+\item Optimizations: we could normalize the semantics of indices and use $(n+1) \times (n+1)$ matrices where the meaning of cell $(i,j)$ would be $\underset{i\le k<j}{\rm chain}(A_k)$.
 	%\ul
 	%\item We need to swap vertically the matrix to have a normalized progression towards bottom right. To do that, we need to map all indices $i \mapsto n-1-i$ and we obtain a new recurrence relation:
 	%\[M_{(i,j)}=\min_{i\le k<j}\left\{\begin{array}{l} M_{(i,k)}+M_{(2i-1 -k,j)}+r_i \cdot c_k \cdot c_j \end{array}\right. \]
@@ -275,20 +275,17 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 
 % ----------------------------------------------
 \newpage
-\subsubsection{Nussinov algorithm}
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
-
-\ol
+\subsubsection{Nussinov algorithm}\ol
 \item Problem: folding a RNA string $S$ over itself $|S|=n$.
 \item Matrices: $M_{n\times n}, B_{n \times n}$
 \item Alphabets:\ul
-	\item Input: $\Sigma(S)=\{A,C,G,U\}$.
+	\item Input: $\Sigma(S)=\{a,c,g,u\}$.
 	\item Cost matrix: $\Sigma(M)=\{0..n\}$
 	\item Backtrack matrix: $\Sigma(B)=\{stop,D,1..n\}$
 	\ule
 \item Initialization: \ul
-	\item Cost matrix: $ M_{(i,i)}=M_{(i,i-1)}=0$
-	\item Backtrack matrix: $B_{(i,i)}=B_{(i,i-1)}=stop$
+	\item Cost matrix: $ M_{(i,i)}=M_{(i,i+1)}=0$
+	\item Backtrack matrix: $B_{(i,i)}=B_{(i,i+1)}=stop$
 	\ule
 \item Recurrences:
 	\[M_{(i,j)}=\max\left\{\begin{array}{l|l}
@@ -296,12 +293,12 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 		\max_{i\le k<j}M_{(i,k)}+M_{(k+1,j)} & k
 	\end{array}\right\} = B_{(i,j)} \]
 	With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
-\item Backtracking: Start the backtracking in $B_{(1,n)}$ and go backward. The backtracking is very similar to that of the matrix multiplication, except that we also introduce the diagonal matching.
+\item Backtracking: Start the backtracking in $B_{(0,n-1)}$ and go backward. The backtracking is very similar to that of the matrix multiplication, except that we also introduce the diagonal matching.
 \item Visualization:
 	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
 		\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
 		\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
-		\Cfl{\Cg}\Cfd{\Cz}
+		\Cfl{\Cg}\Cfd{\Cz}\Cfdu{\Cz}
 		\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
 		\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
 		\Cd[1,1]{5,3}{0.8}
@@ -314,21 +311,18 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 % ----------------------------------------------
 \newpage
 \subsubsection{Zuker folding}\ol
-\item Problem: folding a RNA string $S$ over itself $\left\lfloor |S| / 2 \right\rfloor = n$.
+\item Problem: folding a RNA string $S$ over itself $|S|=n$.
 \item Matrices: $V_{n\times n}, W_{n\times n}, F_n$ (Free Energy),  $BV_{n \times n}, BW_{n \times n}, BF_n$
 \item Alphabets:\ul
-	\item Input: $\Sigma(S)=\{A,C,G,U\}$.
+	\item Input: $\Sigma(S)=\{a,c,g,u\}$.
 	\item Cost matrices:\ul
-		\item $\Sigma(W)=\Sigma(V)=\{0..z\}$ with $z \le n*b+c$
+		\item $\Sigma(W)=\Sigma(V)=\{0..z\}$ with $z \le n \cdot b+c$
 		\item $\Sigma(F)=\{0..y\}$ with $y\le \min(F_0, z\cdot n)$
 		\ule
 	\item Backtrack matrices: \ul
-		\item $\Sigma(BW)=\{stop, S,W,V,k\}$
-		\item $\Sigma(BV)=\{stop, HL, IL, SW, (i,j) , k\}$ with $0\le i,j,k < n$ \\
-		$HL$=HairpinLoop, $IL$=InteriorLoop, $(i,j)$=MultiLoop
-		
-		
-		\item $\Sigma(BF)=\{stop, L, k\}$ with $0\le k < n$
+		\item $\Sigma(BW)=\{stop, L,R,V,k\}$
+		\item $\Sigma(BV)=\{stop, hairpin, stack, (i,j) , k\}$ with $0\le i,j,k < n$ % \\ $HL$=HairpinLoop, $IL$=InteriorLoop, $(i,j)$=MultiLoop
+		\item $\Sigma(BF)=\{stop, P, k\}$ with $0\le k < n$
 		\ule
 	\ule
 \item Initialization:\ul
@@ -382,28 +376,28 @@ With $\delta$ a lookup table. In practice, we don't go backward for larger value
 \end{array}\]
 
 \item Visualizations\footnote{Reproductions of the illustrations from \cite{para_dprec} pp.148,149}:
-The recurrence consists of two non-serial dependencies as in <<\nameref{aswat}>> plus a bounded 2-dimensional dependency for bulges.
 \begin{center}\includegraphics[width=8cm]{inc/zuker_rec.pdf}\end{center}
-
+The recurrence consists of two non-serial dependencies as in \textit{\nameref{aswat}} plus a bounded 2-dimensional dependency for bulges.\\[12pt]
 Since this problem is non-trivial to understand from the recurrences, we propose an additional illustration of a RNA chain folded according to the Zuker folding algorithm.
 \begin{center}
 \includegraphics[width=10cm]{inc/zuker_struct.pdf} \\
 \small An example of an RNA folded into a secondary structure. Types of structural features modeled by the Zuker folding algorithm include: dangling ends (1), internal loop (11), stack (23), multi-loop (47), bulge (68) and hairpin loop (78).
 \end{center}
 
-\item Optimizations: {\color{red} XXX: notice that there are 3 matrices: $W$,$V$ ($VBI$ is part of $V$) that can be expressed using regular matrix, and $F$ that is of different dimension than $W$ and $V$ and requires a special construction (in the wavefront?). We need to find a nice way to encode both its construction and backtrack into the existing framework (implement 1D DP recursively?) Also notice that the $k$ of $BV$ and $BW$ describe almost the same backtrack, but there is an additional cost $c$ in $BV$.}
+\item Optimizations: notice that there are 3 matrices: $W$,$V$ ($VBI$ is part of $V$) that can be expressed using regular matrix, and $F$ that is of different dimension than $W$ and $V$ and requires a special construction. Also notice that the $k$ of $BV$ and $BW$ describe almost the same backtrack, but there is an additional cost $c$ in $BV$.
+%{\color{red} XXX: We need to find a nice way to encode both its construction and backtrack into the existing framework (implement 1D DP recursively?) }
 \ole
 
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Related problems}
-The goal of this section is to demonstrate that our framework can accommodate with many problems that we have not considered at the design time.
+The goal of this section is to demonstrate that the problems described above are very similar or encompass a significant part of the common dynamic programming problems. (There is an hyperlink on the problems name to their detailed description).
 
 \subsubsection{Serial problems}
 \begin{tabular}{llcc} \toprule
 \bf Problem & \bf Shape & \bf Matrices & \bf Wavefront \\ \midrule
 Smith-Waterman \footnotesize simple & rectangle & 1 & -- \\
-Smith-Waterman \footnotesize affine gap extension & rectangle & 3 & -- \\
+Smith-Waterman \footnotesize affine gap extension & rectangle & 3 & (can replace 2 matrices) \\
 \href{http://en.wikipedia.org/wiki/Needleman-Wunsch_algorithm}{Needleman-Wunsch} & rectangle & 1 & -- \\
 
 \href{http://en.wikipedia.org/wiki/Dynamic_programming#Checkerboard}{Checkerboard} & rectangle & 1 & -- \\
@@ -417,10 +411,10 @@ Smith-Waterman \footnotesize affine gap extension & rectangle & 3 & -- \\
 \begin{tabular}{llcc} \toprule
 \bf Problem & \bf Shape & \bf Matrices & \bf Wavefront \\ \midrule
 Smith-Waterman \footnotesize arbitrary gap cost & rectangle & 1 & -- \\
-Convex polygon triangulation & parallelogram & 1 & -- \\
+Convex polygon triangulation & triangle & 1 & -- \\
 Matrix chain multiplication & triangle & 1 & -- \\
 Nussinov & triangle & 1 & -- \\
-Zuker folding & triangle & \color{red} 3? & \color{red} 0? \\
+Zuker folding & triangle & 3 & -- \\
 \href{http://en.wikipedia.org/wiki/CYK_algorithm}{CYK} \footnotesize Cocke-Younger-Kasami & triangle & \#rules & -- \\
 \href{http://en.wikipedia.org/wiki/Knapsack_problem#Dynamic_programming}{Knapsack} \footnotesize (pseudo-polynomial) & rectangle & 1 & --\\
 \end{tabular}
@@ -430,57 +424,30 @@ Zuker folding & triangle & \color{red} 3? & \color{red} 0? \\
 \item Fibonacci: this problem is serial 1D. Could be implemented using a placeholder element in one of the matrix dimension.
 \item \href{http://archive.ite.journal.informs.org/Vol3No1/Sniedovich/\#dpmodel}{Tower of Hanoi}: 1D non-serial
 \item \href{http://www.cs.ust.hk/mjg_lib/bibs/DPSu/DPSu.Files/KnPl81.PDF}{Knuth's word wrapping}: 1D non-serial
-\item \href{http://en.wikipedia.org/wiki/Longest_increasing_subsequence#Efficient_algorithms}{Longest increasing subsequence}: serial but binary search algorithm more efficient: $O(n \log n)$.
+\item \href{http://en.wikipedia.org/wiki/Longest_increasing_subsequence#Efficient_algorithms}{Longest increasing subsequence}: serial (binary search is more efficient).
 \item \href{http://www.ccs.neu.edu/home/jaa/CSG713.04F/Information/Handouts/dyn_prog.pdf}{Coin Change}: 1D non-serial
 \ule
 
- {\color{red}
-XXX: Fill up to 20-50 related problems to see how general we are
-\ul
-\item \href{http://en.wikipedia.org/wiki/Floyd-Warshall_algorithm}{Floyd-Warshall}: <it possible to move the $k$ external loop inside?> Serial with $n$ iterations
+These algorithm also involve dynamic programming. However, we do not evaluate thoroughly their shape and number of matrices as this is not relevant in the scope of this project.\ul
+\item \href{http://en.wikipedia.org/wiki/Floyd-Warshall_algorithm}{Floyd-Warshall}
 \item \href{http://en.wikipedia.org/wiki/Viterbi_algorithm}{Viterbi \footnotesize (hidden Markov models)}: $T$ non-serial iterations over a vector
 \item \href{http://en.wikipedia.org/wiki/Bellman-Ford_algorithm}{Bellman-Ford} (finding the shortest distance in a graph)
 \item \href{http://en.wikipedia.org/wiki/Earley_parser#Pseudocode}{Earley parser} (a type of chart parser)
 \item \href{http://en.wikipedia.org/wiki/Maximum_subarray_problem}{Kadane maximum subarray} 1D serial, look at 
 \href{http://www.cosc.canterbury.ac.nz/tad.takaoka/cats02.pdf}{Takaoka} for 2D
-\item Structural alignment (MAMMOTH, SSAP), \href{http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi}{RNA structure prediction}.
+\item \href{http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi}{RNA structure prediction}
 \item \href{http://en.wikipedia.org/wiki/Recursive_least_squares_filter}{Recursive least squares}
 \item \href{http://www.math.utep.edu/Faculty/pmdelgado2/courses/adv_algorithms/homework-08_anser.pdf}{Bitonic tour}
+\item \href{http://www.cs.berkeley.edu/~vazirani/algorithms/chap6.pdf}{Shortest path, Shortest path in DAGs, All pair shortest paths, Independent sets in trees}
+\item \href{http://www.algorithmist.com/index.php/Dynamic_Programming}{Subset Sum, Family Graph}
+\item \href{http://www.cs.uiuc.edu/~jeffe/teaching/algorithms/notes/05-dynprog.pdf}{Optimal Binary Search Trees}
+\item \href{http://www.cs.ucsb.edu/~suri/cs130b/NewDynProg.pdf}{Independent set on a tree}
+\item \href{http://en.wikipedia.org/wiki/Dynamic_programming#A_type_of_balanced_0.E2.80.931_matrix}{More dynamic programming problems from Wikipedia}
 \ule
 
-\begin{verbatim}
-- Balanced 0-1 matrix
-- Recurrent solutions to lattice models for protein-DNA binding
-- Backward induction as a solution method for finite-horizon discrete-time dynamic optimization problems
-- Method of undetermined coefficients can be used to solve the Bellman equation in infinite-horizon, discrete-time, discounted, time-invariant dynamic optimization problems
-- Many algorithmic problems on graphs can be solved efficiently for graphs of bounded treewidth or bounded clique-width by using dynamic programming on a tree decomposition of the graph.
-- Transposition tables and refutation tables in computer chess
-- Pseudo-polynomial time algorithms for the subset sum and partition problems
-- The dynamic time warping algorithm for computing the global distance between two time series
-- The Selinger (a.k.a. System R) algorithm for relational database query optimization
-- Duckworth-Lewis method for resolving the problem when games of cricket are interrupted
-- The Value Iteration method for solving Markov decision processes
-- Some graphic image edge following selection methods such as the "magnet" selection tool in Photoshop
-- Some methods for solving interval scheduling problems
-- Some methods for solving word wrap problems
-- Some methods for solving the traveling salesman problem, either exactly (in exponential time) or approximately (e.g. via the bitonic tour)
-- Beat tracking in music information retrieval.
-- Adaptive-critic training strategy for artificial neural networks
-- Stereo algorithms for solving the correspondence problem used in stereo vision.
-- Seam carving (content aware image resizing)
-- Some approximate solution methods for the linear search problem.
-=====> http://en.wikipedia.org/wiki/Dynamic_programming#A_type_of_balanced_0.E2.80.931_matrix
-- Shortest path in DAGs
-- Shortest path
-- All pair shortest paths
-- Independent sets in trees
-=> also see exercises for more problems
-=====> http://www.cs.berkeley.edu/~vazirani/algorithms/chap6.pdf
-- Subset Sum, Coin Change, Family Graph
-=====> http://www.algorithmist.com/index.php/Dynamic_Programming
-- Optimal Binary Search Trees
-=====> http://www.cs.uiuc.edu/~jeffe/teaching/algorithms/notes/05-dynprog.pdf
-- Independent set on a tree
-=====> http://www.cs.ucsb.edu/~suri/cs130b/NewDynProg.pdf
-\end{verbatim}
-}
+\subsubsection{Conclusion}
+In the rest of the project, we use a different description of the problems that is based on ADP \cite{adp}, which is more convenient but does not share much with the above description (even though ultimately the executed computations are very similar). Although not of immediate use, the description of the above problem and ad-hoc CUDA implementation of three of them (Smith-Waterman with arbitrary gap cost, Matrix chain multiplication and Convex polygon triangulation) helped us to understand:\ol
+\item There is a difference between dynamic programming as seen in algorithmic classes and their concrete implementation, mainly because special care must be taken for correct indices and preventing off-by-one errors.
+\item Problems can be classified in two categories: single track (input) and two-tracks (2 input sequences). Most of the common dynamic programming problems fall in these two categories.
+\item Sometimes matrices are initially padded with zeroes (or initial value), although this might be ignored at algorithm design, care must be taken for these special values and their inclusion in the matrix should be decided according to the complexity of the recurrence formula.
+\ole
