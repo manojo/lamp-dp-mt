@@ -61,6 +61,13 @@ trait BaseParsers { this:Signature =>
   // Recurrence analysis, done once when grammar is complete, before the computation.
   private var analyzed=false
   def analyze:Boolean = { if (analyzed) return false; analyzed=true
+    // Strip away unnecessary tabulations
+    var used = Set[String](); use(axiom)
+    def use[T](q:Parser[T]):Unit = q match {
+      case Aggregate(p,_) => use(p) case Filter(p,_) => use(p) case Map(p,_) => use(p) case Or(l,r) => use(l); use(r) case Concat(l,r,_) => use(l); use(r)
+      case t:Tabulate if (!used.contains(t.name)) => used++=Set(t.name); use(t.inner) case _ =>
+    }
+    for (n <- (rules.keys.toSet -- used)) rules.remove(n)
     // Yield analysis
     for((n,t)<-rules) t.minv=100000 // upper bound on minimum yields
     (0 until rules.size).foreach{ _ => for((n,t) <- rules) t.minv=t.inner.min }

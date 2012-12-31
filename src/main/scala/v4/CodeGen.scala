@@ -11,26 +11,23 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // - ClassTag: provides only the class, no insight of Tuple inner types
   val tps:(Manifest[Alphabet],Manifest[Answer]) = (null,null)
   
-  // Dependency analysis: computation order between tabulations
-  def tabsOrder:List[String] = {
-    def deps[T](q:Parser[T]): List[String] = q match {
+  // Cost matrix : cost_t = parser_name -> cost
+  // Backtracking: back_t = parser_name -> (rule, positions)
+  def btTpe(n:Int) = head.addType("short rule"+(if(n>0)"; short pos["+n+"]"else""),"bt"+n)
+  override def analyze:Boolean = { if (!super.analyze) return false;
+    // Dependency analysis: computation order between tabulations
+    def deps[T](q:Parser[T]): List[String] = q match { // (A->B) <=> B(i,j) = ... | A(i,j)
       case Aggregate(p,_) => deps(p) case Filter(p,_) => deps(p) case Map(p,_) => deps(p) case Or(l,r) => deps(l)++deps(r)
       case cc@Concat(l,r,_) => val(lm,_,rm,_)=cc.indices; (if (lm==0) deps(r) else Nil) ::: (if (rm==0) deps(l) else Nil)
-      case _ => if (q.isInstanceOf[Tabulate]) List(q.asInstanceOf[Tabulate].name) else Nil
+      case t:Tabulate => List(t.name) case _ => Nil
     }
-    var order = List[String]()
     val cs = rules.map{case (n,p)=>(n,deps(p.inner)) }
     while (!cs.isEmpty) { var rem=false;
       cs.foreach { case (n,ds) if (ds.isEmpty||(true/:ds.map{d=>order.contains(d)}){case(a,b)=>a&&b}) => rem=true; order=n::order; cs.remove(n); case _ => }
       if (rem==false) sys.error("Loop between tabulations, error in grammar")
     }
     order.reverse
-  }
-
-  // Cost matrix : cost_t = parser_name -> cost
-  // Backtracking: back_t = parser_name -> (rule, positions)
-  def btTpe(n:Int) = head.addType("short rule"+(if(n>0)"; short pos["+n+"]"else""),"bt"+n)
-  override def analyze:Boolean = { if (!super.analyze) return false; order=tabsOrder;
+    // Prepare major structures header
     head.add("#define input_t "+tpAlphabet)
     head.add("typedef struct { "+order.map{n=>tpAnswer+" "+n+";"}.mkString(" ")+" } cost_t;")
     head.add("typedef struct { "+order.map{n=>val c=rules(n).inner.cat; btTpe(c)+" "+n+";"}.mkString(" ")+" } back_t;")

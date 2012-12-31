@@ -1,35 +1,40 @@
 \newpage
 \section{Architecture design and technical decisions}
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 % ------------------------------------------------------------------------------------------------
 \subsection{User facing language requirements}
-\quote{The Algebraic Dynamic Programming approach (ADP) introduces a conceptual splitting of a DP algorithm into a recognition and an evaluation phase. The evaluation phase is specified by an evaluation algebra, the recognition phase by a yield grammar. Each grammar can be combined with a variety of algebras to solve different but related problems, for which heretofore DP recurrences had to be developed independently. Grammar and algebra together describe a DP algorithm on a high level of abstraction, supporting the development of ideas and the comparison of algorithms. A notation for yield grammars is provided that serves as a domain-specific language.}
+The field of dynamic programming has been influenced in the recent years by a methodology known as Algebraic Dynamic Programming which uses a grammar and an algebra to separate between the parsing and the score computation:
+\quote{The Algebraic Dynamic Programming approach (ADP) introduces a conceptual splitting of a DP algorithm into a recognition and an evaluation phase. The evaluation phase is specified by an evaluation algebra, the recognition phase by a yield grammar. Each grammar can be combined with a variety of algebras to solve different but related problems, for which heretofore DP recurrences had to be developed independently. Grammar and algebra together describe a DP algorithm on a high level of abstraction, supporting the development of ideas and the comparison of algorithms.}
 
 Given such formalization \cite{adp} of dynamic programming on sequences, it seems natural to borrow from it and extend it to other types of DP problems. In short, this framework allow the user to define a grammar using parsers, which are then run over an input string and produce intermediate results that are memoized into a table, when multiple solutions are possible, the user can define an aggregation function ($h$) to retain only some candidates for further combination.
 
-The benefits of ADP framework is that it does not constraint the result of the evaluation to be a single value, but could extend parsers to backtracking parsers or pretty-printers. Such functionality is easy to support in plain Scala, however, it could hampers the performance of the GPU implementation if we leave to the user the duty of representing and processing all the information within the parsers. Its major shortcoming in expressivity is that it only operates on strings, making only triangular-matrix problem easily representable.
-
-The additional features we want to support are:\ol
-\item {\color{red}\textbf{Cyclic problems:} are inherently very similar to string problems, except that the input is cyclic. To support such problem efficiently, we only need to mark the grammar cyclic such that it would apply on any unfolding of the cyclic input string.}
-\item \textbf{Input pair algebra:} the original ADP framework only support single input, we want to support a pair of inputs such that we can treat problem such as Smith Waterman or Needleman-Wunsch. However, it does not make sense to treat more than two sequences because of the $O(n^3)$ storage requirements that limits the problems size more dramatically.
+The benefits of ADP framework is that it does not constraint the result of the evaluation to be a single value, but can extend parsers to backtracking parsers or pretty-printers. Additionally, we want to support the following features:\ol
+%\item {\color{red}\textbf{Cyclic problems:} are inherently very similar to string problems, except that the input is cyclic. To support such problem efficiently, we only need to mark the grammar cyclic such that it would apply on any unfolding of the cyclic input string.}
+\item \textbf{Input pair algebra:} the original ADP framework only support single input, we want to support a pair of inputs such that we can treat problem such as Smith Waterman or Needleman-Wunsch. However, it does not make sense to treat more than two sequences because of the $\Omega(n^3)$ storage requirements that limits the problems size more dramatically.
 \item \textbf{Windowing}: this can be easily encoded by passing the windowing parameter that limits the computation, then it could be possible to collect either the best or $k$-best results.
-\item \textbf{Device restrictions:} since CUDA (and FPGA) cannot operate on an arbitrary Scala classes, we need to restrict the language to primary types (int, float, ... and structures of them). However, we want to preserve the expressiveness available for Scala and impose restrictions on the input and answers available to CUDA. A typical restriction we want to make is that processed structures are of fixed size so that we avoid memory management issues and thread divergence.
+\item \textbf{Input restrictions:} since CUDA (and FPGA) cannot operate on an arbitrary Scala classes, we need to restrict the language to primary types (int, float, ... and structures of them). However, we want to preserve the expressiveness available for Scala and impose restrictions on the input and answers available to CUDA. A typical restriction we want to make is that processed structures are of fixed size so that we avoid memory management issues and thread divergence.
+\item \textbf{Single-result on devices:} The general ADP framework supports multiple solutions for intermediate results. Such functionality is easy to support in Scala; however, memory management hampers the performance of the GPU implementation. To overcome this issue, the user could manually manage the memory, but this would defeat most of the benefits of automatic code generation. Hence the trade-off solution we propose is to restrict ADP to only one optimal result on CUDA, while leaving the freedom to obtain co-optimal (or even all possible solutions) with the Scala version.
 
-The general ADP framework supports multiple solutions for intermediate results. Similarly, we want to impose the restriction that only the best result would be stored on device while preserving the support for multiple partial results in Scala.
-
-\item \textbf{Automatic backtracking:} Since efficient code has to be devised we impose restrictions on the output that could be generated by the parsers on devices. However, on the other side, the backtracking information would be of primary interest for the DSL user, hence we need to automate the backtracking to both fulfill the goals of efficiency and usefulness of the device specific implementation.
-
-Enforcing automatic backtracking presents the advantage to ensure constant size for intermediate results, hence ensuring an $O(n^2)$ storage requirement while memoizing the backtracking with the results would have the drawback of growing towards final result and duplicated unnecessary information, hence requiring both $O(n^3)$ space and memory management features on devices. Collecting the backtracking list can be easily done in $O(n)$ and then inverted whether we prefer bottom-up or top-down construction (the backtrack is usually a lattice of nodes that constitute a tree whose leaves are input elements).
+\item \textbf{Automatic backtracking:} Since efficient code has to be devised we imposed restrictions on the output that could be generated by the parsers on devices. However, on the other side, the backtracking information would be of primary interest for the DSL user, hence we would like to to automate the backtracking to fulfill goals of usefulness, efficiency and ease-of-use in device-specific implementation:\ul
+	\item Leaving the backtrack implementation to the user would force him to memoize the backtracking information together with the results (backtrack would  grow towards final result and duplicate unnecessarily information), hence requiring both $O(n^3)$ space and memory management features on devices. 
+	\item Enforcing automatic backtracking presents the advantage to ensure constant size for intermediate results, hence ensuring an $O(n^2)$ storage requirement. Collecting the backtracking list can be easily done in $O(n)$ and then inverted whether we prefer bottom-up or top-down construction (the backtrack is usually a lattice of nodes that constitute a tree whose leaves are input elements).
+	\ule
 \ole
-Since we construct the dependency tree bottom up, and since we need to work with a fixed-size memory, we need to do the additional steps in our pre-processing:\ul
-\item \textbf{Normalization:} in order to automate the backtracking, we need the rule to present a certain shape (in particular we want to remove alternatives) so that we can define uniquely the backtracking information. Another step we can make in the process is to break down complex rules into simpler ones if they are expressible so, hereby reducing the complexity of the overall algorithm, would the user production grammar not be optimal. Also we can strip away unnecessary rules.
-\item \textbf{Dependency analysis:} a precise order between the rules application must be given. This is required as we use a bottom-up approach where all previous results must be computed versus a top-down approach with a table where a fallback to computation always exist if the desired element is not present.
-\ule
 
-{\color{red} Size analysis to know what storage size we require: ex: Zucker requires $O(n^2)+O(n)$ storage...}
+The support of these features has the following implications:\ul
+\item \textbf{Dependency analysis:} Since we target GPUs (and FPGAs) which are massively parallel architecture, a top-down execution using hash tables is impractical (fallback computation if element is not present is hard to parallelize), hence we need to construct the result tree bottom-up, therefore ensure that the (partial) evaluation order between rules is respected.
+\item \textbf{Normalization:} in order to automate the backtracking, we need the rule to present a certain shape so that we can define uniquely the backtracking information (in particular we want to distinguish between alternatives). Also we need to maintain coherency between the Scala and the CUDA version so that they can inter-operate: we would like to reuse the backtracking information (from CUDA) to do actual processing in Scala (for instance pretty-printing or effectively multiplying matrices).
+
+\item \textbf{Optimizations:} Another step we could make is to break down complex rules into simpler ones if they are expressible so; hereby reducing the complexity of the overall algorithm, would the user production grammar not be optimal. Unfortunately this analysis is very involved: we need to analyze a combination functions $f(a,b,c)$ and find a pair $(f_2,f_3)$ or $(f_3,f_4)$ such that $f(a,b,c)=f_2(f_1(a,b),c)$ or $f(a,b,c)=f_3(a,f_4(b,c))$. Since this is overly complicated for the scope of the project, we leave this optimization to the responsibility of the user.
+
+Another optimization that is easier to implement is dead rule elimination. Traditional dead code elimination only reduces the size of the generated code. In the GPU implementation, this optimization will not only reduce the binary size but also the CUDA memory consumption as well as speed-up computation (since all rules are executed together).
+\ule
+% {\color{red} Size analysis to know what storage size we require: ex: Zucker requires $O(n^2)+O(n)$ storage...}
 
 % ------------------------------------------------------------------------------------------------
+\newpage
 \subsection{Parsing grammar (ADP)}
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
 Borrowing from the ADP grammar, parsers operate on a subsequence of the input (sequence) and return a list of parse results on these subsequences.
 These results are obtained by the internal transformation that is defined within a parser. The parsers are classified by types:\ul
 \item \textbf{Terminal:} operates on a subsequence and returns its content or position (or nothing if the sequence does not fit the terminal).
@@ -56,6 +61,7 @@ to have equality on the following formula. We can solve it more easily if functi
 }
 
 % ------------------------------------------------------------------------------------------------
+\newpage
 \subsection{Recurrences analysis}
 Since the original ADP introduces many concatenation combinators to differentiate between empty/non-empty, and floating/fixed concatenations, it might become quite involved for the programmer to make sure that the concatenation operator exactly matches the size of each sub-word involved. Additionally the priority of operators might vary in Scala, depending the operator's first character whereas it is possible to define arbitrary priorities in Haskell. To overcome these problems, we propose to automate the computation of the length of the left and right handside subwords of concat operators.
 
