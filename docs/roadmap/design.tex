@@ -88,12 +88,9 @@ object MatrixMult extends MatrixGrammar with MatrixAlgebra with App {
   println(parse(Array((10,100),(100,5),(5,50)))) // List((7500,(10,50)))
 }
 \end{lstlisting}
-\begin{center}
-\vspace{-24pt}
-with or: $|\,\,$ map: $\land\land\,\,$ concatenation: $\sim$
-\end{center}
+\begin{center}\vspace{-18pt} with or: $|\,\,$ map: $\land\land\,\,$ concatenation: $\sim$ \end{center}
 
-\vspace{3cm}
+%\vspace{3cm}
 This program grammar can also be expressed in BNF:
 \[\begin{array}{lrl}
 axiom &::=& \text{matrix} \\
@@ -109,7 +106,7 @@ and it encodes the following recurrence (cost only):
 Notice that the semantics of indices differ slightly from the problem presented in \ref{mat_mult_plain}; this is because empty chain are made expressible (denoted $M_{(i,i)}$, single matrices are denoted $M_{(i,i+1)}$).
 
 % ------------------------------------------------------------------------------------------------
-\newpage
+%\newpage
 \subsection{Recurrences analysis}
 \subsubsection{Dead rules elimination}
 Dead rules\footnote{\textit{Rule} denotes a tabulation belonging to the grammar; both terms refer to the same concept, with the subtle difference that \textit{rule} emphasizes its grammar membership.} elimination analysis is straightforward: starting from the grammar's axiom, recursively collect all tabulations involved in the computation in $R$ (set of rules that are mandatory in the grammar). The dead rules $D=S \setminus R$ (where $S$ is the set of all tabulations) can safely be removed from the grammar rules. Although seemingly useless for the Scala implementation, this step is necessary to maintain coherency between Scala and CUDA rules numbering (that happen in a later stage on the valid rules). In CUDA, this analysis not only provides dead code elimination, but it also prevents useless computation execution, since all rules are computed sequentially for a particular subsequence before the next subsequence is processed.
@@ -124,11 +121,11 @@ Parsers are made of terminals, concat, operations (aggregate, map, filter) and t
 \ole
 
 The last part of this algorithm seems to have an exponential complexity, however, if we consider depth-first search and return as soon as we reach infinity, we might reduce its complexity to $O(k^2)$. Obtaining the yield size of tabulations provides the following benefits:\ul
-\item Minimum size: prevents self-loops (computing one matrix cell using its own result) and avoid considering subsequences that would yield empty result (hence slightly reducing time complexity).
+\item Minimum size: prevents self-reference parsers (on the same subsequence) and avoid considering subsequences yielding empty results (hence slightly reducing time complexity).
 \item Maximum size: allows to reduce the size of the result and backtrack matrix to $O(m\cdot n)$ instead of $O(n^2)$ (where $m$ is the maximum yield size), possibly providing substantial space savings. As the rules with bounded maximum yield are very rare, we did not implement this optimization, although we might consider it for future work.
 \ule
 
-\subsection{Dependency analysis}
+\subsubsection{Dependency analysis}
 Let us introduce the concept of dependency: a dependency between tabulations $A,B$ denoted $A\to B$ exists if $B_{(i,j)} = f(A_{(i,j)})$, that is if the result of $B$ depends of the result on the \textit{same} subproblem computed in $A$. A grammar is unsolvable if there exist a dependency loop between parsers ($A\to ... \to A$). Such case only happen when there is no concatenation or a concatenation with an empty word. Being able to track the dependencies of tabulations and infer a computation order between them has two benefits:\ul
 \item Although seemingly unnecessary in a top-down approach (Scala), this analysis detects dependency loops which would result in infinite call loops (stack overflow) at execution.
 \item Ordering tabulations is critical in a bottom-up approach (CUDA) to make sure that all dependencies are valid before an element computation is triggered.
@@ -156,27 +153,27 @@ Assuming that the backtracking information is meant to guide further processing,
 
 % ----------------------------------------------
 \subsubsection{Backtracking with multiple backtrack elements}
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+The backtracking technique described above work fine when there is a single element stored per matrix cell (which is usually the case with min/max problems). However, in the generalization introduced by ADP, it is possible that a matrix cell stores multiple results. In such case, we need to select a correct intermediate result to avoid backtracking inconsistencies.
 
-The backtracking technique described above work fine when there is a single element stored per matrix cell (which is usually the case with min/max problems). However, in the generalization introduced by ADP, it is possible that a matrix cell stores multiple results. In such case, we need to select a correct result to avoid backtracking inconsistencies.
-
-Additionally, we need to keep track of the multiplicities of the solutions, that is if we want to obtain the $k$ best solutions, we need to make sure that we return $k$ different backtracks. To do that, we maintain a multiplicity counter in each backtrack process: \ul
-\item While there is a single solution for all possible incoming paths, we continue in this direction with the same multiplicity (we have no choice).
+Additionally, we need to keep track of the multiplicities of the solutions, that is if we want to obtain the $k$ best solutions, we need to make sure that we return $k$ different traces. To do that, we maintain a multiplicity counter in each backtrack path: \ul
+\item While there is an unique solution for all possible incoming paths, we continue in this direction with the same multiplicity (we have no choice).
 \item When there is $r$ different solutions available, and the path multiplicity at this point is $k$ we have the following cases: \ol
 	\item If $k\ge r$: we explore all paths with multiplicity $k-r+1$. This is because each branch may produce only one solution and we don't know ahead of time which path will provide multiple solutions. Finally, we retain only the $k$ best solutions.
-	\item If $k<r$ (there is more paths than needed): we can only explore the $k$ first paths with multiplicity 1 and safely ignore the other (as we only need $k$ results).
+	\item If $k<r$ (there is more paths than needed): we explore the $k$ first paths with multiplicity 1 and safely ignore the other (as we only need $k$ distinct results).
 	\ole
 \ule
 
-Now it remains the problem to generate all possible results and check whether they are correct correct. To do that we can simply re-apply the parsers while maintaining the source elements of all production and then retain only those with desired score and backtrack. Since we know the backtrack for one element, we can do the following optimization at backtrack parser computation:\ol
-\item Defuse or's: since we know exactly (by the subrule id, maintained in the backtrack) which alternative has been taken to obtain the result, we can skip undesired branches of or parsers.
-\item Feed concatenation indices: since the backtrack stores the concatenation indices, we can reuse in the concatenation parsers. This removes the $f(n)$ factor in the backtrack complexity (as concatenation backtrack parsers <<know>> where to split).
-\item Skip filters: since filter are applied before their inner solution is computed, their are only position-dependent. Hence if a backtrack involves a filter, since its position is fixed, the filter must have been passed at matrix construction time.
+Now it remains the problem to generate all possible results and check whether they are valid candidates. To do that we simply re-apply the parsers while maintaining the source elements of all production and then retain only those with desired score and backtrack. Since we know the backtrack for one element, we can do the following optimization at backtrack parser computation:\ol
+\item Defuse alternatives: since we know exactly (by the subrule id $r_s$, maintained in the backtrack) which alternative has been taken to obtain the result, we can skip undesired branches of or parsers.
+\item Feed concatenation indices: since the backtrack stores the concatenation indices, we can reuse in the concatenation parsers. This removes the $O(f(n))$ factor in the backtrack complexity (as concatenation backtrack parsers <<know>> where to split).
+\item Skip filters: since filter are applied before their inner solution is computed, their are only position-dependent. Hence if a backtrack involves a filter, since its position is set by the backtrack, the filter must have been passed at matrix construction time.
 \ole
 
 % ----------------------------------------------
 \subsubsection{Backtracking complexity}
-We want to have an estimation of the complexity of the two operations to see what is the overhead of multiple backtracking. For single-element backtrack, we only need to revert the parser to find involved subwords, which is linear in the parser size (because the backtracking identifies uniquely the alternative in or's and indices in concatenations). At every backtrack step, either:\ul
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
+We want to have an estimation of the complexity of the two ??XXX?? operations to see what is the overhead of multiple backtracking. For single-element backtrack, we only need to revert the parser to find involved subwords, which is linear in the parser size (because the backtracking identifies uniquely the alternative in or's and indices in concatenations). At every backtrack step, either:\ul
 \item The word is removed at least one character, which leads to maximal backtrack length of $n$.
 \item The word is split in $s$ subwords, with recurrence $f(n)=2f(n/2)+1$ by solving this recurrence we see that there can be at most $n$ final nodes and $n$ intermediate nodes (when $s=2$). Hence the backtrack length is at most $2n$.
 \ule
