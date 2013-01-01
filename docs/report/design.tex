@@ -226,22 +226,21 @@ Note that there can be no swap with Map and Concat internal parsers due to domai
 	\item \textbf{Special <<empty>> value: }The benefit of such encoding is a reduced number of memory accesses; indeed since we anyway need to access the value to make computations, we do not generate additional memory accesses to check the validity of the value. The drawback of such approach is that it becomes necessary to specify a special {\tt empty} value that cannot be used, except to denote the absence of result. Since types can be arbitrary at every step of the parser, it becomes cumbersome to ask the DSL user to provide a special value for every intermediate result.
 	\item \textbf{Backtrack encoding:} Reusing the backtrack to encode the validity of a result is a more general approach, and allow greater flexibility for the user. Indeed, since we maintain sub-rules identifiers in the backtrack, it suffice to use a special identifier to denote that related value is invalid. This approach also work with nested aggregations by storing intermediate sub-rule identifiers that would only grant the validity of the related value.
 	\ule
-	
 Since backtrack encoding comes at the price of an additional memory access to test the validity (memory accesses usually accounts for most of the time on CUDA devices), it is also relevant to allow the user to completely disable this test to speed-up computations.
 \ule
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Memory constraints}
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
-
 We denote by \textit{device} the computational device on which the processing of the DP matrix (or of a computational block) is done and $M_D$ its memory. This can be the GPU or the FPGA internal memory. Usually the main memory is larger than device memory and can ultimately be extended by either disk or network storage.
 
 We propose to evaluate the device memory requirements to solve the above problem classes. We need first to define additional problem properties related to implementation:\ul
 \item \textbf{Number of matrices:} multiple matrices can be encoded as 1 matrix with multiple values per cell. Hence the implementation differentiates only between cost and backtrack matrices with respective element sizes $S_C$ and $S_B$.
 \item \textbf{Delay of dependencies:} In case the problem does not fit into memory, partial matrix content needs to be transferred across sub-problems. Such data amount is usually proportional to the delay of dependencies. If this delay is small, it might be worth to duplicate matrix data in the wavefront, otherwise it might be more efficient to allow access to the previous computational blocks of the matrix.
-\item \textbf{Wavefront size:} Finally some aggregation that is made along some dimension of the matrix does not need to be written at every cell but can be propagated and aggregated along with computation (ex: maximum along one row or column). Hence such information can be maintained in a single place (in the wavefront) and progress together with the computation. We denote by $S_W$ the size of wavefront elements.
-\item \textbf{Input size:} the size of an input letter (from input alphabet) is denoted by $S_I$.
+\item \textbf{Wavefront size:} Finally aggregations that are made along the dimensions of the matrix do not need to be written at every cell but can be propagated and aggregated along with computation (ex: maximum along one row or column). Hence such information can be maintained in a single place (in the wavefront) and progress together with the computation. We denote by $S_W$ the size of wavefront elements.
+\item \textbf{Input size:} the size of an input symbol (from input alphabet) is denoted by $S_I$.
 \ule
+
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 
 % ----------------------------------------------
 \subsubsection{Small problems (in-memory)}
