@@ -2,7 +2,6 @@ package v4
 
 trait CodeGen extends BaseParsers { this:Signature =>
   private val head = new CodeHeader(this) // User code and helpers store
-  private var order:List[String]=Nil // Order of parsers evaluation
   private lazy val tpAlphabet = if (tps._1==null) "XXX" else head.getType(tps._1.toString) // XXX: bad fix to avoid initialization issues
   private lazy val tpAnswer = if (tps._2==null) "XXX" else head.getType(tps._2.toString)
   
@@ -15,22 +14,10 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // Backtracking: back_t = parser_name -> (rule, positions)
   def btTpe(n:Int) = head.addType("short rule"+(if(n>0)"; short pos["+n+"]"else""),"bt"+n)
   override def analyze:Boolean = { if (!super.analyze) return false;
-    // Dependency analysis: computation order between tabulations
-    def deps[T](q:Parser[T]): List[String] = q match { // (A->B) <=> B(i,j) = ... | A(i,j)
-      case Aggregate(p,_) => deps(p) case Filter(p,_) => deps(p) case Map(p,_) => deps(p) case Or(l,r) => deps(l)++deps(r)
-      case cc@Concat(l,r,_) => val(lm,_,rm,_)=cc.indices; (if (lm==0) deps(r) else Nil) ::: (if (rm==0) deps(l) else Nil)
-      case t:Tabulate => List(t.name) case _ => Nil
-    }
-    val cs = rules.map{case (n,p)=>(n,deps(p.inner)) }
-    while (!cs.isEmpty) { var rem=false;
-      cs.foreach { case (n,ds) if (ds.isEmpty||(true/:ds.map{d=>order.contains(d)}){case(a,b)=>a&&b}) => rem=true; order=n::order; cs.remove(n); case _ => }
-      if (rem==false) sys.error("Loop between tabulations, error in grammar")
-    }
-    order.reverse
     // Prepare major structures header
     head.add("#define input_t "+tpAlphabet)
-    head.add("typedef struct { "+order.map{n=>tpAnswer+" "+n+";"}.mkString(" ")+" } cost_t;")
-    head.add("typedef struct { "+order.map{n=>val c=rules(n).inner.cat; btTpe(c)+" "+n+";"}.mkString(" ")+" } back_t;")
+    head.add("typedef struct { "+rulesOrder.map{n=>tpAnswer+" "+n+";"}.mkString(" ")+" } cost_t;")
+    head.add("typedef struct { "+rulesOrder.map{n=>val c=rules(n).inner.cat; btTpe(c)+" "+n+";"}.mkString(" ")+" } back_t;")
     true
   }
 
@@ -190,9 +177,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
   }
 
   def genKern = {
-    val kern="back_t _back = {"+order.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n"+
+    val kern="back_t _back = {"+rulesOrder.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n"+
              "cost_t _cost = {}; // init to 0\n#define VALID(I,J,RULE) (back[idx(I,J)].RULE.rule!=-1)\n"+
-             order.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)}.mkString+"\ncost[idx(i,j)] = _cost;\nback[idx(i,j)] = _back;"
+             rulesOrder.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)}.mkString+"\ncost[idx(i,j)] = _cost;\nback[idx(i,j)] = _back;"
     val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
       (if (twotracks) "  for (unsigned i=tI; i<M_H; i+=tN) {\n    unsigned j = jj-tI;"
                  else "  for (unsigned ii=tI; ii<M_H; ii+=tN) {\n    unsigned i = M_H-1-ii, j = i+jj;")
@@ -352,7 +339,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   lazy val (code_h,code_cu,code_c) = { analyze
     val kern=genKern; val bt=genBT; var hlp=genHelpers(); var jni=genJNI; var (hpub,hpriv) = head.flush
-    val info="// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+"\n"+order.zipWithIndex.map {
+    val info="// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+"\n"+rulesOrder.zipWithIndex.map {
       case(n,i)=> val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max)
     }.mkString
     (info+hpub, hpriv+"\n"+kern+"\n"+bt+"\n"+hlp, jni)

@@ -82,6 +82,18 @@ trait BaseParsers { this:Signature =>
       case Concat(l,r,_) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else ml+mr }
       case p:Tabulate => if (d==1) maxN else rmax(p.inner,d-1)
     }
+    // Dependency analyis order: prevents infinite loops, also define an order for bottom up implementations (requires yield analysis)
+    def deps[T](q:Parser[T]): List[String] = q match { // (A->B) <=> B(i,j) = ... | A(i,j)
+      case Aggregate(p,_) => deps(p) case Filter(p,_) => deps(p) case Map(p,_) => deps(p) case Or(l,r) => deps(l)++deps(r)
+      case cc@Concat(l,r,_) => val(lm,_,rm,_)=cc.indices; (if (lm==0) deps(r) else Nil) ::: (if (rm==0) deps(l) else Nil)
+      case t:Tabulate => List(t.name) case _ => Nil
+    }
+    val cs = rules.map{case (n,p)=>(n,deps(p.inner)) }
+    while (!cs.isEmpty) { var rem=false;
+      cs.foreach { case (n,ds) if (ds.isEmpty||(true/:ds.map{d=>rulesOrder.contains(d)}){case(a,b)=>a&&b}) => rem=true; rulesOrder=n::rulesOrder; cs.remove(n); case _ => }
+      if (rem==false) sys.error("Loop between tabulations, error in grammar")
+    }
+    rulesOrder.reverse
     // Identify subrules (uniquely within the same grammar as sorted by name)
     var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.inner.alt; }
     true
@@ -99,6 +111,7 @@ trait BaseParsers { this:Signature =>
   // --------------------------------------------------------------------------
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
+  var rulesOrder:List[String]=Nil // Order of tabulations evaluation
   val rules = new HashMap[String,Tabulate]
   val tabs = new HashMap[String,HashMap[Subword,List[(Answer,Backtrack)]]]
   var reset:(()=>Unit) = () => { /*printTabs*/ }
@@ -118,12 +131,12 @@ trait BaseParsers { this:Signature =>
     private def get(sw:Subword) = { if (!twotracks) assert(sw._1<=sw._2); map.getOrElseUpdate(sw,inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}) }
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
     def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
-    def reapply(sw:Subword,bt:Backtrack) = map.get(sw) match { case Some(v) => v.head._1 case _ => sys.error("Failed reapply"+sw); apply(sw).head._1 }
-
+    def reapply(sw:Subword,bt:Backtrack) = map.get(sw) match { case Some(v) => map.remove(sw); v.head._1 case _ => sys.error("Failed reapply"+sw); apply(sw).head._1 }
+    
     def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))).map{x=>(e._1,x)} ).flatten
-    def build(bt:List[(Subword,Backtrack)]):Answer = {
-      for((sw,(rule,b))<-bt) { val (t,rr)=findTab(rule); t.map.put(sw,List((t.inner.reapply(sw,(rr,b)),bt0))) }
-      val (sw,(rule,b))=bt.last; inner.reapply(sw,(rule-id,b))
+    def build(bt:List[(Subword,Backtrack)]):Answer = bt match {
+      case bh::bs => val (sw,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(sw,(rr,b)); if (bs==Nil) a else { t.map.put(sw,List((a,bt0))); build(bs) }
+      case Nil => sys.error("No backtrack provided")
     }
 
     private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
