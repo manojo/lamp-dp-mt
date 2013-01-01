@@ -171,35 +171,40 @@ Now it remains the problem to generate all possible results and check whether th
 
 % ----------------------------------------------
 \subsubsection{Backtracking complexity}
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+Since the ADP parsers can store multiple results, we are interested in measuring the overhead of $k$-best backtracking (compared to single-element backtracking).
 
-We want to have an estimation of the complexity of the two ??XXX?? operations to see what is the overhead of multiple backtracking. For single-element backtrack, we only need to revert the parser to find involved subwords, which is linear in the parser size (because the backtracking identifies uniquely the alternative in or's and indices in concatenations). At every backtrack step, either:\ul
-\item The word is removed at least one character, which leads to maximal backtrack length of $n$.
-\item The word is split in $s$ subwords, with recurrence $f(n)=2f(n/2)+1$ by solving this recurrence we see that there can be at most $n$ final nodes and $n$ intermediate nodes (when $s=2$). Hence the backtrack length is at most $2n$.
+For single-element backtrack, we only need to <<revert>> the parser to find involved subsequences, which is linear in the parser size (because the backtracking identifies uniquely the alternative and concatenations indices).
+
+At every backtrack step, either:\ul
+\item The sequence is removed at one element, which leads to maximal backtrack length of $n$.
+\item The sequence is split in $k$ subsequences, with recurrence $f(n)=k\cdot f(n/k)+1$ by solving this recurrence we see that there can be at most $n$ final nodes and $n$ intermediate nodes (when $k=2$). Hence the backtrack length is at most $2n$.
 \ule
 
 Let one parser reversal complexity be $O(p)$, single backtrack has $O(2n\cdot p)$ complexity. For the $k$-elements backtrack, since we regenerate all possible solutions, that is $O(k^{c+1})$ candidates (with $c$ the maximal number of concatenation in the parser), the overall complexity is $O(2n \cdot k^{c+1} \cdot p)$. Hence there is a $k^{c+1}$ factor to pay if we want to backtrack the $k$ best solutions\footnote{Note that the same $k^{c+1}$ factor lies in the forward matrix computation complexity.}.
 
+Another special case we might be interested in is to obtain all co-optimal solutions (all the solutions that have an optimal score). We need here to notice that in the parser reversal, no sub-solution is discarded, because either it is not co-optimal (and would have been discarded at an earlier stage) or it is co-optimal, hence contributes to create a co-optimal result. It follows that the complexity of co-optimal solutions backtrack is proportional to the number of solutions.
+
 % ----------------------------------------------
 \subsubsection{Backtrack utilization}
-Since the dynamic programming input may be a subset of the larger problem that we want to resolve\footnote{For instance in matrix chain multiplication, we only care about matrix dimensions for dynamic programming, however, we ultimately want to multiply the real matrices and obtain a result.}, we need to be able to apply the result of the dynamic programming computation on values in a different domain. The easiest way to do that, is to reuse the same grammar on a different domain, and only compute the resulting trace obtained from the DP solver.
+Since the dynamic programming problem may help solving a larger problem\footnote{For instance in matrix chain multiplication, we only care about matrix dimensions for dynamic programming, however, we ultimately want to multiply the real matrices and obtain a result.}, we need to be able to apply the result of the dynamic programming computation in a different domain. The easiest way to do that, is to reuse the same input and grammar, but use a different output domain, and only compute the result of the trace obtained from the DP backtrack.
 
-This step is pretty straightforward: since ADP parsers emphasize on the split between signature and grammar and decouples them, we only need to modify the signature to operate on another domain, and reuse the same grammar. The key point here is to notice that a backtrack trace on one parser can be reused on another, providing that they have the same grammar. For instance, to compute optimally a matrix chain multiplication, we solve the DP problem in a domain where matrices are represented by their dimensions, we obtain an optimal trace and feed it to a parser operating on the <<real matrices>> domain that will do the actual computation.
+This step is pretty straightforward: since ADP parsers emphasize on the split between signature and grammar and decouples them, we only need to modify the algebra to operate on another domain, and reuse the same grammar. The key point here is to notice that a backtrack trace of a parser can be reused by another, providing that they share the same grammar. For instance, to compute optimally a matrix chain multiplication, we solve the DP problem in a domain where matrices are represented by their dimensions, we obtain an optimal trace and feed it to another parser operating on <<concrete matrices>> domain that will do the actual matrix multiplication (instead of the cost estimation).
 
 % ------------------------------------------------------------------------------------------------
-\subsection{CUDA storage: from list to single-value}
-Since lists are one of the primary type of the Scala language, it is natural to gather parsers results into lists in Scala implementation. However, when it comes to efficient CUDA implementation, lists must be avoided because memory allocation (and management) is not very efficient. A workaround might be to use fixed-length lists but we assume here that the programmer is most often interested in a single optimal solution (this also alleviates the complexity of constructing multiple distinct backtrack traces). Even if this design choice apparently greatly simplifies the design issues might arise for how to represent and deal with empty lists and how to minimize the amount of used memory:\ul
+\subsection{CUDA storage: from list to optional value}
+Since lists are natively supported, it is natural to gather parsers results into lists in Scala implementation. However, when it comes to efficient CUDA implementation, lists must be avoided because memory allocation (and management) is not very efficient \cite{scatter_alloc}. A workaround might be to use fixed-length lists but we assume here that the programmer is most often interested in a single optimal solution (this also alleviates the complexity of constructing multiple distinct backtrack traces). Even if this restriction apparently greatly simplifies the design, issues might arise for how to represent and deal with empty lists and how to minimize the amount of used memory:\ul
 
-\item \textbf{Minimizing memory consumption:} Under the restriction that we only store the best result, we first need to transform aggregation such that they return at most one element. Useful aggregator belonging to this class are quite limited: minimum/maximum (optionally with respect to an object's property), count and sum\footnote{Notice that all these operations can be implemented with a folding operation on a single variable.}, hence it is possible to provide them to the user. To benefit of this fixed memory aggregation, we need to do some structural transformation of inner parsers. In general, a tabulation $T$ is the root of its evaluation tree, with leaves being either other tabulations or terminals, note that any of the 5 intermediate element can appear multiple times (or not being present) and in any order.
+\item \textbf{Minimizing memory consumption:} Under the restriction that we only store the best result, we first need to transform aggregation such that they return at most one element. Useful aggregator belonging to this class are quite limited: minimum/maximum (optionally with respect to an object's property), count and sum\footnote{Notice that all these operations can be implemented with a folding operation on a single variable.}, hence it is possible to provide the user with a tailored implementation. To benefit of this fixed memory aggregation, we need to do some structural transformation of inner parsers. In general, a tabulation $T$ is the root of its evaluation tree, with leaves being either other tabulations or terminals, note that any of the 5 intermediate element can appear multiple times (or not being present) and in any order:
 \[T < \textbf{Aggregate} < \textbf{Or} < \textbf{Filter} < \textbf{Map} < \textbf{Concat} < \text{(Tabulate | Terminal)}\]
 
 For obvious performance reasons, we want to maintain aggregations wherever they are present. However, we can partially normalize the rest of the evaluation tree:\ul
 	\item We must ensure that all parsers potentially generating multiple possibilities are aggregated. To do that, we simply wrap the original parser in an $h$-aggregation (where $h$ is the default aggregation function that must be specified by the user)
-	\item Since the aggregation now operates on a single element, we want to push it as close to the leaves as possible, as long as we do not change operational domain\footnote{We cannot push an aggregation through a mapping or a concatenation operation}.
+	\item Since the aggregation now operates on a single element, we want to push it as close to the leaves as possible, as long as we do not change operational domain\footnote{We cannot push an aggregation through a mapping or a concatenation operation.}.
 	\item Filters can be hoisted within the same concatenation / alternative
-	\item Alternatives must be hoisted outside of maps and concatenations, the reason being that we need to avoid maintaining list of candidates (that will be later aggregated).
+	\item Alternatives must be hoisted outside of maps and concatenations, the reason being that we need to avoid maintaining lists of candidates (that will be later aggregated).
 	\ule
-
+	We summarize the required transformations in the following table:
+\begin{table}[H]
 \begin{center}
 \begin{tabular}{l|lllll}
 Outer $\diagdown$ inner	& Aggregate	& Or			& Map	& Filter		& Concat \\ \hline
@@ -210,21 +215,25 @@ Filter					& ---			& ---			& ---		& merge?		& ---\\
 Concat				& ---			& swap$_R$	& ---		& ---			& ---\\
 \end{tabular} \\[10pt]
 \footnotesize{$R=\ $required, $P=\ $performance optimization}
+\caption{Parsers normalization towards CUDA code generation}
 \end{center}
+\end{table}
 
 Note that there can be no swap with Map and Concat internal parsers due to domain change. Fusing is done by the C compiler (declaring mapping functions inline).
 
-\item \textbf{Handling nested aggregations:} since the parser might contain nested aggregation, they must be preserved in order not to increase its time complexity. To do that, each internal aggregation has to define its own intermediate variables and backtrack, whereas outermost aggregation can directly write in the cell of the cost/backtrack matrix.
-\item \textbf{Failure handling:} a parser can either be successful and return a valid result or fail and return no result; failure can happen in terminals, (source) tabulations and filters. These 3 cases can be reduced to one by wrapping terminals and tabulations into a filter that checks validity conditions. It remains to discuss failure encoding strategies:\ul
-	\item \textbf{Special <<empty>> value: }The benefit of such encoding is a reduced number of memory accesses, indeed since we need to access anyway the value to make computations, we do not generate additional memory accesses to check the validity of the value. The drawback of such approach is that it becomes necessary to specify a special <<empty>> value that cannot be used, except to denote the absence of result. Since types can be arbitrary at every step of the parser, it becomes cumbersome to ask the DSL user to provide a special value for every intermediate result.
-	\item \textbf{Backtrack encoding:} Reusing the backtrack to encode the validity of a result is a more general approach, and allow greater flexibility for the user. Indeed, since we maintain subrules in the backtrack, it suffice to use a special subrule number to denote that related value is invalid.
-	This approach also work with nested aggregations by storing an <<intermediate subrule>> temporary that would only grant validity of the related value.
+\item \textbf{Handling nested aggregations:} since a tabulation might contain nested aggregation, they must be preserved in order not to increase its time complexity. To do that, each internal aggregation has to define its own intermediate score and backtrack variables, whereas outermost aggregation can directly write in the cell of the cost/backtrack matrix.
+\item \textbf{Failure handling:} a parser can either be successful and return a valid result or fail and return no result; failure can happen in terminals, (input) tabulations and filters. These 3 cases can be reduced to one by wrapping terminals and tabulations into a filter that checks validity conditions. It remains to discuss failure encoding strategies:\ul
+	\item \textbf{Special <<empty>> value: }The benefit of such encoding is a reduced number of memory accesses; indeed since we anyway need to access the value to make computations, we do not generate additional memory accesses to check the validity of the value. The drawback of such approach is that it becomes necessary to specify a special {\tt empty} value that cannot be used, except to denote the absence of result. Since types can be arbitrary at every step of the parser, it becomes cumbersome to ask the DSL user to provide a special value for every intermediate result.
+	\item \textbf{Backtrack encoding:} Reusing the backtrack to encode the validity of a result is a more general approach, and allow greater flexibility for the user. Indeed, since we maintain sub-rules identifiers in the backtrack, it suffice to use a special identifier to denote that related value is invalid. This approach also work with nested aggregations by storing intermediate sub-rule identifiers that would only grant the validity of the related value.
 	\ule
+	
 Since backtrack encoding comes at the price of an additional memory access to test the validity (memory accesses usually accounts for most of the time on CUDA devices), it is also relevant to allow the user to completely disable this test to speed-up computations.
 \ule
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Memory constraints}
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
 We denote by \textit{device} the computational device on which the processing of the DP matrix (or of a computational block) is done and $M_D$ its memory. This can be the GPU or the FPGA internal memory. Usually the main memory is larger than device memory and can ultimately be extended by either disk or network storage.
 
 We propose to evaluate the device memory requirements to solve the above problem classes. We need first to define additional problem properties related to implementation:\ul
