@@ -18,13 +18,24 @@ The benefits of ADP framework is that it does not constraint the result of the e
 	\item Leaving the backtrack implementation to the user would force him to memoize the backtracking information together with the results (backtrack would  grow towards final result and duplicate unnecessarily information), hence requiring both $O(n^3)$ space and memory management features on devices. 
 	\item Enforcing automatic backtracking presents the advantage to ensure constant size for intermediate results, hence ensuring an $O(n^2)$ storage requirement. Collecting the backtracking list can be easily done in $O(n)$ and then inverted whether we prefer bottom-up or top-down construction (the backtrack is usually a lattice of nodes that constitute a tree whose leaves are input elements).
 	\ule
+\item \textbf{Yield analysis:} in the vanilla ADP, the user has to define for each concatenation the minimal and maximal length of the subsequence on each side. Although non-emptiness information is necessary to avoid infinite recursion in the parsers, forcing an explicit definition can become cumbersome for the DSL user. We want to provide an automatic computation of concatenation boundaries, while at the same time leaving the possibility to manually specify it for maximum flexibility.
 \ole
 
 The support of these features has the following implications:\ul
 \item \textbf{Dependency analysis:} Since we target GPUs (and FPGAs) which are massively parallel architecture, a top-down execution using hash tables is impractical (fallback computation if element is not present is hard to parallelize), hence we need to construct the result tree bottom-up, therefore ensure that the (partial) evaluation order between rules is respected.
 \item \textbf{Normalization:} in order to automate the backtracking, we need the rule to present a certain shape so that we can define uniquely the backtracking information (in particular we want to distinguish between alternatives). Also we need to maintain coherency between the Scala and the CUDA version so that they can inter-operate: we would like to reuse the backtracking information (from CUDA) to do actual processing in Scala (for instance pretty-printing or effectively multiplying matrices).
 
-\item \textbf{Optimizations:} Another step we could make is to break down complex rules into simpler ones if they are expressible so; hereby reducing the complexity of the overall algorithm, would the user production grammar not be optimal. Unfortunately this analysis is very involved: we need to analyze a combination functions $f(a,b,c)$ and find a pair $(f_2,f_3)$ or $(f_3,f_4)$ such that $f(a,b,c)=f_2(f_1(a,b),c)$ or $f(a,b,c)=f_3(a,f_4(b,c))$. Since this is overly complicated for the scope of the project, we leave this optimization to the responsibility of the user.
+\item \textbf{Optimizations:} An possible optimization is to break down complex rules into simpler ones if they are expressible so; hereby reducing the complexity of the overall algorithm, would the user production grammar not be optimal. Unfortunately this analysis is very involved: we need to solve the following problem:
+
+Given $f$ , find a pair of functions $(f_1,f_2)$ or $(f_3,f_4)$ such that\footnote{The first equation denotes breaking in two functions, the second is Bellman's optimality principle.}
+\[\begin{array}{rcll}
+f(i,k_1,k_2,j) &=& f_1(i,f_2(i,k_1,k_2),k_2,j) & \land \\
+	\min\limits_{i<k_1<k_2<j}\big[ f(i,k_1,k_2,j) \big] &=& \min\limits_{i<k_2<j} \big[ f_1(i,\min\limits_{i<k_1<k_2} \big[ (f_2(i,k_1,k_2  ) \big],k_2,j) \big] & \lor \vspace{12pt} \\
+f(i,k_1,k_2,j) &=& f_3(i,k_1,f_4(k_1,k_2,j),j) & \land \\
+	\min\limits_{i<k_1<k_2<j}\big[ f(i,k_1,k_2,j) \big] &=& \min\limits_{i<k_2<j} \big[ f_3(i,k_1,\min\limits_{k_1<k_2<j} \big[ (f_4(k_1,k_2,j) \big],j) \big]
+\end{array}\]
+% We can solve this more easily if functions are linear
+Since this require complex mathematical analysis that are out of the scope of the project, we leave this optimization to the responsibility of the user.
 
 Another optimization that is easier to implement is dead rule elimination. Traditional dead code elimination only reduces the size of the generated code. In the GPU implementation, this optimization will not only reduce the binary size but also the CUDA memory consumption as well as speed-up computation (since all rules are executed together).
 \ule
@@ -33,39 +44,78 @@ Another optimization that is easier to implement is dead rule elimination. Tradi
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Parsing grammar (ADP)}
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+In this section, we provide a concise description of the Algebraic Dynamic Programming. Would the reader be interested in the mathematical details of the notation, we encourage him to read the section 3 of \cite{adp}.
 
-Borrowing from the ADP grammar, parsers operate on a subsequence of the input (sequence) and return a list of parse results on these subsequences.
-These results are obtained by the internal transformation that is defined within a parser. The parsers are classified by types:\ul
-\item \textbf{Terminal:} operates on a subsequence and returns its content or position (or nothing if the sequence does not fit the terminal).
-\item \textbf{Filter:} this parser accepts only subsequences matching a certain predicate
-\item \textbf{Union:} this parser expresses alternative between two different parsers
-\item \textbf{Concatenation:} construct a larger sequence from two subsequences. The subsequences can be of fixed or varying size and concatenation operators might impose restrictions on the subsequences length to be considered.
-\item \textbf{Transformation:} this parser transform its input using an arbitrary function. It is typically used to transform a parse list into a score that can later be aggregated.
-\item \textbf{Aggregation:} the aggregation reduces the list of results, typically using minimum or maximum but can be arbitrarily defined.
+ADP is a formalization of parsers that introduces a distinction between the \textbf{parsing grammar} (recognition phase) and an associated \textbf{algebra} (evaluation phase). Such separation makes possible to define multiple algebra for the same grammar. This has two main applications:\ol
+\item Experiment variants with the same grammar:  for example, Needleman-Wunsch and Smith-Watermann share the same grammar but have a different evaluation algebra
+\item Use an evaluation and execution algebra: a dynamic programming problem is solved in two steps: computing one optimal solution and applying it over actual data. For example in matrix chain multiplication, the first step solves the underlying dynamic problem by evaluating the number of necessary multiplications, the second step \textit{effectively} multiplies matrices according to the order previously defined.
+\ole
+
+Practically, an ADP program is constituted of 3 components: a \textbf{signature} containing functions signatures, which are implemented by \textbf{algebrae} and a \textbf{grammar} containing parsers that make use of the functions defined in the signature. The concrete program instance mixes-in the algebra with the grammar. The grammar parsers intermediate results are memoized in an array (tabulation parser). A parser usually consist of a tree of:\ul
+\item \textbf{Terminal:} operates on a subsequence of input elements and returns either its content or position (or a failure if the sequence does not fit the terminal).
+\item \textbf{Filter:} accepts only subsequences matching a certain predicate. The condition is evaluated ahead of its actual content evaluation.
+\item \textbf{Or:} expresses alternative between two different parsers and returns their result union.
+\item \textbf{Concatenation:} constructs a larger sequence from two subsequences. The subsequences can be of fixed or varying size and concatenation operators might impose restrictions on the subsequences length to be considered.
+\item \textbf{Map:} this parser transform its input using a user-defined function. It is typically used to transform a subword into a score that can later be aggregated.
+\item \textbf{Aggregation:} the aggregation applies a functions that reduces the list of results, typically minimum or maximum, but the function can be arbitrarily defined.
+\item \textbf{Tabulation:} the tabulation's primary function is to store intermediate results and possibly serve as connection point between different parsers.
 \ule
 
+Additionally, the signature must define input alphabet ({\tt Alphabet}), and output alphabet ({\tt Answer}) can be defined either in the signature or in the algebra. Finally, the grammar needs to have a starting point, denoted as axiom. Finally, the default aggregation function $h$ must be defined\footnote{Although aggregation usage is not mandatory in the framework, we force the existence of an aggregation function over the ouput type so that we can use it to aggregate windowed results.}. To make it more clear, we propose an example of the matrix chain multiplication problem\footnote{The original ADP framework was embedded in Haskell, however, we assume that the reader is more familiar with Scala notation and immediately present the syntax of our implementation.}. 
 
-{\color{red}
-XXX: explain ADP concepts
-
-explain split into signature and grammar
-
-XXX: normalization, transforms applied
-
-\begin{verbatim}
-Optimizations: we want to split grammar into binary productions, to do that we need
-to have equality on the following formula. We can solve it more easily if functions are linear
-\end{verbatim}
-\[\min\limits_{i<k_1<k_2<j}\big[ f(i,k_1,k_2,j) \big] \le  \min\limits_{i<k_2<j} \big[ g_2(i,\min\limits_{i<k_1<k_2} \big[ (g_1(i,k_1,k_2  ) \big],k_2,j) \big]  \]
+\newpage
+\begin{lstlisting}[language=Scala, caption=Matrix chain mulitiplication DSL implementation]
+trait MatrixSig extends Signature {
+  type Alphabet = (Int,Int) // Matrix(rows, columns)
+  val single:Alphabet=>Answer
+  val mult:(Answer,Answer)=>Answer
 }
+
+trait MatrixAlgebra extends MatrixSig {
+  type Answer = (Int,(Int,Int)) // Answer(cost, Matrix(rows, columns))
+  override val h = minBy((a:Answer) => a._1)
+  val single = (a: Alphabet) => (0, a)
+  val mult = (a:Answer,b:Answer) =>
+    { val ((m1,(r1,c1)),(m2,(r2,c2)))=(a,b); (m1+m2+r1*c1*c2, (r1,c2)) }
+}
+
+trait MatrixGrammar extends ADPParsers with MatrixSig {
+  val axiom:Tabulate = tabulate("M",
+    (el ^^ single | axiom ~ axiom ^^ mult) aggregate h)
+}
+
+object MatrixMult extends MatrixGrammar with MatrixAlgebra with App {
+  println(parse(Array((10,100),(100,5),(5,50)))) // List((7500,(10,50)))
+}
+\end{lstlisting}
+\begin{center}
+\vspace{-24pt}
+with or: $|\,\,$ map: $\land\land\,\,$ concatenation: $\sim$
+\end{center}
+
+\vspace{3cm}
+This program grammar can also be expressed in BNF:
+\[\begin{array}{lrl}
+axiom &::=& \text{matrix} \\
+ &|& axiom \,\,\, axiom
+\end{array}\]
+
+and it encodes the following recurrence (cost only):
+	\[M_{(i,j)}=\left\{\begin{array}{ll}
+		0 & \text{if } i+1= j\\
+		\min_{i<k<j} M_{(i,k)}+M_{(k,j)}+r_i \cdot c_k \cdot c_j & \text{otherwise}
+	\end{array}\right. \]
+
+Notice that the semantics of indices differ slightly from the problem presented in \ref{mat_mult_plain}; this is because empty chain are made expressible (denoted $M_{(i,i)}$, single matrices are denoted $M_{(i,i+1)}$).
 
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Recurrences analysis}
-Since the original ADP introduces many concatenation combinators to differentiate between empty/non-empty, and floating/fixed concatenations, it might become quite involved for the programmer to make sure that the concatenation operator exactly matches the size of each sub-word involved. Additionally the priority of operators might vary in Scala, depending the operator's first character whereas it is possible to define arbitrary priorities in Haskell. To overcome these problems, we propose to automate the computation of the length of the left and right handside subwords of concat operators.
+Since the original ADP introduces many concatenation combinators to differentiate between empty/non-empty, and floating/fixed-length concatenations, it might become quite involved for the programmer to make sure that the concatenation operator exactly matches the size of each subsequence involved. Additionally the priority of operators might vary in Scala, depending the operator's first character whereas it is possible to define arbitrary priorities in Haskell. To overcome these problems, we propose to automate the computation of the length of the left and right handside subwords of concat operators.
 
 Let us introduce the concept of dependency: a dependency between tabulations $A,B$ denoted $A\to B$ exists if $B_{(i,j)} = f(A_{(i,j)})$, that is if the result of $B$ depends of the result on the \textit{same} subproblem computed in $A$. A grammar is unsolvable if there exist a dependency loop between parsers ($A\to ... \to A$). Such case only happen when there is no concatenation or a concatenation with an empty word.
+
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 
 Knowing that fact we can now easily track the dependencies of tabulations and infer an order of computation between them. Although unnecessary in a top-down approach (Scala), this order becomes essential in a bottom-up approach (CUDA) to make sure we always have all dependencies computed. Once we have such an order we can also trigger a min/max analysis on parsers length. Since a parser is made of terminals, concat, operations (aggregate, map, filter) and tabulations and since the min/max length of terminals is fixed, we only need to assign appropriate size to tabulations,  other operation simply need to propagate the information.
 
