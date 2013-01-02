@@ -334,12 +334,48 @@ The delay of dependencies might also have an impact: if the matrix is too large 
 \subsection{Memory layout}
 A major bottleneck on massively parallel architecture with shared memory (like CUDA) is the global memory access. To do that, and according to the manufacturer documentation, it would be best if all threads access contiguous memory at the same time (coalesced memory access). This is justified by the memory hardware architecture, where additional latency (precharge rows and columns of the memory chip) is mandatory to access data at different positions. Since all thread share the same global memory (and most of the time the same scheduler), accessing non-contiguous memory cumulates latencies before progress can be made.
 
+\begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(16,2.5)
+	\put(1,0){\moveto(2,0)\lineto(2,2)\lineto(0,2)\closepath\strokepath\put(1.1,1.1){\linethickness{1.5pt}\vector(1,1){.75}}
+		\multiput(0,0)(0,.1){20}{\circle*{.03}}\multiput(0,0)(.1,0){20}{\circle*{.03}}}
+	\put(0,-.8){\makebox[4\unitlength]{Triangle}}
 
+	\put(7,0){\moveto(0,0)\lineto(2,0)\lineto(2,2)\lineto(0,2)\closepath\strokepath
+		\put(.5,1.5){\linethickness{1.5pt}\vector(1,-1){1}}}
+	\put(6,-.8){\makebox[4\unitlength]{Rectangle}}
 
+	\put(12,0){\moveto(2,0)\lineto(4,0)\lineto(2,2)\lineto(0,2)\closepath\strokepath
+		\put(1.6,0.6){\linethickness{1.5pt}\vector(1,1){.8}}
+		\multiput(0,0)(2,0){3}{\multiput(0,0)(0,.1){20}{\circle*{.03}}}
+		\multiput(0,0)(.1,0){20}{\circle*{.03}}\multiput(4,2)(-.1,0){20}{\circle*{.03}}}
+	\put(12,-.8){\makebox[4\unitlength]{Parallelogram}}
+\end{picture}\end{center}\caption{Matrix shapes, the arrow indicates the computation progress direction}\end{figure}
 
-% challenge in programming CUDA devices is to make efficient 
-{\color{red} XXX}
+Since progress is made along the diagonal of the matrices, a naive row/column addressing of the matrix elements would result in no coalesced access. Hence instead of addressing by row the matrix elements, we address them by diagonal. Let $M_W$ the width of the matrix and $M_H$ its height. Coalesced addressing is most easy in the parallelogram matrix, as we just need to map parallelogram indices to addresses into a square matrix (with diagonal elements being contiguous in memory) as follows:
+\[(i,j) \to i + (j-i)*M_H\]
 
+Noticing that the triangle is just half the parallelogram, we could use the same addressing, but we would use twice the memory necessary. Hence we need a more involved formula: the size of the triangle embedded in a square of side $k$ (incl. diagonal) is $\frac{k\cdot(k+1)}{2}$ knowing that fact, the index of the $i^{\rm th}$ element on the $j^{\rm th}$ diagonal of the triangle (starting with the main diagonal when $j=0$), we obtain the following formula (with $M_H=M_W=n$):
+\[(i,j) \to M-T+i \text{ with }\left\{\begin{array}{rcll}
+	M&=&\dfrac{(n\cdot (n+1)}{2} \vspace{.15cm} & \textit{total }\bigtriangleup\\
+	d&=&n+1+i-j \vspace{.15cm} & \textit{diagonal of }(i,j)\\
+	T &=&\dfrac{(d\cdot (d+1)}{2} & \bigtriangleup \textit{ of current diagonal}
+\end{array}\right.\]
+
+Finally, for the rectangular matrix, since the parallelogram indexing looks efficient, we want to reuse the same idea. However, embedding the rectangle within a parallelogram would have a very large overhead ($(M_H)^2$, by adding a triangle on each side of the rectangle). A solution consists into breaking the rectangle into multiple horizontal stripes of fixed height $B_H$, hereby dramatically reducing the size of the triangles needed. Finally, the stripes can be stitched together to form a single parallelogram (beyond a certain number of lines, coalescing access does not improve as memory is anyway not stored contiguously).
+
+\begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(4,3.5)
+\put(0,-.5) {
+	\put(0,0){\color{lightgray}\moveto(4,0)\lineto(4.5,.5)\lineto(4,.5)\closepath\fillpath\moveto(0,4)\lineto(-.5,3.5)\lineto(0,3.5)\closepath\fillpath}
+	\put(1,3){\linethickness{1.5pt}\vector(1,-1){2}}
+	\multiput(0,.5)(0,.5){7}{\line(1,0){4}}
+	\moveto(0,0)\lineto(4,0)\lineto(4.5,.5)\lineto(4,.5)\lineto(4,4)\lineto(0,4)\lineto(-.5,3.5)\lineto(0,3.5)\closepath\strokepath
+}
+\end{picture}\end{center}\caption{Parallelogram memory representation of a rectangular matrix}\end{figure}
+
+It follows that the total memory required to store the matrix is:
+\[M_W \cdot \left\lceil\dfrac{M_H}{B_H}\right\rceil \cdot B_H  + (B_H)^2\]
+
+and the mapping of indices is given by
+\[ (i,j) \to (B_H \cdot \underset{\rm diagonal}{(j + m)} + m + \underset{\text{stripe}}{\left\lfloor \dfrac{i}{B_H} \right\rfloor} \cdot \underset{\text{stripe size}}{M_W \cdot B_H}) \quad \text{with } m=i \mod B_H \]
 
 % ------------------------------------------------------------------------------------------------
 \newpage

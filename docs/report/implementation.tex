@@ -5,28 +5,7 @@
 \subsection{CUDA ad-hoc}
 During the first phase of project, and after the decision to focus on non-serial problems implementation on GPU, we developed an ad-hoc version of 3 non-serial problems. Since we erroneously complicated the matrix of the polygon triangulation problem, we devised 3 different matrix shape, that is upper triangular for single-track problems, rectangular for two-track problems and parallelogram for the polygon triangulation.
 
-Although the polygon triangulation problem can be solved with a regular triangular matrix and we have not found real problem requiring a parallelogram matrix, we still present this version, which could be used for cyclic problem that require dynamic programming for each unfolding position (that is for all position in the circular structure, break the cycle at this position, and solve the dynamic programming problem on the resulting sequence).
 
-
-%\newcommand\Cd[3][0,-1]{\put(#2){\put(.5,.5){\circle*{.3}}\put(.5,.5){\linethickness{1.5pt}\vector(#1){#3}}}} % dependency [dx,dy]{x,y}{len}
-%\def\Cg#1{\put(#1){\color{lightgray}\put(0,0){\polygon*(0,0)(0,1)(1,1)(1,0)}}} % grayed cell (not to store
-
-\begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(16,2.5)
-	\put(1,0){\moveto(2,0)\lineto(2,2)\lineto(0,2)\closepath\strokepath\put(1.1,1.1){\linethickness{1.5pt}\vector(1,1){.75}}
-		\multiput(0,0)(0,.1){20}{\circle*{.03}}\multiput(0,0)(.1,0){20}{\circle*{.03}}}
-	\put(0,-.8){\makebox[4\unitlength]{Triangle}}
-
-	\put(7,0){\moveto(0,0)\lineto(2,0)\lineto(2,2)\lineto(0,2)\closepath\strokepath
-		\put(.5,1.5){\linethickness{1.5pt}\vector(1,-1){1}}}
-	\put(6,-.8){\makebox[4\unitlength]{Rectangle}}
-
-	\put(12,0){\moveto(2,0)\lineto(4,0)\lineto(2,2)\lineto(0,2)\closepath\strokepath
-		\put(1.6,0.6){\linethickness{1.5pt}\vector(1,1){.8}}
-		\multiput(0,0)(2,0){3}{\multiput(0,0)(0,.1){20}{\circle*{.03}}}
-		\multiput(0,0)(.1,0){20}{\circle*{.03}}\multiput(4,2)(-.1,0){20}{\circle*{.03}}}
-	\put(12,-.8){\makebox[4\unitlength]{Parallelogram}}
-\end{picture}\end{center}\caption{Matrix shapes, the arrow indicates the computation wavefront progress direction}
-\end{figure}
 
 
 \subsection{LibRNA (?)}
