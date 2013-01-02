@@ -52,6 +52,7 @@ A tighter analysis on the alphabet and intermediate results size is done because
 
 % ------------------------------------------------------------------------------------------------
 % Recurrence visualization helpers
+
 \newcommand\Cd[3][0,-1]{\put(#2){\put(.5,.5){\circle*{.3}}\put(.5,.5){\linethickness{1.5pt}\vector(#1){#3}}}} % dependency [dx,dy]{x,y}{len}
 \def\Cg#1{\put(#1){\color{lightgray}\put(0,0){\polygon*(0,0)(0,1)(1,1)(1,0)}}} % grayed cell (not to store
 \def\Cz#1{\put(#1){\put(0,.35){\parbox{1\unitlength}{\centering\bf 0}}}} % zero-init cell
@@ -63,6 +64,8 @@ A tighter analysis on the alphabet and intermediate results size is done because
 
 %\def\Cmlong{\put(6.5,4.5){\circle*{.4}}\multiput(0,0)(1,0){16}{\line(0,1){8}}\multiput(0,0)(0,1){9}{\line(1,0){15}}} % matrix base
 %\def\Cfu#1{#1{8,7}#1{9,7}#1{10,7}#1{11,7}#1{12,7}#1{13,7}#1{14,7}#1{9,6}#1{10,6}#1{11,6}#1{12,6}#1{13,6}#1{14,6}#1{10,5}#1{11,5}#1{12,5}#1{13,5}#1{14,5}#1{11,4}#1{12,4}#1{13,4}#1{14,4}#1{12,3}#1{13,3}#1{14,3}#1{13,2}#1{14,2}#1{14,1}} % triangular upper (function)
+
+\def\CFig#1#2{\begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9) #2 \Cm\end{picture}\end{center}\caption{#1}\end{figure}}
 
 % ----------------------------------------------
 \newpage
@@ -87,15 +90,13 @@ A tighter analysis on the alphabet and intermediate results size is done because
 
 \item Backtracking: starts from the cell $M_{(m,n)}$ and stops at the first cell containing a $0$.
 \item Visualization: by convention, we put the longest string vertically ($m\ge n$):
-\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
+\CFig{Smith-Waterman (affine gap cost) dependencies (serial)}{
 	\put(-.5,7.5){S}\put(-.35,7.4){\linethickness{1pt}\vector(0,-1){2}}
 	\put(.2,8.2){T}\put(.8,8.4){\linethickness{1pt}\vector(1,0){2}}
 	\Cz{0,0}\Cz{0,1}\Cz{0,2}\Cz{0,3}\Cz{0,4}\Cz{0,5}\Cz{0,6}\Cz{0,7}
 	\Cz{1,7}\Cz{2,7}\Cz{3,7}\Cz{4,7}\Cz{5,7}\Cz{6,7}\Cz{7,7}
-	\Cd{6,5}{0.8}
-	\Cd[1,0]{5,4}{0.8}
-	\Cd[1,-1]{5,5}{0.8}
-\Cm\end{picture}\end{center}
+	\Cd{6,5}{0.8}\Cd[1,0]{5,4}{0.8}\Cd[1,-1]{5,5}{0.8}
+}
 
 \item Optimizations:\ul
 	\item In serial (monadic) problems we can avoid building the matrix $M$ by only maintaining the 3 last diagonals in memory (one for the diagonal element, one for horizontal/vertical, and one being built). This construction extends easily to polyadic problems where we need to maintain $k+2$ diagonals in memory where $k$ is the maximum backward lookup.
@@ -151,9 +152,10 @@ That can be written alternatively as:
 
 Although the latter notation seems more explicit, it introduces non-serial dependencies that the former set of recurrences is free of. So we need to implement the former rules whose kernel is 
 \[ [M;E;F]_{(i,j)} = f_{\rm kernel} ( [M;E]_{(i,j-1)}, [M;F]_{(i-1,j)}, M_{(i-1,j-1)} ) \]
-Notice that this recurrence is very similar to \nameref{sswat} except that we propagate 3 values ($M,E,F$) instead of a single one ($M$). Also notice that it is possible to propagate $E$ and $F$ inside a resp. horizontal and vertical wavefront.
 
-\item Backtracking, visualization and optimizations are the same as in \nameref{sswat}
+\item Backtracking: similar to \nameref{sswat}
+\item Visualization: same as \nameref{sswat}
+\item Optimizations: Notice that this recurrence is very similar to \nameref{sswat} except that we propagate 3 values ($M,E,F$) instead of a single one ($M$). Also notice that it is possible to propagate $E$ and $F$ inside a respectively horizontal and vertical wavefront, hence removing the need of two additional matrices.
 \ole
 
 % ----------------------------------------------
@@ -181,15 +183,15 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 
 \item Backtracking: similar to \nameref{sswat} except that you can jump of $k$ cells along the rows or along the columns.
 \item Visualization:
-	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
-		\put(-.5,7.5){S}\put(-.35,7.4){\linethickness{1pt}\vector(0,-1){2}}
-		\put(.2,8.2){T}\put(.8,8.4){\linethickness{1pt}\vector(1,0){2}}
+\CFig{Smith-Waterman (arbitrary gap cost) dependencies}{
+	\put(-.5,7.5){S}\put(-.35,7.4){\linethickness{1pt}\vector(0,-1){2}}
+	\put(.2,8.2){T}\put(.8,8.4){\linethickness{1pt}\vector(1,0){2}}
 	\Cz{0,0}\Cz{0,1}\Cz{0,2}\Cz{0,3}\Cz{0,4}\Cz{0,5}\Cz{0,6}\Cz{0,7}
 	\Cz{1,7}\Cz{2,7}\Cz{3,7}\Cz{4,7}\Cz{5,7}\Cz{6,7}\Cz{7,7}
-		\Cd[0,-1]{6,7}{2.8}\Cd[0,-1]{6,6}{1.8}\Cd{6,5}{0.8}
-		\Cd[1,0]{0,4}{5.8}\Cd[1,0]{1,4}{4.8}\Cd[1,0]{2,4}{3.8}\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
-		\Cd[1,-1]{5,5}{0.8}
-	\Cm\end{picture}\end{center}
+	\Cd[0,-1]{6,7}{2.8}\Cd[0,-1]{6,6}{1.8}\Cd{6,5}{0.8}
+	\Cd[1,0]{0,4}{5.8}\Cd[1,0]{1,4}{4.8}\Cd[1,0]{2,4}{3.8}\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
+	\Cd[1,-1]{5,5}{0.8}
+}
 
 \item Optimizations: The dependencies here are non-serial, there is no optimization that we can apply out of the box here. In general, this problem has an $O(n^3)$ complexity (whereas simple and affine gap variants are $O(n^2)$).
 \ole
@@ -206,7 +208,7 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 	\ule
 \item Initialization: $M_{(i,i)}=M_{(i,i+1)}=0, B_{(i,i)}=B_{(i,i+1)}=stop \quad\forall i$
 \item Recurrence: \[M_{(i,j)}=\left\{ S(i,j) + \max_{i<k<j}M_{(i,k)}+M_{(k,j)} \,\,\rule[-.75em]{.5pt}{2em}\,\,  k \right\} = B_{(i,j)} \]
-	Intuition: triangulate the partial polygon $(i,..j)$ recursively. For the last triangle of the polygon consider 3 cases:\ul
+	Intuition: triangulate the partial polygon $(i,..j)$ recursively. 3 cases for the last triangle:\ul
 	\item Given 2 triangulations $(1..k)$ and $(k..n)$, we close the polygon with $\bigtriangleup(1,k,n)$
 	\item Given a triangulation $(1..n-1)$, we close the polygon with $\bigtriangleup(1,n-1,n)$
 	\item Given a triangulation $(2..n)$, we close the polygon with $\bigtriangleup(1,2,n)$
@@ -216,21 +218,18 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 	\[{\rm BT}(B_{(i,j)}=k) \mapsto \left\{\begin{array}{ll} \{\} & \text{if } k=stop \\
 		 \{(i,j)\} \cup {\rm BT}(B_{(i,k)}) \cup {\rm BT}(B_{(k,j)}) & \text{otherwise} \end{array}\right.\]
 \item Visualization:
-\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
+\CFig{Convex polygon triangulation dependencies}{
 	\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
 	\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
-	\Cfl{\Cg}
-	\Cfd{\Cz}\Cfdu{\Cz}
+	\Cfl{\Cg}\Cfd{\Cz}\Cfdu{\Cz}
 	\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
 	\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
 	\put(3.5,4.5){\line(3,-1){3}}
 	\put(4.5,4.5){\line(2,-2){2}}
 	\put(5.5,4.5){\line(1,-3){1}}
-	%\Cd[1,-1]{5,2}{0.8}
-	\Cm %\Cmlong
-\end{picture}\end{center}
+}
 
-\item Optimizations: we need the cost of edges between contiguous polygon vertices to have a cost of 0, so that we do not need to handle special cases in the DP program (i.e. existing edges cannot be added).
+\item Optimizations: if the cost of edges between contiguous vertices is 0, we do not need to handle special cases in the DP program (i.e. existing edges cannot be added).
 \ole
 
 % ----------------------------------------------
@@ -256,14 +255,14 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 		\Big( {\rm BT}(B_{(i,k)}) \Big) \cdot \Big( {\rm BT}(B_{(k+1,j)}) \Big) & \text{otherwise} \end{array}\right.\]
 
 \item Visualization:
-	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
-		\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
-		\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
-		\Cfl{\Cg}\Cfd{\Cz}
-		\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
-		\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
-		\put(3.5,4.5){\line(3,-1){3}}\put(4.5,4.5){\line(2,-2){2}}\put(5.5,4.5){\line(1,-3){1}}
-	\Cm\end{picture}\end{center}
+\CFig{Matrix chain multiplication dependencies}{
+	\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
+	\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
+	\Cfl{\Cg}\Cfd{\Cz}
+	\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
+	\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
+	\put(3.5,4.5){\line(3,-1){3}}\put(4.5,4.5){\line(2,-2){2}}\put(5.5,4.5){\line(1,-3){1}}
+}
 
 \item Optimizations: we could normalize the semantics of indices and use $(n+1) \times (n+1)$ matrices where the meaning of cell $(i,j)$ would be $\underset{i\le k<j}{\rm chain}(A_k)$.
 	%\ul
@@ -295,15 +294,15 @@ Notice that this recurrence is very similar to \nameref{sswat} except that we pr
 	With $\omega(i,j)=1$ if $i,j$ are complementary. 0 otherwise.
 \item Backtracking: Start the backtracking in $B_{(0,n-1)}$ and go backward. The backtracking is very similar to that of the matrix multiplication, except that we also introduce the diagonal matching.
 \item Visualization:
-	\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(8,9)
-		\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
-		\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
-		\Cfl{\Cg}\Cfd{\Cz}\Cfdu{\Cz}
-		\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
-		\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
-		\Cd[1,1]{5,3}{0.8}
-		\put(3.5,4.5){\line(3,-1){3}}\put(4.5,4.5){\line(2,-2){2}}\put(5.5,4.5){\line(1,-3){1}}
-	\Cm\end{picture}\end{center}
+\CFig{Nussinov dependencies}{
+	\put(-.7,6.5){\rotatebox{90}{First}}\put(-.4,6.4){\linethickness{1pt}\vector(0,-1){2}}
+	\put(.2,8.2){Last}\put(1.5,8.4){\linethickness{1pt}\vector(1,0){2}}
+	\Cfl{\Cg}\Cfd{\Cz}\Cfdu{\Cz}
+	\Cd[0,1]{6,1}{2.8}\Cd[0,1]{6,2}{1.8}\Cd[0,1]{6,3}{0.8}
+	\Cd[1,0]{3,4}{2.8}\Cd[1,0]{4,4}{1.8}\Cd[1,0]{5,4}{0.8}
+	\Cd[1,1]{5,3}{0.8}
+	\put(3.5,4.5){\line(3,-1){3}}\put(4.5,4.5){\line(2,-2){2}}\put(5.5,4.5){\line(1,-3){1}}
+}
 
 \item Optimizations: note that this is very similar to the matrix multiplication except that we also need the diagonal one step backward, so the same optimization can apply.
 \ole
@@ -376,13 +375,13 @@ With $\delta$ a lookup table. In practice, we don't go backward for larger value
 \end{array}\]
 
 \item Visualizations\footnote{Reproductions of the illustrations from \cite{para_dprec} pp.148,149}:
-\begin{center}\includegraphics[width=8cm]{inc/zuker_rec.pdf}\end{center}
+\begin{figure}[H]\begin{center}\includegraphics[width=8cm]{inc/zuker_rec.pdf}\end{center}\caption{Zuker folding dependencies}\end{figure}
+
 The recurrence consists of two non-serial dependencies as in \textit{\nameref{aswat}} plus a bounded 2-dimensional dependency for bulges.\\[12pt]
 Since this problem is non-trivial to understand from the recurrences, we propose an additional illustration of a RNA chain folded according to the Zuker folding algorithm.
-\begin{center}
+\begin{figure}[H]\begin{center}
 \includegraphics[width=10cm]{inc/zuker_struct.pdf} \\
-\small An example of an RNA folded into a secondary structure. Types of structural features modeled by the Zuker folding algorithm include: dangling ends (1), internal loop (11), stack (23), multi-loop (47), bulge (68) and hairpin loop (78).
-\end{center}
+\small Types of structural features modeled by the Zuker folding algorithm include: dangling ends (1), \\ internal loop (11), stack (23), multi-loop (47), bulge (68) and hairpin loop (78).\end{center}\caption{An example of an RNA folded into a secondary structure}\end{figure}
 
 \item Optimizations: notice that there are 3 matrices: $W$,$V$ ($VBI$ is part of $V$) that can be expressed using regular matrix, and $F$ that is of different dimension than $W$ and $V$ and requires a special construction. Also notice that the $k$ of $BV$ and $BW$ describe almost the same backtrack, but there is an additional cost $c$ in $BV$.
 %{\color{red} XXX: We need to find a nice way to encode both its construction and backtrack into the existing framework (implement 1D DP recursively?) }
@@ -391,25 +390,20 @@ Since this problem is non-trivial to understand from the recurrences, we propose
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Related problems}
-The goal of this section is to demonstrate that the problems described above are very similar or encompass a significant part of the common dynamic programming problems. (There is an hyperlink on the problems name to their detailed description).
+The aim of this section is to demonstrate that the problems described above are very similar or encompass a significant part of the common dynamic programming problems. (There is an hyperlink on the problems name to their detailed description).
 
-\subsubsection{Serial problems}
-\begin{tabular}{llcc} \toprule
-\bf Problem & \bf Shape & \bf Matrices & \bf Wavefront \\ \midrule
+\begin{table}[H]\begin{center}\begin{tabular}{llcc} \toprule
+\bf Serial problems & \bf Shape & \bf Matrices & \bf Wavefront \\ \midrule
 Smith-Waterman \footnotesize simple & rectangle & 1 & -- \\
 Smith-Waterman \footnotesize affine gap extension & rectangle & 3 & (can replace 2 matrices) \\
 \href{http://en.wikipedia.org/wiki/Needleman-Wunsch_algorithm}{Needleman-Wunsch} & rectangle & 1 & -- \\
-
 \href{http://en.wikipedia.org/wiki/Dynamic_programming#Checkerboard}{Checkerboard} & rectangle & 1 & -- \\
 \href{http://en.wikipedia.org/wiki/Longest_common_subsequence_problem\#Code_for_the_dynamic_programming_solution}{Longest common subsequence} & rectangle & 1 & -- \\
 \href{http://en.wikipedia.org/wiki/Longest_common_substring_problem\#Pseudocode}{Longest common substring} & triangle & 1 & -- \\
 \href{http://en.wikipedia.org/wiki/Levenshtein_distance\#Computing_Levenshtein_distance}{Levenshtein distance} & rectangle & 1 & -- \\
-\href{http://en.wikipedia.org/wiki/De_Boor's_algorithm}{De Boor} \footnotesize evaluating B-spline curves & rectangle & 1 & -- \\
-\end{tabular}
-
-\subsubsection{Non-serial problems}
-\begin{tabular}{llcc} \toprule
-\bf Problem & \bf Shape & \bf Matrices & \bf Wavefront \\ \midrule
+\href{http://en.wikipedia.org/wiki/De_Boor's_algorithm}{De Boor} \footnotesize evaluating B-spline curves & rectangle & 1 & -- \vspace{.4cm} \\
+\toprule
+\bf Non-serial problems & \bf Shape & \bf Matrices & \bf Wavefront \\ \midrule
 Smith-Waterman \footnotesize arbitrary gap cost & rectangle & 1 & -- \\
 Convex polygon triangulation & triangle & 1 & -- \\
 Matrix chain multiplication & triangle & 1 & -- \\
@@ -417,7 +411,9 @@ Nussinov & triangle & 1 & -- \\
 Zuker folding & triangle & 3 & -- \\
 \href{http://en.wikipedia.org/wiki/CYK_algorithm}{CYK} \footnotesize Cocke-Younger-Kasami & triangle & \#rules & -- \\
 \href{http://en.wikipedia.org/wiki/Knapsack_problem#Dynamic_programming}{Knapsack} \footnotesize (pseudo-polynomial) & rectangle & 1 & --\\
-\end{tabular}
+\end{tabular}\end{center}
+\caption{Classification of related problems}
+\end{table}
 
 \subsubsection{Other problems}\ul
 \item Dijkstra shortest path: we need a $E\times V$ matrix, along $E$ forall $V$ reduce its distance, problem is serial along $E$, non-serial along $V$ hence of complexity $O(|E|\cdot |V^2|)$ which is far worse than both $O(|V|^2)$ (min-priority queue) and $O(|E|+|V|\log |V|)$ (Fibonacci heap).
@@ -450,5 +446,10 @@ In the rest of the project, we use a different description of the problems that 
 \item There is a difference between dynamic programming as seen in algorithmic classes and their concrete implementation, mainly because special care must be taken for correct indices and preventing off-by-one errors.
 \item Problems can be classified in two categories: single track (input) and two-tracks (2 input sequences). Most of the common dynamic programming problems fall in these two categories.
 \item Sometimes matrices are initially padded with zeroes (or initial value), although this might be ignored at algorithm design, care must be taken for these special values and their inclusion in the matrix should be decided according to the complexity of the recurrence formula.
-\item Incidentally, we proposed a cyclic variant of the convex polygon triangulation, which uses a parallelogram matrix instead of a triangular one (upper right triangle extended by a lower triangle on the right). Unfortunately, this proved to be based on an erroneous recurrence relation analysis, which could be reduced to the more natural triangular case. It is not impossible that some problems do require such special structure, but we did not find any problem that could justify such structure. 
+\item Incidentally, we proposed a cyclic variant of the convex polygon triangulation, which uses a parallelogram matrix instead of a triangular one (upper right triangle extended by a lower triangle on the right). Unfortunately, this proved to be based on an erroneous recurrence relation analysis, which could be reduced to the more natural triangular case.
+
+
+Although the polygon triangulation problem can be solved with a regular triangular matrix and we have not found real problem requiring a parallelogram matrix, we still present this version in the analysis part of the project, which could be justified for cyclic problems that require dynamic programming for each unfolding position (that is for all position in the circular structure, break the cycle at this position, and solve the dynamic programming problem on the resulting flattened sequence). For example, one could be interested in finding the longest subsequence verifying some property in a cycle, such that the subsequence score changes if it is rotated.
+
+
 \ole

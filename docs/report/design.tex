@@ -195,7 +195,7 @@ This step is pretty straightforward: since ADP parsers emphasize on the split be
 Since lists are natively supported, it is natural to gather parsers results into lists in Scala implementation. However, when it comes to efficient CUDA implementation, lists must be avoided because memory allocation (and management) is not very efficient \cite{scatter_alloc}. A workaround might be to use fixed-length lists but we assume here that the programmer is most often interested in a single optimal solution (this also alleviates the complexity of constructing multiple distinct backtrack traces). Even if this restriction apparently greatly simplifies the design, issues might arise for how to represent and deal with empty lists and how to minimize the amount of used memory:\ul
 
 \item \textbf{Minimizing memory consumption:} Under the restriction that we only store the best result, we first need to transform aggregation such that they return at most one element. Useful aggregator belonging to this class are quite limited: minimum/maximum (optionally with respect to an object's property), count and sum\footnote{Notice that all these operations can be implemented with a folding operation on a single variable.}, hence it is possible to provide the user with a tailored implementation. To benefit of this fixed memory aggregation, we need to do some structural transformation of inner parsers. In general, a tabulation $T$ is the root of its evaluation tree, with leaves being either other tabulations or terminals, note that any of the 5 intermediate element can appear multiple times (or not being present) and in any order:
-\[T < \textbf{Aggregate} < \textbf{Or} < \textbf{Filter} < \textbf{Map} < \textbf{Concat} < \text{(Tabulate | Terminal)}\]
+\[T < \textbf{Aggregate} < \textbf{Or} < \textbf{Filter} < \textbf{Map} < \textbf{Concat} < \text{(Tabulation | Terminal)}\]
 
 For obvious performance reasons, we want to maintain aggregations wherever they are present. However, we can partially normalize the rest of the evaluation tree:\ul
 	\item We must ensure that all parsers potentially generating multiple possibilities are aggregated. To do that, we simply wrap the original parser in an $h$-aggregation (where $h$ is the default aggregation function that must be specified by the user)
@@ -231,7 +231,7 @@ Since backtrack encoding comes at the price of an additional memory access to te
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Memory constraints}
-We denote by \textit{device} the computational device on which the processing of the DP matrix (or of a computational block) is done and $M_D$ its memory. This can be the GPU or the FPGA internal memory. Usually the main memory is larger than device memory and can ultimately be extended by either disk or network storage.
+We denote by \textit{device} the computational device on which the processing of the DP matrix (or of a computational block) is done and $M_D$ its memory. This can be the GPU or the FPGA internal memory. Usually the main memory is larger than device memory and can ultimately be extended by either disk or network storage. Without loss of generality, let the underlying dynamic programming matrices be of dimension $m \times n$.
 
 We propose to evaluate the device memory requirements to solve the above problem classes. We need first to define additional problem properties related to implementation:\ul
 \item \textbf{Number of matrices:} multiple matrices can be encoded as 1 matrix with multiple values per cell. Hence the implementation differentiates only between cost and backtrack matrices with respective element sizes $S_C$ and $S_B$.
@@ -240,9 +240,8 @@ We propose to evaluate the device memory requirements to solve the above problem
 \item \textbf{Input size:} the size of an input symbol (from input alphabet) is denoted by $S_I$.
 \ule
 
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
-
 % ----------------------------------------------
+\newpage
 \subsubsection{Small problems (in-memory)}
 Problem that can fit in memory can be solved in a single pass on the device. Such problem must satisfy the equation:
 	\[(S_I+S_W) \cdot (m+n) + (S_C+S_B) \cdot (m\cdot n) \le M_D\]
@@ -251,17 +250,15 @@ For instance, assuming that $m=n$, $M_D=1024{\rm Mb}$, that backtrack is 2b (<16
 
 % ----------------------------------------------
 \subsubsection{Large problems}
-To handle large problems, we need to split the matrix into blocks of size $B_H \times B_W$. For simplification, we assume a square matrix made of square blocks with $b$ blocks per row/column.
+To handle large problems, we need to split the $(m \times n)$ matrix into blocks of size $B_H \times B_W$. For simplification in our estimations, we assume a square matrix ($m=n$) made of square blocks with $b$ blocks per row/column ($B_H=B_W=n/b$).
 
 % ----------------------------------------------
 \subsubsection{Non-serial problems}
-Non-serial problems need to potentially access all elements that have been previously computed. We restrict\footnote{As we have not encountered a problem with non-serial dependencies along the diagonal.} ourselves to the following dependencies: \ul
+Non-serial problems need to potentially access all elements that have been previously computed. We restrict ourselves to the following dependencies\footnote{As we have not encountered a problem with non-serial dependencies along the diagonal.}: \ul
 \item Non-serial dependencies along row and column
 \item Serial dependencies along diagonal, with delay smaller or equal to one block size
 \ule
-Such restriction implies that all the block of the line and the row, and one additional block to cover diagonal dependencies must be held in memory (independently of the matrix shape).
-
-For simplification, let $m=n$ and assume that we have $b$ square blocks per row and per column. Hence we have the following memory restriction:
+Such restriction implies that all the block of the line and the row, and one additional block to cover diagonal dependencies must be held in memory (independently of the matrix shape). Hence we have the following memory restriction:
 \[ 2\frac{n}{b}(S_I+S_W) + 2 \cdot \frac{n^2}{b}S_C + \frac{n^2}{b^2} S_B \le M_D\]
 
 We also need to take into account the transfer between main memory (or disk) and device memory. Dependency blocks only need to be read, computed blocks need to be written back. Ignoring the backtrack and focusing only on the cost blocks, the transfers (in blocks) are:
@@ -279,18 +276,19 @@ We also need to take into account the transfer between main memory (or disk) and
 \end{array}\]
 
 Putting these two formula together, and using most of the device memory available, we obtain the following results with $S_C=4, S_B\footnote{To deal with larger matrices, backtrack data need to be extended.}=4, S_I=1, S_W=0$ and $M_D=2^{30}$:
-\begin{center}\includegraphics[width=14cm]{inc/ns_large.pdf}\end{center}
+\begin{figure}[H]\begin{center}\includegraphics[width=14cm]{inc/ns_large.pdf}\end{center}\caption{Transfer overhead for non-serial problems larger than device memory}\end{figure}
 
-Given an experimental bandwidth of 5.3743 Gb/s between CPU and GPU, processing matrices one order of magnitude larger (128K) would result in respectively 13\up{(R)}, 8.5\up{(T)} and 25.4\up{(P)} minutes of transfer delay. Extrapolating the preliminary results of small problems, a computation on input of size 128K would require respectively 7 days 13h\up{(R)}, 2 days 22h\up{(T)} and 6 days 10h\up{(P)}, assuming there is no other scalability issues. Although this overhead seems appealing compared to the computation time, the total time blows up (because of the  $O(n^3)$ complexity) and make the processing of such large problem less relevant. Given that real problems -- like RNA folding -- operate at input sizes up to 4096, it would not be of much relevancy to implement a version for larger cases, although perfectly feasible.
+Given an experimental bandwidth of 5.3743 Gb/s between CPU and GPU, processing matrices one order of magnitude larger (128K) would result in respectively 13\up{(R)}, 8.5\up{(T)} and 25.4\up{(P)} minutes of transfer delay. Extrapolating the preliminary results of small problems, a computation on input of size 128K would require respectively 7 days 13h\up{(R)}, 2 days 22h\up{(T)} and 6 days 10h\up{(P)}, assuming there is no other scalability issues. Although this overhead seems appealing compared to the computation time, the total time blows up (because of the  $O(n^3)$ complexity) and make the processing of such large problem less relevant. Given that real problems (like RNA folding) operate at input sizes up to 4096, it would not be of much relevancy to implement a version for larger cases, although perfectly feasible.
 
 % ----------------------------------------------
 \subsubsection{Serial problems}
-The serial problem have the interesting property to access to a fixed number of previous elements. These elements can be either stored either explicitly in a scoring matrix or implicitly as moving aggregation into a wavefront. Since the dependencies are fixed, the computation direction gains an additional degree of freedom: matrix can be solved in diagonal (as non-serial problems) or line-wise or column-wiser. This allows to store the whole necessary state to make progress into a limited number of lines (or columns), and sweep vertically (resp. horizontally) along the matrix.
+The serial problems have the interesting property to access a fixed number of previous elements. These elements can be either stored either explicitly in a scoring matrix or implicitly as moving aggregation into the wavefront. Since the dependencies are fixed, the computation direction gains an additional degree of freedom: matrix can be solved in diagonal (as non-serial problems), line-wise or column-wise. This allows to store the whole necessary state to make progress into a limited number of lines (or columns), and sweep vertically (resp. horizontally) along the matrix.
 
-Since serial problems are of complexity $O(n^2)$ (due to the matrix dimension and the finite number of dependencies), it is possible to tackle much larger problem than non-serial during the same running time. Hence, it seems obvious to let serial problems grow larger than the memory.
+Since serial problems are of complexity $O(n^2)$ (due to the matrix dimension and the finite number of dependencies), it is possible to tackle much larger problem than non-serial given the same running time. Hence, it seems natural to let serial problems grow larger than the memory.
 
 Mixing the dependency property and size requirements, we can split the matrix into sub-matrices, store special lines (and/or columns) into memory (or hard disk), and repeat computations to solve the backtrack (similarly as in \cite{swat_gpu},\cite{swat_mega}, but this implementation use problem-specific knowledge that might not generalize).
 
+\newpage
 To store intermediate lines and columns, we are facing two different strategies to explore:\ul
 \item \textbf{Fixed subproblem size:} we decompose the algorithm as follows\ol
 \item Define a grid of <<major column and rows>>, where each cell's data (input, output, cost and backtrack matrices) fits into the device memory.
@@ -298,13 +296,14 @@ To store intermediate lines and columns, we are facing two different strategies 
 \item Second (on-demand) computation to process backtracking inside relevant cells.
 \ole
 Let $b$ the number of cells that we have on each row/column, the total computation running time would be $(b^2 + 2b) \cdot t_b$ where $t_b$ is the time to compute one cell's matrix. This division has the advantage of providing the minimal computation time at the expense of external storage proportional to $O(n)$ (if we store only lines or columns) or $O(n^2)$ (if we store both).
-
 \item \textbf{Myers and Miller’s algorithm:} (divide and conquer)
 This algorithm break the DP problem into 2 (or 4) subproblems such that once the middle line/column is computed, the problem can be solved for 1 submatrix and backtracking among up to 2 of the 3 other. This breaking is applied recursively until the submatrix data fits into memory. The storage requirements are $4 \cdot O(n)$ (we store along both dimension $1+\tfrac{1}{2}+\tfrac{1}{4}+...$ lines/columns).
 
 The algorithm proceeds as follows: first it solves the problem to obtain the first backtracking element, then it breaks the matrix in 4 submatrices, and refine it until backtrack is tractable. Since there is at most $\log n/b$ refinements and since every part of the matrix may be involved in backtrack, running time is $O(n^2 \log_2 n)$.
-\item \textbf{Hybrid approach:} a hybrid approach might be created to take advantage of additional available memory, however, the running time decreases logarithmically to the space used, this means that using twice more storage space would only result in a $2\times$ speedup (measuring only the computation time). Hence an hybrid approach would be to decide a $k$ such that at each step we partition the desired submatix into a intermediate grid of $k$ rows/columns. The space usage would be in $2 k \log_k (n/b)$ and the running time complexity would be $O(n^2 \cdot \log_k n)$. Then the user would be able to fix a storage space $S \ge 4 \log_2 (n/b)$ and obtain the corresponding $k$ for a given $n$.
+\item \textbf{Hybrid approach:} a hybrid approach might be created to take advantage of additional available memory, however, the running time decreases logarithmically to the space used, this means that using $4 \times$ more storage space would only result in a $2\times$ speedup (measuring only the computation time). Hence a hybrid approach would be to decide a $k$ such that at each step, we partition the desired sub-matrix into a intermediate grid of $k$ rows/columns. The space usage would be in $2 k \log_k (n/b)$ and the running time complexity would be $O(n^2 \cdot \log_k n)$. Then the user would be able to fix a storage space $S \ge 4 \log_2 (n/b)$ and obtain the corresponding $k$ for a given $n$.
 \ule
+
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 
 {\color{red}
 try to setup wavefront size (if needed) => just enlarge the matrix by 1 so that we go wavefront-to-wavefront
@@ -333,6 +332,12 @@ The delay of dependencies might also have an impact: if the matrix is too large 
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Memory layout}
+A major bottleneck on massively parallel architecture with shared memory (like CUDA) is the global memory access. To do that, and according to the manufacturer documentation, it would be best if all threads access contiguous memory at the same time (coalesced memory access). This is justified by the memory hardware architecture, where additional latency (precharge rows and columns of the memory chip) is mandatory to access data at different positions. Since all thread share the same global memory (and most of the time the same scheduler), accessing non-contiguous memory cumulates latencies before progress can be made.
+
+
+
+
+% challenge in programming CUDA devices is to make efficient 
 {\color{red} XXX}
 
 

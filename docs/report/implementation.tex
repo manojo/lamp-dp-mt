@@ -1,9 +1,52 @@
 \newpage
 \section{Implementation}
+
 % ------------------------------------------------------------------------------------------------
 \subsection{CUDA ad-hoc}
+During the first phase of project, and after the decision to focus on non-serial problems implementation on GPU, we developed an ad-hoc version of 3 non-serial problems. Since we erroneously complicated the matrix of the polygon triangulation problem, we devised 3 different matrix shape, that is upper triangular for single-track problems, rectangular for two-track problems and parallelogram for the polygon triangulation.
+
+Although the polygon triangulation problem can be solved with a regular triangular matrix and we have not found real problem requiring a parallelogram matrix, we still present this version, which could be used for cyclic problem that require dynamic programming for each unfolding position (that is for all position in the circular structure, break the cycle at this position, and solve the dynamic programming problem on the resulting sequence).
+
+
+%\newcommand\Cd[3][0,-1]{\put(#2){\put(.5,.5){\circle*{.3}}\put(.5,.5){\linethickness{1.5pt}\vector(#1){#3}}}} % dependency [dx,dy]{x,y}{len}
+%\def\Cg#1{\put(#1){\color{lightgray}\put(0,0){\polygon*(0,0)(0,1)(1,1)(1,0)}}} % grayed cell (not to store
+
+\begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(16,2.5)
+	\put(1,0){\moveto(2,0)\lineto(2,2)\lineto(0,2)\closepath\strokepath\put(1.1,1.1){\linethickness{1.5pt}\vector(1,1){.75}}
+		\multiput(0,0)(0,.1){20}{\circle*{.03}}\multiput(0,0)(.1,0){20}{\circle*{.03}}}
+	\put(0,-.8){\makebox[4\unitlength]{Triangle}}
+
+	\put(7,0){\moveto(0,0)\lineto(2,0)\lineto(2,2)\lineto(0,2)\closepath\strokepath
+		\put(.5,1.5){\linethickness{1.5pt}\vector(1,-1){1}}}
+	\put(6,-.8){\makebox[4\unitlength]{Rectangle}}
+
+	\put(12,0){\moveto(2,0)\lineto(4,0)\lineto(2,2)\lineto(0,2)\closepath\strokepath
+		\put(1.6,0.6){\linethickness{1.5pt}\vector(1,1){.8}}
+		\multiput(0,0)(2,0){3}{\multiput(0,0)(0,.1){20}{\circle*{.03}}}
+		\multiput(0,0)(.1,0){20}{\circle*{.03}}\multiput(4,2)(-.1,0){20}{\circle*{.03}}}
+	\put(12,-.8){\makebox[4\unitlength]{Parallelogram}}
+\end{picture}\end{center}\caption{Matrix shapes, the arrow indicates the computation wavefront progress direction}
+\end{figure}
+
 
 \subsection{LibRNA (?)}
+
+\begin{verbatim}
+1 week on hash maps
+2 weeks to define and analyze the problems (also with FPGA in mind)
+3 weeks restriction to non-serial and ad-hoc implementation on GPU (rectangle, triangle, parallelogram); translation of ADP parsers in Scala (Manohar)
+1 week run-time engine for Scala/JNI/CUDA
+05.11 - rework of the ADP parser to aim at generating C-like code
+12.11 - rework of ADP parsers to extend usages (cyclic, two-track) and aim at automatic backtracking
+19.11 - explorations in LMS / macros
+26.11 - full backtracking: apply/unapply/reapply, rework of the classes
+03.12 - Zuker/JNI
+10.12 - Yield analysis, code generation
+17.12 - code generation: detupling, generic backtrack (vs. ad-hoc), nested aggregates, empty results support
+24.12 - code generation, sick
+31.12 - report
+\end{verbatim}
+
 
 \subsection{ADP parsers}
 \subsection{Transformations and simplifications}
