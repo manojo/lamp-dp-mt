@@ -303,36 +303,24 @@ The algorithm proceeds as follows: first it solves the problem to obtain the fir
 \item \textbf{Hybrid approach:} a hybrid approach might be created to take advantage of additional available memory, however, the running time decreases logarithmically to the space used, this means that using $4 \times$ more storage space would only result in a $2\times$ speedup (measuring only the computation time). Hence a hybrid approach would be to decide a $k$ such that at each step, we partition the desired sub-matrix into a intermediate grid of $k$ rows/columns. The space usage would be in $2 k \log_k (n/b)$ and the running time complexity would be $O(n^2 \cdot \log_k n)$. Then the user would be able to fix a storage space $S \ge 4 \log_2 (n/b)$ and obtain the corresponding $k$ for a given $n$.
 \ule
 
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+Finally, although such problem is interesting because targeted platforms could include FPGA, where efficient implementations exist \cite{swat_fpga}, several reasons made us considering this class of problem as a future work: \ul
+\item The most prominent problem in this category is Smith-Waterman, for which an ad-hoc efficient implementation already exists\cite{swat_gpu},\cite{swat_mega}. Additionally, the authors are planning to write extensions to support some variants of this problem like Needleman-Wunsch.
+\item The implementation sensibly differs from the class of small problems, as the solving strategy is completely different from non-serial small problems, hereby requiring larger development time that would be out of the scope of this project.
+\item Finally, such implementation would be only valuable for problems that are larger than the memory device, whereas smaller problem could perfectly use the existing implementation.
+\ule 
 
-{\color{red}
-try to setup wavefront size (if needed) => just enlarge the matrix by 1 so that we go wavefront-to-wavefront
-
-XXX: what's the maximal size of the wavefront ??
-
-XXX: can we avoid to store some matrices and put them in the wavefront ??
-
-Split into blocks:\ul
-\item Decide the shape of the blocks
-\item Decide the size of the blocks
-\item Decide of a strategy to store intermediate lines/columns: space/time tradeoff.
-\ule
-
-XXX: make it work up to 14K for all 3 problems using multiple kernels
-XXX: example of non-symmetric serial problem
-
-The three last elements, combined with the above one, provide a precise estimation of the memory consumption, and the implementation difficulty 
-
-all the problem are subject to the input dimensions $n$.
-
-the two latter one gives an estimation of the constant factor.
-
-The delay of dependencies might also have an impact: if the matrix is too large to fit in the memory (device or main memory), it becomes necessary to maintain partial matrix content (all the intermediate elements) within the wavefront. Also the number of cost matrices might affect the performance, simply because maintaining them requires computations and memory accesses.
-}
+% Setup wavefront size (if needed) => just enlarge the matrix by 1 so that we go wavefront-to-wavefront. What's the maximal size of the wavefront ?
+% Can we avoid to store some matrices and put them in the wavefront ??
+% Split into blocks:
+% - Decide the shape of the blocks
+% - Decide the size of the blocks
+% - Decide of a strategy to store intermediate lines/columns: space/time tradeoff.
+% The delay of dependencies might also have an impact: if the matrix is too large to fit in the memory (device or main memory), it becomes necessary to maintain partial matrix content (all the intermediate elements) within the wavefront. Also the number of cost matrices might affect the performance, simply because maintaining them requires computations and memory accesses.
 
 % ------------------------------------------------------------------------------------------------
+\newpage
 \subsection{Memory layout}
-A major bottleneck on massively parallel architecture with shared memory (like CUDA) is the global memory access. To do that, and according to the manufacturer documentation, it would be best if all threads access contiguous memory at the same time (coalesced memory access). This is justified by the memory hardware architecture, where additional latency (precharge rows and columns of the memory chip) is mandatory to access data at different positions. Since all thread share the same global memory (and most of the time the same scheduler), accessing non-contiguous memory cumulates latencies before progress can be made.
+A major bottleneck on massively parallel architecture with shared memory (like CUDA) is the global memory access. To address it, according to the manufacturer documentation, it would be best if all threads access contiguous memory at the same time (coalesced memory access). This is justified by the memory hardware architecture, where additional latency (precharge rows and columns of the memory chip) is mandatory to access data at very different positions. Since all thread share the same global memory (and most of the time the same scheduler), accessing non-contiguous memory cumulates latencies before progress can be made.
 
 \begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(16,2.5)
 	\put(1,0){\moveto(2,0)\lineto(2,2)\lineto(0,2)\closepath\strokepath\put(1.1,1.1){\linethickness{1.5pt}\vector(1,1){.75}}
@@ -350,17 +338,17 @@ A major bottleneck on massively parallel architecture with shared memory (like C
 	\put(12,-.8){\makebox[4\unitlength]{Parallelogram}}
 \end{picture}\end{center}\caption{Matrix shapes, the arrow indicates the computation progress direction}\end{figure}
 
-Since progress is made along the diagonal of the matrices, a naive row/column addressing of the matrix elements would result in no coalesced access. Hence instead of addressing by row the matrix elements, we address them by diagonal. Let $M_W$ the width of the matrix and $M_H$ its height. Coalesced addressing is most easy in the parallelogram matrix, as we just need to map parallelogram indices to addresses into a square matrix (with diagonal elements being contiguous in memory) as follows:
+Since progress is made along the diagonal of the matrices, a naive row/column addressing of the matrix elements would result in no coalesced access. Hence instead of addressing by row (or column) the matrix elements, we address them by diagonal. Let $M_W$ the width of the matrix and $M_H$ its height. Coalesced addressing is most easy in the parallelogram matrix, as we could pretend that the parallelogram is simply a tilted rectangle  (with diagonal elements being contiguous in memory) as follows:
 \[(i,j) \to i + (j-i)*M_H\]
 
-Noticing that the triangle is just half the parallelogram, we could use the same addressing, but we would use twice the memory necessary. Hence we need a more involved formula: the size of the triangle embedded in a square of side $k$ (incl. diagonal) is $\frac{k\cdot(k+1)}{2}$ knowing that fact, the index of the $i^{\rm th}$ element on the $j^{\rm th}$ diagonal of the triangle (starting with the main diagonal when $j=0$), we obtain the following formula (with $M_H=M_W=n$):
+Noticing that the triangle is just half the parallelogram, we could use the same addressing, but we would use twice the necessary memory. Hence we need a more involved formula: the size of the triangle embedded in a square of side $k$ (incl. diagonal) is $\frac{k\cdot(k+1)}{2}$; knowing that fact, the index of the element $(i,j)$ of the triangle (starting with the main diagonal when $i=j$), we obtain the following formula (with $M_H=M_W=n$):
 \[(i,j) \to M-T+i \text{ with }\left\{\begin{array}{rcll}
 	M&=&\dfrac{(n\cdot (n+1)}{2} \vspace{.15cm} & \textit{total }\bigtriangleup\\
 	d&=&n+1+i-j \vspace{.15cm} & \textit{diagonal of }(i,j)\\
 	T &=&\dfrac{(d\cdot (d+1)}{2} & \bigtriangleup \textit{ of current diagonal}
 \end{array}\right.\]
 
-Finally, for the rectangular matrix, since the parallelogram indexing looks efficient, we want to reuse the same idea. However, embedding the rectangle within a parallelogram would have a very large overhead ($(M_H)^2$, by adding a triangle on each side of the rectangle). A solution consists into breaking the rectangle into multiple horizontal stripes of fixed height $B_H$, hereby dramatically reducing the size of the triangles needed. Finally, the stripes can be stitched together to form a single parallelogram (beyond a certain number of lines, coalescing access does not improve as memory is anyway not stored contiguously).
+Finally, for the rectangular matrix, since the parallelogram indexing looks efficient, we want to reuse the same idea. However, embedding the rectangle within a parallelogram would have a very large overhead ($(M_H)^2$, by adding a triangle on each side of the rectangle). The solution consists into breaking the rectangle into multiple horizontal stripes of fixed height $B_H$, hereby dramatically reducing the size of the additional triangles. Finally, the stripes can be stitched together to form a single parallelogram continuing along the next stripe. Noticing that beyond a certain number of lines, coalescing access does not improve latency as memory is anyway not stored contiguously, we can make $B_H$ constant .
 
 \begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(4,3.5)
 \put(0,-.5) {
@@ -374,49 +362,77 @@ Finally, for the rectangular matrix, since the parallelogram indexing looks effi
 It follows that the total memory required to store the matrix is:
 \[M_W \cdot \left\lceil\dfrac{M_H}{B_H}\right\rceil \cdot B_H  + (B_H)^2\]
 
-and the mapping of indices is given by
+and the mapping of indices is given by:
 \[ (i,j) \to (B_H \cdot \underset{\rm diagonal}{(j + m)} + m + \underset{\text{stripe}}{\left\lfloor \dfrac{i}{B_H} \right\rfloor} \cdot \underset{\text{stripe size}}{M_W \cdot B_H}) \quad \text{with } m=i \mod B_H \]
 
 % ------------------------------------------------------------------------------------------------
-\newpage
-{\color{red} 
-\subsection{LMS compiler stack}
-\textbf{User-language}: define additional parameters for the recurrence\ul
-\item Windowing (to convert non-serial into serial problems)
-\item Input sizes, and alphabets (backtrack, input, cost)
-\item Backtrack (implicitly by backtrack alphabet size) and cost matrices bit-sizes (cost maximum may be inferred using <<Yield size/grammar analysis>>)
-\item Recurrence functions, devices available
-\item What to keep in memory (cost, backtrack or both).
+\subsection{Compilation stack}
+Since the generated code sensibly differs from the Scala version, due to the reasons previously discussed, we cannot reuse LMS, although we borrow some of its ideas. Having the full control on the compilation stack also provides us the following benefits:\ul
+\item Since CUDA target and runtime compilation/execution is not supported in LMS, but in Delite \cite{delite}: an additional framework that runs on top of LMS. Although conceptually very similar, implementing our own stack reduces the number of dependencies, hence possible sources of misconfiguration errors for the final user of our framework. Additionally, since we do not share much of the functionality of Delite, an ad-hoc stack helps keeping the project featherweight.
+\item LMS can generate code for monadic functions that operate on arrays. However dynamic programming problems might require multiple inputs (for multi-track grammars) and special scheduling (to respect dependencies in the matrix), hence we need to issue specific C/CUDA code to handle problems correctly.
+\item LMS works on array of primitive types, possibly array of structures broken into array of simple types. Since in DP problems, composite types are representing a single logical element, and since we want to benefit from coalesced accesses (and possibly storing structures into efficient on-chip shared memory), we do not want to break structures. Also we want to offer support for tuples, which are a convenient way to write data containers (also we want to support case classes and composites types).
+\item Some information is only known at run-time (for instance input and matrix dimensions), hence we want to benefit from this knowledge as it helps computing the matrix indices more efficiently. Since such information could possibly be reused, we want to make the process as transparent as possible for the DSL user.
 \ule
-$\Downarrow$ Conversion (using an existing technique)
+Finally, we reap most of the LMS benefits in the generation of user-defined functions, as they are completely independent of the rest of the generated program thus could be generated without additional processing.
 
-\textbf{Intermediate representation}
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 
-$\Downarrow$ Optimizations\ul
-\item Transform non-serial into serial \ul
-	\item Use aggregation functions/transformations
-	\item Use windowing from user (if no other technique succeed)
+Although our compilation stack might look quite similar to that of Delite, we do not share any component but LMS for the user functions. The compilation and execution process works as follows:\ul
+% XXX: Macros ?
+\item At compilation time:\ul
+	\item LMS generates the C code corresponding to the user-defined function and embeds it into the program
 	\ule
-\item Define the wavefront depth
-\item Avoiding the cost matrix by moving it into the wavefront
+\item At run-time, per problem description instance\ul
+	\item Recurrence analysis 
+	\item Code generation
+	\ule
+\item At run-time, per problem instance function call\ul
+	\item Adaptation of code to problem dimensions
+	\item Compilation of CUDA and C/JNI code as an external library (jnilib) then loaded
+	\item Compilation of a Scala wrapper to invoke the generated code
+	\item Execution of the compiled code:
+		\[ \text{Scala wrapper} \iff \text{JNI interface} \iff \text{CPU C code} \iff \text{CUDA kernel}\]
+	\ule
 \ule
 
-\textbf{Code specification}\ul
-\item Kernel function (1-element function), inputs, outputs, wave front, dependencies, bit sizes
-\item Device-level interface => setup the block sizes(w/h), input and memory sizes
-\item Define the device-specific implementation of the block (CPU/FPGA/CUDA)
-\item Define the co-processor memory aggregation function
-\item Define the scheduling of the blocks and aggregation (software pipelining)
-\item Define the data movement back and forth to disk
-\ule
 
-$\Downarrow$ Generation\ul
-\item Generate the kernel for specific device
-\item Generate the scheduling and barriers
-\ule
-
-\textbf{Binary program}
-}
+%{\color{red} 
+%\textbf{User-language}: define additional parameters for the recurrence\ul
+%\item Windowing (to convert non-serial into serial problems)
+%\item Input sizes, and alphabets (backtrack, input, cost)
+%\item Backtrack (implicitly by backtrack alphabet size) and cost matrices bit-sizes (cost maximum may be inferred using <<Yield size/grammar analysis>>)
+%\item Recurrence functions, devices available
+%\item What to keep in memory (cost, backtrack or both).
+%\ule
+%$\Downarrow$ Conversion (using an existing technique)
+%
+%\textbf{Intermediate representation}
+%
+%$\Downarrow$ Optimizations\ul
+%\item Transform non-serial into serial \ul
+%	\item Use aggregation functions/transformations
+%	\item Use windowing from user (if no other technique succeed)
+%	\ule
+%\item Define the wavefront depth
+%\item Avoiding the cost matrix by moving it into the wavefront
+%\ule
+%
+%\textbf{Code specification}\ul
+%\item Kernel function (1-element function), inputs, outputs, wave front, dependencies, bit sizes
+%\item Device-level interface => setup the block sizes(w/h), input and memory sizes
+%\item Define the device-specific implementation of the block (CPU/FPGA/CUDA)
+%\item Define the co-processor memory aggregation function
+%\item Define the scheduling of the blocks and aggregation (software pipelining)
+%\item Define the data movement back and forth to disk
+%\ule
+%
+%$\Downarrow$ Generation\ul
+%\item Generate the kernel for specific device
+%\item Generate the scheduling and barriers
+%\ule
+%
+%\textbf{Binary program}
+%}
 %\ol
 %\item Make sure we encompass all the most common patterns of DP: check if we have higher dimensions or more complex formula.
 %\item Let the user tune the window size if he wants to reduce non-serial to serial.
