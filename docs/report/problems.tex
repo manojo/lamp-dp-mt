@@ -150,7 +150,7 @@ That can be written alternatively as:
 	\max_{1 \le k \le i-1} M_{(k,j)} - \alpha - (i-1-k) \cdot \beta & W\\
 \end{array}\right\}=B_{(i,j)} \]
 
-Although the latter notation seems more explicit, it introduces non-serial dependencies that the former set of recurrences is free of. So we need to implement the former rules whose kernel is 
+Although the latter notation seems more explicit, it introduces non-serial dependencies that the former set of recurrences is free of. So we need to implement the former rules whose kernel is
 \[ [M;E;F]_{(i,j)} = f_{\rm kernel} ( [M;E]_{(i,j-1)}, [M;F]_{(i-1,j)}, M_{(i-1,j-1)} ) \]
 
 \item Backtracking: similar to \nameref{sswat}
@@ -348,7 +348,7 @@ V_{(i,j)}&=&\min\left\{\begin{array}{l|l}
 VBI_{(i,j)}&=&\min\Big\{\min_{i<i'<j'<j}V_{(i',j')}+ebi(i,j,i',j')\} +c \,\,\Big|\,\, (i',j') \Big\}=BV_{(i,j)}\\
 \\
 F_{(j)}&=&\min\left\{\begin{array}{l|l}
-	F_{(j-1)} & P \\ 
+	F_{(j-1)} & P \\
 	\min_{1\le i< j} (F_{(i-1)} + V_{(i,j)}) & i
 \end{array}\right\} = BF_{(j)}
 \end{array}\]
@@ -429,7 +429,7 @@ These algorithm also involve dynamic programming. However, we do not evaluate th
 \item \href{http://en.wikipedia.org/wiki/Viterbi_algorithm}{Viterbi \footnotesize (hidden Markov models)}: $T$ non-serial iterations over a vector
 \item \href{http://en.wikipedia.org/wiki/Bellman-Ford_algorithm}{Bellman-Ford} (finding the shortest distance in a graph)
 \item \href{http://en.wikipedia.org/wiki/Earley_parser#Pseudocode}{Earley parser} (a type of chart parser)
-\item \href{http://en.wikipedia.org/wiki/Maximum_subarray_problem}{Kadane maximum subarray} 1D serial, look at 
+\item \href{http://en.wikipedia.org/wiki/Maximum_subarray_problem}{Kadane maximum subarray} 1D serial, look at
 \href{http://www.cosc.canterbury.ac.nz/tad.takaoka/cats02.pdf}{Takaoka} for 2D
 \item \href{http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi}{RNA structure prediction}
 \item \href{http://en.wikipedia.org/wiki/Recursive_least_squares_filter}{Recursive least squares}

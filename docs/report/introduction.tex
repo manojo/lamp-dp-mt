@@ -7,7 +7,7 @@ Dynamic programming consists of solving a problem by reusing subproblems solutio
 which expands to (first 21 numbers)
 \[1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, ...\]
 
-A typical characteristic is that an intermediate solution is reused multiple times to construct larger solutions (here $F(3)$ helps constructing $F(4)$ and $F(5)$). Reusing an existing solution avoid redoing expensive computations: with memoization (memorizing intermediate results), the solution of $F(n)$ would be obtained after $n$ additions whereas without memoization it requires $F(n)-1$ additions ! 
+A typical characteristic is that an intermediate solution is reused multiple times to construct larger solutions (here $F(3)$ helps constructing $F(4)$ and $F(5)$). Reusing an existing solution avoid redoing expensive computations: with memoization (memorizing intermediate results), the solution of $F(n)$ would be obtained after $n$ additions whereas without memoization it requires $F(n)-1$ additions !
 
 Formally, dynamic programming problems respect the Bellman's principle of optimality: \textit{<<An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision>>}. This means that every intermediate result is computed only once, although it might be reused as basis for multiple larger problems, hence our first observation.
 
