@@ -44,11 +44,11 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
   override type Alphabet = Char
   def char = el
   def chari = eli
-  def charf(f: Char => Boolean) = el filter {
+  def charf(f: Char => Boolean) = el filter { // TODO: CUDA version
     case(i,j) if(i+1==j) => f(in(i))
     case _ => false
   }
-  def digit: Parser[Int] = (charf {_.isDigit}) ^^ { c=>(c-'0').toInt }
+  def digit: Parser[Int] = (charf {_.isDigit}) ^^ { c=>(c-'0').toInt } // TODO: CUDA version
 
   import scala.language.implicitConversions
   implicit def toCharArray(s:String):Array[Char] = s.toArray

@@ -29,7 +29,9 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 \input{problems}
 \input{design}
 \input{implementation}
-%\input{benchmarks} -- superseded by implementation / CUDA
+\section{Benchmarks}
+XXX
+
 \section{Future work} \ul
 \item Serial for problems larger than memory, use hybrid (Myers and Miller's algorithm with $\log_k$ with $k$ depending on available memory) approach depending available memory
 \item Annotation on recursive functions to use dynamic programming like \\
@@ -39,17 +41,11 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 \section{Conclusion}
 
 % ------------------------------------------------------------------------------------------------
-\newpage
 \section*{Planning --- Work in progress}
-\subsection*{Write introduction}
+\textbf{Paper introduction:} 
 \begin{verbatim}
-what exists
-problem
-how we solve it compared to other
-how to evaluate
+problem to solve, what exists (related work), how we solve it compared to other, how to evaluate
 contributions (3): 3 tensed sentences
-
-related work
 benchmark => prove by evaluation intro statements
 \end{verbatim}
 
@@ -59,9 +55,6 @@ benchmark => prove by evaluation intro statements
 	\item Polygon triangulation (cyclic problem) (parallelogram matrix)
 	\item SWat with arbitrary gap (multi-track grammar) (rectangular matrix)
 	\item Zucker (rules of different complexity $O(n^2) / O(n)$)
-	\item Rules normalization
-	\item Rules dependency
-	\item Automatic backtracking
 	\ule
 \item Test/proof parsers are correct --- make sure implementation is correct
 \item Automate test to compare against implementation
@@ -125,12 +118,8 @@ XXX: how to encode multi-dimensional matrices
 
 ----------------------------------
 Core function F:
-- in: s,t strings
-- in: neighbor costs: top, left, top+left
-- in: neighbor stats: top, left, top+left
-- out: backtrack information
-- out: cost(i,j)
-- out: stats
+- in: s,t strings, neighbor costs: top, left, top+left, neighbor stats: top, left, top+left
+- out: backtrack information, cost(i,j), stats
 
 we might want to pack into memory the matrix data and make threads operate on more than one cell.
 
@@ -174,26 +163,6 @@ and compute the backtracking for its cell (optional as template boolean)
   => can we do a producer-consumer scenario at the block border so that we can
      execute a large diagonal horizontal/vertical swipe made of multiple blocks?
   => multiple swipes at different delays (so that we avoid syncing at every step
-
-          s-->
-  +----------------/------------+
-t | B1            /             |
-| +------/-------/              | KERNEL1 (keep benefit of t in shared mem)
-| | B2  /                       | delay between b1 and b2 can be 1% of line length
-v +----/------------------------+
-  |                             |
-  |                             | KERNEL2
-Memory organized as
-b1 -- --
-b1 b1 --
-b1 b1 b1
-b1 b1 b1
-.. .. ..
-b1 b1 b1
-b2 b1 b1
-b2 b2 b1
-b2 b2 b2
-.. .. ..
 
 For stats (aggregation of the table): we need to maintain both an horizontal and vertical front
 For backtracking we need to maintain the whole table

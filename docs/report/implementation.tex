@@ -12,8 +12,10 @@ Leveraging the insights provided by \cite{gpu_atlp} and \cite{gpu_barrier}, we s
 \item Memory accesses must be coalesced (memory accesses account for a significant part of the total running time, according to both manufacturer documentation and experiments \cite{perfeval})
 \item Synchronization between threads can be done according to \cite{gpu_barrier}, additionally, we can slightly loosen the synchronization restrictions, as the paper describes a thread barrier whereas we only require a condition on previous thread progress (except for the parallelogram case, where we still require a barrier).
 \item Computation progresses element-wise along the diagonal (maximizes the parallelism level)
+\item Thread block size = warp size (32) to benefit from implicit synchronization within warps
 \ule
 
+% ----------------------------------------------
 \subsubsection{Related work}
 Since \cite{swat_mega} focuses on a different class of problem, we compare our implementation against \cite{gpu_atlp}, which provides an efficient matrix multiplication implementation. However, since we have neither the source code (or binary) nor the same evaluation hardware, we need to normalize the results. To do that, we present hardware differences and their result:
 
@@ -36,50 +38,47 @@ Processing power \unt{GFLOPS}	&564.5		& 622.08 \\ \midrule
 \bf Matrix size & 128 & 256 & 512 & 1024 & 1536 & 2048 & 2560 & 3072 & 3584 & 4096 \\ \midrule
 \bf No split & 0.07 & 0.09 & 0.19 & 0.59 & 1.27 & 2.25 & 3.51 & 5.07 & 6.92 & 9.06 \\
 \bf Split at 1 & 0.06 & 0.07 & 0.08 & 0.14 & 0.26 & 0.47 & 0.77 & 1.21 & 1.80 & 2.57 \\ \bottomrule
-\end{tabular}\end{center}\caption{ATLP\cite{gpu_atlp} results summary: matrix multiplication timing in seconds}\end{table}
+\end{tabular}\end{center}\caption{ATLP\cite{gpu_atlp} results: matrix chain multiplication, execution time (in seconds)}\end{table}
 
+% ----------------------------------------------
 \subsubsection{Results}
-We here present the timings of our implementation. For correctness, we first implemented a CPU version that we used to compare CUDA results against. Input is made of random numbers. The implemented dynamic programming problems are:\ul
+We present here the timings of our implementation. For correctness, we first implemented a CPU version that we used to compare CUDA results against. Input data is made of random numbers. The implemented dynamic programming problems are:\ul
 \item Rectangle: Smith-Waterman with arbitrary cost
 \item Triangle: matrix chain multiplication
 \item Parallelogram: polygon triangulation using a matrix larger than necessary. Note that this implementation uses at most 32 blocks to prevent dead locks on our hardware (restriction due to the number of concurrent threads on the device).
 \ule
 
 \begin{table}[H]
-\begin{center}\begin{tabular}{cclrrr} \toprule
-\bf Matrix & \bf Block & \bf Comment & \bf R\footnotesize (s) & \bf T\footnotesize (s) & \bf P\footnotesize (s) \\ \midrule
-1024 & 1 & CPU					& 1.965		& 1.191		& 6.069 \\
-2048 & 1 & CPU					& 27.229		& 15.296		& 57.323 \\
-4096 & 1 & CPU					& 			& 177.608	&  \\
-1024 & 32 & GPU baseline			& 0.838		& 0.500		& 0.516 \\
-1024 & 32 & GPU sync improved		& 0.642		& 0.316		& 0.343 \\
-2048 & 32 & GPU P $\le32$ blocks		& 2.864		& 1.427		& 2.096 \\
-4096 & 32 & GPU 8 splits				& 21.902		& 8.841		& 16.767 \\
-8192 & 32 & GPU 64 splits			& 159.058	& 62.064		& 135.793 \\
-12288 & 32 & GPU 256 splits			& 419.030	& 196.971	& 460.912 \\
+\begin{center}\begin{tabular}{rlrrr} \toprule
+\bf Matrix size & \bf Comment & \bf R & \bf T & \bf P \\ \midrule
+1024 & CPU					& 1.965		& 1.191		& 6.069 \\
+2048 & CPU					& 27.229		& 15.296		& 57.323 \\
+4096 & CPU					& 			& 177.608	&  \\
+1024 & GPU baseline			& 0.838		& 0.500		& 0.516 \\
+1024 & GPU sync improved		& 0.642		& 0.316		& 0.343 \\
+2048 & GPU P $\le32$ blocks		& 2.864		& 1.427		& 2.096 \\
+4096 & GPU 8 splits				& 21.902		& 8.841		& 16.767 \\
+8192 & GPU 64 splits			& 159.058	& 62.064		& 135.793 \\
+12288 & GPU 256 splits			& 419.030	& 196.971	& 460.912 \\
 \bottomrule \end{tabular}\end{center}
-\caption{Best timings for R=rectangle, T=triangle, P=parallelogram}
+\caption{Execution time (in seconds) for R=rectangle, T=triangle, P=parallelogram}
 \end{table}
 
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
-
-\subsubsection{Discussion}
-Problem are described by the triplet <matrix size/block size/shape>.\ul
-\item It has been put in evidence in a previous work\footnote{Performance Evaluation 2012 miniproject, \it Performance Evaluation of Mersenne arithmetic on GPUs} that with Mac OS operating system, using the GPU exclusively for CUDA or combining with UI display may affect the performance (GeForce 330M, architecture 1.2). With the new architecture (3.0, GeForce 650M), this difference has been reduced to less than 3.5\% with the decoupling of UI and CUDA performing best. So in micro-benchmarks, we can safely ignore the graphic card usage.
-
-\item Synchronization  between blocks\ul
-	\item Removing {\tt \_\_threadfence()} before the synchronization is not syntactically correct but results still remains valid, this confirms the observation made by \cite{gpu_barrier}. Speedup for <1024/32/*> are 67ms (parallelogram) 100ms (triangle) 180ms (rectangle).
-	\item In the parallelogram case, using all threads to monitor other blocks status instead of 1 thread results in a 6.4x speedup (22.72$\to$3.52ms) on <1024/32/para>.
+% ----------------------------------------------
+\subsubsection{Results discussion}\ul
+\item \textbf{User interface:} It has been put in evidence in \cite{perfeval} that using the GPU exclusively for CUDA or in combination with UI display (Mac OS) affects the performance (GeForce 330M). With the newer architecture, this difference has been reduced to less than 3.5\%, decoupled UI and CUDA   performing best. So we can safely ignore this issue.
+\item \textbf{Blocks synchronization:}\ul
+	\item Removing {\tt \_\_threadfence()} before the synchronization is not syntactically correct but results still remains valid, this confirms the observation made by \cite{gpu_barrier}. Speedup for matrix size of 1024 are 67ms (parallelogram) 100ms (triangle) 180ms (rectangle).
+	\item In the parallelogram case, using all threads to monitor other blocks status instead of the first one only results in a 6.4x speedup (22.72$\to$3.52ms) for the parallelogram.
 	\ule
-\item Using multiple threads per matrix cell:
-In the case of a triangular matrix, at each step, the number of cells to be computed (on the diagonal) decrease while the computation complexity increase (there is one more dependency). According to \cite{gpu_atlp}, the solution lies in adaptive thread mapping, using more than one thread to compute one matrix cell, depending on the complexity. However, in our setup (memory layout+algorithm+hardware), we did not found any improvement by doing so. We want to explore the reason for that: we pose as hypothesis that the bandwidth is the bottleneck of our setup and test it.\ul
+\item \textbf{Multiple threads per matrix cell:} in the case of a triangular matrix, at each step, the number of cells to be computed (on the diagonal) decrease while the computation complexity increase (there is one more dependency). According to \cite{gpu_atlp}, the solution lies in adaptive thread mapping, using more than one thread to compute one matrix cell, depending on the complexity. However, in our setup (memory layout+algorithm+hardware), we did not found any improvement by doing so. We want to explore the reason for that: we pose as hypothesis that the bandwidth is the bottleneck of our setup and test it.\ul
 \item
 
 First we need to prove that we use almost all the available memory bandwidth: for matrix multiplication, in a triangular matrix, we have
 \[\text{Total transfer}=\frac{n(n+1)}{2} \text{ writes} + \sum_{i=0}^{n-1} 2 i \cdot (n-i) \text{ reads}\]
 where each write is 10 bytes (long+short), and each read is 8 bytes (long). For $n=4096$ we transfer
 % n*(n + 1)/2*12 + Sum[2*i*(n - i), {i, 0, n - 1}]*8
-183'352'614'912 bytes which corresponds to 183.35GB. In 8.841 seconds, we can transfer theoretically at most $8.841\cdot 28.8 = 254 \rm GB$. Hence we can say that 72\% of the algorithm running time is spent into memory accesses.
+183'352'614'912 bytes which corresponds to 183.35GB. In 8.841 seconds, we can transfer theoretically at most $8.841\cdot 28.8 = 254 \rm GB$. Hence  72\% of the algorithm running time is spent into memory accesses.
 
 \item On a 4096 matrix, if we assume that ATLP card would have the same bandwidth as our card, their running time would be
 \[2.57 \cdot (1-.72) + 2.57 \cdot 0.72 \cdot \tfrac{102.4_{GB/s}}{28.8_{GB/s}} = 9.43\rm s_{\text{ ATLP}} > 8.84\rm s_{\text{ our}}\]
@@ -87,52 +86,31 @@ Which shows that our algorithm is comparable to theirs. However, we must avoid a
 \ule
 As a conclusion, (1) we must remain away to invalidate their result as previous hardware generations might be subject to more constraint to our hardware and (2) we are on par, if not better with one of the best current implementation.
 
-\item Reducing the number of threads launched at different splits of the algorithm (especially in latest splits in rectangular and triangular shapes) does not bring any speedup. Even worse, it slows down slightly the computation. We might attribute this to a better constant transformation by the compiler. Hence, having many idle threads does not impede performance.
+\item \textbf{Threads number:} reducing the number of threads launched at different splits of the algorithm (especially in latest splits in rectangular and triangular shapes) does not bring any speedup. Even worse, it slows down slightly the computation. We might attribute this to a better constant transformation by the compiler. Hence, having many idle threads does not impede performance.
 
-\item Unrolling the inner loops (non-serial dependencies) a small number of time provide some speedup, for a 2048-matrix respectively 10.9\% (rectangle, $2.765\to 2.464$), 14.1\% (triangle, $1.427\to 1.225$) and 9.7\% (parallelogram $1.539\to 1.389$).
-
+\item \textbf{Unrolling:} unrolling the inner loops (non-serial dependencies) a small number of time provide some speedup, for a 2048-matrix respectively 10.9\% (rectangle, $2.765\to 2.464$), 14.1\% (triangle, $1.427\to 1.225$) and 9.7\% (parallelogram $1.539\to 1.389$). The best experimental number of unrolling is 5.
 \ule
 
-
-
-
-Future work: multi-splits but proved not relevant
-
-
-
-The project development was scheduled in \ul
-\item Problems analysis
-\item Ad-hoc implementation (CUDA)
-\item Porting ADP parsers
-\item Improving parsers / adding functionalities
-\item Integrating CUDA generation into parsers
+% ------------------------------------------------------------------------------------------------
+\subsection{Scala parsers}
+The Scala parsers consist in 4 traits that are used to construct a DSL program:\ul
+\item \textbf{Signature:} abstraction to define input and output types, and the aggregation function. The signature is implemented by all other traits (in particular algebras and grammars).
+\item \textbf{BaseParsers:} serves as basis for the two other traits and defines common features. It implements the {\tt Parser} abstraction and all its inheriting classes: {\tt Tabulate}, (abstract) {\tt Terminal}, {\tt Aggregate}, {\tt Filter}, {\tt Map}, {\tt Or}, {\tt Concat}. Terminals are further specialized in the two other traits (ADPParsers and TTParsers). The parser abstraction specifies 3 methods:\ul
+	\item {\tt apply(subword)} computes the parser result; it is used to obtain the corresponding results.
+	\item {\tt unapply(subword,backtrack)} computes the previous step of the backtrack by returning subsequences at the origin of the result; it is invoked recursively to obtain the full backtrack trace.
+	\item {\tt reapply(subword,backtrack)} is very similar to apply, except that it  computes only the results matching the backtrack. It is used to construct the result corresponding to a backtrack trace (possibly in a different domain, pretty printing, ...).
+	\ule
+	Additionally, the BaseParser implements the analysis that are shared by both the Scala and the CUDA version: dead rules elimination, yield analysis and dependencies ordering. Finally, it provides some implicit functions to flatten nested tuples (that are constructed by multiple concatenations).
+\item \textbf{ADPParsers:} used as basis for a single track DP grammar (using one input sequence). It defines the concatenation operator $\sim$ ({\tt Concat} wrapper), and the terminals (empty, element and sequence). Additionally, it defines the interface functions {\tt parse(input)}, {\tt backtrack(input)} and {\tt build(in,backtrack)} that respectively compute the result, the backtrack and the result corresponding to a trace.
+\item \textbf{TTParsers:} used to define two-track DP grammar (using a pair of sequences as input). Similarly, this class defines concatenations $-\!\!\sim$ and $\sim\!\!-$, terminals (for each track) and the {\tt parse(in1,in2)}, {\tt backtrack(in1,in2)} and {\tt build(in1,in2,backtrack)} functions.
 \ule
 
-During the first phase of project, and after the decision to focus on non-serial problems implementation on GPU, we developed an ad-hoc version of 3 non-serial problems. Since we erroneously complicated the matrix of the polygon triangulation problem, we devised 3 different matrix shape, that is upper triangular for single-track problems, rectangular for two-track problems and parallelogram for the polygon triangulation.
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 
+XXX: make a class diagram ? (classes hierarchies)
 
+XXX: explain thoroughly all the functionalities and dig into the code ?
 
-
-\subsection{LibRNA (?)}
-
-\begin{verbatim}
-1 week on hash maps
-2 weeks to define and analyze the problems (also with FPGA in mind)
-3 weeks restriction to non-serial and ad-hoc implementation on GPU (rectangle, triangle, parallelogram); translation of ADP parsers in Scala (Manohar)
-1 week run-time engine for Scala/JNI/CUDA
-05.11 - rework of the ADP parser to aim at generating C-like code
-12.11 - rework of ADP parsers to extend usages (cyclic, two-track) and aim at automatic backtracking
-19.11 - explorations in LMS / macros
-26.11 - full backtracking: apply/unapply/reapply, rework of the classes
-03.12 - Zuker/JNI
-10.12 - Yield analysis, code generation
-17.12 - code generation: detupling, generic backtrack (vs. ad-hoc), nested aggregates, empty results support
-24.12 - code generation, sick
-31.12 - report
-\end{verbatim}
-
-
-\subsection{ADP parsers}
 \subsection{Transformations and simplifications}
 
 \begin{verbatim}
@@ -150,6 +128,31 @@ During the first phase of project, and after the decision to focus on non-serial
  *      then we have S -> T (S before T)
  * 3. Compute the maximal number of concatenation among each rule (field in Treeable(?))
  * 4. Break rules into subrules (at each Or, which must be at top of the rule)
+\end{verbatim}
+
+\subsection{LibRNA (?)}
+The project development was scheduled in \ul
+\item Problems analysis
+\item Ad-hoc implementation (CUDA)
+\item Porting ADP parsers
+\item Improving parsers / adding functionalities
+\item Integrating CUDA generation into parsers
+\ule
+
+\begin{verbatim}
+1 week on hash maps
+2 weeks to define and analyze the problems (also with FPGA in mind)
+3 weeks restriction to non-serial and ad-hoc implementation on GPU (rectangle, triangle, parallelogram); translation of ADP parsers in Scala (Manohar)
+1 week run-time engine for Scala/JNI/CUDA
+05.11 - rework of the ADP parser to aim at generating C-like code
+12.11 - rework of ADP parsers to extend usages (cyclic, two-track) and aim at automatic backtracking
+19.11 - explorations in LMS / macros
+26.11 - full backtracking: apply/unapply/reapply, rework of the classes
+03.12 - Zuker/JNI
+10.12 - Yield analysis, code generation
+17.12 - code generation: detupling, generic backtrack (vs. ad-hoc), nested aggregates, empty results support
+24.12 - code generation, sick
+31.12 - report
 \end{verbatim}
 
 \subsection{LMS integration}

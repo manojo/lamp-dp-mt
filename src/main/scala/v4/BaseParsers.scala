@@ -7,6 +7,7 @@ trait Signature {
   val window = 0 // windowing size, 0=disabled
   val h:List[Answer]=>List[Answer] = l=>l // optimization function
 
+  // Predefined CUDA-compatible aggregation functions
   def max[T:Numeric]: List[T]=>List[T]
   def min[T:Numeric]: List[T]=>List[T]
   def sum[T:Numeric]: List[T]=>List[T]
