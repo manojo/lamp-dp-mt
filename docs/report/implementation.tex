@@ -1,8 +1,23 @@
 \newpage
 \section{Implementation}
-
 % ------------------------------------------------------------------------------------------------
 \subsection{CUDA ad-hoc}
+In the project planning, an ad-hoc implementation phase immediately followed the problem analysis. The goals of this phase is threefold:\ol
+\item Better understand the challenges in CUDA implementation of dynamic programming problems and get on par with state-of-art implementations.
+\item Have a baseline implementation that is independent of the hardware and that could be benchmarked. We also tried to contact the authors of \cite{swat_mega} and \cite{gpu_atlp} to obtain their implementation. The former provided us with their implementation, which turned out to address large serial problems whereas our focus was on smaller non-serial problems, the latter did not respond to our solicitations.
+\item Have an optimal implementation that can serve as target to be imitated and generalized by the code generation.
+\ole
+
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
+The project development was scheduled in \ul
+\item Problems analysis
+\item Ad-hoc implementation (CUDA)
+\item Porting ADP parsers
+\item Improving parsers / adding functionalities
+\item Integrating CUDA generation into parsers
+\ule
+
 During the first phase of project, and after the decision to focus on non-serial problems implementation on GPU, we developed an ad-hoc version of 3 non-serial problems. Since we erroneously complicated the matrix of the polygon triangulation problem, we devised 3 different matrix shape, that is upper triangular for single-track problems, rectangular for two-track problems and parallelogram for the polygon triangulation.
 
 

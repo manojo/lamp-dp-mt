@@ -40,7 +40,6 @@
 \def\up#1{\textsuperscript{#1}}
 \def\quote#1{\par\begingroup\leftskip1em\rightskip\leftskip\textit{#1}\par\endgroup}
 
-
 % listings
 \definecolor{dkpink}{RGB}{200,0,100}
 \definecolor{gray}{RGB}{128,128,128}
@@ -127,3 +126,16 @@
 
 % default
 \author{\href{mailto:thierry.coppey@epfl.ch}{Thierry Coppey}} %, \href{mailto:manohar.jonnalagedda@epfl.ch}{Manohar Jonnalagedda}, \href{mailto:nithin.george@epfl.ch}{Nithin George}
+
+% \tbox : multiline textbox for pictures; \tbox[0=no frame,l=left_align]{width}{height}{content}
+\makeatletter
+\def\instr#1#2{TT\fi\begingroup\edef\x{\endgroup\noexpand\in@{#1}{#2}}\x\ifin@} 
+\newlength{\tbox@len}
+\newcommand\tbox[4][]{\setlength{\tbox@len}{\unitlength}
+	\if\instr{0}{#1}\else \put(0,0){\framebox(#2,#3)[c]{}} \fi
+	\setlength{\unitlength}{.5\tbox@len}\put(0,#3){\setlength{\unitlength}{1pt}%
+		\put(2,-3){\setlength{\unitlength}{#2\tbox@len}\addtolength{\unitlength}{-4pt}%
+			\begin{minipage}{\unitlength}\if\instr{l}{#1} \else \centering \fi #4 \end{minipage}}}
+	\setlength{\unitlength}{\tbox@len}
+}
+\makeatother
