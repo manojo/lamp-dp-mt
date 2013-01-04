@@ -1,7 +1,7 @@
 \newpage
 \section{Implementation}
 % ------------------------------------------------------------------------------------------------
-\subsection{CUDA ad-hoc}
+\subsection{Ad-hoc CUDA}
 In the project planning, an ad-hoc implementation phase immediately followed the problem analysis (we also present the parallelogram matrix case). The goal of this phase is threefold:\ol
 \item Better understand the challenges in CUDA implementation of dynamic programming problems and get on par with state-of-art implementations.
 \item Have a baseline implementation that is independent of the hardware and that could be benchmarked. We also tried to contact the authors of \cite{swat_mega} and \cite{gpu_atlp} to obtain their implementation. The former provided us with their implementation, which turned out to address large serial problems whereas our focus was on smaller non-serial problems, the latter did not respond to our solicitations.
@@ -94,24 +94,35 @@ As a conclusion, (1) we must remain away to invalidate their result as previous 
 % ------------------------------------------------------------------------------------------------
 \subsection{Scala parsers}
 The Scala parsers consist in 4 traits that are used to construct a DSL program:\ul
-\item \textbf{Signature:} abstraction to define input and output types, and the aggregation function. The signature is implemented by all other traits (in particular algebras and grammars).
+\item \textbf{Signature:} abstraction to define input ({\tt Alphabet}) and output ({\tt Answer}) types, and the aggregation function. The signature is implemented by all other traits (in particular algebras and grammars).
 \item \textbf{BaseParsers:} serves as basis for the two other traits and defines common features. It implements the {\tt Parser} abstraction and all its inheriting classes: {\tt Tabulate}, (abstract) {\tt Terminal}, {\tt Aggregate}, {\tt Filter}, {\tt Map}, {\tt Or}, {\tt Concat}. Terminals are further specialized in the two other traits (ADPParsers and TTParsers). The parser abstraction specifies 3 methods:\ul
 	\item {\tt apply(subword)} computes the parser result; it is used to obtain the corresponding results.
 	\item {\tt unapply(subword,backtrack)} computes the previous step of the backtrack by returning subsequences at the origin of the result; it is invoked recursively to obtain the full backtrack trace.
 	\item {\tt reapply(subword,backtrack)} is very similar to apply, except that it  computes only the results matching the backtrack. It is used to construct the result corresponding to a backtrack trace (possibly in a different domain, pretty printing, ...).
+	\ule
+	To support analysis, the parsers carry additional values:\ul
+	\item Minimum and maximum yield size: functions evaluated recursively except for tabulations where value is attributed in the yield analysis phase.
+	\item Number of inner alternatives: helps counting alternatives, hereby guaranteeing an unique number for each (provided that parsers obtain non-overlapping ranges).
+	\item Number of inner moving concatenations: helps determining required storage for the backtrack as well as retrieving the appropriate index in the backtrack phase
 	\ule
 	Additionally, the BaseParser implements the analysis that are shared by both the Scala and the CUDA version: dead rules elimination, yield analysis and dependencies ordering. Finally, it provides some implicit functions to flatten nested tuples (that are constructed by multiple concatenations).
 \item \textbf{ADPParsers:} used as basis for a single track DP grammar (using one input sequence). It defines the concatenation operator $\sim$ ({\tt Concat} wrapper), and the terminals (empty, element and sequence). Additionally, it defines the interface functions {\tt parse(input)}, {\tt backtrack(input)} and {\tt build(in,backtrack)} that respectively compute the result, the backtrack and the result corresponding to a trace.
 \item \textbf{TTParsers:} used to define two-track DP grammar (using a pair of sequences as input). Similarly, this class defines concatenations $-\!\!\sim$ and $\sim\!\!-$, terminals (for each track) and the {\tt parse(in1,in2)}, {\tt backtrack(in1,in2)} and {\tt build(in1,in2,backtrack)} functions.
 \ule
 
+\begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(14,11)
+\put(3,8){\tbox{8}{2.5}{{\bf Signature} \footnotesize\\ Types: Alphabet, Answer \\ $h$ (aggregation function)}}
+\put(0,4){\tbox{14}{2.5}{{\bf BaseParsers} \footnotesize\\ Tabulate, Terminal, Aggregate, Filter, Map, Or, Concat \\ Analysis: dead rules, yield analysis, dependencies}}
+\put(0,0){\tbox{6}{2.5}{{\bf ADPParsers} \footnotesize\\ $\sim$, $\sim(a,b,c,d)\sim$ \\ Single track terminals}}
+\put(8,0){\tbox{6}{2.5}{{\bf TTParsers} \footnotesize\\ $-\!\!\sim$, $\sim\!\!-$ \\ Two-tracks terminals}}
+{\linethickness{1.5pt}\put(3,2.5){\vector(1,1){1.5}}\put(11,2.5){\vector(-1,1){1.5}}\put(7,6.5){\vector(0,1){1.5}}}
+\end{picture}\end{center}\caption{Class diagram (simplified)}\end{figure}
+
+% ------------------------------------------------------------------------------------------------
+\newpage
+\subsection{Code generation}
+
 {\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
-
-XXX: make a class diagram ? (classes hierarchies)
-
-XXX: explain thoroughly all the functionalities and dig into the code ?
-
-\subsection{Transformations and simplifications}
 
 \begin{verbatim}
  * Parser construction:
@@ -129,6 +140,8 @@ XXX: explain thoroughly all the functionalities and dig into the code ?
  * 3. Compute the maximal number of concatenation among each rule (field in Treeable(?))
  * 4. Break rules into subrules (at each Or, which must be at top of the rule)
 \end{verbatim}
+
+\subsection{JNI wrappers and runtime execution engine}
 
 \subsection{LibRNA (?)}
 The project development was scheduled in \ul
@@ -158,10 +171,4 @@ The project development was scheduled in \ul
 \subsection{LMS integration}
 Why cannot use LMS for everything
 Where and how is LMS useful
-
-\subsection{Code generation}
-
-\subsection{Runtime execution engine}
-
-\subsection{CUDA implementation}
 

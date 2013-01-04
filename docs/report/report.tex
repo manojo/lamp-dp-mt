@@ -8,8 +8,14 @@
 %\shorttitle
 
 \subsection*{Abstract}
-Dynamic programming is a common pattern of Computer Science used in various domains. Yet underlying matrix recurrences might be difficult to express and error prone. Additionally, domain experts might not have the skills to make an efficient parallel implementation. In this project, we leverage the Scala and LMS infrastructure to implement a domain specific language (DSL) for dynamic programming on heterogeneous platforms, which allows to write concise and efficient programs. Our contributions are: \ul
-\item A classification of DP problems characteristics (matrix shape, dependency graph, ...)
+Dynamic programming is a common pattern of Computer Science used in various domains. Yet underlying matrix recurrences might be difficult to express and error prone. Additionally, domain experts might not have the skills to make an efficient parallel implementation. In this project, we present \textit{DynaProg}, a Scala DSL for dynamic programming on heterogeneous platforms which allow to write concise programs and execute them efficiently on GPUs.
+
+Existing work is a DSL embedded in Haskell \cite{adp} with possible conversion to CUDA code \cite{adp_gpu}, a compiler for a dynamic programming external DSL into C code \cite{gapc} or ad-hoc CUDA implementations for specific problem classes \cite{swat_mega}, \cite{gpu_atlp}.
+% XXX: How we compare to other, how to evaluate
+% Benchmark => prove by evaluation intro statements
+
+Our contributions are: \ul
+%\item A classification of DP problems characteristics (matrix shape, dependency graph, ...)
 \item A systematic approach to process data (top-down/bottom-up) and backtracking information (focus on running time and memory efficiency)
 \item A language embedded in Scala (DSL) to express DP problems concisely (based on ADP)
 \item Two implementations: Scala for CPU (features) and an CUDA for GPU (efficiency)
@@ -18,6 +24,7 @@ Dynamic programming is a common pattern of Computer Science used in various doma
 %\item Normalization of the grammar into efficient productions
 %\item Code generator to transform a grammar into efficient code for CPU, GPU (and FPGA)
 \ule
+
 \vfill
 This project has been achieved in collaboration with Manohar Jonnalagedda. I also would like to thank the LAMP team, including Eugene Burmako, Andro Stucki, Vojin Jovanovic and Tiark Rompf who provided insightful advices and suggestions. I hope you will enjoy your reading. \vspace{.3cm}\\
 \textit{Thierry Coppey}
@@ -30,7 +37,7 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 \input{design}
 \input{implementation}
 \section{Benchmarks}
-XXX
+{\color{red} XXX}
 
 \section{Future work} \ul
 \item Serial for problems larger than memory, use hybrid (Myers and Miller's algorithm with $\log_k$ with $k$ depending on available memory) approach depending available memory
@@ -38,96 +45,23 @@ XXX
 	{\tt @DynaProg def Fib(n:Int) = if (n<=2) return 1 else Fib(n-1)+Fib(n-2)}.
 \ule
 
-\section{Conclusion}
-
-% ------------------------------------------------------------------------------------------------
-\section*{Planning --- Work in progress}
-\textbf{Paper introduction:} 
 \begin{verbatim}
-problem to solve, what exists (related work), how we solve it compared to other, how to evaluate
-contributions (3): 3 tensed sentences
-benchmark => prove by evaluation intro statements
-\end{verbatim}
-
-\subsubsection*{Steps}\ol
-\item Re-implement vanilla combinators with lists
-\item Add following problems and features:\ul
-	\item Polygon triangulation (cyclic problem) (parallelogram matrix)
-	\item SWat with arbitrary gap (multi-track grammar) (rectangular matrix)
-	\item Zucker (rules of different complexity $O(n^2) / O(n)$)
-	\ule
-\item Test/proof parsers are correct --- make sure implementation is correct
-\item Automate test to compare against implementation
-\item Build bottom-up vanilla version\ul
-	\item Separate initialization (terminals) and non-terminals (speed up?)
-	\item In parallel implement the code generator for CUDA, hardcode in text function bodies for CUDA
-	\ule
-\item LMS implementation: from normal to Rep/Exp\ul
-	\item Re-implement bottom-up vanilla into LMS
-	\item Re-implement CUDA version and use functions body to infer CUDA code
-	\ule
-\item Benchmarks --- compare also versus other papers.
-\item Write report
-\ole
-
-\subsubsection*{Roadmap}
-\begin{tabular}{rl}
-16.11 & Rules normalization and automatic backtracking as in 5.2 \\
-	& GenScala on LMS + GenCuda + LMS CudaCompiler \\
-23.11 & Problem generalization: "cyclic keyword", Zucker problem / CudaLoop optimization \\
-30.11 &--- Gap due to LMS missing knowledge \\
-7.12 & Benchmarking, grammar analysis \\
-14.12 & First though for larger than mem \\
-21.12 & Writing report \\
-28.12 & --- holiday --- \\
- 4.01 & --- holiday --- \\
-11.01 & Writing report: implementation description and plan for future work \\
-18.01 & Writing report
-\end{tabular}
-
-\subsubsection*{Todo @TCK}
-\subsubsection*{Todo @Manohar}
-\begin{verbatim}
-Look at string templating. """xxx $var xxx"""
-- Cleanup LMS CUDA generator
-
-Separate initialization (base cases, atoms) and processing (rules, recurrences) => less cases to handle (no if)
-
-XXX: how to encode multi-dimensional matrices
+How to Encode multi-dimensional matrices efficiently
 1. assume they have the same type put one after another => different dimensions ok
 2. assume of same size => put into a struct
 => but using different pointers seems more reliable => completely different matrices => fixed list of matrices by dimensionality (O(1), O(n), O(n^2), ...) of structs (determined by number of indices to access object)
-\end{verbatim}
 
-\subsection*{OldPlan} \ol
-\item \textbf{User facing language:} similar to \cite{adp_gpu} or \cite{adp_fusion} \href{http://hackage.haskell.org/package/ADPfusion}{\it ADP fusion}. We want to reuse the transformation mapping (problem description) $\mapsto$ (kernel implementation) for a single element.
-\item \textbf{Prototyping:} understand difficulties and share common base. Prototype of \nameref{aswat} on CUDA/FPGA. Give an idea of how to implement the general case. Benchmark and compare both implementations. Aim to do as good an implementation for the specific platform (CPU/GPA) as possible.
-\item \textbf{Formalize IR:} describe the intermediate representation, formalize the framework provided to the code generators (i.e. memory management, ...).
-\item \textbf{Full compiler stack:} enrich the compiler stack from both top-down (translate best user-facing language parsers) and bottom-up (parametric code generators), core of the work.
-\ole
+Possible extensions / optimizations:
+- making serializable by using aggregation functions/transformations
+- avoiding the cost matrix by moving data in the wavefront
+- Scheduling for large problems (with memory loads for non-serializable)
+- add FPGA target platform
+- pack the data => less memory transfer (i.e. GATC=>4 letters in 1 char)
+- operate on some larger word (ex 64 bits) to increase thread locality and reduce memory accesses
 
-\begin{verbatim}
-1. optimize: terminals of bounded yield + binary decomposition if possible
-2. transform into: axioms (init/fixed) + rules (iterations)
-- define optimizations to IR
-  - making serializable by using aggregation functions/transformations
-  - avoiding the cost matrix by moving it into the wavefront
-- scheduling (with memory loads for non-serializable)
-- code generation for both platforms
-  - possibly choice to use which platform for what part (load/compute @ cpu/gpu/fpga)
-
-----------------------------------
 Core function F:
 - in: s,t strings, neighbor costs: top, left, top+left, neighbor stats: top, left, top+left
 - out: backtrack information, cost(i,j), stats
-
-we might want to pack into memory the matrix data and make threads operate on more than one cell.
-
-Some ideas:
-- define a way to pack the characters => less memory transfer (i.e. GATC=>4 letters in 1 char)
-- operate on some larger word (ex 64 bits) to increase thread locality and reduce memory accesses
-- write a kernel that takes stats from left and r
-
         stats (x)
          ||
          vv
@@ -135,34 +69,6 @@ stats -> KK -> new_stats (y')
 (y)      || \
          vv  --+ backtrack info (Bxy)
      new_stats (x')
-
-and compute the backtracking for its cell (optional as template boolean)
-
-- multi-grain
-  + within the 64b-words : multiple letters at once (thread level)
-  + group threads into blocks that operate on (block level)
-  + kernel that operates one after another (GPU/CPU level)
-    => can we catch a stream's event at CPU level to alloc memory to get back results ?
-- keep track of
-  + stats O(m+n)
-  + backtrack O(m*n)
-
-- are we sure we need squares ?
-  - rectangles can increase the full usage of all threads during (x-y) runs
-  - assuming we put longest word vertically we play hot potato for stats
-    left->right => block.x exchanges within block, last thread writes to
-    global exchange memory (if short, so that it does not penalize running time)
-  - we may go up to running in stripes
-- if we put in diagonal-major data in the memory, why not stream all chunks like
-  that using a cyclic buffer (?) => no empty slot
-  ==> this might be useful for the backtrack information
-
-- use extensively profiling : CUDA profiler
-
-- Robust DP paper provides 2 insights: coalesced access + GPU synchronization
-  => can we do a producer-consumer scenario at the block border so that we can
-     execute a large diagonal horizontal/vertical swipe made of multiple blocks?
-  => multiple swipes at different delays (so that we avoid syncing at every step
 
 For stats (aggregation of the table): we need to maintain both an horizontal and vertical front
 For backtracking we need to maintain the whole table
@@ -173,23 +79,59 @@ For backtracking we need to maintain the whole table
 ----+---+
 we many not need to store what's the previous cell, however, the previous
 cell information (usually limited range) is much more compact than the score(32-64 bits)
-
-----------------------------------------------------------------------------
-Some GPU algorithms: http://hgpu.org/?cat=11
-Translation into C++: http://bibiserv.cebitec.uni-bielefeld.de/macports/resources/download/
-CUDPP libraries (but awfully big resulting binary): http://code.google.com/p/cudpp/
-13 dwarfs: http://developer.amd.com/afds/assets/presentations/2155_final.pdf
-http://tutorials.jenkov.com/java-reflection/fields.html
-http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
-
-XXX: use TypeClass to put a predicate on types
---------------------------------------------
-def fun[T: CanTranslateToC](...)
-def fun[T](implicit ev:CanTranslateToC[T])
-
-class CanTranslateToC[T] { def translate:String }
-implicit def canTranslateInt = new CanTranslateToC[Int] = { def translate = "Int" }
 \end{verbatim}
+
+\section{Conclusion}
+{\color{red} XXX}
+
+% ------------------------------------------------------------------------------------------------
+\section*{Planning}
+\textbf{Paper introduction}\ul
+\item Problem to solve, what exists (related work), how we compare to other, how to evaluate
+\item Contributions (3): 3 tensed sentences
+\item benchmark => prove by evaluation intro statements
+\ule
+
+\subsubsection*{Roadmap}
+\begin{tabular}{rl}
+16.11 & Rules normalization and automatic backtracking \\
+	& GenScala on LMS + GenCuda + LMS CudaCompiler \\
+23.11 & Problem generalization: "cyclic keyword", Zucker problem / CudaLoop optimization \\
+30.11 &--- Gap due to LMS missing knowledge \\
+7.12 & Benchmarking, grammar analysis \\
+14.12 & First thoughts for larger than device memory \\
+21.12 & Writing report \\
+28.12 & --- holiday --- \\
+ 4.01 & --- holiday --- \\
+11.01 & Writing report: implementation description and plan for future work \\
+18.01 & Writing report
+\end{tabular}
+
+\subsubsection*{Todo @TCK}\ul
+\item Test/proof parsers are correct --- make sure implementation is correct
+\item Automate test to compare against implementation
+\item Benchmarks -- use extensively CUDA profiler
+\item Write report
+\item Port LibRNA for CUDA?
+\ule
+
+\subsubsection*{Todo @Manohar}\ul
+\item Integrate LMS code generation into v4.
+\item Fix Zuker coefficients
+\ule
+
+%Some GPU algorithms: http://hgpu.org/?cat=11
+%Translation into C++: http://bibiserv.cebitec.uni-bielefeld.de/macports/resources/download/
+%CUDPP libraries (but awfully big resulting binary): http://code.google.com/p/cudpp/
+%13 dwarfs: http://developer.amd.com/afds/assets/presentations/2155_final.pdf
+%http://tutorials.jenkov.com/java-reflection/fields.html
+%http://lampwww.epfl.ch/~michelou/scala/scala-reflection.html
+%
+%Hint: use TypeClass to put a predicate on types
+%  def fun[T: CanTranslateToC](...)
+%  def fun[T](implicit ev:CanTranslateToC[T])
+%  class CanTranslateToC[T] { def translate:String }
+%  implicit def canTranslateInt = new CanTranslateToC[Int] = { def translate = "Int" }
 
 % ------------------------------------------------------------------------------------------------
 \newpage
