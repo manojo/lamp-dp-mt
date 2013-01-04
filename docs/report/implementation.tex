@@ -121,8 +121,64 @@ The Scala parsers consist in 4 traits that are used to construct a DSL program:\
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Code generation}
+The code generation step produces multiple outputs that are tightly bound to each other. Besides the Scala wrapper (a simple JNI interface), in the C/CUDA code generated we distinguish:\ol
+\item JNI input and output conversion functions
+\item Host memory management and scheduling of CUDA kernels
+\item CUDA matrix computation, which can be further decomposed into matrix scheduling (loops) and (matrix cell) computation. 
+\item CUDA backtrack collection kernel
+\ole
 
 {\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
+\subsubsection{Scala structures conversion}
+
+\subsubsection{Host wrappers}
+
+\subsubsection{Matrix computation scheduling}
+Similarly as in the ad-hoc implementation, progress is made along the diagonal (see \ref{mem_layout}) and each thread is responsible of one line. That is, the matrix is swept horizontally by a <<diagonal of threads>>, that are enabled only if they are within a valid matrix cell.
+
+Special care must be taken to handle computation dependencies: within a warp, all threads are executed at the same time, hence no synchronization is necessary, otherwise, thread may execute in arbitrary order. To enforce synchronization, we first set the block size being equal to the warp size to benefit of the implicit synchronization, it remains to provide inter-block synchronization.
+
+First notice that the DP matrix element has dependencies: along its line, column and possibly intermediate elements in diagonal. By induction, it suffice to have the last column and row element valid (this also guarantees the validity of all intermediate elements). Since line is computed by the current thread (and is valid), it only remains to guarantee that the element of the previous line is valid.
+
+Since the line is computed by the same thread, data validity is guaranteed. Noticing that column dependency is along one direction and that diagonal dependency is valid if line and column are valid, it suffice to have a valid column element.
+
+\begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(6,6)
+	\def\Cfl2#1{#1{0,4}#1{0,3}#1{1,3}#1{0,2}#1{1,2}#1{2,2}#1{0,1}#1{1,1}#1{2,1}#1{3,1}#1{0,0}#1{1,0}#1{2,0}#1{3,0}#1{4,0}}
+	\Cfl2{\Cg}
+	\Cd[0,1]{4,1}{2.8}\Cd[0,1]{4,2}{1.8}\Cd[0,1]{4,3}{0.8}
+	\Cd[1,0]{1,4}{2.8}\Cd[1,0]{2,4}{1.8}\Cd[1,0]{3,4}{0.8}
+	\Cd[1,1]{3,3}{0.8}
+	\multiput(3.5,5.5)(1,-1){6}{\circle{.4}}
+	\multiput(0,0)(1,0){7}{\line(0,1){6}}\multiput(0,0)(0,1){7}{\line(1,0){6}} % matrix
+	\put(3.5,5.5){\color{red}\line(1,-1){5}}\put(7,2){\color{red}\linethickness{1.5pt}\vector(1,0){2}}
+\end{picture}\end{center}\caption{Computation diagonal and dependencies}\end{figure}
+
+\begin{verbatim}
+	// Sync between blocks, removing __threadfence() is incorrect but works
+	// __threadfence();
+	#ifdef SH_PARA // wait for all blocks
+	__syncthreads();
+	++tP; if (threadIdx.x==0) lock[tB]=tP;
+	for (unsigned b=threadIdx.x;b<gridDim.x;b+=blockDim.x) { // sync with all blocks
+		while(lock[(tB+b)%gridDim.x]<tP) {}
+	}
+	#else // wait for previous block only
+	if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }
+	#endif
+	__syncthreads();
+\end{verbatim}
+
+
+\subsubsection{Parsers code generation}
+
+\subsubsection{Backtracking on the GPU}
+
+\subsection{Runtime execution engine}
+
+
+
+XXX: try to add const wherever possible in the CUDA code, maybe this allows the compiler to produce more efficient constant folding.
 
 \begin{verbatim}
  * Parser construction:
@@ -141,7 +197,6 @@ The Scala parsers consist in 4 traits that are used to construct a DSL program:\
  * 4. Break rules into subrules (at each Or, which must be at top of the rule)
 \end{verbatim}
 
-\subsection{JNI wrappers and runtime execution engine}
 
 \subsection{LibRNA (?)}
 The project development was scheduled in \ul

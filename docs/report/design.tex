@@ -319,7 +319,7 @@ Finally, although such problem is interesting because targeted platforms could i
 
 % ------------------------------------------------------------------------------------------------
 \newpage
-\subsection{Memory layout}
+\subsection{Memory layout}\label{mem_layout}
 A major bottleneck on massively parallel architecture with shared memory (like CUDA) is the global memory access. To address it, according to the manufacturer documentation, it would be best if all threads access contiguous memory at the same time (coalesced memory access). This is justified by the memory hardware architecture, where additional latency (precharge rows and columns of the memory chip) is mandatory to access data at very different positions. Since all thread share the same global memory (and most of the time the same scheduler), accessing non-contiguous memory cumulates latencies before progress can be made.
 
 \begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(16,2.5)

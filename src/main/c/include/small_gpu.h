@@ -28,25 +28,23 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 	const unsigned tB = blockIdx.x;
 	unsigned tP=s_start; // block progress
 
-#ifdef SH_RECT
 	for (unsigned jj=s_start; jj<s_stop; ++jj) {
+		#ifdef SH_RECT
 		for (unsigned i=tI; i<M_H; i+=tN) {
 			unsigned j = jj-tI;
 			if (j<M_W) {
-#endif
-#ifdef SH_TRI
-	for (unsigned jj=s_start; jj<s_stop; ++jj) {
+		#endif
+		#ifdef SH_TRI
 		for (unsigned ii=tI; ii<M_H; ii+=tN) {
 			unsigned i=M_H-1-ii;
 			unsigned j=i+jj;
 			if (j<M_W) {
-#endif
-#ifdef SH_PARA
-	for (unsigned jj=s_start; jj<s_stop; ++jj) {
+		#endif
+		#ifdef SH_PARA
 		for (unsigned i=tI; i<M_H; i+=tN) {
 			unsigned j=jj+i;
 			{
-#endif
+		#endif
 				TB b=BT_STOP; TC c=0,c2; // stop
 				if (!INIT(i,j)) { p_kernel }
 				cost[idx(i,j)] = c;

@@ -108,6 +108,7 @@ cell information (usually limited range) is much more compact than the score(32-
 \end{tabular}
 
 \subsubsection*{Todo @TCK}\ul
+\item Instrument generated code for benchmarks
 \item Test/proof parsers are correct --- make sure implementation is correct
 \item Automate test to compare against implementation
 \item Benchmarks -- use extensively CUDA profiler
@@ -135,6 +136,11 @@ cell information (usually limited range) is much more compact than the score(32-
 
 % ------------------------------------------------------------------------------------------------
 \newpage
+%\usepackage{multicol}
+%\usepackage{etoolbox}
+%\patchcmd{\thebibliography}{\section*{\refname}}{\begin{multicols}{2}[\section*{\refname}]}{}{}
+%\patchcmd{\endthebibliography}{\endlist}{\endlist\end{multicols}}{}{}
+%\bibliographystyle{acm}
 \bibliographystyle{plain}
 \bibliography{bibliography.bib}
 \end{document}
