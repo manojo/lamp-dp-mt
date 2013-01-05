@@ -135,73 +135,20 @@ Since Scala general types can be extremely complex and might heavily depend of t
 \item \textbf{Tuples:} if the user-defined type is fairly simple, a named case class might be cumbersome. Tuples are a syntactical lightweight alternative to case classes, although they translate very similarly. Since Tuple classes are generic and can carry different member types; need to name tuple types uniquely, according to their arity and inner types.
 \ule
 
-{\color{red} Currently we use {\tt Manifest}s to extract types, and convert their string representation into our restricted subset. This imposes the additional restriction that we can not nest tuples into case classes, because generic types are then erased. However, the same effect could be achieved with Scala 2.10 {\tt TypeTag}s although we then need to rely on macros expansion to convert them properly into concrete classes. [with help from Eugene, \url{https://gist.github.com/4407488}].}
+{\color{red} Currently we use {\tt Manifest}s and reflection to extract types, and convert their string representation into our restricted subset. Manifests expands tuple inner types and reflection can be used to find class member's types. This imposes the additional restriction that we can not nest tuples into case classes, because generic types are then erased. However, the same effect could be achieved with Scala 2.10 {\tt TypeTag}s although we then need to rely on macros expansion to convert them properly into concrete classes. [see hint from Eugene, \url{https://gist.github.com/4407488}].}
+
+The JNI functions are involved at input to decode sequences arrays and at output, to encode the result and possibly its corresponding trace. Input method is constructed in two steps:\ul
+\item Recursively obtain the classes and accessor methods of the composite input type. A subtle variation is that case classes primitive types are immediately converted into native types whereas tuple members are boxed in their respective class (i.e. {\tt java.lang.Integer}, ...).
+\item For each element of the input array, retrieve the objects recursively and write their primitive values in the corresponding {\tt struct} array.
+\ule
+The output method consist of two different steps:\ul
+\item Converting the result into its JVM counterpart by using the opposite rule as for decoding input (but with JNI types specified in the constructor lookup instead of accessors).
+\item Optionally encoding the backtrack: this is pretty straightforward as the structure is more regular (and make uses of Lists); additional care should be taken to avoid bloating concatenation indices lists with unnecessary elements (as C uses fixed memory whereas Scala lists length might vary).
+\ule
 
 {\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 
-XXX: how to get inner types
-XXX: explain hierarchy restrictions
-
-XXX: supported types: primitive, tuples, classes, discuss limitations.
-XXX: input conversion (native types for classes, wrapped types for tuples), output conversion (similar as input).
-
 \begin{verbatim}
-static unsigned jni_read(JNIEnv* env, jobjectArray input, input_t** in) {
-  if (*in) free(*in); *in=NULL; if (input==NULL) return 0;
-  jsize i,size = env->GetArrayLength(input); if (size==0) return 0;
-  *in=(input_t*)malloc(size*sizeof(input_t)); if (!*in) { fprintf(stderr,"Not enough memory.\n"); exit(1); }
-  // Loading method handles
-  jobject el = env->GetObjectArrayElement(input, 0);
-  jclass cls = env->GetObjectClass(el);
-  jmethodID m_1 = env->GetMethodID(cls, "_1", "()I");
-  jmethodID m_2 = env->GetMethodID(cls, "_2", "()I");
-  // Loading data elements
-  for (i=0;i<size;++i) {
-    el = env->GetObjectArrayElement(input, i);
-    (*in)[i]._1 = (int)env->CallIntMethod(el, m_1);
-    (*in)[i]._2 = (int)env->CallIntMethod(el, m_2);
-  }
-  return size;
-}
-
-static jobject jni_write(JNIEnv* env, T3iii score, trace_t* trace, size_t size) {
-  // Result object
-  jclass cls_1 = env->FindClass("java/lang/Integer");
-  jmethodID ctr_1 = env->GetMethodID(cls_1,"<init>","(I)V");
-  jobject res_1 = env->NewObject(cls_1,ctr_1,score._1);
-  jclass cls_2 = env->FindClass("java/lang/Integer");
-  jmethodID ctr_2 = env->GetMethodID(cls_2,"<init>","(I)V");
-  jobject res_2 = env->NewObject(cls_2,ctr_2,score._2);
-  jclass cls_3 = env->FindClass("java/lang/Integer");
-  jmethodID ctr_3 = env->GetMethodID(cls_3,"<init>","(I)V");
-  jobject res_3 = env->NewObject(cls_3,ctr_3,score._3);
-  jclass cls = env->FindClass("scala/Tuple3");
-  jmethodID ctr = env->GetMethodID(cls,"<init>","(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V");
-  jobject res = env->NewObject(cls,ctr,res_1,res_2,res_3);
-  // Backtrack trace
-  if (trace==NULL) return res;
-  jclass cl2 = env->FindClass("scala/Tuple2");
-  jmethodID ct2 = env->GetMethodID(cl2, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
-  #define J_PAIR(A,B) env->NewObject(cl2, ct2, A, B)
-  jclass cli = env->FindClass("java/lang/Integer");
-  jmethodID cti = env->GetMethodID(cli, "<init>", "(I)V");
-  #define J_INT(X) env->NewObject(cli, cti, X)
-  jclass cln = env->FindClass("scala/collection/immutable/List");
-  jmethodID ctn = env->GetStaticMethodID(cln, "empty", "()Lscala/collection/immutable/List;");
-  const jobject nil = env->CallStaticObjectMethod(cln, ctn);
-  jclass clc = env->FindClass("scala/collection/immutable/$colon$colon");
-  jmethodID ctc = env->GetMethodID(clc, "<init>", "(Ljava/lang/Object;Lscala/collection/immutable/List;)V");
-  #define J_CONS(H,T) env->NewObject(clc, ctc, H, T)
-  jobject jtrace = nil;
-  for (int i=0; i<size; ++i) {
-    jobject ixs = nil; trace_t* tr=&trace[i];
-    for (int l=trace_len[tr->rule]; l>0; --l) ixs = J_CONS(J_INT(tr->pos[l-1]), ixs);
-    jobject el = J_PAIR( J_PAIR(J_INT(tr->i),J_INT(tr->j)) , J_PAIR(J_INT(tr->rule),ixs) );
-    jtrace = J_CONS(el, jtrace);
-  }
-  return J_PAIR(res,jtrace);
-}
-
 jobject Java_{className}_parse(JNIEnv* env, jobject obj, jobjectArray input1) {
   input_t *in1=NULL; jni_read(env,input1,&in1);
   g_init(in1,NULL); free(in1); g_solve();
