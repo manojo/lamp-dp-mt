@@ -128,57 +128,231 @@ The code generation step produces multiple outputs that are tightly bound to eac
 \item CUDA backtrack collection kernel
 \ole
 
+\subsubsection{Scala structures conversion (JNI)}
+Since Scala general types can be extremely complex and might heavily depend of the JVM, we want to restrict the supported types; additionally types should be of fixed size for more efficient processing and easier memory allocation. We support the following types:\ul
+\item \textbf{Primitive types:} natively supported in both Java and C. Since there is some little semantics difference between these two languages types, we used C (signed) types as reference. Supported types are: boolean, byte (unsigned char), char, short, int (32bit), long (64bit), float and double.
+\item \textbf{Empty case classes:} user-defined types might be more complex, so we allow users to define case classes that serve as data container and would be translated into C {\tt struct}s.
+\item \textbf{Tuples:} if the user-defined type is fairly simple, a named case class might be cumbersome. Tuples are a syntactical lightweight alternative to case classes, although they translate very similarly. Since Tuple classes are generic and can carry different member types; need to name tuple types uniquely, according to their arity and inner types.
+\ule
+
+{\color{red} Currently we use {\tt Manifest}s to extract types, and convert their string representation into our restricted subset. This imposes the additional restriction that we can not nest tuples into case classes, because generic types are then erased. However, the same effect could be achieved with Scala 2.10 {\tt TypeTag}s although we then need to rely on macros expansion to convert them properly into concrete classes. [with help from Eugene, \url{https://gist.github.com/4407488}].}
+
 {\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 
-\subsubsection{Scala structures conversion}
+XXX: how to get inner types
+XXX: explain hierarchy restrictions
+
+XXX: supported types: primitive, tuples, classes, discuss limitations.
+XXX: input conversion (native types for classes, wrapped types for tuples), output conversion (similar as input).
+
+\begin{verbatim}
+static unsigned jni_read(JNIEnv* env, jobjectArray input, input_t** in) {
+  if (*in) free(*in); *in=NULL; if (input==NULL) return 0;
+  jsize i,size = env->GetArrayLength(input); if (size==0) return 0;
+  *in=(input_t*)malloc(size*sizeof(input_t)); if (!*in) { fprintf(stderr,"Not enough memory.\n"); exit(1); }
+  // Loading method handles
+  jobject el = env->GetObjectArrayElement(input, 0);
+  jclass cls = env->GetObjectClass(el);
+  jmethodID m_1 = env->GetMethodID(cls, "_1", "()I");
+  jmethodID m_2 = env->GetMethodID(cls, "_2", "()I");
+  // Loading data elements
+  for (i=0;i<size;++i) {
+    el = env->GetObjectArrayElement(input, i);
+    (*in)[i]._1 = (int)env->CallIntMethod(el, m_1);
+    (*in)[i]._2 = (int)env->CallIntMethod(el, m_2);
+  }
+  return size;
+}
+
+static jobject jni_write(JNIEnv* env, T3iii score, trace_t* trace, size_t size) {
+  // Result object
+  jclass cls_1 = env->FindClass("java/lang/Integer");
+  jmethodID ctr_1 = env->GetMethodID(cls_1,"<init>","(I)V");
+  jobject res_1 = env->NewObject(cls_1,ctr_1,score._1);
+  jclass cls_2 = env->FindClass("java/lang/Integer");
+  jmethodID ctr_2 = env->GetMethodID(cls_2,"<init>","(I)V");
+  jobject res_2 = env->NewObject(cls_2,ctr_2,score._2);
+  jclass cls_3 = env->FindClass("java/lang/Integer");
+  jmethodID ctr_3 = env->GetMethodID(cls_3,"<init>","(I)V");
+  jobject res_3 = env->NewObject(cls_3,ctr_3,score._3);
+  jclass cls = env->FindClass("scala/Tuple3");
+  jmethodID ctr = env->GetMethodID(cls,"<init>","(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V");
+  jobject res = env->NewObject(cls,ctr,res_1,res_2,res_3);
+  // Backtrack trace
+  if (trace==NULL) return res;
+  jclass cl2 = env->FindClass("scala/Tuple2");
+  jmethodID ct2 = env->GetMethodID(cl2, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  #define J_PAIR(A,B) env->NewObject(cl2, ct2, A, B)
+  jclass cli = env->FindClass("java/lang/Integer");
+  jmethodID cti = env->GetMethodID(cli, "<init>", "(I)V");
+  #define J_INT(X) env->NewObject(cli, cti, X)
+  jclass cln = env->FindClass("scala/collection/immutable/List");
+  jmethodID ctn = env->GetStaticMethodID(cln, "empty", "()Lscala/collection/immutable/List;");
+  const jobject nil = env->CallStaticObjectMethod(cln, ctn);
+  jclass clc = env->FindClass("scala/collection/immutable/$colon$colon");
+  jmethodID ctc = env->GetMethodID(clc, "<init>", "(Ljava/lang/Object;Lscala/collection/immutable/List;)V");
+  #define J_CONS(H,T) env->NewObject(clc, ctc, H, T)
+  jobject jtrace = nil;
+  for (int i=0; i<size; ++i) {
+    jobject ixs = nil; trace_t* tr=&trace[i];
+    for (int l=trace_len[tr->rule]; l>0; --l) ixs = J_CONS(J_INT(tr->pos[l-1]), ixs);
+    jobject el = J_PAIR( J_PAIR(J_INT(tr->i),J_INT(tr->j)) , J_PAIR(J_INT(tr->rule),ixs) );
+    jtrace = J_CONS(el, jtrace);
+  }
+  return J_PAIR(res,jtrace);
+}
+
+jobject Java_{className}_parse(JNIEnv* env, jobject obj, jobjectArray input1) {
+  input_t *in1=NULL; jni_read(env,input1,&in1);
+  g_init(in1,NULL); free(in1); g_solve();
+  T3iii score=g_backtrack(NULL,NULL);
+  jobject result = jni_write(env, score, NULL, 0);
+  g_free(); return result;
+}
+
+jobject Java_{className}_backtrack(JNIEnv* env, jobject obj, jobjectArray input1) {
+  input_t *in1=NULL; jni_read(env,input1,&in1);
+  g_init(in1,NULL); free(in1); g_solve();
+  trace_t *trace=NULL; unsigned size=0;
+  T3iii score=g_backtrack(&trace,&size);
+  jobject result = jni_write(env, score, trace, size); free(trace);
+  g_free(); return result;
+}
+\end{verbatim}
 
 \subsubsection{Host wrappers}
+XXX: Explain the complexity analysis and split into multiple kernels.
+
+XXX: interface JNI and CUDA kernel launch, allocate/free host/CUDA memory, sets the number of slices for the computation (overcome the kernel timeout issue).
+
+\begin{verbatim}
+void g_init(input_t* in1, input_t* in2) {
+  cuMalloc(g_in1,sizeof(input_t)*(M_H-1));
+  cuPut(in1,g_in1,sizeof(input_t)*(M_H-1),NULL);
+  g_in2=NULL;
+  cuMalloc(g_cost,sizeof(cost_t)*MEM_MATRIX);
+  cuMalloc(g_back,sizeof(back_t)*MEM_MATRIX);
+}
+
+void g_free() { cuFree(g_in1); cuFree(g_cost); cuFree(g_back); cudaDeviceReset(); }
+
+void g_solve() {
+  #define WARP_SIZE 32 // constant over CUDA devices
+  unsigned blk_size = WARP_SIZE;
+  unsigned blk_num = (M_H+blk_size-1)/blk_size;
+  unsigned* lock; cuMalloc(lock,sizeof(unsigned)*blk_num);
+  cuErr(cudaMemset(lock,0,sizeof(unsigned)*blk_num));
+  gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in1, g_in2, g_cost, g_back, lock, 0, (M_W));
+  cuFree(lock);
+}
+
+T3iii g_backtrack(trace_t** trace, unsigned* size) {
+  T3iii res; unsigned i0=0, j0=M_W-1;
+  cuGet(&res,&g_cost[idx(i0,j0)].M,sizeof(T3iii),NULL);
+  if (trace && size) {
+    unsigned mem=(M_W+M_H)*sizeof(trace_t);
+    trace_t *g_trace=NULL; cuMalloc(g_trace,mem);
+    unsigned *g_size=NULL; cuMalloc(g_size,sizeof(unsigned));
+// XXX: new size adaptation
+    gpu_backtrack<<<1,1,0,NULL>>>(g_trace, g_size, g_back, i0, j0);
+    cuGet(size,g_size,sizeof(unsigned),NULL); cuFree(g_size); mem=(*size)*sizeof(trace_t);
+    *trace=(trace_t*)malloc(mem); cuGet(*trace,g_trace,mem,NULL); cuFree(g_trace);
+  }
+  return res;
+}
+\end{verbatim}
 
 \subsubsection{Matrix computation scheduling}
 Similarly as in the ad-hoc implementation, progress is made along the diagonal (see \ref{mem_layout}) and each thread is responsible of one line. That is, the matrix is swept horizontally by a <<diagonal of threads>>, that are enabled only if they are within a valid matrix cell.
 
-Special care must be taken to handle computation dependencies: within a warp, all threads are executed at the same time, hence no synchronization is necessary, otherwise, thread may execute in arbitrary order. To enforce synchronization, we first set the block size being equal to the warp size to benefit of the implicit synchronization, it remains to provide inter-block synchronization.
-
-First notice that the DP matrix element has dependencies: along its line, column and possibly intermediate elements in diagonal. By induction, it suffice to have the last column and row element valid (this also guarantees the validity of all intermediate elements). Since line is computed by the current thread (and is valid), it only remains to guarantee that the element of the previous line is valid.
-
-Since the line is computed by the same thread, data validity is guaranteed. Noticing that column dependency is along one direction and that diagonal dependency is valid if line and column are valid, it suffice to have a valid column element.
-
 \begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(6,6)
 	\def\Cfl2#1{#1{0,4}#1{0,3}#1{1,3}#1{0,2}#1{1,2}#1{2,2}#1{0,1}#1{1,1}#1{2,1}#1{3,1}#1{0,0}#1{1,0}#1{2,0}#1{3,0}#1{4,0}}
 	\Cfl2{\Cg}
-	\Cd[0,1]{4,1}{2.8}\Cd[0,1]{4,2}{1.8}\Cd[0,1]{4,3}{0.8}
-	\Cd[1,0]{1,4}{2.8}\Cd[1,0]{2,4}{1.8}\Cd[1,0]{3,4}{0.8}
-	\Cd[1,1]{3,3}{0.8}
+	{\color{cyan}\Cd[0,1]{4,1}{2.8}\Cd[0,1]{4,2}{1.8}\Cd[1,0]{1,4}{2.8}\Cd[1,0]{2,4}{1.8}\Cd[1,1]{3,3}{0.8}\Cd[2,1]{2,3}{1.8}\Cd[1,2]{3,2}{.9}}
+	\Cd[0,1]{4,3}{0.8}\Cd[1,0]{3,4}{0.8}
 	\multiput(3.5,5.5)(1,-1){6}{\circle{.4}}
 	\multiput(0,0)(1,0){7}{\line(0,1){6}}\multiput(0,0)(0,1){7}{\line(1,0){6}} % matrix
-	\put(3.5,5.5){\color{red}\line(1,-1){5}}\put(7,2){\color{red}\linethickness{1.5pt}\vector(1,0){2}}
-\end{picture}\end{center}\caption{Computation diagonal and dependencies}\end{figure}
+	\put(3.5,5.5){\color{lightgray}\line(1,-1){5}}
+	\multiput(3.7,5.5)(1,-1){6}{\color{red}\linethickness{1.5pt}\vector(1,0){2}}
+	\put(8.6,0.05){\tiny thread 0}
+	\put(3.6,5.75){\tiny thread 5}
+\end{picture}\end{center}\caption{<<Diagonal of threads>> and maximal dependencies}\label{fig:diag_deps}\end{figure}
 
-\begin{verbatim}
-	// Sync between blocks, removing __threadfence() is incorrect but works
-	// __threadfence();
-	#ifdef SH_PARA // wait for all blocks
-	__syncthreads();
-	++tP; if (threadIdx.x==0) lock[tB]=tP;
-	for (unsigned b=threadIdx.x;b<gridDim.x;b+=blockDim.x) { // sync with all blocks
-		while(lock[(tB+b)%gridDim.x]<tP) {}
+Special care must be taken to handle computation dependencies: within a warp, all threads are executed at the same time, hence no synchronization is necessary. To benefit from this implicit synchronization, we set block size being equal to wrap size. It remains to provide inter-block synchronization: dependencies are along line, column and possibly intermediate elements. By induction on rows and columns, it suffice to have the last column and row element valid. Since line is computed by the current thread (hereby valid), it only remains to guarantee that the column element of the previous line is valid (in figure \ref{fig:diag_deps}, previous refers to the line immediately below). To do that, each block writes last valid diagonal in a <<lock>> array, and next block need only to wait (polling) until desired element is marked valid.
+
+
+\begin{lstlisting}[language=C,caption=Synchronization with previous thread block (active waiting)]
+__global__ void gpu_solve(/*...*/ volatile unsigned* lock, unsigned d_start, unsigned d_stop) {
+	const unsigned tB = blockIdx.x;
+	unsigned tP=d_start; // block progress
+
+	for (unsigned diag=d_start; diag<d_stop; ++diag) {
+		/* ... compute diagonal values ... */
+
+		// __threadfence();
+		if (threadIdx.x == 0) {
+			lock[tB] = ++tP;
+			if (tB > 0) while(lock[tB-1]<tP) {}
+		}
+		__syncthreads();
 	}
-	#else // wait for previous block only
-	if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }
-	#endif
-	__syncthreads();
-\end{verbatim}
+}
+\end{lstlisting}
 
 
 \subsubsection{Parsers code generation}
+XXX: structures generation(?)
+XXX: refer to architecture, explain concrete transformations for all parsers
+
+\begin{verbatim}
+__device__ inline T3iii fun0(T2ii i) { return (T3iii){i._1,0,i._2}; }
+__device__ inline int fun1(T3iii a) { return a._2; }
+__device__ inline T3iii fun2(T3iii l, T3iii r) { return (T3iii){l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3}; }
+
+__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, /*...*/) {
+...
+        #define VALID(I,J,RULE) (back[idx(I,J)].RULE.rule!=-1)
+        /* --- M[i,j] --- */
+        if (i+1==j) {
+          T3iii _c=fun0(in1[i]); if (fun1(_c)<fun1(_cost.M) || _back.M.rule==-1) { _cost.M=_c; _back.M=(bt1){0}; }
+        }
+        _unroll for(int k=i+1; k<j; ++k) {
+          if (VALID(i,k,M) && VALID(k,j,M)) {
+            T3iii _c=fun2(cost[idx(i,k)].M,cost[idx(k,j)].M); if (fun1(_c)<fun1(_cost.M) || _back.M.rule==-1) { _cost.M=_c; _back.M=(bt1){1,{k}}; }
+          }
+        }
+        cost[idx(i,j)] = _cost;
+        back[idx(i,j)] = _back;
+...
+}
+\end{verbatim}
 
 \subsubsection{Backtracking on the GPU}
+XXX: explain how it is done, how to get list reversal for free, explain lattice of elements with construction order.
+
+\begin{verbatim}
+__global__ void gpu_backtrack(trace_t* trace, unsigned* size, back_t* back, int i0, int j0) {
+  const unsigned trace_len[2] = {1,1};
+  trace_t *rd=trace, *wr=trace; *size=0;
+  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++(*size); }
+  PUSH_BACK(i0,j0,0);
+  for(;rd<wr;++rd) {
+    bt1* bt;
+    switch (rd->rule) {
+      case 0: bt=(bt1*)&back[idx(rd->i,rd->j)].M; break;
+      case 1: bt=(bt1*)&back[idx(rd->i,rd->j)].M; break;
+    }
+    rd->rule=bt->rule;
+    for (int i=0,l=trace_len[rd->rule]; i<l; ++i) rd->pos[i]=bt->pos[i];
+    switch (rd->rule) {
+      case 0: break;
+      case 1: PUSH_BACK(rd->i,rd->pos[0],0); PUSH_BACK(rd->pos[0],rd->j,0); break;
+    }
+  }
+}
+\end{verbatim}
 
 \subsection{Runtime execution engine}
-
-
-
-XXX: try to add const wherever possible in the CUDA code, maybe this allows the compiler to produce more efficient constant folding.
 
 \begin{verbatim}
  * Parser construction:
