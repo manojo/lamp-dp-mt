@@ -120,7 +120,7 @@ The Scala parsers consist in 4 traits that are used to construct a DSL program:\
 
 % ------------------------------------------------------------------------------------------------
 \newpage
-\subsection{Code generation}
+\subsection{Code generation} \label{codegen}
 The code generation step produces multiple outputs that are tightly bound to each other. Besides the Scala wrapper (a simple JNI interface), in the C/CUDA code generated we distinguish:\ol
 \item JNI input and output conversion functions
 \item Host memory management and scheduling of CUDA kernels
@@ -200,7 +200,7 @@ __global__ void gpu_solve(/*...*/ volatile unsigned* lock, // = {0}
 
 % ----------------------------------------------
 \subsubsection{Parsers code generation}
-Parsers generation is independent of user-defined function generation (see \ref{user_fun_gen}). Tabulation inner parsers are first wrapped in additional aggregation (by $h$, hereby ensuring they produce at most one result) and normalized (according to \ref{normalization}); code generation then occurs recursively, producing a list of loops and conditions, and body (possibly with a hoisted part). Additionally, position variables are maintained and sub-rule index and concatenation indices are propagated. We give an overview of each parser transformation:\ul
+Parsers generation is independent of user-defined function generation (see \ref{user_fun_gen}). Tabulation inner parsers are first wrapped in additional aggregation (by $h$, hereby ensuring they produce at most one result) and normalized (according to \ref{normalization}); code generation then occurs recursively, producing a list of loops and conditions, and body (possibly with a hoisted part). Additionally, position variables are maintained and subrule index and concatenation indices are propagated. We give an overview of each parser transformation:\ul
 \item \textbf{Terminal:} provides its own C code, which correspond usually to the input element value, its position or the position of the matching range.
 \item \textbf{Tabulate:} is a simple value load, possibly wrapped into a validity check. Useless validity verification can be removed by marking the tabulation as <<always valid>>.
 \item \textbf{Aggregate:} corresponds to an intermediate (value,backtrack) pair where inner parsers write their result; outermost aggregation is written back to corresponding (cost, backtrack) matrices. Validity information, and concatenation indices are propagated within backtrack. To preserve a correct semantic, inner aggregations body is hoisted outside loops and condition checks of the enclosing parser.
@@ -214,44 +214,42 @@ Intermediate types must be correctly declared. To do that each user-defined func
 
 % ----------------------------------------------
 \subsubsection{Backtracking on the GPU}
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ 
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+The backtracking is processed similarly as with the Scala parser, the major difference being that since we are generating the C code, we can provide an immediate mapping from the subrule index to the backtrack elements to add to the trace. The backtrack is done in 3 steps:\ul
+\item If window is set, the windowing aggregation kernel is run to determine the position of the best result within the matrix. Otherwise the best position can be found at the last computed element of the matrix.
+\item For a $m\times n$ matrix, allocate a $m+n$ vector with two heads (reading, writing, initialized at the same position). Write the best element in the vector.
+\item While there is a vector element that has been written but not read\ul
+	\item From the parser id and its position retrieve the corresponding (subrule, concatenation indices) pair by reading in the corresponding matrix cell
+	\item Using this, write new backtrack items that are at the origin of the current element.
+	\ule
+\ule
 
-XXX: explain how it is done, how to get list reversal for free, explain lattice of elements with construction order.
-
-\begin{verbatim}
-__global__ void gpu_backtrack(trace_t* trace, unsigned* size, back_t* back, int i0, int j0) {
-  const unsigned trace_len[2] = {1,1};
-  trace_t *rd=trace, *wr=trace; *size=0;
-  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++(*size); }
-  PUSH_BACK(i0,j0,0);
-  for(;rd<wr;++rd) {
-    bt1* bt;
-    switch (rd->rule) {
-      case 0: bt=(bt1*)&back[idx(rd->i,rd->j)].M; break;
-      case 1: bt=(bt1*)&back[idx(rd->i,rd->j)].M; break;
-    }
-    rd->rule=bt->rule;
-    for (int i=0,l=trace_len[rd->rule]; i<l; ++i) rd->pos[i]=bt->pos[i];
-    switch (rd->rule) {
-      case 0: break;
-      case 1: PUSH_BACK(rd->i,rd->pos[0],0); PUSH_BACK(rd->pos[0],rd->j,0); break;
-    }
-  }
-}
-\end{verbatim}
+Since code is generated, it is possible to write the last step using a switch case, hereby flattening the writes in the vector (compared to recursive calls in Scala). Finally, since the trace has to be reversed, we can obtain this transformation for free by constructing the trace list from the end in the JNI conversion. Reversing the list present the advantage that trace is immediately usable to construct the desired element. It might be possible that Scala and CUDA parser provide different traces to construct the same result, because the trace verifies the dependency order, which is only a partial order.
 
 % ----------------------------------------------
 \subsubsection{User functions generation} \label{user_fun_gen}
-How LMS is used to generate function
+{\color{red}
+\begin{verbatim}
+XXX: How LMS is used to generate function
 Possibly write that we can do the same with macros
 Why cannot use LMS for everything
 Where and how is LMS useful
+Also user function code generation with macros ?
+\end{verbatim}
+}
 
 \subsection{Runtime execution engine}
-XXX: compiler for C and for Scala
+The runtime execution engine is made of two instrumented compilers:\ul
+\item A wrapper for {\tt g++} and {\tt nvcc} that can combine different file types ({\tt .h}, {\tt .c}, {\tt .cu}) into a JNI library which is then loaded into the current JVM instance. If necessary, paths can be customized to fit the user environment.
+\item A wrapper for the Scala compiler, which allow the creation of Scala interface to the freshly compiled JNI libraries. It should be noted there that using {\tt VirtualDirectory} as compilation target prevents the interaction with JNI, hence physical path has to be used.
+\ule
+
+These two compilers interfaces are then mixed in another class that transform the previously (see \ref{codegen}) generated code, fixing input sizes and splits (number of kernels to launch to respect the time limit) constants, and execute it.
+
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ 
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 
 \subsection{LibRNA (?)}
+
 The project development was scheduled in \ul
 \item Problems analysis
 \item Ad-hoc implementation (CUDA)

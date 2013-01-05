@@ -40,9 +40,13 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 {\color{red} XXX}
 
 \section{Future work} \ul
-\item Serial for problems larger than memory, use hybrid (Myers and Miller's algorithm with $\log_k$ with $k$ depending on available memory) approach depending available memory
-\item Annotation on recursive functions to use dynamic programming like \\
-	{\tt @DynaProg def Fib(n:Int) = if (n<=2) return 1 else Fib(n-1)+Fib(n-2)}.
+\item Implementation for serial problems larger than memory, using hybrid (Myers and Miller's algorithm with $\log_k$ with $k$ depending on available memory)
+\item Transforming non-serial into serial using aggregation functions/transformations
+\item Avoid to maintain the cost matrix in memory by moving data in the wavefront
+\item Non-serial scheduling for large problems (with memory loads for non-serializable)
+\item Add FPGA target platform (George Nithin)
+\item Pack the data => less memory transfer (i.e. GATC=>4 letters in 1 char)
+\item Operate on larger words (ex 64 bits) to increase thread locality and reduce memory accesses
 \ule
 
 \begin{verbatim}
@@ -51,33 +55,25 @@ How to Encode multi-dimensional matrices efficiently
 2. assume of same size => put into a struct
 => but using different pointers seems more reliable => completely different matrices => fixed list of matrices by dimensionality (O(1), O(n), O(n^2), ...) of structs (determined by number of indices to access object)
 
-Possible extensions / optimizations:
-- making serializable by using aggregation functions/transformations
-- avoiding the cost matrix by moving data in the wavefront
-- Scheduling for large problems (with memory loads for non-serializable)
-- add FPGA target platform
-- pack the data => less memory transfer (i.e. GATC=>4 letters in 1 char)
-- operate on some larger word (ex 64 bits) to increase thread locality and reduce memory accesses
-
 Core function F:
 - in: s,t strings, neighbor costs: top, left, top+left, neighbor stats: top, left, top+left
 - out: backtrack information, cost(i,j), stats
-        stats (x)
-         ||
-         vv
-stats -> KK -> new_stats (y')
-(y)      || \
-         vv  --+ backtrack info (Bxy)
-     new_stats (x')
+         stats (x)
+          ||
+          vv
+stats -> [  ] -> new_stats (y')
+(y)       || \
+          vv  --+ backtrack info (Bxy)
+      new_stats (x')
 
-For stats (aggregation of the table): we need to maintain both an horizontal and vertical front
+For stats, we need to maintain an horizontal and vertical front
 For backtracking we need to maintain the whole table
 ... | . |
 ..A | B | min/max: Min(D)=Min(Min(C),Min(B))
 ----+---+ sum    : Sum(D)=Sum(C)+Sum(B)-Sum(A)
 ..C | D | avg    : sum both #cells and values then divide at appropriate cell
 ----+---+
-we many not need to store what's the previous cell, however, the previous
+we may not need to store what's the previous cell, however, the previous
 cell information (usually limited range) is much more compact than the score(32-64 bits)
 \end{verbatim}
 
@@ -108,10 +104,9 @@ cell information (usually limited range) is much more compact than the score(32-
 \end{tabular}
 
 \subsubsection*{Todo @TCK}\ul
-\item Instrument generated code for benchmarks
-\item Test/proof parsers are correct --- make sure implementation is correct
+\item Test/proof parsers are correct -- make sure implementation is correct
 \item Automate test to compare against implementation
-\item Benchmarks -- use extensively CUDA profiler
+\item Benchmarks -- use CUDA profiler(?)
 \item Write report
 \item Port LibRNA for CUDA?
 \ule
