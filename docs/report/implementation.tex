@@ -128,6 +128,7 @@ The code generation step produces multiple outputs that are tightly bound to eac
 \item CUDA backtrack collection kernel
 \ole
 
+% ----------------------------------------------
 \subsubsection{Scala structures conversion (JNI)}
 Since Scala general types can be extremely complex and might heavily depend of the JVM, we want to restrict the supported types; additionally types should be of fixed size for more efficient processing and easier memory allocation. We support the following types:\ul
 \item \textbf{Primitive types:} natively supported in both Java and C. Since there is some little semantics difference between these two languages types, we used C (signed) types as reference. Supported types are: boolean, byte (unsigned char), char, short, int (32bit), long (64bit), float and double.
@@ -146,6 +147,7 @@ The output method consist of two different steps:\ul
 \item Optionally encoding the backtrack: this is pretty straightforward as the structure is more regular (and make uses of Lists); additional care should be taken to avoid bloating concatenation indices lists with unnecessary elements (as C uses fixed memory whereas Scala lists length might vary).
 \ule
 
+% ----------------------------------------------
 \subsubsection{Host wrappers}
 The host wrappers are the functions bridging between JNI and CUDA; their duties are:\ul
 \item Exposing JNI parsing and backtracking functions
@@ -158,6 +160,7 @@ These simple operations do not require a detailed description. The only peculiar
 
 Since computations are made diagonal-by-diagonal (see \ref{matrix_scheduling}), we can easily decompose the matrix computation by adapting the number of diagonals computed per kernel. The global complexity being the product of the number of elements and the complexity per element, the latter being equal to the number of unbounded concatenations (where maximal size is infinite).
 
+% ----------------------------------------------
 \subsubsection{Matrix computation scheduling} \label{matrix_scheduling}
 Similarly as in the ad-hoc implementation, progress is made along the diagonal (see \ref{mem_layout}) and each thread is responsible of one line. That is, the matrix is swept horizontally by a <<diagonal of threads>>, that are enabled only if they are within a valid matrix cell.
 
@@ -174,8 +177,7 @@ Similarly as in the ad-hoc implementation, progress is made along the diagonal (
 	\put(3.6,5.75){\tiny thread 5}
 \end{picture}\end{center}\caption{<<Diagonal of threads>> and maximal dependencies}\label{fig:diag_deps}\end{figure}
 
-Special care must be taken to handle computation dependencies: within a warp, all threads are executed at the same time, hence no synchronization is necessary. To benefit from this implicit synchronization, we set block size being equal to wrap size. It remains to provide inter-block synchronization: dependencies are along line, column and possibly intermediate elements. By induction on rows and columns, it suffice to have the last column and row element valid. Since line is computed by the current thread (hereby valid), it only remains to guarantee that the column element of the previous line is valid (in figure \ref{fig:diag_deps}, previous refers to the line immediately below). To do that, each block writes last valid diagonal in a <<lock>> array, and next block need only to wait (polling) until desired element is marked valid.
-
+Special care must be taken to handle computation dependencies: within a warp, all threads are executed at the same time, hence no synchronization is necessary. To benefit from this implicit synchronization, we set block size being equal to wrap size. It remains to provide inter-block synchronization: dependencies are along line, column and possibly intermediate elements. By induction on rows and columns, it suffice to have the last column and row element valid. Since line is computed by the current thread (hereby valid), it only remains to guarantee that the column element of the previous line is valid (in figure \ref{fig:diag_deps}, previous refers to the line immediately below). To do that, each block writes last valid diagonal in a <<lock>> array, and next block need only to wait (polling) until desired element is marked valid. Notice that {\tt \_\_threadfence} is not mandatory (hereby slightly improving performance), verifying the observation of \cite{gpu_barrier}.
 
 \begin{lstlisting}[language=C,caption=Synchronization with previous thread block (active waiting)]
 __global__ void gpu_solve(/*...*/ volatile unsigned* lock, // = {0}
@@ -195,39 +197,26 @@ __global__ void gpu_solve(/*...*/ volatile unsigned* lock, // = {0}
 	}
 }
 \end{lstlisting}
-Notice that {\tt \_\_threadfence} is not necessary here, verifying the observation of \cite{gpu_barrier}.
 
+% ----------------------------------------------
 \subsubsection{Parsers code generation}
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+Parsers generation is independent of user-defined function generation (see \ref{user_fun_gen}). Tabulation inner parsers are first wrapped in additional aggregation (by $h$, hereby ensuring they produce at most one result) and normalized (according to \ref{normalization}); code generation then occurs recursively, producing a list of loops and conditions, and body (possibly with a hoisted part). Additionally, position variables are maintained and sub-rule index and concatenation indices are propagated. We give an overview of each parser transformation:\ul
+\item \textbf{Terminal:} provides its own C code, which correspond usually to the input element value, its position or the position of the matching range.
+\item \textbf{Tabulate:} is a simple value load, possibly wrapped into a validity check. Useless validity verification can be removed by marking the tabulation as <<always valid>>.
+\item \textbf{Aggregate:} corresponds to an intermediate (value,backtrack) pair where inner parsers write their result; outermost aggregation is written back to corresponding (cost, backtrack) matrices. Validity information, and concatenation indices are propagated within backtrack. To preserve a correct semantic, inner aggregations body is hoisted outside loops and condition checks of the enclosing parser.
+\item \textbf{Or:} since parsers are normalized and operate on a single aggregation result, it suffice to emit sequentially code of alternatives.
+\item \textbf{Map:} wraps its argument into a the user-defined function call
+\item \textbf{Filter:} wraps its body into user-defined condition check
+\item \textbf{Concat:} fixed size concatenation are wrapped in simple conditions; moving concatenations are wrapped in a {\tt for} loop. The loops and conditions are further simplified to reduce range and remove useless conditions before actual code is emitted.
+\ule
 
+Intermediate types must be correctly declared. To do that each user-defined function provides its input and output types. Aggregation temporary values declaration is ensured by a \textit{exists-or-declare} header policy that is called for every type declaration.
 
-XXX: structures generation(?)
-XXX: refer to architecture, explain concrete transformations for all parsers
-
-\begin{verbatim}
-__device__ inline T3iii fun0(T2ii i) { return (T3iii){i._1,0,i._2}; }
-__device__ inline int fun1(T3iii a) { return a._2; }
-__device__ inline T3iii fun2(T3iii l, T3iii r) { return (T3iii){l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3}; }
-
-__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, /*...*/) {
-...
-        #define VALID(I,J,RULE) (back[idx(I,J)].RULE.rule!=-1)
-        /* --- M[i,j] --- */
-        if (i+1==j) {
-          T3iii _c=fun0(in1[i]); if (fun1(_c)<fun1(_cost.M) || _back.M.rule==-1) { _cost.M=_c; _back.M=(bt1){0}; }
-        }
-        _unroll for(int k=i+1; k<j; ++k) {
-          if (VALID(i,k,M) && VALID(k,j,M)) {
-            T3iii _c=fun2(cost[idx(i,k)].M,cost[idx(k,j)].M); if (fun1(_c)<fun1(_cost.M) || _back.M.rule==-1) { _cost.M=_c; _back.M=(bt1){1,{k}}; }
-          }
-        }
-        cost[idx(i,j)] = _cost;
-        back[idx(i,j)] = _back;
-...
-}
-\end{verbatim}
-
+% ----------------------------------------------
 \subsubsection{Backtracking on the GPU}
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ 
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
 XXX: explain how it is done, how to get list reversal for free, explain lattice of elements with construction order.
 
 \begin{verbatim}
@@ -252,25 +241,15 @@ __global__ void gpu_backtrack(trace_t* trace, unsigned* size, back_t* back, int 
 }
 \end{verbatim}
 
+% ----------------------------------------------
+\subsubsection{User functions generation} \label{user_fun_gen}
+How LMS is used to generate function
+Possibly write that we can do the same with macros
+Why cannot use LMS for everything
+Where and how is LMS useful
+
 \subsection{Runtime execution engine}
-
-\begin{verbatim}
- * Parser construction:
- * 1. Assign a "OR_id" (sub_rule_id) and "CONCAT_id" to all parsers so that we know which rule applies
- *    How to skip some indices ?
- *
- * Scala running:
- * 2. Provide meaningful backtrack: rule_id and list of concat indices
- *
- * Code generation:
- * 1. Normalize rules (at hash-map insertion (?))
- * 2. Compute dependency analysis between rules => order them into a list/queue
- *    - If rule R contains another rule S unconcatenated (or concatenated with empty)
- *      then we have S -> T (S before T)
- * 3. Compute the maximal number of concatenation among each rule (field in Treeable(?))
- * 4. Break rules into subrules (at each Or, which must be at top of the rule)
-\end{verbatim}
-
+XXX: compiler for C and for Scala
 
 \subsection{LibRNA (?)}
 The project development was scheduled in \ul
@@ -296,8 +275,4 @@ The project development was scheduled in \ul
 24.12 - code generation, sick
 31.12 - report
 \end{verbatim}
-
-\subsection{LMS integration}
-Why cannot use LMS for everything
-Where and how is LMS useful
 
