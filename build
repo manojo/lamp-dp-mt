@@ -14,7 +14,7 @@ if [ "$1" = "clean" ]; then printf 'Cleaning ... '; rm -rf bin; echo 'done.'; ex
 
 printf 'LibRNA JNI: '; src/librna/make bin
 scalac2 'LibRNA' _rna src/librna/*.scala
-if scalac2 'Base parsers' _v4 src/main/scala/v4/*.scala; then rm bin/_ex.md5; fi
+if scalac2 'Base parsers' _v4 src/main/scala/v4/*.scala; then rm bin/_ex.md5 2>/dev/null; fi
 scalac2 'Examples' _ex src/main/scala/v4/examples/*.scala
 
 echo

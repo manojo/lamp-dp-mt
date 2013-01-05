@@ -146,70 +146,19 @@ The output method consist of two different steps:\ul
 \item Optionally encoding the backtrack: this is pretty straightforward as the structure is more regular (and make uses of Lists); additional care should be taken to avoid bloating concatenation indices lists with unnecessary elements (as C uses fixed memory whereas Scala lists length might vary).
 \ule
 
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
-
-\begin{verbatim}
-jobject Java_{className}_parse(JNIEnv* env, jobject obj, jobjectArray input1) {
-  input_t *in1=NULL; jni_read(env,input1,&in1);
-  g_init(in1,NULL); free(in1); g_solve();
-  T3iii score=g_backtrack(NULL,NULL);
-  jobject result = jni_write(env, score, NULL, 0);
-  g_free(); return result;
-}
-
-jobject Java_{className}_backtrack(JNIEnv* env, jobject obj, jobjectArray input1) {
-  input_t *in1=NULL; jni_read(env,input1,&in1);
-  g_init(in1,NULL); free(in1); g_solve();
-  trace_t *trace=NULL; unsigned size=0;
-  T3iii score=g_backtrack(&trace,&size);
-  jobject result = jni_write(env, score, trace, size); free(trace);
-  g_free(); return result;
-}
-\end{verbatim}
-
 \subsubsection{Host wrappers}
-XXX: Explain the complexity analysis and split into multiple kernels.
+The host wrappers are the functions bridging between JNI and CUDA; their duties are:\ul
+\item Exposing JNI parsing and backtracking functions
+\item Calling appropriate conversion methods
+\item Allocating host and CUDA memory (and managing transfers between them)
+\item Launching CUDA kernels: matrix computation, backtrack, and possibly aggregation within window (additional aggregation among window results, would this option be set)
+\ule
 
-XXX: interface JNI and CUDA kernel launch, allocate/free host/CUDA memory, sets the number of slices for the computation (overcome the kernel timeout issue).
+These simple operations do not require a detailed description. The only peculiarity of our execution environment, is that the kernel execution duration is bound to approximately 10 seconds\footnote{Hard limit imposed by the operating system. Although workarounds exist for Linux and Windows (requiring a second graphic card to display the UI), none of them is compatible with Mac OS. Eventually, a hack has been devised to force the UI on CPU while keeping the dedicated CUDA card powered; unfortunately this does not alleviate the kernel execution timeout.}. To solve this issue, we estimate the overall complexity of matrix computation, which allows us to estimate running time, then break computation into multiple kernels sufficiently small to fit in the time limit.
 
-\begin{verbatim}
-void g_init(input_t* in1, input_t* in2) {
-  cuMalloc(g_in1,sizeof(input_t)*(M_H-1));
-  cuPut(in1,g_in1,sizeof(input_t)*(M_H-1),NULL);
-  g_in2=NULL;
-  cuMalloc(g_cost,sizeof(cost_t)*MEM_MATRIX);
-  cuMalloc(g_back,sizeof(back_t)*MEM_MATRIX);
-}
+Since computations are made diagonal-by-diagonal (see \ref{matrix_scheduling}), we can easily decompose the matrix computation by adapting the number of diagonals computed per kernel. The global complexity being the product of the number of elements and the complexity per element, the latter being equal to the number of unbounded concatenations (where maximal size is infinite).
 
-void g_free() { cuFree(g_in1); cuFree(g_cost); cuFree(g_back); cudaDeviceReset(); }
-
-void g_solve() {
-  #define WARP_SIZE 32 // constant over CUDA devices
-  unsigned blk_size = WARP_SIZE;
-  unsigned blk_num = (M_H+blk_size-1)/blk_size;
-  unsigned* lock; cuMalloc(lock,sizeof(unsigned)*blk_num);
-  cuErr(cudaMemset(lock,0,sizeof(unsigned)*blk_num));
-  gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in1, g_in2, g_cost, g_back, lock, 0, (M_W));
-  cuFree(lock);
-}
-
-T3iii g_backtrack(trace_t** trace, unsigned* size) {
-  T3iii res; unsigned i0=0, j0=M_W-1;
-  cuGet(&res,&g_cost[idx(i0,j0)].M,sizeof(T3iii),NULL);
-  if (trace && size) {
-    unsigned mem=(M_W+M_H)*sizeof(trace_t);
-    trace_t *g_trace=NULL; cuMalloc(g_trace,mem);
-    unsigned *g_size=NULL; cuMalloc(g_size,sizeof(unsigned));
-// XXX: new size adaptation
-    gpu_backtrack<<<1,1,0,NULL>>>(g_trace, g_size, g_back, i0, j0);
-    cuGet(size,g_size,sizeof(unsigned),NULL); cuFree(g_size); mem=(*size)*sizeof(trace_t);
-    *trace=(trace_t*)malloc(mem); cuGet(*trace,g_trace,mem,NULL); cuFree(g_trace);
-  }
-  return res;
-}
-\end{verbatim}
-
-\subsubsection{Matrix computation scheduling}
+\subsubsection{Matrix computation scheduling} \label{matrix_scheduling}
 Similarly as in the ad-hoc implementation, progress is made along the diagonal (see \ref{mem_layout}) and each thread is responsible of one line. That is, the matrix is swept horizontally by a <<diagonal of threads>>, that are enabled only if they are within a valid matrix cell.
 
 \begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(6,6)
@@ -229,7 +178,8 @@ Special care must be taken to handle computation dependencies: within a warp, al
 
 
 \begin{lstlisting}[language=C,caption=Synchronization with previous thread block (active waiting)]
-__global__ void gpu_solve(/*...*/ volatile unsigned* lock, unsigned d_start, unsigned d_stop) {
+__global__ void gpu_solve(/*...*/ volatile unsigned* lock, // = {0}
+		unsigned d_start, unsigned d_stop) {
 	const unsigned tB = blockIdx.x;
 	unsigned tP=d_start; // block progress
 
@@ -245,9 +195,12 @@ __global__ void gpu_solve(/*...*/ volatile unsigned* lock, unsigned d_start, uns
 	}
 }
 \end{lstlisting}
-
+Notice that {\tt \_\_threadfence} is not necessary here, verifying the observation of \cite{gpu_barrier}.
 
 \subsubsection{Parsers code generation}
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
+
 XXX: structures generation(?)
 XXX: refer to architecture, explain concrete transformations for all parsers
 

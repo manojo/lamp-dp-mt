@@ -365,12 +365,12 @@ trait CodeGen extends BaseParsers { this:Signature =>
       head.add("#define input_t "+tpAlphabet)
       head.add("typedef struct { "+rulesOrder.map{n=>tpAnswer+" "+n+";"}.mkString(" ")+" } cost_t;")
       head.add("typedef struct { "+rulesOrder.map{n=>val c=rules(n).inner.cat; btTpe(c)+" "+n+";"}.mkString(" ")+" } back_t;")
-      // Matrix cell time complexity: O(n^ max(#unaggregated floating concatenations) )
-      var cpx:Int=0; rules.foreach{case(n,t) => ufc(t.inner)}
-      def ufc[T](p0:Parser[T]):Int = p0 match {
-        case Aggregate(p,_) => ufc(p); 0 case cc@Concat(l,r,_) => val c=(if (cc.hasBt) 1 else 0)+ufc(l)+ufc(r); if (c>cpx) cpx=c; c
-        case Filter(p,_) => ufc(p) case Map(p,_) => ufc(p) case Or(l,r) => Math.max(ufc(l),ufc(r)) case _ => 0
+      // Time complexity of computations: O(n^( max(#unbounded concatenations) + matrix_dimensions=2 ))
+      def ucc[T](p0:Parser[T]):Int = p0 match {
+        case cc@Concat(l,r,_) => ucc(l)+ucc(r)+(if (cc.max== -1) 1 else 0)
+        case Aggregate(p,_)=>ucc(p) case Filter(p,_)=>ucc(p) case Map(p,_)=>ucc(p) case Or(l,r)=>Math.max(ucc(l),ucc(r)) case _=>0
       }
+      val cpx = rules.map{case(_,t)=>ucc(t.inner)}.max + 2
       // Code generation informations
       val info="// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+", complexity/element=O(n^"+cpx+"), splits={SPLITS}\n"+
         rulesOrder.zipWithIndex.map { case(n,i)=> val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max) }.mkString
@@ -383,9 +383,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
   abstract class CodeCompiler extends CCompiler with ScalaCompiler {
     def genDP[T](size1:Int,size2:Int,bt:Boolean,tt:Boolean)(implicit mT: scala.reflect.ClassTag[T]):T = {
       val className = "CompWrapper"+CompileCount.get // fresh namespace for the problem (code+in1+in2)
-      // Time complexity of computations: O(n^( max(#unaggregated floating concatenations)=code_ + matrix_dimensions=2 ))
       // Problems up to 'cudaSplit' can be solve within a single kernel, otherwise, divide running time in splits
-      val splits:Int = Math.ceil(Math.pow(Math.max(size1,size2)*1.0/cudaSplit,code_cpx + 2)).intValue
+      val splits:Int = Math.ceil(Math.pow(Math.max(size1,size2)*1.0/cudaSplit,code_cpx)).intValue
       if (benchmark) println("%-20s : %d x %d / %d".format("Size / splits",size1,size2,splits))
       time("C/CUDA compilation"){()=>
         val map = scala.collection.immutable.Map(("className",className),("MAT_HEIGHT",""+(size1+1)),("MAT_WIDTH",""+(size2+1)),("SPLITS",""+splits))
