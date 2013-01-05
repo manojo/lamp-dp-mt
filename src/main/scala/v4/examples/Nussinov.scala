@@ -51,7 +51,7 @@ trait PrettyPairingAlgebra extends PairingSig {
   }
 }
 
-trait NussinovGrammar extends LexicalParsers with CodeGen with PrettyPairingAlgebra {
+trait NussinovGrammar extends LexicalParsers with PrettyPairingAlgebra {
   val basePairs = List(('a','u'),('u','a'),('g','u'),('u','g'),('c','g'),('g','c'))
   def isBasePair(a: Char, b: Char) = basePairs contains (a,b)
 
@@ -71,5 +71,4 @@ trait NussinovGrammar extends LexicalParsers with CodeGen with PrettyPairingAlge
 
 object Nussinov extends NussinovGrammar with App {
   println(parse("guaugu"))
-  println(gen)
 }

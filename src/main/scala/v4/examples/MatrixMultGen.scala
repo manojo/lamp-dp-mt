@@ -32,11 +32,16 @@ trait MatrixAlgebraGen extends MatrixSig {
 
 // Code generator only
 object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen with App {
-  val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray // -> 1x3 matrix, 122 multiplications
+  //val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray // -> 1x3 matrix, 122 multiplications
+  def r(x:Int) = (x*2309 ^ (x+2)*947) % 173 + 3
+  var input=(0 until 1024).map { x=>(r(x),r(x+1)) }.toArray
+  //println(input)
 
   // ------- Extra codegen initialization
+  override val benchmark = true
   override val tps=(manifest[Alphabet],manifest[Answer])
   // ------- Extra codegen initialization
   //println(gen)
-  println(backtrackCU(input))
+  //println(parseCU(input))
+  println(backtrackCU(input)._1)
 }

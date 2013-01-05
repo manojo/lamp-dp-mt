@@ -11,7 +11,7 @@ trait TriangulationAlgebra extends TriangulationSignature {
   override val h = (l:List[Answer]) => if(l.isEmpty) List() else List(l.minBy(_._3))
 }
 
-object Triangulation extends LexicalParsers with CodeGen with TriangulationAlgebra {
+object Triangulation extends LexicalParsers with TriangulationAlgebra {
   def edge(a:Int,b:Int):Int = (in(if(b==size)0 else a),in(if(b==size)a else b)) match {
     case ('a','d') | ('a','e') | ('b','d') => 1
     case _ => 2
@@ -33,6 +33,5 @@ object Triangulation extends LexicalParsers with CodeGen with TriangulationAlgeb
   def main(args: Array[String]) = {
     println(parse("abcdef"))
     printBT(backtrack("abcdef"))
-    println(gen)
   }
 }

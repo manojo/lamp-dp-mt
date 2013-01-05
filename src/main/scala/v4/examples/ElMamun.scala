@@ -20,7 +20,7 @@ trait SellerAlgebra extends Bill {
 }
 
 // Common grammar
-trait BillGrammar extends LexicalParsers with CodeGen with Bill {
+trait BillGrammar extends LexicalParsers with Bill {
   override type Alphabet = Char
 
   def plus = charf(_ == '+')
@@ -45,8 +45,8 @@ object ElMamun extends App {
   val input = "1+2*3*4+5"
   
   println("Buyer : "+buyer.bargain(input).head)
-  println(buyer.gen)
+  //println(buyer.gen)
   println
   println("Seller: "+seller.bargain(input).head)
-  println(buyer.gen)
+  //println(buyer.gen)
 }

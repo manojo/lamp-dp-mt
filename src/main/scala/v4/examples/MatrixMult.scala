@@ -44,11 +44,11 @@ trait PrettyMatrixAlgebra extends MatrixSig {
 }
 
 // Matrix multiplication grammar (rules)
-trait MatrixGrammar extends ADPParsers with CodeGen with MatrixSig {
+trait MatrixGrammar extends ADPParsers with MatrixSig {
   val matrixGrammar:Tabulate = tabulate("M",(
     el ^^ single
   | (matrixGrammar ~ matrixGrammar) ^^ mult // { case (a1,a2) => mult(a1, a2) }
-  ) aggregate h)
+  ) aggregate h,true)
 
   val axiom=matrixGrammar
 }
@@ -57,7 +57,7 @@ trait MatrixGrammar extends ADPParsers with CodeGen with MatrixSig {
 object MatrixMult extends MatrixGrammar with PrettyMatrixAlgebra with App {
   val input = List((10,100),(100,5),(5,50)).toArray
   println(parse(input))
-  println(gen)
+  //println(gen)
 }
 
 // Demonstration of the separate DP-backtrack / build process

@@ -48,6 +48,6 @@ trait TTParsers extends BaseParsers { this:Signature =>
     def apply(t:(A,(B,C))) = { val (a,(b,c))=t; fn(a,b,c) } }
   implicit def swapTT[A,B,R](fn:Function2[A,B,R]) = new (((B,A))=>R) with CFun {
     def apply(t:(B,A)) = { val (b,a)=t; fn(a,b) }
-    val (body,args,tpe) = fn match {case f:CFun=>(f.body,f.args.reverse,f.tpe) case _=>("ERR",Nil,"ERR")} // XXX
+    val (body,args,tpe) = fn match {case f:CFun=>(f.body,f.args.reverse,f.tpe) case _=>("",Nil,"")} // TODO: error if CodeGen
   }
 }

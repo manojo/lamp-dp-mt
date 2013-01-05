@@ -153,7 +153,7 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
 }
 
 object Zuker extends App {
-  object mfe extends ZukerGrammar with ZukerMFE with CodeGen
+  object mfe extends ZukerGrammar with ZukerMFE
   object pretty extends ZukerGrammar with ZukerPrettyPrint
   def parse(s:String) = {
     LibRNA.setParams("src/librna/vienna/rna_turner2004.par")
