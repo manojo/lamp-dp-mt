@@ -22,7 +22,7 @@ When a problem is polyadic with index $p$, it also means that its backtracking f
 
 Note that the algorithmic complexity of a problem is exactly $O\big(n^{d+s}\big)$.
 
-\subsubsection{Calculus simplifications}
+\subsubsection{Calculus simplifications} \label{calc_simplifications}
 In some special case, it is possible to transform a non-serial problem into a serial problem, if we can embed the non-serial term into an additional aggregation matrix. For example:
 	\[M_{(i,j)}=\max\left\{\begin{array}{l} \max\limits_{k<i} M_{(k,j)}
 	\\ \sum\limits_{k<i, l<j}M_{(k,l)} \end{array}\right.

@@ -172,9 +172,15 @@ The host wrappers are the functions bridging between JNI and CUDA; their duties 
 \item Launching CUDA kernels: matrix computation, backtrack, and possibly aggregation within window (additional aggregation among window results, would this option be set)
 \ule
 
-These simple operations do not require a detailed description. The only peculiarity of our execution environment, is that the kernel execution duration is bound to approximately 10 seconds\footnote{Hard limit imposed by the operating system. Although workarounds exist for Linux and Windows (requiring a second graphic card to display the UI), none of them is compatible with Mac OS. Eventually, a hack has been devised to force the UI on CPU while keeping the dedicated CUDA card powered; unfortunately this does not alleviate the kernel execution timeout.}. To solve this issue, we estimate the overall complexity of matrix computation, which allows us to estimate running time, then break computation into multiple kernels sufficiently small to fit in the time limit.
+One peculiarity of our execution environment, is that the kernel execution duration is bound to approximately 10 seconds\footnote{Hard limit imposed by the operating system. Although workarounds exist for Linux and Windows (requiring a second graphic card to display the UI), none of them is compatible with Mac OS. Eventually, a hack has been devised to force the UI on CPU while keeping the dedicated CUDA card powered; unfortunately this does not alleviate the kernel execution timeout.}. To solve this issue, we estimate the overall complexity of matrix computation, which allows us to estimate running time, then break computation into multiple kernels sufficiently small to fit in the time limit.
 
 Since computations are made diagonal-by-diagonal (see \ref{matrix_scheduling}), we can easily decompose the matrix computation by adapting the number of diagonals computed per kernel. The global complexity being the product of the number of elements and the complexity per element, the latter being equal to the number of unbounded concatenations (where maximal size is infinite).
+
+\textbf{Bonus: problems larger than device memory}\\
+Problems larger than the device memory can actually be processed on recent CUDA devices (architecture $\ge 2.0$) as these are able to address the main memory from the device. However, since the distance between CUDA processors and memory is increased, there is a $5\times$ slowdown penalty to be paid in this configuration (experimentally, on a $1024\times 1024$ triangular matrix). Nevertheless, this workaround implementation has 2 benefits:\ul
+\item It allows larger problem to be solved, with very little implementation effort, would the user be patient enough for the computation to terminate
+\item It provides a good estimation of the main memory usage penalty, and hereby a strong argument in favor of the implementation described in \ref{ns_mem_transfer} (with only up to $\le 0.3\%$ transfer overhead). However, since we have not found concrete applications with such matrix size, the benefit of supporting large matrices is unclear, hence we leave the optimal implementation for future work.
+\ule
 
 % ----------------------------------------------
 \subsubsection{Matrix computation scheduling} \label{matrix_scheduling}

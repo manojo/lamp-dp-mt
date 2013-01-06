@@ -41,67 +41,55 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 \input{design}
 \input{implementation}
 \section{Benchmarks}
-{\color{red} XXX}
+{\color{red} XXX: explain why slower: approx 3x more memory used per score (maintain matrix dimensions)
 
-Compare current implementation versus ad-hoc implementation. Compare CUDA vs Scala (we might need to ad-hoc fix stack overflows in Scala).
-If Zuker coefficients can be fixed, compare performance with \cite{adp_gpu} by rescaling numbers wrt to bandwidth and computation performance.
+XXX: continue benchmarking here
+}
+\begin{table}[H]\begin{center}\begin{tabular}{lrrrrrr} \toprule
+Matrix size			& 1024	& 2048	& 4096	& 8192 \\
+Splits				& 1		& 8		& 64		& 512 \\ \midrule
+Analysis				& 0.007	& 0.007	& 0.007	& 0.007 \\
+Code generation		& 0.071	& 0.072	& 0.073	& 0.071 \\
+C/CUDA compilation	& 3.025	& 1.836	& 1.832	& 1.841 \\
+Scala compilation		& 1.837	& 1.853	& 1.830	& 1.767 \\ \midrule
+- JNI read				& 0.027	& 0.028	& 0.029	& 0.058 \\
+- CUDA compute		& 0.868	& 3.378	& 19.782	& 139.697 \\
+- CUDA backtrack		& 0.009	& 0.012	& 0.023	& 0.045 \\
+- JNI output			& 0.005	& 0.009	& 0.018	& 0.032 \\
+Total execution			& 0.915	& 3.432	& 19.860	& 139.846 \\ \bottomrule
+\end{tabular}\end{center}\caption{Preliminary results for MatrixMultGen}\end{table}
+
+{\color{red} XXX: Compare current implementation versus ad-hoc implementation. Compare CUDA vs Scala (we might need to ad-hoc fix stack overflows in Scala).If Zuker coefficients can be fixed, compare performance with \cite{adp_gpu} by rescaling numbers wrt to bandwidth and computation performance.}
 
 \section{Future work}
 We consider several directions and possible extensions for our work. We briefly describe each of them and give an idea of how they could be implemented:\ol
-\item \textbf{Non-serial scheduling for problems larger than the device memory:} as described in \ref{ns_mem_transfer}, it could be possible to handle problems that are larger than the device memory in a general context, with the extra penalties of memory transfers between main and device memory and a more complex indexing strategy (since we need to find the matrix block in which lies the data, then address the element within the block.
+\item \textbf{Non-serial scheduling for problems larger than the device memory:} as described in \ref{ns_mem_transfer}, it could be possible to handle problems that are larger than the device memory in an efficient way, hereby dramatically reducing the memory transfer penalties introduced by the main memory usage. However, this comes at the price of a more involved kernel scheduling and a complex element indexing strategy (since we first need to find the enclosing matrix block before addressing the element relatively to it).
+\item \textbf{Algorithmic analysis:} so far, we considered that the DSL user would write an optimal program. Another direction in which we could improve the parsers is the recurrence analysis, either by removing serial dependencies when possible (see \ref{calc_simplifications}) or reducing the algorithmic complexity by creating intermediate tabulations (see \ref{user_lang}). These analysis would certainly involve a strong mathematical analysis and the ratio benefit over implementation complexity would be quite small under the initial assumption that the DSL users are experts in their field (hereby knowing how to optimize manually the grammar). 
+\item \textbf{Serial problems larger than memory:} As discussed in \ref{serial_memory}, this class of problems require a completely different implementation. Since the authors of \cite{swat_mega} are planning to write extensions to their implementation, duplicating the effort might not be worth the price; however, would their future implementation be sufficiently modular, we could integrate it in our framework and redirect compatible grammars to this state of art implementation.
+\item \textbf{Add FPGA as target platform:} Initially envisioned a second target platform by George Nithin, a PhD student of the LAP (Laboratory of processors architecture), the underlying complexity of transforming DP recurrences into VHDL code made us leave this platform aside for the scope of this project. The reconfigurability possibilities of FPGA make them attractive whenever it comes to very simple and massively parallel computations where the memory can be pipelined; this makes serial dynamic programming problems good candidates for such implementation.
+\item \textbf{Multi-dimensional matrices:} in the current implementation, all the matrices are encoded such that they are of the same size. Leveraging the yield analysis, we could reduce the dimension of matrices that are of smaller dimension (for tabulations with bounded maximal size). In the problems we have analyzed, no such special case appeared, this is why we do not support this optimization at present.
 
-Since recent CUDA devices implement the possibility to address host memory directly from the device, a simple change in the memory allocation strategy could allow larger problems to be solved within the main memory instead of the GPU memory. However, a more thorough analysis on the addressing cost and load penalties should be done to decide which of the strategy is the best.
-
-{\color{red} XXX: need to force 64 bits mode -m64}
-
-% http://www.opensource.apple.com/source/xnu/xnu-2050.18.24/osfmk/vm/vm_map.c : add_wire_counts
-
-
- large problems (with memory loads for non-serializable)
-\ole
-
- \ul
-\item Implementation for serial problems larger than memory, using hybrid (Myers and Miller's algorithm with $\log_k$ with $k$ depending on available memory)
-\item Transforming non-serial into serial using aggregation functions/transformations
-\item Avoid to maintain the cost matrix in memory by moving data in the wavefront
-\item 
-\item Add FPGA target platform (George Nithin)
-\item Pack the data => less memory transfer (i.e. GATC=>4 letters in 1 char)
-\item Operate on larger words (ex 64 bits) to increase thread locality and reduce memory accesses
-\ule
-
+{\color{red}
 \begin{verbatim}
 How to Encode multi-dimensional matrices efficiently
 1. assume they have the same type put one after another => different dimensions ok
 2. assume of same size => put into a struct
 => but using different pointers seems more reliable => completely different matrices => fixed list of matrices by dimensionality (O(1), O(n), O(n^2), ...) of structs (determined by number of indices to access object)
-
-Core function F:
-- in: s,t strings, neighbor costs: top, left, top+left, neighbor stats: top, left, top+left
-- out: backtrack information, cost(i,j), stats
-         stats (x)
-          ||
-          vv
-stats -> [  ] -> new_stats (y')
-(y)       || \
-          vv  --+ backtrack info (Bxy)
-      new_stats (x')
-
-For stats, we need to maintain an horizontal and vertical front
-For backtracking we need to maintain the whole table
-... | . |
-..A | B | min/max: Min(D)=Min(Min(C),Min(B))
-----+---+ sum    : Sum(D)=Sum(C)+Sum(B)-Sum(A)
-..C | D | avg    : sum both #cells and values then divide at appropriate cell
-----+---+
-we may not need to store what's the previous cell, however, the previous
-cell information (usually limited range) is much more compact than the score(32-64 bits)
 \end{verbatim}
+}
+
+\item \textbf{Independent computations:} {\color{red}The attentive reader might have noticed a discrepancy between the problem analysis and the recurrence rules of the Zuker problem implementation. This is due to the usage of multiple source for the problem description. 
+}
+
+\item {\color{red} Pack the data => less memory transfer (i.e. GATC=>4 letters in 1 char), but only applies to input; score is hardly compressible if appropriate type is initially chosen}
+\item {\color{red} Operate on larger words (ex 64 bits) to increase thread locality and reduce memory accesses}
+\ole
 
 \section{Conclusion}
 {\color{red} XXX}
 
 % ------------------------------------------------------------------------------------------------
+\newpage
 \section*{Planning}
 \subsubsection*{Todo @TCK}\ul
 \item Test/proof parsers are correct -- make sure implementation is correct

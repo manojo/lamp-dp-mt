@@ -240,11 +240,14 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "#define cuFree(ptr) cuErr(cudaFree(ptr))\n"+
       "#define cuPut(host,dev,size,stream) cuErr(cudaMemcpyAsync(dev,host,size,cudaMemcpyHostToDevice,stream))\n"+
       "#define cuGet(host,dev,size,stream) cuErr(cudaMemcpyAsync(host,dev,size,cudaMemcpyDeviceToHost,stream))\n"+
-      "#define cuMap(host,dev,size) cuErr(cudaHostAlloc((void**)&host,size,cudaHostAllocMapped)); cuErr(cudaHostGetDevicePointer((void**)&dev,host,0))\n"+
+      "#define cuMap(host,dev,size) { cuErr(cudaHostAlloc((void**)&host,size,cudaHostAllocMapped)); cuErr(cudaHostGetDevicePointer((void**)&dev,host,0)); }\n"+
       "#define cuUnmap(host) cuErr(cudaFreeHost(host))\n"+
       "#define cuStream(stream) cudaStream_t stream; cuErr(cudaStreamCreate(&stream));\n"+
       "#define cuSync(stream) cuErr(cudaStreamSynchronize(stream))\n"+
-      "#define cuStreamDestroy(stream) cuErr(cudaStreamDestroy(stream))\n"
+      "#define cuStreamDestroy(stream) cuErr(cudaStreamDestroy(stream))\n"+
+      "#define cuAlloc2(cond,host,dev,size) bool cond = cudaMalloc((void**)&dev,size)==cudaSuccess; if (!cond) { cuMap(host,dev,size); }\n"+
+      "#define cuFree2(host,dev) { if (host!=NULL) { cuUnmap(host); host=NULL; } else cuFree(dev); dev=NULL; }"
+
     )
     head.addPriv("#define _unroll _Pragma(\"unroll 5\")") // experimental optimal
     head.addPriv("#define M_W {MAT_WIDTH}")
@@ -270,14 +273,10 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "size_t s_cost = sizeof(cost_t)*MEM_MATRIX;\n"+
       "size_t s_back = sizeof(back_t)*MEM_MATRIX;\n"+
       // Test & fail memory allocation (more reliable than estimations)
-      "bool memFit = true;\n"+
-      "if (cudaMalloc((void**)&g_cost,s_cost)!=cudaSuccess || cudaMalloc((void**)&g_back,s_back)!=cudaSuccess) {\n"+
-      "  if (g_cost) cuFree(g_cost); memFit=false;\n"+
-      "  if (!prop.canMapHostMemory) { fprintf(stderr,\"Device %d (%s) does not support host memory mapping.\\n\",dev,prop.name); exit(EXIT_FAILURE); }\n"+
-      "  cuMap(c_cost,g_cost,s_cost); cuMap(c_back,g_back,s_back);\n"+
-      "}\n"+
-      (if (!benchmark)"" else "size_t mem = (sizeof(input_t)+sizeof(trace_t))*(M_W+M_H) + s_cost + s_back;\n"+
-        "printf(\"%-20s : %.2fMb / %.2fMb -> %s\\n\",\"Memory selection\", mem/1048576.0, prop.totalGlobalMem/1048576.0, memFit?\"device\":\"host\");\n")
+      "cuAlloc2(costDev,c_cost,g_cost,s_cost); cuAlloc2(backDev,c_back,g_back,s_back);"+
+      (if (!benchmark)"" else "\nsize_t mem = (sizeof(input_t)+sizeof(trace_t))*(M_W+M_H) + s_cost + s_back;\n"+
+        "printf(\"%-20s : %.2fMb / %.2fMb -> cost:%s, backtrack:%s\\n\",\"Memory selection\","+
+        "mem/1048576.0,prop.totalGlobalMem/1048576.0, costDev?\"device\":\"host\", backDev?\"device\":\"host\");")
       // Estimation memory allocation: val cudaKernMem=32 must be sufficiently large. => up to 996/1024 memory available in "CUDA mode" (but this varies depending usage)
       // "size_t mem = (sizeof(input_t)+sizeof(trace_t))*(M_W+M_H) + s_cost + s_back;\n"+
       // "bool memFit = mem + "+(cudaKernMem*1048576L)+"ULL <= prop.totalGlobalMem;\n"+
@@ -286,10 +285,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
       // "else if (prop.canMapHostMemory) { cuMap(c_cost,g_cost,s_cost); cuMap(c_back,g_back,s_back); }\n"+
       // "else { fprintf(stderr,\"Not enough memory on '%s'.\\n\",prop.name); exit(EXIT_FAILURE); }"
       )+"}\n\n"+
-      "void g_free() {\n"+ind("cuFree(g_in1);\n"+(if(twotracks) "cuFree(g_in2);\n" else "")+
-      "if (c_cost!=NULL) { cuUnmap(c_cost); c_cost=NULL; } else cuFree(g_cost); g_cost=NULL;\n"+
-      "if (c_back!=NULL) { cuUnmap(c_back); c_back=NULL; } else cuFree(g_back); g_back=NULL;\n"+
-      "cuReset;")+"}\n\n"
+      "void g_free() {\n"+ind("cuFree(g_in1);"+(if(twotracks) " cuFree(g_in2);" else "")+"\n"+
+      "cuFree2(c_cost,g_cost); cuFree2(c_back,g_back); cuReset;")+"}\n\n"
 
     // Wrapper to run the matrix computation
     val steps = if (!twotracks&&window>0) ""+(window+1) else "(M_W"+(if(twotracks) "+M_H" else "")+")"
@@ -331,11 +328,11 @@ trait CodeGen extends BaseParsers { this:Signature =>
     else "  cuGet(&res,&g_cost[idx(i0,j0)]."+axiom.name+",sizeof("+tpAnswer+"),NULL);\n")+
     "  if (trace && size) {\n"+
     "    unsigned mem=(M_W+M_H)*sizeof(trace_t);\n"+
-    "    trace_t *g_trace=NULL; cuMalloc(g_trace,mem);\n"+
+    "    trace_t *g_trace=NULL,*c_trace=NULL; cuAlloc2(traceDev,c_trace,g_trace,mem);\n"+
     "    unsigned *g_size=NULL; cuMalloc(g_size,sizeof(unsigned));\n"+
     "    gpu_backtrack<<<1,1,0,NULL>>>(g_trace, g_size, g_back, i0, j0);\n"+
     "    cuGet(size,g_size,sizeof(unsigned),NULL); cuFree(g_size); mem=(*size)*sizeof(trace_t);\n"+
-    "    *trace=(trace_t*)malloc(mem); cuGet(*trace,g_trace,mem,NULL); cuFree(g_trace);\n"+
+    "    *trace=(trace_t*)malloc(mem); cuGet(*trace,g_trace,mem,NULL); cuFree2(c_trace,g_trace);\n"+
     "  }\n"+
     "  return res;\n}\n"
 
