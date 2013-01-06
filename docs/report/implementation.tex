@@ -116,17 +116,33 @@ The Scala parsers consist in 4 traits that are used to construct a DSL program:\
 \put(0,0){\tbox{6}{2.5}{{\bf ADPParsers} \footnotesize\\ $\sim$, $\sim(a,b,c,d)\sim$ \\ Single track terminals}}
 \put(8,0){\tbox{6}{2.5}{{\bf TTParsers} \footnotesize\\ $-\!\!\sim$, $\sim\!\!-$ \\ Two-tracks terminals}}
 {\linethickness{1.5pt}\put(3,2.5){\vector(1,1){1.5}}\put(11,2.5){\vector(-1,1){1.5}}\put(7,6.5){\vector(0,1){1.5}}}
-\end{picture}\end{center}\caption{Class diagram (simplified)}\end{figure}
+\end{picture}\end{center}\caption{Scala parsers class diagram (simplified)}\end{figure}
 
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Code generation} \label{codegen}
 The code generation step produces multiple outputs that are tightly bound to each other. Besides the Scala wrapper (a simple JNI interface), in the C/CUDA code generated we distinguish:\ol
 \item JNI input and output conversion functions
-\item Host memory management and scheduling of CUDA kernels
+\item Host helpers for memory management and scheduling of CUDA kernels
 \item CUDA matrix computation, which can be further decomposed into matrix scheduling (loops) and (matrix cell) computation. 
 \item CUDA backtrack collection kernel
 \ole
+
+\begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(16,8)
+\put(0,-.5){
+{\color{lightgray}\put(0,7){\tbox{4}{1}{\footnotesize\bf BaseParsers}}
+	\put(0,2){\rotatebox{90}{\tbox{4}{1}{\footnotesize\bf ADPParsers}}}
+	\put(1.5,2){\rotatebox{90}{\tbox{4}{1}{\footnotesize\bf TTParsers}}}
+	{\linethickness{1.5pt}\put(.5,6){\vector(1,1){1}}\put(2,6){\vector(0,1){1}}}}
+{\linethickness{1.5pt}\put(6,6){\vector(-7,2){3.5}}\put(8,1.33){\vector(3,1){2}}\put(8,1.33){\vector(3,-1){2}}}
+\put(3,0){\tbox{6}{6}{{\bf CodeGen} \footnotesize\\ code generation: parsers, backtrack, helpers, JNI \\[12pt] CodeCompiler}}
+\put(10,3.5){\tbox{6}{2.5}{{\bf CodeHeader} \footnotesize\\ Types conversion, headers management}}
+\put(10,1.5){\tbox{6}{1}{\bf ScalaCompiler}}\put(10,0){\tbox{6}{1}{\bf CCompiler}}
+\moveto(2,2)\lineto(2,1.5)\lineto(2.5,1.5)\strokepath\put(2.5,1){\vector(1,0){.5}}
+\moveto(.5,2)\lineto(.5,1)\lineto(2.5,1)\strokepath\put(2.5,1.5){\vector(1,0){.5}}
+\put(-1.25,-.1){\tbox[0l]{4.5}{1}{\footnotesize automatic call \tiny\\ if CodeGen mixed-in}}
+}
+\end{picture}\end{center}\caption{Code generation and runtime engine class diagram (simplified)}\end{figure}
 
 % ----------------------------------------------
 \subsubsection{Scala structures conversion (JNI)}
@@ -249,28 +265,4 @@ These two compilers interfaces are then mixed in another class that transform th
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 
 \subsection{LibRNA (?)}
-
-The project development was scheduled in \ul
-\item Problems analysis
-\item Ad-hoc implementation (CUDA)
-\item Porting ADP parsers
-\item Improving parsers / adding functionalities
-\item Integrating CUDA generation into parsers
-\ule
-
-\begin{verbatim}
-1 week on hash maps
-2 weeks to define and analyze the problems (also with FPGA in mind)
-3 weeks restriction to non-serial and ad-hoc implementation on GPU (rectangle, triangle, parallelogram); translation of ADP parsers in Scala (Manohar)
-1 week run-time engine for Scala/JNI/CUDA
-05.11 - rework of the ADP parser to aim at generating C-like code
-12.11 - rework of ADP parsers to extend usages (cyclic, two-track) and aim at automatic backtracking
-19.11 - explorations in LMS / macros
-26.11 - full backtracking: apply/unapply/reapply, rework of the classes
-03.12 - Zuker/JNI
-10.12 - Yield analysis, code generation
-17.12 - code generation: detupling, generic backtrack (vs. ad-hoc), nested aggregates, empty results support
-24.12 - code generation, sick
-31.12 - report
-\end{verbatim}
-
+{\color{red} XXX}

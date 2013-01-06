@@ -43,5 +43,5 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   // ------- Extra codegen initialization
   //println(gen)
   //println(parseCU(input))
-  println(backtrackCU(input)._1)
+  println(backtrack(input).head._1)
 }

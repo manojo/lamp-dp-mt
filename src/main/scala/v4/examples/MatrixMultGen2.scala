@@ -69,8 +69,9 @@ object MatrixMultGen2 extends MatrixMultGen2Grammar with CodeGen with App {
   override val window = 3 // only 3 consecutive matrices (aka 2x4, 4x2, 2x1 => 16)
 
   // ------- Extra codegen initialization
+  override val benchmark = true
   override val tps = (manifest[Alphabet],manifest[Answer])
   // ------- Extra codegen initialization
   //println(gen)
-  println(backtrackCU(input))
+  println(backtrack(input).head)
 }

@@ -12,8 +12,14 @@ trait TTParsers extends BaseParsers { this:Signature =>
   def in2(k:Int):Alphabet = input2(k)
   def size1:Int = input1.size
   def size2:Int = input2.size
-  def parse(in1:Input,in2:Input):List[Answer] = run(in1,in2,()=>axiom(input1.size,input2.size).map{_._1} )
-  def backtrack(in1:Input,in2:Input):List[(Answer,List[(Subword,Backtrack)])] = run(in1,in2,()=>axiom.backtrack(input1.size,input2.size))
+  def parse(in1:Input,in2:Input):List[Answer] = this match {
+    case c:CodeGen => List(c.parseCUTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input]).asInstanceOf[Answer])
+    case _ => run(in1,in2,()=>axiom(input1.size,input2.size).map{_._1} )
+  }
+  def backtrack(in1:Input,in2:Input):List[(Answer,List[(Subword,Backtrack)])] =  this match {
+    case c:CodeGen => List(c.backtrackCUTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input]).asInstanceOf[(Answer,List[(Subword,Backtrack)])])
+    case _ => run(in1,in2,()=>axiom.backtrack(input1.size,input2.size))
+  }
   def build(in1:Input,in2:Input,bt:List[(Subword,Backtrack)]):Answer = run(in1,in2,()=>axiom.build(bt))
   private def run[T](in1:Input,in2:Input, f:()=>T) = { input1=in1; input2=in2; analyze; val res=f(); input1=null; input2=null; reset(); res }
 

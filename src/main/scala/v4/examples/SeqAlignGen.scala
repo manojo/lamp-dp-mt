@@ -44,6 +44,7 @@ trait SeqAlignGrammarGen extends TTParsers with SeqAlignSig {
 
 // User program
 object SeqAlignGen extends SeqAlignGrammarGen with SWatAlgGen with CodeGen with App {
+  override val benchmark = true
   override val tps=(manifest[Alphabet],manifest[Answer])
 
   val seq1 = "CGATTACA".toArray
@@ -51,7 +52,7 @@ object SeqAlignGen extends SeqAlignGrammarGen with SWatAlgGen with CodeGen with 
 
   // Usage
   //println(gen)
-  val (swScore,swBt) = backtrackCUTT(seq1,seq2)
+  val (swScore,swBt) = backtrack(seq1,seq2).head
   println("Smith-Waterman alignment\n- Score: "+swScore)
   printBT(List((swScore,swBt)))
 }

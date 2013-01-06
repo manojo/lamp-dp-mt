@@ -7,6 +7,10 @@
 \maketitle
 %\shorttitle
 
+% Paper introduction:
+% Problem to solve, what exists (related work) and how do we compare to other
+% Contributions (3): 3 tensed sentences
+% Benchmarks => evaluation metrics, prove introduction statements by evaluation
 \subsection*{Abstract}
 Dynamic programming is a common pattern of Computer Science used in various domains. Yet underlying matrix recurrences might be difficult to express and error prone. Additionally, domain experts might not have the skills to make an efficient parallel implementation. In this project, we present \textit{DynaProg}, a Scala DSL for dynamic programming on heterogeneous platforms which allow to write concise programs and execute them efficiently on GPUs.
 
@@ -82,27 +86,6 @@ cell information (usually limited range) is much more compact than the score(32-
 
 % ------------------------------------------------------------------------------------------------
 \section*{Planning}
-\textbf{Paper introduction}\ul
-\item Problem to solve, what exists (related work), how we compare to other, how to evaluate
-\item Contributions (3): 3 tensed sentences
-\item benchmark => prove by evaluation intro statements
-\ule
-
-\subsubsection*{Roadmap}
-\begin{tabular}{rl}
-16.11 & Rules normalization and automatic backtracking \\
-	& GenScala on LMS + GenCuda + LMS CudaCompiler \\
-23.11 & Problem generalization: "cyclic keyword", Zucker problem / CudaLoop optimization \\
-30.11 &--- Gap due to LMS missing knowledge \\
-7.12 & Benchmarking, grammar analysis \\
-14.12 & First thoughts for larger than device memory \\
-21.12 & Writing report \\
-28.12 & --- holiday --- \\
- 4.01 & --- holiday --- \\
-11.01 & Writing report: implementation description and plan for future work \\
-18.01 & Writing report
-\end{tabular}
-
 \subsubsection*{Todo @TCK}\ul
 \item Test/proof parsers are correct -- make sure implementation is correct
 \item Automate test to compare against implementation
@@ -115,6 +98,44 @@ cell information (usually limited range) is much more compact than the score(32-
 \item Integrate LMS code generation into v4.
 \item Fix Zuker coefficients
 \ule
+
+Legacy roadmap deadlines: \\
+\begin{tabular}{ll}
+Nov 16 & Rules normalization and automatic backtracking \\
+	& GenScala on LMS + GenCuda + LMS CudaCompiler \\
+Nov 23 & Problem generalization: "cyclic keyword", Zucker problem / CudaLoop optimization \\
+Nov 30 &--- gap due to LMS missing knowledge --- \\
+Dec 7 & Benchmarking, grammar analysis \\
+Dec 14 & First thoughts for larger than device memory \\
+Dec 21 & Writing report \\
+Jan 4 & --- holiday --- \\
+Jan 18 & Writing report: implementation description and plan for future work
+\end{tabular}
+
+\subsubsection*{Journal}
+\begin{tabular}{ll}
+Sep. 17	& Getting started with the project, reading related work on hash maps. \\
+Sep. 24	& Parallel hashing paper solve the problem for 32bit key/value pair. Stripped CudPP. \\
+		& Devised (but not implemented) extension beyond 64bit using memory areas locks. \\
+---		& Change of project suggested by Vojin (supervisor): joint work with Manohar on DP \\
+Oct. 01	& Problems specifications: serial/non-serial, started CUDA implementation with blocks. \\
+Oct. 08	& CudAlign solves serial monadic, might adapt it (but complicated / ad-hoc / in progress). \\
+		& Focus on non-serial problems that fit in GPU memory. \\
+Oct. 15	& First working implementation for non-serial problems (rectangle, triangle, parallelogram) \\
+Oct. 22	& No workaround for timeout, fixed by multiple kernels. Implemented backtrack on GPU. \\
+Oct. 29	& Scala/C compiler engine, to use Scala/CUDA, C code must be provided. \\
+Nov. 05	& Multiple fixes and rework of ADP parsers to aim at generating C-like code. \\
+Nov. 12	& Rework ADP parsers: cyclic, two-track grammars and automatic backtracking discussion. \\
+Nov. 19	& Explorations LMS and Macros for C code, implementation is quite different, hence ad-hoc. \\
+Nov. 26	& Full backtracking stack: apply / unapply / reapply, refactoring of the classes. \\
+Dec. 03	& JNI for LibRNA to get coefficients for Zuker, errors in algebra (quite hairy code). \\
+Dec. 10	& Rework concatenation operators, yield analysis, code generation. \\
+Dec. 17	& Detupling, generic backtrack (vs. ad-hoc), nested aggregates, empty results support. \\
+Dec. 24	& (sick 4 days), code generation: full JNI conversion support, rework CodeCompiler. \\
+Dec. 31	& Writing report (design, implementation), fixing various issues, complexity analysis. \\
+Jan. 7	& {\color{red} XXX} \\
+Jan. 14	& {\color{red} XXX} \\
+\end{tabular}
 
 %Some GPU algorithms: http://hgpu.org/?cat=11
 %Translation into C++: http://bibiserv.cebitec.uni-bielefeld.de/macports/resources/download/

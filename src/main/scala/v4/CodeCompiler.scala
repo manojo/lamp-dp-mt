@@ -41,7 +41,7 @@ trait ScalaCompiler {
 }
 
 // Singleton counter
-object CompileCount {
+object CompileCounter {
   private var count = 1
   def get:Int = count
   def next = { count=count+1 }
@@ -97,7 +97,7 @@ trait CCompiler {
 
   // generate and load library
   def gen {
-    val f = "comp"+CompileCount.get
+    val f = "comp"+CompileCounter.get
     dataMap.foreach { case (ext,data) => val out=new FileWriter(outPath+"/"+f+"."+ext); out.write(replace(data,Map(("file",f)))); out.close }
     dataMap.foreach {
       case("c",_) =>   run("g++ "+ccFlags+" "+f+".c -c -o "+f+"_c.o") // gcc fails to link properly with nvcc object files
@@ -106,9 +106,9 @@ trait CCompiler {
       case _ =>
     }
     val files = dataMap.map{case(x,_)=>x}.filter(! _.startsWith("h")).map(f+"_"+_+".o").mkString(" ")
-    run("g++ "+files+" "+ldFlags+" -o libComp"+CompileCount.get+".jnilib")
+    run("g++ "+files+" "+ldFlags+" -o libComp"+CompileCounter.get+".jnilib")
     dataMap.clear
-    System.load(new File(outPath+"/libComp"+CompileCount.get+".jnilib").getCanonicalPath)
-    CompileCount.next
+    System.load(new File(outPath+"/libComp"+CompileCounter.get+".jnilib").getCanonicalPath)
+    CompileCounter.next
   }
 }

@@ -382,7 +382,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   abstract class CodeCompiler extends CCompiler with ScalaCompiler {
     def genDP[T](size1:Int,size2:Int,bt:Boolean,tt:Boolean)(implicit mT: scala.reflect.ClassTag[T]):T = {
-      val className = "CompWrapper"+CompileCount.get // fresh namespace for the problem (code+in1+in2)
+      val className = "CompWrapper"+CompileCounter.get // fresh namespace for the problem (code+in1+in2)
       // Problems up to 'cudaSplit' can be solve within a single kernel, otherwise, divide running time in splits
       val splits:Int = Math.ceil(Math.pow(Math.max(size1,size2)*1.0/cudaSplit,code_cpx)).intValue
       if (benchmark) println("%-20s : %d x %d / %d".format("Size / splits",size1,size2,splits))
