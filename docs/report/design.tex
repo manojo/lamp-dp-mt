@@ -253,7 +253,7 @@ For instance, assuming that $m=n$, $M_D=1024{\rm Mb}$, that backtrack is 2b (<16
 To handle large problems, we need to split the $(m \times n)$ matrix into blocks of size $B_H \times B_W$. For simplification in our estimations, we assume a square matrix ($m=n$) made of square blocks with $b$ blocks per row/column ($B_H=B_W=n/b$).
 
 % ----------------------------------------------
-\subsubsection{Non-serial problems}
+\subsubsection{Non-serial problems} \label{ns_mem_transfer}
 Non-serial problems need to potentially access all elements that have been previously computed. We restrict ourselves to the following dependencies\footnote{As we have not encountered a problem with non-serial dependencies along the diagonal.}: \ul
 \item Non-serial dependencies along row and column
 \item Serial dependencies along diagonal, with delay smaller or equal to one block size

@@ -47,7 +47,7 @@ trait PrettyMatrixAlgebra extends MatrixSig {
 trait MatrixGrammar extends ADPParsers with MatrixSig {
   val matrixGrammar:Tabulate = tabulate("M",(
     el ^^ single
-  | (matrixGrammar ~ matrixGrammar) ^^ mult // { case (a1,a2) => mult(a1, a2) }
+  | (matrixGrammar ~ matrixGrammar) ^^ mult
   ) aggregate h,true)
 
   val axiom=matrixGrammar

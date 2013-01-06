@@ -5,12 +5,12 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   private var input: Input = null
   def in(k:Int):Alphabet = input(k)
   def size:Int = input.size
-  def parse(in:Input):List[Answer] = this match {
-    case c:CodeGen => List(c.parseCU(in.asInstanceOf[c.Input]).asInstanceOf[Answer])
+  def parse(in:Input,forceScala:Boolean=false):List[Answer] = this match {
+    case c:CodeGen if (!forceScala) => List(c.parseCU(in.asInstanceOf[c.Input]).asInstanceOf[Answer])
     case _ => run(in,()=>(if (window>0) aggr(((0 to size-window).flatMap{x=>axiom(x,window+x)}).toList, h) else axiom(0,size)).map{_._1})
   }
-  def backtrack(in:Input):List[(Answer,List[(Subword,Backtrack)])] = this match {
-    case c:CodeGen => List(c.backtrackCU(in.asInstanceOf[c.Input]).asInstanceOf[(Answer,List[(Subword,Backtrack)])])
+  def backtrack(in:Input,forceScala:Boolean=false):List[(Answer,List[(Subword,Backtrack)])] = this match {
+    case c:CodeGen if (!forceScala) => List(c.backtrackCU(in.asInstanceOf[c.Input]).asInstanceOf[(Answer,List[(Subword,Backtrack)])])
     case _ => run(in,()=>if (window>0) aggr(((0 to size-window).flatMap{x=>axiom.backtrack(x,window+x)}).toList, h) else axiom.backtrack(0,size))
   }
   def build(in:Input,bt:List[(Subword,Backtrack)]):Answer = run(in, ()=>axiom.build(bt))

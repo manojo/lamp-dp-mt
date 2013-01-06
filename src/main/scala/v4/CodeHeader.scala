@@ -89,7 +89,7 @@ class CodeHeader(within:Any) {
   def flush:(String,String) = { // declared types must be written down in order to avoid 'incomplete type' issues
     val h1 = tps.toList.map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
              tps.toList.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" + user
-    val h2 = priv + "\n" + fns.toList.sortBy(_._2).map{case (f,n) => "__device__ inline "+getType(f.tpe)+" "+n+"("+
+    val h2 = priv + "\n" + fns.toList.sortBy(_._2).map{case (f,n) => "__device__ static inline "+getType(f.tpe)+" "+n+"("+
              f.args.map{case (n,tp)=>(getType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n")+"\n"
     tps.clear(); fns.clear(); tpc=0; fnc=0; user=""; priv=""; (h1,h2)
   }
@@ -136,7 +136,7 @@ class CodeHeader(within:Any) {
     })+"  return size;\n}\n"
   }
 
-  def jniWrite(tp0:Tp):String = {
+  def jniWrite(tp0:Tp,hasIdx:Boolean):String = {
     def wr(tp:Tp,s:String,e:String):String = tp match {
       case TPri(n,_,j) =>
         "  jclass cls"+s+" = env->FindClass(\"java/lang/"+(if (n=="Int")"Integer" else n)+"\");\n"+
@@ -176,7 +176,7 @@ class CodeHeader(within:Any) {
     "  jobject jtrace = nil;\n"+
     "  for (int i=0; i<size; ++i) {\n"+
     "    jobject ixs = nil; trace_t* tr=&trace[i];\n"+
-    "    for (int l=trace_len[tr->rule]; l>0; --l) ixs = J_CONS(J_INT(tr->pos[l-1]), ixs);\n"+
+    (if(hasIdx) "    for (int l=trace_len[tr->rule]; l>0; --l) ixs = J_CONS(J_INT(tr->pos[l-1]), ixs);\n" else "")+
     "    jobject el = J_PAIR( J_PAIR(J_INT(tr->i),J_INT(tr->j)) , J_PAIR(J_INT(tr->rule),ixs) );\n"+
     "    jtrace = J_CONS(el, jtrace);\n"+
     "  }\n"+

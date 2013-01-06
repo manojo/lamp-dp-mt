@@ -43,11 +43,28 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 \section{Benchmarks}
 {\color{red} XXX}
 
-\section{Future work} \ul
+Compare current implementation versus ad-hoc implementation. Compare CUDA vs Scala (we might need to ad-hoc fix stack overflows in Scala).
+If Zuker coefficients can be fixed, compare performance with \cite{adp_gpu} by rescaling numbers wrt to bandwidth and computation performance.
+
+\section{Future work}
+We consider several directions and possible extensions for our work. We briefly describe each of them and give an idea of how they could be implemented:\ol
+\item \textbf{Non-serial scheduling for problems larger than the device memory:} as described in \ref{ns_mem_transfer}, it could be possible to handle problems that are larger than the device memory in a general context, with the extra penalties of memory transfers between main and device memory and a more complex indexing strategy (since we need to find the matrix block in which lies the data, then address the element within the block.
+
+Since recent CUDA devices implement the possibility to address host memory directly from the device, a simple change in the memory allocation strategy could allow larger problems to be solved within the main memory instead of the GPU memory. However, a more thorough analysis on the addressing cost and load penalties should be done to decide which of the strategy is the best.
+
+{\color{red} XXX: need to force 64 bits mode -m64}
+
+% http://www.opensource.apple.com/source/xnu/xnu-2050.18.24/osfmk/vm/vm_map.c : add_wire_counts
+
+
+ large problems (with memory loads for non-serializable)
+\ole
+
+ \ul
 \item Implementation for serial problems larger than memory, using hybrid (Myers and Miller's algorithm with $\log_k$ with $k$ depending on available memory)
 \item Transforming non-serial into serial using aggregation functions/transformations
 \item Avoid to maintain the cost matrix in memory by moving data in the wavefront
-\item Non-serial scheduling for large problems (with memory loads for non-serializable)
+\item 
 \item Add FPGA target platform (George Nithin)
 \item Pack the data => less memory transfer (i.e. GATC=>4 letters in 1 char)
 \item Operate on larger words (ex 64 bits) to increase thread locality and reduce memory accesses

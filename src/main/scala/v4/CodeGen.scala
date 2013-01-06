@@ -206,22 +206,22 @@ trait CodeGen extends BaseParsers { this:Signature =>
     case _ => sys.error("Unknown parser")
   }
 
+  private lazy val catMax = rules.map{case (n,t)=>t.inner.cat}.max
   def genBT = {
-    val catMax=rules.map{case (n,t)=>t.inner.cat}.max
     val altMax=rules.map{case (n,t)=>t.inner.alt}.sum
     def switch(f:Int=>String) = "    switch (rd->rule) {\n"+(0 until altMax).map{x=>"      case "+x+":"+f(x)+" break;"}.mkString("\n")+"\n    }\n"
     val trLen = "const unsigned trace_len["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};" // subrule->#indices
-    head.add("typedef struct { short i,j,rule; short pos["+catMax+"]; } trace_t;")
+    head.add("typedef struct { short i,j,rule; "+(if(catMax>0)"short pos["+catMax+"]; " else "")+"} trace_t;")
     head.add(trLen)
     "__global__ void gpu_backtrack(trace_t* trace, unsigned* size, back_t* back, int i0, int j0) {\n"+ // start at (i0,j0)
-    "  "+trLen+"\n  trace_t *rd=trace, *wr=trace; *size=0;\n"+
+    "  "+(if(catMax>0)trLen+"\n  " else "")+"trace_t *rd=trace, *wr=trace; *size=0;\n"+
     "  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++(*size); }\n"+
     "  PUSH_BACK(i0,j0,"+axiom.id+");\n"+
     "  for(;rd<wr;++rd) {\n"+
     "    "+btTpe(catMax)+"* bt;\n"+
     switch((x:Int)=>" bt=("+btTpe(catMax)+"*)&back[idx(rd->i,rd->j)]."+findTab(x)._1.name+";")+
     "    rd->rule=bt->rule;\n"+  // parser_id -> actual_subrule
-    "    for (int i=0,l=trace_len[rd->rule]; i<l; ++i) rd->pos[i]=bt->pos[i];\n"+ // decode fully the read indices
+    (if(catMax>0)"    for (int i=0,l=trace_len[rd->rule]; i<l; ++i) rd->pos[i]=bt->pos[i];\n" else "")+ // decode fully the read indices
     switch((x:Int)=>{val t=findTab(x)._1; genUnapp(t.inner,("rd->i","rd->j"),x-t.id,0).map{case((i,j),r)=>" PUSH_BACK("+i+","+j+","+r+");" }.mkString("")})+
     "  }\n}\n"
   }
@@ -229,17 +229,22 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // --------------------------------------------------------------------------
   // CUDA helpers
 
-  def genHelpers(splits:Int=1, stripe:Int=32) = {
+  def genHelpers(stripe:Int=32) = {
     head.addPriv("#include <stdio.h>\n#include <stdlib.h>\n#include \"{file}.h\"\n\n"+
+      "#define cuReset cudaDeviceReset()\n"+
+      "#define cuDevSync cudaDeviceSynchronize()\n"+
       "#define cuErr(err) cuErr_(err,__FILE__,__LINE__)\n"+
-      "#define cuSync(stream) cuErr(cudaStreamSynchronize(stream))\n"+
-      "#define cuPut(host,dev,size,stream) cuErr(cudaMemcpyAsync(dev,host,size,cudaMemcpyHostToDevice,stream))\n"+
-      "#define cuGet(host,dev,size,stream) cuErr(cudaMemcpyAsync(host,dev,size,cudaMemcpyDeviceToHost,stream))\n"+
+      "__attribute__((unused)) static inline void cuErr_(cudaError_t err, const char *file, int line) {\n  if (err==cudaSuccess) return;\n"+
+      "  fprintf(stderr,\"%s:%i CUDA error %d:%s\\n\", file, line, err, cudaGetErrorString(err)); cuReset; exit(EXIT_FAILURE);\n}\n"+
       "#define cuMalloc(ptr,size) cuErr(cudaMalloc((void**)&ptr,size))\n"+
       "#define cuFree(ptr) cuErr(cudaFree(ptr))\n"+
-      "inline void cuErr_(cudaError_t err, const char *file, int line) {\n  if (err!=cudaSuccess) {\n"+
-      "    fprintf(stderr,\"%s:%i CUDA error %d:%s\\n\", file, line, err, cudaGetErrorString(err));\n"+
-      "    cudaDeviceReset(); exit(EXIT_FAILURE);\n  }\n}"
+      "#define cuPut(host,dev,size,stream) cuErr(cudaMemcpyAsync(dev,host,size,cudaMemcpyHostToDevice,stream))\n"+
+      "#define cuGet(host,dev,size,stream) cuErr(cudaMemcpyAsync(host,dev,size,cudaMemcpyDeviceToHost,stream))\n"+
+      "#define cuMap(host,dev,size) cuErr(cudaHostAlloc((void**)&host,size,cudaHostAllocMapped)); cuErr(cudaHostGetDevicePointer((void**)&dev,host,0))\n"+
+      "#define cuUnmap(host) cuErr(cudaFreeHost(host))\n"+
+      "#define cuStream(stream) cudaStream_t stream; cuErr(cudaStreamCreate(&stream));\n"+
+      "#define cuSync(stream) cuErr(cudaStreamSynchronize(stream))\n"+
+      "#define cuStreamDestroy(stream) cuErr(cudaStreamDestroy(stream))\n"
     )
     head.addPriv("#define _unroll _Pragma(\"unroll 5\")") // experimental optimal
     head.addPriv("#define M_W {MAT_WIDTH}")
@@ -256,10 +261,35 @@ trait CodeGen extends BaseParsers { this:Signature =>
     head.add("void g_init(input_t* in1, input_t* in2);\nvoid g_free();\nvoid g_solve();\n"+tpAnswer+" g_backtrack(trace_t** trace, unsigned* size);")
 
     // Initialize and free device memory for cost and backtrack matrices
-    val init = "void g_init(input_t* in1, input_t* in2) {\n"+ind("cuMalloc(g_in1,sizeof(input_t)*(M_H-1));\ncuPut(in1,g_in1,sizeof(input_t)*(M_H-1),NULL);\n"+
-      (if (twotracks) "cuMalloc(g_in2,sizeof(input_t)*(M_W-1));\ncuPut(in2,g_in2,sizeof(input_t)*(M_W-1),NULL);\n" else "g_in2=NULL;\n")+
-      "cuMalloc(g_cost,sizeof(cost_t)*MEM_MATRIX);\ncuMalloc(g_back,sizeof(back_t)*MEM_MATRIX);",1)+"}\n\nvoid g_free() { "+
-      "cuFree(g_in1); "+(if(twotracks)"cuFree(g_in2); " else "")+"cuFree(g_cost); cuFree(g_back); cudaDeviceReset(); }\n\n"
+    val init = "static cost_t* c_cost=NULL;\nstatic back_t* c_back=NULL;\n\n"+
+      "void g_init(input_t* in1, input_t* in2) {\n"+ind(
+      "int dev="+cudaDevice+"; cuErr("+(if(cudaDevice>=0)"cudaSetDevice(dev)" else "cudaGetDevice(&dev)")+");\n"+
+      "cuMalloc(g_in1,sizeof(input_t)*(M_H-1)); cuPut(in1,g_in1,sizeof(input_t)*(M_H-1),NULL);\n"+
+      (if (twotracks) "cuMalloc(g_in2,sizeof(input_t)*(M_W-1)); cuPut(in2,g_in2,sizeof(input_t)*(M_W-1),NULL);\n" else "g_in2=NULL;\n")+
+      "cudaDeviceProp prop; cuErr(cudaGetDeviceProperties(&prop, dev));\n"+
+      "size_t s_cost = sizeof(cost_t)*MEM_MATRIX;\n"+
+      "size_t s_back = sizeof(back_t)*MEM_MATRIX;\n"+
+      // Test & fail memory allocation (more reliable than estimations)
+      "bool memFit = true;\n"+
+      "if (cudaMalloc((void**)&g_cost,s_cost)!=cudaSuccess || cudaMalloc((void**)&g_back,s_back)!=cudaSuccess) {\n"+
+      "  if (g_cost) cuFree(g_cost); memFit=false;\n"+
+      "  if (!prop.canMapHostMemory) { fprintf(stderr,\"Device %d (%s) does not support host memory mapping.\\n\",dev,prop.name); exit(EXIT_FAILURE); }\n"+
+      "  cuMap(c_cost,g_cost,s_cost); cuMap(c_back,g_back,s_back);\n"+
+      "}\n"+
+      (if (!benchmark)"" else "size_t mem = (sizeof(input_t)+sizeof(trace_t))*(M_W+M_H) + s_cost + s_back;\n"+
+        "printf(\"%-20s : %.2fMb / %.2fMb -> %s\\n\",\"Memory selection\", mem/1048576.0, prop.totalGlobalMem/1048576.0, memFit?\"device\":\"host\");\n")
+      // Estimation memory allocation: val cudaKernMem=32 must be sufficiently large. => up to 996/1024 memory available in "CUDA mode" (but this varies depending usage)
+      // "size_t mem = (sizeof(input_t)+sizeof(trace_t))*(M_W+M_H) + s_cost + s_back;\n"+
+      // "bool memFit = mem + "+(cudaKernMem*1048576L)+"ULL <= prop.totalGlobalMem;\n"+
+      // (if (benchmark)"printf(\"%-20s : %.2fMb / %.2fMb -> %s\\n\",\"Memory selection\", mem/1048576.0, prop.totalGlobalMem/1048576.0, memFit?\"device\":\"host\");\n" else "")+
+      // "if (memFit) { cuMalloc(g_cost,s_cost); cuMalloc(g_back,s_back); }\n"+
+      // "else if (prop.canMapHostMemory) { cuMap(c_cost,g_cost,s_cost); cuMap(c_back,g_back,s_back); }\n"+
+      // "else { fprintf(stderr,\"Not enough memory on '%s'.\\n\",prop.name); exit(EXIT_FAILURE); }"
+      )+"}\n\n"+
+      "void g_free() {\n"+ind("cuFree(g_in1);\n"+(if(twotracks) "cuFree(g_in2);\n" else "")+
+      "if (c_cost!=NULL) { cuUnmap(c_cost); c_cost=NULL; } else cuFree(g_cost); g_cost=NULL;\n"+
+      "if (c_back!=NULL) { cuUnmap(c_back); c_back=NULL; } else cuFree(g_back); g_back=NULL;\n"+
+      "cuReset;")+"}\n\n"
 
     // Wrapper to run the matrix computation
     val steps = if (!twotracks&&window>0) ""+(window+1) else "(M_W"+(if(twotracks) "+M_H" else "")+")"
@@ -269,12 +299,12 @@ trait CodeGen extends BaseParsers { this:Signature =>
     "  unsigned blk_num = (M_H+blk_size-1)/blk_size;\n"+
     "  unsigned* lock; cuMalloc(lock,sizeof(unsigned)*blk_num);\n"+
     "  cuErr(cudaMemset(lock,0,sizeof(unsigned)*blk_num));\n"+
-    "  cudaStream_t stream; cuErr(cudaStreamCreate(&stream));\n"+
+    "  cuStream(stream);\n"+
     "  for (int i=0;i<{SPLITS};++i) {\n"+
     "    unsigned s0=("+steps+"*i)/{SPLITS}, s1=("+steps+"*(i+1))/{SPLITS};\n"+
     "    gpu_solve<<<blk_num, blk_size, 0, stream>>>(g_in1, g_in2, g_cost, g_back, lock, s0, s1);\n"+
     "  }\n"+
-    "  cuSync(stream); cuErr(cudaStreamDestroy(stream)); cuFree(lock);\n}\n\n"
+    "  cuSync(stream); cuStreamDestroy(stream); cuFree(lock);\n}\n\n"
 
     // Extra function to compute the best result within the window
     val aggr=h.toString match {
@@ -326,7 +356,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
                  else "  g_init(in1,NULL);"),"- JNI read")+" free(in1);\n"+ctime("  g_solve();\n","- CUDA compute")
     "#include <jni.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <sys/time.h>\n#include \"{file}.h\"\n#ifdef __cplusplus\n"+
     "extern \"C\" {\n#endif\n"+call+"parse"+parm+";\n"+call+"backtrack"+parm+";\n#ifdef __cplusplus\n}\n#endif\n\n"+
-    head.jniRead(tpAlphabet)+"\n"+head.jniWrite(tpAnswer)+"\n"+
+    head.jniRead(tpAlphabet)+"\n"+head.jniWrite(tpAnswer,catMax>0)+"\n"+
     "jobject Java_{className}_parse"+parm+" {\n"+solve+
     "  "+tpAnswer+" score=g_backtrack(NULL,NULL);\n"+
     "  jobject result = jni_write(env, score, NULL, 0);\n"+
@@ -343,6 +373,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   val benchmark = false // enable benchmarking counters
   val cudaSplit = 1024 // threshold for multiple CUDA kernels
+  val cudaDevice = -1  // preferred execution CUDA device
   val compiler = new CodeCompiler {
     override val outPath = "bin"
     override val cudaPath = "/usr/local/cuda"
@@ -400,6 +431,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     }
   }
 
+  // Wrappers for CUDA invocation, these are automatically called by ADPParsers/TTParsers
   def parseCU(in1:Input) = { val f=compiler.genDP[Input=>Answer](in1.size,in1.size,false,false); time("Execution"){()=> f(in1) } }
   def backtrackCU(in1:Input) = { val f = compiler.genDP[Input=>(Answer,List[(Subword,Backtrack)])](in1.size,in1.size,true,false); time("Execution"){()=> f(in1) } }
   def parseCUTT(in1:Input,in2:Input) = { val f = compiler.genDP[(Input,Input)=>Answer](in1.size,in2.size,false,true); time("Execution"){()=> f(in1,in2) } }
@@ -417,7 +449,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // XXX: (Manohar) Transform plain Scala function to CFun functions using Macros or LMS
   // XXX: 4. Fix the Zuker coefficients (Scala)
   // XXX: 5. Make the Zuker coefficients work for CUDA
-  // Write report => make implementation detailed plan and benchmarking strategy
+  // Write report => benchmarking strategy
   // Benchmark
   // Make presentation
 }
