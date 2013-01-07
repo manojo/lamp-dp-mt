@@ -368,7 +368,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // --------------------------------------------------------------------------
   // Configuration
 
-  val benchmark = false // enable benchmarking counters
   val cudaSplit = 1024 // threshold for multiple CUDA kernels
   val cudaDevice = -1  // preferred execution CUDA device
   val compiler = new CodeCompiler {
@@ -381,10 +380,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   // --------------------------------------------------------------------------
   // C code generation and execution
-
-  def time[T](s:String)(u:()=>T):T = { val start=System.currentTimeMillis; val r=u()
-    if (benchmark) { val d=System.currentTimeMillis-start; println("%-20s : %d.%03d sec".format(s,d/1000,d%1000)) }; r
-  }
 
   lazy val (code_h,code_cu,code_c,code_cpx) = {
     time("Analysis"){()=> analyze }

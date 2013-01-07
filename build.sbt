@@ -8,12 +8,11 @@ resolvers ++= Seq(
 
 scalaOrganization := "org.scala-lang.virtualized"
 
-scalaVersion := "2.10.0-RC3"
+scalaVersion := "2.10.0"
 
 libraryDependencies ++= Seq(
-    "org.scalatest" % "scalatest_2.10.0-RC3" % "2.0.M5-B1" % "test",
+    "org.scalatest" % "scalatest_2.10.0" % "2.0.M5" % "test",
     "EPFL" %% "lms" % "0.3-SNAPSHOT")
-
 
 //making tests non-parallelly executable for now
 parallelExecution in Test := false

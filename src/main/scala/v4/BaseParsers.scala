@@ -26,7 +26,13 @@ trait BaseParsers { this:Signature =>
   val twotracks = false // whether grammar is multi-track
   final val bt0 = (0,Nil) // default initial backtrack
 
-  // Helpers
+  // Benchmarking
+  val benchmark = false // enable benchmarking counters
+  def time[T](s:String)(u:()=>T):T = { val start=System.currentTimeMillis; val r=u()
+    if (benchmark) { val d=System.currentTimeMillis-start; println("%-20s : %d.%03d sec".format(s,d/1000,d%1000)) }; r
+  }
+
+  // Helpers for code generation
   case class Var(v:Char,d:Int) { // Variables: name+offset => 'v'+d
     override def toString = if (v=='0') ""+d else if (d==0) ""+v else if (d>0) v+"+"+d else v+""+d
     def add(e:Int) = Var(v,d+e)
@@ -43,6 +49,7 @@ trait BaseParsers { this:Signature =>
   case class CEq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta=='b'
   case class CUser(cond:String) extends Cond // user condition
 
+  // Abstract parser
   sealed abstract class Parser[T] extends (Subword => List[(T,Backtrack)]) {
     def min:Int // subword minimal size
     def max:Int // subword maximal size, -1=infinity
@@ -306,6 +313,7 @@ trait BaseParsers { this:Signature =>
   }
   def maxBy[T,U:Numeric](f:T=>U) = MaxBy(f)
   def minBy[T,U:Numeric](f:T=>U) = MinBy(f)
+  // TODO: add co(Min|Max)(By)? => modify the aggr function to filter instead of counting, and k(Min|Max)(By)?
 
   // --------------------------------------------------------------------------
   // Implicit conversion, to allow 'flat' arguments functions (instead of recursive pairs)
