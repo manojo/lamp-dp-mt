@@ -92,7 +92,7 @@ trait ZukerMFE extends ZukerSig {
   def ssadd(e:SSeq, x:Answer) = LibRNA.ul_energy + x + LibRNA.ss_energy(e._1,e._2)
   def nil(d:Unit) = 0
 
-  override val h = max[Answer] _
+  override val h = min[Answer] _
 }
 
 trait ZukerPrettyPrint extends ZukerSig {
@@ -176,5 +176,6 @@ object Zuker extends App {
 
   // References for guacgucaguacguacgugacugucagucaac
   // GAPC     : -970   ((((((....)))))).((((.....))))..
+  // Our      : -710   ((((((....)))))).(((((...)))))..
   // ViennaRNA: -9.50  ((((((....)))))).(((((...)))))..
 }
