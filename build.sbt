@@ -34,3 +34,7 @@ TaskKey[Unit]("librna") := {
 TaskKey[Unit]("zuker") := {
   "scala -cp target/scala-2.10/classes v4.examples.Zuker".run.exitValue
 }
+
+TaskKey[Unit]("rnafold") := {
+  "scala -cp target/scala-2.10/classes v4.examples.RNAFold".run.exitValue
+}

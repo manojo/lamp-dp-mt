@@ -6,12 +6,10 @@
 JAVA_INC="-I$JAVA_HOME/include -I$JAVA_HOME/include/linux"
 if [ "$OSTYPE" = "darwin" ]; then
   JAVA_INC="$JAVA_INC -I/System/Library/Frameworks/JavaVM.framework/Headers"
-md5_hash() { md5 -q -s $@; }
+  md5_hash() { md5 -q -s $@; }
 else
-md5_hash() { md5sum $@; }
+  md5_hash() { md5sum $@; }
 fi
-
-
 
 if [ "$1" = "" ]; then out="bin"; rm -r "$out" 2>/dev/null; mkdir -p "$out";
 else from=`pwd`; mkdir -p "$1"; cd "$1"; out=`pwd`; cd $from; fi

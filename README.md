@@ -23,7 +23,9 @@ Lamp-DP-MT
 2. Run Scala parsers (with SBT)
     * Run simple tests: `$ sbt 'clean' 'librna' 'run-main v4.examples.Tests'`
     * Run any program: `$ sbt run`
-    * Run Zuker folding: `$ sbt zuker` (you can run it only once per sbt/JVM instance due to JNI unloading issues)
+    * Run Zuker folding: `$ sbt compile zuker`
+    * Run RNAFold: `$ sbt compile rnafold`
+    * Note that ou can run only one instance of zuker/rnafold sbt/JVM instance due to JNI unloading issues
 3. Run CUDA parsers (without SBT)
     * Run CUDA tests: `$ ./build`
     * Cleanup: `$ ./build clean`
