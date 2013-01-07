@@ -1,7 +1,7 @@
 #!/bin/sh
 cd `dirname $0`
-
-if [ "$OSTYPE" = "darwin" ]; then md5_hash() { md5 -s $@; }; SCALA_HOME="/Developer/Scala"
+#if [ -d "/Developer/Scala" ]; then SCALA_HOME="/Developer/Scala"; fi
+if [ "$OSTYPE" = "darwin" ]; then md5_hash() { md5 -s $@; };
 else md5_hash() { md5sum $@; }; fi
 
 scalac2() {
@@ -11,17 +11,25 @@ scalac2() {
 }
 
 if [ "$1" = "clean" ]; then printf 'Cleaning ... '; rm -rf bin; echo 'done.'; exit; fi
+if [ "$1" = "help" ]; then echo "Run ./build with one of the following arguments:";
+	cat src/main/scala/v4/examples/* | grep object | grep App | sed 's/object /v4.examples./g' | sed 's/ .*//g'; exit
+fi
 
 printf 'LibRNA JNI: '; src/librna/make bin
 scalac2 'LibRNA' _rna src/librna/*.scala
 if scalac2 'Base parsers' _v4 src/main/scala/v4/*.scala; then rm bin/_ex.md5 2>/dev/null; fi
 scalac2 'Examples' _ex src/main/scala/v4/examples/*.scala
 
-scala2() { java -Xss64m -cp $SCALA_HOME/lib/scala-library.jar:bin $@; }
+scala2() { scala -J-Xss64m -cp bin $@; }
 
-echo
-echo 'Running MatrixMultGen'; scala2 v4.examples.MatrixMultGen
-echo
-echo 'Running MatrixMultGen2'; scala2 v4.examples.MatrixMultGen2
-echo
-echo 'Running SeqAlignGen'; scala2 v4.examples.SeqAlignGen
+if [ "$1" ]; then
+	echo
+	echo "Running $1"; scala2 $1
+else
+	echo
+	echo 'Running MatrixMultGen'; scala2 v4.examples.MatrixMultGen
+	echo
+	echo 'Running MatrixMultGen2'; scala2 v4.examples.MatrixMultGen2
+	echo
+	echo 'Running SeqAlignGen'; scala2 v4.examples.SeqAlignGen
+fi

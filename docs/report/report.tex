@@ -73,6 +73,7 @@ Matrix of different dimensions must be stored in their own array (versus being i
 
 \item \textbf{Data granularity:} Since the major bottleneck of CUDA architecture is the memory, we focus on data representation; in the current project, data is stored in primary types but we could store them more efficiently. For example, RNA is represented with only 4 letters (g,a,t,c), thus 4 symbols could be encoded in a single byte. Unfortunately, this optimizations seems to only apply for the input data. Another solution in this direction is to operate on multiple cells with one thread, the argument being that they could share a row or a column, hereby dividing the number of memory accesses for non-serial dependencies on the shared axis.
 \item \textbf{Pruning:} described in \cite{swat_mega}, this optimization could lead to a reduction of the computation, provided that the algorithm final score can be bounded. Such optimization would only be relevant with a non-uniform computation strategy where the matrix is tiled, hereby making it possible to prune entire computation tiles.
+\item \textbf{Fusion:} {\color{red} pass the Scala grammar code through LMS to generate a more efficient version by using the fusion optimization}
 \ole
 
 \section{Conclusion}

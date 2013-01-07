@@ -34,7 +34,8 @@ trait MatrixAlgebraGen extends MatrixSig {
 object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen with App {
   //val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray // -> 1x3 matrix, 122 multiplications
   def r(x:Int) = (x*2309 ^ (x+2)*947) % 173 + 3
-  var input=(0 until 1024).map { x=>(r(x),r(x+1)) }.toArray
+  var input=(0 until 512 /*1024*/).map { x=>(r(x),r(x+1)) }.toArray
+  // input size: 400-420 -> stack overflow with default settings
   //println(input)
 
   // ------- Extra codegen initialization
@@ -42,6 +43,21 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   override val tps=(manifest[Alphabet],manifest[Answer])
   // ------- Extra codegen initialization
   //println(gen)
-  //println(parseCU(input))
-  println(backtrack(input).head._1)
+
+  println("--- Scala:")
+  println("1. Parsing")
+  println(parse(input,true).head)
+  println("2. Backtracking")
+  val (res,bt) = backtrack(input,true).head
+  println(res)
+  println("3. Reconstructing from backtrack")
+  println(build(input,bt))
+  println("--- CUDA:")
+  println("1. Parsing")
+  println(parse(input).head)
+  println("2. Backtracking")
+  val (res2,bt2) = backtrack(input).head
+  println(res2)
+  println("3. Reconstructing from backtrack (Scala)")
+  println(build(input,bt2))
 }

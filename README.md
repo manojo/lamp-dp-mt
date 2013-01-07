@@ -12,6 +12,20 @@ Lamp-DP-MT
     * patch `project/build.properties`:
         * `sbt.version=0.12.1`
     * `$ sbt publish-local`
-2. Run the [tutorial](https://github.com/julienrf/lms-tutorial)
+2. Run the optional [tutorial](https://github.com/julienrf/lms-tutorial)
     * `$ git clone https://github.com/julienrf/lms-tutorial.git`
     * `$ cd lms-tutorial && sbt run tutorial.Usage`
+
+## Setup instructions for running the project
+1. Checkout
+    * `$ git clone https://github.com/manojo/lamp-dp-mt.git`
+    * `$ cd lamp-dp-mt`
+2. Run Scala parsers (with SBT)
+    * Run simple tests: `$ sbt 'clean' 'librna' 'run-main v4.examples.Tests'`
+    * Run any program: `$ sbt run`
+    * Run Zuker folding: `$ sbt zuker` (you can run it only once per sbt/JVM instance due to JNI unloading issues)
+3. Run CUDA parsers (without SBT)
+    * Run CUDA tests: `$ ./build`
+    * Cleanup: `$ ./build clean`
+    * Get the program list: `$ ./build help` those ending with Gen are CUDA-enabled
+    * Run a program with: `$ ./build <class>`
