@@ -7,13 +7,17 @@ Lamp-DP-MT
     * `$ cd virtualization-lms-core`
     * `$ git checkout develop`
     * patch `project/Build.scala`:
+
       `val scalaTest = "org.scalatest" % "scalatest_2.10.0" % "2.0.M5" % "test"`
+
       `val virtScala = Option(System.getenv("SCALA_VIRTUALIZED_VERSION")).getOrElse("2.10.0")`
+
     * patch `project/build.properties`:
+
+      `sbt.version=0.12.1`
+
     * `$ sbt publish-local`
 
-2. Run the tutorial inspired from [here](https://github.com/julienrf/lms-tutorial)
-    * `$ git clone https://github.com/manojo/lamp-dp-mt.git`
+2. Run the [tutorial](https://github.com/julienrf/lms-tutorial)
+    * `$ git clone https://github.com/julienrf/lms-tutorial.git`
     * `$ cd lms-tutorial && sbt run tutorial.Usage`
-
-
