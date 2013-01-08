@@ -93,5 +93,5 @@ object RNAFold extends App {
 
   // Sequence : aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu
   // Reference: ((((.(((((...(((.((((((((....)))))))))))...(((((((....))))))).....))))).)))) (-24.5)
-  // Our      : ((((.(((((...(((.((((((((....)))))))))))...(((((((....))))))).....))))).)))) (-28.2)
+  // Our      : ((((.(((((...(((.((((((((....)))))))))))...(((((((....))))))).....))))).)))) (-25.4) andronescu
 }
