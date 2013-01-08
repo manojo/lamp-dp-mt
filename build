@@ -21,7 +21,11 @@ scalac2 'LibRNA' _rna src/librna/*.scala
 if scalac2 'Base parsers' _v4 src/main/scala/v4/*.scala; then rm bin/_ex.md5 2>/dev/null; fi
 scalac2 'Examples' _ex src/main/scala/v4/examples/*.scala
 
-scala2() { if [ "$YJP" != "" ]; then dbg="-J-agentpath:$YJP=sampling,onexit=snapshot,builtinprobes=all"; fi; scala -J-Xss64m "$dbg" -cp bin $@; }
+scala2() {
+	opts="-J-Xss64m -cp bin"
+	if [ "$YJP" == "" ]; then scala $opts $@;
+	else scala -J-agentpath:"$YJP"=sampling,onexit=snapshot,builtinprobes=all $opts $@; fi;
+}
 
 if [ "$1" ]; then
 	echo

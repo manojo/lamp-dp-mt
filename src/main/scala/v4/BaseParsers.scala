@@ -132,22 +132,21 @@ trait BaseParsers { this:Signature =>
     def max = maxv; var maxv = 0
 
     // Matrix storage
-    private var valid:Array[Boolean] = null
     private var data:Array[List[(Answer,Backtrack)]] = null
     private var (mW,mH) = (0,0)
-    def init(w:Int,h:Int) { mW=w; mH=h; val sz=if (twotracks) w*h else { assert(w==h); h*(h+1)/2 }; valid=new Array(sz); data=new Array(sz); }
-    def reset { valid=null; data=null; mW=0; mH=0; }
+    def init(w:Int,h:Int) { mW=w; mH=h; val sz=if (twotracks) w*h else { assert(w==h); h*(h+1)/2 }; data=new Array(sz); }
+    def reset { data=null; mW=0; mH=0; }
 
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
 
     var id:Int = -1 // subrules base index
     @inline private def idx(sw:Subword):Int = if (twotracks) sw._1*mW+sw._2 else { val i=sw._1; val j=sw._2; val d=mH+1+i-j; ( mH*(mH+1) - d*(d-1) ) /2 + i }
-    private def get(sw:Subword) = { val i=idx(sw); if (valid(i)) data(i) else { val v=inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}; data(i)=v; valid(i)=true; v } }
-    private def put(sw:Subword,v:List[(Answer,Backtrack)]) { val i=idx(sw); data(i)=v; valid(i)=true; }
+    private def get(sw:Subword) = { val i=idx(sw); val v1=data(i); if (v1!=null) v1 else { val v=inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}; data(i)=v; v } }
+    private def put(sw:Subword,v:List[(Answer,Backtrack)]) { data(idx(sw))=v; }
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
     def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
-    def reapply(sw:Subword,bt:Backtrack) = { val i=idx(sw); if (valid(i)) data(i).head._1 else sys.error("Failed reapply"+sw) }
+    def reapply(sw:Subword,bt:Backtrack) = { val v=data(idx(sw)); if (v!=null) v.head._1 else sys.error("Failed reapply"+sw) }
 
     def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))).map{x=>(e._1,x)} ).flatten
     def build(bt:List[(Subword,Backtrack)]):Answer = bt match {
