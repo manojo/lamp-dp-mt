@@ -37,9 +37,9 @@ void _fun(clear)(JNIEnv *env, jobject obj) { if (seq) { free(seq); seq=NULL; } }
 jint _fun(termau_1energy)(JNIEnv *env, jobject obj, jint i, jint j) { return termau_energy(seq,i,j); }
 jint _fun(hl_1energy)(JNIEnv *env, jobject obj, jint i, jint j) { return hl_energy(seq,i,j); }
 jint _fun(hl_1energy_1stem)(JNIEnv *env, jobject obj, jint i, jint j) { return hl_energy_stem(seq,i,j); }
-jint _fun(il_1energy)(JNIEnv *env, jobject obj, jint i, jint j, jint k, jint l) { return il_energy(seq,i,j,k,l); }
-jint _fun(bl_1energy)(JNIEnv *env, jobject obj, jint bl, jint i, jint j, jint br, jint Xright) { return bl_energy(seq,bl,i,j,br,Xright); }
-jint _fun(br_1energy)(JNIEnv *env, jobject obj, jint bl, jint i, jint j, jint br, jint Xleft) { return br_energy(seq,bl,i,j,br,Xleft); }
+jint _fun(il_1energy)(JNIEnv *env, jobject obj, jint i, jint k, jint l, jint j) { return il_energy(seq,i,k,l,j); }
+jint _fun(bl_1energy)(JNIEnv *env, jobject obj, jint i, jint k, jint l, jint j, jint Xright) { return bl_energy(seq,i,k,l,j,Xright); }
+jint _fun(br_1energy)(JNIEnv *env, jobject obj, jint i, jint k, jint l, jint j, jint Xleft) { return br_energy(seq,i,k,l,j,Xleft); }
 jint _fun(sr_1energy)(JNIEnv *env, jobject obj, jint i, jint j) { return sr_energy(seq,i,j); }
 jint _fun(sr_1pk_1energy)(JNIEnv *env, jobject obj, jbyte a, jbyte b, jbyte c, jbyte d) { return sr_pk_energy(a,b,c,d); }
 jint _fun(dl_1energy)(JNIEnv *env, jobject obj, jint i, jint j) { return dl_energy(seq,i,j); }

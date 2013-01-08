@@ -19,9 +19,9 @@ object LibRNA {
   @native def termau_energy(i:Int, j:Int):Int
   @native def hl_energy(i:Int, j:Int):Int // <-- hairpin loop
   @native def hl_energy_stem(i:Int, j:Int):Int
-  @native def il_energy(i:Int, j:Int, k:Int, l:Int):Int // <-- internal loop
-  @native def bl_energy(bl:Int, i:Int, j:Int, br:Int, Xright:Int):Int
-  @native def br_energy(bl:Int, i:Int, j:Int, br:Int, Xleft:Int):Int
+  @native def il_energy(i:Int, k:Int, l:Int, j:Int):Int // <-- internal loop
+  @native def bl_energy(i:Int, k:Int, l:Int, j:Int, Xright:Int):Int
+  @native def br_energy(i:Int, k:Int, l:Int, j:Int, Xleft:Int):Int
   @native def sr_energy(i:Int, j:Int):Int // <-- 2 stacked base pairs
   @native def sr_pk_energy(a:Byte, b:Byte, c:Byte, d:Byte):Int
   @native def dl_energy(i:Int, j:Int):Int

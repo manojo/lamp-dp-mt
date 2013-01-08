@@ -2,33 +2,6 @@ package v4.examples
 import v4._
 
 import librna.LibRNA
-/*
-object LibRNA { // Faking the library as there are SBT issues
-  def setParams(s:String) {}
-  def setSequence(s:String) {}
-  def clear {}
-  def termau_energy(i:Int, j:Int) = 0
-  def hl_energy(i:Int, j:Int) = 0
-  def hl_energy_stem(i:Int, j:Int) = 0
-  def il_energy(i:Int, j:Int, k:Int, l:Int) = 0
-  def bl_energy(bl:Int, i:Int, j:Int, br:Int, Xright:Int) = 0
-  def br_energy(bl:Int, i:Int, j:Int, br:Int, Xleft:Int) = 0
-  def sr_energy(i:Int, j:Int) = 0
-  def sr_pk_energy(a:Byte, b:Byte, c:Byte, d:Byte) = 0
-  def dl_energy(i:Int, j:Int) = 0
-  def dr_energy(i:Int, j:Int, n:Int) = 0
-  def dli_energy(i:Int, j:Int) = 0
-  def dri_energy(i:Int, j:Int) = 0
-  def ext_mismatch_energy(i:Int, j:Int, n:Int) = 0
-  def ml_mismatch_energy(i:Int, j:Int) = 0
-  def ml_energy = 0
-  def ul_energy = 0
-  def sbase_energy = 0
-  def ss_energy(i:Int, j:Int) = 0
-  def dl_dangle_dg(dangle:Byte, i:Byte, j:Byte) = 0
-  def dr_dangle_dg(i:Byte, j:Byte, dangle:Byte) = 0
-}
-*/
 
 // Zuker folding (Minimum Free Energy)
 // ----------------------------------------------------------------------------
@@ -39,7 +12,6 @@ object LibRNA { // Faking the library as there are SBT issues
 trait ZukerSig extends Signature {
   type Alphabet = Char
   type SSeq = (Int,Int) // = Subword
-//  def stackpairing(s:SSeq):Boolean
 
   def sadd(lb:Int, e:Answer) : Answer
   def cadd(x:Answer, e:Answer) : Answer
@@ -62,52 +34,41 @@ trait ZukerSig extends Signature {
     case ('a','u') | ('u','a') | ('u','g') | ('g','u') | ('g','c') | ('c','g') => true
     case _ => false
   }
-
-  // Signature implementation
   def stackpairing(s:SSeq):Boolean = { val (i,j)=s; (i+3 < j) && basepairing(i,j) && basepairing(i+1,j-1) }
-
 }
 
 trait ZukerMFE extends ZukerSig {
   type Answer = Int
 
-  // XXX: missing a lot of loops here, but on the other side the loops are implicit in GAPC!!
   // Read more in librna/rnalib.c, we could get valuable information there
   def sadd(lb:Int, e:Answer) = e
   def cadd(x:Answer, e:Answer) = x + e
   def dlr(lb:Int, e:Answer, rb:Int) = e + LibRNA.ext_mismatch_energy(lb, rb-1, size) + LibRNA.termau_energy(lb, rb-1)
 
   def sr(lb:Int, e:Answer, rb:Int) = e + LibRNA.sr_energy(lb,rb)
-  def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = LibRNA.hl_energy(x._1-1,x._2) + LibRNA.sr_energy(lb, rb)
+  def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = LibRNA.hl_energy(f1,f2) + LibRNA.sr_energy(lb, rb)
 
+  // XXX: maybe an indexing issue there ?
   def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) = e + LibRNA.bl_energy(lb,f1,f2,rb,x._2-x._1) + LibRNA.sr_energy(lb, rb)
   def br(lb:Int, f1:Int, e:Answer, x:SSeq, f2:Int, rb:Int) = e + LibRNA.br_energy(lb,f1,f2,rb,x._2-x._1) + LibRNA.sr_energy(lb, rb)
-  def il(f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) = x + LibRNA.il_energy(r1._1, r1._2, r2._1, r2._2) + LibRNA.sr_energy(f1, f4)
+
+  def il(f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) = x + LibRNA.il_energy(r1._1, r1._2-1, r2._1, r2._2-1) + LibRNA.sr_energy(f1, f4)
   def ml(lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) = {
-    LibRNA.ml_energy + LibRNA.ul_energy + x + LibRNA.termau_energy(f1, f2) +
-    LibRNA.sr_energy(lb, rb) + LibRNA.ml_mismatch_energy(f1, f2)
+    LibRNA.ml_energy + LibRNA.ul_energy + x + LibRNA.termau_energy(f1, f2) + LibRNA.sr_energy(lb, rb) + LibRNA.ml_mismatch_energy(f1, f2)
   }
   def app(c1:Answer, c:Answer) = c1 + c
   def ul(c1:Answer) = LibRNA.ul_energy + c1
-  def addss(c1:Answer, e:SSeq) = c1 + LibRNA.ss_energy(e._1,e._2)
-  def ssadd(e:SSeq, x:Answer) = LibRNA.ul_energy + x + LibRNA.ss_energy(e._1,e._2)
+  def addss(c1:Answer, e:SSeq) = c1 + LibRNA.ss_energy(e._1,e._2-1)
+  def ssadd(e:SSeq, x:Answer) = LibRNA.ul_energy + x + LibRNA.ss_energy(e._1,e._2-1)
   def nil(d:Unit) = 0
 
   override val h = min[Answer] _
 }
 /*
-  int dlr(Subsequence lb, int e, Subsequence rb) = e + ext_mismatch_energy(lb, rb) + termau_energy(lb, rb);
-  int sr(Subsequence lb, int e, Subsequence rb) = e + sr_energy(lb, rb);
-  int hl(Subsequence lb, Subsequence f1, Subsequence x, Subsequence f2, Subsequence rb) = hl_energy(x) + sr_energy(lb, rb);
-  int bl(Subsequence bl, Subsequence f1, Subsequence x, int e, Subsequence f2, Subsequence br) = e + bl_energy(x, f2) + sr_energy(bl, br);
-  int br(Subsequence bl, Subsequence f1, int e, Subsequence x, Subsequence f2, Subsequence br) = e + br_energy(f1, x) + sr_energy(bl, br);
-  int il(Subsequence f1, Subsequence f2, Subsequence r1, int x, Subsequence r2, Subsequence f3, Subsequence f4) = x + il_energy(r1, r2) + sr_energy(f1, f4);
-  int ml(Subsequence bl, Subsequence f1, int x, Subsequence f2, Subsequence br) = ml_energy() + ul_energy() + x + termau_energy(f1, f2) + sr_energy(bl, br) + ml_mismatch_energy(f1, f2);
-  int app(int c1, int c) = c1 + c;
-  int ul(int c1) = ul_energy() + c1;
-  int addss(int c1, Subsequence e) = c1 + ss_energy(e);
-  int ssadd(Subsequence e, int x) = ul_energy() + x + ss_energy(e);
-}
+  int bl(Subsequence bl, Subsequence f1, Subsequence x, int e, Subsequence f2, Subsequence br) = e + bl_energy(x, f2) + sr_energy(bl, br)
+  int br(Subsequence bl, Subsequence f1, int e, Subsequence x, Subsequence f2, Subsequence br) = e + br_energy(f1, x) + sr_energy(bl, br)
+  int il(Subsequence f1, Subsequence f2, Subsequence r1, int x, Subsequence r2, Subsequence f3, Subsequence f4) = x + il_energy(r1, r2) + sr_energy(f1, f4)
+  int ml(Subsequence bl, Subsequence f1, int x, Subsequence f2, Subsequence br) = ml_energy() + ul_energy() + x + termau_energy(f1, f2) + sr_energy(bl, br) + ml_mismatch_energy(f1, f2)
 */
 
 trait ZukerCount extends ZukerSig {
@@ -154,9 +115,9 @@ trait ZukerPrettyPrint extends ZukerSig {
 trait ZukerGrammar extends ADPParsers with ZukerSig {
   val BASE = eli
   val LOC = emptyi
-  val REG = seq(1,-1)
+  val REG = seq(2,-1)
   val REG3 = seq(3,-1)
-  val REG30 = seq(1,30)
+  val REG30 = seq(2,30)
 
   val struct:Tabulate = tabulate("st",(
       BASE   ~ struct ^^ { case (b,s) => sadd(b,s) }
@@ -220,11 +181,13 @@ object Zuker extends App {
 
   def testSeq(seq:String) {
     val (score,bt,res)=parse(seq)
-    println("Score     : "+score);
-    println("Backtrack : "+bt);
-    println("Result    : "+res);
-    println("Count     : "+count.parse(seq.toArray).head);
-    println(run(seq)+"\n"+res+" (%6.2f)".format(score/100.0))
+    /*
+    println("Score     : "+score)
+    println("Backtrack : "+bt)
+    println("Result    : "+res)
+    println("Count     : "+count.parse(seq.toArray).head)
+    */
+    println(run(seq)+"\n"+res+" (%6.2f)".format(score/100.0)+"\n")
   }
 
   // Having separate instances of sbt is required due to issue described in
@@ -232,19 +195,21 @@ object Zuker extends App {
   println("Coefficients are WRONG! Fix computations involving LibRNA")
 
   testSeq("ccuuuuucaaagg")
+  // Sequence : ccuuuuucaaagg
+  // ViennaRNA: (((((...))))) ( -1.30)
+  // Our      : (((((...))))) ( -1.30)
+  // GAPC     : (((((...))))) ( -1.30)
+
   testSeq("guacgucaguacguacgugacugucagucaac")
+  // Sequence : guacgucaguacguacgugacugucagucaac
+  // ViennaRNA: ((((((....)))))).(((((...))))).. (-9.50)
+  // Our      : ((((((....)))))).(((((...))))).. (-9.50)
+  // GAPC     : ((((((....)))))).((((.....)))).. (-9.70)
+
   testSeq("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
-  
   // Sequence : aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu
-  // Reference: .....(((((........((((((.((((((((((((...))))).))))))).))))))......)))))..... (-25.00)
-  // Our      : ((((.(((((........((((((..((((.((((((...)))))).))))...))))))......))))).)))) (-23.60)
- 
-
-
-
-
-  // References for guacgucaguacguacgugacugucagucaac
-  // GAPC     : -970   ((((((....)))))).((((.....))))..
-  // Our      : -710   ((((((....)))))).(((((...)))))..
-  // ViennaRNA: -9.50  ((((((....)))))).(((((...)))))..
+  // ViennaRNA: .....(((((........((((((.((((((((((((...))))).))))))).))))))......)))))..... (-25.00)
+  // Our      : .((..(((((........((((((..((((((..(((....)))..))))))..))))))......)))))..)). (-24.80)
+  // GAPC(1)  : .....(((((........((((((.((((((((((((...))))).))))))).))))))......)))))..... (-25.00)
+  // GAPC(2)  : .....(((((........((((((.((((((((((((...)))))).)))))).))))))......)))))..... (-25.00)
 }
