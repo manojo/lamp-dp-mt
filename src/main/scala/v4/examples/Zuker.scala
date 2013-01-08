@@ -43,16 +43,18 @@ trait ZukerMFE extends ZukerSig {
   // Read more in librna/rnalib.c, we could get valuable information there
   def sadd(lb:Int, e:Answer) = e
   def cadd(x:Answer, e:Answer) = x + e
-  def dlr(lb:Int, e:Answer, rb:Int) = e + LibRNA.ext_mismatch_energy(lb, rb-1, size) + LibRNA.termau_energy(lb, rb-1)
+  def dlr(lb:Int, e:Answer, rb:Int) = e + LibRNA.ext_mismatch_energy(lb, rb-1, size) + LibRNA.termau_energy(lb, rb-1) // FIXED
 
-  def sr(lb:Int, e:Answer, rb:Int) = e + LibRNA.sr_energy(lb,rb)
-  def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = LibRNA.hl_energy(f1,f2) + LibRNA.sr_energy(lb, rb)
+  def sr(lb:Int, e:Answer, rb:Int) = e + LibRNA.sr_energy(lb,rb) // FIXED
+  def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = LibRNA.hl_energy(f1,f2) + LibRNA.sr_energy(lb, rb) // FIXED
 
   // XXX: maybe an indexing issue there ?
   def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) = e + LibRNA.bl_energy(lb,f1,f2,rb,x._2-x._1) + LibRNA.sr_energy(lb, rb)
   def br(lb:Int, f1:Int, e:Answer, x:SSeq, f2:Int, rb:Int) = e + LibRNA.br_energy(lb,f1,f2,rb,x._2-x._1) + LibRNA.sr_energy(lb, rb)
 
-  def il(f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) = x + LibRNA.il_energy(r1._1, r1._2-1, r2._1, r2._2-1) + LibRNA.sr_energy(f1, f4)
+  def il(f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) = x + LibRNA.il_energy(f2, r1._2-1, r2._1, f3) + LibRNA.sr_energy(f1, f4) // FIXED
+
+  // XXX: issue here ??
   def ml(lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) = {
     LibRNA.ml_energy + LibRNA.ul_energy + x + LibRNA.termau_energy(f1, f2) + LibRNA.sr_energy(lb, rb) + LibRNA.ml_mismatch_energy(f1, f2)
   }
@@ -120,8 +122,8 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
   val REG30 = seq(2,30)
 
   val struct:Tabulate = tabulate("st",(
-      BASE   ~ struct ^^ { case (b,s) => sadd(b,s) }
-    | dangle ~ struct ^^ { case (d,s) => cadd(d,s) }
+      BASE   ~ struct ^^ sadd
+    | dangle ~ struct ^^ cadd
     | empty           ^^ nil
     ) aggregate h);
 
@@ -205,6 +207,12 @@ object Zuker extends App {
   // ViennaRNA: ((((((....)))))).(((((...))))).. (-9.50)
   // Our      : ((((((....)))))).(((((...))))).. (-9.50)
   // GAPC     : ((((((....)))))).((((.....)))).. (-9.70)
+
+  testSeq("aaaaaggaaacuccucuuu") // subset of following sequence
+  // Sequence : aaaaaggaaacuccucuuu
+  // ViennaRNA: ....((((...)))).... ( -2.40)
+  // Our      : ((..((((...))))..)) ( -2.90)
+
 
   testSeq("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
   // Sequence : aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu
