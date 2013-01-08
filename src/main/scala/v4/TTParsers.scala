@@ -21,7 +21,7 @@ trait TTParsers extends BaseParsers { this:Signature =>
     case _ => run(in1,in2,()=>axiom.backtrack(input1.size,input2.size))
   }
   def build(in1:Input,in2:Input,bt:List[(Subword,Backtrack)]):Answer = run(in1,in2,()=>axiom.build(bt))
-  private def run[T](in1:Input,in2:Input, f:()=>T) = { input1=in1; input2=in2; analyze; val res=time("Execution")(f); input1=null; input2=null; reset(); res }
+  private def run[T](in1:Input,in2:Input, f:()=>T) = { input1=in1; input2=in2; analyze; tabInit(in1.size+1,in2.size+1); val res=time("Execution")(f); tabReset; input1=null; input2=null; res }
 
   // Concat parsers
   import scala.language.implicitConversions

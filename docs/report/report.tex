@@ -41,6 +41,15 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 \input{design}
 \input{implementation}
 \section{Benchmarks}
+\subsection{Java parsers}
+{\color{red}
+MatrixMult-512, Mac+JDK7\ul
+\item Original: 24.937 sec / 24.658 sec
+\item Optimized concatenation: 19.329 sec / 18.924 sec
+\item Tabulation as arrays+inline: 15.068 sec / 14.900 sec
+\ule}
+
+\subsection{CUDA parsers}
 {\color{red} XXX: explain why slower: approx 3x more memory used per score (maintain matrix dimensions)
 
 XXX: continue benchmarking here

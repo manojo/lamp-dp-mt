@@ -1,8 +1,9 @@
 #!/bin/sh
 cd `dirname $0`
-#if [ -d "/Developer/Scala" ]; then SCALA_HOME="/Developer/Scala"; fi
 if [ "$OSTYPE" = "darwin" ]; then md5_hash() { md5 -s $@; };
 else md5_hash() { md5sum $@; }; fi
+
+#YJP="/Applications/Tools/YourKit Java Profiler.app/bin/mac/libyjpagent.jnilib"
 
 scalac2() {
 	printf "Compiling %s ... " "$1"; shift; f=$1; shift; md5_hash $@ > bin/$f.tmp
@@ -20,7 +21,7 @@ scalac2 'LibRNA' _rna src/librna/*.scala
 if scalac2 'Base parsers' _v4 src/main/scala/v4/*.scala; then rm bin/_ex.md5 2>/dev/null; fi
 scalac2 'Examples' _ex src/main/scala/v4/examples/*.scala
 
-scala2() { scala -J-Xss64m -cp bin $@; }
+scala2() { if [ "$YJP" != "" ]; then dbg="-J-agentpath:$YJP=sampling,onexit=snapshot,builtinprobes=all"; fi; scala -J-Xss64m "$dbg" -cp bin $@; }
 
 if [ "$1" ]; then
 	echo

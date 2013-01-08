@@ -121,8 +121,8 @@ trait BaseParsers { this:Signature =>
   import scala.collection.mutable.HashMap
   var rulesOrder:List[String]=Nil // Order of tabulations evaluation
   val rules = new HashMap[String,Tabulate]
-  val tabs = new HashMap[String,HashMap[Subword,List[(Answer,Backtrack)]]]
-  var reset:(()=>Unit) = () => { /*printTabs*/ }
+  def tabInit(w:Int,h:Int) = rules.foreach{ case (_,t) => t.init(w,h) }
+  def tabReset = rules.foreach{ case (_,t) => t.reset }
 
   def tabulate(name:String, inner: => Parser[Answer], alwaysValid:Boolean=false) = new Tabulate(inner,name,alwaysValid)
   class Tabulate(in: => Parser[Answer], val name:String, val alwaysValid:Boolean=false) extends Parser[Answer] {
@@ -130,36 +130,28 @@ trait BaseParsers { this:Signature =>
     val (alt,cat) = (1,0)
     def min = minv; var minv = 0
     def max = maxv; var maxv = 0
-    private val map = tabs.getOrElseUpdate(name,new HashMap[Subword,List[(Answer,Backtrack)]])
-    reset = { val r0=reset; () => { r0(); map.clear; } }
+
+    // Matrix storage
+    private var valid:Array[Boolean] = null
+    private var data:Array[List[(Answer,Backtrack)]] = null
+    private var (mW,mH) = (0,0)
+    def init(w:Int,h:Int) { mW=w; mH=h; val sz=if (twotracks) w*h else { assert(w==h); h*(h+1)/2 }; valid=new Array(sz); data=new Array(sz); }
+    def reset { valid=null; data=null; mW=0; mH=0; }
+
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
 
     var id:Int = -1 // subrules base index
-
-    /*
-    // 18.924 sec -> 14.630 sec (Mac+JDK7, MatrixMult-512)
-    private val av = (0 until 513*513).map{_=>false}.toArray
-    private val a2 = (0 until 513*513).map{_=>List[(Answer,Backtrack)]()}.toArray
-    private def get(sw:Subword) = { val i = sw._1*513+sw._2;
-      if (av(i)) a2(i) else { av(i)=true; val v=inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}; a2(i)=v; v }
-    }
+    @inline private def idx(sw:Subword):Int = if (twotracks) sw._1*mW+sw._2 else { val i=sw._1; val j=sw._2; val d=mH+1+i-j; ( mH*(mH+1) - d*(d-1) ) /2 + i }
+    private def get(sw:Subword) = { val i=idx(sw); if (valid(i)) data(i) else { val v=inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}; data(i)=v; valid(i)=true; v } }
+    private def put(sw:Subword,v:List[(Answer,Backtrack)]) { val i=idx(sw); data(i)=v; valid(i)=true; }
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
     def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
-    def reapply(sw:Subword,bt:Backtrack) = {
-      val i = sw._1*513+sw._2;
-      if (av(i)) a2(i).head._1 else sys.error("Failed reapply"+sw)
-    }
-    */
+    def reapply(sw:Subword,bt:Backtrack) = { val i=idx(sw); if (valid(i)) data(i).head._1 else sys.error("Failed reapply"+sw) }
 
-    private def get(sw:Subword) = { if (!twotracks) assert(sw._1<=sw._2); map.getOrElseUpdate(sw,inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}) }
-    def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
-    def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
-    def reapply(sw:Subword,bt:Backtrack) = map.get(sw) match { case Some(v) => map.remove(sw); v.head._1 case _ => sys.error("Failed reapply"+sw); apply(sw).head._1 }
-    
     def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))).map{x=>(e._1,x)} ).flatten
     def build(bt:List[(Subword,Backtrack)]):Answer = bt match {
-      case bh::bs => val (sw,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(sw,(rr,b)); if (bs==Nil) a else { t.map.put(sw,List((a,bt0))); build(bs) }
+      case bh::bs => val (sw,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(sw,(rr,b)); if (bs==Nil) a else { t.put(sw,List((a,bt0))); build(bs) }
       case Nil => sys.error("No backtrack provided")
     }
 
@@ -250,11 +242,10 @@ trait BaseParsers { this:Signature =>
       case _ => true
     }
     lazy val indices = { assert(analyzed==true); (left.min,left.max,right.min,right.max) }
-    private def bt(bl:Backtrack,br:Backtrack,k:Int):Backtrack = {
+    @inline private def bt(bl:Backtrack,br:Backtrack,k:Int):Backtrack = {
       (bl._1*right.alt+br._1, bl._2:::(if (hasBt)List(k) else Nil):::br._2)
     }
 
-    // Optimized: 19.329 sec, 18.924 sec (Mac+JDK7, MatrixMult-512)
     def apply(sw:Subword) = {
       val (i,j) = sw; val (lL,lU,rL,rU) = indices
       if (track==0) {
@@ -281,35 +272,6 @@ trait BaseParsers { this:Signature =>
         ) yield(((x,y),bt(xb,yb,k)))
       } else Nil
     }
-
-    /*
-    // Original: 24.937 sec / 24.658 sec (Mac+JDK7, MatrixMult-512)
-    def apply(sw:Subword) = (sw,track,indices) match {
-      case ((i,j),0,(lL,lU,rL,rU)) if i<j => // single track
-        val min_k = if (rU==maxN) i+lL else Math.max(i+lL,j-rU)
-        val max_k = if (lU==maxN) j-rL else Math.min(j-rL,i+lU)
-        for(
-          k <- (min_k to max_k).toList;
-          (x,xb) <- left((i,k));
-          (y,yb) <- right((k,j))
-        ) yield(((x,y),bt(xb,yb,k)))
-      case ((i,j),1,(l,u,_,_)) => // tt:concat1
-        val i0 = if (u==maxN) 0 else Math.max(i-u,0)
-        for(
-          k <- (i0 to i-l).toList;
-          (x,xb) <- left((k,i)); // in1[k..i]
-          (y,yb) <- right((k,j)) // M[k,j]
-        ) yield(((x,y),bt(xb,yb,k)))
-      case ((i,j),2,(_,_,l,u)) => // tt:concat2
-        val j0 = if (u==maxN) 0 else Math.max(j-u,0)
-        for(
-          k <- (j0 to j-l).toList;
-          (x,xb) <- left((i,k)); // M[i,k]
-          (y,yb) <- right((k,j)) // in2[k..j]
-        ) yield(((x,y),bt(xb,yb,k)))
-      case _ => List()
-    }
-    */
 
     private def bt_split(bt:Backtrack):(Backtrack,Backtrack,Int) = bt match { case (r,idx) =>
       val a:Int=right.alt; val c:Int=left.cat;
@@ -402,10 +364,5 @@ trait BaseParsers { this:Signature =>
       for (((i,j),(r,bt)) <- b._2) { print(" ["+i+","+j+"]="+r+","+bt+" ") }; println
     }
     println("}")
-  }
-  def printTabs {
-    for((n,t)<-tabs) { println(n+":")
-      for((k,v)<-t; (c,(r,bt))<-v) printf("  %-7s -> %-60s %d, %s\n",k,c,r,bt); println
-    }
   }
 }
