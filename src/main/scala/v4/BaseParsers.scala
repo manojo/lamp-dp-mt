@@ -136,6 +136,22 @@ trait BaseParsers { this:Signature =>
     rules += ((name,this))
 
     var id:Int = -1 // subrules base index
+
+    /*
+    // 18.924 sec -> 14.630 sec (Mac+JDK7, MatrixMult-512)
+    private val av = (0 until 513*513).map{_=>false}.toArray
+    private val a2 = (0 until 513*513).map{_=>List[(Answer,Backtrack)]()}.toArray
+    private def get(sw:Subword) = { val i = sw._1*513+sw._2;
+      if (av(i)) a2(i) else { av(i)=true; val v=inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}; a2(i)=v; v }
+    }
+    def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
+    def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
+    def reapply(sw:Subword,bt:Backtrack) = {
+      val i = sw._1*513+sw._2;
+      if (av(i)) a2(i).head._1 else sys.error("Failed reapply"+sw)
+    }
+    */
+
     private def get(sw:Subword) = { if (!twotracks) assert(sw._1<=sw._2); map.getOrElseUpdate(sw,inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}) }
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
     def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
@@ -237,6 +253,37 @@ trait BaseParsers { this:Signature =>
     private def bt(bl:Backtrack,br:Backtrack,k:Int):Backtrack = {
       (bl._1*right.alt+br._1, bl._2:::(if (hasBt)List(k) else Nil):::br._2)
     }
+
+    // Optimized: 19.329 sec, 18.924 sec (Mac+JDK7, MatrixMult-512)
+    def apply(sw:Subword) = {
+      val (i,j) = sw; val (lL,lU,rL,rU) = indices
+      if (track==0) {
+        val min_k = if (rU==maxN || i+lL > j-rU) i+lL else j-rU
+        val max_k = if (lU==maxN || j-rL < i+lU) j-rL else i+lU
+        for(
+          k <- (min_k to max_k).toList;
+          (x,xb) <- left((i,k));
+          (y,yb) <- right((k,j))
+        ) yield(((x,y),bt(xb,yb,k)))
+      } else if (track==1) {
+        val i0 = if (lU==maxN || i-lU < 0) 0 else i-lU
+        for(
+          k <- (i0 to i-lL).toList;
+          (x,xb) <- left((k,i)); // in1[k..i]
+          (y,yb) <- right((k,j)) // M[k,j]
+        ) yield(((x,y),bt(xb,yb,k)))
+      } else if (track==2) {
+        val j0 = if (rU==maxN || j-rU < 0) 0 else j-rU
+        for(
+          k <- (j0 to j-rL).toList;
+          (x,xb) <- left((i,k)); // M[i,k]
+          (y,yb) <- right((k,j)) // in2[k..j]
+        ) yield(((x,y),bt(xb,yb,k)))
+      } else Nil
+    }
+
+    /*
+    // Original: 24.937 sec / 24.658 sec (Mac+JDK7, MatrixMult-512)
     def apply(sw:Subword) = (sw,track,indices) match {
       case ((i,j),0,(lL,lU,rL,rU)) if i<j => // single track
         val min_k = if (rU==maxN) i+lL else Math.max(i+lL,j-rU)
@@ -262,6 +309,7 @@ trait BaseParsers { this:Signature =>
         ) yield(((x,y),bt(xb,yb,k)))
       case _ => List()
     }
+    */
 
     private def bt_split(bt:Backtrack):(Backtrack,Backtrack,Int) = bt match { case (r,idx) =>
       val a:Int=right.alt; val c:Int=left.cat;
