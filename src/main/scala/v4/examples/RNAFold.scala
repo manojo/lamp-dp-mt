@@ -3,13 +3,6 @@ import v4._
 
 import librna.LibRNA
 
-/*
-object LibRNA { // Faking the library as there are SBT issues
-  def setParams(s:String)
-  def setSequence(s:String)
-}
-*/
-
 // ----------------------------------------------------------------------------
 // Folding algorithm from Unafold package in the function hybrid-ss-min
 // Using the grammar described in paper "GPU accelerated RNA folding algorithm"
@@ -18,10 +11,10 @@ trait RNAFoldSig extends Signature {
   type Alphabet = Char
 
   def Eh(i:Int,j:Int) = LibRNA.hl_energy(i,j) // hairpin loop
-  def Ei(i:Int,j:Int,k:Int,l:Int) = LibRNA.il_energy(i,j,k,l) // internal loop
+  def Ei(i:Int,k:Int,l:Int,j:Int) = LibRNA.il_energy(i,k,l,j) // internal loop
   def Es(i:Int,j:Int) = LibRNA.sr_energy(i,j) // 2 stacked base pairs
 
-  def hairpin(i:Int,j:Int):Answer
+  def hairpin(ij:(Int,Int)):Answer
   def stack(i:Int,s:Answer,j:Int):Answer
   def iloop(ik:(Int,Int),s:Answer,lj:(Int,Int)):Answer
   def mloop(i:Int,s:Answer,j:Int):Answer
@@ -33,9 +26,9 @@ trait RNAFoldSig extends Signature {
 trait RNAFoldAlgebra extends RNAFoldSig {
   type Answer = Int
   override val h = min[Answer] _
-  def hairpin(i:Int,j:Int) = Eh(i,j-1)
+  def hairpin(ij:(Int,Int)) = Eh(ij._1,ij._2-1)
   def stack(i:Int,s:Int,j:Int) = Es(i,j) + s
-  def iloop(ik:(Int,Int),s:Int,lj:(Int,Int)) = Ei(ik._1,lj._2-1,ik._2-1,lj._1) + s
+  def iloop(ik:(Int,Int),s:Int,lj:(Int,Int)) = Ei(ik._1,ik._2,lj._1-1,lj._2-1) + s
   def mloop(i:Int,s:Int,j:Int) = s
   def left(l:Int,r:Int) = l
   def right(l:Int,r:Int) = r
@@ -45,9 +38,9 @@ trait RNAFoldAlgebra extends RNAFoldSig {
 trait RNAFoldPrettyPrint extends RNAFoldSig {
   type Answer = String
   private def dots(n:Int,c:Char='.') = (0 until n).map{_=>c}.mkString
-  def hairpin(i:Int,j:Int) = "("+dots(j-i-2)+")"
+  def hairpin(ij:(Int,Int)) = "("+dots(ij._2-ij._1-2)+")"
   def stack(i:Int,s:String,j:Int) = "("+s+")"
-  def iloop(ik:(Int,Int),s:String,lj:(Int,Int)) = "(."+s+".)"
+  def iloop(ik:(Int,Int),s:String,lj:(Int,Int)) = "("+dots(ik._2-ik._1-1)+s+dots(lj._2-lj._1-1)+")"
   def mloop(i:Int,s:String,j:Int) = "("+s+")"
   def left(l:String,r:Int) = l+"."
   def right(l:Int,r:String) = "."+r
@@ -55,18 +48,18 @@ trait RNAFoldPrettyPrint extends RNAFoldSig {
 }
 
 trait RNAFoldGrammar extends ADPParsers with RNAFoldSig {
-  def pair(i:Int, j:Int):Boolean = if (j<=i+1) false else (in(i),in(j-1)) match {
+  def pair(i:Int, j:Int):Boolean = if (i+2>j) false else (in(i),in(j-1)) match {
     case ('a','u') | ('u','a') | ('u','g') | ('g','c') | ('g','u') | ('c','g') => true
     case _ => false
   }
 
-  val seq2=seq(2,maxN)
+  //val seq1=seq(1,maxN)
 
   lazy val Qp:Tabulate = tabulate("Qp",(
     seq(3,maxN)      ^^ hairpin
-  | eli ~ Qp ~ eli   ^^ stack
-  | seq2 ~ Qp ~ seq2 ^^ iloop
-  | eli ~ QM  ~ eli  ^^ mloop
+  | eli  ~ Qp ~ eli  ^^ stack
+  | seq() ~ Qp ~ seq() ^^ iloop
+  | eli  ~ QM ~ eli  ^^ mloop
   ) filter pair aggregate h)
 
   lazy val QM:Tabulate = tabulate("QM",(Q ~ Q ^^ join) filter((i:Int,j:Int)=>i<=j+4) aggregate h)
@@ -78,7 +71,7 @@ trait RNAFoldGrammar extends ADPParsers with RNAFoldSig {
   | Qp
   ) filter((i:Int,j:Int)=>i<=j+2) aggregate h)
 
-  override val axiom = Qp
+  override val axiom = Q
 }
 
 object RNAFold extends App {
@@ -100,5 +93,5 @@ object RNAFold extends App {
 
   // Sequence : aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu
   // Reference: ((((.(((((...(((.((((((((....)))))))))))...(((((((....))))))).....))))).)))) (-24.5)
-  // Our      : ((((.(((((.......((((((((....))))))))......(((((((....))))))).....))))).)))) (-21.8)
+  // Our      : ((((.(((((...(((.((((((((....)))))))))))...(((((((....))))))).....))))).)))) (-28.2)
 }

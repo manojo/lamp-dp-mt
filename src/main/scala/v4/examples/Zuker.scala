@@ -39,7 +39,7 @@ object LibRNA { // Faking the library as there are SBT issues
 trait ZukerSig extends Signature {
   type Alphabet = Char
   type SSeq = (Int,Int) // = Subword
-  def stackpairing(s:SSeq):Boolean
+//  def stackpairing(s:SSeq):Boolean
 
   def sadd(lb:Int, e:Answer) : Answer
   def cadd(x:Answer, e:Answer) : Answer
@@ -55,15 +55,11 @@ trait ZukerSig extends Signature {
   def addss(c1:Answer, e:SSeq) : Answer
   def ssadd(e:SSeq, x:Answer) : Answer
   def nil(d:Unit) : Answer
-}
 
-trait ZukerMFE extends ZukerSig {
-  type Answer = Int
   def size:Int
   def in(x:Int):Alphabet
   def basepairing(i:Int, j:Int):Boolean = {
-    if (j<=i+1) false
-    else (in(i),in(j-1)) match {
+    if (i+2>j) false else (in(i),in(j-1)) match {
       case ('a','u') | ('u','a') | ('u','g') | ('g','c') | ('g','u') | ('c','g') => true
       case _ => false
     }
@@ -71,6 +67,11 @@ trait ZukerMFE extends ZukerSig {
 
   // Signature implementation
   def stackpairing(s:SSeq):Boolean = { val (i,j)=s; (i+3 < j) && basepairing(i,j) && basepairing(i+1,j-1) }
+
+}
+
+trait ZukerMFE extends ZukerSig {
+  type Answer = Int
 
   // XXX: missing a lot of loops here, but on the other side the loops are implicit in GAPC!!
   // Read more in librna/rnalib.c, we could get valuable information there
@@ -95,10 +96,52 @@ trait ZukerMFE extends ZukerSig {
   override val h = min[Answer] _
 }
 
+/*
+  int bl(Subsequence bl, Subsequence f1, Subsequence x,
+         int e, Subsequence f2, Subsequence br) {
+    return e + bl_energy(x, f2) + sr_energy(bl, br);
+  }
+
+  int br(Subsequence bl, Subsequence f1, int e, Subsequence x,
+         Subsequence f2, Subsequence br) {
+    return e + br_energy(f1, x) + sr_energy(bl, br);
+  }
+
+  int il(Subsequence f1, Subsequence f2, Subsequence r1, int x,
+         Subsequence r2, Subsequence f3, Subsequence f4) {
+    return x + il_energy(r1, r2) + sr_energy(f1, f4);
+  }
+  int ml(Subsequence bl, Subsequence f1, int x, Subsequence f2, Subsequence br) {
+    return ml_energy() + ul_energy() + x + termau_energy(f1, f2) + sr_energy(bl, br)
+         + ml_mismatch_energy(f1, f2);
+  }
+*/
+
+
+
+trait ZukerCount extends ZukerSig {
+  type Answer = Int
+  def sadd(lb:Int, e:Answer) = e
+  def cadd(x:Answer, e:Answer) = x * e
+  def dlr(lb:Int, e:Answer, rb:Int) = e
+  def sr(lb:Int, e:Answer, rb:Int) = e
+  def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = 1
+  def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) = e
+  def br(lb:Int, f1:Int, e:Answer, x:SSeq, f2:Int, rb:Int) = e
+  def il(f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) = x
+  def ml(lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) = x
+  def app(c1:Answer, c:Answer) = c1 * c
+  def ul(c1:Answer) = c1
+  def addss(c1:Answer, e:SSeq) = c1
+  def ssadd(e:SSeq, x:Answer) = x
+  def nil(d:Unit) = 1
+  override val h = sum[Answer] _
+}
+
 trait ZukerPrettyPrint extends ZukerSig {
   type Answer = String
 
-  def stackpairing(s:SSeq):Boolean = true
+  //def stackpairing(s:SSeq):Boolean = true
   private def dots(s:SSeq,c:Char='.') = (0 until s._2-s._1).map{_=>c}.mkString
 
   def sadd(lb:Int, e:Answer) = "."+e
@@ -118,9 +161,11 @@ trait ZukerPrettyPrint extends ZukerSig {
 }
 
 trait ZukerGrammar extends ADPParsers with ZukerSig {
-  def BASE = eli
-  def LOC = emptyi
-  def REGION = seq _
+  val BASE = eli
+  val LOC = emptyi
+  val REG = seq(1,-1)
+  val REG3 = seq(3,-1)
+  val REG30 = seq(1,30)
 
   val struct:Tabulate = tabulate("st",(
       BASE   ~ struct ^^ { case (b,s) => sadd(b,s) }
@@ -132,10 +177,10 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
   val closed:Tabulate = tabulate("cl", (stack | hairpin | leftB | rightB | iloop | multiloop) filter stackpairing aggregate h)
 
   lazy val stack   = BASE ~ closed ~ BASE ^^ sr
-  lazy val hairpin = BASE ~ BASE ~ REGION(3,-1) ~ BASE ~ BASE ^^ hl
-  lazy val leftB   = BASE ~ BASE ~ REGION(1,30) ~ closed ~ BASE ~ BASE ^^ bl aggregate h
-  lazy val rightB  = BASE ~ BASE ~ closed ~ REGION(1,30) ~ BASE ~ BASE ^^ br aggregate h
-  lazy val iloop   = BASE ~ BASE ~ REGION(1,30) ~ closed ~ REGION(1,30) ~ BASE ~ BASE ^^ il aggregate h
+  lazy val hairpin = BASE ~ BASE ~ REG3 ~ BASE ~ BASE ^^ hl
+  lazy val leftB   = BASE ~ BASE ~ REG30 ~ closed ~ BASE ~ BASE ^^ bl aggregate h
+  lazy val rightB  = BASE ~ BASE ~ closed ~ REG30 ~ BASE ~ BASE ^^ br aggregate h
+  lazy val iloop   = BASE ~ BASE ~ REG30 ~ closed ~ REG30 ~ BASE ~ BASE ^^ il aggregate h
 
   lazy val multiloop = BASE ~ BASE ~ ml_comps ~ BASE ~ BASE ^^ ml
   val ml_comps:Tabulate = tabulate("ml",(
@@ -146,7 +191,7 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
       BASE ~ ml_comps ^^ sadd
     | (dangle ^^ ul) ~ ml_comps1 ^^ app
     | (dangle ^^ ul)
-    | (dangle ^^ ul) ~ REGION(1,-1) ^^ addss
+    | (dangle ^^ ul) ~ REG ^^ addss
     ) aggregate h)
 
   val axiom = struct
@@ -158,8 +203,9 @@ object Zuker extends App {
   def parse(s:String) = {
     LibRNA.setParams("src/librna/vienna/rna_turner2004.par")
     LibRNA.setSequence(s);
-    val (score,bt) = mfe.backtrack(s.toArray).head;
-    val res = pretty.build(s.toArray,bt)
+    val seq=s.toArray
+    val (score,bt) = mfe.backtrack(seq).head;
+    val res = pretty.build(seq,bt)
     LibRNA.clear; (score,bt,res)
   }
 
@@ -169,10 +215,15 @@ object Zuker extends App {
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   println("Coefficients are WRONG! Fix computations involving LibRNA")
 
-  val (score,bt,res)=parse("guacgucaguacguacgugacugucagucaac")
+  val seq = "guacgucaguacguacgugacugucagucaac"
+  val (score,bt,res)=parse(seq)
+
   println("Score     : "+score);
   println("Backtrack : "+bt);
   println("Result    : "+res);
+
+  object count extends ZukerGrammar with ZukerCount
+  println("Count     : "+count.parse(seq.toArray).head);
 
   // References for guacgucaguacguacgugacugucagucaac
   // GAPC     : -970   ((((((....)))))).((((.....))))..
