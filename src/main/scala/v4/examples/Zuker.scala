@@ -201,21 +201,28 @@ object Zuker extends App {
 
   // Having separate instances of sbt is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
+  // PART 1
   testSeq("ccuuuuucaaagg")
   testSeq("guacgucaguacguacgugacugucagucaac") // GAPC bug: ((((((....)))))).((((.....)))).. (-9.70)
   testSeq("aaaaaggaaacuccucuuu")
   testSeq("uucuccucaggaaga")
   testSeq("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
     // GAPC co-optimal? : .....(((((........((((((.((((((((((((...)))))).)))))).))))))......)))))..... (-25.00)
-
   testSeq("gccaaccucgugca")
-
   testSeq("ggccaaccucgugcaa")
   testSeq("guugcucagcacgcguaaga")
-/*
+  // PART 2
+
+  testSeq("cagcagugcaauauagggcccucauc")
+  testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
+  testSeq("accacuccucauuugacuuauaggcucagaauuaguagaccacaguucacugugaaagga")
+  testSeq("uugcccuaugucaaacauaugucgcaaagcacacgucguauucaccacgaucaaccaggg")
+  testSeq("ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug")
+
+  /*
   import scala.util.Random
   Random.setSeed(123456789L)
   def genSeq(n:Int) = Seq.fill(n)(Math.abs(Random.nextInt)%4).map {case 0=>'a' case 1=>'c' case 2=>'g' case 3=>'u'}.mkString
-  for (k<-0 until 100) testSeq(genSeq(80))
-*/
+  for (k<-0 until 100) testSeq(genSeq(60))
+  */
 }
