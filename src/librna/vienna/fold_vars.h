@@ -19,7 +19,7 @@ extern int    fold_constrained;
 
 /**
  *  \brief Global switch to avoid/allow helices of length 1
- * 
+ *
  *  Disallow all pairs which can only occur as lonely pairs (i.e. as helix
  *  of length 1). This avoids lonely base pairs in the predicted structures in
  *  most cases.
@@ -28,7 +28,7 @@ extern int    noLonelyPairs;
 
 /**
  *  \brief Switch the energy model for dangling end contributions (0, 1, 2, 3)
- * 
+ *
  *  If set to 0 no stabilizing energies are assigned to bases adjacent to
  *  helices in free ends and multiloops (so called dangling ends). Normally
  *  (dangles = 1) dangling end energies are assigned only to unpaired
@@ -44,7 +44,7 @@ extern int    noLonelyPairs;
  *  and energy evaluation (fold() and energy_of_structure()), as
  *  well as suboptimal folding (subopt()) via re-evaluation of energies.
  *  Co-axial stacking with one intervening mismatch is not considered so far.
- * 
+ *
  *  Default is 2 in most algorithms, partition function algorithms can only handle 0 and 2
  */
 extern int  dangles;
@@ -61,14 +61,14 @@ extern int  no_closingGU;
 
 /**
  *  \brief Include special stabilizing energies for some tri-, tetra- and hexa-loops;
- * 
+ *
  *  default is 1.
  */
 extern int  tetra_loop;
 
 /**
  *  \brief 0 = BP; 1=any mit GC; 2=any mit AU-parameter
- * 
+ *
  *  If set to 1 or 2: fold sequences from an artificial alphabet ABCD..., where A
  *  pairs B, C pairs D, etc. using either GC (1) or AU parameters (2);
  *  default is 0, you probably don't want to change it.
@@ -92,17 +92,17 @@ extern int oldAliEn;
 /**
  *  use ribosum matrices
  */
-extern int ribo;            
+extern int ribo;
 
 /**
  *  warning this variable will vanish in the future
  *  ribosums will be compiled in instead
  */
-extern char *RibosumFile;   
+extern char *RibosumFile;
 
 /**
  *  \brief contains allowed non standard base pairs
- * 
+ *
  *  Lists additional base pairs that will be allowed to form in addition to
  *  GC, CG, AU, UA, GU and UG. Nonstandard base pairs are given a stacking
  *  energy of 0.
@@ -111,7 +111,7 @@ extern char *nonstandards;
 
 /**
  *  \brief Rescale energy parameters to a temperature in degC.
- * 
+ *
  *  Default is 37C. You have to call the update_..._params() functions after
  *  changing this parameter.
  */
@@ -131,7 +131,7 @@ extern int  logML;
 /**
  *  \brief Marks the position (starting from 1) of the first
  *  nucleotide of the second molecule within the concatenated sequence.
- * 
+ *
  *  To evaluate the energy of a duplex structure (a structure formed by two
  *  strands), concatenate the to sequences and set it to the
  *  first base of the second strand in the concatenated sequence.
@@ -142,23 +142,15 @@ extern int  logML;
 extern int  cut_point;
 
 /**
- *  \brief Contains a list of base pairs after a call to fold().
- * 
- *  base_pair[0].i contains the total number of pairs.
- *  \deprecated Do not use this variable anymore!
- */
-extern bondT  *base_pair;
-
-/**
  *  \brief A pointer to the base pair probability matrix
- * 
+ *
  *  \deprecated Do not use this variable anymore!
  */
 extern FLT_OR_DBL *pr;
 
 /**
  *  \brief index array to move through pr.
- * 
+ *
  *  The probability for base i and j to form a pair is in pr[iindx[i]-j].
  *  \deprecated Do not use this variable anymore!
  */
@@ -166,7 +158,7 @@ extern int   *iindx;
 
 /**
  *  \brief A scaling factor used by pf_fold() to avoid overflows.
- * 
+ *
  *  Should be set to approximately \f$exp{((-F/kT)/length)}\f$, where \f$F\f$ is an estimate
  *  for the ensemble free energy, for example the minimum free energy. You must
  *  call update_pf_params() after changing this parameter.\n
@@ -179,7 +171,7 @@ extern double pf_scale;
 
 /**
  *  \brief do backtracking, i.e. compute secondary structures or base pair probabilities
- * 
+ *
  *  If 0, do not calculate pair probabilities in pf_fold(); this is about
  *  twice as fast. Default is 1.
  */
@@ -187,7 +179,7 @@ extern int    do_backtrack;
 
 /**
  *  \brief A backtrack array marker for inverse_fold()
- * 
+ *
  *  If set to 'C': force (1,N) to be paired,
  *  'M' fold as if the sequence were inside a multi-loop. Otherwise ('F') the
  *  usual mfe structure is computed.

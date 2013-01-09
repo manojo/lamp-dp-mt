@@ -3,13 +3,6 @@
 
 #include "data_structures.h"
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
-#else
-#define DEPRECATED(func) func
-#endif
-
-
 /**
  *  \file part_func.h
  *

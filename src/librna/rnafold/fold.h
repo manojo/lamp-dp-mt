@@ -3,12 +3,6 @@
 
 #include "data_structures.h"
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
-#else
-#define DEPRECATED(func) func
-#endif
-
 /**
  *  \file fold.h
  *  \brief MFE calculations and energy evaluations for single RNA sequences

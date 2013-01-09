@@ -84,7 +84,7 @@ PRIVATE int     *BP = NULL; /* contains the structure constrainsts: BP[i]
                         -4: x = base must not pair
                         positive int: base is paired with int      */
 PRIVATE short   *pair_table         = NULL; /* needed by energy of struct */
-PRIVATE bondT   *base_pair2         = NULL; /* this replaces base_pair from fold_vars.c */
+PRIVATE bondT   *base_pair2         = NULL;
 PRIVATE int     circular            = 0;
 PRIVATE int     struct_constrained  = 0;
 
@@ -97,7 +97,6 @@ PRIVATE void  get_arrays(unsigned int size);
 PRIVATE int   stack_energy(int i, const char *string, int verbostiy_level);
 PRIVATE int   energy_of_extLoop_pt(int i, short *pair_table);
 PRIVATE int   energy_of_ml_pt(int i, short *pt);
-PRIVATE int   ML_Energy(int i, int is_extloop);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void  backtrack(const char *sequence, int s);
 PRIVATE int   fill_arrays(const char *sequence);
@@ -186,7 +185,6 @@ PUBLIC void free_arrays(void){
   indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   DMLi_a = DMLi_o = DMLi1_a = DMLi1_o = DMLi2_a = DMLi2_o = NULL;
   ptype       = NULL;
-  base_pair   = NULL;
   base_pair2  = NULL;
   P           = NULL;
   init_length = 0;
@@ -309,21 +307,6 @@ PUBLIC float fold_par(const char *string,
 #else
   letter_structure(structure, base_pair2, length);
 #endif
-
-  /*
-  *  Backward compatibility:
-  *  This block may be removed if deprecated functions
-  *  relying on the global variable "base_pair" vanishs from within the package!
-  */
-  base_pair = base_pair2;
-  /*
-  {
-    if(base_pair) free(base_pair);
-    base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
-    memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
-  }
-  */
-
   /* check constraints */
   for(i=1;i<=length;i++) {
     if((BP[i]<0)&&(BP[i]>-4)) {
@@ -628,14 +611,6 @@ PRIVATE int fill_arrays(const char *string) {
         }
 
         decomp += 2*P->MLintern[1];        /* no TermAU penalty if coax stack */
-#if 0
-        /* This is needed for Y shaped ML loops with coax stacking of
-           interior pairts, but backtracking will fail if activated */
-        DMLi[j] = MIN2(DMLi[j], decomp);
-        DMLi[j] = MIN2(DMLi[j], DMLi[j-1]+P->MLbase);
-        DMLi[j] = MIN2(DMLi[j], DMLi1[j]+P->MLbase);
-        new_fML = MIN2(new_fML, DMLi[j]);
-#endif
         new_fML = MIN2(new_fML, decomp);
       }
       fML[ij] = Fmi[j] = new_fML;     /* substring energy */
@@ -1232,28 +1207,6 @@ PRIVATE void backtrack(const char *string, int s) {
       sector[++s].i = k+1;
       sector[s].j   = j1;
     } else {
-#if 0
-      /* Y shaped ML loops fon't work yet */
-      if (dangle_model==3) {
-        d5 = P->dangle5[tt][S1[j-1]];
-        d3 = P->dangle3[tt][S1[i+1]];
-        /* (i,j) must close a Y shaped ML loop with coax stacking */
-        if (cij ==  fML[indx[j-2]+i+2] + mm + d3 + d5 + P->MLbase + P->MLbase) {
-          i1 = i+2;
-          j1 = j-2;
-        } else if (cij ==  fML[indx[j-2]+i+1] + mm + d5 + P->MLbase)
-          j1 = j-2;
-        else if (cij ==  fML[indx[j-1]+i+2] + mm + d3 + P->MLbase)
-          i1 = i+2;
-        else /* last chance */
-          if (cij != fML[indx[j-1]+i+1] + mm + P->MLbase)
-            fprintf(stderr,  "backtracking failed in repeat");
-        /* if we arrive here we can express cij via fML[i1,j1]+dangles */
-        sector[++s].i = i1;
-        sector[s].j   = j1;
-      }
-      else
-#endif
         fprintf(stderr, "%s\n", string);
         nrerror("backtracking failed in repeat");
     }
@@ -1359,208 +1312,6 @@ PUBLIC void update_fold_params_par(paramT *parameters){
   }
   make_pair_matrix();
   if (init_length < 0) init_length=0;
-}
-
-/*---------------------------------------------------------------------------*/
-PUBLIC float energy_of_structure(const char *string, const char *structure, int verbosity_level){
-  return energy_of_struct_par(string, structure, NULL, verbosity_level);
-}
-
-PUBLIC float energy_of_struct_par(const char *string,
-                                  const char *structure,
-                                  paramT *parameters,
-                                  int verbosity_level){
-  int   energy;
-  short *ss, *ss1;
-
-  update_fold_params_par(parameters);
-
-  if (strlen(structure)!=strlen(string))
-    nrerror("energy_of_struct: string and structure have unequal length");
-
-  /* save the S and S1 pointers in case they were already in use */
-  ss = S; ss1 = S1;
-  S   = encode_sequence(string, 0);
-  S1  = encode_sequence(string, 1);
-
-  pair_table = make_pair_table(structure);
-
-  energy = energy_of_structure_pt(string, pair_table, S, S1, verbosity_level);
-
-  free(pair_table);
-  free(S); free(S1);
-  S=ss; S1=ss1;
-  return  (float) energy/100.;
-}
-
-PUBLIC int energy_of_structure_pt(const char *string,
-                                  short *ptable,
-                                  short *s,
-                                  short *s1,
-                                  int verbosity_level){
-  return energy_of_struct_pt_par(string, ptable, s, s1, NULL, verbosity_level);
-}
-
-PUBLIC int energy_of_struct_pt_par( const char *string,
-                                    short *ptable,
-                                    short *s,
-                                    short *s1,
-                                    paramT *parameters,
-                                    int verbosity_level){
-  /* auxiliary function for kinfold,
-     for most purposes call energy_of_struct instead */
-
-  int   i, length, energy;
-  short *ss, *ss1;
-
-  update_fold_params_par(parameters);
-
-  pair_table = ptable;
-  ss  = S;
-  ss1 = S1;
-  S = s;
-  S1 = s1;
-
-  length = S[0];
-//  energy =  backtrack_type=='M' ? ML_Energy(0, 0) : ML_Energy(0, 1);
-    energy =  backtrack_type=='M' ? energy_of_ml_pt(0, ptable) : energy_of_extLoop_pt(0, ptable);
-  if (verbosity_level>0)
-    printf("External loop                           : %5d\n", energy);
-  for (i=1; i<=length; i++) {
-    if (pair_table[i]==0) continue;
-    energy += stack_energy(i, string, verbosity_level);
-    i=pair_table[i];
-  }
-  for (i=1; !SAME_STRAND(i,length); i++) {
-    if (!SAME_STRAND(i,pair_table[i])) {
-      energy+=P->DuplexInit;
-      break;
-    }
-  }
-  S   = ss;
-  S1  = ss1;
-  return energy;
-}
-
-PUBLIC float energy_of_circ_structure(const char *string,
-                                      const char *structure,
-                                      int verbosity_level){
-  return energy_of_circ_struct_par(string, structure, NULL, verbosity_level);
-}
-
-PUBLIC float energy_of_circ_struct_par( const char *string,
-                                        const char *structure,
-                                        paramT *parameters,
-                                        int verbosity_level){
-
-  int   i, j, length, energy=0, en0, degree=0, type;
-  short *ss, *ss1;
-
-  update_fold_params_par(parameters);
-
-  int dangle_model = P->model_details.dangles;
-
-  if (strlen(structure)!=strlen(string))
-    nrerror("energy_of_struct: string and structure have unequal length");
-
-  /* save the S and S1 pointers in case they were already in use */
-  ss = S; ss1 = S1;
-  S   = encode_sequence(string, 0);
-  S1  = encode_sequence(string, 1);
-
-  pair_table = make_pair_table(structure);
-
-  length = S[0];
-
-  for (i=1; i<=length; i++) {
-    if (pair_table[i]==0) continue;
-    degree++;
-    energy += stack_energy(i, string, verbosity_level);
-    i=pair_table[i];
-  }
-
-  if (degree==0) return 0.;
-  for (i=1; pair_table[i]==0; i++);
-  j = pair_table[i];
-  type=pair[S[j]][S[i]];
-  if (type==0) type=7;
-  if (degree==1) {
-    char loopseq[10];
-    int u, si1, sj1;
-    for (i=1; pair_table[i]==0; i++);
-    u = length-j + i-1;
-    if (u<7) {
-      strcpy(loopseq , string+j-1);
-      strncat(loopseq, string, i);
-    }
-    si1 = (i==1)?S1[length] : S1[i-1];
-    sj1 = (j==length)?S1[1] : S1[j+1];
-    en0 = E_Hairpin(u, type, sj1, si1, loopseq, P);
-  } else
-    if (degree==2) {
-      int p,q, u1,u2, si1, sq1, type_2;
-      for (p=j+1; pair_table[p]==0; p++);
-      q=pair_table[p];
-      u1 = p-j-1;
-      u2 = i-1 + length-q;
-      type_2 = pair[S[q]][S[p]];
-      if (type_2==0) type_2=7;
-      si1 = (i==1)? S1[length] : S1[i-1];
-      sq1 = (q==length)? S1[1] : S1[q+1];
-      en0 = E_IntLoop(u1, u2, type, type_2,
-                       S1[j+1], si1, S1[p-1], sq1,P);
-    } else { /* degree > 2 */
-      en0 = ML_Energy(0, 0) - P->MLintern[0];
-      if (dangle_model) {
-        int d5, d3;
-        if (pair_table[1]) {
-          j = pair_table[1];
-          type = pair[S[1]][S[j]];
-          if (dangle_model==2)
-            en0 += P->dangle5[type][S1[length]];
-          else { /* dangle_model==1 */
-            if (pair_table[length]==0) {
-              d5 = P->dangle5[type][S1[length]];
-              if (pair_table[length-1]!=0) {
-                int tt;
-                tt = pair[S[pair_table[length-1]]][S[length-1]];
-                d3 = P->dangle3[tt][S1[length]];
-                if (d3<d5) d5 = 0;
-                else d5 -= d3;
-              }
-              en0 += d5;
-            }
-          }
-        }
-        if (pair_table[length]) {
-          i = pair_table[length];
-          type = pair[S[i]][S[length]];
-          if (dangle_model==2)
-            en0 += P->dangle3[type][S1[1]];
-          else { /* dangle_model==1 */
-            if (pair_table[1]==0) {
-              d3 = P->dangle3[type][S1[1]];
-              if (pair_table[2]) {
-                int tt;
-                tt = pair[S[2]][S[pair_table[2]]];
-                d5 = P->dangle5[tt][1];
-                if (d5<d3) d3=0;
-                else d3 -= d5;
-              }
-              en0 += d3;
-            }
-          }
-        }
-      }
-    }
-
-  if (verbosity_level>0)
-    printf("External loop                           : %5d\n", en0);
-  energy += en0;
-  /* fprintf(stderr, "ext loop degree %d tot %d\n", degree, energy); */
-  free(S); free(S1);
-  S=ss; S1=ss1;
-  return  (float) energy/100.0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2190,225 +1941,4 @@ PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){
   (*pl)[k++].p  = 0.;
   free(pt);
   *pl = (plist *)xrealloc(*pl, k * sizeof(plist));
-}
-
-PRIVATE int ML_Energy(int i, int is_extloop) {
-  /* i is the 5'-base of the closing pair (or 0 for exterior loop)
-     loop is scored as ML if extloop==0 else as exterior loop
-
-     since each helix can coaxially stack with at most one of its
-     neighbors we need an auxiliarry variable  cx_energy
-     which contains the best energy given that the last two pairs stack.
-     energy  holds the best energy given the previous two pairs do not
-     stack (i.e. the two current helices may stack)
-     We don't allow the last helix to stack with the first, thus we have to
-     walk around the Loop twice with two starting points and take the minimum
-  */
-
-  int energy, cx_energy, best_energy=INF;
-  int i1, j, p, q, u, x, type, count;
-  int mlintern[NBPAIRS+1], mlclosing, mlbase;
-  int dangle_model = P->model_details.dangles;
-
-  if (is_extloop) {
-    for (x = 0; x <= NBPAIRS; x++)
-      mlintern[x] = P->MLintern[x]-P->MLintern[1]; /* 0 or TerminalAU */
-    mlclosing = mlbase = 0;
-  } else {
-    for (x = 0; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x];
-    mlclosing = P->MLclosing; mlbase = P->MLbase;
-  }
-
-  /*  as we do not only have dangling end but also mismatch contributions,
-  **  we do this a bit different to previous implementations
-  */
-  if(is_extloop){
-    int mm5_prev, mm3_prev;
-    energy = 0;
-    i1  = i;
-    p   = i+1;
-    mm5_prev = mm3_prev = -1;
-
-    int E_mm5_available, E_mm5_occupied;
-    /* find out if we may have 5' mismatch for the next stem */
-    while (p <= (int)pair_table[0] && pair_table[p]==0) p++;
-    /* get position of pairing partner */
-    if(p < (int)pair_table[0]){
-        E_mm5_occupied  = (p - i - 1 > 0) ? INF : 0;
-        E_mm5_available = (p - i - 1 > 0) ? 0 : INF;
-    }
-
-    if(p < (int)pair_table[0])
-      do{
-        int tt;
-        /* p must have a pairing partner */
-        q  = (int)pair_table[p];
-        /* get type of base pair (p,q) */
-        tt = pair[S[p]][S[q]];
-        if(tt==0) tt=7;
-
-        int mm5 = ((SAME_STRAND(p-1,p)) && (p>1)) ? S1[p-1]: -1;
-        int mm3 = ((SAME_STRAND(q,q+1)) && (q<(unsigned int)pair_table[0])) ? S1[q+1]: -1;
-
-        switch(dangle_model){
-          /* dangle_model == 0 */
-          case 0: energy += E_ExtLoop(tt, -1, -1, P);
-                  break;
-          /* dangle_model == 1 */
-          case 1: {
-                    /* check for unpaired nucleotide 3' to the current stem */
-                    int u3 = ((q < pair_table[0]) && (pair_table[q+1] == 0)) ? 1 : 0;
-                    if(pair_table[p-1] != 0) mm5 = -1;
-
-                    if(!u3){
-                      mm3 = -1;
-                      E_mm5_occupied  = MIN2(
-                                              E_mm5_occupied  + E_ExtLoop(tt, -1, -1, P),
-                                              E_mm5_available + E_ExtLoop(tt, mm5, -1, P)
-                                            );
-                      E_mm5_available = E_mm5_occupied;
-                    }
-                    else{
-                      E_mm5_occupied  = MIN2(
-                                              E_mm5_occupied  + E_ExtLoop(tt, -1, mm3, P),
-                                              E_mm5_available + E_ExtLoop(tt, mm5, mm3, P)
-                                            );
-                      E_mm5_available = MIN2(
-                                              E_mm5_occupied  + E_ExtLoop(tt, -1, -1, P),
-                                              E_mm5_available + E_ExtLoop(tt, mm5, -1, P)
-                                            );
-                    }
-                  }
-                  break;
-
-          /* the beloved case dangle_model == 2 */
-          case 2: energy += E_ExtLoop(tt, mm5, mm3, P);
-                  break;
-
-          /* dangle_model == 3 a.k.a. helix stacking */
-          case 3: break;
-
-        } /* end switch dangle_model */
-
-        /* seek to the next stem */
-        p = q + 1;
-        while (p <= (int)pair_table[0] && pair_table[p]==0) p++;
-        if(p == (int)pair_table[0] + 1){
-          if(dangle_model == 1)
-            energy = (p > q + 1) ? E_mm5_occupied : E_mm5_available;
-          q = 0;
-          break;
-        }
-      } while(q != i);
-  }
-  /* not exterior loop */
-  else{
-    for (count=0; count<2; count++) { /* do it twice */
-      int ld5 = 0; /* 5' dangle energy on prev pair (type) */
-      if ( i==0 ) {
-        j = (unsigned int)pair_table[0]+1;
-        type = 0;  /* no pair */
-      }
-      else {
-        j = (unsigned int)pair_table[i];
-        type = pair[S[j]][S[i]]; if (type==0) type=7;
-
-        if (dangle_model==3) { /* prime the ld5 variable */
-          if (SAME_STRAND(j-1,j)) {
-            ld5 = P->dangle5[type][S1[j-1]];
-            if ((p=(unsigned int)pair_table[j-2]) && SAME_STRAND(j-2, j-1))
-                if (P->dangle3[pair[S[p]][S[j-2]]][S1[j-1]]<ld5) ld5 = 0;
-          }
-        }
-      }
-      i1=i; p = i+1; u=0;
-      energy = 0; cx_energy=INF;
-      do { /* walk around the multi-loop */
-        int tt, new_cx = INF;
-
-        /* hop over unpaired positions */
-        while (p <= (unsigned int)pair_table[0] && pair_table[p]==0) p++;
-
-        /* memorize number of unpaired positions */
-        u += p-i1-1;
-        /* get position of pairing partner */
-        if ( p == (unsigned int)pair_table[0]+1 ){
-          q = 0;tt = 0; /* virtual root pair */
-        } else {
-        q  = (unsigned int)pair_table[p];
-          /* get type of base pair P->q */
-        tt = pair[S[p]][S[q]]; if (tt==0) tt=7;
-        }
-
-        energy += mlintern[tt];
-        cx_energy += mlintern[tt];
-
-        if (dangle_model) {
-          int dang5=0, dang3=0, dang;
-          if ((SAME_STRAND(p-1,p))&&(p>1))
-            dang5=P->dangle5[tt][S1[p-1]];      /* 5'dangle of pq pair */
-          if ((SAME_STRAND(i1,i1+1))&&(i1<(unsigned int)S[0]))
-            dang3 = P->dangle3[type][S1[i1+1]]; /* 3'dangle of previous pair */
-
-          switch (p-i1-1) {
-          case 0: /* adjacent helices */
-            if (dangle_model==2)
-              energy += dang3+dang5;
-            else if (dangle_model==3 && i1!=0) {
-              if (SAME_STRAND(i1,p)) {
-                new_cx = energy + P->stack[rtype[type]][rtype[tt]];
-                /* subtract 5'dangle and TerminalAU penalty */
-                new_cx += -ld5 - mlintern[tt]-mlintern[type]+2*mlintern[1];
-              }
-              ld5=0;
-              energy = MIN2(energy, cx_energy);
-            }
-            break;
-          case 1: /* 1 unpaired base between helices */
-            dang = (dangle_model==2)?(dang3+dang5):MIN2(dang3, dang5);
-            if (dangle_model==3) {
-              energy = energy +dang; ld5 = dang - dang3;
-              /* may be problem here: Suppose
-                 cx_energy>energy, cx_energy+dang5<energy
-                 and the following helices are also stacked (i.e.
-                 we'll subtract the dang5 again */
-              if (cx_energy+dang5 < energy) {
-                energy = cx_energy+dang5;
-                ld5 = dang5;
-              }
-              new_cx = INF;  /* no coax stacking with mismatch for now */
-            } else
-              energy += dang;
-            break;
-          default: /* many unpaired base between helices */
-            energy += dang5 +dang3;
-            if (dangle_model==3) {
-              energy = MIN2(energy, cx_energy + dang5);
-              new_cx = INF;  /* no coax stacking possible */
-              ld5 = dang5;
-            }
-          }
-          type = tt;
-        }
-        if (dangle_model==3) cx_energy = new_cx;
-        i1 = q; p=q+1;
-      } while (q!=i);
-      best_energy = MIN2(energy, best_energy); /* don't use cx_energy here */
-      /* fprintf(stderr, "%6.2d\t", energy); */
-      if (dangle_model!=3 || is_extloop) break;  /* may break cofold with co-ax */
-      /* skip a helix and start again */
-      while (pair_table[p]==0) p++;
-      if (i == (unsigned int)pair_table[p]) break;
-      i = (unsigned int)pair_table[p];
-    }
-    energy = best_energy;
-    energy += mlclosing;
-    /* logarithmic ML loop energy if logML */
-    if ( (!is_extloop) && logML && (u>6) )
-      energy += 6*mlbase+(int)(P->lxc*log((double)u/6.));
-    else
-      energy += mlbase*u;
-    /* fprintf(stderr, "\n"); */
-  }
-  return energy;
 }

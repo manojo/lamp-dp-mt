@@ -38,8 +38,6 @@ char        *RibosumFile = NULL;  /* TODO: compile ribosums into program
 
 int         csv = 0;              /*generate comma seperated output*/
 
-bondT       *base_pair = NULL;
-
 FLT_OR_DBL  *pr = NULL;           /* base pairing prob. matrix */
 
 int         *iindx = NULL;        /* pr[i,j] -> pr[iindx[i]-j] */
