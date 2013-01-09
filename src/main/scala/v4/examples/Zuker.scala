@@ -34,7 +34,7 @@ trait ZukerSig extends Signature {
     case ('a','u') | ('u','a') | ('u','g') | ('g','u') | ('g','c') | ('c','g') => true
     case _ => false
   }
-  def stackpairing(s:SSeq):Boolean = { val (i,j)=s; (i+3 < j) && basepairing(i,j) && basepairing(i+1,j-1) }
+  def stackpairing(s:SSeq):Boolean = { val (i,j)=s; (i+3<=j) && basepairing(i,j) && basepairing(i+1,j-1) }
 }
 
 trait ZukerMFE extends ZukerSig {
@@ -44,8 +44,8 @@ trait ZukerMFE extends ZukerSig {
   def dlr(lb:Int, e:Answer, rb:Int) = e + LibRNA.ext_mismatch_energy(lb, rb-1, size) + LibRNA.termau_energy(lb, rb-1) // FIXED
   def sr(lb:Int, e:Answer, rb:Int) = e + LibRNA.sr_energy(lb,rb) // FIXED
   def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = LibRNA.hl_energy(f1,f2) + LibRNA.sr_energy(lb, rb) // FIXED
-  def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) = e + LibRNA.bl_energy(f1,x._1,x._2-1,f2,f2-1) + LibRNA.sr_energy(lb, rb) // FIXED
-  def br(lb:Int, f1:Int, e:Answer, x:SSeq, f2:Int, rb:Int) = e + LibRNA.br_energy(f1,x._1,x._2-1,f2,f1+1) + LibRNA.sr_energy(lb, rb) // FIXED
+  def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) = e + LibRNA.bl_energy(f1,x._1,x._2-1,f2,x._2) + LibRNA.sr_energy(lb, rb) // FIXED
+  def br(lb:Int, f1:Int, e:Answer, x:SSeq, f2:Int, rb:Int) = e + LibRNA.br_energy(f1,x._1,x._2-1,f2,x._1-1) + LibRNA.sr_energy(lb, rb) // FIXED
   def il(f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) = x + LibRNA.il_energy(f2, r1._2, r2._1-1, f3) + LibRNA.sr_energy(f1, f4) // FIXED
   def ml(lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) = LibRNA.ml_energy + LibRNA.ul_energy + x + LibRNA.termau_energy(f1, f2) + LibRNA.sr_energy(lb, rb) + LibRNA.ml_mismatch_energy(f1, f2)
   def app(c1:Answer, c:Answer) = c1 + c
@@ -99,8 +99,8 @@ trait ZukerExplain extends ZukerSig {
   type Answer = String
 
   private def dots(s:SSeq,c:Char='.') = (0 until s._2-s._1).map{_=>c}.mkString
-  def sadd(lb:Int, e:Answer) = "."+e
-  def cadd(x:Answer, e:Answer) = x+e
+  def sadd(lb:Int, e:Answer) = "."+e +" sadd"
+  def cadd(x:Answer, e:Answer) = x+e +" cadd"
   def dlr(lb:Int, e:Answer, rb:Int) = e + " dlr"+(lb,rb)
   def sr(lb:Int, e:Answer, rb:Int) = "("+e+")"  +" sr"
   def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = "{"+lb+","+rb+"}"
@@ -112,14 +112,13 @@ trait ZukerExplain extends ZukerSig {
   def ul(c1:Answer) = c1  +" ul"
   def addss(c1:Answer, e:SSeq) = c1+dots(e) +" addss"
   def ssadd(e:SSeq, x:Answer) = dots(e)+x   +" ssadd"
-  def nil(d:Unit) = ""
+  def nil(d:Unit) = ""  +" nil"
 }
-
 
 trait ZukerGrammar extends ADPParsers with ZukerSig {
   val BASE = eli
   val LOC = emptyi
-  val REG = seq(2,-1)
+  val REG = seq(1,-1)
   val REG3 = seq(3,-1)
   val REG30 = seq(1,30)
 
@@ -169,7 +168,7 @@ object Zuker extends App {
 
   def run(seq:String):String = {
     import java.io._
-    val p = Runtime.getRuntime.exec("src/librna/rnafold/RNAfold -P src/librna/vienna/rna_turner2004.par");
+    val p = Runtime.getRuntime.exec("src/librna/rnafold/RNAfold");
     val in = new PrintStream(p.getOutputStream());
     def gobble(in:InputStream) = new Runnable {
       var out = new StringBuilder
@@ -195,17 +194,28 @@ object Zuker extends App {
     val ref=run(seq).split("\n")(1)
     val our=res+" (%6.2f)".format(score/100.0)
     if (ref==our) println("SUCCESS")
-    else println(seq+"\n"+ref+"\n"+res+" (%6.2f)".format(score/100.0)+" FAILED\n"+explain.build(seq.toArray,bt)+"\n")
+    else println("Seq: "+seq+"\nRef: "+ref+"\nOur: "+res+" (%6.2f)".format(score/100.0)+" FAILED\n"+explain.build(seq.toArray,bt)+"\n")
 
   }
+
 
   // Having separate instances of sbt is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   testSeq("ccuuuuucaaagg")
-  testSeq("guacgucaguacguacgugacugucagucaac")
-    // Bug in GAPC: ((((((....)))))).((((.....)))).. (-9.70)
+  testSeq("guacgucaguacguacgugacugucagucaac") // GAPC bug: ((((((....)))))).((((.....)))).. (-9.70)
   testSeq("aaaaaggaaacuccucuuu")
   testSeq("uucuccucaggaaga")
   testSeq("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
-    // GAPC(2)  : .....(((((........((((((.((((((((((((...)))))).)))))).))))))......)))))..... (-25.00) [CO-OPTIMAL (?)]
+    // GAPC co-optimal? : .....(((((........((((((.((((((((((((...)))))).)))))).))))))......)))))..... (-25.00)
+
+  testSeq("gccaaccucgugca")
+
+  testSeq("ggccaaccucgugcaa")
+  testSeq("guugcucagcacgcguaaga")
+/*
+  import scala.util.Random
+  Random.setSeed(123456789L)
+  def genSeq(n:Int) = Seq.fill(n)(Math.abs(Random.nextInt)%4).map {case 0=>'a' case 1=>'c' case 2=>'g' case 3=>'u'}.mkString
+  for (k<-0 until 100) testSeq(genSeq(80))
+*/
 }

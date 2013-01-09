@@ -48,7 +48,7 @@ int         fold_constrained = 0; /* fold with constraints */
 
 int         do_backtrack = 1;     /* calculate pair prob matrix in part_func() */
 
-int         noLonelyPairs = 0;    /* avoid helices of length 1 */
+int         noLonelyPairs = 1;    /* avoid helices of length 1 */
 
 char        backtrack_type = 'F'; /* 'C' require (1,N) to be bonded;
                                     'M' seq is part of s multi loop */

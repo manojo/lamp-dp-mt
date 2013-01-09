@@ -53,21 +53,19 @@ trait RNAFoldGrammar extends ADPParsers with RNAFoldSig {
     case _ => false
   }
 
-  //val seq1=seq(1,maxN)
-
   lazy val Qp:Tabulate = tabulate("Qp",(
-    seq(3,maxN)      ^^ hairpin
-  | eli  ~ Qp ~ eli  ^^ stack
+    seq(3,maxN)        ^^ hairpin
+  | eli   ~ Qp ~ eli   ^^ stack
   | seq() ~ Qp ~ seq() ^^ iloop
-  | eli  ~ QM ~ eli  ^^ mloop
+  | eli   ~ QM ~ eli   ^^ mloop
   ) filter pair aggregate h)
 
   lazy val QM:Tabulate = tabulate("QM",(Q ~ Q ^^ join) filter((i:Int,j:Int)=>i<=j+4) aggregate h)
 
   lazy val Q:Tabulate = tabulate("Q",(
     QM
-  | eli ~ Q ^^ right
   | Q ~ eli ^^ left
+  | eli ~ Q ^^ right
   | Qp
   ) filter((i:Int,j:Int)=>i<=j+2) aggregate h)
 
@@ -86,12 +84,13 @@ object RNAFold extends App {
     LibRNA.clear; (score,bt,res)
   }
 
-  val (score,bt,res)=parse("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
-  println("Score     : "+score);
-  println("Backtrack : "+bt);
-  println("Result    : "+res);
-
-  // Sequence : aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu
-  // Reference: ((((.(((((...(((.((((((((....)))))))))))...(((((((....))))))).....))))).)))) (-24.5)
-  // Our      : ((((.(((((...(((.((((((((....)))))))))))...(((((((....))))))).....))))).)))) (-25.4) andronescu
+  val seq="aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu"
+  val (score,bt,res)=parse(seq)
+  //println("Score     : "+score);
+  //println("Backtrack : "+bt);
+  //println("Result    : "+res);
+  println("Seq: "+seq)
+  if (seq=="aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
+    println("Ref: ((((.(((((...(((.((((((((....)))))))))))...(((((((....))))))).....))))).)))) (-24.5)")
+  println("Our: "+res+" (%6.2f)".format(score/100.0))
 }
