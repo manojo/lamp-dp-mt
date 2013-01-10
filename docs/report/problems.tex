@@ -450,6 +450,18 @@ In the rest of the project, we use a different description of the problems that 
 
 
 Although the polygon triangulation problem can be solved with a regular triangular matrix and we have not found real problem requiring a parallelogram matrix, we still present this version in the analysis part of the project, which could be justified for cyclic problems that require dynamic programming for each unfolding position (that is for all position in the circular structure, break the cycle at this position, and solve the dynamic programming problem on the resulting flattened sequence). For example, one could be interested in finding the longest subsequence verifying some property in a cycle, such that the subsequence score changes if it is rotated.
-
-
 \ole
+
+\subsection{Related work}
+Work related to dynamic programming can be separated in two categories: ad-hoc implementations and grammar-based implementations. Grammar-based dynamic programming was initiated sparked by \cite{adp_discipline} and implemented as a Haskell DSL \cite{adp}. To overcome performance issues, multiple solutions were devised: converting the grammar to C or CUDA code \cite{adp_gpu} or using loop fusion to improve Haskell performance \cite{adp_fusion}. Ultimately, the dynamic programming algebra and grammar were formalized into an external DSL 
+and ad-hoc compiler
+
+
+
+
+
+Related work is a DSL embedded in Haskell \cite{adp} with possible conversion to CUDA code \cite{adp_gpu}, a compiler for a dynamic programming external DSL into C code \cite{gapc} or ad-hoc CUDA implementations for specific problem classes \cite{swat_mega}, \cite{gpu_atlp}.
+
+
+
+

@@ -11,8 +11,6 @@ A typical characteristic is that an intermediate solution is reused multiple tim
 
 Formally, dynamic programming problems respect the Bellman's principle of optimality: \textit{<<An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision>>}. This means that every intermediate result is computed only once, although it might be reused as basis for multiple larger problems, hence our first observation.
 
-
-
 There exist various categories of dynamic programming:\ul
 \item Series that operates usually on a single dimension (like Fibonacci)
 \item Sequences alignment (matching two sequences at best), top-down grammar analysis (parenthesizing), sequence folding, ...
@@ -29,7 +27,7 @@ Taking real-world examples, the average input size for sequence alignment is aro
 \subsubsection{Scala}
 \textit{<<Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way. It smoothly integrates features of object-oriented and functional languages, enabling programmers to be more productive. Many companies depending on Java for business critical applications are turning to Scala to boost their development productivity, applications scalability and overall reliability.>>}\footnote{\url{http://www.scala-lang.org}}
 
-As the Scala programming language is initially developed by the LAMP, it seems natural to use it as host language for our project, however, we would list its features that makes it an interesting development language for this project:\ul
+As the Scala \cite{scala} programming language is initially developed by the LAMP, it seems natural to use it as host language for our project, however, we would list some of its features \cite{scala_api} that makes it an interesting development language for this project:\ul
 \item The functional programming style and syntactic sugar offered by Scala allows concise writing of implementation, analysis and transformations of our DSL, which would have been much more complex and tiresome in an imperative language like C.
 \item Scala is largely adopted in the industry, which makes both the adoption of related project easier and offer a steeper learning curve to their potential users.
 \item Finally, through the Java VM and JNI interface, Scala offers the possibility to load dynamically external libraries, to leverage best underlying hardware by mixing with CUDA kernels to obtain optimal performance.
