@@ -15,19 +15,14 @@ if [ "$1" = "" ]; then out="bin"; rm -r "$out" 2>/dev/null; mkdir -p "$out";
 else from=`pwd`; mkdir -p "$1"; cd "$1"; out=`pwd`; cd $from; fi
 cd `dirname $0`;
 
-# scalac -d "$out" RNALib.scala || exit
-
 name="libRNA.jnilib"
 md5_hash *.[ch] vienna/*.[ch] > "$out/$name.tmp"
 if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f "$out/$name" ] ; then
-	echo 'Already updated.'; exit;
+	echo "[info] $name up to date."; rm "$out/$name.tmp"; exit;
 fi
 
-printf "Compiling $name"
+printf "Compiling $name ... "
 gcc -Wall -std=c99 -fPIC -shared $JAVA_INC rnalib.c librna.c \
 	vienna/energy_par.c vienna/vienna.c -o "$out"/libRNA.jnilib || exit
 mv "$out/$name.tmp" "$out/$name.md5"
-echo '.'
-
-# execute
-# scala -cp bin Test
+echo 'done.'
