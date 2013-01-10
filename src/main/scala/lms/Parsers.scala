@@ -251,7 +251,7 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
 
 trait ParsersExpOpt extends ParsersExp{ this: Sig =>
 
-  /*override def def list_map[A:Manifest,B:Manifest](l: Rep[List[A]], f: Rep[A] => Rep[B])(implicit pos: SourceContext): Rep[List[B]] =
+  /*override def list_map[A:Manifest,B:Manifest](l: Rep[List[A]], f: Rep[A] => Rep[B])(implicit pos: SourceContext): Rep[List[B]] =
     l match {
       case ListFlatMap(l,x,block)
     }*/

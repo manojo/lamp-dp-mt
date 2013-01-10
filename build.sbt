@@ -10,9 +10,15 @@ scalaOrganization := "org.scala-lang.virtualized"
 
 scalaVersion := "2.10.0"
 
+libraryDependencies += "org.scala-lang.virtualized" % "scala-library" % "2.10.0"
+
+libraryDependencies += "org.scala-lang.virtualized" % "scala-compiler" % "2.10.0"
+
+libraryDependencies += "org.scala-lang" % "scala-actors" % "2.10.0" // for ScalaTest
+
 libraryDependencies ++= Seq(
     "org.scalatest" % "scalatest_2.10.0" % "2.0.M5" % "test",
-    "EPFL" %% "lms" % "0.3-SNAPSHOT")
+    "EPFL" % "lms_2.10.0" % "0.3-SNAPSHOT")
 
 //making tests non-parallelly executable for now
 parallelExecution in Test := false
