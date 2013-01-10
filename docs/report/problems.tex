@@ -448,20 +448,13 @@ In the rest of the project, we use a different description of the problems that 
 \item Sometimes matrices are initially padded with zeroes (or initial value), although this might be ignored at algorithm design, care must be taken for these special values and their inclusion in the matrix should be decided according to the complexity of the recurrence formula.
 \item Incidentally, we proposed a cyclic variant of the convex polygon triangulation, which uses a parallelogram matrix instead of a triangular one (upper right triangle extended by a lower triangle on the right). Unfortunately, this proved to be based on an erroneous recurrence relation analysis, which could be reduced to the more natural triangular case.
 
-
 Although the polygon triangulation problem can be solved with a regular triangular matrix and we have not found real problem requiring a parallelogram matrix, we still present this version in the analysis part of the project, which could be justified for cyclic problems that require dynamic programming for each unfolding position (that is for all position in the circular structure, break the cycle at this position, and solve the dynamic programming problem on the resulting flattened sequence). For example, one could be interested in finding the longest subsequence verifying some property in a cycle, such that the subsequence score changes if it is rotated.
 \ole
 
+% ------------------------------------------------------------------------------------------------
+\newpage
 \subsection{Related work}
-Work related to dynamic programming can be separated in two categories: ad-hoc implementations and grammar-based implementations. Grammar-based dynamic programming was initiated sparked by \cite{adp_discipline} and implemented as a Haskell DSL \cite{adp}. To overcome performance issues, multiple solutions were devised: converting the grammar to C or CUDA code \cite{adp_gpu} or using loop fusion to improve Haskell performance \cite{adp_fusion}. Ultimately, the dynamic programming algebra and grammar were formalized into an external DSL 
-and ad-hoc compiler
+Work related to dynamic programming can be separated in two categories: ad-hoc implementations and grammar-based implementations. Grammar-based dynamic programming was initiated inseminated sparked by ADP \cite{adp_discipline} and first implemented as a Haskell DSL \cite{adp}. To overcome performance issues, multiple solutions were devised: converting the grammar to C or CUDA code \cite{adp_gpu} or using loop fusion to improve Haskell performance \cite{adp_fusion}, \cite{adp_fusion_pkg}. Ultimately, the dynamic programming algebra and grammar were formalized into a specific language \cite{gapl} and ad-hoc compiler \cite{gapc_thesis}, allowing more advanced analysis \cite{gapc_yield} of the grammar.
 
-
-
-
-
-Related work is a DSL embedded in Haskell \cite{adp} with possible conversion to CUDA code \cite{adp_gpu}, a compiler for a dynamic programming external DSL into C code \cite{gapc} or ad-hoc CUDA implementations for specific problem classes \cite{swat_mega}, \cite{gpu_atlp}.
-
-
-
-
+The research on ad-hoc implementation have also been prolific by going from general DP techniques
+\cite{gpu_atlp}, \cite{robust_mapping}, \cite{gpu_from_dsl} to biology-specific applications \cite{nussinov_gpu}, \cite{gpu_rnafold}, \cite{swat_gpu}, \cite{swat_linear} \cite{swat_mega}.

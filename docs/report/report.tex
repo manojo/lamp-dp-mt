@@ -14,7 +14,7 @@
 \subsection*{Abstract}
 Dynamic programming is a common pattern of Computer Science used in various domains. Yet underlying matrix recurrences might be difficult to express and error prone. Additionally, domain experts might not have the skills to make an efficient parallel implementation. In this project, we present \textit{DynaProg}, a Scala DSL for dynamic programming on heterogeneous platforms which allow to write concise programs and execute them efficiently on GPUs.
 
-Related work is a DSL embedded in Haskell \cite{adp} with possible conversion to CUDA code \cite{adp_gpu}, a compiler for a dynamic programming external DSL into C code \cite{gapc} or ad-hoc CUDA implementations for specific problem classes \cite{swat_mega}, \cite{gpu_atlp}.
+Related work is a DSL embedded in Haskell \cite{adp} with possible conversion to CUDA code \cite{adp_gpu}, a compiler for a dynamic programming-specific language written in C \cite{gapc_thesis} or ad-hoc CUDA implementations for specific problem classes \cite{swat_mega}, \cite{gpu_atlp}.
 % XXX: How we compare to other, how to evaluate
 % Benchmark => prove by evaluation intro statements
 
@@ -53,6 +53,16 @@ MatrixMult-512, Mac+JDK7\ul
 {\color{red} XXX: explain why slower: approx 3x more memory used per score (maintain matrix dimensions)
 
 XXX: continue benchmarking here
+
+XXX: relate to staging operation in LMS
+
+XXX: include "RNAfold" grammar description into problems
+
+XXX: talk about memory management and hash tables
+XXX: relate to staging operation in LMS
+
+XXX: fix layout in codegen (newline missing)
+
 }
 \begin{table}[H]\begin{center}\begin{tabular}{lrrrrrr} \toprule
 Matrix size			& 1024	& 2048	& 4096	& 8192 \\

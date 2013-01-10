@@ -64,6 +64,16 @@
 	address = {Los Alamitos, CA, USA},
 }
 
+@INPROCEEDINGS{ swat_linear,
+	author={de O Sandes, E.F. and de Melo, A.C.M.A.},
+	booktitle={Parallel Distributed Processing Symposium (IPDPS), 2011 IEEE International}, title={Smith-Waterman Alignment of Huge Sequences with GPU in Linear Space},
+	year={2011},
+	month={may},
+	pages={1199 -1211},
+	doi={10.1109/IPDPS.2011.114}, 
+	ISSN={1530-2075}
+}
+
 @INPROCEEDINGS { adp,
 	author = {Giegerich, Robert and Meyer, Carsten},
 	title = {Algebraic Dynamic Programming},
@@ -96,10 +106,28 @@
 	address = {Berlin, Heidelberg},
 }
 
-@MISC { adp_fusion,
-	author = {Christian Hoener},
+@INPROCEEDINGS{ adp_fusion,
+	author = {H\"{o}ner zu Siederdissen, Christian},
+	title = {Sneaking around concatMap: efficient combinators for dynamic programming},
+	booktitle = {Proceedings of the 17th ACM SIGPLAN international conference on Functional programming},
+	series = {ICFP '12},
+	year = {2012},
+	isbn = {978-1-4503-1054-3},
+	location = {Copenhagen, Denmark},
+	pages = {215--226},
+	numpages = {12},
+	url = {http://doi.acm.org/10.1145/2364527.2364559},
+	doi = {10.1145/2364527.2364559},
+	acmid = {2364559},
+	publisher = {ACM},
+	address = {New York, NY, USA}
+}
+
+@MISC { adp_fusion_pkg,
+	author = {H\"{o}ner zu Siederdissen, Christian},
 	title = {ADPfusion package for Haskell},
 	year = {2012},
+	url = {http://hackage.haskell.org/package/ADPfusion},
 	howpublished = {\url{http://hackage.haskell.org/package/ADPfusion}}
 }
 
@@ -131,23 +159,6 @@
 	address = {New York, NY, USA}
 }
 
-@INPROCEEDINGS { delite,
-	author = {Chafi, Hassan and Sujeeth, Arvind K. and Brown, Kevin J. and Lee, HyoukJoong and Atreya, Anand R. and Olukotun, Kunle},
-	title = {A domain-specific approach to heterogeneous parallelism},
-	booktitle = {Proceedings of the 16th ACM symposium on Principles and practice of parallel programming},
-	series = {PPoPP '11},
-	year = {2011},
-	isbn = {978-1-4503-0119-0},
-	location = {San Antonio, TX, USA},
-	pages = {35--46},
-	numpages = {12},
-	url = {http://doi.acm.org/10.1145/1941553.1941561},
-	doi = {10.1145/1941553.1941561},
-	acmid = {1941561},
-	publisher = {ACM},
-	address = {New York, NY, USA}
-}
-
 @MISC { perfeval,
 	author = {Coppey, Thierry and Kahn, Mohammad},
 	title = {Performance Evaluation of Mersenne Arithmetic on GPU (miniproject)},
@@ -155,7 +166,7 @@
 	year={2012}
 }
 
-@INPROCEEDINGS{ gapc,
+@INPROCEEDINGS{ gapl,
 	author = {Sauthoff, Georg and Janssen, Stefan and Giegerich, Robert},
 	title = {Bellman's GAP: a declarative language for dynamic programming},
 	booktitle = {Proceedings of the 13th international ACM SIGPLAN symposium on Principles and practices of declarative programming},
@@ -214,23 +225,6 @@
 	address = {Amsterdam, The Netherlands, The Netherlands},
 } 
 
-@INPROCEEDINGS{ adp_fusion,
-	author = {H\"{o}ner zu Siederdissen, Christian},
-	title = {Sneaking around concatMap: efficient combinators for dynamic programming},
-	booktitle = {Proceedings of the 17th ACM SIGPLAN international conference on Functional programming},
-	series = {ICFP '12},
-	year = {2012},
-	isbn = {978-1-4503-1054-3},
-	location = {Copenhagen, Denmark},
-	pages = {215--226},
-	numpages = {12},
-	url = {http://doi.acm.org/10.1145/2364527.2364559},
-	doi = {10.1145/2364527.2364559},
-	acmid = {2364559},
-	publisher = {ACM},
-	address = {New York, NY, USA}
-}
-
 @PHDTHESIS{ gapc_thesis,
 	author = {Sauthoff, Georg},
 	title = {Bellman's {GAP}: A 2nd Generation Language and System for Algebraic Dynamic Programming},
@@ -239,17 +233,176 @@
 	url = {http://bieson.ub.uni-bielefeld.de/volltexte/2011/1821/pdf/index.pdf}
 }
 
-% adp discipline
-% bellman gap 2nd generation + gapc + gapl
-% concat map fusion
-% gpu rna folding
-% lms
-% robust dp on gpu
-% swat_fpga
-% swat linear space
-% synthesizing gpu recurrences
+@INPROCEEDINGS{gapc_yield,
+	author = {Giegerich, Robert and Sauthoff, Georg},
+	title = {Yield grammar analysis in the Bellman's GAP compiler},
+	booktitle = {Proceedings of the Eleventh Workshop on Language Descriptions, Tools and Applications},
+	series = {LDTA '11},
+	year = {2011},
+	isbn = {978-1-4503-0665-2},
+	location = {Saarbrucken, Germany},
+	pages = {7:1--7:8},
+	articleno = {7},
+	numpages = {8},
+	url = {http://doi.acm.org/10.1145/1988783.1988790},
+	doi = {10.1145/1988783.1988790},
+	acmid = {1988790},
+	publisher = {ACM},
+	address = {New York, NY, USA}
+} 
+
+@INPROCEEDINGS{nussinov_gpu,
+	author = {Dar-Jen Chang and Kimmer, Christopher and Ming Ouyang},
+	title = {Accelerating the Nussinov RNA folding algorithm with CUDA/GPU},
+	booktitle = {Proceedings of the The 10th IEEE International Symposium on Signal Processing and Information Technology},
+	series = {ISSPIT '10},
+	year = {2010},
+	isbn = {978-1-4244-9992-2},
+	pages = {120--125},
+	numpages = {6},
+	url = {http://dx.doi.org/10.1109/ISSPIT.2010.5711746},
+	doi = {10.1109/ISSPIT.2010.5711746},
+	acmid = {1955922},
+	publisher = {IEEE Computer Society},
+	address = {Washington, DC, USA},
+}
+
+@INPROCEEDINGS{ robust_mapping,
+	author = {Xiao, Shucai and Aji, Ashwin M. and Feng, Wu-chun},
+	title = {On the Robust Mapping of Dynamic Programming onto a Graphics Processing Unit},
+	booktitle = {Proceedings of the 2009 15th International Conference on Parallel and Distributed Systems},
+	series = {ICPADS '09},
+	year = {2009},
+	isbn = {978-0-7695-3900-3},
+	pages = {26--33},
+	numpages = {8},
+	url = {http://dx.doi.org/10.1109/ICPADS.2009.110},
+	doi = {10.1109/ICPADS.2009.110},
+	acmid = {1728662},
+	publisher = {IEEE Computer Society},
+	address = {Washington, DC, USA},
+}
+
+@INPROCEEDINGS{gpu_from_dsl,
+	author = {Cartey, Luke and Lyngs{\o}, Rune and de Moor, Oege},
+	title = {Synthesising graphics card programs from DSLs},
+	booktitle = {Proceedings of the 33rd ACM SIGPLAN conference on Programming Language Design and Implementation},
+	series = {PLDI '12},
+	year = {2012},
+	isbn = {978-1-4503-1205-9},
+	location = {Beijing, China},
+	pages = {121--132},
+	numpages = {12},
+	url = {http://doi.acm.org/10.1145/2254064.2254080},
+	doi = {10.1145/2254064.2254080},
+	acmid = {2254080},
+	publisher = {ACM},
+	address = {New York, NY, USA}
+}
+
+@INPROCEEDINGS{ gpu_rnafold,
+	author = {Rizk, Guillaume and Lavenier, Dominique},
+	title = {GPU Accelerated RNA Folding Algorithm},
+	booktitle = {Proceedings of the 9th International Conference on Computational Science: Part I},
+	series = {ICCS '09},
+	year = {2009},
+	isbn = {978-3-642-01969-2},
+	location = {Baton Rouge, LA},
+	pages = {1004--1013},
+	numpages = {10},
+	url = {http://dx.doi.org/10.1007/978-3-642-01970-8_101},
+	doi = {10.1007/978-3-642-01970-8_101},
+	acmid = {1560870},
+	publisher = {Springer-Verlag},
+	address = {Berlin, Heidelberg}
+} 
+
+@INPROCEEDINGS{ lms,
+	author = {Rompf, Tiark and Odersky, Martin},
+	title = {Lightweight modular staging: a pragmatic approach to runtime code generation and compiled DSLs},
+	booktitle = {Proceedings of the ninth international conference on Generative programming and component engineering},
+	series = {GPCE '10},
+	year = {2010},
+	isbn = {978-1-4503-0154-1},
+	location = {Eindhoven, The Netherlands},
+	pages = {127--136},
+	numpages = {10},
+	url = {http://doi.acm.org/10.1145/1868294.1868314},
+	doi = {10.1145/1868294.1868314},
+	acmid = {1868314},
+	publisher = {ACM},
+	address = {New York, NY, USA}
+} 
+
+@INPROCEEDINGS{ lms2,
+	author = {Brown, Kevin J. and Sujeeth, Arvind K. and Lee, Hyouk Joong and Rompf, Tiark and Chafi, Hassan and Odersky, Martin and Olukotun, Kunle},
+	title = {A Heterogeneous Parallel Framework for Domain-Specific Languages},
+	booktitle = {Proceedings of the 2011 International Conference on Parallel Architectures and Compilation Techniques},
+	series = {PACT '11},
+	year = {2011},
+	isbn = {978-0-7695-4566-0},
+	pages = {89--100},
+	numpages = {12},
+	url = {http://dx.doi.org/10.1109/PACT.2011.15},
+	doi = {10.1109/PACT.2011.15},
+	acmid = {2121410},
+	publisher = {IEEE Computer Society},
+	address = {Washington, DC, USA}
+} 
+
+@INPROCEEDINGS{ lms3,
+	author = {Chafi, Hassan and DeVito, Zach and Moors, Adriaan and Rompf, Tiark and Sujeeth, Arvind K. and Hanrahan, Pat and Odersky, Martin and Olukotun, Kunle},
+	title = {Language virtualization for heterogeneous parallel computing},
+	booktitle = {Proceedings of the ACM international conference on Object oriented programming systems languages and applications},
+	series = {OOPSLA '10},
+	year = {2010},
+	isbn = {978-1-4503-0203-6},
+	location = {Reno/Tahoe, Nevada, USA},
+	pages = {835--847},
+	numpages = {13},
+	url = {http://doi.acm.org/10.1145/1869459.1869527},
+	doi = {10.1145/1869459.1869527},
+	acmid = {1869527},
+	publisher = {ACM},
+	address = {New York, NY, USA}
+}
+
+@INPROCEEDINGS { delite,
+	author = {Chafi, Hassan and Sujeeth, Arvind K. and Brown, Kevin J. and Lee, HyoukJoong and Atreya, Anand R. and Olukotun, Kunle},
+	title = {A domain-specific approach to heterogeneous parallelism},
+	booktitle = {Proceedings of the 16th ACM symposium on Principles and practice of parallel programming},
+	series = {PPoPP '11},
+	year = {2011},
+	isbn = {978-1-4503-0119-0},
+	location = {San Antonio, TX, USA},
+	pages = {35--46},
+	numpages = {12},
+	url = {http://doi.acm.org/10.1145/1941553.1941561},
+	doi = {10.1145/1941553.1941561},
+	acmid = {1941561},
+	publisher = {ACM},
+	address = {New York, NY, USA}
+}
+
+@PHDTHESIS{ lms_thesis,
+	author = {Rompf, Tiark},
+	title = {Lightweight Modular Staging and Embedded Compilers: Abstraction Without Regret for High-Level High-Performance Programming},
+	school = {EPFL},
+	year = {2012},
+	url = {http://lampwww.epfl.ch/~rompf/thesis_120716.pdf}
+}
+
+@INPROCEEDINGS{ scala_virtualized,
+	author = {Adriaan Moors and Tiark Rompf and Philipp Haller and Martin Odersky},
+	title = {Scala-virtualized},
+	booktitle = {PEPM'12},
+	pages = {117-120},
+	year = {2012}
+}
+
+% http://stanford-ppl.github.com/Delite/publications.html
+
 % thermodynamic RNA
-% Nussinov GPU
 % SWat on CUDA
 
 % http://scalamacros.org/talks/2012-04-18-ScalaDays2012.pdf

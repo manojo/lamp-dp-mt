@@ -186,9 +186,9 @@ void read_parameter_file(const char *filename) {
   char        *line, ident[256];
   int         r;
 
-  if (!(fp=fopen(filename,"r"))) { fprintf(stderr,"\nread_parameter_file: can't open file %s. Using default parameters instead.\n", filename); return; }
-  if (!(line = get_line(fp))) { fprintf(stderr," File %s is inproper.\n", filename); fclose(fp); return; }
-  if (strncmp(line,"## RNAfold parameter file v2.0",30)!=0) { fprintf(stderr, "Missing header line in file. May be this file has not v2.0 format.\n"); }
+  if (!(fp=fopen(filename,"r"))) { fprintf(stderr,"Can't open '%s'. Using default parameters instead.\n", filename); return; }
+  if (!(line = get_line(fp))) { fprintf(stderr,"Parameter file '%s' is corrupted.\n", filename); fclose(fp); return; }
+  if (strncmp(line,"## RNAfold parameter file v2.0",30)!=0) { fprintf(stderr, "Missing v2.0 format header missing in '%s'.\n", filename); }
   free(line);
 
   while((line=get_line(fp))) {
@@ -234,7 +234,7 @@ void read_parameter_file(const char *filename) {
     else if IDENT("Hexaloops")                       rd_Hexaloop37();
     else if IDENT("Misc")                           { int values[4]; rd_1dim(&values[0],4,0); DuplexInit37=values[0]; DuplexInitdH=values[1]; TerminalAU37=values[2]; TerminalAUdH=values[3]; }
     else if IDENT("END")                            { free(line); break; }
-    else fprintf(stderr,"read_epars: Unknown field identifier in `%s'\n",line); /* do nothing but complain */
+    else fprintf(stderr,"Unknown field identifier in '%s'\n",line); /* do nothing but complain */
     free(line);
   }
   fclose(fp);
