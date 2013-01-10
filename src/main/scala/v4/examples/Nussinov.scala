@@ -71,4 +71,28 @@ trait NussinovGrammar extends LexicalParsers with PrettyPairingAlgebra {
 
 object Nussinov extends NussinovGrammar with App {
   println(parse("guaugu"))
+  println(parse("acguacguacguacguacguacgu"))
+
+
+  def testSeq(s:String) = {
+    println(s)
+    println(parse(s))
+    println
+  }
+  testSeq("ccuuuuucaaagg")
+  testSeq("guacgucaguacguacgugacugucagucaac")
+  testSeq("aaaaaggaaacuccucuuu")
+  testSeq("uucuccucaggaaga")
+  testSeq("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
+  testSeq("gccaaccucgugca")
+  testSeq("ggccaaccucgugcaa")
+  testSeq("guugcucagcacgcguaaga")
+  // PART 2
+  testSeq("gggcgcucaaccgagucagcagugcaauauagggccc")
+  testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
+  testSeq("accacuccucauuugacuuauaggcucagaauuaguagaccacaguucacugugaaagga")
+  testSeq("uugcccuaugucaaacauaugucgcaaagcacacgucguauucaccacgaucaaccaggg")
+  testSeq("ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug")
+
+
 }

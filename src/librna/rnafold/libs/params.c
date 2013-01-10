@@ -4,7 +4,6 @@
 
                   Vienna RNA package
 */
-#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -24,138 +23,9 @@
 /*@unused@*/
 //static char rcsid[] UNUSED = "$Id: params.c,v 1.9 2008/07/04 14:29:14 ivo Exp $";
 
-PRIVATE int id=-1;
-
-#ifdef _OPENMP
-#pragma omp threadprivate(id, pf_id)
-#endif
-
 PUBLIC paramT *scale_parameters(void){
-  model_detailsT  md;
-  set_model_details(&md);
-  return get_scaled_parameters(temperature, md);
+  return get_scaled_parameters();
 }
-
-PUBLIC paramT *get_scaled_parameters( double temperature,
-                                      model_detailsT md){
-
-  unsigned int i,j,k,l;
-  double tempf;
-  paramT *params;
-
-  params  = (paramT *)space(sizeof(paramT));
-
-  /* store the model details */
-  params->model_details = md;
-  params->temperature   = temperature;
-  tempf                 = ((temperature+K0)/Tmeasure);
-
-  for (i=0; i<31; i++)
-    params->hairpin[i]  = hairpindH[i] - (hairpindH[i] - hairpin37[i])*tempf;
-  for (i=0; i<=MIN2(30,MAXLOOP); i++) {
-    params->bulge[i]          = bulgedH[i] - (bulgedH[i] - bulge37[i]) * tempf;
-    params->internal_loop[i]  = internal_loopdH[i] - (internal_loopdH[i] - internal_loop37[i]) * tempf;
-  }
-  params->lxc = lxc37*tempf;
-  for (; i<=MAXLOOP; i++) {
-    params->bulge[i] = params->bulge[30]+(int)(params->lxc*log((double)(i)/30.));
-    params->internal_loop[i] = params->internal_loop[30]+(int)(params->lxc*log((double)(i)/30.));
-  }
-
-  params->ninio[2] = niniodH - (niniodH - ninio37) * tempf;
-
-  params->TripleC = TripleCdH - (TripleCdH - TripleC37) * tempf;
-  params->MultipleCA = MultipleCAdH - (MultipleCAdH - MultipleCA37) * tempf;
-  params->MultipleCB = MultipleCBdH - (MultipleCBdH - MultipleCB37) * tempf;
-
-  for (i=0; (i*7)<strlen(Tetraloops); i++)
-    params->Tetraloop_E[i] = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*tempf;
-  for (i=0; (i*5)<strlen(Triloops); i++)
-    params->Triloop_E[i] =  TriloopdH[i] - (TriloopdH[i]-Triloop37[i])*tempf;
-  for (i=0; (i*9)<strlen(Hexaloops); i++)
-    params->Hexaloop_E[i] =  HexaloopdH[i] - (HexaloopdH[i]-Hexaloop37[i])*tempf;
-
-  params->TerminalAU = TerminalAUdH - (TerminalAUdH - TerminalAU37) * tempf;
-
-  params->DuplexInit = DuplexInitdH - (DuplexInitdH - DuplexInit37) *tempf;
-
-  params->MLbase = ML_BASEdH - (ML_BASEdH - ML_BASE37) * tempf;
-
-  for (i=0; i<=NBPAIRS; i++)
-    params->MLintern[i] = ML_interndH - (ML_interndH - ML_intern37) * tempf;
-
-  params->MLclosing = ML_closingdH - (ML_closingdH - ML_closing37) * tempf;
-
-
-  /* stacks    G(T) = H - [H - G(T0)]*T/T0 */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      params->stack[i][j] = stackdH[i][j] - (stackdH[i][j] - stack37[i][j])*tempf;
-
-  /* mismatches */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<5; j++)
-      for (k=0; k<5; k++) {
-        int mm;
-        params->mismatchI[i][j][k]    = mismatchIdH[i][j][k] - (mismatchIdH[i][j][k] - mismatchI37[i][j][k])*tempf;
-        params->mismatchH[i][j][k]    = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*tempf;
-        params->mismatch1nI[i][j][k]  = mismatch1nIdH[i][j][k]-(mismatch1nIdH[i][j][k]-mismatch1nI37[i][j][k])*tempf;/* interior nx1 loops */
-        params->mismatch23I[i][j][k]  = mismatch23IdH[i][j][k]-(mismatch23IdH[i][j][k]-mismatch23I37[i][j][k])*tempf;/* interior 2x3 loops */
-        if(md.dangles){
-          mm                      = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*tempf;
-          params->mismatchM[i][j][k]    = (mm > 0) ? 0 : mm;
-          mm                      = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*tempf;
-          params->mismatchExt[i][j][k]  = (mm > 0) ? 0 : mm;
-        }
-        else{
-          params->mismatchM[i][j][k] = params->mismatchExt[i][j][k] = 0;
-        }
-      }
-
-  /* dangles */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<5; j++) {
-      int dd;
-      dd = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*tempf;
-      params->dangle5[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
-      dd = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*tempf;
-      params->dangle3[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
-    }
-  /* interior 1x1 loops */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-        for (l=0; l<5; l++)
-          params->int11[i][j][k][l] = int11_dH[i][j][k][l] - (int11_dH[i][j][k][l] - int11_37[i][j][k][l])*tempf;
-
-  /* interior 2x1 loops */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-        for (l=0; l<5; l++) {
-          int m;
-          for (m=0; m<5; m++)
-            params->int21[i][j][k][l][m] = int21_dH[i][j][k][l][m] - (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*tempf;
-        }
-  /* interior 2x2 loops */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-        for (l=0; l<5; l++) {
-          int m,n;
-          for (m=0; m<5; m++)
-            for (n=0; n<5; n++)
-              params->int22[i][j][k][l][m][n] = int22_dH[i][j][k][l][m][n] - (int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*tempf;
-        }
-
-  strncpy(params->Tetraloops, Tetraloops, 281);
-  strncpy(params->Triloops, Triloops, 241);
-  strncpy(params->Hexaloops, Hexaloops, 361);
-
-  params->id = ++id;
-  return params;
-}
-
 
 /*------------------------------------------------------------------------*/
 #define SCALE 10

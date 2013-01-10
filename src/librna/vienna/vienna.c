@@ -27,7 +27,7 @@ paramT *get_scaled_parameters() {
   md.noLP        = 1; /* avoid helices of length 1 */
   md.noGU        = 0; /* GU not allowed at all */
   md.noGUclosure = 0; /* GU allowed only inside stacks */
-  md.logML       = 0; /*  use logarithmic scaling for multi loops */
+  md.logML       = 0; /* use logarithmic scaling for multi loops */
 
   /* store the model details */
   params->model_details = md;
@@ -194,46 +194,46 @@ void read_parameter_file(const char *filename) {
   while((line=get_line(fp))) {
     r = sscanf(line, "# %255s", ident); if (r!=1) { free(line); continue; }
     #define IDENT(X) (strcmp(ident,X) == 0)
-    if      IDENT("stack")                            rd_2dim(&(stack37[0][0]),NBPAIRS+1,NBPAIRS+1,1,1);
-    else if IDENT("stack_enthalpies")                 rd_2dim(&(stackdH[0][0]),NBPAIRS+1,NBPAIRS+1,1,1);
-    else if IDENT("hairpin")                          rd_1dim(&(hairpin37[0]),31,0);
-    else if IDENT("hairpin_enthalpies")               rd_1dim(&(hairpindH[0]),31,0);
-    else if IDENT("bulge")                            rd_1dim(&(bulge37[0]),31,0);
-    else if IDENT("bulge_enthalpies")                 rd_1dim(&(bulgedH[0]),31,0);
-    else if IDENT("interior")                         rd_1dim(&(internal_loop37[0]),31,0);
-    else if IDENT("interior_enthalpies")              rd_1dim(&(internal_loopdH[0]),31,0);
-    else if IDENT("mismatch_exterior")                rd_3dim(&(mismatchExt37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("mismatch_exterior_enthalpies")     rd_3dim(&(mismatchExtdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("mismatch_hairpin")                 rd_3dim(&(mismatchH37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("mismatch_hairpin_enthalpies")      rd_3dim(&(mismatchHdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("mismatch_interior")                rd_3dim(&(mismatchI37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("mismatch_interior_enthalpies")     rd_3dim(&(mismatchIdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("mismatch_interior_1n")             rd_3dim(&(mismatch1nI37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("mismatch_interior_1n_enthalpies")  rd_3dim(&(mismatch1nIdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("mismatch_interior_23")             rd_3dim(&(mismatch23I37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("mismatch_interior_23_enthalpies")  rd_3dim(&(mismatch23IdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("mismatch_multi")                   rd_3dim(&(mismatchM37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("mismatch_multi_enthalpies")        rd_3dim(&(mismatchMdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
-    else if IDENT("int11")                            rd_4dim(&(int11_37[0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,1,1,0,0);
-    else if IDENT("int11_enthalpies")                 rd_4dim(&(int11_dH[0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,1,1,0,0);
-    else if IDENT("int21")                            rd_5dim(&(int21_37[0][0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,5,1,1,0,0,0);
-    else if IDENT("int21_enthalpies")                 rd_5dim(&(int21_dH[0][0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,5,1,1,0,0,0);
-    else if IDENT("int22")                          { rd_6dim_slice(&(int22_37[0][0][0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,5,5,1,1,1,1,1,1,1,1,0,0,0,0); update_nst(int22_37); }
-    else if IDENT("int22_enthalpies")               { rd_6dim_slice(&(int22_dH[0][0][0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,5,5,1,1,1,1,1,1,1,1,0,0,0,0); update_nst(int22_dH); }
-    else if IDENT("dangle5")                          rd_2dim(&(dangle5_37[0][0]),NBPAIRS+1,5,1,0);
-    else if IDENT("dangle5_enthalpies")               rd_2dim(&(dangle5_dH[0][0]),NBPAIRS+1,5,1,0);
-    else if IDENT("dangle3")                          rd_2dim(&(dangle3_37[0][0]),NBPAIRS+1,5,1,0);
-    else if IDENT("dangle3_enthalpies")               rd_2dim(&(dangle3_dH[0][0]),NBPAIRS+1,5,1,0);
-    else if IDENT("ML_params")                       { int values[6]; rd_1dim(&values[0],6,0);
-                                                       ML_BASE37    = values[0]; ML_BASEdH    = values[1];
-                                                       ML_closing37 = values[2]; ML_closingdH = values[3];
-                                                       ML_intern37  = values[4]; ML_interndH  = values[5]; }
-    else if IDENT("NINIO")                           { int values[3]; rd_1dim(&values[0],3,0); ninio37=values[0]; niniodH=values[1]; MAX_NINIO=values[2]; }
-    else if IDENT("Triloops")                         rd_Triloop37();
-    else if IDENT("Tetraloops")                       rd_Tetraloop37();
-    else if IDENT("Hexaloops")                        rd_Hexaloop37();
-    else if IDENT("Misc")                            { int values[4]; rd_1dim(&values[0],4,0); DuplexInit37=values[0]; DuplexInitdH=values[1]; TerminalAU37=values[2]; TerminalAUdH=values[3]; }
-    else if IDENT("END")                             { }
+    if      IDENT("stack")                           rd_2dim(&(stack37[0][0]),NBPAIRS+1,NBPAIRS+1,1,1);
+    else if IDENT("stack_enthalpies")                rd_2dim(&(stackdH[0][0]),NBPAIRS+1,NBPAIRS+1,1,1);
+    else if IDENT("hairpin")                         rd_1dim(&(hairpin37[0]),31,0);
+    else if IDENT("hairpin_enthalpies")              rd_1dim(&(hairpindH[0]),31,0);
+    else if IDENT("bulge")                           rd_1dim(&(bulge37[0]),31,0);
+    else if IDENT("bulge_enthalpies")                rd_1dim(&(bulgedH[0]),31,0);
+    else if IDENT("interior")                        rd_1dim(&(internal_loop37[0]),31,0);
+    else if IDENT("interior_enthalpies")             rd_1dim(&(internal_loopdH[0]),31,0);
+    else if IDENT("mismatch_exterior")               rd_3dim(&(mismatchExt37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("mismatch_exterior_enthalpies")    rd_3dim(&(mismatchExtdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("mismatch_hairpin")                rd_3dim(&(mismatchH37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("mismatch_hairpin_enthalpies")     rd_3dim(&(mismatchHdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("mismatch_interior")               rd_3dim(&(mismatchI37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("mismatch_interior_enthalpies")    rd_3dim(&(mismatchIdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("mismatch_interior_1n")            rd_3dim(&(mismatch1nI37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("mismatch_interior_1n_enthalpies") rd_3dim(&(mismatch1nIdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("mismatch_interior_23")            rd_3dim(&(mismatch23I37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("mismatch_interior_23_enthalpies") rd_3dim(&(mismatch23IdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("mismatch_multi")                  rd_3dim(&(mismatchM37[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("mismatch_multi_enthalpies")       rd_3dim(&(mismatchMdH[0][0][0]),NBPAIRS+1,5,5,1,0,0);
+    else if IDENT("int11")                           rd_4dim(&(int11_37[0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,1,1,0,0);
+    else if IDENT("int11_enthalpies")                rd_4dim(&(int11_dH[0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,1,1,0,0);
+    else if IDENT("int21")                           rd_5dim(&(int21_37[0][0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,5,1,1,0,0,0);
+    else if IDENT("int21_enthalpies")                rd_5dim(&(int21_dH[0][0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,5,1,1,0,0,0);
+    else if IDENT("int22")                         { rd_6dim_slice(&(int22_37[0][0][0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,5,5,1,1,1,1,1,1,1,1,0,0,0,0); update_nst(int22_37); }
+    else if IDENT("int22_enthalpies")              { rd_6dim_slice(&(int22_dH[0][0][0][0][0][0]),NBPAIRS+1,NBPAIRS+1,5,5,5,5,1,1,1,1,1,1,1,1,0,0,0,0); update_nst(int22_dH); }
+    else if IDENT("dangle5")                         rd_2dim(&(dangle5_37[0][0]),NBPAIRS+1,5,1,0);
+    else if IDENT("dangle5_enthalpies")              rd_2dim(&(dangle5_dH[0][0]),NBPAIRS+1,5,1,0);
+    else if IDENT("dangle3")                         rd_2dim(&(dangle3_37[0][0]),NBPAIRS+1,5,1,0);
+    else if IDENT("dangle3_enthalpies")              rd_2dim(&(dangle3_dH[0][0]),NBPAIRS+1,5,1,0);
+    else if IDENT("ML_params")                      { int values[6]; rd_1dim(&values[0],6,0);
+                                                      ML_BASE37    = values[0]; ML_BASEdH    = values[1];
+                                                      ML_closing37 = values[2]; ML_closingdH = values[3];
+                                                      ML_intern37  = values[4]; ML_interndH  = values[5]; }
+    else if IDENT("NINIO")                          { int values[3]; rd_1dim(&values[0],3,0); ninio37=values[0]; niniodH=values[1]; MAX_NINIO=values[2]; }
+    else if IDENT("Triloops")                        rd_Triloop37();
+    else if IDENT("Tetraloops")                      rd_Tetraloop37();
+    else if IDENT("Hexaloops")                       rd_Hexaloop37();
+    else if IDENT("Misc")                           { int values[4]; rd_1dim(&values[0],4,0); DuplexInit37=values[0]; DuplexInitdH=values[1]; TerminalAU37=values[2]; TerminalAUdH=values[3]; }
+    else if IDENT("END")                            { free(line); break; }
     else fprintf(stderr,"read_epars: Unknown field identifier in `%s'\n",line); /* do nothing but complain */
     free(line);
   }

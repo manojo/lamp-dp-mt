@@ -12,7 +12,6 @@
                   Vienna RNA package
 */
 
-#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -1306,9 +1305,7 @@ PUBLIC void update_fold_params_par(paramT *parameters){
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
-    model_detailsT md;
-    set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
+    P = get_scaled_parameters();
   }
   make_pair_matrix();
   if (init_length < 0) init_length=0;

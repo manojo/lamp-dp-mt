@@ -12,7 +12,6 @@
 #include <errno.h>
 #include <time.h>
 #include <string.h>
-#include "config.h"
 #include "utils.h"
 
 #ifdef WITH_DMALLOC
@@ -93,9 +92,7 @@ PUBLIC void init_rand(void)
   xsubi[0] = xsubi[1] = xsubi[2] = (unsigned short) t;  /* lower 16 bit */
   xsubi[1] += (unsigned short) ((unsigned)t >> 6);
   xsubi[2] += (unsigned short) ((unsigned)t >> 12);
-#ifndef HAVE_ERAND48
-  srand((unsigned int) t);
-#endif
+  // srand((unsigned int) t);
 }
 
 /*------------------------------------------------------------------------*/
@@ -105,12 +102,9 @@ PUBLIC double urn(void)
      /* uses a linear congruential library routine */
      /* 48 bit arithmetic */
 {
-#ifdef HAVE_ERAND48
   extern double erand48(unsigned short[]);
   return erand48(xsubi);
-#else
-  return ((double) rand())/RAND_MAX;
-#endif
+  // return ((double) rand())/RAND_MAX;
 }
 
 /*------------------------------------------------------------------------*/
@@ -335,7 +329,7 @@ PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
                     /* lets see if this assumption holds for the complete line */
                     while((line[i] == 'x') || (line[i] == 'e') || (line[i] == 'l')) i++;
                     /* lines solely consisting of 'x's, 'e's or 'l's will be considered as structure constraint */
-                    
+
                     if(
                             ((line[i]>64) && (line[i]<91))  /* A-Z */
                         ||  ((line[i]>96) && (line[i]<123)) /* a-z */
@@ -730,16 +724,6 @@ PUBLIC int bp_distance(const char *str1, const char *str2)
    return dist;
 }
 
-#ifndef HAVE_STRDUP
-char *strdup(const char *s) {
-  char *dup;
-
-  dup = space(strlen(s)+1);
-  strcpy(dup, s);
-  return(dup);
-}
-#endif
-
 PUBLIC  void  print_tty_input_seq(void){
   print_tty_input_seq_str("Input string (upper or lower case)");
 }
@@ -826,7 +810,7 @@ PUBLIC void getConstraint(char **cstruc, const char **lines, unsigned int option
                         *c = '.';
                       }
                       break;
-          case '<':   
+          case '<':
           case '>':   if(!(option & VRNA_CONSTRAINT_ANG_BRACK)){
                         warn_user("constraints of type '<' or '>' not allowed");
                         *c = '.';

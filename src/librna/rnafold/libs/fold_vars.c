@@ -24,8 +24,6 @@ int         dangles = 2;          /* use dangling end energies */
 
 char        *nonstandards = (char *)0;  /* contains allowed non standard bases */
 
-double      temperature = 37.0;
-
 int         james_rule = 1;       /* interior loops of size 2 get energy 0.8Kcal and
                                     no mismatches (no longer used) */
 

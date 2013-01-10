@@ -21,23 +21,6 @@
  */
 paramT *scale_parameters(void);
 
-/**
- * \brief Get precomputed energy contributions for all the known loop types
- *
- *  Call this function to retrieve precomputed energy contributions, i.e. scaled
- *  according to the temperature passed. Furthermore, this function assumes a
- *  data structure that contains the model details as well, such that subsequent
- *  folding recursions are able to retrieve the correct model settings
- *
- *  \see #model_detailsT, set_model_details()
- *
- *  \param temperature  The temperature in degrees Celcius
- *  \param md           The model details
- *  \return             precomputed energy contributions and model settings
- */
-paramT *get_scaled_parameters(double temperature,
-                              model_detailsT md);
-
 paramT *get_parameter_copy(paramT *par);
 
 /**

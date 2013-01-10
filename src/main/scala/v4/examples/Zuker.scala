@@ -18,8 +18,8 @@ trait ZukerSig extends Signature {
   def dlr(lb:Int, e:Answer, rb:Int) : Answer
   def sr(lb:Int, e:Answer, rb:Int) : Answer
   def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) : Answer
-  def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) : Answer
-  def br(lb:Int, f1:Int, e:Answer, x:SSeq, f2:Int, rb:Int) : Answer
+  def bl(lb:Int, f1:Int, b:SSeq, x:Answer, f2:Int, rb:Int) : Answer
+  def br(lb:Int, f1:Int, x:Answer, b:SSeq, f2:Int, rb:Int) : Answer
   def il(f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) : Answer
   def ml(bl:Int, f1:Int, x:Answer, f2:Int, rb:Int) : Answer
   def app(c1:Answer, c:Answer) : Answer
@@ -41,17 +41,17 @@ trait ZukerMFE extends ZukerSig {
   type Answer = Int
   def sadd(lb:Int, e:Answer) = e
   def cadd(x:Answer, e:Answer) = x + e
-  def dlr(lb:Int, e:Answer, rb:Int) = e + LibRNA.ext_mismatch_energy(lb, rb-1, size) + LibRNA.termau_energy(lb, rb-1) // FIXED
-  def sr(lb:Int, e:Answer, rb:Int) = e + LibRNA.sr_energy(lb,rb) // FIXED
-  def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = LibRNA.hl_energy(f1,f2) + LibRNA.sr_energy(lb, rb) // FIXED
-  def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) = e + LibRNA.bl_energy(f1,x._1,x._2-1,f2,x._2) + LibRNA.sr_energy(lb, rb) // FIXED
-  def br(lb:Int, f1:Int, e:Answer, x:SSeq, f2:Int, rb:Int) = e + LibRNA.br_energy(f1,x._1,x._2-1,f2,x._1-1) + LibRNA.sr_energy(lb, rb) // FIXED
-  def il(f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) = x + LibRNA.il_energy(f2, r1._2, r2._1-1, f3) + LibRNA.sr_energy(f1, f4) // FIXED
-  def ml(lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) = LibRNA.ml_energy + LibRNA.ul_energy + x + LibRNA.termau_energy(f1, f2) + LibRNA.sr_energy(lb, rb) + LibRNA.ml_mismatch_energy(f1, f2)
+  def dlr(lb:Int, e:Answer, rb:Int) = e + LibRNA.ext_mismatch_energy(lb, rb-1, size) + LibRNA.termau_energy(lb, rb-1) // OK
+  def sr(lb:Int, e:Answer, rb:Int) = e + LibRNA.sr_energy(lb,rb) // OK
+  def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = LibRNA.hl_energy(f1,f2) + LibRNA.sr_energy(lb, rb) // OK
+  def bl(lb:Int, f1:Int, b:SSeq, x:Answer, f2:Int, rb:Int) = x + LibRNA.bl_energy(f1,b._1,b._2-1,f2,f2-1) + LibRNA.sr_energy(lb, rb) // OK
+  def br(lb:Int, f1:Int, x:Answer, b:SSeq, f2:Int, rb:Int) = x + LibRNA.br_energy(f1,b._1,b._2-1,f2,f1+1) + LibRNA.sr_energy(lb, rb) // OK
+  def il(f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) = x + LibRNA.il_energy(f2,r1._2,r2._1-1,f3) + LibRNA.sr_energy(f1, f4) // OK
+  def ml(lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) = LibRNA.ml_energy + LibRNA.ul_energy + x + LibRNA.termau_energy(f1, f2) + LibRNA.sr_energy(lb, rb) + LibRNA.ml_mismatch_energy(f1,f2)
   def app(c1:Answer, c:Answer) = c1 + c
   def ul(c1:Answer) = LibRNA.ul_energy + c1
-  def addss(c1:Answer, e:SSeq) = c1 + LibRNA.ss_energy(e._1,e._2-1)
-  def ssadd(e:SSeq, x:Answer) = LibRNA.ul_energy + x + LibRNA.ss_energy(e._1,e._2-1)
+  def addss(c1:Answer, e:SSeq) = c1 // + LibRNA.ss_energy(e._1,e._2-1)=0 OK
+  def ssadd(e:SSeq, x:Answer) = LibRNA.ul_energy + x // + LibRNA.ss_energy(e._1,e._2-1)=0 OK
   def nil(d:Unit) = 0
   override val h = min[Answer] _
 }
@@ -77,7 +77,6 @@ trait ZukerCount extends ZukerSig {
 
 trait ZukerPrettyPrint extends ZukerSig {
   type Answer = String
-
   private def dots(s:SSeq,c:Char='.') = (0 until s._2-s._1).map{_=>c}.mkString
   def sadd(lb:Int, e:Answer) = "."+e
   def cadd(x:Answer, e:Answer) = x+e
@@ -107,7 +106,7 @@ trait ZukerExplain extends ZukerSig {
   def bl(lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) = "(("+dots(x)+e+"))"  +" lb"
   def br(lb:Int, f1:Int, e:Answer, x:SSeq, f2:Int, rb:Int) = "(("+e+dots(x)+"))"  +" br"
   def il(f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) = "(("+dots(r1)+x+dots(r2)+"))"  +" il"
-  def ml(bl:Int, f1:Int, x:Answer, f2:Int, rb:Int) = "(("+x+"))"  +" ml"
+  def ml(bl:Int, f1:Int, x:Answer, f2:Int, rb:Int) = "(("+x+"))"  +" ml"+(bl,rb)
   def app(c1:Answer, c:Answer) = c1+c  +" app"
   def ul(c1:Answer) = c1  +" ul"
   def addss(c1:Answer, e:SSeq) = c1+dots(e) +" addss"
@@ -118,8 +117,8 @@ trait ZukerExplain extends ZukerSig {
 trait ZukerGrammar extends ADPParsers with ZukerSig {
   val BASE = eli
   val LOC = emptyi
-  val REG = seq(1,-1)
-  val REG3 = seq(3,-1)
+  val REG = seq()
+  val REG3 = seq(3,maxN)
   val REG30 = seq(1,30)
 
   val struct:Tabulate = tabulate("st",(
@@ -145,7 +144,7 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
   val ml_comps1:Tabulate = tabulate("ml1",(
       BASE ~ ml_comps ^^ sadd
     | (dangle ^^ ul) ~ ml_comps1 ^^ app
-    | (dangle ^^ ul)
+    | dangle ^^ ul
     | (dangle ^^ ul) ~ REG ^^ addss
     ) aggregate h)
 
@@ -198,27 +197,24 @@ object Zuker extends App {
 
   }
 
-
-  // Having separate instances of sbt is required due to issue described in
+  // Having separate JVM instances is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
+  // Note that sbt execute the program in the same JVM
   // PART 1
   testSeq("ccuuuuucaaagg")
-  testSeq("guacgucaguacguacgugacugucagucaac") // GAPC bug: ((((((....)))))).((((.....)))).. (-9.70)
+  testSeq("guacgucaguacguacgugacugucagucaac")
   testSeq("aaaaaggaaacuccucuuu")
   testSeq("uucuccucaggaaga")
   testSeq("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
-    // GAPC co-optimal? : .....(((((........((((((.((((((((((((...)))))).)))))).))))))......)))))..... (-25.00)
   testSeq("gccaaccucgugca")
   testSeq("ggccaaccucgugcaa")
   testSeq("guugcucagcacgcguaaga")
   // PART 2
-
-  testSeq("cagcagugcaauauagggcccucauc")
+  testSeq("gggcgcucaaccgagucagcagugcaauauagggccc")
   testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
   testSeq("accacuccucauuugacuuauaggcucagaauuaguagaccacaguucacugugaaagga")
   testSeq("uugcccuaugucaaacauaugucgcaaagcacacgucguauucaccacgaucaaccaggg")
   testSeq("ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug")
-
   /*
   import scala.util.Random
   Random.setSeed(123456789L)

@@ -22,20 +22,20 @@
 /** Input/Output flag of \ref get_input_line():\n
  *  if used as input option this tells get_input_line() that the data to be read should comply
  *  with the FASTA format
- * 
+ *
  *  the function will return this flag if a fasta header was read
  */
 #define VRNA_INPUT_FASTA_HEADER           8U
 
 /** Input flag for get_input_line():\n
  *  Tell get_input_line() that we assume to read a nucleotide sequence
- * 
+ *
  */
 #define VRNA_INPUT_SEQUENCE               16U
 
 /** Input flag for get_input_line():\n
  *  Tell get_input_line() that we assume to read a structure constraint
- * 
+ *
  */
 #define VRNA_INPUT_CONSTRAINT             32U
 
@@ -168,13 +168,6 @@
 #define FILENAME_ID_LENGTH    42
 #endif
 
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#ifndef HAVE_STRDUP
-char *strdup(const char *s);
-#endif
-#endif
 #ifdef WITH_DMALLOC
 /* use dmalloc library to check for memory management bugs */
 #include "dmalloc.h"
@@ -278,7 +271,7 @@ char  *random_string(int l, const char symbols[]);
 /**
  *  \brief Calculate hamming distance between two sequences
  *
- *  Calculate the number of positions in which 
+ *  Calculate the number of positions in which
  *  \param s1   The first sequence
  *  \param s2   The second sequence
  *  \return     The hamming distance between s1 and s2
@@ -318,15 +311,15 @@ int skip_comment_lines(char **line);
  *  An option argument allows to switch between different reading modes.\n
  *  Currently available options are:\n
  *  #VRNA_INPUT_NOPRINT_COMMENTS, #VRNA_INPUT_NOSKIP_COMMENTS, #VRNA_INPUT_NOELIM_WS_SUFFIX
- * 
+ *
  *  pass a collection of options as one value like this:
  *  \verbatim get_input_line(string, option_1 | option_2 | option_n) \endverbatim
- * 
+ *
  *  If the function recognizes the type of input, it will report it in the return
  *  value. It also reports if a user defined 'quit' command (@-sign on 'stdin')
  *  was given. Possible return values are:\n
  *  #VRNA_INPUT_FASTA_HEADER, #VRNA_INPUT_ERROR, #VRNA_INPUT_MISC, #VRNA_INPUT_QUIT
- * 
+ *
  *  \param string   A pointer to the character array that contains the line read
  *  \param options  A collection of options for switching the functions behavior
  *  \return         A flag with information about what has been read
@@ -339,7 +332,7 @@ unsigned int get_multi_input_line(char **string,
 
 /**
  *  \brief  Get a data record from stdin
- * 
+ *
  *  This function may be used to obtain complete datasets from stdin. A dataset is always
  *  defined to contain at least a sequence. If data on stdin starts with a fasta header,
  *  i.e. a line like
@@ -358,9 +351,9 @@ unsigned int get_multi_input_line(char **string,
  *  available through the line-array 'rest'. Here one can usually find the structure constraint or
  *  other information belonging to the current dataset. Filling of 'rest' may be prevented by
  *  passing #VRNA_INPUT_NO_REST to the options argument.\n
- * 
+ *
  *  \note This function will exit any program with an error message if no sequence could be read!
- * 
+ *
  *  The main purpose of this function is to be able to easily parse blocks of data from stdin
  *  in the header of a loop where all calculations for the appropriate data is done inside the
  *  loop. The loop may be then left on certain return values, e.g.:
@@ -374,15 +367,15 @@ while(!(read_record(&id, &seq, &rest, 0) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))
     for(i=0;rest[i];i++)
       printf("%s\n", rest[i]);
 } \endverbatim
- * 
+ *
  *  In the example above, the while loop will be terminated when read_record() returns either an
  *  error or a user initiated quit request.\n
  *  As long as data is read from stdin, the id is printed if it is available for the current block
  *  of data. The sequence will be printed in any case and if some more lines belong to the current
  *  block of data each line will be printed as well.
- * 
+ *
  *  \note Do not forget to free the memory occupied by header, sequence and rest!
- * 
+ *
  *  \param  header    A pointer which will be set such that it points to the header of the record
  *  \param  sequence  A pointer which will be set such that it points to the sequence of the record
  *  \param  rest      A pointer which will be set such that it points to an array of lines which also belong to the record
@@ -452,7 +445,7 @@ short *make_pair_table(const char *structure);
  *  \brief Get an exact copy of a pair table
  *
  *  \param pt The pair table to be copied
- *  \return   A pointer to the copy of 'pt' 
+ *  \return   A pointer to the copy of 'pt'
  */
 short *copy_pair_table(const short *pt);
 
@@ -472,11 +465,11 @@ short *make_pair_table_snoop(const char *structure);
 
 /**
  *  \brief Compute the "base pair" distance between two secondary structures s1 and s2.
- * 
+ *
  *  The sequences should have the same length.
  *  dist = number of base pairs in one structure but not in the other
  *  same as edit distance with open-pair close-pair as move-set
- * 
+ *
  *  \param str1   First structure in dot-bracket notation
  *  \param str2   Second structure in dot-bracket notation
  *  \return       The base pair distance between str1 and str2
@@ -496,7 +489,7 @@ void print_tty_input_seq(void);
  *
  *  (usually this is used to ask for user input)
  *  There will also be a ruler (scale line) printed that helps orientation of the sequence positions
- * 
+ *
  *  \param s A user defined string that will be printed to stdout
  */
 void print_tty_input_seq_str(const char *s);
@@ -518,10 +511,10 @@ void print_tty_constraint_full(void);
  *  #VRNA_CONSTRAINT_X (base must not pair)\n
  *  #VRNA_CONSTRAINT_ANG_BRACK (paired downstream/upstream)\n
  *  #VRNA_CONSTRAINT_RND_BRACK (base i pairs base j)\n
- * 
+ *
  *  pass a collection of options as one value like this:
  *  \verbatim print_tty_constraint(option_1 | option_2 | option_n) \endverbatim
- * 
+ *
  *  \param option Option switch that tells which constraint help will be printed
  */
 void print_tty_constraint(unsigned int option);
@@ -530,14 +523,14 @@ void print_tty_constraint(unsigned int option);
  *  \brief Convert a DNA input sequence to RNA alphabet
  *
  *  This function substitudes <i>T</i> and <i>t</i> with <i>U</i> and <i>u</i>, respectively
- * 
+ *
  *  \param sequence The sequence to be converted
  */
 void str_DNA2RNA(char *sequence);
 
 /**
  *  \brief Convert an input sequence to uppercase
- * 
+ *
  *  \param sequence The sequence to be converted
  */
 void  str_uppercase(char *sequence);
@@ -548,9 +541,9 @@ void  str_uppercase(char *sequence);
  *  Access of a position "(i,j)" is then accomplished by using \verbatim (i,j) ~ iindx[i]-j \endverbatim
  *  This function is necessary as most of the two-dimensional energy matrices are actually one-dimensional arrays throughout
  *  the ViennaRNAPackage
- * 
+ *
  *  Consult the implemented code to find out about the mapping formula ;)
- * 
+ *
  *  \see get_indx()
  *  \param length The length of the RNA sequence
  *  \return       The mapper array
@@ -563,13 +556,13 @@ int   *get_iindx(unsigned int length);
  *  Access of a position "(i,j)" is then accomplished by using \verbatim (i,j) ~ indx[j]+i \endverbatim
  *  This function is necessary as most of the two-dimensional energy matrices are actually one-dimensional arrays throughout
  *  the ViennaRNAPackage
- * 
+ *
  *  Consult the implemented code to find out about the mapping formula ;)
- * 
+ *
  *  \see get_iindx()
  *  \param length The length of the RNA sequence
  *  \return       The mapper array
- * 
+ *
  */
 int   *get_indx(unsigned int length);
 

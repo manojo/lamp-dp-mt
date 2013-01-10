@@ -23,7 +23,6 @@
 #include "part_func.h"
 #include "fold_vars.h"
 #include "utils.h"
-#include "read_epars.h"
 #include "params.h"
 
 /*--------------------------------------------------------------------------*/
@@ -67,8 +66,9 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
+  if (argc>1) ParamFile=argv[1];
+  if (ParamFile != NULL) read_parameter_file(ParamFile);
+  // printf("%s\n",option_string());
 
   if (circular && noLonelyPairs)
     warn_user("depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times");
