@@ -3,11 +3,6 @@
 
 #include <limits.h>
 
-/**
- *  \file energy_const.h
- *  energy constants
- */
-
 /** The gas constant */
 #define GASCONST 1.98717  /* in [cal/K] */
 /** 0 deg Celsius in Kelvin */

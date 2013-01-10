@@ -25,8 +25,7 @@ fi
 
 printf "Compiling $name"
 gcc -Wall -std=c99 -fPIC -shared $JAVA_INC rnalib.c librna.c \
-	vienna/energy_par.c vienna/fold_vars.c vienna/params.c vienna/read_epars.c vienna/utils.c \
-	-o "$out"/libRNA.jnilib || exit
+	vienna/energy_par.c vienna/vienna.c -o "$out"/libRNA.jnilib || exit
 mv "$out/$name.tmp" "$out/$name.md5"
 echo '.'
 

@@ -1,5 +1,4 @@
 /* RNA energy library
-
    library of wrapper functions to access the Vienna-Tables for the Turner1999 and Turner2004 energy values from Bellman's GAP programs
    works with the Vienna-Package 1.8.5 and Vienna-Package 2.0.0
    written by Stefan Janssen, 12.09.2011
@@ -16,44 +15,20 @@
 */
 
 #include "rnalib.h"
+#include "vienna/vienna.h"
 
-#include "vienna/data_structures.h"
-static paramT  *P = 0;
-// if nonzero use logarithmic ML energy in energy_of_struct
-// used in vienna/fold_vars.c, set_model_details()
-int logML     = 0;
+static paramT *P = 0;
 
-#include "vienna/energy_par.h"
-#include "vienna/energy_const.h"
-
-#include "vienna/params.h"
-#include "vienna/read_epars.h"
-#include "vienna/fold_vars.h"
-
-//#define PUBLIC const
-//#include "energy_par.c"
-//#undef PUBLIC
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 #include <assert.h>
 
-// strncmp()
-#include <string.h>
-// abort()
-#include <stdlib.h>
-// fprintf()
-#include <stdio.h>
-#include <math.h>
-
-
-void librna_read_param_file(const char *filename)
-{
-  if (filename)
-    read_parameter_file(filename);
-  if (P)
-    free(P);
-  model_detailsT md;
-  set_model_details(&md);
-  P = get_scaled_parameters(temperature, md);
+void librna_read_param_file(const char *filename) {
+  if (filename) read_parameter_file(filename);
+  if (P) free(P);
+  P = get_scaled_parameters();
 }
 
 /*
@@ -71,8 +46,7 @@ void librna_read_param_file(const char *filename)
      x = 5' base of the basepair
      y = 3' base of the basepair
 */
-static int bp_index(char x, char y)
-{
+static int bp_index(char x, char y) {
   switch (x) {
     case A_BASE : switch (y) {
         case U_BASE : return AU_BP;
@@ -109,12 +83,10 @@ static int bp_index(char x, char y)
      i = first base of loop region
      j = last base of loop region
 */
-static rsize noGaps(const char *s, rsize i, rsize j)
-{
+static rsize noGaps(const char *s, rsize i, rsize j) {
   rsize noGaps = 0;
   for (rsize k = i; k <= j; ++k)
-    if (s[k] == GAP_BASE)
-      ++noGaps;
+    if (s[k] == GAP_BASE) ++noGaps;
   return noGaps;
 }
 
@@ -126,13 +98,10 @@ static rsize noGaps(const char *s, rsize i, rsize j)
      j = last base of loop region
      ungapped = a char array of appropriate size, i.e. j-i+1, to hold the ungapped string between i and j
 */
-static size_t ungapRegion(const char *s, rsize i, rsize j, char *ungapped)
-{
+static size_t ungapRegion(const char *s, rsize i, rsize j, char *ungapped) {
   rsize pos = 0;
   for (rsize y = i; y <= j; ++y) {
-    if (s[y] != GAP_BASE) {
-      ungapped[pos++] = s[y];
-    }
+    if (s[y] != GAP_BASE) ungapped[pos++] = s[y];
   }
   return pos;
 }
@@ -149,11 +118,9 @@ static rsize getNext(const char *s, rsize pos, rsize steps, rsize rightBorder) {
   assert(steps>0);
   rsize nongaps = 0;
   rsize x = pos+1;
-  if (x > rightBorder)
-    return rightBorder;
+  if (x > rightBorder) return rightBorder;
   do {
-    if (s[x] != GAP_BASE)
-      ++nongaps;
+    if (s[x] != GAP_BASE) ++nongaps;
   } while (nongaps < steps && ++x < rightBorder);
   return x;
 }
@@ -167,16 +134,13 @@ static rsize getNext(const char *s, rsize pos, rsize steps, rsize rightBorder) {
      leftBorder = startpoint of search for left neighboring non-GAP base.
 */
 static rsize getPrev(const char *s, rsize pos, rsize steps, rsize leftBorder) {
-  assert(pos>0);
-  assert(steps>0);
+  assert(pos>0); assert(steps>0);
   rsize nongaps = 0;
   rsize x=pos-1;
 
-  if (x <= leftBorder)
-    return leftBorder;
+  if (x <= leftBorder) return leftBorder;
   do {
-    if (s[x] != GAP_BASE)
-      ++nongaps;
+    if (s[x] != GAP_BASE) ++nongaps;
   } while (nongaps < steps && --x > leftBorder);
 
   return x;
@@ -192,8 +156,7 @@ static rsize getPrev(const char *s, rsize pos, rsize steps, rsize leftBorder) {
      *x = the input RNA sequence in bit encoding, i.e. N=0, A=1, C=2, G=3, U=4, GAP=5 (see /usr/include/librna/rnalib.h base_t)
      len = the length of the RNA bit encoded sequence, since with C arrays one does not know their length
 */
-static void decode(char *s, const char *x, const int len)
-{
+static void decode(char *s, const char *x, const int len) {
 	unsigned int i;
 	for (i = 0; i < len; ++i) {
 	    switch (x[i]) {
@@ -215,8 +178,7 @@ static void decode(char *s, const char *x, const int len)
    Input is
      just the size, i.e. number of bases, of the unpaired loop region: l
 */
-static int jacobson_stockmayer(rsize l)
-{
+static int jacobson_stockmayer(rsize l) {
 	return (int)(P->lxc*log((l)/(1.0 * MAXLOOP)));
 }
 
@@ -227,13 +189,9 @@ static int jacobson_stockmayer(rsize l)
    Input is
      just the size, i.e. number of bases, of the unpaired loop region: l
 */
-static int hl_ent(rsize l)
-{
-  if (l>MAXLOOP) {
-	  return P->hairpin[MAXLOOP]+jacobson_stockmayer(l);
-  } else {
-	  return P->hairpin[l];
-  }
+static int hl_ent(rsize l) {
+  if (l>MAXLOOP) return P->hairpin[MAXLOOP]+jacobson_stockmayer(l);
+  else return P->hairpin[l];
 }
 
 /*
@@ -255,8 +213,7 @@ static int hl_ent(rsize l)
      2. index = lbase = code for 5' base i+1 stacking on closing basepair i-j
      3. index = rbase = code for 3' base j-1 stacking on closing basepair i-j
 */
-static int hl_stack(const char *s, rsize i, rsize j)
-{
+static int hl_stack(const char *s, rsize i, rsize j) {
   int bp = bp_index(s[i], s[j]);
   unsigned char lbase = s[getNext(s,i,1,j-1)];
   unsigned char rbase = s[getPrev(s,j,1,i+1)];
@@ -275,16 +232,9 @@ static int hl_stack(const char *s, rsize i, rsize j)
      i = the index (first base of s is 0, second 1, ...) of the 5' partner of the stem terminating basepair
      j = the index (first base of s is 0, second 1, ...) of the 3' partner of the stem terminating basepair
 */
-int termau_energy(const char *s, rsize i, rsize j)
-{
-  if (
-    (s[i] == G_BASE && s[j] == C_BASE) ||
-    (s[i] == C_BASE && s[j] == G_BASE)
-  ) {
-    return 0;
-  } else {
-	return P->TerminalAU;
-  }
+int termau_energy(const char *s, rsize i, rsize j) {
+  if ((s[i] == G_BASE && s[j] == C_BASE) || (s[i] == C_BASE && s[j] == G_BASE)) return 0;
+  else return P->TerminalAU;
 }
 
 /*
@@ -306,10 +256,8 @@ int termau_energy(const char *s, rsize i, rsize j)
      i = the index (first base of s is 0, second 1, ...) of the 5' partner of the hairpin closing basepair
      j = the index (first base of s is 0, second 1, ...) of the 3' partner of the hairpin closing basepair
 */
-int hl_energy(const char *s, rsize i, rsize j)
-{
+int hl_energy(const char *s, rsize i, rsize j) {
   assert(j-i>1);
-
   rsize size = j-i-1 - noGaps(s,i+1,j-1);
 
   // destabilizing energy for the unpaired region in correlation to its length
@@ -319,9 +267,7 @@ int hl_energy(const char *s, rsize i, rsize j)
   int stack_mismatch = hl_stack(s, i, j);
 
   // handling for hairpin loops in alignments, where the sequence is completely missing
-  if (size < 3) {
-      return 600;
-  }
+  if (size < 3) return 600;
 
   //test for special loop cases, i.e. Tri-, Tetra- and Hexa-loops. Wired comparison stems from the Vienna Package: H/loop_energies.h method "E_Hairpin()"
   if (size == 3 || size == 4 || size == 6) {
@@ -355,13 +301,8 @@ int hl_energy(const char *s, rsize i, rsize j)
 	}
   }
 
-  if (size == 3) {
-	//normal hairpins of loop size 3
-    return entropy + termau_energy(s, i, j);
-  } else {
-	//normal hairpins of loop sizes larger than three
-	return entropy + stack_mismatch;
-  }
+  if (size == 3) return entropy + termau_energy(s, i, j); //normal hairpins of loop size 3
+  else return entropy + stack_mismatch; //normal hairpins of loop sizes larger than three
 
   //throw a warning to Bellman's GAP user, if they forget to restrict the loop region to sizes larger than two
   fprintf(stderr, "hairpin loop < 3 found. Please use production\n");
@@ -372,8 +313,7 @@ int hl_energy(const char *s, rsize i, rsize j)
 }
 
 /* like hl_energy, just no penalty for size > 4 structures */
-int hl_energy_stem(const char *s, rsize i, rsize j)
-{
+int hl_energy_stem(const char *s, rsize i, rsize j) {
   int r = hl_energy(s, i, j);
   rsize size = j-i-1 - noGaps(s,i+1,j-1);
   if (size >= 4) {
@@ -404,8 +344,7 @@ int hl_energy_stem(const char *s, rsize i, rsize j)
      3. index = lbase = code for 5' unpaired base of the internal loop
      4. index = rbase = code for 3' unpaired base of the internal loop
 */
-static int il11_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
-{
+static int il11_energy(const char *s, rsize i, rsize k, rsize l, rsize j) {
   int closingBP = bp_index(s[i],   s[j]  );
   int enclosedBP = bp_index(s[getPrev(s,j,2,l)], s[getNext(s,i,2,k)]); //we know that the enclosed base pair is at exactly this position, since both unpaired regions have size 1.  Note, basepair is reversed to preserver 5'-3' order.
   unsigned char lbase = s[getNext(s,i,1,k)];
@@ -436,8 +375,7 @@ static int il11_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
      4. index = rbase = code for first (= close to the embedded substructure) 3' unpaired base of the internal loop, j-2
      5. index = rrbase = code for second (= close to the i-j basepair) 3' unpaired base of the internal loop, j-1
 */
-static int il12_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
-{
+static int il12_energy(const char *s, rsize i, rsize k, rsize l, rsize j) {
   int closingBP = bp_index(s[i],   s[j]  );
   int enclosedBP = bp_index(s[getPrev(s,j,3,l)], s[getNext(s,i,2,k)]); // Note, basepair is reversed to preserver 5'-3' order
   unsigned char lbase = s[getNext(s,i,1,k)];
@@ -449,8 +387,7 @@ static int il12_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
 /*
    symmetric case to il12_energy
 */
-static int il21_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
-{
+static int il21_energy(const char *s, rsize i, rsize k, rsize l, rsize j) {
   int closingBP = bp_index(s[getPrev(s,j,2,l)], s[getNext(s,i,3,k)]); // Note, basepair is reversed to preserver 5'-3' order
   int enclosedBP = bp_index(s[i],   s[j]  );
   unsigned char lbase = s[getPrev(s,j,1,l)];
@@ -484,8 +421,7 @@ static int il21_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
      6. index = rbase = code for first (= closer to the embedded substructure) 3' unpaired base of the internal loop, j-2
      7. index = rrbase = code for second (= closer to the closing basepair) 3' unpaired base of the internal loop, j-1
 */
-static int il22_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
-{
+static int il22_energy(const char *s, rsize i, rsize k, rsize l, rsize j) {
   int closingBP = bp_index(s[i],   s[j]  );
   int enclosedBP = bp_index(s[getPrev(s,j,3,l)], s[getNext(s,i,3,k)]); // Note, basepair is reversed to preserver 5'-3' order
   unsigned char lbase = s[getNext(s,i,1,k)];
@@ -501,14 +437,10 @@ static int il22_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
    currently (11.09.2011) MAXLOOP is 30
    Input is just the size, i.e. number of bases, of the unpaired loop region: l
 */
-static int il_ent(rsize l)
-{
+static int il_ent(rsize l) {
   assert(l>1);
-  if (l > MAXLOOP) {
-	  return P->internal_loop[MAXLOOP] + jacobson_stockmayer(l);
-  } else {
-	  return P->internal_loop[l];
-  }
+  if (l > MAXLOOP) return P->internal_loop[MAXLOOP] + jacobson_stockmayer(l);
+  else return P->internal_loop[l];
 }
 
 /*
@@ -534,8 +466,7 @@ static int il_ent(rsize l)
      2. index = out_lbase = in_lbase = code for first (= closer to the closing basepair) 5' unpaired base of the internal loop, i+1
      3. index = out_rbase = in_rbase = code for second (= closer to the closing basepair) 3' unpaired base of the internal loop, j-1
 */
-static int il_stack(const char *s, rsize i, rsize k, rsize l, rsize j)
-{
+static int il_stack(const char *s, rsize i, rsize k, rsize l, rsize j) {
   int out_closingBP = bp_index(s[i], s[j]);
   unsigned char out_lbase = s[getNext(s,i,1,j-1)];
   unsigned char out_rbase = s[getPrev(s,j,1,i+1)];
@@ -553,12 +484,9 @@ static int il_stack(const char *s, rsize i, rsize k, rsize l, rsize j)
      sl = size of the 5' unpaired loop region
      sr = size of the 3' unpaired loop region
 */
-static int il_asym(rsize sl, rsize sr)
-{
+static int il_asym(rsize sl, rsize sr) {
   int r = abs(sl-sr) * P->ninio[2];
-  if (r < MAX_NINIO) {
-    return r;
-  }
+  if (r < MAX_NINIO) return r;
   return MAX_NINIO;
 }
 
@@ -593,8 +521,7 @@ static int il_asym(rsize sl, rsize sr)
      l = the index (first base of s is 0, second 1, ...) of the 3' partner of the internal loop embedded basepair.
      j = the index (first base of s is 0, second 1, ...) of the 3' partner of the internal loop closing basepair
 */
-int il_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
-{
+int il_energy(const char *s, rsize i, rsize k, rsize l, rsize j) {
   rsize sl = k-i-1 - noGaps(s, i+1, k-1);
   rsize sr = j-l-1 - noGaps(s, l+1, j-1);
 
@@ -643,14 +570,10 @@ int il_energy(const char *s, rsize i, rsize k, rsize l, rsize j)
    Input is
      just the size, i.e. number of bases, of the unpaired loop region: l
 */
-static int bl_ent(rsize l)
-{
+static int bl_ent(rsize l) {
   assert(l>0);
-  if (l > MAXLOOP) {
-	return P->bulge[MAXLOOP] + jacobson_stockmayer(l);
-  } else {
-	return P->bulge[l];
-  }
+  if (l > MAXLOOP) return P->bulge[MAXLOOP] + jacobson_stockmayer(l);
+  else return P->bulge[l];
 }
 
 /*
@@ -677,10 +600,8 @@ static int bl_ent(rsize l)
      j = the index (first base of s is 0, second 1, ...) of the 3' partner of the internal loop closing basepair
      Xright = for GAP case: the 3' partner of the enclosed basepair might not be at j-1 if we consider gaps. We have two possibilities: either it is seperated from j by one or more GAPs, or it might even be missing at all. Thus we have to know where the closed substructure X has its right border.
 */
-int bl_energy(const char *s, rsize i, rsize k, rsize l, rsize j, rsize Xright)
-{
+int bl_energy(const char *s, rsize i, rsize k, rsize l, rsize j, rsize Xright) {
   assert(j >= 2); // this is of no biological relevance, just to avoid an underflow
-
   rsize size = l-k+1 - noGaps(s, k, l);
 
   if (size==0) {
@@ -713,10 +634,8 @@ int bl_energy(const char *s, rsize i, rsize k, rsize l, rsize j, rsize Xright)
      |   |
      5'  3'
 */
-int br_energy(const char *s, rsize i, rsize k, rsize l, rsize j, rsize Xleft)
-{
+int br_energy(const char *s, rsize i, rsize k, rsize l, rsize j, rsize Xleft) {
   assert(j >= 1); // this is of no biological relevance, just to avoid an underflow
-
   rsize size = l-k+1 - noGaps(s, k, l);
 
   if (size == 0) {
@@ -732,7 +651,6 @@ int br_energy(const char *s, rsize i, rsize k, rsize l, rsize j, rsize Xleft)
   if (size > 1){
 	return bl_ent(size) + termau_energy(s, i, j) + termau_energy(s, k-1, getNext(s,i,1,Xleft));
   }
-
   fprintf(stderr, "br_energy size < 1\n");
   assert(0);
 }
@@ -754,26 +672,21 @@ int br_energy(const char *s, rsize i, rsize k, rsize l, rsize j, rsize Xleft)
      1. index = closingBP = code for closing basepair i-j
      2. index = enclosedBP = code for enclosed basepair i+1 and j-1. Note, basepair is reversed to preserver 5'-3' order
 */
-int sr_energy(const char *s, rsize i, rsize j)
-{
+int sr_energy(const char *s, rsize i, rsize j) {
   int closingBP = bp_index(s[i], s[j]);
   int enclosedBP = bp_index(s[j-1],s[i+1]); // Note, basepair is reversed to preserver 5'-3' order
   return P->stack[closingBP][enclosedBP];
 }
 
-/*
-   the same as "sr_energy" but here the input is not relative to the RNA input sequence, but can be any combination of four bases
-   currently used for the coaxial stacking of both stems of a pseudoknot
-*/
-int sr_pk_energy(char a, char b, char c, char d)
-{
+/* same as "sr_energy" but here the input is not relative to the RNA input sequence, but can be any combination of four bases
+   currently used for the coaxial stacking of both stems of a pseudoknot */
+int sr_pk_energy(char a, char b, char c, char d) {
   int closingBP = bp_index(a, b);
   int enclosedBP = bp_index(d, c); // Note, basepair is reversed to preserver 5'-3' order
   return P->stack[closingBP][enclosedBP];
 }
 
-/*
-   returns the energy contribution of a single base left to a stem which dangles on this stem from the outside
+/* energy contribution of a single base left to a stem which dangles on this stem from the outside
        X          (X = some closed structure)
      |   |
      i - j        (i and j form the closing basepair)
@@ -787,8 +700,7 @@ int sr_pk_energy(char a, char b, char c, char d)
      1. index = closingBP = code for closing basepair i-j
      2. index = dbase = code for dangling base
 */
-int dl_energy(const char *s, rsize i, rsize j)
-{
+int dl_energy(const char *s, rsize i, rsize j) {
   if (i == 0) return 0;
   int closingBP = bp_index(s[i], s[j]);
   unsigned char dbase = s[getPrev(s,i,1,0)];
@@ -806,8 +718,7 @@ int dl_energy(const char *s, rsize i, rsize j)
    Input is
      in addition: n = length of the input RNA sequence (necessary for OverDangle, should there be no more base on the right side of a stem)
 */
-int dr_energy(const char *s, rsize i, rsize j, rsize n)
-{
+int dr_energy(const char *s, rsize i, rsize j, rsize n) {
   if ((j+1) >= n) return 0;
   int closingBP = bp_index(s[i], s[j]);
   unsigned char dbase = s[getNext(s,j,1,n)];
@@ -823,8 +734,7 @@ int dr_energy(const char *s, rsize i, rsize j, rsize n)
      |   |
      5'  3'
 */
-int dli_energy(const char *s, rsize i, rsize j)
-{
+int dli_energy(const char *s, rsize i, rsize j) {
   int closingBP = bp_index(s[j], s[i]); // Note, basepair is reversed to preserver 5'-3' order
   unsigned char dbase = s[getNext(s,i,1,j-1)];
   int dd = P->dangle3[closingBP][dbase];
@@ -839,8 +749,7 @@ int dli_energy(const char *s, rsize i, rsize j)
      |   |
      5'  3'
 */
-int dri_energy(const char *s, rsize i, rsize j)
-{
+int dri_energy(const char *s, rsize i, rsize j) {
   int closingBP = bp_index(s[j], s[i]); // Note, basepair is reversed to preserver 5'-3' order
   unsigned char dbase = s[getPrev(s,j,1,i+1)];
   int dd = P->dangle5[closingBP][dbase];
@@ -864,20 +773,15 @@ int dri_energy(const char *s, rsize i, rsize j)
      2. index = lbase = code for dangling 5' base
      3. index = rbase = code for dangling 3' base
 */
-int ext_mismatch_energy(const char *s, rsize i, rsize j, rsize n)
-{
+int ext_mismatch_energy(const char *s, rsize i, rsize j, rsize n) {
   if ((i > 0) && ((j+1) < n)) {
     int closingBP = bp_index(s[i],s[j]);
     int lbase = s[getPrev(s,i,1,0)];
     int rbase = s[getNext(s,j,1,n)];
     return P->mismatchExt[closingBP][lbase][rbase];
   } else {
-    if (i > 0) {
-      return dl_energy(s,i,j);
-    }
-    if ((j+1) < n) {
-      return dr_energy(s,i,j,n);
-    }
+    if (i > 0) return dl_energy(s,i,j);
+    if ((j+1) < n) return dr_energy(s,i,j,n);
     return 0;
   }
 }
@@ -890,70 +794,36 @@ int ext_mismatch_energy(const char *s, rsize i, rsize j, rsize n)
      |   |
      5'  3'
 */
-int ml_mismatch_energy(const char *s, rsize i, rsize j)
-{
+int ml_mismatch_energy(const char *s, rsize i, rsize j) {
   int closingBP = bp_index(s[j],s[i]); // Note, basepairs and stacking bases are reversed to preserver 5'-3' order
   int lbase = s[getPrev(s,j,1,i+1)];
   int rbase = s[getNext(s,i,1,j-1)];
   return P->mismatchM[closingBP][lbase][rbase];
 }
 
-/*
-   returns the energy for initiating a multiloop
-   version 1999: currently (12.09.2011) this value is set to 340
-   version 2004: currently (12.09.2011) this value is set to 930
-*/
-int ml_energy(void)
-{
-  return P->MLclosing;
-}
+/* energy for initiating a multiloop (v1999: 340, v2004: 930) */
+int ml_energy(void) { return P->MLclosing; }
 
-/*
-   returns the energy for initiating a stem within a multiloop
-   version 1999: currently (12.09.2011) this value is set to 40
-   version 2004: currently (12.09.2011) this value is set to -90
-*/
-int ul_energy(void)
-{
-  return P->MLintern[0];
-}
+/* energy for initiating a stem within a multiloop (v1999: 40, v2004: -90) */
+int ul_energy(void) { return P->MLintern[0]; }
 
-/*
-   returns the energy for one unpaired base, not included into loops (hairpin-, bulge-, internal- loops), but in single stranded stretches next to closed substructures also in multiloops
-   currently (12.09.2011) this value is set to 0
-*/
-int sbase_energy(void)
-{
-  return 0;
-}
+/* energy for one unpaired base, not included into loops (hairpin-, bulge-, internal- loops), but in single stranded stretches next to closed substructures also in multiloops
+   currently (12.09.2011) this value is set to 0 */
+int sbase_energy(void) { return 0; }
 
-/*
-   same es sbase_energy, but for zero to n bases
-   currently (12.09.2011) this value is set to 0
-*/
-int ss_energy(rsize i, rsize j)
-{
-  return 0;
-}
+/* same es sbase_energy, but for zero to n bases. currently (12.09.2011) this value is set to 0 */
+int ss_energy(rsize i, rsize j) { return 0; }
 
-
-/*
-   scales the energy value x into a partition function value
-*/
-double mk_pf(double x)
-{
+/* scales the energy value x into a partition function value */
+double mk_pf(double x) {
   // temperature is defined in vienna/fold_vars.c
   return exp((-1.0 * x/100.0) / (GASCONST/1000 * (temperature + K0)));
 }
 
-/*
-   returns a partition function bonus for x unpaired bases
-*/
-double scale(int x)
-{
+/* partition function bonus for x unpaired bases */
+double scale(int x) {
   double mean_nrg= -0.1843;  /* mean energy for random sequences: 184.3*length cal */
   double mean_scale = exp (-1.0 * mean_nrg / (GASCONST/1000 * (temperature + K0)));
-
   return (1.0 / pow(mean_scale, x));
 }
 
@@ -969,8 +839,7 @@ dangle   |        (dangle = 5' dangling base)
      i = the code for the 5' partner of the closing basepair, note: here it is not an index of the input RNA sequence!
      j = the code for the 3' partner of the closing basepair, note: here it is not an index of the input RNA sequence!
 */
-int dl_dangle_dg(enum base_t dangle, enum base_t i, enum base_t j)
-{
+int dl_dangle_dg(enum base_t dangle, enum base_t i, enum base_t j) {
   int closingBP = bp_index(i,j);
   int dd = P->dangle5[closingBP][dangle];
   return (dd>0) ? 0 : dd;  /* must be <= 0 */
@@ -992,21 +861,16 @@ int dr_dangle_dg(enum base_t i, enum base_t j, enum base_t dangle) {
 }
 
 // added by gsauthof, 2012
-
-static const bool map_base_iupac[5][12] =
-{
-             /*      { N    , A     , C     , G     , U     , _     , B     , D     , H     , R     , V     , Y     }  , */
-             /* N */ { true , true  , true  , true  , true  , true  , true  , true  , true  , true  , true  , true  }  ,
-             /* A */ { true , true  , false , false , false , false , false , true  , true  , true  , true  , false }  ,
-             /* C */ { true , false , true  , false , false , false , true  , false , true  , false , true  , true  }  ,
-             /* G */ { true , false , false , true  , false , false , true  , true  , false , true  , true  , false }  ,
-             /* U */ { true , false , false , false , true  , false , true  , true  , true  , false , false , true  }  ,
+static const bool map_base_iupac[5][12] = {
+    /*      { N    , A     , C     , G     , U     , _     , B     , D     , H     , R     , V     , Y     }  , */
+    /* N */ { true , true  , true  , true  , true  , true  , true  , true  , true  , true  , true  , true  }  ,
+    /* A */ { true , true  , false , false , false , false , false , true  , true  , true  , true  , false }  ,
+    /* C */ { true , false , true  , false , false , false , true  , false , true  , false , true  , true  }  ,
+    /* G */ { true , false , false , true  , false , false , true  , true  , false , true  , true  , false }  ,
+    /* U */ { true , false , false , false , true  , false , true  , true  , true  , false , false , true  }  ,
 };
 
-bool iupac_match(enum base_t base, unsigned char iupac_base)
-{
+bool iupac_match(enum base_t base, unsigned char iupac_base) {
   assert(iupac_base<12);
   return map_base_iupac[base][iupac_base];
 }
-
-

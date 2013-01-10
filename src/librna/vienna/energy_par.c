@@ -1,5 +1,3 @@
-
-
 /*
     Automatically generated using the TurnerParser
     TurnerParser (c) 2008,2009,2010
@@ -8,11 +6,7 @@
 
     The library enabling this can be found at:
     http://hackage.haskell.org/package/BiobaseVienna
-    the program can be found at:
-    (sorry, not yet)
-    install using cabal: cabal install (sorry, not yet)
 */
-
 /*
      Current free energy parameters are summarized in:
 
@@ -54,7 +48,6 @@
 #define PUBLIC
 
 PUBLIC double Tmeasure = 37+K0;  /* temperature of param measurements */
-
 
 //PUBLIC double lxc37=107.9;
 PUBLIC double lxc37=107.856;
@@ -779,4 +772,3 @@ PUBLIC int HexaloopdH[40] = { -1680, -1140, -1280, -1540};
 #include "intl21dH.h"
 #include "intl22.h"
 #include "intl22dH.h"
-

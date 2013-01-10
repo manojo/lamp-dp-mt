@@ -9,13 +9,10 @@
 
 #define PUBLIC
 
-
-extern double lxc37;   /* parameter for logarithmic loop
-			  energy extrapolation            */
+extern double lxc37; /* parameter for logarithmic loop energy extrapolation */
 
 extern int stack37[NBPAIRS+1][NBPAIRS+1];
 extern int stackdH[NBPAIRS+1][NBPAIRS+1]; /* stack enthalpies */
-extern int entropies[NBPAIRS+1][NBPAIRS+1];  /* not used anymore */
 
 extern int hairpin37[31];
 extern int hairpindH[31];
