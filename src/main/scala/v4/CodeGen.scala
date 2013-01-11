@@ -159,7 +159,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
           "for(int "+v+"="+Var(l,ld)+(ud match {
             case 0 => "; "+v+"<="+u case 1 => "; "+v+"<"+u
             case _ => ","+v+"u="+u+"-"+ud+"; "+v+"<="+v+"u"
-          })+"; ++"+v+") {\n"+ind((if (!hb) hbody else "")+b)+"}"; hb=true; br=true; b2
+          })+"; ++"+v+") {\n"+ind((if (!hb&&hbody!="") hbody+"\n" else "")+b)+"}"; hb=true; br=true; b2
         case (CUser(c),b) => val b2="if ("+c+") "+(if (!br) "{\n"+ind(b)+"}" else b); br=true; b2
         case _ => "" // does not happen
       }
@@ -172,7 +172,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   def genKern = {
     val kern="back_t _back = {"+rulesOrder.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n"+
              "cost_t _cost = {}; // init to 0\n#define VALID(I,J,RULE) (back[idx(I,J)].RULE.rule!=-1)\n"+
-             rulesOrder.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)}.mkString+"\ncost[idx(i,j)] = _cost;\nback[idx(i,j)] = _back;"
+             rulesOrder.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)}.mkString("\n")+"\ncost[idx(i,j)] = _cost;\nback[idx(i,j)] = _back;"
     val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
       (if (twotracks) "  for (unsigned i=tI; i<M_H; i+=tN) {\n    unsigned j = jj-tI;" else "  for (unsigned ii=tI; ii<M_H; ii+=tN) {\n    unsigned i = M_H-1-ii, j = i+jj;")+"\n"
     "__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {\n"+ind(

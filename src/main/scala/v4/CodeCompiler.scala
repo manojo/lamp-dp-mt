@@ -9,6 +9,11 @@ trait ScalaCompiler {
   var compiler: Global = _
   var reporter: ConsoleReporter = _
   def setupCompiler = {
+    // Patch the classpath to add outPath
+    val cl = this.getClass.getClassLoader
+    val method=cl.getClass.getDeclaredMethod("addURL", classOf[java.net.URL]);
+    method.setAccessible(true); method.invoke(cl, new File(outPath).toURI.toURL);
+    // Initialize compiler settings
     val settings = new Settings()
     settings.classpath.value = this.getClass.getClassLoader match {
       case ctx: java.net.URLClassLoader => ctx.getURLs.map(_.getPath).mkString(":")

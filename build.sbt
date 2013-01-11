@@ -22,30 +22,18 @@ parallelExecution in Test := false
 
 scalacOptions ++= List("-Yvirtualize", "-target:jvm-1.7", "-optimise", "-deprecation", "-feature", "-unchecked")
 
-// Add LibRNA to Scala sources (we need absolute file to avoid multiple compilation)
+// add LibRNA wrapper to sources (absolute file avoids multiple compilation)
 managedSources in Compile ++= List(file("src/librna/LibRNA.scala").getAbsoluteFile)
 
-// Bind LibRNA JNI before compile
-compile in Compile <<= (compile in Compile) map { x =>
-  ("src/librna/make target/scala-2.10/classes").run.exitValue; x
-}
+// bind LibRNA JNI before compile
+compile in Compile <<= (compile in Compile) map { x => ("src/librna/make target/scala-2.10/classes").run.exitValue; x }
 
-// Custom commands to compile JNI and CUDA targets
+// custom commands to execute JNI and CUDA targets
 {
-  lazy val mm1 = TaskKey[Unit]("mm1")
-  lazy val mm2 = TaskKey[Unit]("mm2")
-  lazy val mm3 = TaskKey[Unit]("mm3")
-  lazy val align = TaskKey[Unit]("align")
-  lazy val zuker = TaskKey[Unit]("zuker")
-  lazy val rnafold = TaskKey[Unit]("rnafold")
-  seq(
-    fullRunTask(mm1 in Test, Test, "v4.examples.MatrixMultGen" ), fork in mm1 := true, javaOptions in mm1 += "-Xss64m",
-    fullRunTask(mm2 in Test, Test, "v4.examples.MatrixMultGen2"), fork in mm2 := true, javaOptions in mm2 += "-Xss64m",
-    fullRunTask(mm3 in Test, Test, "v4.examples.MatrixMultGen3"), fork in mm3 := true, javaOptions in mm3 += "-Xss64m",
-    fullRunTask(align in Test, Test, "v4.examples.SeqAlignGen"), fork in align := true, javaOptions in align += "-Xss64m",
-    fullRunTask(zuker in Test, Test, "v4.examples.Zuker"), fork in zuker := true, javaOptions in zuker += "-Xss64m",
-    fullRunTask(rnafold in Test, Test, "v4.examples.RNAFold"), fork in rnafold := true, javaOptions in rnafold += "-Xss64m"
-  )
+  def t(n:String) = { val t=TaskKey[Unit](n); t.dependsOn(compile in Compile); t }
+  def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, "v4.examples."+cl ), fork in t := true, javaOptions in t += "-Xss64m")
+  val (mm1,mm2,mm3,align,zuker,rnafold)=(t("mm1"),t("mm2"),t("mm3"),t("align"),t("zuker"),t("rnafold"))
+  s(mm1,"MatrixMultGen") ++ s(mm2,"MatrixMultGen2") ++ s(mm3,"MatrixMultGen3") ++ s(align,"SeqAlignGen") ++ s(zuker,"Zuker") ++ s(rnafold,"RNAFold")
 }
 // TaskKey[Unit]("zuker") := { "scala -cp target/scala-2.10/classes v4.examples.Zuker".run.exitValue }
 // http://stackoverflow.com/questions/6951261/how-to-define-tasks-to-run-with-hprof-from-sbt-0-10
