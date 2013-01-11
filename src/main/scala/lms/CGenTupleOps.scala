@@ -38,8 +38,7 @@ trait CLikeGenTupleOps extends CLikeGenBase{
 
     case e5@ETuple5(a,b,c,d,e) =>
       registerType(sym.tp,rhs)
-      emitValDef(sym, "("+tupleClassName(sym.tp)+"){"+ quote(a) + "," + quote(b) + "," + quote(c) + "," + quote(d) + ","
-                         + quote(e) + "}")
+      emitValDef(sym, "("+tupleClassName(sym.tp)+"){"+ quote(a) + "," + quote(b) + "," + quote(c) + "," + quote(d) + "," + quote(e) + "}")
     case Tuple5Access1(t) => emitValDef(sym, quote(t) + "._1")
     case Tuple5Access2(t) => emitValDef(sym, quote(t) + "._2")
     case Tuple5Access3(t) => emitValDef(sym, quote(t) + "._3")

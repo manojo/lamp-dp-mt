@@ -21,18 +21,22 @@ new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGe
     with ScalaGenHackyRangeOps with ScalaGenTupleOps
 */
 
+// We can provide everything nicely packaged
+trait RepPackage extends NumericOpsExp with TupleOpsExp with MyScalaCompile with FunctionGen { self =>
+  val codegen = new ScalaGenNumericOps with ScalaGenTupleOps { val IR: self.type = self }
+  val cCodegen = new CGenNumericOps with CGenTupleOps with CFatCodegen { val IR: self.type = self }
+  //cCodegen.emitSource(repSingle, "F", new java.io.PrintWriter(System.out))
+}
+
 trait RepWorld extends NumericOps with TupleOps {
   type Alphabet = (Int, Int)
   type Answer = (Int,Int,Int)
 
   def hf(a: Rep[Answer]) :Rep[Int] = a._2
 
-  def repSingle(a: Rep[Alphabet]): Rep[Answer] =
-    (a._1, unit(0), a._2)
+  def repSingle(a: Rep[Alphabet]): Rep[Answer] = (a._1, unit(0), a._2)
 
-  def repMult(l: Rep[Answer], r: Rep[Answer]): Rep[Answer] =
-    (l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3)
-
+  def repMult(l: Rep[Answer], r: Rep[Answer]): Rep[Answer] = (l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3)
 
 }
 
@@ -43,11 +47,7 @@ object LMSMatrixAlgebraGen extends MatrixSig with MatrixGrammar with CodeGen wit
   override val benchmark = true
   override val tps=(manifest[Alphabet],manifest[Answer])
 
-  val concreteProg = new RepWorld with NumericOpsExp with TupleOpsExp with MyScalaCompile with FunctionGen{self =>
-    val codegen = new ScalaGenNumericOps with ScalaGenTupleOps{ val IR: self.type = self}
-    val cCodegen = new CGenNumericOps with CGenTupleOps with CFatCodegen{ val IR: self.type = self}
-    cCodegen.emitSource(repSingle, "F", new java.io.PrintWriter(System.out))
-  }
+  val concreteProg = new RepWorld with RepPackage
 
   override val h = minBy(concreteProg.gen(concreteProg.hf))
 
