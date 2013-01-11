@@ -518,3 +518,5 @@ The research on ad-hoc implementation has focused on three kind of problems:\ul
 \item RNA sequence folding (variants of the Zuker folding): \cite{nussinov_gpu}, \cite{gpu_rnafold}.
 \item Biological sequence alignment (Smith-Watermann) for huge sequences: \cite{swat_gpu}, \cite{swat_linear} \cite{swat_mega}.
 \ule
+
+Considered as possible solutions to store a varying number of results per matrix cell were dynamic memory allocation \cite{nvidia} available on recent graphic cards, ad-hoc memory allocation \cite{scatter_alloc} or hash tables \cite{parallel_hashing}, however the costs associated with dynamic memory allocation makes it unattractive for this particular kind of problem, also the use of cuckoo hash tables adds a constant factor penalty to every memory access. Finally both solution introduce the possibility of algorithm failure in the middle of the computation process.

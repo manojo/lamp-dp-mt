@@ -41,6 +41,18 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 \input{design}
 \input{implementation}
 \section{Benchmarks}
+In an attempt to provide realistic benchmarks, we tried to gather related implementations. The authors of \cite{gpu_atlp} did not respond to our multiple solicitations. The authors of \cite{swat_mega} were very friendly and provided us their source code. Unfortunately, since they address a different category of problem (they focus on huge serial problems whereas we focus on smaller non-serial problems) their implementation might be biased towards large sequences that our implementation cannot address.
+
+
+Test 1 : Ad-hoc VS CUDA parsers (implies ATLP rescaled comparison)
+
+Test 2 : CUDAlign vs CUDA parsers for small sequences
+
+Test 3 : GAPC vs Java parsers vs CUDA parsers
+
+Test 4 ? : GPU RNAfolding vs CUDA parsers
+
+
 {\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 
@@ -57,15 +69,7 @@ MatrixMult-512, Mac+JDK7\ul
 
 XXX: continue benchmarking here
 
-XXX: relate to staging operation in LMS
-
-XXX: include "RNAfold" grammar description into problems
-
-XXX: talk about memory management and hash tables
-XXX: relate to staging operation in LMS
-
-XXX: fix layout in codegen (newline missing)
-
+XXX: talk about memory management and hash tables (?)
 }
 \begin{table}[H]\begin{center}\begin{tabular}{lrrrrrr} \toprule
 Matrix size			& 1024	& 2048	& 4096	& 8192 \\
@@ -96,6 +100,7 @@ Matrix of different dimensions must be stored in their own array (versus being i
 \item \textbf{Pruning:} described in \cite{swat_mega}, this optimization could lead to a reduction of the computation, provided that the algorithm final score can be bounded. Such optimization would only be relevant with a non-uniform computation strategy where the matrix is tiled, hereby making it possible to prune entire computation tiles.
 \item \textbf{Fusion with LMS:} Although we gained some speedup by optimizing manually the Scala parsers, we cannot benefit from grammar-specific optimization. Passing the whole grammar to LMS could possibly lead to more efficient code, by folding multiple parser function calls into a single function making equivalent calls. The added cost of function lookup, even if minimal, might still account for a non-negligible part of the total running time as parser processing is very simple but run repeatedly a large number of time.
 \item \textbf{Using macros:} macros provide an interesting meta-programming opportunity as they are being run after the typing phase of the Scala compiler and can leverage all the compile-time typing information. We could use them to either simplify the user-functions description (by implicitly bootstrapping LMS code translation) or even completely replace LMS types by either type conversion or by providing ad-hoc conversion from the Scala AST to C code.
+\item \textbf{CUDA $k$-best parsers:} since a $k$-best algorithm has constant memory requirements, an efficient algorithm for CUDA could be devised: instead of comparing with only one value to find the best value, it suffice to compare with $k$ values instead. Hence cost and backtrack matrix would contain $k$ elements per cell. Since the problem of result validity is already addressed, cells with fewer results would simply have fewer cells marked valid.
 \ole
 
 \section{Conclusion}
