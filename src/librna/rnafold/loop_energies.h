@@ -19,7 +19,7 @@
 /**
  *  \file loop_energies.h
  *  \brief Energy evaluation for MFE and partition function calculations
- * 
+ *
  *  <P>
  *  This file contains functions for the calculation of the free energy \f$\Delta G\f$
  *  of a hairpin- [ E_Hairpin() ] or interior-loop [ E_IntLoop()] .<BR>
@@ -43,7 +43,7 @@
  *  E_Stem() function, you can inhibit to take 5'-, 3'-dangles
  *  or mismatch contributions to be taken into account by passing
  *  -1 to these parameters.
- * 
+ *
  *  \see    E_Stem()
  *  \param  A The pair type of the stem-closing pair
  *  \param  B The 5'-mismatching nucleotide
@@ -80,7 +80,7 @@ INLINE  PRIVATE double exp_E_MLstem(int type,
  *  E_Stem() function, you can inhibit to take 5'-, 3'-dangles
  *  or mismatch contributions to be taken into account by passing
  *  -1 to these parameters.
- * 
+ *
  *  \see    E_Stem()
  *  \param  A The pair type of the stem-closing pair
  *  \param  B The 5'-mismatching nucleotide
@@ -138,7 +138,7 @@ INLINE  PRIVATE double exp_E_ExtLoop( int type,
  *  \see scale_parameters()
  *  \see paramT
  *  \note This function is threadsafe
- * 
+ *
  *  \param  n1      The size of the 'left'-loop (number of unpaired nucleotides)
  *  \param  n2      The size of the 'right'-loop (number of unpaired nucleotides)
  *  \param  type    The pair type of the base pair closing the interior loop
@@ -183,7 +183,7 @@ INLINE  PRIVATE int E_IntLoop(int n1,
  *  @see paramT
  *  \warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
  *  Energy evaluation may change due to updates in global variable "tetra_loop"
- * 
+ *
  *  \param  size  The size of the loop (number of unpaired nucleotides)
  *  \param  type  The pair type of the base pair closing the hairpin
  *  \param  si1   The 5'-mismatching nucleotide
@@ -200,71 +200,6 @@ INLINE  PRIVATE int E_Hairpin(int size,
                               paramT *P);
 
 /**
- *  <H2>Compute the energy contribution of a stem branching off a loop-region</H2>
- *  This function computes the energy contribution of a stem that branches off
- *  a loop region. This can be the case in multiloops, when a stem branching off
- *  increases the degree of the loop but also <I>immediately interior base pairs</I>
- *  of an exterior loop contribute free energy.
- *  To switch the bahavior of the function according to the evaluation of a multiloop-
- *  or exterior-loop-stem, you pass the flag 'extLoop'.
- *  The returned energy contribution consists of a TerminalAU penalty if the pair type
- *  is greater than 2, dangling end contributions of mismatching nucleotides adjacent to
- *  the stem if only one of the si1, sj1 parameters is greater than 0 and mismatch energies
- *  if both mismatching nucleotides are positive values.
- *  Thus, to avoid incooperating dangling end or mismatch energies just pass a negative number,
- *  e.g. -1 to the mismatch argument.
- * 
- *  This is an illustration of how the energy contribution is assembled:
- *  <PRE>
- *        3'  5'
- *        |   |
- *        X - Y
- *  5'-si1     sj1-3'
- *  </PRE>
- * 
- *  Here, (X,Y) is the base pair that closes the stem that branches off a loop region.
- *  The nucleotides si1 and sj1 are the 5'- and 3'- mismatches, respectively. If the base pair
- *  type of (X,Y) is greater than 2 (i.e. an A-U or G-U pair, the TerminalAU penalty will be
- *  included in the energy contribution returned. If si1 and sj1 are both nonnegative numbers,
- *  mismatch energies will also be included. If one of sij or sj1 is a negtive value, only
- *  5' or 3' dangling end contributions are taken into account. To prohibit any of these mismatch
- *  contributions to be incoorporated, just pass a negative number to both, si1 and sj1.
- *  In case the argument extLoop is 0, the returned energy contribution also includes
- *  the <I>internal-loop-penalty</I> of a multiloop stem with closing pair type.
- * 
- *  \see    E_MLstem()
- *  \see    E_ExtLoop()
- *  \note   This function is threadsafe
- * 
- *  \param  type    The pair type of the first base pair un the stem
- *  \param  si1     The 5'-mismatching nucleotide
- *  \param  sj1     The 3'-mismatching nucleotide
- *  \param  extLoop A flag that indicates whether the contribution reflects the one of an exterior loop or not
- *  \param  P       The datastructure containing scaled energy parameters
- *  \return         The Free energy of the branch off the loop in dcal/mol
- * 
- */
-INLINE  PRIVATE int E_Stem( int type,
-                            int si1,
-                            int sj1,
-                            int extLoop,
-                            paramT *P);
-
-/**
- *  <H2>Compute the Boltzmann weighted energy contribution of a stem branching off a loop-region</H2>
- *  This is the partition function variant of \ref E_Stem()
- *  \see E_Stem()
- *  \note This function is threadsafe
- * 
- *  \return The Boltzmann weighted energy contribution of the branch off the loop
- */
-INLINE  PRIVATE double exp_E_Stem(int type,
-                                  int si1,
-                                  int sj1,
-                                  int extLoop,
-                                  pf_paramT *P);
-
-/**
  *  <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of a hairpin loop</H2>
  *  multiply by scale[u+2]
  *  @see get_scaled_pf_parameters()
@@ -272,7 +207,7 @@ INLINE  PRIVATE double exp_E_Stem(int type,
  *  @see E_Hairpin()
  *  \warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
  *  Energy evaluation may change due to updates in global variable "tetra_loop"
- * 
+ *
  *  \param  u       The size of the loop (number of unpaired nucleotides)
  *  \param  type    The pair type of the base pair closing the hairpin
  *  \param  si1     The 5'-mismatching nucleotide
@@ -295,7 +230,7 @@ INLINE  PRIVATE double exp_E_Hairpin( int u,
  *  @see pf_paramT
  *  @see E_IntLoop()
  *  \note This function is threadsafe
- * 
+ *
  *  \param  u1      The size of the 'left'-loop (number of unpaired nucleotides)
  *  \param  u2      The size of the 'right'-loop (number of unpaired nucleotides)
  *  \param  type    The pair type of the base pair closing the interior loop
@@ -410,23 +345,6 @@ INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int
       energy += P->mismatchI[type][si1][sj1] + P->mismatchI[type_2][sq1][sp1];
     }
   }
-  return energy;
-}
-
-INLINE  PRIVATE int E_Stem(int type, int si1, int sj1, int extLoop, paramT *P){
-  int energy = 0;
-  int d5 = (si1 >= 0) ? P->dangle5[type][si1] : 0;
-  int d3 = (sj1 >= 0) ? P->dangle3[type][sj1] : 0;
-
-  if(type > 2)
-    energy += P->TerminalAU;
-
-  if(si1 >= 0 && sj1 >= 0)
-    energy += (extLoop) ? P->mismatchExt[type][si1][sj1] : P->mismatchM[type][si1][sj1];
-  else
-    energy += d5 + d3;
-
-  if(!extLoop) energy += P->MLintern[type];
   return energy;
 }
 
@@ -560,23 +478,6 @@ INLINE  PRIVATE double exp_E_IntLoop(int u1, int u2, int type, int type2, short 
 
   }
   return z;
-}
-
-INLINE  PRIVATE double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P){
-  double energy = 1.0;
-  double d5 = (si1 >= 0) ? P->expdangle5[type][si1] : 1.;
-  double d3 = (sj1 >= 0) ? P->expdangle3[type][sj1] : 1.;
-
-  if(type > 2)
-    energy *= P->expTermAU;
-
-  if(si1 >= 0 && sj1 >= 0)
-    energy *= (extLoop) ? P->expmismatchExt[type][si1][sj1] : P->expmismatchM[type][si1][sj1];
-  else
-    energy *= d5 * d3;
-
-  if(!extLoop) energy *= P->expMLintern[type];
-  return energy;
 }
 
 INLINE  PRIVATE double exp_E_MLstem(int type, int si1, int sj1, pf_paramT *P){

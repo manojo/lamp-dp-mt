@@ -13,11 +13,6 @@
 #define PRIVATE static
 
 /**
- *  \brief Global switch to activate/deactivate folding with structure constraints
- */
-extern int    fold_constrained;
-
-/**
  *  \brief Global switch to avoid/allow helices of length 1
  *
  *  Disallow all pairs which can only occur as lonely pairs (i.e. as helix

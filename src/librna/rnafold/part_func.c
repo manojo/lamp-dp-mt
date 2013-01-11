@@ -41,7 +41,6 @@ PRIVATE int         *jindx=NULL;
 PRIVATE int         *my_iindx=NULL;
 PRIVATE int         init_length = -1;   /* length in last call to init_pf_fold() */
 PRIVATE int         do_bppm = 1;             /* do backtracking per default */
-PRIVATE int         struct_constrained = 0;
 PRIVATE char        *pstruc=NULL;
 PRIVATE char        *sequence=NULL;
 PRIVATE char        *ptype=NULL;        /* precomputed array of pair types */
@@ -165,7 +164,7 @@ PUBLIC void free_pf_arrays(void){
 
 /*-----------------------------------------------------------------*/
 PUBLIC float pf_fold(const char *sequence, char *structure){
-  return pf_fold_par(sequence, structure, NULL, do_backtrack, fold_constrained, 0);
+  return pf_fold_par(sequence, structure, NULL, do_backtrack, 0, 0);
 }
 
 PUBLIC float pf_fold_par( const char *sequence,
@@ -180,7 +179,6 @@ PUBLIC float pf_fold_par( const char *sequence,
   int         n = (int) strlen(sequence);
 
   do_bppm             = calculate_bppm;
-  struct_constrained  = is_constrained;
 
   if(parameters) init_partfunc(n, parameters);
   else if (n > init_length) init_partfunc(n, parameters);
@@ -574,9 +572,6 @@ PRIVATE void make_ptypes(const short *S, const char *structure){
         i--; j++;
       }
     }
-
-  if (struct_constrained && (structure != NULL))
-    constrain_ptypes(structure, (unsigned int)n, ptype, NULL, TURN, 1);
 }
 
 /*

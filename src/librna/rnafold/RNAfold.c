@@ -93,16 +93,12 @@ int main(int argc, char *argv[]){
 
   /* print user help if we get input from tty */
   if(istty){
-    if(fold_constrained){
-      print_tty_constraint_full();
-      print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint");
-    }
-    else print_tty_input_seq();
+    print_tty_input_seq();
   }
 
   /* set options we wanna pass to read_record */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
-  if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
+  read_opt |= VRNA_INPUT_NO_REST;
 
   /*
   #############################################
@@ -126,20 +122,6 @@ int main(int argc, char *argv[]){
 
     length  = (int)strlen(rec_sequence);
     structure = (char *)space(sizeof(char) *(length+1));
-
-    /* parse the rest of the current dataset to obtain a structure constraint */
-    if(fold_constrained){
-      cstruc = NULL;
-      unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
-      coptions |= VRNA_CONSTRAINT_ALL;
-      getConstraint(&cstruc, (const char **)rec_rest, coptions);
-      cl = (cstruc) ? (int)strlen(cstruc) : 0;
-
-      if(cl == 0)           warn_user("structure constraint is missing");
-      else if(cl < length)  warn_user("structure constraint is shorter than sequence");
-      else if(cl > length)  nrerror("structure constraint is too long");
-      if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
-    }
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if(!noconv) str_DNA2RNA(rec_sequence);
@@ -189,7 +171,7 @@ int main(int argc, char *argv[]){
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
       pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
-      energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, 0);
+      energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, 0, 0);
 
       if(lucky){
         init_rand();
@@ -271,11 +253,7 @@ int main(int argc, char *argv[]){
 
     /* print user help for the next round if we get input from tty */
     if(istty){
-      if(fold_constrained){
-        print_tty_constraint_full();
-        print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint");
-      }
-      else print_tty_input_seq();
+      print_tty_input_seq();
     }
   }
   return EXIT_SUCCESS;

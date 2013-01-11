@@ -40,8 +40,6 @@ int         *iindx = NULL;        /* pr[i,j] -> pr[iindx[i]-j] */
 
 double      pf_scale = -1;        /* scaling factor to avoid floating point overflows */
 
-int         fold_constrained = 0; /* fold with constraints */
-
 int         do_backtrack = 1;     /* calculate pair prob matrix in part_func() */
 
 int         noLonelyPairs = 1;    /* avoid helices of length 1 */
@@ -60,7 +58,6 @@ PUBLIC char * option_string(void){
   if (no_closingGU) strcat(options, "-noCloseGU ");
   if (!tetra_loop) strcat(options, "-4 ");
   if (noLonelyPairs) strcat(options, "-noLP ");
-  if (fold_constrained) strcat(options, "-C ");
   if (dangles!=1) sprintf(options+strlen(options), "-d%d ", dangles);
   if (temperature!=37.0)
     sprintf(options+strlen(options), "-T %f ", temperature);

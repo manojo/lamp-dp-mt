@@ -74,7 +74,7 @@ float fold_par( const char *sequence,
  *  \brief Compute minimum free energy and an appropriate secondary structure of an RNA sequence
  *
  *  This function essentially does the same thing as fold_par(). However, it takes its model details,
- *  i.e. #temperature, #dangles, #tetra_loop, #noGU, #no_closingGU, #fold_constrained, #noLonelyPairs
+ *  i.e. #temperature, #dangles, #tetra_loop, #noGU, #no_closingGU, #noLonelyPairs
  *  from the current global settings within the library
  *
  *  Use fold_par() for a completely threadsafe variant
@@ -93,7 +93,7 @@ float fold( const char *sequence,
  *  \brief Compute minimum free energy and an appropriate secondary structure of a circular RNA sequence
  *
  *  This function essentially does the same thing as fold_par(). However, it takes its model details,
- *  i.e. #temperature, #dangles, #tetra_loop, #noGU, #no_closingGU, #fold_constrained, #noLonelyPairs
+ *  i.e. #temperature, #dangles, #tetra_loop, #noGU, #no_closingGU, #noLonelyPairs
  *  from the current global settings within the library
  *
  *  Use fold_par() for a completely threadsafe variant
@@ -284,59 +284,6 @@ int   loop_energy(short *ptable,
                   short *s,
                   short *s1,
                   int i);
-
-/**
- *
- */
-void export_fold_arrays(int **f5_p,
-                        int **c_p,
-                        int **fML_p,
-                        int **fM1_p,
-                        int **indx_p,
-                        char **ptype_p);
-
-/**
- *
- */
-void export_fold_arrays_par(int **f5_p,
-                            int **c_p,
-                            int **fML_p,
-                            int **fM1_p,
-                            int **indx_p,
-                            char **ptype_p,
-                            paramT **P_p);
-
-/**
- *
- */
-void export_circfold_arrays(int *Fc_p,
-                            int *FcH_p,
-                            int *FcI_p,
-                            int *FcM_p,
-                            int **fM2_p,
-                            int **f5_p,
-                            int **c_p,
-                            int **fML_p,
-                            int **fM1_p,
-                            int **indx_p,
-                            char **ptype_p);
-
-/**
- *
- */
-void export_circfold_arrays_par(int *Fc_p,
-                                int *FcH_p,
-                                int *FcI_p,
-                                int *FcM_p,
-                                int **fM2_p,
-                                int **f5_p,
-                                int **c_p,
-                                int **fML_p,
-                                int **fM1_p,
-                                int **indx_p,
-                                char **ptype_p,
-                                paramT **P_p);
-
 
 /**
  *  \brief Create a plist from a dot-bracket string

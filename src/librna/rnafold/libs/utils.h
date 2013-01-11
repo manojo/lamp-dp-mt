@@ -33,12 +33,6 @@
  */
 #define VRNA_INPUT_SEQUENCE               16U
 
-/** Input flag for get_input_line():\n
- *  Tell get_input_line() that we assume to read a structure constraint
- *
- */
-#define VRNA_INPUT_CONSTRAINT             32U
-
 /**
  *  Input switch for \ref get_input_line():
  *  "do not trunkate the line by eliminating white spaces at end of line"
@@ -79,46 +73,11 @@
 
 
 /**
- *  pipe sign '|' switch for structure constraints (paired with another base)
- */
-#define VRNA_CONSTRAINT_PIPE              1U
-/**
- *  dot '.' switch for structure constraints (no constraint at all)
- */
-#define VRNA_CONSTRAINT_DOT               2U
-/**
- *  'x' switch for structure constraint (base must not pair)
- */
-#define VRNA_CONSTRAINT_X                 4U
-/**
- *  angle brackets '<', '>' switch for structure constraint (paired downstream/upstream)
- */
-#define VRNA_CONSTRAINT_ANG_BRACK         8U
-/**
- *  round brackets '(',')' switch for structure constraint (base i pairs base j)
- */
-#define VRNA_CONSTRAINT_RND_BRACK         16U
-/**
- *  constraint may span over several lines
- */
-#define VRNA_CONSTRAINT_MULTILINE         32U
-/**
- *  do not print the header information line
- */
-#define VRNA_CONSTRAINT_NO_HEADER         64U
-/**
- *  placeholder for all constraining characters
- */
-#define VRNA_CONSTRAINT_ALL              128U
-
-
-
-/**
  * Tell a function that an input is assumed to span several lines if used as input-option
  * A function might also be returning this state telling that it has read data from
  * multiple lines.
  *
- * \see extract_record_rest_structure(), read_record(), getConstraint()
+ * \see extract_record_rest_structure(), read_record()
  *
  */
 #define VRNA_OPTION_MULTILINE             32U
@@ -387,49 +346,6 @@ unsigned int read_record( char **header,
                           char  ***rest,
                           unsigned int options);
 
-
-/* \brief Extract a dot-bracket structure string from (multiline)character array
- *
- * This function extracts a dot-bracket structure string from the 'rest' array as
- * returned by read_record() and returns it. All occurences of comments within the
- * 'lines' array will be skipped as long as they do not break the structure string.
- * If no structure could be read, this function returns NULL.
- *
- * \see read_record()
- *
- * \param lines   The (multiline) character array to be parsed
- * \param length  The assumed length of the dot-bracket string (passing a value < 1 results in no length limit)
- * \param option  Some options which may be passed to alter the behavior of the function, use 0 for no options
- * \return        The dot-bracket string read from lines or NULL
- */
-char *extract_record_rest_structure(const char **lines,
-                                    unsigned int length,
-                                    unsigned int option);
-
-/**
- *  \brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
- *
- *  Returns a binary string encoding of the secondary structure using
- *  a 5:1 compression scheme. The string is NULL terminated and can
- *  therefore be used with standard string functions such as strcmp().
- *  Useful for programs that need to keep many structures in memory.
- *
- *  \param struc    The secondary structure in dot-bracket notation
- *  \return         The binary encoded structure
- */
-char *pack_structure(const char *struc);
-
-/**
- *  \brief Unpack secondary structure previously packed with pack_structure()
- *
- *  Translate a compressed binary string produced by pack_structure() back into
- *  the familiar dot-bracket notation.
- *
- *  \param packed   The binary encoded packed secondary structure
- *  \return         The unpacked secondary structure in dot-bracket notation
- */
-char *unpack_structure(const char *packed);
-
 /**
  *  \brief Create a pair table of a secondary structure
  *
@@ -448,20 +364,6 @@ short *make_pair_table(const char *structure);
  *  \return   A pointer to the copy of 'pt'
  */
 short *copy_pair_table(const short *pt);
-
-/**
-***Pair table for snoop align
-***
-***
-**/
-short *alimake_pair_table(const char *structure);
-
-/**
-*** returns a newly allocated table, such that:  table[i]=j if (i.j) pair or
-*** 0 if i is unpaired, table[0] contains the length of the structure.
-*** The special pseudoknotted H/ACA-mRNA structure is taken into account.
-**/
-short *make_pair_table_snoop(const char *structure);
 
 /**
  *  \brief Compute the "base pair" distance between two secondary structures s1 and s2.
@@ -493,31 +395,6 @@ void print_tty_input_seq(void);
  *  \param s A user defined string that will be printed to stdout
  */
 void print_tty_input_seq_str(const char *s);
-
-/**
- *  \brief Print structure constraint characters to stdout
- *  (full constraint support)
- *
- */
-void print_tty_constraint_full(void);
-
-/**
- *  \brief Print structure constraint characters to stdout.
- *  (constraint support is specified by option parameter)
- *
- *  Currently available options are:\n
- *  #VRNA_CONSTRAINT_PIPE (paired with another base)\n
- *  #VRNA_CONSTRAINT_DOT (no constraint at all)\n
- *  #VRNA_CONSTRAINT_X (base must not pair)\n
- *  #VRNA_CONSTRAINT_ANG_BRACK (paired downstream/upstream)\n
- *  #VRNA_CONSTRAINT_RND_BRACK (base i pairs base j)\n
- *
- *  pass a collection of options as one value like this:
- *  \verbatim print_tty_constraint(option_1 | option_2 | option_n) \endverbatim
- *
- *  \param option Option switch that tells which constraint help will be printed
- */
-void print_tty_constraint(unsigned int option);
 
 /**
  *  \brief Convert a DNA input sequence to RNA alphabet
@@ -565,34 +442,5 @@ int   *get_iindx(unsigned int length);
  *
  */
 int   *get_indx(unsigned int length);
-
-void getConstraint( char **cstruc,
-                    const char **lines,
-                    unsigned int option);
-
-/**
- *  \brief Insert constraining pair types according to constraint structure string
- *
- *  \see get_indx(), get_iindx()
- *
- *  \param constraint     The structure constraint string
- *  \param length         The actual length of the sequence (constraint may be shorter)
- *  \param ptype          A pointer to the basepair type array
- *  \param min_loop_size  The minimal loop size (usually \ref TURN )
- *  \param idx_type       Define the access type for base pair type array (0 = indx, 1 = iindx)
- */
-void constrain_ptypes(const char *constraint,
-                      unsigned int length,
-                      char *ptype,
-                      int *BP,
-                      int min_loop_size,
-                      unsigned int idx_type);
-
-unsigned int  *make_referenceBP_array(short *reference_pt,
-                                      unsigned int turn);
-
-unsigned int  *compute_BPdifferences( short *pt1,
-                                      short *pt2,
-                                      unsigned int turn);
 
 #endif
