@@ -152,7 +152,7 @@ Since Scala general types can be extremely complex and might heavily depend of t
 \item \textbf{Tuples:} if the user-defined type is fairly simple, a named case class might be cumbersome. Tuples are a syntactical lightweight alternative to case classes, although they translate very similarly. Since Tuple classes are generic and can carry different member types; need to name tuple types uniquely, according to their arity and inner types.
 \ule
 
-{\color{red} Currently we use {\tt Manifest}s and reflection to extract types, and convert their string representation into our restricted subset. Manifests expands tuple inner types and reflection can be used to find class member's types. This imposes the additional restriction that we can not nest tuples into case classes, because generic types are then erased. However, the same effect could be achieved with Scala 2.10 {\tt TypeTag}s although we then need to rely on macros expansion to convert them properly into concrete classes. [see hint from Eugene, \url{https://gist.github.com/4407488}].}
+Currently we use {\tt Manifest}s and reflection to extract types, and convert their string representation into our restricted subset. Manifests expands tuple inner types and reflection can be used to find class member's types. This imposes the additional restriction that we can not nest tuples into case classes, because generic types are then erased. However, the same effect could be achieved with Scala 2.10 {\tt TypeTag}s, converting immediately to concrete type tree representation using macros expansion\footnote{Hint provided by Eugene Burmako, \url{https://gist.github.com/4407488}}.
 
 The JNI functions are involved at input to decode sequences arrays and at output, to encode the result and possibly its corresponding trace. Input method is constructed in two steps:\ul
 \item Recursively obtain the classes and accessor methods of the composite input type. A subtle variation is that case classes primitive types are immediately converted into native types whereas tuple members are boxed in their respective class (i.e. {\tt java.lang.Integer}, ...).
@@ -249,15 +249,11 @@ Since code is generated, it is possible to write the last step using a switch ca
 
 % ----------------------------------------------
 \subsubsection{User functions generation} \label{user_fun_gen}
-{\color{red}
-\begin{verbatim}
-XXX: How LMS is used to generate function
-Possibly write that we can do the same with macros
-Why cannot use LMS for everything
-Where and how is LMS useful
-Also user function code generation with macros ?
-\end{verbatim}
-}
+The user generation function needs to be tightly integrated with the rest of the code generation. To do that, we need to establish a relation between the Scala function and its C counterpart. This is done by modifying the Scala function such that it embeds its C code and related types (input, output and possibly internal structures). To do that, LMS is used to generate both Scala and C code (as the user would want to write only once his function, using the corresponding LMS {\tt Rep} types). The two implementations are then mixed to provide the augmented Scala function that can then be used at appropriate places by either the Scala parsers or the code generator.
+
+Actually, the idea of mixing the two implementations into a single function emerged from experiments with the Scala macros \cite{scala_macros}, where it is possible to modify the AST of the Scala program before actually compiling it. Macros could also be an alternative to LMS in the sense that they have the same power in this particular case (because the code is just converted from Scala to C and does benefit of additional run-time information); however, relying only on macros would imply rewriting significant portions of code conversion, which might end up being a duplicated effort with LMS. The most interesting use of the macros would actually be to convert Scala types to LMS types in the <<context>> of user functions, hereby unleashing the power of LMS without forcing the DSL user to explicitly specify {\tt Rep} types\footnote{Since this is an ongoing project at LAMP with different schedule as this project, we do not want to duplicate effort currently but might integrate it at a later stage.}.
+
+Another advantage of using LMS only for user-specific function, is that it does not impose any restriction on the types manipulated by Scala, hereby providing the opportunity to solve the DP problem (possibly on CUDA using restricted types) and apply the solution (in Scala) on complex types that would have no representation in LMS.
 
 \subsection{Runtime execution engine}
 The runtime execution engine is made of two instrumented compilers:\ul
@@ -267,8 +263,9 @@ The runtime execution engine is made of two instrumented compilers:\ul
 
 These two compilers interfaces are then mixed in another class that transform the previously (see \ref{codegen}) generated code, fixing input sizes and splits (number of kernels to launch to respect the time limit) constants, and execute it.
 
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ 
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+\subsection{LibRNA}
+Since the energy computation for RNA folding involve complex coefficient and computations (that are also standardized through libraries and coefficient files), we might want to provide the user with it. To do that, we based our library on \cite{gapc_thesis} which itself is based on \href{http://www.tbi.univie.ac.at/~ivo/RNA/}{ViennaRNA}.\cite{vienna_rna}. Since the library is provided in C, we rely on JNI to reuse the code without modifying it; this allows Scala to immediately benefit from it, but also makes possible to write a GPU version, provided that the related functions are simple enough to be expressible in CUDA.
 
-\subsection{LibRNA (?)}
-{\color{red} XXX}
+{\color{red}
+XXX: attempt to strip it to make CUDA version
+}

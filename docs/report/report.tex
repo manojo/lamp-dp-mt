@@ -41,6 +41,9 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 \input{design}
 \input{implementation}
 \section{Benchmarks}
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ 
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
 \subsection{Java parsers}
 {\color{red}
 MatrixMult-512, Mac+JDK7\ul
@@ -89,10 +92,10 @@ We consider several directions and possible extensions for our work. We briefly 
 \item \textbf{Multi-dimensional matrices and independent computations:} In the current implementation, all the matrices are encoded such that they are of the same size. Leveraging the yield analysis, we could reduce the dimension of matrices that are of smaller dimension (for tabulations with bounded maximal size). In the problems we have analyzed, no such special case appeared, this is why we do not support this optimization at present.
 
 Matrix of different dimensions must be stored in their own array (versus being in a single array of struct enclosing corresponding element of all matrices). Also matrices might possibly be of different storage complexity: looking back at the Zuker problem description, there are two $O(n^2)$ matrices and one $O(n)$ matrix. This discrepancy in the sizes also leads to multiple indexing strategies (depending on the complexity) and a more complex scheduling where matrix must be computed one after another whereas in the current computation, the same cell in all matrices is computed at once. 
-
 \item \textbf{Data granularity:} Since the major bottleneck of CUDA architecture is the memory, we focus on data representation; in the current project, data is stored in primary types but we could store them more efficiently. For example, RNA is represented with only 4 letters (g,a,t,c), thus 4 symbols could be encoded in a single byte. Unfortunately, this optimizations seems to only apply for the input data. Another solution in this direction is to operate on multiple cells with one thread, the argument being that they could share a row or a column, hereby dividing the number of memory accesses for non-serial dependencies on the shared axis.
 \item \textbf{Pruning:} described in \cite{swat_mega}, this optimization could lead to a reduction of the computation, provided that the algorithm final score can be bounded. Such optimization would only be relevant with a non-uniform computation strategy where the matrix is tiled, hereby making it possible to prune entire computation tiles.
-\item \textbf{Fusion:} {\color{red} pass the Scala grammar code through LMS to generate a more efficient version by using the fusion optimization}
+\item \textbf{Fusion with LMS:} Although we gained some speedup by optimizing manually the Scala parsers, we cannot benefit from grammar-specific optimization. Passing the whole grammar to LMS could possibly lead to more efficient code, by folding multiple parser function calls into a single function making equivalent calls. The added cost of function lookup, even if minimal, might still account for a non-negligible part of the total running time as parser processing is very simple but run repeatedly a large number of time.
+\item \textbf{Using macros:} macros provide an interesting meta-programming opportunity as they are being run after the typing phase of the Scala compiler and can leverage all the compile-time typing information. We could use them to either simplify the user-functions description (by implicitly bootstrapping LMS code translation) or even completely replace LMS types by either type conversion or by providing ad-hoc conversion from the Scala AST to C code.
 \ole
 
 \section{Conclusion}
@@ -148,7 +151,7 @@ Dec. 10	& Rework concatenation operators, yield analysis, code generation. \\
 Dec. 17	& Detupling, generic backtrack (vs. ad-hoc), nested aggregates, empty results support. \\
 Dec. 24	& (sick 4 days), code generation: full JNI conversion support, rework CodeCompiler. \\
 Dec. 31	& Writing report (design, implementation), fixing various issues, complexity analysis. \\
-Jan. 7	& {\color{red} XXX} \\
+Jan. 7	& Writing report, attempt to fix Zuker, fix SBT, strip LibRNA {\color{red} XXX} \\
 Jan. 14	& {\color{red} XXX} \\
 \end{tabular}
 

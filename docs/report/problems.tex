@@ -309,8 +309,8 @@ Although the latter notation seems more explicit, it introduces non-serial depen
 
 % ----------------------------------------------
 \newpage
-\subsubsection{Zuker folding}\ol
-\item Problem: folding a RNA string $S$ over itself $|S|=n$.
+\subsubsection{Zuker RNA folding}\ol
+\item Problem: folding a RNA string $S$ over itself $|S|=n$ by minimizing the free energy.
 \item Matrices: $V_{n\times n}, W_{n\times n}, F_n$ (Free Energy),  $BV_{n \times n}, BW_{n \times n}, BF_n$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\{a,c,g,u\}$.
@@ -374,7 +374,7 @@ With $\delta$ a lookup table. In practice, we don't go backward for larger value
 	\end{array}\right.
 \end{array}\]
 
-\item Visualizations\footnote{Reproductions of the illustrations from \cite{para_dprec} pp.148,149}:
+\item Visualization\footnote{Reproductions of the illustrations from \cite{para_dprec} pp.148,149}:
 \begin{figure}[H]\begin{center}\includegraphics[width=8cm]{inc/zuker_rec.pdf}\end{center}\caption{Zuker folding dependencies}\end{figure}
 
 The recurrence consists of two non-serial dependencies as in \textit{\nameref{aswat}} plus a bounded 2-dimensional dependency for bulges.\\[12pt]
@@ -384,8 +384,59 @@ Since this problem is non-trivial to understand from the recurrences, we propose
 \small Types of structural features modeled by the Zuker folding algorithm include: dangling ends (1), \\ internal loop (11), stack (23), multi-loop (47), bulge (68) and hairpin loop (78).\end{center}\caption{An example of an RNA folded into a secondary structure}\end{figure}
 
 \item Optimizations: notice that there are 3 matrices: $W$,$V$ ($VBI$ is part of $V$) that can be expressed using regular matrix, and $F$ that is of different dimension than $W$ and $V$ and requires a special construction. Also notice that the $k$ of $BV$ and $BW$ describe almost the same backtrack, but there is an additional cost $c$ in $BV$.
-%{\color{red} XXX: We need to find a nice way to encode both its construction and backtrack into the existing framework (implement 1D DP recursively?) }
 \ole
+
+\textbf{Alternative:} Since the recurrence matrices described in \cite{para_dprec} are of different dimensions ($F$ matrix is $O(n)$), we might want to use another description \cite{gpu_rnafold} where all matrices are of the same dimension, such that we can have a more uniform description across DP problems:
+
+Let $Q'_{(i,j)}$ the minimum energy of folding of a subsequence $i,j$ given that bases $i$ and $j$ form a base pair. $Q_{(i,j)}$ and $QM_{(i,j)}$ are the minimum energy of folding of the subsequence $i,j$ assuming that this subsequence is inside a multi-loop and that it contains respectively at least one and two base pairs.
+
+A simplified model of the recursion relations can be written as:
+\[\begin{array}{rcl}
+Q'_{(i,j)}&=&\left\{\begin{array}{ll}
+	\min\left\{\begin{array}{l}
+	Eh(i,j) \\
+	Es(i,j)+Q'_{i+1,j-1} \\
+	\min\limits_{i<k<l<j}Ei(i,j,k,l)+Q'_{k,l} \\
+	QM_{i+1,j-1}
+	\end{array}\right. & \text{if } (i,j) \text{ is a basepair}\\
+	\infty & \text{otherwise} \\
+	\end{array}\right. \\
+QM_{i,j} &=& \min\limits_{i<k<j}(Q_{i,k}+Q_{k+1,j})\\
+Q_{i,j} &=& \min\{ QM_{i,j}, Q_{i+1,j},Q_{i,j-1},Q'_{i,j} \}
+\end{array}\]
+
+\newpage
+The corresponding energy functions are:\ul
+\item $Eh(i,j)$ energy of hairpin loop closed by the pair $i \cdot j$.
+\item $Ei(i,j,k,l)$ energy of interior loop formed by two base pairs $i \cdot j$, $k \cdot l$.
+\item $Es(i,j)$ energy of two stacked base pairs $i\cdot j$ and $(i+1)\cdot(j-1)$.
+\ule
+
+This recurrence is more amenable to be converted into a grammar (in pseudo-code)
+\begin{lstlisting}[language=Scala,caption=Pseudocode of the alternative Zuker grammar]
+Qp : matrix(
+  ( seq            ^^ x => Eh(x)
+  | el  ~ Qp ~ el  ^^ (a,b,c) => Es(a,c) + b
+  | seq ~ Qp ~ seq ^^ (a,b,c) => Ei(a.start, a.end, c.start, c.end) + b
+  | el  ~ QM  ~ el ^^ (a,b,c) => b
+  ).filter(basepair).getMinimum)
+
+QM : matrix(
+  ( Q ~ Q ^^ (a,b) => a+b
+  ).filter(size>=4).getMinimum)
+
+Q : matrix(
+  ( QM
+  | el ~ Q ^^ (a,b) => b
+  | Q ~ el ^^ (a,b) => a
+  | Qp
+  ).filter(size>=2).getMinimum)
+
+\end{lstlisting}
+\begin{center}
+\vspace{-24pt}
+\footnotesize ({\tt seq} represent a nonempty sequence of elements and {\tt el} a single element)
+\end{center}
 
 % ------------------------------------------------------------------------------------------------
 \newpage
@@ -454,7 +505,16 @@ Although the polygon triangulation problem can be solved with a regular triangul
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Related work}
-Work related to dynamic programming can be separated in two categories: ad-hoc implementations and grammar-based implementations. Grammar-based dynamic programming was initiated inseminated sparked by ADP \cite{adp_discipline} and first implemented as a Haskell DSL \cite{adp}. To overcome performance issues, multiple solutions were devised: converting the grammar to C or CUDA code \cite{adp_gpu} or using loop fusion to improve Haskell performance \cite{adp_fusion}, \cite{adp_fusion_pkg}. Ultimately, the dynamic programming algebra and grammar were formalized into a specific language \cite{gapl} and ad-hoc compiler \cite{gapc_thesis}, allowing more advanced analysis \cite{gapc_yield} of the grammar.
+Work related to dynamic programming can be separated in two categories: ad-hoc implementations and grammar-based implementations. The former focus on the performance for a specific problem whereas the latter generalize and formalize the dynamic programming problem description into a parsing grammar paired with a costing algebra.
 
-The research on ad-hoc implementation have also been prolific by going from general DP techniques
-\cite{gpu_atlp}, \cite{robust_mapping}, \cite{gpu_from_dsl} to biology-specific applications \cite{nussinov_gpu}, \cite{gpu_rnafold}, \cite{swat_gpu}, \cite{swat_linear} \cite{swat_mega}.
+Grammar-based dynamic programming was inseminated by ADP \cite{adp_discipline} and first implemented as a Haskell DSL \cite{adp}. To overcome performance issues, multiple solutions were devised:\ul
+\item Converting Haskell parsers in their C or CUDA equivalent \cite{adp_gpu}
+\item Modifying Haskell execution environment to provide loop fusion to improve ADP parsers performance \cite{adp_fusion}, \cite{adp_fusion_pkg}.
+\item Ultimately, the dynamic programming algebra and grammar were formalized into a specific language \cite{gapl} provided with an ad-hoc compiler \cite{gapc_thesis}, hereby allowing more advanced analysis of the grammar \cite{gapc_yield}.
+\ule
+
+The research on ad-hoc implementation has focused on three kind of problems:\ul
+\item Genral problems, attempting to provide the most efficient implementation for a particular problem \cite{gpu_atlp}, \cite{robust_mapping}, \cite{gpu_from_dsl}.
+\item RNA sequence folding (variants of the Zuker folding): \cite{nussinov_gpu}, \cite{gpu_rnafold}.
+\item Biological sequence alignment (Smith-Watermann) for huge sequences: \cite{swat_gpu}, \cite{swat_linear} \cite{swat_mega}.
+\ule

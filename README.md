@@ -21,12 +21,12 @@ Lamp-DP-MT
     * `$ git clone https://github.com/manojo/lamp-dp-mt.git`
     * `$ cd lamp-dp-mt`
 2. Run Scala parsers (with SBT)
-    * Run simple tests: `$ sbt 'clean' 'librna' 'run-main v4.examples.Tests'`
+    * Run simple tests: `$ sbt 'clean' 'librna' 'run-main v4.examples.Tests'` (only 1 instance of SBT)
     * Run any program: `$ sbt run`
-    * Run Zuker folding: `$ sbt compile zuker`
-    * Run RNAFold: `$ sbt compile rnafold`
-    * Note that ou can run only one instance of zuker/rnafold sbt/JVM instance due to JNI unloading issues
-3. Run CUDA parsers (without SBT)
+    * Run Zuker folding: `$ sbt zuker`
+    * Run RNAFold: `$ sbt rnafold`
+    * Other problems: mm1,mm2,mm3,align,zuker,rnafold can be run from within SBT
+3. Legacy: run CUDA parsers (without SBT)
     * Run CUDA tests: `$ ./build`
     * Cleanup: `$ ./build clean`
     * Get the program list: `$ ./build help` those ending with Gen are CUDA-enabled

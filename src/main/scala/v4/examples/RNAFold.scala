@@ -11,7 +11,7 @@ trait RNAFoldSig extends Signature {
   type Alphabet = Char
 
   def Eh(i:Int,j:Int) = LibRNA.hl_energy(i,j) // hairpin loop
-  def Ei(i:Int,k:Int,l:Int,j:Int) = LibRNA.il_energy(i,k,l,j) // internal loop
+  def Ei(i:Int,k:Int,l:Int,j:Int) = LibRNA.il_energy(i,k,l,j) // internal loop XXX isn't it i-j __enclosing__ basepair and k-l inner basepair
   def Es(i:Int,j:Int) = LibRNA.sr_energy(i,j) // 2 stacked base pairs
 
   def hairpin(ij:(Int,Int)):Answer
