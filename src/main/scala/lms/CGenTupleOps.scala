@@ -67,7 +67,7 @@ trait CLikeGenTupleOps extends CLikeGenBase{
       val targs = m.typeArguments
       val res = remap(m.typeArguments.last)
       val targsUnboxed = targs.flatMap(t => unwrapTupleStr(remap(t)))
-      "T" + targsUnboxed.map{_(0)}.mkString //+ "[" + targsUnboxed.mkString(",") + sep + res + "]"
+      "T" + targsUnboxed.size + targsUnboxed.map{_(0)}.mkString //+ "[" + targsUnboxed.mkString(",") + sep + res + "]"
 
     case _ => super.remap(m)
   }

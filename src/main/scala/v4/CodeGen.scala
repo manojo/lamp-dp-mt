@@ -342,13 +342,14 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // --------------------------------------------------------------------------
   // JNI transfers
 
-  def genJNI(time:Boolean) = {
-    def ctime(b:String,n:String) = if (!time) b else "  gettimeofday(&ts,NULL);\n"+b+"  gettimeofday(&te,NULL);\n"+
-      "  delta=(te.tv_sec-ts.tv_sec)*1000.0+(te.tv_usec-ts.tv_usec)/1000.0;\n  printf(\"%-20s : %.3f sec\\n\",\""+n+"\",delta/1000.0);"
+  def genJNI = {
+    def ctime(b:String,n:String) = if (!benchmark) b else "  gettimeofday(&ts,NULL);\n"+b+"  gettimeofday(&te,NULL);\n"+
+      "  delta=(te.tv_sec-ts.tv_sec)*1000.0+(te.tv_usec-ts.tv_usec)/1000.0;\n  printf(\"%-20s : %.3f sec\\n\",\""+n+"\",delta/1000.0);\n"
     val jtp = head.jniTp(tpAlphabet)
     val call = "JNIEXPORT jobject JNICALL Java_{className}_"
     val parm = "(JNIEnv* env, jobject obj, "+jtp+"Array input1"+(if (twotracks) ", "+jtp+"Array input2" else "")+")"
-    val solve = (if(time)"  struct timeval ts,te; double delta;\n" else"")+ctime("  input_t *in1=NULL; jni_read(env,input1,&in1);\n"+
+    val flush = if (benchmark) "  fflush(stdout); fflush(stderr);\n" else ""
+    val solve = (if(benchmark)"  struct timeval ts,te; double delta;\n" else"")+ctime("  input_t *in1=NULL; jni_read(env,input1,&in1);\n"+
       (if (twotracks) "  input_t *in2=NULL; jni_read(env,input2,&in2);\n  g_init(in1,in2); free(in2);"
                  else "  g_init(in1,NULL);"),"- JNI read")+" free(in1);\n"+ctime("  g_solve();\n","- CUDA compute")
     "#include <jni.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <sys/time.h>\n#include \"{file}.h\"\n#ifdef __cplusplus\n"+
@@ -356,12 +357,12 @@ trait CodeGen extends BaseParsers { this:Signature =>
     head.jniRead(tpAlphabet)+"\n"+head.jniWrite(tpAnswer,catMax>0)+"\n"+
     "jobject Java_{className}_parse"+parm+" {\n"+solve+
     "  "+tpAnswer+" score=g_backtrack(NULL,NULL);\n"+
-    "  jobject result = jni_write(env, score, NULL, 0);\n"+
+    "  jobject result = jni_write(env, score, NULL, 0);\n"+flush+
     "  g_free(); return result;\n}\n\n"+
     "jobject Java_{className}_backtrack"+parm+" {\n"+solve+
     "  trace_t *trace=NULL; unsigned size=0;\n"+
     ctime("  "+tpAnswer+" score=g_backtrack(&trace,&size);\n","- CUDA backtrack")+
-    ctime("  jobject result = jni_write(env, score, trace, size); free(trace);\n","- JNI output")+
+    ctime("  jobject result = jni_write(env, score, trace, size); free(trace);\n","- JNI output")+flush+
     "  g_free(); return result;\n}\n"
   }
 
@@ -398,7 +399,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       val info="// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+", complexity/element=O(n^"+cpx+"), splits={SPLITS}\n"+
         rulesOrder.zipWithIndex.map { case(n,i)=> val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max) }.mkString
       // Generate modules code
-      val kern=genKern; val bt=genBT; var hlp=genHelpers(); var jni=genJNI(benchmark); var (hpub,hpriv)=head.flush
+      val kern=genKern; val bt=genBT; var hlp=genHelpers(); var jni=genJNI; var (hpub,hpriv)=head.flush
       (info+hpub, hpriv+"\n"+kern+"\n"+bt+"\n"+hlp, jni, cpx)
     }
   }

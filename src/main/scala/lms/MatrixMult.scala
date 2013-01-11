@@ -53,7 +53,11 @@ object LMSMatrixAlgebraGen extends MatrixSig with MatrixGrammar with CodeGen wit
 
   val single = concreteProg.gen(concreteProg.repSingle)
   val mult = concreteProg.gen2(concreteProg.repMult)
-  println(gen)
+  //println(gen)
+
+  val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray // -> 1x3 matrix, 122 multiplications
+  println(parse(input).head)
+  println("OK")
 }
 
 

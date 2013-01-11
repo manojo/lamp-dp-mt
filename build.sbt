@@ -37,3 +37,11 @@ compile in Compile <<= (compile in Compile) map { x => ("src/librna/make target/
 }
 // TaskKey[Unit]("zuker") := { "scala -cp target/scala-2.10/classes v4.examples.Zuker".run.exitValue }
 // http://stackoverflow.com/questions/6951261/how-to-define-tasks-to-run-with-hprof-from-sbt-0-10
+
+// custom LMS+CUDA targets
+{
+  def t(n:String) = { val t=TaskKey[Unit](n); t.dependsOn(compile in Compile); t }
+  def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, "lms."+cl ), fork in t := true, javaOptions in t += "-Xss64m")
+  val mml=t("mml")
+  s(mml,"LMSMatrixAlgebraGen")
+}

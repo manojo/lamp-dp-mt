@@ -36,7 +36,7 @@ trait FunctionGen extends BaseExp with MyScalaCompile{
         cCodegen.withStream(stream){
           cCodegen.emitBlock(bdy)
           val y = cCodegen.getBlockResult(bdy)
-          if(cCodegen.remap(y.tp) != "void") stream.println("return "+ cCodegen.quote(y))
+          if(cCodegen.remap(y.tp) != "void") stream.println("return "+ cCodegen.quote(y)+";")
         }
 
         val temp = os.toString("UTF-8")
@@ -71,7 +71,7 @@ trait FunctionGen extends BaseExp with MyScalaCompile{
         cCodegen.withStream(stream){
           cCodegen.emitBlock(bdy)
           val y = cCodegen.getBlockResult(bdy)
-          if(cCodegen.remap(y.tp) != "void") stream.println("return "+ cCodegen.quote(y))
+          if(cCodegen.remap(y.tp) != "void") stream.println("return "+ cCodegen.quote(y)+";")
         }
 
         val temp = os.toString("UTF-8")
@@ -106,7 +106,7 @@ trait FunctionGen extends BaseExp with MyScalaCompile{
         cCodegen.withStream(stream){
           cCodegen.emitBlock(bdy)
           val y = cCodegen.getBlockResult(bdy)
-          if(cCodegen.remap(y.tp) != "void") stream.println("return "+ cCodegen.quote(y))
+          if(cCodegen.remap(y.tp) != "void") stream.println("return "+ cCodegen.quote(y)+";")
         }
 
         val temp = os.toString("UTF-8")
