@@ -20,12 +20,8 @@
 #include <unistd.h>
 #include <string.h>
 #include "fold.h"
-#include "part_func.h"
 #include "fold_vars.h"
 #include "utils.h"
-#include "params.h"
-
-
 
 /*--------------------------------------------------------------------------*/
 
@@ -33,12 +29,10 @@ int main(int argc, char *argv[]){
   char          *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
   char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
   char          *ns_bases, *c;
-  int           i, length, l, cl, sym, istty, pf, noPS, noconv, fasta;
+  int           i, length, l, cl, sym;
   unsigned int  rec_type, read_opt;
-  double        energy, min_en, kT, sfact;
-  int           lucky;
+  double        min_en, sfact;
   double        bppmThreshold, betaScale;
-  pf_paramT       *pf_parameters;
   model_detailsT  md;
 
   rec_type      = read_opt = 0;
@@ -46,21 +40,14 @@ int main(int argc, char *argv[]){
   rec_rest      = NULL;
   ParamFile     = NULL;
   ns_bases      = NULL;
-  pf_parameters = NULL;
   do_backtrack  = 1;
-  pf            = 0;
   sfact         = 1.07;
-  noPS          = 0;
-  noconv        = 0;
-  fasta         = 0;
   cl            = l = length = 0;
   dangles       = 2;
   bppmThreshold = 1e-5;
-  lucky         = 0;
   betaScale     = 1.;
 
   set_model_details(&md);
-
 
   /*
   #############################################
@@ -91,15 +78,7 @@ int main(int argc, char *argv[]){
     }
   }
 
-  istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-
-  /* print user help if we get input from tty */
-  if(istty){
-    print_tty_input_seq();
-  }
-
   /* set options we wanna pass to read_record */
-  if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   read_opt |= VRNA_INPUT_NO_REST;
 
   /*
@@ -117,22 +96,18 @@ int main(int argc, char *argv[]){
     ########################################################
     */
     if(rec_id){
-      if(!istty) printf("%s\n", rec_id);
-      (void) sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
+      printf("%s\n", rec_id);
+      sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
     else fname[0] = '\0';
 
     length  = (int)strlen(rec_sequence);
     structure = (char *)space(sizeof(char) *(length+1));
 
-    /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(rec_sequence);
     /* store case-unmodified sequence */
     orig_sequence = strdup(rec_sequence);
     /* convert sequence to uppercase letters only */
     str_uppercase(rec_sequence);
-
-    if(istty) printf("length = %d\n", length);
 
     /*
     ########################################################
@@ -141,100 +116,16 @@ int main(int argc, char *argv[]){
     */
     min_en = fold(rec_sequence, structure);
 
-    if(!lucky){
-      printf("%s\n%s", orig_sequence, structure);
-      if (istty)
-        printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
-      else
-        printf(" (%6.2f)\n", min_en);
-      (void) fflush(stdout);
+    printf("%s\n%s", orig_sequence, structure);
+    printf(" (%6.2f)\n", min_en);
+    (void) fflush(stdout);
 
       if(fname[0] != '\0'){
         strcpy(ffname, fname);
         strcat(ffname, "_ss.ps");
       } else strcpy(ffname, "rna.ps");
 
-    }
     if (length>2000) free_arrays();
-    if (pf) {
-      char *pf_struc = (char *) space((unsigned) length+1);
-      if (md.dangles==1) {
-          md.dangles=2;   /* recompute with dangles as in pf_fold() */
-          min_en = energy_of_structure(rec_sequence, structure, 0);
-          md.dangles=1;
-      }
-
-      kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
-      pf_scale = exp(-(sfact*min_en)/kT/length);
-      if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
-
-      if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
-
-      pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
-      energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, 0, 0);
-
-      if(lucky){
-        init_rand();
-        char *s = pbacktrack(rec_sequence);
-        min_en = energy_of_structure(rec_sequence, s, 0);
-        printf("%s\n%s", orig_sequence, s);
-        if (istty)
-          printf("\n free energy = %6.2f kcal/mol\n", min_en);
-        else
-          printf(" (%6.2f)\n", min_en);
-        (void) fflush(stdout);
-        if(fname[0] != '\0'){
-          strcpy(ffname, fname);
-          strcat(ffname, "_ss.ps");
-        } else strcpy(ffname, "rna.ps");
-
-        free(s);
-      } else {
-        if (do_backtrack) {
-          printf("%s", pf_struc);
-          if (!istty) printf(" [%6.2f]\n", energy);
-          else printf("\n");
-        }
-        if ((istty)||(!do_backtrack))
-          printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
-
-
-        if (do_backtrack) {
-          plist *pl1,*pl2;
-          char *cent;
-          double dist, cent_en;
-          FLT_OR_DBL *probs = export_bppm();
-          assign_plist_from_pr(&pl1, probs, length, bppmThreshold);
-          assign_plist_from_db(&pl2, structure, 0.95*0.95);
-          /* cent = centroid(length, &dist); <- NOT THREADSAFE */
-          cent = get_centroid_struct_pr(length, &dist, probs);
-          cent_en = energy_of_structure(rec_sequence, cent, 0);
-          printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
-          free(cent);
-          if (fname[0]!='\0') {
-            strcpy(ffname, fname);
-            strcat(ffname, "_dp.ps");
-          } else strcpy(ffname, "dot.ps");
-          free(pl2);
-          if (do_backtrack==2) {
-            pl2 = stackProb(1e-5);
-            if (fname[0]!='\0') {
-              strcpy(ffname, fname);
-              strcat(ffname, "_dp2.ps");
-            } else strcpy(ffname, "dot2.ps");
-            free(pl2);
-          }
-          free(pl1);
-          free(pf_struc);
-        }
-        printf(" frequency of mfe structure in ensemble %g; ", exp((energy-min_en)/kT));
-        if (do_backtrack)
-          printf("ensemble diversity %-6.2f", mean_bp_distance(length));
-        printf("\n");
-      }
-      free_pf_arrays();
-      free(pf_parameters);
-    }
     (void) fflush(stdout);
 
     /* clean up */
@@ -250,11 +141,6 @@ int main(int argc, char *argv[]){
     }
     rec_id = rec_sequence = structure = cstruc = NULL;
     rec_rest = NULL;
-
-    /* print user help for the next round if we get input from tty */
-    if(istty){
-      print_tty_input_seq();
-    }
   }
   return EXIT_SUCCESS;
 }

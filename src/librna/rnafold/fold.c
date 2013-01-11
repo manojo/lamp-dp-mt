@@ -23,7 +23,6 @@
 #include "energy_par.h"
 #include "fold_vars.h"
 #include "pair_mat.h"
-#include "params.h"
 #include "loop_energies.h"
 #include "fold.h"
 #include "data_structures.h"
@@ -87,6 +86,15 @@ PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void  backtrack(const char *sequence, int s);
 PRIVATE int   fill_arrays(const char *sequence);
 PRIVATE void  init_fold(int length, paramT *parameters);
+
+PRIVATE paramT *get_parameter_copy(paramT *par){
+  paramT *copy = NULL;
+  if(par){
+    copy = (paramT *) space(sizeof(paramT));
+    memcpy(copy, par, sizeof(paramT));
+  }
+  return copy;
+}
 
 /*
 #################################
@@ -173,16 +181,13 @@ PUBLIC void free_arrays(void){
 
 /*--------------------------------------------------------------------------*/
 
-
 PUBLIC float fold(const char *string, char *structure){
-  return fold_par(string, structure, NULL, 0, 0);
+  return fold_par(string, structure, NULL);
 }
 
 PUBLIC float fold_par(const char *string,
                       char *structure,
-                      paramT *parameters,
-                      int is_constrained,
-                      int is_circular){
+                      paramT *parameters) {
 
   int length, energy, bonus, bonus_cnt, s;
 
@@ -854,21 +859,6 @@ PRIVATE void backtrack(const char *string, int s) {
   }
 
   base_pair2[0].i = b;    /* save the total number of base pairs */
-}
-
-PUBLIC char *backtrack_fold_from_pair(char *sequence, int i, int j) {
-  char *structure;
-  sector[1].i  = i;
-  sector[1].j  = j;
-  sector[1].ml = 2;
-  base_pair2[0].i=0;
-  S   = encode_sequence(sequence, 0);
-  S1  = encode_sequence(sequence, 1);
-  backtrack(sequence, 1);
-  structure = (char *) space((strlen(sequence)+1)*sizeof(char));
-  parenthesis_structure(structure, base_pair2, strlen(sequence));
-  free(S);free(S1);
-  return structure;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -59,16 +59,11 @@ extern  int eos_debug;
  *                        secondary structure in dot-bracket notation will be written to
  *  \param parameters     A data structure containing the prescaled energy contributions
  *                        and the model details. (NULL may be passed, see OpenMP notes above)
- *  \param is_constrained Switch to indicate that a structure contraint is passed via the structure argument (0==off)
- *  \param is_circular    Switch to (de-)activate postprocessing steps in case RNA sequence is circular (0==off)
- *
  *  \return the minimum free energy (MFE) in kcal/mol
  */
 float fold_par( const char *sequence,
                 char *structure,
-                paramT *parameters,
-                int is_constrained,
-                int is_circular);
+                paramT *parameters);
 
 /**
  *  \brief Compute minimum free energy and an appropriate secondary structure of an RNA sequence
@@ -148,39 +143,5 @@ void  parenthesis_structure(char *structure,
 void  update_fold_params(void);
 
 void update_fold_params_par(paramT *parameters);
-
-/**
- *
- */
-char  *backtrack_fold_from_pair(char *sequence,
-                                int i,
-                                int j);
-
-/**
- *  \brief Create a plist from a dot-bracket string
- *
- *  The dot-bracket string is parsed and for each base pair an
- *  entry in the plist is created. The probability of each pair in
- *  the list is set by a function parameter.
- *
- *  The end of the plist is marked by sequence positions i as well as j
- *  equal to 0. This condition should be used to stop looping over its
- *  entries
- *
- *  This function is threadsafe
- *
- *  \param pl     A pointer to the plist that is to be created
- *  \param struc  The secondary structure in dot-bracket notation
- *  \param pr     The probability for each base pair
- */
-void assign_plist_from_db(plist **pl,
-                          const char *struc,
-                          float pr);
-
-/* finally moved the loop energy function declarations to this header...  */
-/* BUT: The functions only exist for backward compatibility reasons!      */
-/* You better include "loop_energies.h" and call the functions:           */
-/* E_Hairpin() and E_IntLoop() which are (almost) threadsafe as they get  */
-/* a pointer to the energy parameter datastructure as additional argument */
 
 #endif

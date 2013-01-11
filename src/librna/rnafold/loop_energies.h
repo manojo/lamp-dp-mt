@@ -6,7 +6,6 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
-#include "params.h"
 #include "fold_vars.h"
 #include "energy_par.h"
 
@@ -58,18 +57,6 @@ INLINE  PRIVATE int E_MLstem( int type,
                               paramT *P);
 
 /**
- *  \def exp_E_MLstem(A,B,C,D)
- *  This is the partition function variant of \ref E_MLstem()
- *  \see E_MLstem()
- *  \return The Boltzmann weighted energy contribution of the introduced multiloop stem
- */
-//#define exp_E_MLstem(A,B,C,D) exp_E_Stem((A),(B),(C),0,(D))
-INLINE  PRIVATE double exp_E_MLstem(int type,
-                                    int si1,
-                                    int sj1,
-                                    pf_paramT *P);
-
-/**
  *  \def E_ExtLoop(A,B,C,D)
  *  <H2>Compute the Energy contribution of an Exterior loop stem</H2>
  *  This definition is a wrapper for the E_Stem() funtion.
@@ -93,18 +80,6 @@ INLINE  PRIVATE int E_ExtLoop(int type,
                               int si1,
                               int sj1,
                               paramT *P);
-
-/**
- *  \def exp_E_ExtLoop(A,B,C,D)
- *  This is the partition function variant of \ref E_ExtLoop()
- *  \see E_ExtLoop()
- *  \return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
- */
-//#define exp_E_ExtLoop(A,B,C,D)  exp_E_Stem((A),(B),(C),1,(D))
-INLINE  PRIVATE double exp_E_ExtLoop( int type,
-                                      int si1,
-                                      int sj1,
-                                      pf_paramT *P);
 
 /**
  *  <H2>Compute the Energy of an interior-loop</H2>
@@ -199,66 +174,13 @@ INLINE  PRIVATE int E_Hairpin(int size,
                               const char *string,
                               paramT *P);
 
-/**
- *  <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of a hairpin loop</H2>
- *  multiply by scale[u+2]
- *  @see get_scaled_pf_parameters()
- *  @see pf_paramT
- *  @see E_Hairpin()
- *  \warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
- *  Energy evaluation may change due to updates in global variable "tetra_loop"
- *
- *  \param  u       The size of the loop (number of unpaired nucleotides)
- *  \param  type    The pair type of the base pair closing the hairpin
- *  \param  si1     The 5'-mismatching nucleotide
- *  \param  sj1     The 3'-mismatching nucleotide
- *  \param  string  The sequence of the loop
- *  \param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
- *  \return The Boltzmann weight of the Hairpin-loop
- */
-INLINE  PRIVATE double exp_E_Hairpin( int u,
-                                      int type,
-                                      short si1,
-                                      short sj1,
-                                      const char *string,
-                                      pf_paramT *P);
-
-/**
- *  <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of interior loop</H2>
- *  multiply by scale[u1+u2+2] for scaling
- *  @see get_scaled_pf_parameters()
- *  @see pf_paramT
- *  @see E_IntLoop()
- *  \note This function is threadsafe
- *
- *  \param  u1      The size of the 'left'-loop (number of unpaired nucleotides)
- *  \param  u2      The size of the 'right'-loop (number of unpaired nucleotides)
- *  \param  type    The pair type of the base pair closing the interior loop
- *  \param  type2   The pair type of the enclosed base pair
- *  \param  si1     The 5'-mismatching nucleotide of the closing pair
- *  \param  sj1     The 3'-mismatching nucleotide of the closing pair
- *  \param  sp1     The 3'-mismatching nucleotide of the enclosed pair
- *  \param  sq1     The 5'-mismatching nucleotide of the enclosed pair
- *  \param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
- *  \return The Boltzmann weight of the Interior-loop
- */
-INLINE  PRIVATE double  exp_E_IntLoop(int u1,
-                                      int u2,
-                                      int type,
-                                      int type2,
-                                      short si1,
-                                      short sj1,
-                                      short sp1,
-                                      short sq1,
-                                      pf_paramT *P);
-
 
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
-INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P){
+INLINE PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P){
   int energy;
 
   energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30]+(int)(P->lxc*log((size)/30.));
@@ -289,7 +211,7 @@ INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *
   return energy;
 }
 
-INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P){
+INLINE PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P){
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, energy;
 
@@ -348,7 +270,7 @@ INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int
   return energy;
 }
 
-INLINE  PRIVATE int E_ExtLoop(int type, int si1, int sj1, paramT *P){
+INLINE PRIVATE int E_ExtLoop(int type, int si1, int sj1, paramT *P){
   int energy = 0;
   if(si1 >= 0 && sj1 >= 0){
     energy += P->mismatchExt[type][si1][sj1];
@@ -366,7 +288,7 @@ INLINE  PRIVATE int E_ExtLoop(int type, int si1, int sj1, paramT *P){
   return energy;
 }
 
-INLINE  PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P){
+INLINE PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P){
   int energy = 0;
   if(si1 >= 0 && sj1 >= 0){
     energy += P->mismatchM[type][si1][sj1];
@@ -386,138 +308,7 @@ INLINE  PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P){
   return energy;
 }
 
-INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P){
-  double q, kT;
-  kT = P->kT;   /* kT in cal/mol  */
-
-  if(u <= 30)
-    q = P->exphairpin[u];
-  else
-    q = P->exphairpin[30] * exp( -(P->lxc*log( u/30.))*10./kT);
-
-  if(u < 3) return q; /* should only be the case when folding alignments */
-
-  if ((P->model_details.special_hp)&&(u==4)) {
-    char tl[7]={0,0,0,0,0,0,0}, *ts;
-    strncpy(tl, string, 6);
-    if ((ts=strstr(P->Tetraloops, tl))){
-      if(type != 7)
-        return (P->exptetra[(ts-P->Tetraloops)/7]);
-      else
-        q *= P->exptetra[(ts-P->Tetraloops)/7];
-    }
-  }
-  if ((tetra_loop)&&(u==6)) {
-    char tl[9]={0,0,0,0,0,0,0,0,0}, *ts;
-    strncpy(tl, string, 6);
-    if ((ts=strstr(P->Hexaloops, tl)))
-      return  (P->exphex[(ts-P->Hexaloops)/9]);
-  }
-  if (u==3) {
-    char tl[6]={0,0,0,0,0,0}, *ts;
-    strncpy(tl, string, 5);
-    if ((ts=strstr(P->Triloops, tl)))
-      return (P->exptri[(ts-P->Triloops)/6]);
-    if (type>2)
-      q *= P->expTermAU;
-  }
-  else /* no mismatches for tri-loops */
-    q *= P->expmismatchH[type][si1][sj1];
-
-  return q;
-}
-
-INLINE  PRIVATE double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
-  int ul, us, no_close = 0;
-  double z;
-
-  if ((no_closingGU) && ((type2==3)||(type2==4)||(type==3)||(type==4)))
-    no_close = 1;
-
-  if (u1>u2) { ul=u1; us=u2;}
-  else {ul=u2; us=u1;}
-
-  if (ul==0) /* stack */
-    z = P->expstack[type][type2];
-  else if(!no_close){
-    if (us==0) {                      /* bulge */
-      z = P->expbulge[ul];
-      if (ul==1) z *= P->expstack[type][type2];
-      else {
-        if (type>2) z *= P->expTermAU;
-        if (type2>2) z *= P->expTermAU;
-      }
-      return z;
-    }
-    else if (us==1) {
-      if (ul==1){                    /* 1x1 loop */
-        return P->expint11[type][type2][si1][sj1];
-      }
-      if (ul==2) {                  /* 2x1 loop */
-        if (u1==1)
-          return P->expint21[type][type2][si1][sq1][sj1];
-        else
-          return P->expint21[type2][type][sq1][si1][sp1];
-      }
-      else {  /* 1xn loop */
-        z = P->expinternal[ul+us] * P->expmismatch1nI[type][si1][sj1] * P->expmismatch1nI[type2][sq1][sp1];
-        return z * P->expninio[2][ul-us];
-      }
-    }
-    else if (us==2) {
-      if(ul==2) /* 2x2 loop */
-        return P->expint22[type][type2][si1][sp1][sq1][sj1];
-      else if(ul==3){              /* 2x3 loop */
-        z = P->expinternal[5]*P->expmismatch23I[type][si1][sj1]*P->expmismatch23I[type2][sq1][sp1];
-        return z * P->expninio[2][1];
-      }
-    }
-    /* generic interior loop (no else here!)*/
-    z = P->expinternal[ul+us] * P->expmismatchI[type][si1][sj1] * P->expmismatchI[type2][sq1][sp1];
-    return z * P->expninio[2][ul-us];
-
-  }
-  return z;
-}
-
-INLINE  PRIVATE double exp_E_MLstem(int type, int si1, int sj1, pf_paramT *P){
-  double energy = 1.0;
-  if(si1 >= 0 && sj1 >= 0){
-    energy *= P->expmismatchM[type][si1][sj1];
-  }
-  else if(si1 >= 0){
-    energy *= P->expdangle5[type][si1];
-  }
-  else if(sj1 >= 0){
-    energy *= P->expdangle3[type][sj1];
-  }
-
-  if(type > 2)
-    energy *= P->expTermAU;
-
-  energy *= P->expMLintern[type];
-  return energy;
-}
-
-INLINE  PRIVATE double exp_E_ExtLoop(int type, int si1, int sj1, pf_paramT *P){
-  double energy = 1.0;
-  if(si1 >= 0 && sj1 >= 0){
-    energy *= P->expmismatchExt[type][si1][sj1];
-  }
-  else if(si1 >= 0){
-    energy *= P->expdangle5[type][si1];
-  }
-  else if(sj1 >= 0){
-    energy *= P->expdangle3[type][sj1];
-  }
-
-  if(type > 2)
-    energy *= P->expTermAU;
-
-  return energy;
-}
-
-INLINE  PRIVATE int     E_IntLoop_Co(int type, int type_2, int i, int j, int p, int q, int cutpoint, short si1, short sj1, short sp1, short sq1, int dangles, paramT *P){
+INLINE PRIVATE int E_IntLoop_Co(int type, int type_2, int i, int j, int p, int q, int cutpoint, short si1, short sj1, short sp1, short sq1, int dangles, paramT *P){
   int energy = 0;
   if(type > 2)   energy += P->TerminalAU;
   if(type_2 > 2) energy += P->TerminalAU;

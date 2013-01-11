@@ -1,5 +1,5 @@
 #!/bin/sh
 
 cd "`dirname $0`"
-gcc -Wall -O2 -Ilibs -I../vienna *.c ../vienna/*.c libs/*.c -o RNAfold  && \
+gcc -Wall -O2 -Ilibs -I../vienna *.c ../vienna/*.c -o RNAfold  && \
 echo guacgucaguacguacgugacugucagucaac | ./RNAfold ../vienna/rna_turner2004.par

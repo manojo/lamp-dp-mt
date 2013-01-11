@@ -1,5 +1,7 @@
 \documentclass[11pt]{article}
 \input{inc/style.sty}
+\usepackage{multicol}
+\usepackage{etoolbox}
 
 \title{DynaProg for Scala}
 \subtitle{A Scala DSL for Dynamic Programming on CPU and GPU}
@@ -46,25 +48,28 @@ In an attempt to provide realistic benchmarks, we tried to gather related implem
 We organize the benchmarks as follow: if we have at our disposal a working implementation that could be run on our evaluation platform, we use it, otherwise, we refer to the related paper and rescale the result according to the memory throughput and computation throughput of the related device so that we can have a good approximation of how they could compare.
 
 \subsection{Metrics}
-As the device memory is quite limited, it seems interesting to take into account the space usage. The space requirement limits the maximal size of addressable problems  on a particular hardware. This might be a concern for large problems, because they would require special adaptation to handle such cases both correctly and efficiently. However, simple solutions like using a device with larger memory or using main memory (if $5\times$ slowdown is still acceptable) could solve this issue.
+{\color{red} The main metric we focus on is the running time.}
 
-memory
-
-running time
+As the device memory is quite limited, it seems interesting to also take into account the space usage. The space requirement limits the maximal size of addressable problems  on a particular hardware. This might be a concern for large problems, because they would require special adaptation to handle such cases both correctly and efficiently. However, simple solutions like using a device with larger memory or using main memory (if a $5\times$ slowdown is still acceptable) could solve this issue.
 
 \subsection{Benchmarking platform}
 
-Test 1 : Ad-hoc VS CUDA parsers (implies ATLP rescaled comparison)
-
-Test 2 : CUDAlign vs CUDA parsers for small sequences
-
-Test 3 : GAPC vs Java parsers vs CUDA parsers
-
-Test 4 ? : GPU RNAfolding vs CUDA parsers
-
+Candidates : 
+- CUDASW++
+- SeqNFind
 
 {\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
+\subsubsection{Test 1 : Ad-hoc VS CUDA parsers (implies ATLP rescaled comparison)}
+
+\subsubsection{Test 2 : CUDAlign vs CUDA parsers for small sequences}
+
+\subsubsection{Test 3 : GAPC vs Java parsers vs CUDA parsers}
+
+\subsubsection{Test 4 ? : GPU RNAfolding vs CUDA parsers}
+
+
 
 \subsection{Java parsers}
 {\color{red}
@@ -78,8 +83,6 @@ MatrixMult-512, Mac+JDK7\ul
 {\color{red} XXX: explain why slower: approx 3x more memory used per score (maintain matrix dimensions)
 
 XXX: continue benchmarking here
-
-XXX: talk about memory management and hash tables (?)
 }
 \begin{table}[H]\begin{center}\begin{tabular}{lrrrrrr} \toprule
 Matrix size			& 1024	& 2048	& 4096	& 8192 \\
@@ -156,7 +159,7 @@ Oct. 08	& CudAlign solves serial monadic, might adapt it (but complicated / ad-h
 		& Focus on non-serial problems that fit in GPU memory. \\
 Oct. 15	& First working implementation for non-serial problems (rectangle, triangle, parallelogram) \\
 Oct. 22	& No workaround for timeout, fixed by multiple kernels. Implemented backtrack on GPU. \\
-Oct. 29	& Scala/C compiler engine, to use Scala/CUDA, C code must be provided. \\
+Oct. 29	& Scala/C compiler engine, to use Scala/CUDA, C code must be provided. ADP (Manohar) \\
 Nov. 05	& Multiple fixes and rework of ADP parsers to aim at generating C-like code. \\
 Nov. 12	& Rework ADP parsers: cyclic, two-track grammars and automatic backtracking discussion. \\
 Nov. 19	& Explorations LMS and Macros for C code, implementation is quite different, hence ad-hoc. \\
@@ -166,7 +169,7 @@ Dec. 10	& Rework concatenation operators, yield analysis, code generation. \\
 Dec. 17	& Detupling, generic backtrack (vs. ad-hoc), nested aggregates, empty results support. \\
 Dec. 24	& (sick 4 days), code generation: full JNI conversion support, rework CodeCompiler. \\
 Dec. 31	& Writing report (design, implementation), fixing various issues, complexity analysis. \\
-Jan. 7	& Writing report, attempt to fix Zuker, fix SBT, strip LibRNA {\color{red} XXX} \\
+Jan. 7	& Writing report, attempt to fix Zuker, fix SBT, strip LibRNA. LMS C codegen (Manohar) \\
 Jan. 14	& {\color{red} XXX} \\
 \end{tabular}
 
@@ -185,11 +188,8 @@ Jan. 14	& {\color{red} XXX} \\
 
 % ------------------------------------------------------------------------------------------------
 \newpage
-%\usepackage{multicol}
-%\usepackage{etoolbox}
-%\patchcmd{\thebibliography}{\section*{\refname}}{\begin{multicols}{2}[\section*{\refname}]}{}{}
-%\patchcmd{\endthebibliography}{\endlist}{\endlist\end{multicols}}{}{}
-%\bibliographystyle{acm}
-\bibliographystyle{plain}
-\bibliography{bibliography.bib}
+\patchcmd{\thebibliography}{\section*{\refname}}{\begin{multicols}{2}[\section*{\refname}]}{}{}
+\patchcmd{\endthebibliography}{\endlist}{\endlist\end{multicols}}{}{}
+\bibliographystyle{plain} % acm
+{\small \bibliography{bibliography.bib}}
 \end{document}
