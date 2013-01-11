@@ -52,7 +52,7 @@ extern  int eos_debug;
  *  \note OpenMP: Passing NULL to the 'parameters' argument involves access to several global model
  *        detail variables and thus is not to be considered threadsafe
  *
- *  \see fold(), circfold(), #model_detailsT, set_energy_model(), get_scaled_parameters()
+ *  \see fold(), #model_detailsT, set_energy_model(), get_scaled_parameters()
  *
  *  \param sequence       RNA sequence
  *  \param structure      A pointer to the character array where the
@@ -79,7 +79,7 @@ float fold_par( const char *sequence,
  *
  *  Use fold_par() for a completely threadsafe variant
  *
- *  \see fold_par(), circfold()
+ *  \see fold_par()
  *
  *  \param sequence RNA sequence
  *  \param structure A pointer to the character array where the
@@ -90,26 +90,6 @@ float fold( const char *sequence,
             char *structure);
 
 /**
- *  \brief Compute minimum free energy and an appropriate secondary structure of a circular RNA sequence
- *
- *  This function essentially does the same thing as fold_par(). However, it takes its model details,
- *  i.e. #temperature, #dangles, #tetra_loop, #noGU, #no_closingGU, #noLonelyPairs
- *  from the current global settings within the library
- *
- *  Use fold_par() for a completely threadsafe variant
- *
- *  \see fold_par(), circfold()
- *
- *  \param sequence RNA sequence
- *  \param structure A pointer to the character array where the
- *         secondary structure in dot-bracket notation will be written to
- *  \return the minimum free energy (MFE) in kcal/mol
- */
-float circfold( const char *sequence,
-                char *structure);
-
-
-/**
  *  \brief Calculate the free energy of an already folded RNA using global model detail settings
  *
  *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
@@ -118,7 +98,7 @@ float circfold( const char *sequence,
  *        not to be considered threadsafe. See energy_of_struct_par() for a completely threadsafe
  *        implementation.
  *
- *  \see energy_of_struct_par(), energy_of_circ_structure()
+ *  \see energy_of_struct_par()
  *
  *  \param string     RNA sequence
  *  \param structure  secondary structure in dot-bracket notation
@@ -134,7 +114,7 @@ float energy_of_structure(const char *string,
  *
  *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
  *
- *  \see energy_of_circ_structure(), energy_of_structure_pt(), get_scaled_parameters()
+ *  \see energy_of_structure_pt(), get_scaled_parameters()
  *
  *  \param string           RNA sequence in uppercase letters
  *  \param structure        Secondary structure in dot-bracket notation
@@ -144,92 +124,6 @@ float energy_of_structure(const char *string,
  */
 float energy_of_struct_par( const char *string,
                             const char *structure,
-                            paramT *parameters,
-                            int verbosity_level);
-
-/**
- *  \brief Calculate the free energy of an already folded  circular RNA
- *
- *  \note OpenMP: This function relies on several global model settings variables and thus is
- *        not to be considered threadsafe. See energy_of_circ_struct_par() for a completely threadsafe
- *        implementation.
- *
- *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
- *
- *  \see energy_of_circ_struct_par(), energy_of_struct_par()
- *
- *  \param string           RNA sequence
- *  \param structure        Secondary structure in dot-bracket notation
- *  \param verbosity_level  A flag to turn verbose output on/off
- *  \return                The free energy of the input structure given the input sequence in kcal/mol
- */
-float energy_of_circ_structure( const char *string,
-                                const char *structure,
-                                int verbosity_level);
-
-/**
- *  \brief Calculate the free energy of an already folded circular RNA
- *
- *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
- *
- *  \see energy_of_struct_par(), get_scaled_parameters()
- *
- *  \param string           RNA sequence
- *  \param structure        Secondary structure in dot-bracket notation
- *  \param parameters       A data structure containing the prescaled energy contributions and the model details.
- *  \param verbosity_level  A flag to turn verbose output on/off
- *  \return                The free energy of the input structure given the input sequence in kcal/mol
- */
-float energy_of_circ_struct_par(const char *string,
-                                const char *structure,
-                                paramT *parameters,
-                                int verbosity_level);
-
-
-
-/**
- *  \brief Calculate the free energy of an already folded RNA
- *
- *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
- *
- *  \note OpenMP: This function relies on several global model settings variables and thus is
- *        not to be considered threadsafe. See energy_of_struct_pt_par() for a completely threadsafe
- *        implementation.
- *
- *  \see make_pair_table(), energy_of_struct_pt_par()
- *
- *  \param string     RNA sequence
- *  \param ptable     the pair table of the secondary structure
- *  \param s          encoded RNA sequence
- *  \param s1         encoded RNA sequence
- *  \param verbosity_level a flag to turn verbose output on/off
- *  \return          the free energy of the input structure given the input sequence in 10kcal/mol
- */
-int energy_of_structure_pt( const char *string,
-                            short *ptable,
-                            short *s,
-                            short *s1,
-                            int verbosity_level);
-
-/**
- *  \brief Calculate the free energy of an already folded RNA
- *
- *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
- *
- *  \see make_pair_table(), energy_of_struct_par(), get_scaled_parameters()
- *
- *  \param string           RNA sequence in uppercase letters
- *  \param ptable           The pair table of the secondary structure
- *  \param s                Encoded RNA sequence
- *  \param s1               Encoded RNA sequence
- *  \param parameters       A data structure containing the prescaled energy contributions and the model details.
- *  \param verbosity_level  A flag to turn verbose output on/off
- *  \return                The free energy of the input structure given the input sequence in 10kcal/mol
- */
-int energy_of_struct_pt_par(const char *string,
-                            short *ptable,
-                            short *s,
-                            short *s1,
                             paramT *parameters,
                             int verbosity_level);
 
@@ -249,21 +143,6 @@ void  parenthesis_structure(char *structure,
                             int length);
 
 /**
- *  \brief Create a dot-backet/parenthesis structure from backtracking stack
- *  obtained by zuker suboptimal calculation in cofold.c
- *
- *  \note This function is threadsafe
- */
-void parenthesis_zuker( char *structure,
-                        bondT *bp,
-                        int length);
-
-void letter_structure(char *structure,
-                      bondT *bp,
-                      int length);
-
-
-/**
  *  \brief Recalculate energy parameters
  */
 void  update_fold_params(void);
@@ -276,14 +155,6 @@ void update_fold_params_par(paramT *parameters);
 char  *backtrack_fold_from_pair(char *sequence,
                                 int i,
                                 int j);
-
-/**
- *
- */
-int   loop_energy(short *ptable,
-                  short *s,
-                  short *s1,
-                  int i);
 
 /**
  *  \brief Create a plist from a dot-bracket string

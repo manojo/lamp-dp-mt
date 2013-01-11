@@ -356,9 +356,6 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
     q1k[0] = 1.0;
     qln[n+1] = 1.0;
 
-/*  pr = q; */     /* recycling */
-
-
     /* 1. exterior pair i,j and initialization of pr array */
       for (i=1; i<=n; i++) {
         for (j=i; j<=MIN2(i+TURN,n); j++) probs[my_iindx[i]-j] = 0;
@@ -547,7 +544,6 @@ PUBLIC void bppm_to_structure(char *structure, FLT_OR_DBL *p, unsigned int lengt
   structure[length] = '\0';
   free(index);
 }
-
 
 /*---------------------------------------------------------------------------*/
 PRIVATE void make_ptypes(const short *S, const char *structure){

@@ -69,9 +69,6 @@
  */
 #define VRNA_INPUT_COMMENT                8192U
 
-
-
-
 /**
  * Tell a function that an input is assumed to span several lines if used as input-option
  * A function might also be returning this state telling that it has read data from
@@ -196,100 +193,6 @@ extern unsigned short xsubi[3];
 double urn(void);
 
 /**
- *  \brief Generates a pseudo random integer in a specified range
- *
- *  \param from   The first number in range
- *  \param to     The last number in range
- *  \return       A pseudo random number in range [from, to]
- */
-int    int_urn(int from, int to);
-
-void   filecopy(FILE *from, FILE *to); /* inefficient `cp' */
-
-/**
- *  \brief Get a timestamp
- *
- *  Returns a string containing the current date in the format
- *  \verbatim Fri Mar 19 21:10:57 1993\endverbatim
- *
- *  \return A string containing the timestamp
- */
-/*@observer@*/
-char  *time_stamp(void);
-
-/**
- *  \brief Create a random string using characters from a specified symbol set
- *
- *  \param l        The length of the sequence
- *  \param symbols  The symbol set
- *  \return         A random string of length 'l' containing characters from the symbolset
- */
-/*@only@*/ /*@notnull@*/
-char  *random_string(int l, const char symbols[]);
-
-/**
- *  \brief Calculate hamming distance between two sequences
- *
- *  Calculate the number of positions in which
- *  \param s1   The first sequence
- *  \param s2   The second sequence
- *  \return     The hamming distance between s1 and s2
- */
-int   hamming(const char *s1, const char *s2);
-
-/**
- *  \brief Calculate hamming distance between two sequences up to a specified length
- *
- *  This function is similar to hamming() but instead of comparing both sequences
- *  up to their actual length only the first 'n' characters are taken into account
- *  \param s1   The first sequence
- *  \param s2   The second sequence
- *  \return     The hamming distance between s1 and s2
- */
-int   hamming_bound(const char *s1, const char *s2, int n);
-
-/**
- *  \brief Read a line of arbitrary length from a stream
- *
- *  Returns a pointer to the resulting string. The necessary memory is
- *  allocated and should be released using \e free() when the string is
- *  no longer needed.
- *
- *  \param  fp  A file pointer to the stream where the function should read from
- *  \return     A pointer to the resulting string
- */
-/*@only@*/ /*@null@*/
-char  *get_line(FILE *fp);
-
-int skip_comment_lines(char **line);
-
-/**
- *  Retrieve a line from 'stdin' savely while skipping comment characters and
- *  other features
- *  This function returns the type of input it has read if recognized.
- *  An option argument allows to switch between different reading modes.\n
- *  Currently available options are:\n
- *  #VRNA_INPUT_NOPRINT_COMMENTS, #VRNA_INPUT_NOSKIP_COMMENTS, #VRNA_INPUT_NOELIM_WS_SUFFIX
- *
- *  pass a collection of options as one value like this:
- *  \verbatim get_input_line(string, option_1 | option_2 | option_n) \endverbatim
- *
- *  If the function recognizes the type of input, it will report it in the return
- *  value. It also reports if a user defined 'quit' command (@-sign on 'stdin')
- *  was given. Possible return values are:\n
- *  #VRNA_INPUT_FASTA_HEADER, #VRNA_INPUT_ERROR, #VRNA_INPUT_MISC, #VRNA_INPUT_QUIT
- *
- *  \param string   A pointer to the character array that contains the line read
- *  \param options  A collection of options for switching the functions behavior
- *  \return         A flag with information about what has been read
- */
-unsigned int get_input_line(char **string,
-                            unsigned int options);
-
-unsigned int get_multi_input_line(char **string,
-                                  unsigned int options);
-
-/**
  *  \brief  Get a data record from stdin
  *
  *  This function may be used to obtain complete datasets from stdin. A dataset is always
@@ -364,20 +267,6 @@ short *make_pair_table(const char *structure);
  *  \return   A pointer to the copy of 'pt'
  */
 short *copy_pair_table(const short *pt);
-
-/**
- *  \brief Compute the "base pair" distance between two secondary structures s1 and s2.
- *
- *  The sequences should have the same length.
- *  dist = number of base pairs in one structure but not in the other
- *  same as edit distance with open-pair close-pair as move-set
- *
- *  \param str1   First structure in dot-bracket notation
- *  \param str2   Second structure in dot-bracket notation
- *  \return       The base pair distance between str1 and str2
- */
-int bp_distance(const char *str1,
-                const char *str2);
 
 /**
  *  \brief Print a line to \e stdout that asks for an input sequence

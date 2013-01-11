@@ -109,70 +109,7 @@ PUBLIC double urn(void)
 
 /*------------------------------------------------------------------------*/
 
-PUBLIC int int_urn(int from, int to)
-{
-  return ( ( (int) (urn()*(to-from+1)) ) + from );
-}
-
-/*------------------------------------------------------------------------*/
-
-PUBLIC void filecopy(FILE *from, FILE *to)
-{
-  int c;
-
-  while ((c = getc(from)) != EOF) (void)putc(c, to);
-}
-
-/*-----------------------------------------------------------------*/
-
-PUBLIC char *time_stamp(void)
-{
-  time_t  cal_time;
-
-  cal_time = time(NULL);
-  return ( ctime(&cal_time) );
-}
-
-/*-----------------------------------------------------------------*/
-
-PUBLIC char *random_string(int l, const char symbols[])
-{
-  char *r;
-  int   i, rn, base;
-
-  base = (int) strlen(symbols);
-  r = (char *) space(sizeof(char)*(l+1));
-
-  for (i = 0; i < l; i++) {
-    rn = (int) (urn()*base);  /* [0, base-1] */
-    r[i] = symbols[rn];
-  }
-  r[l] = '\0';
-  return r;
-}
-
-/*-----------------------------------------------------------------*/
-
-PUBLIC int   hamming(const char *s1, const char *s2)
-{
-  int h=0;
-
-  for (; *s1 && *s2; s1++, s2++)
-    if (*s1 != *s2) h++;
-  return h;
-}
-
-PUBLIC int   hamming_bound(const char *s1, const char *s2, int boundary)
-{
-  int h=0;
-
-  for (; *s1 && *s2 && boundary; s1++, s2++, boundary--)
-    if (*s1 != *s2) h++;
-  return h;
-}
-/*-----------------------------------------------------------------*/
-
-PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
+PRIVATE char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
 {
   char s[512], *line, *cp;
   int len=0, size=0, l;
@@ -193,79 +130,7 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
   return line;
 }
 
-PUBLIC int  skip_comment_lines(char **line){
-  if((*line = get_line(stdin))==NULL) return -1;
-
-  while((**line=='*')||(**line=='\0')){
-    free(*line);
-    if((*line = get_line(stdin))==NULL) return -1;
-  }
-  return 0;
-}
-
-PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
-  char  *line;
-  int   i, l, r;
-
-  /*
-  * read lines until informative data appears or
-  * report an error if anything goes wrong
-  */
-  if((line = get_line(stdin))==NULL) return VRNA_INPUT_ERROR;
-
-  if(!(option & VRNA_INPUT_NOSKIP_COMMENTS))
-    while((*line=='*')||(*line=='\0')){
-      free(line);
-      if((line = get_line(stdin))==NULL) return VRNA_INPUT_ERROR;
-    }
-
-  l = (int) strlen(line);
-
-  /* break on '@' sign if not disabled */
-  if(*line == '@'){
-    free(line);
-    return VRNA_INPUT_QUIT;
-  }
-  /* print line read if not disabled */
-  //if(!(option & VRNA_INPUT_NOPRINT)) printf("%s\n", line);
-
-  /* eliminate whitespaces at the end of the line read */
-  if(!(option & VRNA_INPUT_NO_TRUNCATION)){
-    for(i = l-1; i >= 0; i--){
-      if      (line[i] == ' ')  continue;
-      else if (line[i] == '\t') continue;
-      else                      break;
-    }
-    line[(i >= 0) ? (i+1) : 0] = '\0';
-  }
-
-  if(*line == '>'){
-    /* fasta header */
-    /* alloc memory for the string */
-    *string = (char *) space(sizeof(char) * (strlen(line) + 1));
-    r = VRNA_INPUT_FASTA_HEADER;
-    i = sscanf(line, ">%s", *string);
-    if(i > 0){
-      i       = (int)     strlen(*string);
-      *string = (char *)  xrealloc(*string, (i+1)*sizeof(char));
-      free(line);
-      return r;
-    }
-    else{
-      free(line);
-      free(*string);
-      *string = NULL;
-      return VRNA_INPUT_ERROR;
-    }
-  }
-  else{
-    *string = strdup(line);
-    free(line);
-  }
-  return VRNA_INPUT_MISC;
-}
-
-PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
+PRIVATE  unsigned int get_multi_input_line(char **string, unsigned int option){
   char  *line;
   int   i, l;
   int   state = 0;
@@ -477,29 +342,6 @@ PUBLIC short *copy_pair_table(const short *pt){
 }
 
 /*---------------------------------------------------------------------------*/
-
-PUBLIC int bp_distance(const char *str1, const char *str2)
-{
-  /* dist = {number of base pairs in one structure but not in the other} */
-  /* same as edit distance with pair_open pair_close as move set */
-   int dist;
-   short i,l;
-   short *t1, *t2;
-
-   dist = 0;
-   t1 = make_pair_table(str1);
-   t2 = make_pair_table(str2);
-
-   l = (t1[0]<t2[0])?t1[0]:t2[0];    /* minimum of the two lengths */
-
-   for (i=1; i<=l; i++)
-     if (t1[i]!=t2[i]) {
-       if (t1[i]>i) dist++;
-       if (t2[i]>i) dist++;
-     }
-   free(t1); free(t2);
-   return dist;
-}
 
 PUBLIC  void  print_tty_input_seq(void){
   print_tty_input_seq_str("Input string (upper or lower case)");

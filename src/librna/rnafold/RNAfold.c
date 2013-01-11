@@ -25,6 +25,8 @@
 #include "utils.h"
 #include "params.h"
 
+
+
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[]){
@@ -161,8 +163,6 @@ int main(int argc, char *argv[]){
           min_en = energy_of_structure(rec_sequence, structure, 0);
           md.dangles=1;
       }
-
-      /* */
 
       kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
       pf_scale = exp(-(sfact*min_en)/kT/length);
