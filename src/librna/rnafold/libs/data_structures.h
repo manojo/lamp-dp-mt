@@ -46,14 +46,6 @@ typedef struct plist {
 } plist;
 
 /**
- *  \brief this datastructure is used as input parameter in functions of PS_dot.c
- */
-typedef struct cpair {
-  int i,j,mfe;
-  float p, hue, sat;
-} cpair;
-
-/**
  *  stack of partial structures for backtracking
  */
 typedef struct sect {

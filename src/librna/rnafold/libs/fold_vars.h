@@ -76,11 +76,6 @@ extern int  tetra_loop;
 extern int  energy_set;
 
 /**
- *  \brief backward compatibility variable.. this does not effect anything
- */
-extern int  circ;
-
-/**
  *  \brief generate comma seperated output
  */
 extern int  csv;

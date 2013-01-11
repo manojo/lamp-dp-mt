@@ -1,3 +1,6 @@
+#ifndef __pair_mat_H__
+#define __pair_mat_H__
+
 #include <ctype.h>
 #define NBASES 8
 /*@notnull@*/
@@ -143,3 +146,5 @@ static short *encode_sequence(const char *sequence, short how){
 
   return S;
 }
+
+#endif

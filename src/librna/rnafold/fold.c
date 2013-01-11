@@ -70,7 +70,6 @@ PRIVATE int     *DMLi1_a  = NULL;
 PRIVATE int     *DMLi1_o  = NULL;
 PRIVATE int     *DMLi2_a  = NULL;
 PRIVATE int     *DMLi2_o  = NULL;
-PRIVATE int     Fc, FcH, FcI, FcM;  /* parts of the exterior loop energies */
 PRIVATE sect    sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 PRIVATE char    *ptype = NULL;      /* precomputed array of pair types */
 PRIVATE short   *S = NULL, *S1 = NULL;
@@ -84,7 +83,6 @@ PRIVATE int     *BP = NULL; /* contains the structure constrainsts: BP[i]
                         positive int: base is paired with int      */
 PRIVATE short   *pair_table         = NULL; /* needed by energy of struct */
 PRIVATE bondT   *base_pair2         = NULL;
-PRIVATE int     circular            = 0;
 PRIVATE int     struct_constrained  = 0;
 
 /*
@@ -99,7 +97,6 @@ PRIVATE int   energy_of_ml_pt(int i, short *pt);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void  backtrack(const char *sequence, int s);
 PRIVATE int   fill_arrays(const char *sequence);
-PRIVATE void  fill_arrays_circ(const char *string, int *bt);
 PRIVATE void  init_fold(int length, paramT *parameters);
 /* needed by cofold/eval */
 PRIVATE int   cut_in_loop(int i);
@@ -152,8 +149,6 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi2_o = (int *) space(sizeof(int)*(size+1));
 
   base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
-  /* extra array(s) for circfold() */
-  if(circular) fM2 =  (int *) space(sizeof(int)*(size+2));
 }
 
 /*--------------------------------------------------------------------------*/
@@ -217,55 +212,11 @@ PUBLIC void export_fold_arrays_par( int **f5_p,
   *P_p = P;
 }
 
-PUBLIC void export_circfold_arrays( int *Fc_p,
-                                    int *FcH_p,
-                                    int *FcI_p,
-                                    int *FcM_p,
-                                    int **fM2_p,
-                                    int **f5_p,
-                                    int **c_p,
-                                    int **fML_p,
-                                    int **fM1_p,
-                                    int **indx_p,
-                                    char **ptype_p){
-  /* make the DP arrays available to routines such as subopt() */
-  *f5_p     = f5;
-  *c_p      = c;
-  *fML_p    = fML;
-  *fM1_p    = fM1;
-  *fM2_p    = fM2;
-  *Fc_p     = Fc;
-  *FcH_p    = FcH;
-  *FcI_p    = FcI;
-  *FcM_p    = FcM;
-  *indx_p   = indx;
-  *ptype_p  = ptype;
-}
-
-PUBLIC void export_circfold_arrays_par( int *Fc_p,
-                                    int *FcH_p,
-                                    int *FcI_p,
-                                    int *FcM_p,
-                                    int **fM2_p,
-                                    int **f5_p,
-                                    int **c_p,
-                                    int **fML_p,
-                                    int **fM1_p,
-                                    int **indx_p,
-                                    char **ptype_p,
-                                    paramT **P_p){
-  export_circfold_arrays(Fc_p, FcH_p, FcI_p, FcM_p, fM2_p, f5_p, c_p, fML_p, fM1_p, indx_p, ptype_p);
-  *P_p = P;
-}
 /*--------------------------------------------------------------------------*/
 
 
 PUBLIC float fold(const char *string, char *structure){
   return fold_par(string, structure, NULL, fold_constrained, 0);
-}
-
-PUBLIC float circfold(const char *string, char *structure){
-  return fold_par(string, structure, NULL, fold_constrained, 1);
 }
 
 PUBLIC float fold_par(const char *string,
@@ -279,7 +230,6 @@ PUBLIC float fold_par(const char *string,
   bonus               = 0;
   bonus_cnt           = 0;
   s                   = 0;
-  circular            = is_circular;
   struct_constrained  = is_constrained;
   length              = (int) strlen(string);
 
@@ -295,10 +245,6 @@ PUBLIC float fold_par(const char *string,
 
   energy = fill_arrays(string);
 
-  if(circular){
-    fill_arrays_circ(string, &s);
-    energy = Fc;
-  }
   backtrack(string, s);
 
 #ifdef PAREN
@@ -574,8 +520,8 @@ PRIVATE int fill_arrays(const char *string) {
                   break;
 #endif
         /* normal dangles, aka dangle_model = 1 || 3 */
-        default:  mm5 = ((i>1) || circular) ? S1[i] : -1;
-                  mm3 = ((j<length) || circular) ? S1[j] : -1;
+        default:  mm5 = ((i>1)) ? S1[i] : -1;
+                  mm3 = ((j<length)) ? S1[j] : -1;
                   new_fML = MIN2(new_fML, fML[ij+1] + P->MLbase);
                   new_fML = MIN2(new_fML, fML[indx[j-1]+i] + P->MLbase);
                   tt = ptype[ij+1];
@@ -766,8 +712,6 @@ PRIVATE int fill_arrays(const char *string) {
   }
   return f5[length];
 }
-
-#include "circfold.inc"
 
 /**
 *** trace back through the "c", "f5" and "fML" arrays to get the

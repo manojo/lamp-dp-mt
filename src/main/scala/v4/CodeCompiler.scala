@@ -12,7 +12,9 @@ trait ScalaCompiler {
     // Patch the classpath to add outPath
     val cl = this.getClass.getClassLoader
     val method=cl.getClass.getDeclaredMethod("addURL", classOf[java.net.URL]);
-    method.setAccessible(true); method.invoke(cl, new File(outPath).toURI.toURL);
+    method.setAccessible(true);
+    try { method.invoke(cl, new File(outPath).toURI.toURL); }
+    catch { case t:Throwable => sys.error("Unable to add outPath to classpath") }
     // Initialize compiler settings
     val settings = new Settings()
     settings.classpath.value = this.getClass.getClassLoader match {

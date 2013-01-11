@@ -10,7 +10,7 @@
 *** \brief RNAfold program source code
 ***
 *** This code provides an interface for MFE and Partition function folding
-*** of single linear or circular RNA molecules.
+*** of single linear RNA molecules.
 **/
 
 #include <stdio.h>
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
   int           i, length, l, cl, sym, istty, pf, noPS, noconv, fasta;
   unsigned int  rec_type, read_opt;
   double        energy, min_en, kT, sfact;
-  int           circular, lucky;
+  int           lucky;
   double        bppmThreshold, betaScale;
   pf_paramT       *pf_parameters;
   model_detailsT  md;
@@ -50,7 +50,6 @@ int main(int argc, char *argv[]){
   sfact         = 1.07;
   noPS          = 0;
   noconv        = 0;
-  circular      = 0;
   fasta         = 0;
   cl            = l = length = 0;
   dangles       = 2;
@@ -69,9 +68,6 @@ int main(int argc, char *argv[]){
   if (argc>1) ParamFile=argv[1];
   if (ParamFile != NULL) read_parameter_file(ParamFile);
   // printf("%s\n",option_string());
-
-  if (circular && noLonelyPairs)
-    warn_user("depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times");
 
   if (ns_bases != NULL) {
     nonstandards = space(33);
@@ -159,7 +155,7 @@ int main(int argc, char *argv[]){
     # begin actual computations
     ########################################################
     */
-    min_en = (circular) ? circfold(rec_sequence, structure) : fold(rec_sequence, structure);
+    min_en = fold(rec_sequence, structure);
 
     if(!lucky){
       printf("%s\n%s", orig_sequence, structure);
@@ -180,7 +176,7 @@ int main(int argc, char *argv[]){
       char *pf_struc = (char *) space((unsigned) length+1);
       if (md.dangles==1) {
           md.dangles=2;   /* recompute with dangles as in pf_fold() */
-          min_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
+          min_en = energy_of_structure(rec_sequence, structure, 0);
           md.dangles=1;
       }
 
@@ -193,12 +189,12 @@ int main(int argc, char *argv[]){
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
       pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
-      energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, circular);
+      energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, 0);
 
       if(lucky){
         init_rand();
-        char *s = (circular) ? pbacktrack_circ(rec_sequence) : pbacktrack(rec_sequence);
-        min_en = (circular) ? energy_of_circ_structure(rec_sequence, s, 0) : energy_of_structure(rec_sequence, s, 0);
+        char *s = pbacktrack(rec_sequence);
+        min_en = energy_of_structure(rec_sequence, s, 0);
         printf("%s\n%s", orig_sequence, s);
         if (istty)
           printf("\n free energy = %6.2f kcal/mol\n", min_en);
@@ -211,9 +207,7 @@ int main(int argc, char *argv[]){
         } else strcpy(ffname, "rna.ps");
 
         free(s);
-      }
-      else{
-
+      } else {
         if (do_backtrack) {
           printf("%s", pf_struc);
           if (!istty) printf(" [%6.2f]\n", energy);
@@ -232,7 +226,7 @@ int main(int argc, char *argv[]){
           assign_plist_from_db(&pl2, structure, 0.95*0.95);
           /* cent = centroid(length, &dist); <- NOT THREADSAFE */
           cent = get_centroid_struct_pr(length, &dist, probs);
-          cent_en = (circular) ? energy_of_circ_structure(rec_sequence, cent, 0) :energy_of_structure(rec_sequence, cent, 0);
+          cent_en = energy_of_structure(rec_sequence, cent, 0);
           printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
           free(cent);
           if (fname[0]!='\0') {

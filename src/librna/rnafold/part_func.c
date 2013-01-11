@@ -37,11 +37,9 @@ PRIVATE FLT_OR_DBL  *q=NULL, *qb=NULL, *qm=NULL, *qm1=NULL, *qqm=NULL, *qqm1=NUL
 PRIVATE FLT_OR_DBL  *probs=NULL, *prml=NULL, *prm_l=NULL, *prm_l1=NULL, *q1k=NULL, *qln=NULL;
 PRIVATE FLT_OR_DBL  *scale=NULL;
 PRIVATE FLT_OR_DBL  *expMLbase=NULL;
-PRIVATE FLT_OR_DBL  qo=0., qho=0., qio=0., qmo=0., *qm2=NULL;
 PRIVATE int         *jindx=NULL;
 PRIVATE int         *my_iindx=NULL;
 PRIVATE int         init_length = -1;   /* length in last call to init_pf_fold() */
-PRIVATE int         circular=0;
 PRIVATE int         do_bppm = 1;             /* do backtracking per default */
 PRIVATE int         struct_constrained = 0;
 PRIVATE char        *pstruc=NULL;
@@ -59,13 +57,11 @@ PRIVATE void  init_partfunc(int length, pf_paramT *parameters);
 PRIVATE void  scale_pf_params(unsigned int length, pf_paramT *parameters);
 PRIVATE void  get_arrays(unsigned int length);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
-PRIVATE void  pf_circ(const char *sequence, char *structure);
 PRIVATE void  pf_linear(const char *sequence, char *structure);
 PRIVATE void  pf_create_bppm(const char *sequence, char *structure);
 PRIVATE void  backtrack(int i, int j);
 PRIVATE void  backtrack_qm(int i, int j);
 PRIVATE void  backtrack_qm1(int i,int j);
-PRIVATE void  backtrack_qm2(int u, int n);
 
 /*
 #################################
@@ -103,8 +99,7 @@ PRIVATE void get_arrays(unsigned int length){
   q     = (FLT_OR_DBL *) space(size);
   qb    = (FLT_OR_DBL *) space(size);
   qm    = (FLT_OR_DBL *) space(size);
-  qm1   = (st_back || circular) ? (FLT_OR_DBL *) space(size) : NULL;
-  qm2   = (circular) ? (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2)) : NULL;
+  qm1   = (st_back) ? (FLT_OR_DBL *) space(size) : NULL;
   probs = (do_bppm) ? (FLT_OR_DBL *) space(size) : NULL;
 
   ptype     = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
@@ -133,7 +128,6 @@ PUBLIC void free_pf_arrays(void){
   if(qb)        free(qb);
   if(qm)        free(qm);
   if(qm1)       free(qm1);
-  if(qm2)       free(qm2);
   if(ptype)     free(ptype);
   if(qq)        free(qq);
   if(qq1)       free(qq1);
@@ -154,7 +148,7 @@ PUBLIC void free_pf_arrays(void){
   if(S1)        free(S1);
 
   S = S1 = NULL;
-  q = pr = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
+  q = pr = probs = qb = qm = qm1 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
   my_iindx = jindx = iindx = NULL;
   ptype = NULL;
 
@@ -174,10 +168,6 @@ PUBLIC float pf_fold(const char *sequence, char *structure){
   return pf_fold_par(sequence, structure, NULL, do_backtrack, fold_constrained, 0);
 }
 
-PUBLIC float pf_circ_fold(const char *sequence, char *structure){
-  return pf_fold_par(sequence, structure, NULL, do_backtrack, fold_constrained, 1);
-}
-
 PUBLIC float pf_fold_par( const char *sequence,
                           char *structure,
                           pf_paramT *parameters,
@@ -189,7 +179,6 @@ PUBLIC float pf_fold_par( const char *sequence,
   double      free_energy;
   int         n = (int) strlen(sequence);
 
-  circular            = is_circular;
   do_bppm             = calculate_bppm;
   struct_constrained  = is_constrained;
 
@@ -205,12 +194,9 @@ PUBLIC float pf_fold_par( const char *sequence,
   /* do the linear pf fold and fill all matrices  */
   pf_linear(sequence, structure);
 
-  if(circular)
-    pf_circ(sequence, structure); /* do post processing step for circular RNAs */
-
   if (backtrack_type=='C')      Q = qb[my_iindx[1]-n];
   else if (backtrack_type=='M') Q = qm[my_iindx[1]-n];
-  else Q = (circular) ? qo : q[my_iindx[1]-n];
+  else Q = q[my_iindx[1]-n];
 
   /* ensemble free energy in Kcal/mol              */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
@@ -310,7 +296,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
          from segment i,j */
       qqm[i] = qqm1[i]*expMLbase[1];
       if (type) {
-        qbt1 = qb[ij] * exp_E_MLstem(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
+        qbt1 = qb[ij] * exp_E_MLstem(type, ((i>1)) ? S1[i-1] : -1, ((j<n)) ? S1[j+1] : -1, pf_params);
         qqm[i] += qbt1;
       }
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking and circfold */
@@ -325,7 +311,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
       /*auxiliary matrix qq for cubic order q calculation below */
       qbt1 = qb[ij];
       if(type)
-        qbt1 *= exp_E_ExtLoop(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
+        qbt1 *= exp_E_ExtLoop(type, ((i>1)) ? S1[i-1] : -1, ((j<n)) ? S1[j+1] : -1, pf_params);
 
       qq[i] = qq1[i]*scale[1] + qbt1;
 
@@ -350,86 +336,12 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
   }
 }
 
-/* calculate partition function for circular case */
-/* NOTE: this is the postprocessing step ONLY     */
-/* You have to call pf_linear first to calculate  */
-/* complete circular case!!!                      */
-PRIVATE void pf_circ(const char *sequence, char *structure){
-
-  int u, p, q, k, l;
-  int noGUclosure;
-  int n = (int) strlen(sequence);
-
-  FLT_OR_DBL  qot;
-  FLT_OR_DBL  expMLclosing  = pf_params->expMLclosing;
-
-  noGUclosure = pf_params->model_details.noGUclosure;
-  qo = qho = qio = qmo = 0.;
-
-  /* construct qm2 matrix from qm1 entries  */
-  for(k=1; k<n-TURN-1; k++){
-    qot = 0.;
-    for (u=k+TURN+1; u<n-TURN-1; u++)
-      qot += qm1[jindx[u]+k]*qm1[jindx[n]+(u+1)];
-    qm2[k] = qot;
-   }
-
-  for(p = 1; p < n; p++){
-    for(q = p + TURN + 1; q <= n; q++){
-      int type;
-      /* 1. get exterior hairpin contribution  */
-      u = n-q + p-1;
-      if (u<TURN) continue;
-      type = ptype[my_iindx[p]-q];
-      if (!type) continue;
-       /* cause we want to calc the exterior loops, we need the reversed pair type from now on  */
-      type=rtype[type];
-
-      char loopseq[10];
-      if (u<7){
-        strcpy(loopseq , sequence+q-1);
-        strncat(loopseq, sequence, p);
-      }
-      qho += (((type==3)||(type==4))&&noGUclosure) ? 0. : qb[my_iindx[p]-q] * exp_E_Hairpin(u, type, S1[q+1], S1[p-1],  loopseq, pf_params) * scale[u];
-
-      /* 2. exterior interior loops, i "define" the (k,l) pair as "outer pair"  */
-      /* so "outer type" is rtype[type[k,l]] and inner type is type[p,q]        */
-      qot = 0.;
-      for(k=q+1; k < n; k++){
-        int ln1, lstart;
-        ln1 = k - q - 1;
-        if(ln1+p-1>MAXLOOP) break;
-        lstart = ln1+p-1+n-MAXLOOP;
-        if(lstart<k+TURN+1) lstart = k + TURN + 1;
-        for(l=lstart;l <= n; l++){
-          int ln2, type2;
-          ln2 = (p - 1) + (n - l);
-
-          if((ln1+ln2) > MAXLOOP) continue;
-
-          type2 = ptype[my_iindx[k]-l];
-          if(!type2) continue;
-          qio += qb[my_iindx[p]-q] * qb[my_iindx[k]-l] * exp_E_IntLoop(ln2, ln1, rtype[type2], type, S1[l+1], S1[k-1], S1[p-1], S1[q+1], pf_params) * scale[ln1+ln2];
-        }
-      } /* end of kl double loop */
-    }
-  } /* end of pq double loop */
-
-  /* 3. Multiloops  */
-  for(k=TURN+2; k<n-2*TURN-3; k++)
-    qmo += qm[my_iindx[1]-k] * qm2[k+1] * expMLclosing;
-
-  /* add an additional pf of 1.0 to take the open chain into account too           */
-  qo = qho + qio + qmo + 1.0*scale[n];
-}
-
 /* calculate base pairing probs */
 PUBLIC void pf_create_bppm(const char *sequence, char *structure){
   int n, i,j,k,l, ij, kl, ii,ll, type, type_2, tt, ov=0;
   FLT_OR_DBL  temp, Qmax=0, prm_MLb;
   FLT_OR_DBL  prmt,prmt1;
   FLT_OR_DBL  *tmp;
-  FLT_OR_DBL  tmp2;
   FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
   double      max_real;
 
@@ -450,83 +362,6 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
 
     /* 1. exterior pair i,j and initialization of pr array */
-    if(circular){
-      for (i=1; i<=n; i++) {
-        for (j=i; j<=MIN2(i+TURN,n); j++)
-          probs[my_iindx[i]-j] = 0;
-        for (j=i+TURN+1; j<=n; j++) {
-          ij = my_iindx[i]-j;
-          type = ptype[ij];
-          if (type&&(qb[ij]>0.)) {
-            probs[ij] = 1./qo;
-            int rt = rtype[type];
-
-            /* 1.1. Exterior Hairpin Contribution */
-            int u = i + n - j -1;
-            /* get the loop sequence */
-            char loopseq[10];
-            if (u<7){
-              strcpy(loopseq , sequence+j-1);
-              strncat(loopseq, sequence, i);
-            }
-            tmp2 = exp_E_Hairpin(u, rt, S1[j+1], S1[i-1], loopseq, pf_params) * scale[u];
-
-            /* 1.2. Exterior Interior Loop Contribution                    */
-            /* 1.2.1. i,j  delimtis the "left" part of the interior loop    */
-            /* (j,i) is "outer pair"                                                */
-            for(k=1; k < i-TURN-1; k++){
-              int ln1, lstart;
-              ln1 = k + n - j - 1;
-              if(ln1>MAXLOOP) break;
-              lstart = ln1+i-1-MAXLOOP;
-              if(lstart<k+TURN+1) lstart = k + TURN + 1;
-              for(l=lstart; l < i; l++){
-                int ln2, type_2;
-                type_2 = ptype[my_iindx[k]-l];
-                if (type_2==0) continue;
-                ln2 = i - l - 1;
-                if(ln1+ln2>MAXLOOP) continue;
-                tmp2 += qb[my_iindx[k] - l]*exp_E_IntLoop(ln1, ln2, rt, rtype[type_2], S1[j+1], S1[i-1], S1[k-1], S1[l+1], pf_params) * scale[ln1 + ln2];
-              }
-            }
-            /* 1.2.2. i,j  delimtis the "right" part of the interior loop  */
-            for(k=j+1; k < n-TURN; k++){
-              int ln1, lstart;
-              ln1 = k - j - 1;
-              if((ln1 + i - 1)>MAXLOOP) break;
-              lstart = ln1+i-1+n-MAXLOOP;
-              if(lstart<k+TURN+1) lstart = k + TURN + 1;
-              for(l=lstart; l <= n; l++){
-                int ln2, type_2;
-                type_2 = ptype[my_iindx[k]-l];
-                if (type_2==0) continue;
-                ln2 = i - 1 + n - l;
-                if(ln1+ln2>MAXLOOP) continue;
-                tmp2 += qb[my_iindx[k] - l]*exp_E_IntLoop(ln2, ln1, rtype[type_2], rt, S1[l+1], S1[k-1], S1[i-1], S1[j+1], pf_params) * scale[ln1 + ln2];
-              }
-            }
-            /* 1.3 Exterior multiloop decomposition */
-            /* 1.3.1 Middle part                    */
-            if((i>TURN+2) && (j<n-TURN-1))
-              tmp2 += qm[my_iindx[1]-i+1] * qm[my_iindx[j+1]-n] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
-
-            /* 1.3.2 Left part                      */
-            for(k=TURN+2; k < i-TURN-2; k++)
-              tmp2 += qm[my_iindx[1]-k] * qm1[jindx[i-1]+k+1] * expMLbase[n-j] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
-
-            /* 1.3.3 Right part                      */
-            for(k=j+TURN+2; k < n-TURN-1;k++)
-              tmp2 += qm[my_iindx[j+1]-k] * qm1[jindx[n]+k+1] * expMLbase[i-1] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
-
-            /* all exterior loop decompositions for pair i,j done  */
-            probs[ij] *= tmp2;
-
-          }
-          else probs[ij] = 0;
-        }
-      }
-    } /* end if(circular)  */
-    else {
       for (i=1; i<=n; i++) {
         for (j=i; j<=MIN2(i+TURN,n); j++) probs[my_iindx[i]-j] = 0;
         for (j=i+TURN+1; j<=n; j++) {
@@ -539,7 +374,6 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
             probs[ij] = 0;
         }
       }
-    } /* end if(!circular)  */
 
     for (l=n; l>TURN+1; l--) {
 
@@ -792,90 +626,6 @@ char *pbacktrack(char *seq){
 
   return pstruc;
 }
-char *pbacktrack_circ(char *seq){
-  double r, qt;
-  int i, j, k, l, n;
-  FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
-
-  sequence = seq;
-  n = strlen(sequence);
-
-  if (init_length<1)
-    nrerror("can't backtrack without pf arrays.\n"
-      "Call pf_circ_fold() before pbacktrack_circ()");
-  pstruc = space((n+1)*sizeof(char));
-
-  /* initialize pstruct with single bases  */
-  for (i=0; i<n; i++) pstruc[i] = '.';
-
-  qt = 1.0*scale[n];
-  r = urn() * qo;
-
-  /* open chain? */
-  if(qt > r) return pstruc;
-
-  for(i=1; (i < n); i++){
-    for(j=i+TURN+1;(j<=n); j++){
-
-      int type, u;
-      /* 1. first check, wether we can do a hairpin loop  */
-      u = n-j + i-1;
-      if (u<TURN) continue;
-
-      type = ptype[my_iindx[i]-j];
-      if (!type) continue;
-
-      type=rtype[type];
-
-      char loopseq[10];
-      if (u<7){
-        strcpy(loopseq , sequence+j-1);
-        strncat(loopseq, sequence, i);
-      }
-
-      qt += qb[my_iindx[i]-j] * exp_E_Hairpin(u, type, S1[j+1], S1[i-1],  loopseq, pf_params) * scale[u];
-      /* found a hairpin? so backtrack in the enclosed part and we're done  */
-      if(qt>r){ backtrack(i,j); return pstruc;}
-
-      /* 2. search for (k,l) with which we can close an interior loop  */
-      for(k=j+1; (k < n); k++){
-        int ln1, lstart;
-        ln1 = k - j - 1;
-        if(ln1+i-1>MAXLOOP) break;
-
-        lstart = ln1+i-1+n-MAXLOOP;
-        if(lstart<k+TURN+1) lstart = k + TURN + 1;
-        for(l=lstart; (l <= n); l++){
-            int ln2, type2;
-            ln2 = (i - 1) + (n - l);
-            if((ln1+ln2) > MAXLOOP) continue;
-
-            type2 = ptype[my_iindx[k]-l];
-            if(!type) continue;
-            type2 = rtype[type2];
-            qt += qb[my_iindx[i]-j] * qb[my_iindx[k]-l] * exp_E_IntLoop(ln2, ln1, type2, type, S1[l+1], S1[k-1], S1[i-1], S1[j+1], pf_params) * scale[ln1 + ln2];
-            /* found an exterior interior loop? also this time, we can go straight  */
-            /* forward and backtracking the both enclosed parts and we're done      */
-            if(qt>r){ backtrack(i,j); backtrack(k,l); return pstruc;}
-        }
-      } /* end of kl double loop */
-    }
-  } /* end of ij double loop  */
-  {
-    /* as we reach this part, we have to search for our barrier between qm and qm2  */
-    qt = 0.;
-    r = urn()*qmo;
-    for(k=TURN+2; k<n-2*TURN-3; k++){
-      qt += qm[my_iindx[1]-k] * qm2[k+1] * expMLclosing;
-      /* backtrack in qm and qm2 if we've found a valid barrier k  */
-      if(qt>r){ backtrack_qm(1,k); backtrack_qm2(k+1,n); return pstruc;}
-    }
-  }
-  /* if we reach the actual end of this function, an error has occured  */
-  /* cause we HAVE TO find an exterior loop or an open chain!!!         */
-  nrerror("backtracking failed in exterior loop");
-  return pstruc;
-}
 
 PRIVATE void backtrack_qm(int i, int j){
   /* divide multiloop into qm and qm1  */
@@ -915,20 +665,6 @@ PRIVATE void backtrack_qm1(int i,int j){
   }
   if (l>j) nrerror("backtrack failed in qm1");
   backtrack(i,l);
-}
-
-PRIVATE void backtrack_qm2(int k, int n){
-  double qom2t, r;
-  int u;
-  r= urn()*qm2[k];
-  /* we have to search for our barrier u between qm1 and qm1  */
-  for (qom2t = 0.,u=k+TURN+1; u<n-TURN-1; u++){
-    qom2t += qm1[jindx[u]+k]*qm1[jindx[n]+(u+1)];
-    if(qom2t > r) break;
-  }
-  if(u==n-TURN) nrerror("backtrack failed in qm2");
-  backtrack_qm1(k,u);
-  backtrack_qm1(u+1,n);
 }
 
 PRIVATE void backtrack(int i, int j){

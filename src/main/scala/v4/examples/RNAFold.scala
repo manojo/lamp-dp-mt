@@ -11,7 +11,7 @@ trait RNAFoldSig extends Signature {
   type Alphabet = Char
 
   def Eh(i:Int,j:Int) = LibRNA.hl_energy(i,j) // hairpin loop
-  def Ei(i:Int,k:Int,l:Int,j:Int) = LibRNA.il_energy(i,k,l,j) // internal loop XXX isn't it i-j __enclosing__ basepair and k-l inner basepair
+  def Ei(i:Int,k:Int,l:Int,j:Int) = LibRNA.il_energy(i,k,l,j) // internal loop
   def Es(i:Int,j:Int) = LibRNA.sr_energy(i,j) // 2 stacked base pairs
 
   def hairpin(ij:(Int,Int)):Answer
@@ -40,7 +40,7 @@ trait RNAFoldPrettyPrint extends RNAFoldSig {
   private def dots(n:Int,c:Char='.') = (0 until n).map{_=>c}.mkString
   def hairpin(ij:(Int,Int)) = "("+dots(ij._2-ij._1-2)+")"
   def stack(i:Int,s:String,j:Int) = "("+s+")"
-  def iloop(ik:(Int,Int),s:String,lj:(Int,Int)) = "("+dots(ik._2-ik._1-1)+s+dots(lj._2-lj._1-1)+")"
+  def iloop(ik:(Int,Int),s:String,lj:(Int,Int)) = "("+dots(ik._2-1-ik._1)+s+dots(lj._2-1-lj._1)+")"
   def mloop(i:Int,s:String,j:Int) = "("+s+")"
   def left(l:String,r:Int) = l+"."
   def right(l:Int,r:String) = "."+r
