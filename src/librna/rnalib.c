@@ -855,7 +855,7 @@ int dl_dangle_dg(enum base_t dangle, enum base_t i, enum base_t j) {
 */
 int dr_dangle_dg(enum base_t i, enum base_t j, enum base_t dangle) {
   int closingBP = bp_index(i, j);
-  return P->dangle3[closingBP][dangle];
+  //return P->dangle3[closingBP][dangle];
   int dd = P->dangle3[closingBP][dangle];
   return (dd>0) ? 0 : dd;  /* must be <= 0 */
 }

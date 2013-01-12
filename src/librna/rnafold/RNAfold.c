@@ -1,18 +1,4 @@
-/* Last changed Time-stamp: <2007-12-05 13:55:42 ronny> */
-/*
-                  Ineractive Access to folding Routines
-
-                  c Ivo L Hofacker
-                  Vienna RNA package
-*/
-
-/** \file
-*** \brief RNAfold program source code
-***
-*** This code provides an interface for MFE and Partition function folding
-*** of single linear RNA molecules.
-**/
-
+/* Interface for MFE and Partition function folding of single linear RNA molecules. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

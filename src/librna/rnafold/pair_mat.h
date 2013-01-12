@@ -46,8 +46,7 @@ static int encode_char(char c) {
 /*@null@*/
 extern char *nonstandards;
 extern void nrerror(const char message[]);
-static void make_pair_matrix(void)
-{
+static void make_pair_matrix(void) {
    int i,j;
 
    if (energy_set==0) {
@@ -65,15 +64,9 @@ static void make_pair_matrix(void)
             pair[encode_char(nonstandards[i])]
               [encode_char(nonstandards[i+1])]=7;
       }
-      for (i=0; i<NBASES; i++) {
-          for (j=0; j<NBASES; j++)
-           rtype[pair[i][j]] = pair[j][i];
-      }
+      for (i=0; i<NBASES; i++) for (j=0; j<NBASES; j++) rtype[pair[i][j]] = pair[j][i];
    } else {
-      for (i=0; i<=MAXALPHA; i++) {
-         for (j=0; j<=MAXALPHA; j++)
-            pair[i][j] = 0;
-      }
+      for (i=0; i<=MAXALPHA; i++) for (j=0; j<=MAXALPHA; j++) pair[i][j] = 0;
       if (energy_set==1) {
          for (i=1; i<MAXALPHA;) {
             alias[i++] = 3;  /* A <-> G */
@@ -84,8 +77,7 @@ static void make_pair_matrix(void)
             i++;
             pair[i][i-1] = 1;    /* BA <-> CG */
          }
-      }
-      else if (energy_set==2) {
+      } else if (energy_set==2) {
         for (i=1; i<MAXALPHA;) {
             alias[i++] = 1;  /* A <-> A*/
             alias[i++] = 4;  /* B <-> U */
@@ -104,19 +96,14 @@ static void make_pair_matrix(void)
           alias[i++] = 4;  /* D <-> U */
         }
         for (i=1; i<MAXALPHA-2; i++) {
-          pair[i][i+1] = 2;    /* AB <-> GC */
-          i++;
-          pair[i][i-1] = 1;    /* BA <-> CG */
-          i++;
-          pair[i][i+1] = 5;    /* CD <-> AU */
-          i++;
-          pair[i][i-1] = 6;    /* DC <-> UA */
+          pair[i][i+1] = 2; i++;    /* AB <-> GC */
+          pair[i][i-1] = 1; i++;    /* BA <-> CG */
+          pair[i][i+1] = 5; i++;    /* CD <-> AU */
+          pair[i][i-1] = 6;         /* DC <-> UA */
         }
-      }
-      else nrerror("What energy_set are YOU using??");
+      } else nrerror("What energy_set are YOU using??");
       for (i=0; i<=MAXALPHA; i++) {
-        for (j=0; j<=MAXALPHA; j++)
-          rtype[pair[i][j]] = pair[j][i];
+        for (j=0; j<=MAXALPHA; j++) rtype[pair[i][j]] = pair[j][i];
       }
    }
 }
