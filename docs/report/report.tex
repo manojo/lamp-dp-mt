@@ -7,37 +7,6 @@
 \subtitle{A Scala DSL for Dynamic Programming on CPU and GPU}
 \begin{document}
 \maketitle
-%\shorttitle
-
-% Paper introduction:
-% Problem to solve, what exists (related work) and how do we compare to other
-% Contributions (3): 3 tensed sentences
-% Benchmarks => evaluation metrics, prove introduction statements by evaluation
-\subsection*{Abstract}
-Dynamic programming is a common pattern of Computer Science used in various domains. Yet underlying matrix recurrences might be difficult to express and error prone. Additionally, domain experts might not have the skills to make an efficient parallel implementation. In this project, we present \textit{DynaProg}, a Scala DSL for dynamic programming on heterogeneous platforms which allow to write concise programs and execute them efficiently on GPUs.
-
-Related work is a DSL embedded in Haskell \cite{adp} with possible conversion to CUDA code \cite{adp_gpu}, a compiler for a dynamic programming-specific language written in C \cite{gapc_thesis} or ad-hoc CUDA implementations for specific problem classes \cite{swat_mega}, \cite{gpu_atlp}.
-% XXX: How we compare to other, how to evaluate
-% Benchmark => prove by evaluation intro statements
-
-Our contributions are: \ul
-%\item A classification of DP problems characteristics (matrix shape, dependency graph, ...)
-\item A systematic approach to process data (top-down/bottom-up) and backtracking information (focus on running time and memory efficiency)
-\item A language embedded in Scala (DSL) to express DP problems concisely (based on ADP)
-\item Two implementations: Scala for CPU (features) and an CUDA for GPU (efficiency)
-%\item Reuse of existing compiler technology (fusion) for a specific purpose
-%\item State of the art parallel implementation of these classes on GPUs
-%\item Normalization of the grammar into efficient productions
-%\item Code generator to transform a grammar into efficient code for CPU, GPU (and FPGA)
-\ule
-
-\vfill
-This project has been achieved in collaboration with Manohar Jonnalagedda. I also would like to thank the LAMP team, including Eugene Burmako, Sandro Stucki, Vojin Jovanovic and Tiark Rompf who provided insightful advices and suggestions. I hope you will enjoy your reading. \vspace{.3cm}\\
-\textit{Thierry Coppey}
-
-\newpage
-\setcounter{tocdepth}{2} \tableofcontents
-
 \input{introduction}
 \input{problems}
 \input{design}

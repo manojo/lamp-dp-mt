@@ -1,6 +1,71 @@
+
+
+% abstract = resume the paper
+% introduction
+% 
+
+
+% Paper introduction:
+% Problem to solve, what exists (related work) and how do we compare to other
+% Contributions (3): 3 tensed sentences
+% Benchmarks => evaluation metrics, prove introduction statements by evaluation
+\subsection*{Abstract}
+Dynamic programming is a common pattern of Computer Science; yet underlying matrix recurrences might be difficult to express, error prone and efficient parallel implementation might be difficult. In this project, we present \textit{DynaProg}, a Scala DSL for dynamic programming on heterogeneous platforms which allow to write concise programs based on a pair of parsing grammar and algebra and execute them either on CPU or on GPU.
+
+We then evaluate the performance of both CPU and GPU implementations against existing work and ad-hoc implementations of our own. Experimental results show a average speedup of {\color{red} XXX} if run on GPU (compared to CPU), {\color{red} is comparable to GAPC?} on CPU and has a slowdown of {\color{red} XXX} versus ad-hoc problem implementations on GPU {\color{red} (ours, cudalign, rnafold?)}.
+
+\vfill
+This project has been achieved in collaboration with Manohar Jonnalagedda. I also would like to thank the LAMP team, including Eugene Burmako, Sandro Stucki, Vojin Jovanovic and Tiark Rompf who provided insightful advices and suggestions. I hope you will enjoy your reading. \vspace{.3cm}\\
+\textit{Thierry Coppey}
+
+% ------------------------------------------------------------------------------------------------
+\newpage
+\setcounter{tocdepth}{2} \tableofcontents
 \newpage
 \section{Introduction}
+\textbf{Difficulties with dynamic programming:} Dynamic programming (DP) is a technique used to solve combinatorial optimization problems. Often, it allows to evaluate a search space of exponential size in polynomial time. Variations of the basic algorithm not only return an optimal solution, but may also report co- or near-optimal solutions, or compute synthetic properties of the search space such as its size or the sum of all scores.
+
+In several areas of applied Computer Science, such as operational research, natural language processing, or biosequence analysis, dynamic programming problems arise in many variations and with a considerable degree of sophistication. Hence there is a mismatch between the simple textbook algorithms and the real-world implementation of their variants. Writing correct recurrences is difficult and error prone because it needs a lot of attention to get correct indices, and implementation debugging is tedious. Additionally, little changes in the computational process might imply large rewrites of the matrices and recurrences.
+
+For efficiency reasons, the computation is split in two: a matrix elements computation followed by a backtracking stage to retrieve the solution associated with the optimal score. The backtrack information gathering depends on the matrix design and the final result needs also to be presented in a form that makes sense for the user. This might add an additional source of errors and tedious change, would the initial recurrence be changed.
+
+Finally, once the implementation is correct, it is possible to turn it into efficient code for many core architectures such as multi-CPU, GPU or implementation on programmable hardware (FPGA). However, the domain specialist who write the recurrences might not be very familiar with these platforms, whereas parallelization experts might not deeply understand the domain of the dynamic programming recurrences.
+
+\textbf{Separating concerns:} Algebraic Dynamic Programming (ADP) \cite{adp} is a language-independent declarative approach that separate the concerns of dynamic programming algorithms over data sequences:\ul
+\item Search space definition (using a tree parsing grammar)
+\item Candidates scoring and optimization objective (with mapping and aggregation functions)
+\item Tabulation of the result in matrices (determines running time and space efficiency)
+\ule
+
+By the use of a parsing grammar, ADP makes the invisible candidate structure explicit. An additional signature serves as interface between the grammar and the scoring algebra and aggregation function, which makes possible that different grammars share different algebra or vice versa. Tabulation issues are hidden from the programmer, thus there are no subscripts any more hereby removing this source of errors.
+
+Finally, since the expression of the dynamic program is formalized, it makes it possible to convert it to efficient recurrences to target many-core platforms such as GPUs.
+
+\textbf{DynaProg system:} DynaProg implements ADP with a syntax matching that of the Scala parsers.
+
+{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ 
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+
+
+
+
+
+% XXX: How we compare to other, how to evaluate
+% Benchmark => prove by evaluation intro statements
+
+Our contributions are: \ul
+\item A classification of DP problems characteristics (matrix shape, dependency graph, ...)
+\item A systematic approach to process data (top-down/bottom-up) and backtracking information (focus on running time and memory efficiency)
+\item A language embedded in Scala (DSL) to express DP problems concisely (based on ADP)
+\item Two implementations: Scala for CPU (features) and an CUDA for GPU (efficiency)
+%\item Reuse of existing compiler technology (fusion) for a specific purpose
+%\item State of the art parallel implementation of these classes on GPUs
+%\item Normalization of the grammar into efficient productions
+%\item Code generator to transform a grammar into efficient code for CPU, GPU (and FPGA)
+\ule
+
 % ------------------------------------------------------------------------------------------------
+\section{Background}
 \subsection{Dynamic programming}
 Dynamic programming consists of solving a problem by reusing subproblems solutions. A famous example of dynamic programming is the Fibonacci series that is defined by the recurrence
 \[F(n+1) = F(n)+F(n-1) \qquad \text{ with } F(0)=F(1)=1 \]
@@ -23,8 +88,7 @@ Taking real-world examples, the average input size for sequence alignment is aro
 
 % ------------------------------------------------------------------------------------------------
 \newpage
-\subsection{Scala and LMS}
-\subsubsection{Scala}
+\subsection{Scala}
 \textit{<<Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way. It smoothly integrates features of object-oriented and functional languages, enabling programmers to be more productive. Many companies depending on Java for business critical applications are turning to Scala to boost their development productivity, applications scalability and overall reliability.>>}\footnote{\url{http://www.scala-lang.org}}
 
 As the Scala \cite{scala} programming language is initially developed by the LAMP, it seems natural to use it as host language for our project, however, we would list some of its features \cite{scala_api} that makes it an interesting development language for this project:\ul
@@ -33,7 +97,8 @@ As the Scala \cite{scala} programming language is initially developed by the LAM
 \item Finally, through the Java VM and JNI interface, Scala offers the possibility to load dynamically external libraries, to leverage best underlying hardware by mixing with CUDA kernels to obtain optimal performance.
 \ule
 
-\subsubsection{Lightweight Modular Staging}
+% ------------------------------------------------------------------------------------------------
+\subsection{Lightweight Modular Staging}
 Lightweight Modular Staging (LMS) \cite{lms}, \cite{lms_thesis} is a runtime code generation built on top of Scala virtualized \cite{scala_virtualized} that uses types to distinguish between binding time (compilation and runtime) for code compilation. This framework has been extended to generate from the same source code efficient implementation for heterogeneous platforms at runtime (Delite) \cite{lms2}, \cite{lms3}, \cite{delite}.
 
  Through extensive use of component technology, lightweight modular staging makes an optimizing compiler framework available at the library level, allowing programmers to tightly integrate domain-specific abstractions and optimizations into the generation process.
