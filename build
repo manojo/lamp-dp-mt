@@ -1,6 +1,6 @@
 #!/bin/sh
 cd `dirname $0`
-if [ "$OSTYPE" = "darwin" ]; then md5_hash() { md5 -s $@; };
+if [ "$OSTYPE" = "darwin" ]; then md5_hash() { md5 -q $@; };
 else md5_hash() { md5sum $@; }; fi
 
 #YJP="/Applications/Tools/YourKit Java Profiler.app/bin/mac/libyjpagent.jnilib"

@@ -6,7 +6,7 @@
 JAVA_INC="-I$JAVA_HOME/include -I$JAVA_HOME/include/linux"
 if [ "$OSTYPE" = "darwin" ]; then
   JAVA_INC="$JAVA_INC -I/System/Library/Frameworks/JavaVM.framework/Headers"
-  md5_hash() { md5 -q -s $@; }
+  md5_hash() { md5 -q $@; }
 else
   md5_hash() { md5sum $@; }
 fi
@@ -17,7 +17,7 @@ cd `dirname $0`;
 
 name="libRNA.jnilib"
 md5_hash *.[ch] vienna/*.[ch] > "$out/$name.tmp"
-if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f "$out/$name" ] ; then
+if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f "$out/$name" ]; then
 	echo "[info] $name up to date."; rm "$out/$name.tmp"; exit;
 fi
 

@@ -30,7 +30,7 @@ _ifun(dl_1energy)(_p0, jint, jint);
 _ifun(dr_1energy)(_p0, jint, jint, jint);
 _ifun(dli_1energy)(_p0, jint, jint);
 _ifun(dri_1energy)(_p0, jint, jint);
-_ifun(ext_1mismatch_1energy)(_p0, jint, jint, jint);
+_ifun(ext_1mismatch_1energy)(_p0, jint, jint);
 _ifun(ml_1mismatch_1energy)(_p0, jint, jint);
 _ifun(ml_1energy)(_p0);
 _ifun(ul_1energy)(_p0);
@@ -43,6 +43,7 @@ _ifun(dr_dangle_dg)(_p0, jbyte, jbyte, jbyte);
 #endif
 
 static char* seq=NULL; // the sequence converted in 0-5 internal Vienna format
+static size_t len=0;
 
 void _fun(setParams)(_p0, jstring file) {
   const char *str = (*env)->GetStringUTFChars(env, file, 0);
@@ -52,9 +53,8 @@ void _fun(setParams)(_p0, jstring file) {
 
 void _fun(setSequence)(_p0, jstring sequence) {
   const char *str = (*env)->GetStringUTFChars(env, sequence, 0);
-  size_t i,len = strlen(str);
-  if (seq) free(seq);
-  seq=malloc((len+1)*sizeof(char));
+  size_t i; if (seq) free(seq);
+  len=strlen(str); seq=malloc((len+1)*sizeof(char));
   if (seq==NULL) { fprintf(stderr,"Sequence memory allocation error.\n"); exit(1); }
   else {
     for (i=0;i<len;++i) switch(str[i]) {
@@ -82,7 +82,7 @@ jint _fun(dl_1energy)(_p0, jint i, jint j) { return dl_energy(seq,i,j); }
 jint _fun(dr_1energy)(_p0, jint i, jint j, jint n) { return dr_energy(seq,i,j,n); }
 jint _fun(dli_1energy)(_p0, jint i, jint j) { return dli_energy(seq,i,j); }
 jint _fun(dri_1energy)(_p0, jint i, jint j) { return dri_energy(seq,i,j); }
-jint _fun(ext_1mismatch_1energy)(_p0, jint i, jint j, jint n) { return ext_mismatch_energy(seq,i,j,n); }
+jint _fun(ext_1mismatch_1energy)(_p0, jint i, jint j) { return ext_mismatch_energy(seq,i,j,len); }
 jint _fun(ml_1mismatch_1energy)(_p0, jint i, jint j) { return ml_mismatch_energy(seq,i,j); }
 jint _fun(ml_1energy)(_p0) { return ml_energy(); }
 jint _fun(ul_1energy)(_p0) { return ul_energy(); }

@@ -28,7 +28,7 @@ object LibRNA {
   @native def dr_energy(i:Int, j:Int, n:Int):Int
   @native def dli_energy(i:Int, j:Int):Int
   @native def dri_energy(i:Int, j:Int):Int
-  @native def ext_mismatch_energy(i:Int, j:Int, n:Int):Int
+  @native def ext_mismatch_energy(i:Int, j:Int):Int
   @native def ml_mismatch_energy(i:Int, j:Int):Int
   @native def ml_energy:Int
   @native def ul_energy:Int
