@@ -7,29 +7,26 @@
 
 #define space(S) calloc(1,(S))
 #define MIN2(A,B) ((A) < (B) ? (A) : (B))
-int *get_indx(unsigned int length);
 
+#include "fold.h"
 #include "energy_par.h"
-#include "fold_vars.h"
+
+int  noGU = 0;             /* GU not allowed at all */
+int  no_closingGU = 0;     /* GU allowed only inside stacks */
+int  tetra_loop = 1;       /* Fold with specially stable 4-loops */
+int  energy_set = 0;       /* 0 = BP; 1=any with GC; 2=any with AU parameters */
+int  dangles = 2;          /* use dangling end energies */
+int  noLonelyPairs = 1;    /* avoid helices of length 1 */
+char backtrack_type = 'F'; /* 'C' require (1,N) to be bonded;
+                                     'M' seq is part of s multi loop */
+#define PUBLIC
+#define PRIVATE static
+
 #include "pair_mat.h"
 #include "loop_energies.h"
-#include "fold.h"
-#include "data_structures.h"
 
-#define PAREN
-#define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
-#define NEW_NINIO         1       /* new asymetry penalty */
-#define MAXSECTORS        500     /* dimension for a backtrack array */
-#define LOCALITY          0.      /* locality parameter for base-pairs */
-
-/*
-#################################
-# GLOBAL VARIABLES              #
-#################################
-*/
-PUBLIC  int logML     = 0;  /* if nonzero use logarithmic ML energy in energy_of_struct */
-PUBLIC  int uniq_ML   = 0;  /* do ML decomposition uniquely (for subopt) */
-PUBLIC  int eos_debug = 0;  /* verbose info from energy_of_struct */
+#define MAXSECTORS    500  /* dimension for a backtrack array */
+#define LOCALITY      0.   /* locality parameter for base-pairs */
 
 /*
 #################################
@@ -42,7 +39,6 @@ PRIVATE int     *cc       = NULL; /* linear array for calculating canonical stru
 PRIVATE int     *cc1      = NULL; /*   "     "        */
 PRIVATE int     *f5       = NULL; /* energy of 5' end */
 PRIVATE int     *fML      = NULL; /* multi-loop auxiliary energy array */
-PRIVATE int     *fM1      = NULL; /* second ML array, only for subopt */
 PRIVATE int     *Fmi      = NULL; /* holds row i of fML (avoids jumps in memory) */
 PRIVATE int     *DMLi     = NULL; /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
 PRIVATE int     *DMLi1    = NULL; /*             MIN(fML[i+1,k]+fML[k+1,j])  */
@@ -65,6 +61,20 @@ PRIVATE void  backtrack(const char *sequence, int s);
 PRIVATE int   fill_arrays(const char *sequence);
 PRIVATE void  init_fold(int length, paramT *parameters);
 
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
+
+PRIVATE int *get_indx(unsigned int length) {
+  unsigned int i;
+  int *idx = (int *)calloc(1,sizeof(int) * (length+1));
+  for (i = 1; i <= length; i++)
+    idx[i] = (i*(i-1)) >> 1;        /* i(i-1)/2 */
+  return idx;
+}
+
 PRIVATE paramT *get_parameter_copy(paramT *par){
   paramT *copy = NULL;
   if(par) {
@@ -73,12 +83,6 @@ PRIVATE paramT *get_parameter_copy(paramT *par){
   }
   return copy;
 }
-
-/*
-#################################
-# BEGIN OF FUNCTION DEFINITIONS #
-#################################
-*/
 
 /* allocate memory for folding process */
 PRIVATE void init_fold(int length, paramT *parameters){
@@ -99,7 +103,6 @@ PRIVATE void get_arrays(unsigned int size){
 
   c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  if (uniq_ML) fM1 = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   ptype = (char *)space(sizeof(char)*((size*(size+1))/2+2));
   f5    = (int *) space(sizeof(int)*(size+2));
   cc    = (int *) space(sizeof(int)*(size+2));
@@ -122,14 +125,13 @@ PUBLIC void free_arrays(void){
   if(cc)        free(cc);
   if(cc1)       free(cc1);
   if(ptype)     free(ptype);
-  if(fM1)       free(fM1);
   if(base_pair2) free(base_pair2);
   if(Fmi)       free(Fmi);
   if(DMLi)      free(DMLi);
   if(DMLi1)     free(DMLi1);
   if(DMLi2)     free(DMLi2);
   if(P)         free(P);
-  indx = c = fML = f5 = cc = cc1 = fM1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
+  indx = c = fML = f5 = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   ptype       = NULL;
   base_pair2  = NULL;
   P           = NULL;
@@ -181,7 +183,6 @@ PRIVATE int fill_arrays(const char *string) {
   for (j = 1; j<=length; j++)
     for (i=(j>TURN?(j-TURN):1); i<j; i++) {
       c[indx[j]+i] = fML[indx[j]+i] = INF;
-      if (uniq_ML) fM1[indx[j]+i] = INF;
     }
 
   if (length <= TURN) return 0;
@@ -243,16 +244,12 @@ PRIVATE int fill_arrays(const char *string) {
 
       else c[ij] = INF;
 
-      /* done with c[i,j], now compute fML[i,j] and fM1[i,j] */
+      /* done with c[i,j], now compute fML[i,j] */
       /* (i,j) + MLstem ? */
       new_fML = INF;
       if(type){
         new_fML = c[ij];
         new_fML += E_MLstem(type, (i==1) ? S1[length] : S1[i-1], S1[j+1], P);
-      }
-
-      if (uniq_ML) {
-        fM1[ij] = MIN2(fM1[indx[j-1]+i] + P->MLbase, new_fML);
       }
 
       /* free ends ? -----------------------------------------*/
@@ -281,7 +278,6 @@ PRIVATE int fill_arrays(const char *string) {
   }
 
   /* calculate energies of 5' and 3' fragments */
-
   f5[TURN+1]= 0;
   /* duplicated code may be faster than conditions inside loop ;) */
   /* always use dangles on both sides */
@@ -362,7 +358,7 @@ PRIVATE void backtrack(const char *string, int s) {
     for(k=j-TURN-1,traced=0; k>=1; k--){
       type = ptype[indx[j]+k];
       if(type)
-        if(fij == E_ExtLoop(type, (k>1) ? S1[k-1] : -1, mm3, P) + c[indx[j]+k] + f5[k-1]){
+        if(fij == E_ExtLoop(type, (k>1) ? S1[k-1] : -1, mm3, P) + c[indx[j]+k] + f5[k-1]) {
           traced=j; jj = k-1;
           break;
         }
@@ -435,7 +431,6 @@ PRIVATE void backtrack(const char *string, int s) {
       }
     canonical = 1;
 
-
     no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
     if (no_close) { if (cij == FORBIDDEN) continue; }
     else if (cij == E_Hairpin(j-i-1, type, S1[i+1], S1[j-1],string+i-1, P)+bonus) continue;
@@ -497,10 +492,8 @@ PRIVATE void backtrack(const char *string, int s) {
 
 PUBLIC void parenthesis_structure(char *structure, bondT *bp, int length) {
   int n, k;
-
   for (n = 0; n < length; structure[n++] = '.');
   structure[length] = '\0';
-
   for (k = 1; k <= bp[0].i; k++){
     structure[bp[k].i-1] = '(';
     structure[bp[k].j-1] = ')';

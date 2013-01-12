@@ -17,21 +17,16 @@
 
 #define space(S) calloc(1,(S))
 
-void  *xrealloc(void *p, unsigned size);
+void *xrealloc(void *p, unsigned size);
 void nrerror(const char message[]);
-unsigned int read_record( char **header, char **sequence, char ***rest);
-void  str_uppercase(char *sequence);
-int   *get_indx(unsigned int length);
-void set_model_details(model_detailsT *md);
 
-#define PRIVATE static
-#define PUBLIC
-
-PRIVATE char  *inbuf = NULL;
-PRIVATE char  *inbuf2 = NULL;
-PRIVATE unsigned int typebuf2 = 0;
+static char *inbuf = NULL;
+static char *inbuf2 = NULL;
+static unsigned int typebuf2 = 0;
 
 /*-------------------------------------------------------------------------*/
+
+void nrerror(const char message[]) { fprintf(stderr, "ERROR: %s\n", message); exit(EXIT_FAILURE); }
 
 void *xrealloc (void *p, unsigned size) {
   if (p == 0) return space(size);
@@ -45,13 +40,7 @@ void *xrealloc (void *p, unsigned size) {
 
 /*------------------------------------------------------------------------*/
 
-PUBLIC void nrerror(const char message[]) {      /* output message upon error */
-  fprintf(stderr, "ERROR: %s\n", message); exit(EXIT_FAILURE);
-}
-
-/*------------------------------------------------------------------------*/
-
-PRIVATE char *get_line(FILE *fp) { /* reads lines of arbitrary length from fp */
+static char *get_line(FILE *fp) { /* reads lines of arbitrary length from fp */
   char s[512], *line, *cp;
   int len=0, size=0, l;
   line=NULL;
@@ -71,7 +60,7 @@ PRIVATE char *get_line(FILE *fp) { /* reads lines of arbitrary length from fp */
   return line;
 }
 
-PRIVATE  unsigned int get_multi_input_line(char **string, unsigned int option) {
+static unsigned int get_multi_input_line(char **string, unsigned int option) {
   char  *line;
   int   i, l;
   int   state = 0;
@@ -133,7 +122,7 @@ PRIVATE  unsigned int get_multi_input_line(char **string, unsigned int option) {
   return (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_ERROR;
 }
 
-PUBLIC  unsigned int read_record(char **header, char **sequence, char ***rest){
+static unsigned int read_record(char **header, char **sequence, char ***rest){
   unsigned int  input_type, return_type, tmp_type;
   int           rest_count;
   char          *input_string;
@@ -186,20 +175,12 @@ PUBLIC  unsigned int read_record(char **header, char **sequence, char ***rest){
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void str_uppercase(char *sequence) {
+static void str_uppercase(char *sequence) {
   unsigned int l, i;
   if(sequence) {
     l = strlen(sequence);
     for(i=0;i<l;i++) sequence[i] = toupper(sequence[i]);
   }
-}
-
-PUBLIC int *get_indx(unsigned int length) {
-  unsigned int i;
-  int *idx = (int *)space(sizeof(int) * (length+1));
-  for (i = 1; i <= length; i++)
-    idx[i] = (i*(i-1)) >> 1;        /* i(i-1)/2 */
-  return idx;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -211,7 +192,6 @@ int main(int argc, char *argv[]){
   unsigned int  rec_type, read_opt;
   double        min_en, sfact;
   double        bppmThreshold, betaScale;
-  model_detailsT  md;
 
   rec_type      = read_opt = 0;
   rec_id        = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;
@@ -221,8 +201,6 @@ int main(int argc, char *argv[]){
   cl            = l = length = 0;
   bppmThreshold = 1e-5;
   betaScale     = 1.;
-
-  set_model_details(&md);
 
   /* begin initializing */
   if (argc>1) ParamFile=argv[1];
