@@ -17,9 +17,6 @@
 #define PRIVATE  static
 #define PUBLIC
 
-/*@notnull@ @only@*/
-PUBLIC unsigned short xsubi[3];
-
 PRIVATE char  *inbuf = NULL;
 PRIVATE char  *inbuf2 = NULL;
 PRIVATE unsigned int typebuf2 = 0;
@@ -46,8 +43,7 @@ PUBLIC void nrerror(const char message[])       /* output message upon error */
 
 /*------------------------------------------------------------------------*/
 
-PRIVATE char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
-{
+PRIVATE char *get_line(FILE *fp) { /* reads lines of arbitrary length from fp */
   char s[512], *line, *cp;
   int len=0, size=0, l;
   line=NULL;
@@ -75,25 +71,18 @@ PRIVATE  unsigned int get_multi_input_line(char **string, unsigned int option){
 
   line = (inbuf) ? inbuf : get_line(stdin);
   inbuf = NULL;
-  do{
-
-    /*
-    * read lines until informative data appears or
-    * report an error if anything goes wrong
-    */
+  do {
+    /* read lines until informative data appears or report an error if anything goes wrong */
     if(!line) return VRNA_INPUT_ERROR;
-
     l = (int)strlen(line);
 
     /* eliminate whitespaces at the end of the line read */
-    if(!(option & VRNA_INPUT_NO_TRUNCATION)){
-      for(i = l-1; i >= 0; i--){
-        if      (line[i] == ' ')  continue;
-        else if (line[i] == '\t') continue;
-        else                      break;
-      }
-      line[(i >= 0) ? (i+1) : 0] = '\0';
+    for(i = l-1; i >= 0; i--){
+      if      (line[i] == ' ')  continue;
+      else if (line[i] == '\t') continue;
+      else                      break;
     }
+    line[(i >= 0) ? (i+1) : 0] = '\0';
 
     l           = (int)strlen(line);
     str_length  = (*string) ? (int) strlen(*string) : 0;
@@ -103,51 +92,29 @@ PRIVATE  unsigned int get_multi_input_line(char **string, unsigned int option){
                     if(state) inbuf = line;
                     else      free(line);
                     return (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_QUIT;
-
-      case  '\0':   /* empty line */
-                    if(option & VRNA_INPUT_NOSKIP_BLANK_LINES){
-                      if(state) inbuf = line;
-                      else      free(line);
-                      return (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_BLANK_LINE;
-                    }
-                    break;
-
-      case  '#': case  '%': case  ';': case  '/': case  '*': case ' ':
-                    /* comments */
-                    if(option & VRNA_INPUT_NOSKIP_COMMENTS){
-                      if(state) inbuf   = line;
-                      else      *string = line;
-                      return (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_COMMENT;
-                    }
-                    break;
-
+      case  '\0': break; /* empty line */
+      case  '#': case  '%': case  ';': case  '/': case  '*': case ' ': break; /* comments */
       case  '>':    /* fasta header */
                     if(state) inbuf   = line;
                     else      *string = line;
                     return (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_FASTA_HEADER;
-
       case  '<': case  '.': case  '|': case  '(': case ')': case '[': case ']': case '{': case '}': case ',':
                     /* seems to be a structure or a constraint */
                     /* either we concatenate this line to one that we read previously */
                     if(option & VRNA_INPUT_FASTA_HEADER){
-                      if(state == 1){
-                        inbuf = line;
-                        return VRNA_INPUT_SEQUENCE;
-                      }
-                      else{
+                      if(state == 1) { inbuf = line; return VRNA_INPUT_SEQUENCE; }
+                      else {
                         *string = (char *)xrealloc(*string, sizeof(char) * (str_length + l + 1));
                         strcpy(*string + str_length, line);
                         state = 2;
                       }
                     }
-      default:      if(option & VRNA_INPUT_FASTA_HEADER){
+      default:      if(option & VRNA_INPUT_FASTA_HEADER) {
                       /* are we already in sequence mode? */
                         *string = (char *)xrealloc(*string, sizeof(char) * (str_length + l + 1));
                         strcpy(*string + str_length, line);
                         state = 1;
-                    }
-                    /* otherwise return line read */
-                    else{
+                    } else {
                       *string = line;
                       return VRNA_INPUT_SEQUENCE;
                     }
@@ -159,18 +126,17 @@ PRIVATE  unsigned int get_multi_input_line(char **string, unsigned int option){
   return (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_ERROR;
 }
 
-PUBLIC  unsigned int read_record(char **header, char **sequence, char ***rest, unsigned int options){
+PUBLIC  unsigned int read_record(char **header, char **sequence, char ***rest){
   unsigned int  input_type, return_type, tmp_type;
   int           rest_count;
   char          *input_string;
+
+  unsigned int options = VRNA_INPUT_NO_REST;
 
   rest_count    = 0;
   return_type   = tmp_type = 0;
   input_string  = *header = *sequence = NULL;
   *rest         = (char **)space(sizeof(char *));
-
-  /* remove unnecessary option flags from options variable... */
-  options &= ~VRNA_INPUT_FASTA_HEADER;
 
   /* read first input or last buffered input */
   if(typebuf2){
@@ -196,9 +162,7 @@ PUBLIC  unsigned int read_record(char **header, char **sequence, char ***rest, u
     input_string  = NULL;
     /* get next data-block with fasta support if not explicitely forbidden by VRNA_INPUT_NO_SPAN */
     input_type  = get_multi_input_line(
-                    &input_string,
-                    ((options & VRNA_INPUT_NO_SPAN) ? 0 : VRNA_INPUT_FASTA_HEADER) | options
-                  );
+                    &input_string, VRNA_INPUT_FASTA_HEADER | options);
     if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) return (return_type | input_type);
   }
 
@@ -209,22 +173,6 @@ PUBLIC  unsigned int read_record(char **header, char **sequence, char ***rest, u
   } else nrerror("sequence input missing");
 
   /* read the rest until we find user abort, EOF, new sequence or new fasta header */
-  if(!(options & VRNA_INPUT_NO_REST)){
-    options |= VRNA_INPUT_NOSKIP_COMMENTS; /* allow commetns to appear in rest output */
-    tmp_type = VRNA_INPUT_QUIT | VRNA_INPUT_ERROR | VRNA_INPUT_SEQUENCE | VRNA_INPUT_FASTA_HEADER;
-    if(options & VRNA_INPUT_NOSKIP_BLANK_LINES) tmp_type |= VRNA_INPUT_BLANK_LINE;
-    while(!((input_type = get_multi_input_line(&input_string, options)) & tmp_type)){
-      *rest = xrealloc(*rest, sizeof(char **)*(++rest_count + 1));
-      (*rest)[rest_count-1] = input_string;
-      input_string = NULL;
-    }
-    /*  finished reading everything...
-    *   we now put the last line into the buffer if necessary
-    *   since it should belong to the next record
-    */
-    inbuf2 = input_string;
-    typebuf2 = input_type;
-  }
   (*rest)[rest_count] = NULL;
   return (return_type);
 }

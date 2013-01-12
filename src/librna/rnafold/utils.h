@@ -195,13 +195,11 @@ while(!(read_record(&id, &seq, &rest, 0) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))
  *  \param  header    A pointer which will be set such that it points to the header of the record
  *  \param  sequence  A pointer which will be set such that it points to the sequence of the record
  *  \param  rest      A pointer which will be set such that it points to an array of lines which also belong to the record
- *  \param  options   Some options which may be passed to alter the behavior of the function, use 0 for no options
  *  \return           A flag with information about what the function actually did read
  */
 unsigned int read_record( char **header,
                           char **sequence,
-                          char  ***rest,
-                          unsigned int options);
+                          char  ***rest);
 
 /**
  *  \brief Convert an input sequence to uppercase
