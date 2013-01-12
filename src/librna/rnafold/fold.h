@@ -63,25 +63,6 @@ float fold_par( const char *sequence,
                 paramT *parameters);
 
 /**
- *  \brief Compute minimum free energy and an appropriate secondary structure of an RNA sequence
- *
- *  This function essentially does the same thing as fold_par(). However, it takes its model details,
- *  i.e. #temperature, #dangles, #tetra_loop, #noGU, #no_closingGU, #noLonelyPairs
- *  from the current global settings within the library
- *
- *  Use fold_par() for a completely threadsafe variant
- *
- *  \see fold_par()
- *
- *  \param sequence RNA sequence
- *  \param structure A pointer to the character array where the
- *         secondary structure in dot-bracket notation will be written to
- *  \return the minimum free energy (MFE) in kcal/mol
- */
-float fold( const char *sequence,
-            char *structure);
-
-/**
  *  \brief Calculate the free energy of an already folded RNA using global model detail settings
  *
  *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
@@ -137,8 +118,6 @@ void  parenthesis_structure(char *structure,
 /**
  *  \brief Recalculate energy parameters
  */
-void  update_fold_params(void);
-
 void update_fold_params_par(paramT *parameters);
 
 #endif

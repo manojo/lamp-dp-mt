@@ -24,9 +24,6 @@ static int pair[MAXALPHA+1][MAXALPHA+1];
 /* rtype[pair[i][j]]:=pair[j][i] */
 static int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
 
-/* for backward compatibility */
-#define ENCODE(c) encode_char(c)
-
 static int encode_char(char c) {
   /* return numerical representation of base used e.g. in pair[][] */
   int code;
@@ -108,19 +105,17 @@ static short *encode_sequence(const char *sequence, short how){
 
   switch(how){
     /* standard encoding as always used for S */
-    case 0:   for(i=1; i<=l; i++) /* make numerical encoding of sequence */
-                S[i]= (short) encode_char(toupper(sequence[i-1]));
-              S[l+1] = S[1];
-              S[0] = (short) l;
-              break;
+    case 0: for(i=1; i<=l; i++) /* make numerical encoding of sequence */
+              S[i]= (short) encode_char(toupper(sequence[i-1]));
+            S[l+1] = S[1];
+            S[0] = (short) l;
+            break;
     /* encoding for mismatches of nostandard bases (normally used for S1) */
-    case 1:   for(i=1; i<=l; i++)
-                S[i] = alias[(short) encode_char(toupper(sequence[i-1]))];
-              S[l+1] = S[1];
-              S[0] = S[l];
-              break;
+    case 1: for(i=1; i<=l; i++) S[i] = alias[(short) encode_char(toupper(sequence[i-1]))];
+            S[l+1] = S[1];
+            S[0] = S[l];
+            break;
   }
-
   return S;
 }
 

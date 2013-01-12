@@ -67,14 +67,6 @@ extern double temperature;
 extern int  logML;
 
 /**
- *  \brief do backtracking, i.e. compute secondary structures or base pair probabilities
- *
- *  If 0, do not calculate pair probabilities in pf_fold(); this is about
- *  twice as fast. Default is 1.
- */
-extern int    do_backtrack;
-
-/**
  *  \brief A backtrack array marker for inverse_fold()
  *
  *  If set to 'C': force (1,N) to be paired,

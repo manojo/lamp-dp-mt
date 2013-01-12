@@ -12,8 +12,6 @@ int         energy_set = 0;       /* 0 = BP; 1=any with GC; 2=any with AU parame
 
 int         dangles = 2;          /* use dangling end energies */
 
-int         do_backtrack = 1;     /* calculate pair prob matrix in part_func() */
-
 int         noLonelyPairs = 1;    /* avoid helices of length 1 */
 
 char        backtrack_type = 'F'; /* 'C' require (1,N) to be bonded;
