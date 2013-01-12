@@ -44,7 +44,6 @@ static int encode_char(char c) {
 
 /*@+boolint +charint@*/
 /*@null@*/
-extern char *nonstandards;
 extern void nrerror(const char message[]);
 static void make_pair_matrix(void) {
    int i,j;
@@ -59,11 +58,6 @@ static void make_pair_matrix(void) {
             pair[i][j] = BP_pair[i][j];
       }
       if (noGU) pair[3][4] = pair[4][3] =0;
-      if (nonstandards!=NULL) {  /* allow nonstandard bp's */
-         for (i=0; i<(int)strlen(nonstandards); i+=2)
-            pair[encode_char(nonstandards[i])]
-              [encode_char(nonstandards[i+1])]=7;
-      }
       for (i=0; i<NBASES; i++) for (j=0; j<NBASES; j++) rtype[pair[i][j]] = pair[j][i];
    } else {
       for (i=0; i<=MAXALPHA; i++) for (j=0; j<=MAXALPHA; j++) pair[i][j] = 0;

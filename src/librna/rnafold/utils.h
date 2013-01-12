@@ -217,7 +217,6 @@ void  str_uppercase(char *sequence);
  *
  *  Consult the implemented code to find out about the mapping formula ;)
  *
- *  \see get_iindx()
  *  \param length The length of the RNA sequence
  *  \return       The mapper array
  *

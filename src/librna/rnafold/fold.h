@@ -17,9 +17,6 @@ extern  int logML;
 /** \brief do ML decomposition uniquely (for subopt)  */
 extern  int uniq_ML;
 
-/** brief set to first pos of second seq for cofolding  */
-extern  int cut_point;
-
 /** brief verbose info from energy_of_struct  */
 extern  int eos_debug;
 

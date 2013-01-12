@@ -3,12 +3,6 @@
 
 #include "data_structures.h"
 
-/**
- *  \file fold_vars.h
- *  \brief Here all all declarations of the global variables used throughout RNAlib
- */
-
-
 #define PUBLIC
 #define PRIVATE static
 
@@ -23,22 +17,11 @@ extern int    noLonelyPairs;
 
 /**
  *  \brief Switch the energy model for dangling end contributions (0, 1, 2, 3)
- *
- *  If set to 0 no stabilizing energies are assigned to bases adjacent to
- *  helices in free ends and multiloops (so called dangling ends). Normally
- *  (dangles = 1) dangling end energies are assigned only to unpaired
- *  bases and a base cannot participate simultaneously in two dangling ends. In
- *  the partition function algorithm pf_fold() these checks are neglected.
  *  If #dangles is set to 2, all folding routines will follow this convention.
  *  This treatment of dangling ends gives more favorable energies to helices
  *  directly adjacent to one another, which can be beneficial since such
  *  helices often do engage in stabilizing interactions through co-axial
- *  stacking.\n
- *  If dangles = 3 co-axial stacking is explicitly included for
- *  adjacent helices in mutli-loops. The option affects only mfe folding
- *  and energy evaluation (fold() and energy_of_structure()), as
- *  well as suboptimal folding (subopt()) via re-evaluation of energies.
- *  Co-axial stacking with one intervening mismatch is not considered so far.
+ *  stacking.
  *
  *  Default is 2 in most algorithms, partition function algorithms can only handle 0 and 2
  */
@@ -71,35 +54,6 @@ extern int  tetra_loop;
 extern int  energy_set;
 
 /**
- *  \brief generate comma seperated output
- */
-extern int  csv;
-
-/**
- *  use old alifold energies (with gaps)
- */
-extern int oldAliEn;
-/**
- *  use ribosum matrices
- */
-extern int ribo;
-
-/**
- *  warning this variable will vanish in the future
- *  ribosums will be compiled in instead
- */
-extern char *RibosumFile;
-
-/**
- *  \brief contains allowed non standard base pairs
- *
- *  Lists additional base pairs that will be allowed to form in addition to
- *  GC, CG, AU, UA, GU and UG. Nonstandard base pairs are given a stacking
- *  energy of 0.
- */
-extern char *nonstandards;
-
-/**
  *  \brief Rescale energy parameters to a temperature in degC.
  *
  *  Default is 37C. You have to call the update_..._params() functions after
@@ -108,56 +62,9 @@ extern char *nonstandards;
 extern double temperature;
 
 /**
- *  interior loops of size 2 get energy 0.8Kcal and
- *  no mismatches, default 1
- */
-extern int  james_rule;
-
-/**
  *  use logarithmic multiloop energy function
  */
 extern int  logML;
-
-/**
- *  \brief Marks the position (starting from 1) of the first
- *  nucleotide of the second molecule within the concatenated sequence.
- *
- *  To evaluate the energy of a duplex structure (a structure formed by two
- *  strands), concatenate the to sequences and set it to the
- *  first base of the second strand in the concatenated sequence.
- *  The default value of -1 stands for single molecule folding. The
- *  cut_point variable is also used by PS_rna_plot() and
- *  PS_dot_plot() to mark the chain break in postscript plots.
- */
-extern int  cut_point;
-
-/**
- *  \brief A pointer to the base pair probability matrix
- *
- *  \deprecated Do not use this variable anymore!
- */
-extern FLT_OR_DBL *pr;
-
-/**
- *  \brief index array to move through pr.
- *
- *  The probability for base i and j to form a pair is in pr[iindx[i]-j].
- *  \deprecated Do not use this variable anymore!
- */
-extern int   *iindx;
-
-/**
- *  \brief A scaling factor used by pf_fold() to avoid overflows.
- *
- *  Should be set to approximately \f$exp{((-F/kT)/length)}\f$, where \f$F\f$ is an estimate
- *  for the ensemble free energy, for example the minimum free energy. You must
- *  call update_pf_params() after changing this parameter.\n
- *  If pf_scale is -1 (the default) , an estimate will be provided
- *  automatically when computing partition functions, e.g. pf_fold()
- *  The automatic estimate is usually insufficient for sequences more
- *  than a few hundred bases long.
- */
-extern double pf_scale;
 
 /**
  *  \brief do backtracking, i.e. compute secondary structures or base pair probabilities
@@ -178,16 +85,7 @@ extern char backtrack_type;
 
 char * option_string(void);
 
-/**
- * \brief Set default model details
- *
- *  Use this function if you wish to initialize a #model_detailsT data structure with
- *  its default values, i.e. the global model settings
- *
- *  \see
- *
- *  \param md A pointer to the data structure that shall be initialized
- */
+/** Set default model details */
 void set_model_details(model_detailsT *md);
 
 #endif
