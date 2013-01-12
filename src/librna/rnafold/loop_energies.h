@@ -138,21 +138,21 @@ INLINE PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int 
         return energy;
       } else {  /* 1xn loop */
         energy = (nl+1<=MAXLOOP)?(P->internal_loop[nl+1]) : (P->internal_loop[30]+(int)(P->lxc*log((nl+1)/30.)));
-        energy += MIN2(MAX_NINIO, (nl-ns)*P->ninio[2]);
+        energy += MIN2(P->ninio[1], (nl-ns)*P->ninio[0]);
         energy += P->mismatch1nI[type][si1][sj1] + P->mismatch1nI[type_2][sq1][sp1];
         return energy;
       }
     } else if (ns==2) {
       if(nl==2) return P->int22[type][type_2][si1][sp1][sq1][sj1]; /* 2x2 loop */
       else if (nl==3) { /* 2x3 loop */
-        energy = P->internal_loop[5]+P->ninio[2];
+        energy = P->internal_loop[5]+P->ninio[0];
         energy += P->mismatch23I[type][si1][sj1] + P->mismatch23I[type_2][sq1][sp1];
         return energy;
       }
     }
     { /* generic interior loop (no else here!)*/
       energy = (n1+n2<=MAXLOOP)?(P->internal_loop[n1+n2]) : (P->internal_loop[30]+(int)(P->lxc*log((n1+n2)/30.)));
-      energy += MIN2(MAX_NINIO, (nl-ns)*P->ninio[2]);
+      energy += MIN2(P->ninio[1], (nl-ns)*P->ninio[0]);
       energy += P->mismatchI[type][si1][sj1] + P->mismatchI[type_2][sq1][sp1];
     }
   }

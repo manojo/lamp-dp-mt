@@ -56,7 +56,7 @@ typedef struct {
   int int11[NBPAIRS+1][NBPAIRS+1][5][5];
   int int21[NBPAIRS+1][NBPAIRS+1][5][5][5];
   int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
-  int ninio[5];
+  int ninio[2]; // ViennaRNA(ninio[2], MAX_NINIO) ==> (ninio[0], ninio[1])
   double  lxc;
   int     MLbase;
   int     MLintern[NBPAIRS+1];

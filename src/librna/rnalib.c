@@ -485,9 +485,9 @@ static int il_stack(const char *s, rsize i, rsize k, rsize l, rsize j) {
      sr = size of the 3' unpaired loop region
 */
 static int il_asym(rsize sl, rsize sr) {
-  int r = abs(sl-sr) * P->ninio[2];
-  if (r < MAX_NINIO) return r;
-  return MAX_NINIO;
+  int r = abs(sl-sr) * P->ninio[0];
+  if (r < P->ninio[1]) return r;
+  return P->ninio[1];
 }
 
 /*
@@ -550,10 +550,10 @@ int il_energy(const char *s, rsize i, rsize k, rsize l, rsize j) {
 	} else if (sr == 2) {
 	  return il22_energy(s, i, k, l, j);
 	} else if (sr == 3) {
-	  return P->internal_loop[5]+P->ninio[2] + P->mismatch23I[out_closingBP][out_lbase][out_rbase] + P->mismatch23I[in_closingBP][in_lbase][in_rbase];
+	  return P->internal_loop[5]+P->ninio[0] + P->mismatch23I[out_closingBP][out_lbase][out_rbase] + P->mismatch23I[in_closingBP][in_lbase][in_rbase];
 	}
   } else if ((sl == 3) && (sr == 2)) {
-	return P->internal_loop[5]+P->ninio[2] + P->mismatch23I[out_closingBP][out_lbase][out_rbase] + P->mismatch23I[in_closingBP][in_lbase][in_rbase];
+	return P->internal_loop[5]+P->ninio[0] + P->mismatch23I[out_closingBP][out_lbase][out_rbase] + P->mismatch23I[in_closingBP][in_lbase][in_rbase];
   } else {
 	if (sr == 1) {
 	  return il_ent(sl+sr) + il_asym(sl,sr) + P->mismatch1nI[out_closingBP][out_lbase][out_rbase] + P->mismatch1nI[in_closingBP][in_lbase][in_rbase];

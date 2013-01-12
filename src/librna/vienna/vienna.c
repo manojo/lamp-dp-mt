@@ -48,7 +48,8 @@ paramT *get_scaled_parameters() {
     params->internal_loop[i] = params->internal_loop[30]+(int)(params->lxc*log((double)(i)/30.));
   }
 
-  params->ninio[2] = RESCALE(niniodH, ninio37);
+  params->ninio[0] = RESCALE(niniodH, ninio37);
+  params->ninio[1] = MAX_NINIO;
 
   params->TripleC = RESCALE(TripleCdH, TripleC37);
   params->MultipleCA = RESCALE(MultipleCAdH, MultipleCA37);
@@ -171,8 +172,8 @@ static char *get_line(FILE *fp) { /* reads lines of arbitrary length from fp */
     l = len + (int)strlen(s);
     if (l+1>size) {
       size = (int)((l+1)*1.2);
-      if (line==NULL) { line=malloc(size); if (line) line[0]=0; }
-      else line=realloc(line,size);
+      if (line==NULL) { line=(char*)malloc(size); if (line) line[0]=0; }
+      else line=(char*)realloc(line,size);
       if (line==NULL) nrerror("Realloc failed");
     }
     strcat(line+len, s); len=l;
@@ -282,49 +283,45 @@ static char *get_array1(int *arr,int size) {
 
 /*------------------------------------------------------------*/
 static void rd_Tetraloop37(void) {
-  int  i, r;
-  char *buf;
-  /* erase old tetraloop entries */
+  int    i=0, r;
+  char   *buf;
   memset(&Tetraloops, 0, 281);
   memset(&Tetraloop37, 0, sizeof(int)*40);
   memset(&TetraloopdH, 0, sizeof(int)*40);
-  for(i=0;(r==3)&&(i<40);++i) {
+  do {
     buf = get_line(fp); if (buf==NULL) break;
     r = sscanf(buf,"%6s %d %d", &Tetraloops[7*i], &Tetraloop37[i], &TetraloopdH[i]);
-    strcat(Tetraloops, " "); free(buf);
-  }
+    strcat(Tetraloops, " "); free(buf); i++;
+  } while((r==3)&&(i<40));
 }
 
 /*------------------------------------------------------------*/
 static void rd_Hexaloop37(void) {
-  int  i, r;
-  char *buf;
-  /* erase old hexaloop entries */
+  int    i=0, r;
+  char   *buf;
   memset(&Hexaloops, 0, 361);
   memset(&Hexaloop37, 0, sizeof(int)*40);
   memset(&HexaloopdH, 0, sizeof(int)*40);
-  for (i=0;(r==3)&&(i<40);++i) {
+  do {
     buf = get_line(fp); if (buf==NULL) break;
     r = sscanf(buf,"%8s %d %d", &Hexaloops[9*i], &Hexaloop37[i], &HexaloopdH[i]);
-    strcat(Hexaloops, " "); free(buf);
-  }
+    strcat(Hexaloops, " "); free(buf); i++;
+  } while((r==3)&&(i<40));
 }
 
 /*------------------------------------------------------------*/
 static void rd_Triloop37(void) {
-  int  i, r;
-  char *buf;
-  /* erase old hexaloop entries */
+  int    i=0, r;
+  char   *buf;
   memset(&Triloops,   0, 241);
   memset(&Triloop37,  0, sizeof(int)*40);
   memset(&TriloopdH,  0, sizeof(int)*40);
-  for(i=0;(r==3)&&(i<40);++i) {
+  do {
     buf = get_line(fp); if (buf==NULL) break;
     r = sscanf(buf,"%5s %d %d", &Triloops[6*i], &Triloop37[i], &TriloopdH[i]);
-    strcat(Triloops, " "); free(buf);
-  }
+    strcat(Triloops, " "); free(buf); i++;
+  } while((r==3)&&(i<40));
 }
-
 /*---------------------------------------------------------------*/
 
 static void check_symmetry(void) {

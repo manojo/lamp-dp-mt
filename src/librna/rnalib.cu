@@ -38,8 +38,6 @@ __device__ bool iupac_match(enum base_t base, unsigned char iupac_base);
 
 __device__ paramT *g_P = 0;
 __device__ const char* g_seq;
-#define MAX_NINIO 300 // from vienna/energy_par.c
-__device__ const double g_temperature = 37.0; // from vienna/vienna.c
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -210,11 +208,11 @@ __device__ static int il_stack(rsize i, rsize k, rsize l, rsize j) {
 }
 
 __device__ static int il_asym(rsize sl, rsize sr) {
-  int r = abs((int)sl-(int)sr) * g_P->ninio[2];
-  return (r < MAX_NINIO) ? r : MAX_NINIO;
+  int r = abs((int)sl-(int)sr) * g_P->ninio[0];
+  return (r < g_P->ninio[1]) ? r : g_P->ninio[1];
 }
 
-__device__ int il_energy(const char *s, rsize i, rsize k, rsize l, rsize j) {
+__device__ int il_energy(rsize i, rsize k, rsize l, rsize j) {
   rsize sl = k-i-1 - noGaps(i+1, k-1);
   rsize sr = j-l-1 - noGaps(l+1, j-1);
 
@@ -235,9 +233,9 @@ __device__ int il_energy(const char *s, rsize i, rsize k, rsize l, rsize j) {
   } else if (sl == 2) {
 	if (sr == 1) return il21_energy(i, k, l, j);
 	else if (sr == 2) return il22_energy(i, k, l, j);
-	else if (sr == 3) return g_P->internal_loop[5]+g_P->ninio[2] + g_P->mismatch23I[out_closingBP][out_lbase][out_rbase] + g_P->mismatch23I[in_closingBP][in_lbase][in_rbase];
+	else if (sr == 3) return g_P->internal_loop[5]+g_P->ninio[0] + g_P->mismatch23I[out_closingBP][out_lbase][out_rbase] + g_P->mismatch23I[in_closingBP][in_lbase][in_rbase];
   } else if ((sl == 3) && (sr == 2)) {
-	return g_P->internal_loop[5]+g_P->ninio[2] + g_P->mismatch23I[out_closingBP][out_lbase][out_rbase] + g_P->mismatch23I[in_closingBP][in_lbase][in_rbase];
+	return g_P->internal_loop[5]+g_P->ninio[0] + g_P->mismatch23I[out_closingBP][out_lbase][out_rbase] + g_P->mismatch23I[in_closingBP][in_lbase][in_rbase];
   } else if (sr == 1) {
     return il_ent(sl+sr) + il_asym(sl,sr) + g_P->mismatch1nI[out_closingBP][out_lbase][out_rbase] + g_P->mismatch1nI[in_closingBP][in_lbase][in_rbase];
   }
@@ -259,7 +257,7 @@ __device__ int bl_energy(rsize i, rsize k, rsize l, rsize j, rsize Xright) {
   return -1000000; // error
 }
 
-__device__ int br_energy(const char *s, rsize i, rsize k, rsize l, rsize j, rsize Xleft) {
+__device__ int br_energy(rsize i, rsize k, rsize l, rsize j, rsize Xleft) {
   // assert(j >= 1); // this is of no biological relevance, just to avoid an underflow
   rsize size = l-k+1 - noGaps(k, l);
   if (size == 0) return g_P->stack[_bp(i,j)][_bp(k-1,getNext(i,1,Xleft))];
@@ -309,11 +307,11 @@ __device__ int ul_energy() { return g_P->MLintern[0]; }
 __device__ int sbase_energy() { return 0; }
 __device__ int ss_energy(rsize i, rsize j) { return 0; }
 
-__device__ double mk_pf(double x) { return exp((-1.0 * x/100.0) / (GASCONST/1000 * (g_temperature + K0))); }
+__device__ double mk_pf(double x) { return exp((-1.0 * x/100.0) / (GASCONST/1000 * (g_P->temperature + K0))); }
 
 __device__ double scale(int x) {
   double mean_nrg= -0.1843;  // mean energy for random sequences: 184.3*length cal
-  double mean_scale = exp (-1.0 * mean_nrg / (GASCONST/1000 * (g_temperature + K0)));
+  double mean_scale = exp (-1.0 * mean_nrg / (GASCONST/1000 * (g_P->temperature + K0)));
   return (1.0 / pow(mean_scale, x));
 }
 
@@ -340,6 +338,8 @@ __device__ bool iupac_match(enum base_t base, unsigned char iupac_base) {
   return map_base_iupac[base][iupac_base];
 }
 
+#include "vienna/vienna.c"
+#include "vienna/energy_par.c"
 
 int main() {
 	return 0;

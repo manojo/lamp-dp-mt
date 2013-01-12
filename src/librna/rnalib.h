@@ -46,12 +46,10 @@ int ss_energy(rsize i, rsize j);
 
 //for MacroState partition function
 int dl_dangle_dg(enum base_t dangle, enum base_t i, enum base_t j);
-//for MacroState partition function
 int dr_dangle_dg(enum base_t i, enum base_t j, enum base_t dangle);
 
 // not in rna.hh
 double mk_pf(double x);
-// not in rna.hh
 double scale(int x);
 
 bool iupac_match(enum base_t base, unsigned char iupac_base);
