@@ -45,3 +45,5 @@ compile in Compile <<= (compile in Compile) map { x => ("src/librna/make target/
   val mml=t("mml")
   s(mml,"LMSMatrixAlgebraGen")
 }
+
+addCommandAlias("chk", ";clean;run-main v4.examples.Tests;zuker;rnafold;align;mm1;mm2;mm3")

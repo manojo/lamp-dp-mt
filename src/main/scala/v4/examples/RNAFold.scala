@@ -5,9 +5,7 @@ import v4._
 // Folding algorithm from Unafold package in the function hybrid-ss-min
 // Using the grammar described in paper "GPU accelerated RNA folding algorithm"
 
-trait RNAFoldSig extends Signature with LibRNA {
-  type Alphabet = Char
-
+trait RNAFoldSig extends RNASignature {
   def Eh(i:Int,j:Int) = hl_energy(i,j) // hairpin loop
   def Ei(i:Int,k:Int,l:Int,j:Int) = il_energy(i,k,l,j) // internal loop
   def Es(i:Int,j:Int) = sr_energy(i,j) // 2 stacked base pairs

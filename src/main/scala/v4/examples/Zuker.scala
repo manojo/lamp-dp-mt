@@ -7,8 +7,7 @@ import v4._
 // See p.147 of "Parallelization of Dynamic Programming Recurrences in Computational Biology"
 // Same coefficients as: http://www.tbi.univie.ac.at/~ivo/RNA/ (with parameters -noLP -d2)
 
-trait ZukerSig extends Signature with LibRNA {
-  type Alphabet = Char
+trait ZukerSig extends RNASignature {
   type SSeq = (Int,Int) // = Subword
 
   def sadd(lb:Int, e:Answer) : Answer
@@ -142,10 +141,21 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
 }
 
 object Zuker extends App {
-  object mfe extends ZukerGrammar with ZukerMFE
+  object mfe extends ZukerGrammar with ZukerMFE /*with CodeGen*/ {
+    //override val benchmark = true
+    //override val tps = (manifest[Alphabet],manifest[Answer])
+  }
   object pretty extends ZukerGrammar with ZukerPrettyPrint
   object count extends ZukerGrammar with ZukerCount
   object explain extends ZukerGrammar with ZukerExplain
+
+  /*
+  mfe match {
+    case s:RNASignature => println("Implements RNA")
+  }
+  */
+  //mfe.gen
+
 
   mfe.setParams("src/librna/vienna/rna_turner2004.par")
   def parse(s:String) = {
@@ -169,13 +179,20 @@ object Zuker extends App {
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
   // PART 1: moved into v4.examples.Test
+  testSeq("ccuuuuucaaagg")
+  testSeq("guacgucaguacguacgugacugucagucaac")
+  testSeq("aaaaaggaaacuccucuuu")
+  testSeq("uucuccucaggaaga")
+  testSeq("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
+  testSeq("gccaaccucgugca")
+  testSeq("ggccaaccucgugcaa")
+  testSeq("guugcucagcacgcguaaga")
+
   // PART 2: some failing sequences
   testSeq("gggcgcucaaccgagucagcagugcaauauagggccc")
   testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
   testSeq("accacuccucauuugacuuauaggcucagaauuaguagaccacaguucacugugaaagga")
   testSeq("uugcccuaugucaaacauaugucgcaaagcacacgucguauucaccacgaucaaccaggg")
   testSeq("ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug")
-  /*
-  for (k<-0 until 100) testSeq(genSeq(60))
-  */
+  //for (k<-0 until 100) testSeq(genSeq(60))
 }
