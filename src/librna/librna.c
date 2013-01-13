@@ -3,8 +3,6 @@
 #include <string.h>
 #include <jni.h>
 
-#include "rnalib.h"
-
 #define _fun(name) Java_librna_LibRNA_00024_##name
 #define _vfun(name) JNIEXPORT void JNICALL Java_librna_LibRNA_00024_##name
 #define _ifun(name) JNIEXPORT jint JNICALL Java_librna_LibRNA_00024_##name
@@ -27,7 +25,7 @@ _ifun(br_1energy)(_p0, jint, jint, jint, jint, jint);
 _ifun(sr_1energy)(_p0, jint, jint);
 _ifun(sr_1pk_1energy)(_p0, jbyte, jbyte, jbyte, jbyte);
 _ifun(dl_1energy)(_p0, jint, jint);
-_ifun(dr_1energy)(_p0, jint, jint, jint);
+_ifun(dr_1energy)(_p0, jint, jint);
 _ifun(dli_1energy)(_p0, jint, jint);
 _ifun(dri_1energy)(_p0, jint, jint);
 _ifun(ext_1mismatch_1energy)(_p0, jint, jint);
@@ -42,48 +40,56 @@ _ifun(dr_dangle_dg)(_p0, jbyte, jbyte, jbyte);
 }
 #endif
 
-static char* seq=NULL; // the sequence converted in 0-5 internal Vienna format
-static size_t len=0;
+#define my_len c_len
+#define my_seq c_seq
+#define my_P c_P
+#define my_dev
+#include "rnalib_impl.h"
+#undef my_len
+#undef my_seq
+#undef my_P
+#undef my_dev
 
 void _fun(setParams)(_p0, jstring file) {
   const char *str = (*env)->GetStringUTFChars(env, file, 0);
-  librna_read_param_file(str);
+  if (str) read_parameter_file(str);
+  if (c_P) free(c_P); c_P=get_scaled_parameters();
   (*env)->ReleaseStringUTFChars(env, file, str);
 }
 
 void _fun(setSequence)(_p0, jstring sequence) {
   const char *str = (*env)->GetStringUTFChars(env, sequence, 0);
-  size_t i; if (seq) free(seq);
-  len=strlen(str); seq=malloc((len+1)*sizeof(char));
-  if (seq==NULL) { fprintf(stderr,"Sequence memory allocation error.\n"); exit(1); }
+  size_t i; if (c_seq) free(c_seq);
+  c_len=strlen(str); c_seq=malloc((c_len+1)*sizeof(char));
+  if (c_seq==NULL) { fprintf(stderr,"Sequence memory allocation error.\n"); exit(EXIT_FAILURE); }
   else {
-    for (i=0;i<len;++i) switch(str[i]) {
-      case 'a' : seq[i] = 1; break;
-      case 'c' : seq[i] = 2; break;
-      case 'g' : seq[i] = 3; break;
-      case 'u' : seq[i] = 4; break;
-      default: fprintf(stderr,"Bad character '%c' (%d) in the provided sequence.\n",str[i],str[i]); exit(1);
+    for (i=0;i<c_len;++i) switch(str[i]) {
+      case 'a' : c_seq[i] = 1; break;
+      case 'c' : c_seq[i] = 2; break;
+      case 'g' : c_seq[i] = 3; break;
+      case 'u' : c_seq[i] = 4; break;
+      default: fprintf(stderr,"Bad character '%c' (%d) in the provided sequence.\n",str[i],str[i]); exit(EXIT_FAILURE);
     }
-  	seq[len]=0;
+  	c_seq[c_len]=0;
   }
   (*env)->ReleaseStringUTFChars(env, sequence, str);
 }
 
-void _fun(clear)(_p0) { if (seq) { free(seq); seq=NULL; } }
-jint _fun(termau_1energy)(_p0, jint i, jint j) { return termau_energy(seq,i,j); }
-jint _fun(hl_1energy)(_p0, jint i, jint j) { return hl_energy(seq,i,j); }
-jint _fun(hl_1energy_1stem)(_p0, jint i, jint j) { return hl_energy_stem(seq,i,j); }
-jint _fun(il_1energy)(_p0, jint i, jint k, jint l, jint j) { return il_energy(seq,i,k,l,j); }
-jint _fun(bl_1energy)(_p0, jint i, jint k, jint l, jint j, jint Xright) { return bl_energy(seq,i,k,l,j,Xright); }
-jint _fun(br_1energy)(_p0, jint i, jint k, jint l, jint j, jint Xleft) { return br_energy(seq,i,k,l,j,Xleft); }
-jint _fun(sr_1energy)(_p0, jint i, jint j) { return sr_energy(seq,i,j); }
+void _fun(clear)(_p0) { if (c_seq) { free(c_seq); c_seq=NULL; } }
+jint _fun(termau_1energy)(_p0, jint i, jint j) { return termau_energy(i,j); }
+jint _fun(hl_1energy)(_p0, jint i, jint j) { return hl_energy(i,j); }
+jint _fun(hl_1energy_1stem)(_p0, jint i, jint j) { return hl_energy_stem(i,j); }
+jint _fun(il_1energy)(_p0, jint i, jint k, jint l, jint j) { return il_energy(i,k,l,j); }
+jint _fun(bl_1energy)(_p0, jint i, jint k, jint l, jint j, jint Xright) { return bl_energy(i,k,l,j,Xright); }
+jint _fun(br_1energy)(_p0, jint i, jint k, jint l, jint j, jint Xleft) { return br_energy(i,k,l,j,Xleft); }
+jint _fun(sr_1energy)(_p0, jint i, jint j) { return sr_energy(i,j); }
 jint _fun(sr_1pk_1energy)(_p0, jbyte a, jbyte b, jbyte c, jbyte d) { return sr_pk_energy(a,b,c,d); }
-jint _fun(dl_1energy)(_p0, jint i, jint j) { return dl_energy(seq,i,j); }
-jint _fun(dr_1energy)(_p0, jint i, jint j, jint n) { return dr_energy(seq,i,j,n); }
-jint _fun(dli_1energy)(_p0, jint i, jint j) { return dli_energy(seq,i,j); }
-jint _fun(dri_1energy)(_p0, jint i, jint j) { return dri_energy(seq,i,j); }
-jint _fun(ext_1mismatch_1energy)(_p0, jint i, jint j) { return ext_mismatch_energy(seq,i,j,len); }
-jint _fun(ml_1mismatch_1energy)(_p0, jint i, jint j) { return ml_mismatch_energy(seq,i,j); }
+jint _fun(dl_1energy)(_p0, jint i, jint j) { return dl_energy(i,j); }
+jint _fun(dr_1energy)(_p0, jint i, jint j) { return dr_energy(i,j); }
+jint _fun(dli_1energy)(_p0, jint i, jint j) { return dli_energy(i,j); }
+jint _fun(dri_1energy)(_p0, jint i, jint j) { return dri_energy(i,j); }
+jint _fun(ext_1mismatch_1energy)(_p0, jint i, jint j) { return ext_mismatch_energy(i,j); }
+jint _fun(ml_1mismatch_1energy)(_p0, jint i, jint j) { return ml_mismatch_energy(i,j); }
 jint _fun(ml_1energy)(_p0) { return ml_energy(); }
 jint _fun(ul_1energy)(_p0) { return ul_energy(); }
 jint _fun(sbase_1energy)(_p0) { return sbase_energy(); }

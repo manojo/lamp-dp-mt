@@ -22,7 +22,7 @@ if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f "$out/
 fi
 
 printf "Compiling $name ... "
-gcc -Wall -std=c99 -fPIC -shared $JAVA_INC rnalib.c librna.c \
+gcc -Wall -std=c99 -fPIC -shared $JAVA_INC librna.c \
 	vienna/energy_par.c vienna/vienna.c -o "$out"/libRNA.jnilib || exit
 mv "$out/$name.tmp" "$out/$name.md5"
 echo 'done.'
