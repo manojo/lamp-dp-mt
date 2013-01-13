@@ -21,7 +21,7 @@ trait MatrixSig3 extends Signature {
   val mult = new ((Int,Answer,Int,Answer,Int)=>Answer) with CFun {
     def apply(i:Int,l:Answer,k:Int,r:Answer,j:Int) = l + r + in(i)._1 * in(k)._1 * in(j-1)._2
     val args=List(("i","Int"),("l","Int"),("k","Int"),("r","Int"),("j","Int"))
-    val body = "return l + r + in[i]._1 * in[k]._1 * in[j-1]._2;"
+    val body = "return l + r + _in1[i]._1 * _in1[k]._1 * _in1[j-1]._2;"
       // XXX: fix in for cuda => pass as implicit argument for device functions ??
       // XXX: use a __device__ input_t *in1, *in2; ??
     val tpe ="Int"
@@ -47,24 +47,14 @@ object MatrixMultGen3 extends MatrixGrammar3 with MatrixSig3 with CodeGen with A
   override val benchmark = true
   override val tps=(manifest[Alphabet],manifest[Answer])
   // ------- Extra codegen initialization
-  //println(gen)
+  // println(gen)
 
-  println("--- Scala:")
-  println("1. Parsing")
-  println(parse(input,true).head)
-/*
-  println("2. Backtracking")
-  val (res,bt) = backtrack(input,true).head
-  println(res)
-  println("3. Reconstructing from backtrack")
-  println(build(input,bt))
-  println("--- CUDA:")
-  println("1. Parsing")
-  println(parse(input).head)
-  println("2. Backtracking")
+  println("------ SCALA -------------------")
+  val (res1,bt1) = backtrack(input,true).head
+  println("--> "+res1)
+  println("--> "+build(input,bt1))
+  println("------ CUDA  -------------------")
   val (res2,bt2) = backtrack(input).head
-  println(res2)
-  println("3. Reconstructing from backtrack (Scala)")
-  println(build(input,bt2))
-  */
+  println("--> "+res2)
+  println("--> "+build(input,bt2))
 }

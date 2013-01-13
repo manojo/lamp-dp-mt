@@ -31,7 +31,7 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   val emptyi = new Terminal[Int](0,0,(i:Var,j:Var) => (Nil,"("+i+")")) {
     def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((i,bt0)) else Nil }
   }
-  val el = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"in1["+i+"]")) {
+  val el = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"_in1["+i+"]")) {
     def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in(i),bt0)) else Nil }
   }
   val eli = new Terminal[Int](1,1,(i:Var,j:Var) => (Nil,"("+i+")")) {
@@ -69,11 +69,17 @@ trait RNASignature extends Signature {
   // XXX: convert to internal representation?
   // XXX: provide CUDA counterpart
   def in(x:Int):Char
-  def basepairing(s:(Int,Int)):Boolean = { val (i,j)=s;if (i+2>j) false else (in(i),in(j-1)) match {
-    case ('a','u') | ('u','a') | ('u','g') | ('g','u') | ('g','c') | ('c','g') => true
-    case _ => false
-  }}
-  def stackpairing(s:(Int,Int)):Boolean = { val (i,j)=s; (i+3<=j) && basepairing((i,j)) && basepairing((i+1,j-1)) }
+  val basepairing = new ((Int,Int)=>Boolean) with CFun {
+    def apply(i:Int,j:Int):Boolean = if (i+2>j) false else (in(i),in(j-1)) match {
+      case ('a','u') | ('u','a') | ('u','g') | ('g','u') | ('g','c') | ('c','g') => true
+      case _ => false
+    }
+    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return XXX: FIX ACCESS TO INPUT;","Boolean")
+  }
+  val stackpairing = new ((Int,Int)=>Boolean) with CFun {
+    def apply(i:Int,j:Int):Boolean = (i+3<=j) && basepairing(i,j) && basepairing(i+1,j-1)
+    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return XXX: FIX ACCESS TO INPUT;","Boolean")
+  }
 
   // Exported energies function
   val termau_energy = new F2(l.termau_energy _,"termau_energy")

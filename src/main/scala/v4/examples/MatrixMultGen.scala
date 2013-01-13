@@ -44,20 +44,12 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   // ------- Extra codegen initialization
   //println(gen)
 
-  println("--- Scala:")
-  println("1. Parsing")
-  println(parse(input,true).head)
-  println("2. Backtracking")
-  val (res,bt) = backtrack(input,true).head
-  println(res)
-  println("3. Reconstructing from backtrack")
-  println(build(input,bt))
-  println("--- CUDA:")
-  println("1. Parsing")
-  println(parse(input).head)
-  println("2. Backtracking")
+  println("------ SCALA -------------------")
+  val (res1,bt1) = backtrack(input,true).head
+  println("--> "+res1)
+  println("--> "+build(input,bt1))
+  println("------ CUDA  -------------------")
   val (res2,bt2) = backtrack(input).head
-  println(res2)
-  println("3. Reconstructing from backtrack (Scala)")
-  println(build(input,bt2))
+  println("--> "+res2)
+  println("--> "+build(input,bt2))
 }

@@ -141,21 +141,13 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
 }
 
 object Zuker extends App {
-  object mfe extends ZukerGrammar with ZukerMFE /*with CodeGen*/ {
-    //override val benchmark = true
-    //override val tps = (manifest[Alphabet],manifest[Answer])
-  }
+  object mfe extends ZukerGrammar with ZukerMFE /*with CodeGen {
+    override val benchmark = true
+    override val tps = (manifest[Alphabet],manifest[Answer])
+  }*/
   object pretty extends ZukerGrammar with ZukerPrettyPrint
   object count extends ZukerGrammar with ZukerCount
   object explain extends ZukerGrammar with ZukerExplain
-
-  /*
-  mfe match {
-    case s:RNASignature => println("Implements RNA")
-  }
-  */
-  //mfe.gen
-
 
   mfe.setParams("src/librna/vienna/rna_turner2004.par")
   def parse(s:String) = {
@@ -194,5 +186,7 @@ object Zuker extends App {
   testSeq("accacuccucauuugacuuauaggcucagaauuaguagaccacaguucacugugaaagga")
   testSeq("uugcccuaugucaaacauaugucgcaaagcacacgucguauucaccacgaucaaccaggg")
   testSeq("ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug")
+
   //for (k<-0 until 100) testSeq(genSeq(60))
+
 }

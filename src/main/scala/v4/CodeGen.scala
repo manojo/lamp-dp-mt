@@ -211,6 +211,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     val altMax=rules.map{case (n,t)=>t.inner.alt}.sum
     def switch(f:Int=>String) = "    switch (rd->rule) {\n"+(0 until altMax).map{x=>"      case "+x+":"+f(x)+" break;"}.mkString("\n")+"\n    }\n"
     val trLen = "const unsigned trace_len["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};" // subrule->#indices
+    head.add("#define MAX(a,b) ({__typeof__(a) _a=(a); __typeof__(b) _b=(b); _a>_b?_a:_b; })") // for concat's MAX()
     head.add("typedef struct { short i,j,rule; "+(if(catMax>0)"short pos["+catMax+"]; " else "")+"} trace_t;")
     head.add(trLen)
     "__global__ void gpu_backtrack(trace_t* trace, unsigned* size, back_t* back, int i0, int j0) {\n"+ // start at (i0,j0)
@@ -261,6 +262,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       head.addPriv("#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })")
     }
     head.addPriv("static input_t *g_in1 = NULL, *g_in2 = NULL;\nstatic cost_t *g_cost = NULL;\nstatic back_t *g_back = NULL;")
+    head.addPriv("__device__ static __attribute__((unused)) input_t *_in1=NULL, *_in2=NULL;\n__global__ void gpu_input(input_t* in1, input_t* in2) { _in1=in1; _in2=in2; }")
     head.add("void g_init(input_t* in1, input_t* in2);\nvoid g_free();\nvoid g_solve();\n"+tpAnswer+" g_backtrack(trace_t** trace, unsigned* size);")
 
     // Initialize and free device memory for cost and backtrack matrices
@@ -273,7 +275,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "size_t s_cost = sizeof(cost_t)*MEM_MATRIX;\n"+
       "size_t s_back = sizeof(back_t)*MEM_MATRIX;\n"+
       // Test & fail memory allocation (more reliable than estimations)
-      "cuAlloc2(costDev,c_cost,g_cost,s_cost); cuAlloc2(backDev,c_back,g_back,s_back);"+
+      "cuAlloc2(costDev,c_cost,g_cost,s_cost); cuAlloc2(backDev,c_back,g_back,s_back);\ngpu_input<<<1,1>>>(g_in1,g_in2);"+
       (if (!benchmark)"" else "\nsize_t mem = (sizeof(input_t)+sizeof(trace_t))*(M_W+M_H) + s_cost + s_back;\n"+
         "printf(\"%-20s : %.2fMb / %.2fMb -> cost:%s, backtrack:%s\\n\",\"Memory selection\","+
         "mem/1048576.0,prop.totalGlobalMem/1048576.0, costDev?\"device\":\"host\", backDev?\"device\":\"host\");")
