@@ -23,7 +23,7 @@ __device__ int br_energy(rsize bl, rsize i, rsize j, rsize br, rsize Xleft);
 __device__ int sr_energy(rsize i, rsize j);
 __device__ int sr_pk_energy(char a, char b, char c, char d);
 __device__ int dl_energy(rsize i, rsize j);
-__device__ int dr_energy(rsize i, rsize j, rsize n);
+__device__ int dr_energy(rsize i, rsize j);
 __device__ int dli_energy(rsize i, rsize j);
 __device__ int dri_energy(rsize i, rsize j);
 __device__ int ext_mismatch_energy(rsize i, rsize j);
@@ -44,9 +44,13 @@ __device__ bool iupac_match(enum base_t base, unsigned char iupac_base);
 // -----------------------------------------------------------------------------
 // Implementation
 
-__device__ paramT *g_P = NULL;
-__device__ const char* g_seq = NULL;
-__device__ int g_len = 0;
+__device__ static paramT *g_P = NULL;
+__device__ static const char* g_seq = NULL;
+__device__ static int g_len = 0;
+
+#define my_len g_len
+#define my_seq g_seq
+#define my_P g_p
 
 // -----------------------------------------------------------------------------
 
@@ -54,29 +58,15 @@ __device__ static int bp_index(char x, char y) {
   switch (x) {
     case A_BASE: if (y==U_BASE) return AU_BP; break;
     case C_BASE: if (y==G_BASE) return CG_BP; break;
-    case G_BASE : switch (y) {
-        case C_BASE : return GC_BP;
-        case U_BASE : return GU_BP;
-      }
-      break;
-    case U_BASE : switch (y) {
-        case G_BASE : return UG_BP;
-        case A_BASE : return UA_BP;
-      }
-      break;
+    case G_BASE : switch (y) { case C_BASE: return GC_BP; case U_BASE: return GU_BP; } break;
+    case U_BASE : switch (y) { case G_BASE: return UG_BP; case A_BASE: return UA_BP; } break;
   }
   return NO_BP;
 }
-#define _bp(i,j) bp_index(g_seq[i],g_seq[j])
 
 __device__ static rsize noGaps(rsize i, rsize j) {
   rsize noGaps=0; for (rsize k=i; k<=j; ++k) if (g_seq[k] == GAP_BASE) ++noGaps;
   return noGaps;
-}
-
-__device__ static size_t ungapRegion(rsize i, rsize j, char *ungapped) {
-  rsize pos=0; for (rsize y=i; y<=j; ++y) if (g_seq[y] != GAP_BASE) ungapped[pos++] = g_seq[y];
-  return pos;
 }
 
 __device__ static rsize getNext(rsize pos, rsize steps, rsize rightBorder) {
@@ -95,36 +85,34 @@ __device__ static rsize getPrev(rsize pos, rsize steps, rsize leftBorder) {
 
 #define _next(pos,steps,left) g_seq[getNext(pos,steps,left)]
 #define _prev(pos,steps,right) g_seq[getPrev(pos,steps,right)]
-
-__device__ static void decode(char *s, const char *x, const int len) {
-	unsigned int i;
-	for (i = 0; i < len; ++i) switch (x[i]) {
-      case 0 : s[i] = 'N'; break;
-      case 1 : s[i] = 'A'; break;
-      case 2 : s[i] = 'C'; break;
-      case 3 : s[i] = 'G'; break;
-      case 4 : s[i] = 'U'; break;
-      case 5 : s[i] = '_'; break;
-      default: s[i] = '?'; //abort();
-	}
-}
+#define _bp(i,j) bp_index(g_seq[i],g_seq[j])
+#define _bp2(a,b,c, d,e,f) bp_index(g_seq[getPrev(a,b,c)], g_seq[getNext(d,e,f)])
 
 __device__ static int jacobson_stockmayer(rsize l) { return (int)(g_P->lxc*log((l)/(1.0 * MAXLOOP))); }
 __device__ static int hl_ent(rsize l) { return (l>MAXLOOP) ? g_P->hairpin[MAXLOOP]+jacobson_stockmayer(l) : g_P->hairpin[l]; }
 __device__ static int hl_stack(rsize i, rsize j) { return g_P->mismatchH[_bp(i,j)][_next(i,1,j-1)][_prev(j,1,i+1)]; }
 
 __device__ int termau_energy(rsize i, rsize j) {
-  if ((g_seq[i]==G_BASE && g_seq[j]==C_BASE) || (g_seq[i]==C_BASE && g_seq[j]==G_BASE)) return 0;
-  else return g_P->TerminalAU;
+  return ((g_seq[i]==G_BASE && g_seq[j]==C_BASE) || (g_seq[i]==C_BASE && g_seq[j]==G_BASE)) ? 0 : g_P->TerminalAU;
 }
 
-__device__ static char *strstr2(const char *s1, const char *s2) {
-  const char* p=s1;
-  do {
-    int n=0; while(s2[n]==p[n] && p[n]) ++n;
-    if (s2[n]==0) return (char*)p;
-  } while (*(++p));
-  return NULL;
+__device__ static int ungappedLength(rsize i, rsize j) { int pos=0; for (rsize y=i;y<=j;++y) if (g_seq[y] != GAP_BASE) ++pos; return pos; }
+__device__ static int strMatch(rsize i, rsize j, const char *str, int strlen, int step) {
+  int len = j-i+1; // length of the sequence to match
+  for (const char* p=str; p<p+strlen; p+=step) { // p is str candidate
+    int n,k;
+    for (n=0,k=0;n<len;++n) { // for all items in [i,j]
+      char c=g_seq[i+n]; if (c==GAP_BASE) continue;
+      else if (c==N_BASE) { if (p[k]!='N') break; ++k; }
+      else if (c==A_BASE) { if (p[k]!='A') break; ++k; }
+      else if (c==C_BASE) { if (p[k]!='C') break; ++k; }
+      else if (c==G_BASE) { if (p[k]!='G') break; ++k; }
+      else if (c==U_BASE) { if (p[k]!='U') break; ++k; }
+      else break;
+    }
+    if (n==len) return ((int)(p-str))/step;
+  }
+  return -1; // not found
 }
 
 __device__ int hl_energy(rsize i, rsize j) {
@@ -135,65 +123,28 @@ __device__ int hl_energy(rsize i, rsize j) {
 
   if (size < 3) return 600;
   if (size == 3 || size == 4 || size == 6) {
-	char ungapped[20]; // XXX: j-i+1
-	int sizeUngapped = ungapRegion(i,j,ungapped);
-    char loop[20]; // XXX: sizeUngapped+1
-    loop[sizeUngapped] = 0;
-	decode(loop, ungapped, sizeUngapped);
-	if (sizeUngapped == 3+2) {
-	  char *ts; loop[5]=0;
-	  if ((ts=strstr2(g_P->Triloops, loop))) return (g_P->Triloop_E[(ts - g_P->Triloops)/6]);
-	} else if (sizeUngapped == 4+2) { //special tetraloop cases
-	  char *ts; loop[6]=0;
-	  if ((ts=strstr2(g_P->Tetraloops, loop))) return (g_P->Tetraloop_E[(ts - g_P->Tetraloops)/7]);
-	} else if (sizeUngapped == 6+2) { //special hexaloop cases
-	  char *ts; loop[8]=0;
-	  if ((ts=strstr2(g_P->Hexaloops, loop))) return (g_P->Hexaloop_E[(ts - g_P->Hexaloops)/9]);
-	}
+    int pos;
+    switch (ungappedLength(i,j)) {
+      case 3+2: if ((pos=strMatch(i,j,g_P->Triloops  ,g_P->TriloopsLen  ,6))!=-1) return g_P->Triloop_E[pos/6]; break; // special triloop cases
+      case 4+2: if ((pos=strMatch(i,j,g_P->Tetraloops,g_P->TetraloopsLen,7))!=-1) return g_P->Tetraloop_E[pos/7]; break; // special tetraloop cases
+      case 6+2: if ((pos=strMatch(i,j,g_P->Hexaloops ,g_P->HexaloopsLen ,9))!=-1) return g_P->Hexaloop_E[pos/9]; break; //special hexaloop cases
+    }
   }
   if (size == 3) return entropy + termau_energy(i, j); //normal hairpins of loop size 3
   else return entropy + stack_mismatch; //normal hairpins of loop sizes larger than three
 }
 
-__device__ int hl_energy_stem(rsize i, rsize j) {
-  int r = hl_energy(i,j);
-  rsize size = j-i-1 - noGaps(i+1,j-1);
-  if (size >= 4) return r - hl_stack(i,j);
-  return r;
-}
+__device__ int hl_energy_stem(rsize i, rsize j) { int r=hl_energy(i,j); rsize size = j-i-1 - noGaps(i+1,j-1); return r - (size >= 4 ? hl_stack(i,j) : 0); }
 
-__device__ static int il11_energy(rsize i, rsize k, rsize l, rsize j) {
-  int enclosedBP = _bp(getPrev(j,2,l),getNext(i,2,k)); //we know that the enclosed base pair is at exactly this position, since both unpaired regions have size 1.  Note, basepair is reversed to preserver 5'-3' order.
-  return g_P->int11[_bp(i,j)][enclosedBP][_next(i,1,k)][_prev(j,1,l)];
-}
+// Note, basepair and stacking bases are reversed to preserver 5'-3' order
+__device__ static int il11_energy(rsize i, rsize k, rsize l, rsize j) { return g_P->int11[_bp(i,j)][_bp2(j,2,l, i,2,k)][_next(i,1,k)][_prev(j,1,l)]; }
+__device__ static int il12_energy(rsize i, rsize k, rsize l, rsize j) { return g_P->int21[_bp(i,j)][_bp2(j,3,l, i,2,k)][_next(i,1,k)][_prev(j,2,l)][_prev(j,1,l)]; }
+__device__ static int il21_energy(rsize i, rsize k, rsize l, rsize j) { return g_P->int21[_bp2(j,2,l, i,3,k)][_bp(i,j)][_prev(j,1,l)][_next(i,1,k)][_next(i,2,k)]; }
+__device__ static int il22_energy(rsize i, rsize k, rsize l, rsize j) { return g_P->int22[_bp(i,j)][_bp2(j,3,l, i,3,k)][_next(i,1,k)][_next(i,2,k)][_prev(j,2,l)][_prev(j,1,l)]; }
 
-__device__ static int il12_energy(rsize i, rsize k, rsize l, rsize j) {
-  int enclosedBP = bp_index(_prev(j,3,l), _next(i,2,k));
-  return g_P->int21[_bp(i,j)][enclosedBP][_next(i,1,k)][_prev(j,2,l)][_prev(j,1,l)];
-}
-
-__device__ static int il21_energy(rsize i, rsize k, rsize l, rsize j) {
-  int closingBP = bp_index(_prev(j,2,l), _next(i,3,k));
-  return g_P->int21[closingBP][_bp(i,j)][_prev(j,1,l)][_next(i,1,k)][_next(i,2,k)];
-}
-
-__device__ static int il22_energy(rsize i, rsize k, rsize l, rsize j) {
-  int enclosedBP = bp_index(_prev(j,3,l), _next(i,3,k));
-  return g_P->int22[_bp(i,j)][enclosedBP][_next(i,1,k)][_next(i,2,k)][_prev(j,2,l)][_prev(j,1,l)];
-}
-
-__device__ static int il_ent(rsize l) { // assert(l>1);
-  return g_P->internal_loop[MAXLOOP] + (l > MAXLOOP ? jacobson_stockmayer(l) : 0);
-}
-
-__device__ static int il_stack(rsize i, rsize k, rsize l, rsize j) { // Note, basepair and stacking bases are reversed to preserver 5'-3' order
-  return g_P->mismatchI[_bp(i,j)][_next(i,1,j-1)][_prev(j,1,i+1)] + g_P->mismatchI[_bp(l,k)][_next(l,1,j-1)][_prev(k,1,i+1)];
-}
-
-__device__ static int il_asym(rsize sl, rsize sr) {
-  int r = abs((int)sl-(int)sr) * g_P->ninio[0];
-  return (r < g_P->ninio[1]) ? r : g_P->ninio[1];
-}
+__device__ static int il_ent(rsize l) { /*assert(l>1);*/ return g_P->internal_loop[MAXLOOP] + (l > MAXLOOP ? jacobson_stockmayer(l) : 0); }
+__device__ static int il_stack(rsize i, rsize k, rsize l, rsize j) { return g_P->mismatchI[_bp(i,j)][_next(i,1,j-1)][_prev(j,1,i+1)] + g_P->mismatchI[_bp(l,k)][_next(l,1,j-1)][_prev(k,1,i+1)]; }
+__device__ static int il_asym(rsize sl, rsize sr) { int r = abs((int)sl-(int)sr) * g_P->ninio[0]; return (r < g_P->ninio[1]) ? r : g_P->ninio[1]; }
 
 __device__ int il_energy(rsize i, rsize k, rsize l, rsize j) {
   rsize sl = k-i-1 - noGaps(i+1, k-1);
@@ -210,26 +161,22 @@ __device__ int il_energy(rsize i, rsize k, rsize l, rsize j) {
   if (sr == 0) return bl_energy(i, i+1, k-1, j, l); //internal loop really is an left bulge, because right unpaired region is just a gap
 
   if (sl == 1) {
-	if (sr == 1) return il11_energy(i, k, l, j);
-	else if (sr == 2) return il12_energy(i, k, l, j);
-	else return il_ent(sl+sr) + il_asym(sl,sr) + g_P->mismatch1nI[out_closingBP][out_lbase][out_rbase] + g_P->mismatch1nI[in_closingBP][in_lbase][in_rbase];
+    if (sr == 1) return il11_energy(i, k, l, j);
+    else if (sr == 2) return il12_energy(i, k, l, j);
+    else return il_ent(sl+sr) + il_asym(sl,sr) + g_P->mismatch1nI[out_closingBP][out_lbase][out_rbase] + g_P->mismatch1nI[in_closingBP][in_lbase][in_rbase];
   } else if (sl == 2) {
-	if (sr == 1) return il21_energy(i, k, l, j);
-	else if (sr == 2) return il22_energy(i, k, l, j);
-	else if (sr == 3) return g_P->internal_loop[5]+g_P->ninio[0] + g_P->mismatch23I[out_closingBP][out_lbase][out_rbase] + g_P->mismatch23I[in_closingBP][in_lbase][in_rbase];
+    if (sr == 1) return il21_energy(i, k, l, j);
+    else if (sr == 2) return il22_energy(i, k, l, j);
+    else if (sr == 3) return g_P->internal_loop[5]+g_P->ninio[0] + g_P->mismatch23I[out_closingBP][out_lbase][out_rbase] + g_P->mismatch23I[in_closingBP][in_lbase][in_rbase];
   } else if ((sl == 3) && (sr == 2)) {
-	return g_P->internal_loop[5]+g_P->ninio[0] + g_P->mismatch23I[out_closingBP][out_lbase][out_rbase] + g_P->mismatch23I[in_closingBP][in_lbase][in_rbase];
+    return g_P->internal_loop[5]+g_P->ninio[0] + g_P->mismatch23I[out_closingBP][out_lbase][out_rbase] + g_P->mismatch23I[in_closingBP][in_lbase][in_rbase];
   } else if (sr == 1) {
     return il_ent(sl+sr) + il_asym(sl,sr) + g_P->mismatch1nI[out_closingBP][out_lbase][out_rbase] + g_P->mismatch1nI[in_closingBP][in_lbase][in_rbase];
   }
   return il_ent(sl+sr) + il_stack(i, k, l, j) + il_asym(sl, sr);
 }
 
-__device__ static int bl_ent(rsize l) {
-  // assert(l>0);
-  if (l>MAXLOOP) return g_P->bulge[MAXLOOP] + jacobson_stockmayer(l);
-  else return g_P->bulge[l];
-}
+__device__ static int bl_ent(rsize l) { /*assert(l>0);*/ return (l>MAXLOOP) ? g_P->bulge[MAXLOOP] + jacobson_stockmayer(l) : g_P->bulge[l]; }
 
 __device__ int bl_energy(rsize i, rsize k, rsize l, rsize j, rsize Xright) {
   // assert(j >= 2); // this is of no biological relevance, just to avoid an underflow
@@ -252,39 +199,19 @@ __device__ int br_energy(rsize i, rsize k, rsize l, rsize j, rsize Xleft) {
 __device__ int sr_energy(rsize i, rsize j) { return g_P->stack[_bp(i,j)][_bp(j-1,i+1)]; }
 __device__ int sr_pk_energy(char a, char b, char c, char d) { return g_P->stack[_bp(a,b)][_bp(d,c)]; }
 
-__device__ int dl_energy(rsize i, rsize j) {
-  if (i == 0) return 0;
-  int dd = g_P->dangle5[_bp(i,j)][_prev(i,1,0)];
-  return (dd>0) ? 0 : dd; // must be <= 0
-}
-
-__device__ int dr_energy(rsize i, rsize j, rsize n) {
-  if ((j+1) >= n) return 0;
-  int dd = g_P->dangle3[_bp(i,j)][_next(j,1,n)];
-  return (dd>0) ? 0 : dd; // must be <= 0
-}
-
-__device__ int dli_energy(rsize i, rsize j) {
-  int dd = g_P->dangle3[_bp(j,i)][_next(i,1,j-1)];
-  return (dd>0) ? 0 : dd; // must be <= 0
-}
-
-__device__ int dri_energy(rsize i, rsize j) {
-  int dd = g_P->dangle5[_bp(j,i)][_prev(j,1,i+1)];
-  return (dd>0) ? 0 : dd; // must be <= 0
-}
+__device__ int dl_energy(rsize i, rsize j) { if (i==0) return 0; int dd = g_P->dangle5[_bp(i,j)][_prev(i,1,0)]; return (dd>0) ? 0 : dd; } // must be <= 0
+__device__ int dr_energy(rsize i, rsize j) { if ((j+1)>=g_len) return 0; int dd = g_P->dangle3[_bp(i,j)][_next(j,1,g_len)]; return (dd>0) ? 0 : dd; } // must be <= 0
+__device__ int dli_energy(rsize i, rsize j) { int dd = g_P->dangle3[_bp(j,i)][_next(i,1,j-1)]; return (dd>0) ? 0 : dd; } // must be <= 0
+__device__ int dri_energy(rsize i, rsize j) { int dd = g_P->dangle5[_bp(j,i)][_prev(j,1,i+1)]; return (dd>0) ? 0 : dd; } // must be <= 0
 
 __device__ int ext_mismatch_energy(rsize i, rsize j) {
   if ((i > 0) && ((j+1) < g_len)) return g_P->mismatchExt[_bp(i,j)][_prev(i,1,0)][_next(j,1,g_len)];
   else if (i > 0) return dl_energy(i,j);
-  else if ((j+1) < g_len) return dr_energy(i,j,g_len);
+  else if ((j+1) < g_len) return dr_energy(i,j);
   else return 0;
 }
 
-__device__ int ml_mismatch_energy(rsize i, rsize j) {
-  return g_P->mismatchM[_bp(j,i)][_prev(j,1,i+1)][_next(i,1,j-1)]; // Note, basepairs and stacking bases are reversed to preserver 5'-3' order
-}
-
+__device__ int ml_mismatch_energy(rsize i, rsize j) { return g_P->mismatchM[_bp(j,i)][_prev(j,1,i+1)][_next(i,1,j-1)]; } // Note, basepairs and stacking bases are reversed to preserver 5'-3' order
 __device__ int ml_energy() { return g_P->MLclosing; }
 __device__ int ul_energy() { return g_P->MLintern[0]; }
 __device__ int sbase_energy() { return 0; }
@@ -333,7 +260,7 @@ __device__ bool iupac_match(enum base_t base, unsigned char iupac_base) {
 #define cuDevSync cudaDeviceSynchronize()
 #define cuErr(err) cuErr_(err,__FILE__,__LINE__)
 __attribute__((unused)) static inline void cuErr_(cudaError_t err, const char *file, int line) { if (err==cudaSuccess) return;
-	fprintf(stderr,"%s:%i CUDA error %d:%s\n", file, line, err, cudaGetErrorString(err)); cudaDeviceReset(); exit(EXIT_FAILURE);
+    fprintf(stderr,"%s:%i CUDA error %d:%s\n", file, line, err, cudaGetErrorString(err)); cudaDeviceReset(); exit(EXIT_FAILURE);
 }
 // Device memory
 #define cuMalloc(ptr,size) cuErr(cudaMalloc((void**)&ptr,size))
@@ -360,11 +287,11 @@ void initSeq(const char* str) {
 void freeSeq() { cuFree(cg_seq); }
 
 int main() {
-	read_parameter_file("vienna/rna_turner2004.par");
-	initP();
-	initSeq("guaugagaua");
-	// execution here
-	freeSeq();
-	freeP();
-	return 0;
+    read_parameter_file("vienna/rna_turner2004.par");
+    initP();
+    initSeq("guaugagaua");
+    // execution here
+    freeSeq();
+    freeP();
+    return 0;
 }

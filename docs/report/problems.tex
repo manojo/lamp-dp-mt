@@ -1,15 +1,12 @@
 \newpage
 \section{Dynamic programming problems} \label{problems}
 % ------------------------------------------------------------------------------------------------
-
-
-% ------------------------------------------------------------------------------------------------
-{\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: END OF REWRITING :XXX \\}
-% ------------------------------------------------------------------------------------------------
-
-
 \subsection{Problems classification}
+Since <<dynamic programming>> defines a very general technique, we already focused on grammar and alignment problems in \ref{intro_dp}. Before exploring some particular problem instances, we want to define some characteristics that will be used through the rest of the document to describe dynamic programming problems.
+
 \subsubsection{Definitions}\ul
+\item \textbf{Cost or score:} refers to the result of the dynamic programming recurrence formula.
+\item \textbf{Backtrack:} the backtrack is the information related to a score that describe how it has been obtained by referring to immediately previous elements. By induction on the backtrack, the \textbf{trace} (that describe \textit{all} thee steps to obtain the result) can be obtained.
 \item \textbf{Alphabets:} the alphabet represent an enumeration of the possible values. Their size helps determining how many bits are required in the implementation to store the values. Alphabets must be defined for input, wavefront, cost and backtrack.
 \item \textbf{Dimensions:} let $n$ the size of the input and $d$ the dimension of the underlying matrix.
 \item \textbf{Matrices:} we refer indifferently by the matrix or the matrices to all the intermediate cost- and backtrack-related informations that are necessary to solve the dynamic programming problem of interest. Matrices elements are usually denoted by $M_{(i,j)}$ ($i^{\rm th}$ line , $j^{\rm th}$ column).
@@ -448,7 +445,7 @@ Q : matrix(
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Related problems}
-The aim of this section is to demonstrate that the problems described above are very similar or encompass a significant part of the common dynamic programming problems. (There is an hyperlink on the problems name to their detailed description).
+The aim of this section is to demonstrate that the problems described above are very similar or encompass a significant part of the common dynamic programming problems\footnote{There are hyperlinks on the problems name to their detailed description.}.
 
 \begin{table}[H]\begin{center}\begin{tabular}{llcc} \toprule
 \bf Serial problems & \bf Shape & \bf Matrices & \bf Wavefront \\ \midrule
@@ -474,8 +471,8 @@ Zuker folding & triangle & 3 & -- \\
 \end{table}
 
 \subsubsection{Other problems}\ul
-\item Dijkstra shortest path: we need a $E\times V$ matrix, along $E$ forall $V$ reduce its distance, problem is serial along $E$, non-serial along $V$ hence of complexity $O(|E|\cdot |V^2|)$ which is far worse than both $O(|V|^2)$ (min-priority queue) and $O(|E|+|V|\log |V|)$ (Fibonacci heap).
-\item Fibonacci: this problem is serial 1D. Could be implemented using a placeholder element in one of the matrix dimension.
+\item Dijkstra shortest path: can be expressed in DP and requires a $E\times V$ matrix. Informally: along $E$, forall $V$, reduce the distance. The problem is serial along the $E$ dimension and non-serial along $V$, hence its complexity is $O(|E|\cdot |V^2|)$ which is worse than both $O(|V|^2)$ (using a minimum priority queue) and $O(|E|+|V|\log |V|)$ (with Fibonacci heap).
+\item Fibonacci numbers: this problem is serial 1D (in 1 dimension). $F(n)$ could be implemented with ADP using a sequence of $n$ placeholder elements, but this is inefficient.
 \item \href{http://archive.ite.journal.informs.org/Vol3No1/Sniedovich/\#dpmodel}{Tower of Hanoi}: 1D non-serial
 \item \href{http://www.cs.ust.hk/mjg_lib/bibs/DPSu/DPSu.Files/KnPl81.PDF}{Knuth's word wrapping}: 1D non-serial
 \item \href{http://en.wikipedia.org/wiki/Longest_increasing_subsequence#Efficient_algorithms}{Longest increasing subsequence}: serial (binary search is more efficient).
@@ -502,7 +499,7 @@ These algorithm also involve dynamic programming. However, we do not evaluate th
 \subsubsection{Conclusion}
 In the rest of the project, we use a different description of the problems that is based on ADP \cite{adp}, which is more convenient but does not share much with the above description (even though ultimately the executed computations are very similar). Although not of immediate use, the description of the above problem and ad-hoc CUDA implementation of three of them (Smith-Waterman with arbitrary gap cost, Matrix chain multiplication and Convex polygon triangulation) helped us to understand:\ol
 \item There is a difference between dynamic programming as seen in algorithmic classes and their concrete implementation, mainly because special care must be taken for correct indices and preventing off-by-one errors.
-\item Problems can be classified in two categories: single track (input) and two-tracks (2 input sequences). Most of the common dynamic programming problems fall in these two categories.
+\item Problems can be classified in two categories: single track (input) and two-tracks (2 input sequences). Most of the interesting dynamic programming problems that could be parallelized fall in these two categories.
 \item Sometimes matrices are initially padded with zeroes (or initial value), although this might be ignored at algorithm design, care must be taken for these special values and their inclusion in the matrix should be decided according to the complexity of the recurrence formula.
 \item Incidentally, we proposed a cyclic variant of the convex polygon triangulation, which uses a parallelogram matrix instead of a triangular one (upper right triangle extended by a lower triangle on the right). Unfortunately, this proved to be based on an erroneous recurrence relation analysis, which could be reduced to the more natural triangular case.
 
@@ -526,4 +523,4 @@ The research on ad-hoc implementation has focused on three kind of problems:\ul
 \item Biological sequence alignment (Smith-Watermann) for huge sequences: \cite{swat_gpu}, \cite{swat_linear} \cite{swat_mega}.
 \ule
 
-Considered as possible solutions to store a varying number of results per matrix cell were dynamic memory allocation \cite{nvidia} available on recent graphic cards, ad-hoc memory allocation \cite{scatter_alloc} or hash tables \cite{parallel_hashing}, however the costs associated with dynamic memory allocation makes it unattractive for this particular kind of problem, also the use of cuckoo hash tables adds a constant factor penalty to every memory access. Finally both solution introduce the possibility of algorithm failure in the middle of the computation process.
+Considered as possible solutions to store a varying number of results per matrix cell were dynamic memory allocation \cite{nvidia} available on recent graphic cards, ad-hoc memory allocation \cite{scatter_alloc} or hash tables \cite{parallel_hashing}, however the costs associated with dynamic memory allocation makes it unattractive for this particular kind of problem, also the use of cuckoo hash tables adds a constant factor penalty to every memory access. Finally both solution introduce undesirable possibility of failure (respectively out of memory or unrecoverable collision) in the middle of the algorithm computation process.

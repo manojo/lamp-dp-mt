@@ -20,9 +20,7 @@ enum bp_t { N_BP, CG_BP, GC_BP, GU_BP, UG_BP, AU_BP, UA_BP, NO_BP };
 
 typedef unsigned int rsize;
 
-// temperature is defined in vienna/fold_vars.c
-extern double temperature;
-
+// host only
 void librna_read_param_file(const char *filename);
 
 int termau_energy(const char *s, rsize i, rsize j);

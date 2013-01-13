@@ -55,9 +55,12 @@ paramT *get_scaled_parameters() {
   params->MultipleCA = RESCALE(MultipleCAdH, MultipleCA37);
   params->MultipleCB = RESCALE(MultipleCBdH, MultipleCB37);
 
-  for (i=0; (i*7)<strlen(Tetraloops); i++) params->Tetraloop_E[i] = RESCALE(TetraloopdH[i],Tetraloop37[i]);
-  for (i=0; (i*5)<strlen(Triloops); i++) params->Triloop_E[i] = RESCALE(TriloopdH[i],Triloop37[i]);
-  for (i=0; (i*9)<strlen(Hexaloops); i++) params->Hexaloop_E[i] = RESCALE(HexaloopdH[i],Hexaloop37[i]);
+  params->TetraloopsLen=strlen(Tetraloops);
+  params->TriloopsLen=strlen(Triloops);
+  params->HexaloopsLen=strlen(Hexaloops);
+  for (i=0; (i*7)<params->TetraloopsLen; i++) params->Tetraloop_E[i] = RESCALE(TetraloopdH[i],Tetraloop37[i]);
+  for (i=0; (i*5)<params->TriloopsLen; i++) params->Triloop_E[i] = RESCALE(TriloopdH[i],Triloop37[i]);
+  for (i=0; (i*9)<params->HexaloopsLen; i++) params->Hexaloop_E[i] = RESCALE(HexaloopdH[i],Hexaloop37[i]);
 
   params->TerminalAU = RESCALE(TerminalAUdH,TerminalAU37);
   params->DuplexInit = RESCALE(DuplexInitdH,DuplexInit37);

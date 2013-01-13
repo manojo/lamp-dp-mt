@@ -65,10 +65,13 @@ typedef struct {
   int     DuplexInit;
   int     Tetraloop_E[200];
   char    Tetraloops[1401];
+  int     TetraloopsLen; // added
   int     Triloop_E[40];
   char    Triloops[241];
+  int     TriloopsLen; // added
   int     Hexaloop_E[40];
   char    Hexaloops[1801];
+  int     HexaloopsLen; // added
   int     TripleC;
   int     MultipleCA;
   int     MultipleCB;
