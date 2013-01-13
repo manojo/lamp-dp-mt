@@ -41,31 +41,36 @@ By the use of a parsing grammar, ADP makes the invisible candidate structure exp
 
 Finally, since the expression of the dynamic program is formalized, it makes it possible to convert it to efficient recurrences to target many-core platforms such as GPUs.
 
-\textbf{DynaProg system:} DynaProg implements ADP with a syntax matching that of the Scala parsers.
+\textbf{DynaProg framework:} DynaProg implements ADP in Scala as an embedded DSL (domain-specific language) with a syntax matching that of the existing parsers. It extends over the original ADP parsers by providing multi-track grammars, simplifies the combinators by providing yield analysis, and can translates programs into CUDA\footnote{Compute Unified Device Architecture: a parallel computing platform and programming model created by NVIDIA, supported by their graphics processing units (GPUs).} parsers, that are competitive to handwritten code, and arguably more reliable. It performs additional optimization for correct parallel scheduling and removal of unused tabulations (dead code elimination).
 
-{\center\color{red} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\ CONTINUE HERE\\ 
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+DynaProg provides a generic way of backtracking the parsers, such that the same backtrack can be used with multiple algebras, provided that they use the same grammar. This allows to construct a generic pattern <<solve-compute>> of solving problem: for example, assume that the problem consists of multiplying a chain of matrices efficiently. In the first step, the used would want to find the optimal execution schedule of the multiplication using dynamic programming. In the second step, the computed optimal solution will be used to execute the actual computation on actual data, hereby producing effortlessly the desired result: it suffice to provide an additional computation algebra.
 
+Offloading dynamic programming computations to CUDA devices is achieved effortlessly, providing that the used has correctly configured few variables to match its system configuration: it suffices to add two lines of code (mixing a trait and providing two data types) to schedule the dynamic compilation and execution of the CUDA optimized program and obtain the result, as if it was executed in plain Scala.
 
-
-
-
-% XXX: How we compare to other, how to evaluate
-% Benchmark => prove by evaluation intro statements
-
-Our contributions are: \ul
-\item A classification of DP problems characteristics (matrix shape, dependency graph, ...)
-\item A systematic approach to process data (top-down/bottom-up) and backtracking information (focus on running time and memory efficiency)
-\item A language embedded in Scala (DSL) to express DP problems concisely (based on ADP)
-\item Two implementations: Scala for CPU (features) and an CUDA for GPU (efficiency)
-%\item Reuse of existing compiler technology (fusion) for a specific purpose
-%\item State of the art parallel implementation of these classes on GPUs
-%\item Normalization of the grammar into efficient productions
-%\item Code generator to transform a grammar into efficient code for CPU, GPU (and FPGA)
+In the rest of the document we\ul
+\item Briefly describe dynamic programming background and some interesting features of the Scala language
+\item Provide a classification of DP problems characteristics (matrix shape, dependency graph) and provide a detailed analysis of some related problems that we want to implement.
+\item Propose a systematic approach to encode backtracking information such that the backtracking process can be made linear to the size of the problem
+\item Describe how to convert parsers efficiently in parallel code from a top-down description to a bottom-up implementation (focusing on running time and memory efficiency)
+\item Provide an concrete implementation in the form of a language embedded DSL in Scala, leveraging the grammar and algebra concepts of ADP
+\item Describe two implementations: Scala for CPU (focusing on multiple backtracking) and an CUDA for GPU (focusing on efficiency)
+\item Evaluate the performance of our work by providing appropriate benchmarks against existing implementations
 \ule
 
+%Our contributions are: \ul
+%\item A classification of DP problems characteristics (matrix shape, dependency graph, ...)
+%\item A systematic approach to process data (top-down/bottom-up) and backtracking information (focus on running time and memory efficiency)
+%\item A language embedded in Scala (DSL) to express DP problems concisely (based on ADP)
+%\item Two implementations: Scala for CPU (features) and an CUDA for GPU (efficiency)
+%%\item Reuse of existing compiler technology (fusion) for a specific purpose
+%%\item State of the art parallel implementation of these classes on GPUs
+%%\item Normalization of the grammar into efficient productions
+%%\item Code generator to transform a grammar into efficient code for CPU, GPU (and FPGA)
+%\ule
+
 % ------------------------------------------------------------------------------------------------
-\section{Background}
+\newpage
+%\section{Background}
 \subsection{Dynamic programming}
 Dynamic programming consists of solving a problem by reusing subproblems solutions. A famous example of dynamic programming is the Fibonacci series that is defined by the recurrence
 \[F(n+1) = F(n)+F(n-1) \qquad \text{ with } F(0)=F(1)=1 \]
@@ -91,7 +96,7 @@ Taking real-world examples, the average input size for sequence alignment is aro
 \subsection{Scala}
 \textit{<<Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way. It smoothly integrates features of object-oriented and functional languages, enabling programmers to be more productive. Many companies depending on Java for business critical applications are turning to Scala to boost their development productivity, applications scalability and overall reliability.>>}\footnote{\url{http://www.scala-lang.org}}
 
-As the Scala \cite{scala} programming language is initially developed by the LAMP, it seems natural to use it as host language for our project, however, we would list some of its features \cite{scala_api} that makes it an interesting development language for this project:\ul
+As the Scala \cite{scala} programming language is developed by our laboratory (LAMP, EPFL), it seems natural to use it as host language for our project, however, we would list some of its features \cite{scala_api} that makes it an interesting development language for this project:\ul
 \item The functional programming style and syntactic sugar offered by Scala allows concise writing of implementation, analysis and transformations of our DSL, which would have been much more complex and tiresome in an imperative language like C.
 \item Scala is largely adopted in the industry, which makes both the adoption of related project easier and offer a steeper learning curve to their potential users.
 \item Finally, through the Java VM and JNI interface, Scala offers the possibility to load dynamically external libraries, to leverage best underlying hardware by mixing with CUDA kernels to obtain optimal performance.
@@ -99,8 +104,10 @@ As the Scala \cite{scala} programming language is initially developed by the LAM
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Lightweight Modular Staging}
-Lightweight Modular Staging (LMS) \cite{lms}, \cite{lms_thesis} is a runtime code generation built on top of Scala virtualized \cite{scala_virtualized} that uses types to distinguish between binding time (compilation and runtime) for code compilation. This framework has been extended to generate from the same source code efficient implementation for heterogeneous platforms at runtime (Delite) \cite{lms2}, \cite{lms3}, \cite{delite}.
+Lightweight Modular Staging (LMS) \cite{lms}, \cite{lms_thesis} is a runtime code generation built on top of Scala virtualized \cite{scala_virtualized} that uses types to distinguish between binding time (compilation and runtime) for code compilation. This makes possible to annotate parts of the code with special types, such that their compilation is delayed until the program is executed. At run time, these parts are represented as multiple nodes that serve as the basis for another compilation phase where all the code executed until this point can provide additional information to produce a more efficient compilation. The process of delaying the compilation is known as \textit{lifting} whereas \textit{lowering} corresponds to transforming this intermediate representation into executable code. Through extensive use of component technology, lightweight modular staging makes an optimizing compiler framework available at the library level, allowing programmers to tightly integrate domain-specific abstractions and optimizations into the generation process.
 
- Through extensive use of component technology, lightweight modular staging makes an optimizing compiler framework available at the library level, allowing programmers to tightly integrate domain-specific abstractions and optimizations into the generation process.
+Delite \cite{lms2}, \cite{lms3}, \cite{delite} leverages the benefits of delayed compilation provided by LMS to generate from the same source code efficient implementation for heterogeneous platforms at runtime. For instance, this can be used to transform embarrassingly parallel operations on collections into their parallel counterpart that can be executed on GPU.
 
-LMS can be leveraged to transform Scala code into its C-like equivalent. However, the concern in this project is that the code for the GPU would be sensibly different from the original CPU code as both implementation serve different purposes: CPU version (Scala) is more general whereas the GPU version trades some functionalities for performance and suffer additional restrictions, in particular for memory management and alignment. Hence the use of LMS would be restricted to user-specific function, over which our DSL has no control.
+At first glance, LMS seems the ideal candidate to transform Scala code into its C-like equivalent. However, the concern in this project is that the GPU code sensibly differers from the original CPU code because the two implementations serve different purposes: CPU version (Scala) is more general whereas the GPU version trades some functionalities for performance and suffer additional restrictions, in particular for memory management and alignment. Ad-hoc C translation seems more appropriate than writing Scala code and convert it with LMS because LMS only understand a subset of both languages.
+
+LMS would still be helpful for generating user-specific functions, as they are independent of the rest of the program and user wants to write his functions only once for both Scala and CUDA.

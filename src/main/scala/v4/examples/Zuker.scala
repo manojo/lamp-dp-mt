@@ -28,7 +28,6 @@ trait ZukerSig extends Signature {
   def ssadd(e:SSeq, x:Answer) : Answer
   def nil(d:Unit) : Answer
 
-  def size:Int
   def in(x:Int):Alphabet
   def basepairing(i:Int, j:Int):Boolean = if (i+2>j) false else (in(i),in(j-1)) match {
     case ('a','u') | ('u','a') | ('u','g') | ('g','u') | ('g','c') | ('c','g') => true
@@ -41,7 +40,7 @@ trait ZukerMFE extends ZukerSig {
   type Answer = Int
   def sadd(lb:Int, e:Answer) = e
   def cadd(x:Answer, e:Answer) = x + e
-  def dlr(lb:Int, e:Answer, rb:Int) = e + LibRNA.ext_mismatch_energy(lb, rb-1, size) + LibRNA.termau_energy(lb, rb-1) // OK
+  def dlr(lb:Int, e:Answer, rb:Int) = e + LibRNA.ext_mismatch_energy(lb, rb-1) + LibRNA.termau_energy(lb, rb-1) // OK
   def sr(lb:Int, e:Answer, rb:Int) = e + LibRNA.sr_energy(lb,rb) // OK
   def hl(lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) = LibRNA.hl_energy(f1,f2) + LibRNA.sr_energy(lb, rb) // OK
   def bl(lb:Int, f1:Int, b:SSeq, x:Answer, f2:Int, rb:Int) = x + LibRNA.bl_energy(f1,b._1,b._2-1,f2,f2-1) + LibRNA.sr_energy(lb, rb) // OK
