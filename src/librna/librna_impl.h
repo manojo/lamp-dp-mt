@@ -1,4 +1,8 @@
-/* RNA energy library wrapper for Vienna-Tables */
+#ifndef __librna_impl_h__
+#define __librna_impl_h__
+#if (!defined(my_len) || !defined(my_seq) || !defined(my_P) || !defined(my_dev))
+#error "make sure my_len, my_seq, my_P and my_dev are well defined"
+#endif
 
 // -----------------------------------------------------------------------------
 // Header
@@ -157,8 +161,8 @@ my_dev int il_energy(rsize i, rsize k, rsize l, rsize j) {
   int in_lbase = _next(l,1,j-1);
   int in_rbase = _prev(k,1,i+1);
 
-  if (sl == 0) return br_energy(i, l+1, j-1, j, k); //internal loop really is an right bulge, because left unpaired region is just a gap
-  if (sr == 0) return bl_energy(i, i+1, k-1, j, l); //internal loop really is an left bulge, because right unpaired region is just a gap
+  if (sl == 0) return br_energy(i, l+1, j-1, j, k); //internal loop is a right bulge, because left unpaired region is just a gap
+  if (sr == 0) return bl_energy(i, i+1, k-1, j, l); //internal loop is a left bulge, because right unpaired region is just a gap
 
   if (sl == 1) {
     if (sr == 1) return il11_energy(i, k, l, j);
@@ -247,3 +251,10 @@ my_dev bool iupac_match(enum base_t base, unsigned char iupac_base) {
   // assert(iupac_base<12);
   return map_base_iupac[base][iupac_base];
 }
+
+// -----------------------------------------------------------------------------
+#undef my_len
+#undef my_seq
+#undef my_P
+#undef my_dev
+#endif

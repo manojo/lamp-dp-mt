@@ -25,7 +25,7 @@ object LibRNA {
   @native def sr_energy(i:Int, j:Int):Int // <-- 2 stacked base pairs
   @native def sr_pk_energy(a:Byte, b:Byte, c:Byte, d:Byte):Int
   @native def dl_energy(i:Int, j:Int):Int
-  @native def dr_energy(i:Int, j:Int, n:Int):Int
+  @native def dr_energy(i:Int, j:Int):Int
   @native def dli_energy(i:Int, j:Int):Int
   @native def dri_energy(i:Int, j:Int):Int
   @native def ext_mismatch_energy(i:Int, j:Int):Int
@@ -37,9 +37,9 @@ object LibRNA {
   @native def dl_dangle_dg(dangle:Byte, i:Byte, j:Byte):Int
   @native def dr_dangle_dg(i:Byte, j:Byte, dangle:Byte):Int
 
-  // @native def mk_pf(x:Double):Double
-  // @native def scale(x:Int):Double;
-  // @native iupac_match(base:Byte, iupac_base:Byte):Boolean
+  @native def mk_pf(x:Double):Double
+  @native def scale(x:Int):Double;
+  @native def iupac_match(base:Byte, iupac_base:Byte):Boolean;
 }
 
 /*

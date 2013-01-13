@@ -1,18 +1,16 @@
 package v4.examples
 import v4._
 
-import librna.LibRNA
-
 // ----------------------------------------------------------------------------
 // Folding algorithm from Unafold package in the function hybrid-ss-min
 // Using the grammar described in paper "GPU accelerated RNA folding algorithm"
 
-trait RNAFoldSig extends Signature {
+trait RNAFoldSig extends Signature with LibRNA {
   type Alphabet = Char
 
-  def Eh(i:Int,j:Int) = LibRNA.hl_energy(i,j) // hairpin loop
-  def Ei(i:Int,k:Int,l:Int,j:Int) = LibRNA.il_energy(i,k,l,j) // internal loop
-  def Es(i:Int,j:Int) = LibRNA.sr_energy(i,j) // 2 stacked base pairs
+  def Eh(i:Int,j:Int) = hl_energy(i,j) // hairpin loop
+  def Ei(i:Int,k:Int,l:Int,j:Int) = il_energy(i,k,l,j) // internal loop
+  def Es(i:Int,j:Int) = sr_energy(i,j) // 2 stacked base pairs
 
   def hairpin(ij:(Int,Int)):Answer
   def stack(i:Int,s:Answer,j:Int):Answer
@@ -76,12 +74,12 @@ object RNAFold extends App {
   object fold extends RNAFoldGrammar with RNAFoldAlgebra
   object pretty extends RNAFoldGrammar with RNAFoldPrettyPrint
 
+  fold.setParams("src/librna/vienna/rna_turner2004.par")
   def parse(s:String) = {
-    LibRNA.setParams("src/librna/vienna/rna_turner2004.par")
-    LibRNA.setSequence(s);
+    fold.setSequence(s);
     val (score,bt) = fold.backtrack(s.toArray).head;
     val res = pretty.build(s.toArray,bt)
-    LibRNA.clear; (score,bt,res)
+    fold.clear; (score,bt,res)
   }
 
   val seq="aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu"

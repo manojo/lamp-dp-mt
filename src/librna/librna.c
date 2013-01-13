@@ -3,16 +3,16 @@
 #include <string.h>
 #include <jni.h>
 
+// Definition of the classname, spread over all JNI functions
 #define _fun(name) Java_librna_LibRNA_00024_##name
 #define _vfun(name) JNIEXPORT void JNICALL Java_librna_LibRNA_00024_##name
 #define _ifun(name) JNIEXPORT jint JNICALL Java_librna_LibRNA_00024_##name
 #define _p0 JNIEnv *env, jobject obj
 
+// Definition of the JNI interface
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-// Definition of the classname, spread over all JNI functions
 _vfun(setParams)(_p0, jstring);
 _vfun(setSequence)(_p0, jstring);
 _vfun(clear)(_p0);
@@ -36,6 +36,10 @@ _ifun(sbase_1energy)(_p0);
 _ifun(ss_1energy)(_p0, jint, jint);
 _ifun(dl_dangle_dg)(_p0, jbyte, jbyte, jbyte);
 _ifun(dr_dangle_dg)(_p0, jbyte, jbyte, jbyte);
+
+JNIEXPORT jdouble JNICALL _fun(pk_pf)(_p0, jdouble);
+JNIEXPORT jdouble JNICALL _fun(scale)(_p0, jint);
+JNIEXPORT jboolean JNICALL _fun(iupac_match)(_p0, jbyte, jbyte);
 #ifdef __cplusplus
 }
 #endif
@@ -44,20 +48,16 @@ _ifun(dr_dangle_dg)(_p0, jbyte, jbyte, jbyte);
 #define my_seq c_seq
 #define my_P c_P
 #define my_dev
-#include "rnalib_impl.h"
-#undef my_len
-#undef my_seq
-#undef my_P
-#undef my_dev
+#include "librna_impl.h"
 
 void _fun(setParams)(_p0, jstring file) {
   const char *str = (*env)->GetStringUTFChars(env, file, 0);
   if (str) read_parameter_file(str);
-  if (c_P) free(c_P); c_P=get_scaled_parameters();
   (*env)->ReleaseStringUTFChars(env, file, str);
 }
 
 void _fun(setSequence)(_p0, jstring sequence) {
+  c_P=get_scaled_parameters();
   const char *str = (*env)->GetStringUTFChars(env, sequence, 0);
   size_t i; if (c_seq) free(c_seq);
   c_len=strlen(str); c_seq=malloc((c_len+1)*sizeof(char));
@@ -75,7 +75,7 @@ void _fun(setSequence)(_p0, jstring sequence) {
   (*env)->ReleaseStringUTFChars(env, sequence, str);
 }
 
-void _fun(clear)(_p0) { if (c_seq) { free(c_seq); c_seq=NULL; } }
+void _fun(clear)(_p0) { if (c_P) { free(c_P); c_P=NULL; } if (c_seq) { free(c_seq); c_seq=NULL; } }
 jint _fun(termau_1energy)(_p0, jint i, jint j) { return termau_energy(i,j); }
 jint _fun(hl_1energy)(_p0, jint i, jint j) { return hl_energy(i,j); }
 jint _fun(hl_1energy_1stem)(_p0, jint i, jint j) { return hl_energy_stem(i,j); }
@@ -96,3 +96,7 @@ jint _fun(sbase_1energy)(_p0) { return sbase_energy(); }
 jint _fun(ss_1energy)(_p0, jint i, jint j) { return ss_energy(i,j); }
 jint _fun(dl_dangle_dg)(_p0, jbyte dangle, jbyte i, jbyte j) { return dl_dangle_dg(dangle,i,j); }
 jint _fun(dr_dangle_dg)(_p0, jbyte i, jbyte j, jbyte dangle) { return dl_dangle_dg(i,j,dangle); }
+
+jdouble _fun(mk_pf)(_p0, jdouble x) { return mk_pf(x); }
+jdouble _fun(scale)(_p0, jint x) { return scale(x); }
+jboolean _fun(iupac_match)(_p0, jbyte base, jbyte iupac_base) { return iupac_match(base,iupac_base); };
