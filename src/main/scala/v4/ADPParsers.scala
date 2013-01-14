@@ -57,55 +57,21 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
 }
 
 trait RNASignature extends Signature {
-  override type Alphabet = Char
-  import librna.{LibRNA=>l}
-
-  // Setup functions
-  def setParams(file:String) = l.setParams(file)
-  def setSequence(seq:String) = l.setSequence(seq)
-  def clear = l.clear
-
-  // Filtering functions (basepairing = one pair, stackpairing = two pairs)
-  // XXX: convert to internal representation?
-  // XXX: provide CUDA counterpart
+  type Alphabet = Char
   def in(x:Int):Char
   val basepairing = new ((Int,Int)=>Boolean) with CFun {
     def apply(i:Int,j:Int):Boolean = if (i+2>j) false else (in(i),in(j-1)) match {
-      case ('a','u') | ('u','a') | ('u','g') | ('g','u') | ('g','c') | ('c','g') => true
-      case _ => false
+      case ('a','u') | ('u','a') | ('u','g') | ('g','u') | ('g','c') | ('c','g') => true case _ => false
     }
-    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return XXX: FIX ACCESS TO INPUT;","Boolean")
+    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(i,j)!=NO_BP;","Boolean")
   }
   val stackpairing = new ((Int,Int)=>Boolean) with CFun {
     def apply(i:Int,j:Int):Boolean = (i+3<=j) && basepairing(i,j) && basepairing(i+1,j-1)
-    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return XXX: FIX ACCESS TO INPUT;","Boolean")
+    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(i,j)!=NO_BP && bp_index(i+1,j-1)!=NO_BP;","Boolean")
   }
+}
 
-  // Exported energies function
-  val termau_energy = new F2(l.termau_energy _,"termau_energy")
-  val hl_energy = new F2(l.hl_energy _,"hl_energy") // <-- hairpin loop
-  val hl_energy_stem = new F2(l.hl_energy_stem _,"hl_energy_stem")
-  val il_energy = new F4(l.il_energy _,"il_energy") // <-- internal loop
-  val bl_energy = new F5(l.bl_energy _,"bl_energy")
-  val br_energy = new F5(l.br_energy _,"br_energy")
-  val sr_energy = new F2(l.sr_energy _,"sr_energy") // <-- 2 stacked base pairs
-  val sr_pk_energy = new FB4(l.sr_pk_energy _,"sr_pk_energy")
-  val dl_energy = new F2(l.dl_energy _,"dl_energy")
-  val dr_energy = new F2(l.dr_energy _,"dr_energy")
-  val dli_energy = new F2(l.dli_energy _,"dli_energy")
-  val dri_energy = new F2(l.dri_energy _,"dri_energy")
-  val ext_mismatch_energy = new F2(l.ext_mismatch_energy _,"ext_mismatch_energy")
-  val ml_mismatch_energy = new F2(l.ml_mismatch_energy _,"ml_mismatch_energy")
-  val ml_energy = new F0(l.ml_energy _,"ml_energy")
-  val ul_energy = new F0(l.ul_energy _,"ul_energy")
-  val sbase_energy = new F0(l.sbase_energy _,"sbase_energy")
-  val ss_energy = new F2(l.ss_energy _,"ss_energy")
-  val dl_dangle_dg = new FB3(l.dl_dangle_dg _,"dl_dangle_dg")
-  val dr_dangle_dg = new FB3(l.dr_dangle_dg _,"dr_dangle_dg")
-  val mk_pf = new FDD(l.mk_pf _,"mk_pf")
-  val scale = new FID(l.scale _,"scale")
-  val iupac_match = new FBBB(l.iupac_match _,"iupac_match")
-
+object RNAUtils {
   // Debugging helper, program must be Vienna/RNAfold-compatible
   def refFold(seq:String,prog:String="RNAfold"):String = {
     import java.io._
@@ -129,7 +95,57 @@ trait RNASignature extends Signature {
   Random.setSeed(123456748299L)
   def genSeq(n:Int) = Seq.fill(n)(Math.abs(Random.nextInt)%4).map {case 0=>'a' case 1=>'c' case 2=>'g' case 3=>'u'}.mkString
 
-  // Wrapping functions
+}
+
+/*
+trait RNASignature extends Signature {
+  override type Alphabet = Char
+  import librna.{LibRNA=>l}
+
+  // Setup functions
+  def setParams(file:String) = l.setParams(file)
+  def setSequence(seq:String) = l.setSequence(seq)
+  def clear = l.clear
+
+  // Filtering functions (basepairing = one pair, stackpairing = two pairs)
+  // XXX: convert to internal representation?
+  // XXX: provide CUDA counterpart
+  def in(x:Int):Char
+  val basepairing = new ((Int,Int)=>Boolean) with CFun {
+    def apply(i:Int,j:Int):Boolean = if (i+2>j) false else (in(i),in(j-1)) match {
+      case ('a','u') | ('u','a') | ('u','g') | ('g','u') | ('g','c') | ('c','g') => true case _ => false
+    }
+    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(i,j)!=NO_BP;","Boolean")
+  }
+  val stackpairing = new ((Int,Int)=>Boolean) with CFun {
+    def apply(i:Int,j:Int):Boolean = (i+3<=j) && basepairing(i,j) && basepairing(i+1,j-1)
+    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(i,j)!=NO_BP && bp_index(i+1,j-1)!=NO_BP;","Boolean")
+  }
+  // Exported energies function
+  val termau_energy = cfun2(l.termau_energy _,"i,j", "termau_energy")
+  val hl_energy = new F2(l.hl_energy _,"hl_energy") // <-- hairpin loop
+  val hl_energy_stem = new F2(l.hl_energy_stem _,"hl_energy_stem")
+  val il_energy = new F4(l.il_energy _,"il_energy") // <-- internal loop
+  val bl_energy = new F5(l.bl_energy _,"bl_energy")
+  val br_energy = new F5(l.br_energy _,"br_energy")
+  val sr_energy = new F2(l.sr_energy _,"sr_energy") // <-- 2 stacked base pairs
+  val sr_pk_energy = new FB4(l.sr_pk_energy _,"sr_pk_energy")
+  val dl_energy = new F2(l.dl_energy _,"dl_energy")
+  val dr_energy = new F2(l.dr_energy _,"dr_energy")
+  val dli_energy = new F2(l.dli_energy _,"dli_energy")
+  val dri_energy = new F2(l.dri_energy _,"dri_energy")
+  val ext_mismatch_energy = new F2(l.ext_mismatch_energy _,"ext_mismatch_energy")
+  val ml_mismatch_energy = new F2(l.ml_mismatch_energy _,"ml_mismatch_energy")
+  val ml_energy = new F0(l.ml_energy _,"ml_energy")
+  val ul_energy = new F0(l.ul_energy _,"ul_energy")
+  val sbase_energy = new F0(l.sbase_energy _,"sbase_energy")
+  val ss_energy = new F2(l.ss_energy _,"ss_energy")
+  val dl_dangle_dg = new FB3(l.dl_dangle_dg _,"dl_dangle_dg")
+  val dr_dangle_dg = new FB3(l.dr_dangle_dg _,"dr_dangle_dg")
+  val mk_pf = new FDD(l.mk_pf _,"mk_pf")
+  val scale = new FID(l.scale _,"scale")
+  val iupac_match = new FBBB(l.iupac_match _,"iupac_match")
+
   class F0(f:()=>Int,name:String) extends (()=>Int) with CFun { def apply()=f(); val (args,body,tpe)=(List(),"return "+name+"();","Int") }
   class F2(f:(Int,Int)=>Int,name:String) extends ((Int,Int)=>Int) with CFun { def apply(i:Int,j:Int) = f(i,j)
     val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return "+name+"(i,j);","Int")
@@ -156,3 +172,4 @@ trait RNASignature extends Signature {
     val (args,body,tpe)=(List(("a","Byte"),("b","Byte")),"return "+name+"(a,b);","Boolean")
   }
 }
+*/
