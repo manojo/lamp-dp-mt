@@ -97,13 +97,16 @@ PRIVATE void init_fold(int length, paramT *parameters){
 
 /*--------------------------------------------------------------------------*/
 
+unsigned my_size=0; // DBG
 PRIVATE void get_arrays(unsigned int size){
   if(size >= (unsigned int)sqrt((double)INT_MAX))
     nrerror("get_arrays@fold.c: sequence length exceeds addressable range");
 
-  c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  ptype = (char *)space(sizeof(char)*((size*(size+1))/2+2));
+  my_size=size; // DBG
+
+  c     = (int *) space(sizeof(int)*((size*(size+1))/2+2)); // cost ??
+  fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2)); // cost ??
+  ptype = (char*) space(sizeof(char)*((size*(size+1))/2+2)); // type of backtrack ??
   f5    = (int *) space(sizeof(int)*(size+2));
   cc    = (int *) space(sizeof(int)*(size+2));
   cc1   = (int *) space(sizeof(int)*(size+2));
@@ -118,6 +121,25 @@ PRIVATE void get_arrays(unsigned int size){
 /*--------------------------------------------------------------------------*/
 
 PUBLIC void free_arrays(void){
+  // DBG
+  // fML[indx[j-1]+i] seems indexing method
+  unsigned int i,j;
+  #define PRINT_TAB(X) \
+  for (i=0;i<my_size;++i) { \
+    for (j=0;j<my_size;++j) { \
+      int d = my_size-(j-i); \
+      if (j>=i) { \
+       int v = X[indx[d]+i]; \
+       if (v>=214748364) printf("  .   |"); \
+       else printf("%5d |",v); \
+      } else printf("      |"); \
+    } \
+    printf("\n"); \
+  }
+  printf("Table c:\n"); PRINT_TAB(c)
+  printf("Table fML:\n"); PRINT_TAB(fML)
+  // DBG_END
+
   if(indx)      free(indx);
   if(c)         free(c);
   if(fML)       free(fML);

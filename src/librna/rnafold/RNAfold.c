@@ -226,7 +226,8 @@ int main(int argc, char *argv[]){
     printf(" (%6.2f)\n", min_en);
     (void) fflush(stdout);
 
-    if (length>2000) free_arrays();
+    //if (length>2000)
+      free_arrays();
     fflush(stdout);
 
     /* clean up */
