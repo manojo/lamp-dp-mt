@@ -1,5 +1,5 @@
 \newpage
-\section{Architecture design and technical decisions}
+\section{Architecture design and technical decisions} \label{architecture}
 % ------------------------------------------------------------------------------------------------
 \subsection{User facing language requirements} \label{user_lang}
 The field of dynamic programming has been influenced in the recent years by a methodology known as Algebraic Dynamic Programming which uses a grammar and an algebra to separate between the parsing and the score computation:
@@ -43,7 +43,7 @@ Another optimization that is easier to implement is dead rule elimination. Tradi
 
 % ------------------------------------------------------------------------------------------------
 \newpage
-\subsection{Parsing grammar (ADP)}
+\subsection{Parsing grammar (ADP)} \label{adp_grammar}
 In this section, we provide a concise description of the Algebraic Dynamic Programming. Would the reader be interested in the mathematical details of the notation, we encourage him to read the section 3 of \cite{adp}.
 
 ADP is a formalization of parsers that introduces a distinction between the \textbf{parsing grammar} (recognition phase) and an associated \textbf{algebra} (evaluation phase). Such separation makes possible to define multiple algebra for the same grammar. This has two main applications:\ol
@@ -107,11 +107,11 @@ Notice that the semantics of indices differ slightly from the problem presented 
 
 % ------------------------------------------------------------------------------------------------
 %\newpage
-\subsection{Recurrences analysis}
+\subsection{Recurrences analysis} \label{recurrences}
 \subsubsection{Dead rules elimination}
 Dead rules\footnote{\textit{Rule} denotes a tabulation belonging to the grammar; both terms refer to the same concept, with the subtle difference that \textit{rule} emphasizes its grammar membership.} elimination analysis is straightforward: starting from the grammar's axiom, recursively collect all tabulations involved in the computation in $R$ (set of rules that are mandatory in the grammar). The dead rules $D=S \setminus R$ (where $S$ is the set of all tabulations) can safely be removed from the grammar rules. Although seemingly useless for the Scala implementation, this step is necessary to maintain coherency between Scala and CUDA rules numbering (that happen in a later stage on the valid rules). In CUDA, this analysis not only provides dead code elimination, but it also prevents useless computation execution, since all rules are computed sequentially for a particular subsequence before the next subsequence is processed.
 
-\subsubsection{Yield analysis}
+\subsubsection{Yield analysis} \label{yield_analysis}
 Since the original ADP introduces many concatenation combinators\footnote{ADP's original combinators are: $\sim\sim, \sim\sim*, *\sim\sim, *\sim*, -\sim\sim, \sim\sim-, +\sim\sim, \sim\sim+, +\sim+$.} to differentiate empty/non-empty, and floating/fixed-length concatenations, it is quite involved for the programmer to make sure that the concatenation operators exactly match the size of each pair of subsequence involved. Additionally the priority of operators varies in Scala, depending the operator's first character whereas it is possible to specify arbitrary priorities in Haskell. To overcome these issues, we propose to automate the computation of the minimum/maximum length of (subsequences) parsers.
 
 Parsers are made of terminals, concat, operations (aggregate, map, filter) and tabulations; minimum/maximum yield of terminals is set, hence it only remains to assign appropriate yield sizes to tabulations; other operations simply propagate that information. It is possible to obtain the yield size of tabulations using the following algorithm (assuming recursive parsers contain at least one tabulation that is part of the loop):\ol
@@ -132,7 +132,7 @@ Let us introduce the concept of dependency: a dependency between tabulations $A,
 \ule
 
 % ------------------------------------------------------------------------------------------------
-\subsection{Backtracking}
+\subsection{Backtracking} \label{backtracking}
 In order to produce an efficient transformation from ADP-like problem description to plain C recurrences, we need to construct bottom-up recurrences from top-down parser rules. To do that, we slightly need to modify the ADP parsers in order to separate the backtracking and the scoring, because we want to obtain an efficient algorithm: backtrack writes are in $O(n^2)$ whereas score reads are proportional to the algorithmic complexity ($O(n^3)$ or more for non-serial). To deal with this problem, we are facing two options:\ul
 \item \textbf{Explicit backtracking:} requires clear syntactical separation between the score and the backtrack which is not implemented in ADP, unless we consider the whole backtrack being part of the scoring (which has a big performance impact and non-constant memory requirement issues that make such GPU implementation hard and not desirable). Additionally, since the backtracking data is user-defined, there is no way to generate the backtracking algorithm automatically, hence the user also needs to provide it.
 \item \textbf{Implicit backtracking:} implies that every rule needs to be normalized, and transformed such that given a rule identifier and a set of indices (subproblems breaking), it is possible to retrieve the sub-solutions combination that contribute to the problem solution. To do that we need to apply the following transformations\ol
@@ -230,7 +230,7 @@ Since backtrack encoding comes at the price of an additional memory access to te
 \ule
 
 % ------------------------------------------------------------------------------------------------
-\subsection{Memory constraints}
+\subsection{Memory constraints} \label{memory_constr}
 We denote by \textit{device} the computational device on which the processing of the DP matrix (or of a computational block) is done and $M_D$ its memory. This can be the GPU or the FPGA internal memory. Usually the main memory is larger than device memory and can ultimately be extended by either disk or network storage. Without loss of generality, let the underlying dynamic programming matrices be of dimension $m \times n$.
 
 We propose to evaluate the device memory requirements to solve the above problem classes. We need first to define additional problem properties related to implementation:\ul

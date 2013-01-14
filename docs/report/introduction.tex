@@ -10,10 +10,15 @@
 % Contributions (3): 3 tensed sentences
 % Benchmarks => evaluation metrics, prove introduction statements by evaluation
 \subsection*{Abstract}
-Dynamic programming is a common pattern of Computer Science; yet underlying matrix recurrences might be difficult to express, error prone and efficient parallel implementation might be difficult. In this project, we present \textit{DynaProg}, a Scala DSL for dynamic programming on heterogeneous platforms which allow to write concise programs based on a pair of parsing grammar and algebra and execute them either on CPU or on GPU.
+Dynamic programming is a common pattern of Computer Science to solve problem that follow the Bellman's principle: optimal solutions depends on optimal sub-problem solutions. Solving a dynamic programming problem decomposes in two phases: filling one or more matrices with sub-problems intermediate results and decomposing how the final result was constructed (backtracking). Yet matrices computation formulae and recurrences might be difficult to express, indexing element is often error prone and writing an efficient parallel implementation can take a significant amount of time. In this project, we present \textit{DynaProg}, a language embedded in Scala (DSL) to address dynamic programming problems on heterogeneous platforms. DynaProg allows the programmer to write concise programs based on a pair of parsing grammar and algebra; these program can then be executed either on CPU or on GPU.
 
-We then evaluate the performance of both CPU and GPU implementations against existing work and ad-hoc implementations of our own. Experimental results show a average speedup of {\color{red} XXX} if run on GPU (compared to CPU), {\color{red} is comparable to GAPC?} on CPU and has a slowdown of {\color{red} XXX} versus ad-hoc problem implementations on GPU {\color{red} (ours, cudalign, rnafold?)}.
+We evaluate the performance of our implementation against existing work and own ad-hoc implementations for both the CPU and GPU versions of DynaProg.
 
+Experimental results show an average speedup of {\color{red} XXX} for large problems when they are run on the GPU (compared to CPU). Compared to ad-hoc GPU implementations, the generated parsers have an average slowdown of {\color{red} XXX}.
+
+The CPU implementation has a slowdown of {\color{red} XXX} for {\color{red} PROBLEM} against {\color{red} REF,GAPC?}.
+The GPU implementation has a slowdown of {\color{red} XXX} for {\color{red} PROBLEM} against {\color{red} REF,CudAlign, RNAFold}.
+ 
 \vfill
 This project has been achieved in collaboration with Manohar Jonnalagedda. I also would like to thank the LAMP team, including Eugene Burmako, Sandro Stucki, Vojin Jovanovic and Tiark Rompf who provided insightful advices and suggestions. I hope you will enjoy your reading. \vspace{.3cm}\\
 \textit{Thierry Coppey}
@@ -23,43 +28,52 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 \setcounter{tocdepth}{2} \tableofcontents
 \newpage
 \section{Introduction}
-\textbf{Difficulties with dynamic programming:} Dynamic programming (DP) is a technique used to solve combinatorial optimization problems. Often, it allows to evaluate a search space of exponential size in polynomial time. Variations of the basic algorithm not only return an optimal solution, but may also report co- or near-optimal solutions, or compute synthetic properties of the search space such as its size or the sum of all scores.
+Dynamic programming (DP) is a technique used to solve combinatorial optimization problems that verify the Bellman's principle: optimal solutions depends on optimal solutions of sub-problem. Dynamic programming often allows to find solutions in an exponential search space (number of solutions) in polynomial running time. The user is usually interested in one optimal solution of the problem, but he might also desire to have \textit{all} optimal solutions (co-optimal), a fixed number of near-optimal solutions, or some synthetic properties of the search space such as its size or the sum of all scores.
 
-In several areas of applied Computer Science, such as operational research, natural language processing, or biosequence analysis, dynamic programming problems arise in many variations and with a considerable degree of sophistication. Hence there is a mismatch between the simple textbook algorithms and the real-world implementation of their variants. Writing correct recurrences is difficult and error prone because it needs a lot of attention to get correct indices, and implementation debugging is tedious. Additionally, little changes in the computational process might imply large rewrites of the matrices and recurrences.
+Dynamic programming problems arise in several areas of applied Computer Science such as biosequence analysis, natural language processing and operational research. Unfortunately, they appear in multiple variations, and often with a considerable degree of sophistication such that there is a mismatch between textbook solutions and the real-world implementation. Additionally, implementation debugging is tedious and require a lot of time, and little changes in the formulae might imply large rewrites of the matrices and recurrences. \cite{gapc_yield}
 
-For efficiency reasons, the computation is split in two: a matrix elements computation followed by a backtracking stage to retrieve the solution associated with the optimal score. The backtrack information gathering depends on the matrix design and the final result needs also to be presented in a form that makes sense for the user. This might add an additional source of errors and tedious change, would the initial recurrence be changed.
+For efficiency reasons, the process of dynamic programming computation is split in two: first intermediate scores are memoized in a matrix (tabulation), and reused to construct scores for larger problems; then a backtrack stage retrieve the solution associated with the optimal score for the problem. This solution describes how to obtain the optimal score and is called trace or backtrack trace, and heavily depends on the matrix design. The obtained information then needs to be presented in a form that makes sense for the user (or possibly might be used to drive further computations). Each of these two phases must be tightly correlated as a divergence would be a source of errors; would the recurrence formulae be even slightly changed, the programmer must ensure that both phase are still synchronized, which might be tedious.
 
-Finally, once the implementation is correct, it is possible to turn it into efficient code for many core architectures such as multi-CPU, GPU or implementation on programmable hardware (FPGA). However, the domain specialist who write the recurrences might not be very familiar with these platforms, whereas parallelization experts might not deeply understand the domain of the dynamic programming recurrences.
+Finally, once the implementation is correct, it is possible to turn it into an efficient implementation for specific architectures such as multi-CPU, GPU or programmable hardware (FPGA). However, the domain specialist who write the recurrences might not be very familiar with these platforms, whereas parallelization and hardware experts might not deeply understand the domain of the dynamic programming recurrences.
 
-\textbf{Separating concerns:} Algebraic Dynamic Programming (ADP) \cite{adp} is a language-independent declarative approach that separate the concerns of dynamic programming algorithms over data sequences:\ul
-\item Search space definition (using a tree parsing grammar)
-\item Candidates scoring and optimization objective (with mapping and aggregation functions)
-\item Tabulation of the result in matrices (determines running time and space efficiency)
+To solve these concerns, Algebraic Dynamic Programming (ADP) \cite{adp} proposes a language-independent declarative approach that separate the concerns of dynamic programming algorithms into four distinct components that are tightly connected:\ol
+\item The search space is described using a context-free \textbf{parsing grammar} that describes how to construct intermediate candidates whose score might be inserted in the matrix.
+\item Constructed candidates are then evaluated by a \textbf{scoring function} (where all these functions form an \textbf{algebra}), so that they can be compared appropriately.
+\item The optimization objective (which candidates to retain as possible solutions) is described using an \textbf{aggregation function} that operates on the scores previously obtained.
+\item Finally, results are \textbf{tabulated} (memoized in an array) in the corresponding matrices. The tabulation regulates the trade-off between running time and space efficiency by memoizing appropriate results that are reused multiple times.
+\ole
+
+By the use of a parsing grammar, ADP makes the candidate structure explicit. An additional signature serves as interface between the grammar, the scoring algebra and the aggregation function which makes possible that different grammars share different algebra or vice versa. Tabulation indices issues are hidden from the programmer, hereby removing one source of errors.
+
+Finally, since the expression of the dynamic program is formalized and abstracted into a grammar and algebra, it becomes possible to convert it to efficient recurrences for many-core platforms such as GPUs. \cite{adp_gpu}
+
+% -----------------------------
+DynaProg implements the concepts of ADP in Scala as an embedded DSL (domain-specific language) with a syntax matching similar to the combinators parsers of Scala library\footnote{See \url{http://www.scala-lang.org/api/current/index.html\#scala.util.parsing.combinator.Parsers}}. It extends over original ADP by allowing grammars for pairing two sequences (multi-track grammars), simplifies the process of writing program by inferring additional informations (see \ref{yield_analysis}) and can translate them into efficient CUDA\footnote{Compute Unified Device Architecture: a parallel computing platform and programming model created by NVIDIA, supported by their graphics processing units (GPUs).} program that are competitive to their handwritten counterpart. Since the program is formalized, it can be analyzed to remove unused grammar productions (dead code elimination) and avoid some non-termination issues; since it is generated, correct scheduling is guaranteed and indices errors are avoided, hereby producing an arguably more reliable program.
+
+DynaProg provides a generic way of backtracking the results, such that the same backtrack trace can be used with multiple algebras if they share the same grammar. This allows to construct a two steps pattern for solving problems: first DP problem is solved, then from optimal solution backtrack, the desired result is computed. For example, assume the problem of multiplying a chain\footnote{Assuming matrices are of appropriated dimension to be multiplied with each other} of matrices efficiently. In the first step, optimal execution scheduling (or parenthesization) is found using dynamic programming. At the second step, the backtrack trace of optimal solution is used to multiply the actual matrices (given the corresponding algebra).
+
+Finally, offloading dynamic programming computations to CUDA devices has been made effortless for the programmer: it suffices to enable code generation to schedule dynamic compilation and execution of the GPU-optimized program, as if it was executed in plain Scala.
+
+This project resulted is an open-source\footnote{\url{https://github.com/manojo/lamp-dp-mt}} implementation of dynamic programming parsers for Scala optimized for both on CPU and GPU and featuring several analysis (see section~\ref{architecture}) to ease the writing of dynamic programs. Its contribution is an automated approach to encode and process backtracking information such that reconstruction complexity is reduced and backtrack trace be exchanged among different algebras sharing the same grammar. 
+
+The rest of the document consists of:\ul
+\item A brief description of dynamic programming background (\ref{intro_dp}), followed by an explanation of some of the Scala programming language (\ref{intro_scala}) and LMS framework (\ref{intro_lms}) features.
+\item Section~\ref{problems} proposes a classification of DP problems in terms of matrix shape and dependencies. A detailed analysis of some specific problems is provided. Related work addressing the dynamic programming challenges is then presented (\ref{related_work}).
+\item In section~\ref{architecture} we describe the whole parser stack in an abstract manner, going from the user facing language (\ref{user_lang}, \ref{adp_grammar}) to optimizations (\ref{recurrences}, \ref{backtracking}) and implementation constraints (\ref{normalization}, \ref{memory_constr}), describing all the architectural decisions we made.
+\item Section~\ref{implementation} describes how these idea are concretely implemented in the form of a DSL for Scala (\ref{scala_parsers}) and in particular how is efficient CUDA code generated (\ref{codegen})
+\item Finally, in section~\ref{benchmarks} we evaluate the performance of our work by providing appropriate benchmarks against existing implementations
 \ule
 
-By the use of a parsing grammar, ADP makes the invisible candidate structure explicit. An additional signature serves as interface between the grammar and the scoring algebra and aggregation function, which makes possible that different grammars share different algebra or vice versa. Tabulation issues are hidden from the programmer, thus there are no subscripts any more hereby removing this source of errors.
 
-Finally, since the expression of the dynamic program is formalized, it makes it possible to convert it to efficient recurrences to target many-core platforms such as GPUs.
+%\item Propose a systematic approach to encode backtracking information such that the backtracking process can be made linear to the size of the problem
+%\item Provide an concrete implementation in the form of a language embedded DSL in Scala, leveraging the grammar and algebra concepts of ADP
+%\item Describe two implementations: Scala for CPU (focusing on multiple backtracking) and an CUDA for GPU (focusing on efficiency)
 
-\textbf{DynaProg framework:} DynaProg implements ADP in Scala as an embedded DSL (domain-specific language) with a syntax matching that of the existing parsers. It extends over the original ADP parsers by providing multi-track grammars, simplifies the combinators by providing yield analysis, and can translates programs into CUDA\footnote{Compute Unified Device Architecture: a parallel computing platform and programming model created by NVIDIA, supported by their graphics processing units (GPUs).} parsers, that are competitive to handwritten code, and arguably more reliable. It performs additional optimization for correct parallel scheduling and removal of unused tabulations (dead code elimination).
 
-DynaProg provides a generic way of backtracking the parsers, such that the same backtrack can be used with multiple algebras, provided that they use the same grammar. This allows to construct a generic pattern <<solve-compute>> of solving problem: for example, assume that the problem consists of multiplying a chain of matrices efficiently. In the first step, the used would want to find the optimal execution schedule of the multiplication using dynamic programming. In the second step, the computed optimal solution will be used to execute the actual computation on actual data, hereby producing effortlessly the desired result: it suffice to provide an additional computation algebra.
-
-Offloading dynamic programming computations to CUDA devices is achieved effortlessly, providing that the used has correctly configured few variables to match its system configuration: it suffices to add two lines of code (mixing a trait and providing two data types) to schedule the dynamic compilation and execution of the CUDA optimized program and obtain the result, as if it was executed in plain Scala.
-
-In the rest of the document we\ul
-\item Briefly describe dynamic programming background and some interesting features of the Scala language
-\item Provide a classification of DP problems characteristics (matrix shape, dependency graph) and provide a detailed analysis of some related problems that we want to implement.
-\item Propose a systematic approach to encode backtracking information such that the backtracking process can be made linear to the size of the problem
-\item Describe how to convert parsers efficiently in parallel code from a top-down description to a bottom-up implementation (focusing on running time and memory efficiency)
-\item Provide an concrete implementation in the form of a language embedded DSL in Scala, leveraging the grammar and algebra concepts of ADP
-\item Describe two implementations: Scala for CPU (focusing on multiple backtracking) and an CUDA for GPU (focusing on efficiency)
-\item Evaluate the performance of our work by providing appropriate benchmarks against existing implementations
-\ule
-
-%Our contributions are: \ul
-%\item A classification of DP problems characteristics (matrix shape, dependency graph, ...)
-%\item A systematic approach to process data (top-down/bottom-up) and backtracking information (focus on running time and memory efficiency)
+%The contributions of this project are: \ul
+%\item A classification of dynamic programming problems characteristics in terms of matrix shape and recurrence formulae dependencies.
+%\item A systematic approach to convert a top-down recurrence description (grammar) into efficient bottom-up 
+%\item A systematic approach to process backtracking information (focus on running time and memory efficiency)
 %\item A language embedded in Scala (DSL) to express DP problems concisely (based on ADP)
 %\item Two implementations: Scala for CPU (features) and an CUDA for GPU (efficiency)
 %%\item Reuse of existing compiler technology (fusion) for a specific purpose
@@ -67,6 +81,7 @@ In the rest of the document we\ul
 %%\item Normalization of the grammar into efficient productions
 %%\item Code generator to transform a grammar into efficient code for CPU, GPU (and FPGA)
 %\ule
+
 
 % ------------------------------------------------------------------------------------------------
 \newpage
@@ -93,7 +108,7 @@ Taking real-world examples, the average input size for sequence alignment is aro
 
 % ------------------------------------------------------------------------------------------------
 \newpage
-\subsection{Scala}
+\subsection{Scala} \label{intro_scala}
 \textit{<<Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way. It smoothly integrates features of object-oriented and functional languages, enabling programmers to be more productive. Many companies depending on Java for business critical applications are turning to Scala to boost their development productivity, applications scalability and overall reliability.>>}\footnote{\url{http://www.scala-lang.org}}
 
 As the Scala \cite{scala} programming language is developed by our laboratory (LAMP, EPFL), it seems natural to use it as host language for our project, however, we would list some of its features \cite{scala_api} that makes it an interesting development language for this project:\ul
@@ -102,11 +117,14 @@ As the Scala \cite{scala} programming language is developed by our laboratory (L
 \item Finally, through the Java VM and JNI interface, Scala offers the possibility to load dynamically external libraries, to leverage best underlying hardware by mixing with CUDA kernels to obtain optimal performance.
 \ule
 
+{\color{red} talk of features: traits, ... }
+
 % ------------------------------------------------------------------------------------------------
-\subsection{Lightweight Modular Staging}
+\subsection{Lightweight Modular Staging} \label{intro_lms}
 Lightweight Modular Staging (LMS) \cite{lms}, \cite{lms_thesis} is a runtime code generation built on top of Scala virtualized \cite{scala_virtualized} that uses types to distinguish between binding time (compilation and runtime) for code compilation. This makes possible to annotate parts of the code with special types, such that their compilation is delayed until the program is executed. At run time, these parts are represented as multiple nodes that serve as the basis for another compilation phase where all the code executed until this point can provide additional information to produce a more efficient compilation. The process of delaying the compilation is known as \textit{lifting} whereas \textit{lowering} corresponds to transforming this intermediate representation into executable code. Through extensive use of component technology, lightweight modular staging makes an optimizing compiler framework available at the library level, allowing programmers to tightly integrate domain-specific abstractions and optimizations into the generation process.
 
-Delite \cite{lms2}, \cite{lms3}, \cite{delite} leverages the benefits of delayed compilation provided by LMS to generate from the same source code efficient implementation for heterogeneous platforms at runtime. For instance, this can be used to transform embarrassingly parallel operations on collections into their parallel counterpart that can be executed on GPU.
+{\color{red} move delite to related work ... }
+LMS code generation is not limited to Scala, it can also target other languages. To automate code generation and execution flow, Delite \cite{lms2}, \cite{lms3}, \cite{delite} leverages LMS to generate from the same source code efficient implementation for heterogeneous platforms at runtime. This can be used to transform operations on collections into efficient parallel GPU implementation.
 
 At first glance, LMS seems the ideal candidate to transform Scala code into its C-like equivalent. However, the concern in this project is that the GPU code sensibly differers from the original CPU code because the two implementations serve different purposes: CPU version (Scala) is more general whereas the GPU version trades some functionalities for performance and suffer additional restrictions, in particular for memory management and alignment. Ad-hoc C translation seems more appropriate than writing Scala code and convert it with LMS because LMS only understand a subset of both languages.
 

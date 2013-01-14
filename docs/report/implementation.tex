@@ -1,5 +1,5 @@
 \newpage
-\section{Implementation}
+\section{Implementation} \label{implementation}
 % ------------------------------------------------------------------------------------------------
 \subsection{Ad-hoc CUDA}
 In the project planning, an ad-hoc implementation phase immediately followed the problem analysis (we also present the parallelogram matrix case). The goal of this phase is threefold:\ol
@@ -92,7 +92,7 @@ As a conclusion, (1) we must remain away to invalidate their result as previous 
 \ule
 
 % ------------------------------------------------------------------------------------------------
-\subsection{Scala parsers}
+\subsection{Scala parsers} \label{scala_parsers}
 The Scala parsers consist in 4 traits that are used to construct a DSL program:\ul
 \item \textbf{Signature:} abstraction to define input ({\tt Alphabet}) and output ({\tt Answer}) types, and the aggregation function. The signature is implemented by all other traits (in particular algebras and grammars).
 \item \textbf{BaseParsers:} serves as basis for the two other traits and defines common features. It implements the {\tt Parser} abstraction and all its inheriting classes: {\tt Tabulate}, (abstract) {\tt Terminal}, {\tt Aggregate}, {\tt Filter}, {\tt Map}, {\tt Or}, {\tt Concat}. Terminals are further specialized in the two other traits (ADPParsers and TTParsers). The parser abstraction specifies 3 methods:\ul
