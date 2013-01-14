@@ -514,7 +514,7 @@ Work related to dynamic programming can be separated in two categories: ad-hoc i
 Grammar-based dynamic programming was inseminated by ADP \cite{adp_discipline} and first implemented as a Haskell DSL \cite{adp}. To overcome performance issues, multiple solutions were devised:\ul
 \item Converting Haskell parsers in their C or CUDA equivalent \cite{adp_gpu}
 \item Modifying Haskell execution environment to provide loop fusion to improve ADP parsers performance \cite{adp_fusion}, \cite{adp_fusion_pkg}.
-\item Ultimately, the dynamic programming algebra and grammar were formalized into a specific language \cite{gapl} provided with an ad-hoc compiler \cite{gapc_thesis}, hereby allowing more advanced analysis of the grammar \cite{gapc_yield}.
+\item Ultimately, the dynamic programming algebra and grammar were formalized into a specific language \cite{gapl} provided with an ad-hoc compiler \cite{gapc_thesis}, thereby allowing more advanced analysis of the grammar \cite{gapc_yield}.
 \ule
 
 The research on ad-hoc implementation has focused on three kind of problems:\ul
@@ -524,3 +524,5 @@ The research on ad-hoc implementation has focused on three kind of problems:\ul
 \ule
 
 Considered as possible solutions to store a varying number of results per matrix cell were dynamic memory allocation \cite{nvidia} available on recent graphic cards, ad-hoc memory allocation \cite{scatter_alloc} or hash tables \cite{parallel_hashing}, however the costs associated with dynamic memory allocation makes it unattractive for this particular kind of problem, also the use of cuckoo hash tables adds a constant factor penalty to every memory access. Finally both solution introduce undesirable possibility of failure (respectively out of memory or unrecoverable collision) in the middle of the algorithm computation process.
+
+Automated code generation and execution flow is addressed by Delite \cite{lms2}, \cite{lms3}, \cite{delite}, that leverages LMS to generate from the same source code efficient implementation for heterogeneous platforms at runtime. Although our project shares many patterns with this project we can not reuse it because the scheduling and computation is tightly interleaved in dynamic programming (see \ref{intro_lms}) whereas this framework focuses on parallelizing operations on independent elements.

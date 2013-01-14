@@ -25,7 +25,7 @@ The support of these features has the following implications:\ul
 \item \textbf{Dependency analysis:} Since we target GPUs (and FPGAs) which are massively parallel architecture, a top-down execution using hash tables is impractical (fallback computation if element is not present is hard to parallelize), hence we need to construct the result tree bottom-up, therefore ensure that the (partial) evaluation order between rules is respected.
 \item \textbf{Normalization:} in order to automate the backtracking, we need the rule to present a certain shape so that we can define uniquely the backtracking information (in particular we want to distinguish between alternatives). Also we need to maintain coherency between the Scala and the CUDA version so that they can inter-operate: we would like to reuse the backtracking information (from CUDA) to do actual processing in Scala (for instance pretty-printing or effectively multiplying matrices).
 
-\item \textbf{Optimizations:} An possible optimization is to break down complex rules into simpler ones if they are expressible so; hereby reducing the complexity of the overall algorithm, would the user production grammar not be optimal. Unfortunately this analysis is very involved: we need to solve the following problem:
+\item \textbf{Optimizations:} An possible optimization is to break down complex rules into simpler ones if they are expressible so; thereby reducing the complexity of the overall algorithm, would the user production grammar not be optimal. Unfortunately this analysis is very involved: we need to solve the following problem:
 
 Given $f$ , find a pair of functions $(f_1,f_2)$ or $(f_3,f_4)$ such that\footnote{The first equation denotes breaking in two functions, the second is Bellman's optimality principle.}
 \[\begin{array}{rcll}
@@ -305,7 +305,7 @@ The algorithm proceeds as follows: first it solves the problem to obtain the fir
 
 Finally, although such problem is interesting because targeted platforms could include FPGA, where efficient implementations exist \cite{swat_fpga}, several reasons made us considering this class of problem as a future work: \ul
 \item The most prominent problem in this category is Smith-Waterman, for which an ad-hoc efficient implementation already exists\cite{swat_gpu},\cite{swat_mega}. Additionally, the authors are planning to write extensions to support some variants of this problem like Needleman-Wunsch.
-\item The implementation sensibly differs from the class of small problems, as the solving strategy is completely different from non-serial small problems, hereby requiring larger development time that would be out of the scope of this project.
+\item The implementation sensibly differs from the class of small problems, as the solving strategy is completely different from non-serial small problems, thereby requiring larger development time that would be out of the scope of this project.
 \item Finally, such implementation would be only valuable for problems that are larger than the memory device, whereas smaller problem could perfectly use the existing implementation.
 \ule
 
@@ -348,7 +348,7 @@ Noticing that the triangle is just half the parallelogram, we could use the same
 	T &=&\dfrac{(d\cdot (d+1)}{2} & \bigtriangleup \textit{ of current diagonal}
 \end{array}\right.\]
 
-Finally, for the rectangular matrix, since the parallelogram indexing looks efficient, we want to reuse the same idea. However, embedding the rectangle within a parallelogram would have a very large overhead ($(M_H)^2$, by adding a triangle on each side of the rectangle). The solution consists into breaking the rectangle into multiple horizontal stripes of fixed height $B_H$, hereby dramatically reducing the size of the additional triangles. Finally, the stripes can be stitched together to form a single parallelogram continuing along the next stripe. Noticing that beyond a certain number of lines, coalescing access does not improve latency as memory is anyway not stored contiguously, we can make $B_H$ constant .
+Finally, for the rectangular matrix, since the parallelogram indexing looks efficient, we want to reuse the same idea. However, embedding the rectangle within a parallelogram would have a very large overhead ($(M_H)^2$, by adding a triangle on each side of the rectangle). The solution consists into breaking the rectangle into multiple horizontal stripes of fixed height $B_H$, thereby dramatically reducing the size of the additional triangles. Finally, the stripes can be stitched together to form a single parallelogram continuing along the next stripe. Noticing that beyond a certain number of lines, coalescing access does not improve latency as memory is anyway not stored contiguously, we can make $B_H$ constant .
 
 \begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(4,3.5)
 \put(0,-.5) {
