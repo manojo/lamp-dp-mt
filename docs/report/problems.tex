@@ -476,7 +476,7 @@ These algorithms also involve dynamic programming. However, we do not thoroughly
 \item \href{http://en.wikipedia.org/wiki/Dynamic_programming#A_type_of_balanced_0.E2.80.931_matrix}{More dynamic programming problems from Wikipedia}
 \ule
 
-\subsubsection{Conclusion}
+\subsubsection{Conclusion} \label{problems_end}
 In the rest of the report, we use a different description of the problems that is based on ADP \cite{adp}, which is more convenient but does not share much with the above description (even though ultimately the executed computations are very similar). Although not of immediate use, the description of the above problem and ad-hoc CUDA implementation of three of them (Smith-Waterman with arbitrary gap cost, Matrix chain multiplication and Convex polygon triangulation) helped us to understand:\ol
 \item There is a difference between dynamic programming as seen in algorithmic schoolbooks and their concrete implementation, mainly because special care must be taken for correct indices and preventing off-by-one errors.
 \item Problems can be classified in two categories: single track (input) and two-tracks (2 input sequences). Most of the interesting dynamic programming problems that could be parallelized fall in these two categories.

@@ -9,7 +9,7 @@ The GPU implementation has a slowdown of {\color{red} XXX} for {\color{red} PROB
 % Problem to solve, what exists (related work) and how do we compare to other
 % Contributions (3): 3 tensed sentences
 % Benchmarks => evaluation metrics, prove introduction statements by evaluation
- 
+
 \vfill
 This project has been achieved in collaboration with Manohar Jonnalagedda. I also would like to thank the LAMP team, including Eugene Burmako, Sandro Stucki, Vojin Jovanovic and Tiark Rompf who provided insightful advice and suggestions. I hope you will enjoy your reading. \vspace{.3cm}\\
 \textit{Thierry Coppey}
@@ -18,7 +18,7 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 \newpage
 \setcounter{tocdepth}{2} \tableofcontents
 \newpage
-\section{Introduction}
+\section{Introduction} \label{intro}
 Dynamic programming (DP) is a technique used to solve combinatorial optimization problems that verify the Bellman's principle\cite{bellman_principle}: optimal solutions depends on optimal solutions of sub-problems. Dynamic programming often allows to find solutions in an exponential search space (number of solutions) in polynomial running time. The user is usually interested in one optimal solution of the problem, but he might also desire to have \textit{all} optimal solutions (co-optimal), a fixed number of near-optimal solutions, or some synthetic properties of the search space such as its size or the sum of all scores.
 
 Dynamic programming problems arise in several disciplines of applied Computer Science such as biosequence analysis, natural language processing and operational research: sequence alignment, RNA sequence folding or expression parenthesisation are example of such problems which are usually described by matrix recurrence relations. Unfortunately, these problems often appear in multiple variations and with a considerable degree of sophistication such that there is a mismatch between the textbook solution and its concrete implementation. Additionally, debugging is tedious and requires a lot of time, and little changes in the formulae might imply large rewrites of the matrices and recurrences\cite{gapc_yield}.
@@ -29,7 +29,7 @@ Finally, once the implementation is correct, it is possible to turn it into an e
 
 % http://en.wikipedia.org/wiki/Regular_tree_grammar: language class between regular languages and the deterministic context-free languages.
 To solve these concerns, Algebraic Dynamic Programming (ADP) \cite{adp} proposes a language-independent declarative approach that separate the concerns of dynamic programming algorithms into four distinct components that are tightly connected:\ol
-\item The search space is described using a tree \textbf{parsing grammar} that describes how to construct intermediate candidates whose score might be inserted in the matrix.
+\item The search space is described using a context-free \textbf{parsing grammar} that describes how to construct intermediate candidates whose score might be inserted in the matrix.
 \item Constructed candidates are then evaluated by a \textbf{scoring function} (where all these functions form an \textbf{algebra}), so that they can be compared appropriately.
 \item The \textbf{objective function} (or aggregation function) operates on the scores previously obtained to retain valid candidates.
 \item Finally, results are \textbf{tabulated} (memoized in an array) in corresponding matrices. Tabulation process regulates the trade-off between running time and space efficiency by memoizing appropriate results that are reused multiple times.
@@ -44,7 +44,7 @@ DynaProg provides a generic way of backtracking the results, such that the same 
 
 Finally, offloading dynamic programming computations to CUDA devices has been made effortless for the programmer: it suffices to enable code generation to schedule dynamic compilation and execution of the GPU-optimized program, as if it was executed in plain Scala.
 
-This project resulted is an open-source\footnote{\url{https://github.com/manojo/lamp-dp-mt}} implementation of dynamic programming parsers for Scala optimized for both on CPU and GPU and featuring several analyses (\S\ref{architecture}) to ease the writing of dynamic programs. Its contribution is an automated approach to encode and process backtracking information such that the reconstruction complexity is reduced compared to \cite{gapc_thesis} and backtrack trace can be exchanged among different algebras sharing the same grammar. 
+This project resulted is an open-source\footnote{\url{https://github.com/manojo/lamp-dp-mt}} implementation of dynamic programming parsers for Scala optimized for both on CPU and GPU and featuring several analyses (\S\ref{architecture}) to ease the writing of dynamic programs. Its contribution is an automated approach to encode and process backtracking information such that the reconstruction complexity is reduced compared to \cite{gapc_thesis} and backtrack trace can be exchanged among different algebras sharing the same grammar.
 
 The rest of the document consists of:\ul
 \item A brief background on dynamic programming, followed by an explanation of some of the Scala programming language and LMS framework features (\S\ref{background}).
@@ -61,7 +61,7 @@ The rest of the document consists of:\ul
 
 %The contributions of this project are: \ul
 %\item A classification of dynamic programming problems characteristics in terms of matrix shape and recurrence formulae dependencies.
-%\item A systematic approach to convert a top-down recurrence description (grammar) into efficient bottom-up 
+%\item A systematic approach to convert a top-down recurrence description (grammar) into efficient bottom-up
 %\item A systematic approach to process backtracking information (focus on running time and memory efficiency)
 %\item A language embedded in Scala (DSL) to express DP problems concisely (based on ADP)
 %\item Two implementations: Scala for CPU (features) and an CUDA for GPU (efficiency)
@@ -97,7 +97,7 @@ Taking real-world examples in biology, the average input size for sequence align
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Scala} \label{bg_scala}
-\textit{<<Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way. It smoothly integrates features of object-oriented and functional languages, enabling programmers to be more productive. Many companies depending on Java for business critical applications are turning to Scala to boost their development productivity, applications scalability and overall reliability.>>}\footnote{\url{http://www.scala-lang.org}}
+\textit{<<Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way. It smoothly integrates features of object-oriented and functional languages, enabling programmers to be more productive. Many companies depending on Java for business critical applications are turning to Scala to boost their development productivity, applications scalability and overall reliability.>>}\footnote{\url{http://www.scala-lang.org/node/25}}
 
 As the Scala \cite{scala} programming language is developed by our laboratory (LAMP, EPFL), it seems natural to use it as host language for our project, however, we would list some of its features \cite{scala_api} that makes it an interesting development language for this project:\ul
 \item The functional programming style and syntactic sugar offered by Scala allow concise writing of implementation, analysis and transformations of our DSL, allowing us to focus on \textit{what} we want to achieve instead of \textit{how}.

@@ -5,7 +5,7 @@
 In the project planning, an ad-hoc implementation phase immediately followed the problem analysis (we also present the parallelogram matrix case). The goal of this phase is threefold:\ol
 \item Better understand the challenges in CUDA implementation of dynamic programming problems and get on par with state-of-art implementations.
 \item Have a baseline implementation that is independent of the hardware and that could be benchmarked. We also tried to contact the authors of \cite{swat_mega} and \cite{gpu_atlp} to obtain their implementation. The former provided us with their implementation, which turned out to address large serial problems whereas our focus was on smaller non-serial problems, the latter did not respond to our solicitations.
-\item Have an optimal implementation that can serve as target to be imitated and generalized by the code generation.
+\item Have an optimal implementation that can serve as a   to be imitated and generalized by the code generation.
 \ole
 
 Leveraging the insights provided by \cite{gpu_atlp} and \cite{gpu_barrier}, we started with a basic implementation (where each CUDA thread processes one matrix line) with three additional optimizations:\ul
@@ -42,10 +42,10 @@ Processing power \unt{GFLOPS}	&564.5		& 622.08 \\ \midrule
 
 % ----------------------------------------------
 \subsubsection{Results}
-We present here the timings of our implementation. For correctness, we first implemented a CPU version that we used to compare CUDA results against. Input data is made of random numbers. The implemented dynamic programming problems are:\ul
-\item Rectangle: Smith-Waterman with arbitrary cost
-\item Triangle: matrix chain multiplication
-\item Parallelogram: polygon triangulation using a matrix larger than necessary. Note that this implementation uses at most 32 blocks to prevent dead locks on our hardware (restriction due to the number of concurrent threads on the device).
+We present here the timings of our ad-hoc implementation. For correctness, we first implemented a CPU single thread version (in C) that we used to compare CUDA results against. Input data is made of random numbers. The implemented dynamic programming problems are:\ul
+\item Rectangle: Smith-Waterman with arbitrary cost (\S\ref{swat_arbitrary})
+\item Triangle: matrix chain multiplication (\S\ref{mat_mult_plain})
+\item Parallelogram: polygon triangulation (\S\ref{polygon_tri}) using a matrix larger than necessary (\S\ref{problems_end}). Note that this implementation uses at most 32 blocks to prevent dead locks on our hardware (restriction due to the number of concurrent threads on the device).
 \ule
 
 \begin{table}[H]
@@ -71,7 +71,7 @@ We present here the timings of our implementation. For correctness, we first imp
 	\item Removing {\tt \_\_threadfence()} before the synchronization is not syntactically correct but results still remains valid, this confirms the observation made by \cite{gpu_barrier}. Speedup for matrix size of 1024 are 67ms (parallelogram) 100ms (triangle) 180ms (rectangle).
 	\item In the parallelogram case, using all threads to monitor other blocks status instead of the first one only results in a 6.4x speedup (22.72$\to$3.52ms) for the parallelogram.
 	\ule
-\item \textbf{Multiple threads per matrix cell:} in the case of a triangular matrix, at each step, the number of cells to be computed (on the diagonal) decrease while the computation complexity increase (there is one more dependency). According to \cite{gpu_atlp}, the solution lies in adaptive thread mapping, using more than one thread to compute one matrix cell, depending on the complexity. However, in our setup (memory layout+algorithm+hardware), we did not found any improvement by doing so. We want to explore the reason for that: we pose as hypothesis that the bandwidth is the bottleneck of our setup and test it.\ul
+\item \textbf{Multiple threads per matrix cell:} in the case of a triangular matrix, at each step, the number of cells to be computed (on the diagonal) decrease while the computation complexity increases (there is one more dependency). According to \cite{gpu_atlp}, the solution lies in adaptive thread mapping, using more than one thread to compute one matrix cell, depending on the complexity. However, in our setup (memory layout+algorithm+hardware), we did not find any improvement by doing so. We want to explore the reason for that: we pose as hypothesis that the bandwidth is the bottleneck of our setup and test it.\ul
 \item
 
 First we need to prove that we use almost all the available memory bandwidth: for matrix multiplication, in a triangular matrix, we have
@@ -80,15 +80,15 @@ where each write is 10 bytes (long+short), and each read is 8 bytes (long). For 
 % n*(n + 1)/2*12 + Sum[2*i*(n - i), {i, 0, n - 1}]*8
 183'352'614'912 bytes which corresponds to 183.35GB. In 8.841 seconds, we can transfer theoretically at most $8.841\cdot 28.8 = 254 \rm GB$. Hence  72\% of the algorithm running time is spent into memory accesses.
 
-\item On a 4096 matrix, if we assume that ATLP card would have the same bandwidth as our card, their running time would be
+\item On a 4096 matrix, if we assume that the \cite{gpu_atlp} card would have the same bandwidth as our card, their running time would be
 \[2.57 \cdot (1-.72) + 2.57 \cdot 0.72 \cdot \tfrac{102.4_{GB/s}}{28.8_{GB/s}} = 9.43\rm s_{\text{ ATLP}} > 8.84\rm s_{\text{ our}}\]
-Which shows that our algorithm is comparable to theirs. However, we must avoid a close comparison because the fundamental hardware differences would make a tight computation almost intractable (additionally, we do not have ATLP source code).
+This shows that our algorithm is comparable to theirs. However, we must avoid a close comparison because the fundamental hardware differences would make a tight computation almost intractable (additionally, we do not have \cite{gpu_atlp} source code).
 \ule
-As a conclusion, (1) we must remain away to invalidate their result as previous hardware generations might be subject to more constraint to our hardware and (2) we are on par, if not better with one of the best current implementation.
+As a conclusion, (1) it seems that the technique used in \cite{gpu_atlp} only applies to legacy hardware, however this remains a supposition (as we can not compare) and (2) we are on par, if not better with one of the best current implementations.
 
-\item \textbf{Threads number:} reducing the number of threads launched at different splits of the algorithm (especially in latest splits in rectangular and triangular shapes) does not bring any speedup. Even worse, it slows down slightly the computation. We might attribute this to a better constant transformation by the compiler. Hence, having many idle threads does not impede performance.
+\item \textbf{Number of threads:} reducing the number of threads launched at different splits of the algorithm (especially in latest splits in rectangular and triangular shapes) does not bring any speedup. Even worse, it slows down slightly the computation. We might attribute this to a better constant transformation by the compiler. Hence, having many idle threads does not impede performance.
 
-\item \textbf{Unrolling:} unrolling the inner loops (non-serial dependencies) a small number of time provide some speedup, for a 2048-matrix respectively 10.9\% (rectangle, $2.765\to 2.464$), 14.1\% (triangle, $1.427\to 1.225$) and 9.7\% (parallelogram $1.539\to 1.389$). The best experimental number of unrolling is 5.
+\item \textbf{Unrolling:} unrolling the inner loops (non-serial dependencies) a small number of times provide some speedup, for a 2048-matrix respectively 10.9\% (rectangle, $2.765s\to 2.464s$), 14.1\% (triangle, $1.427s\to 1.225s$) and 9.7\% (parallelogram $1.539s\to 1.389s$). The best experimental number of unrolling is 5.
 \ule
 
 % ------------------------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ The Scala parsers consist in 4 traits that are used to construct a DSL program:\
 	\item Number of inner alternatives: helps counting alternatives, thereby guaranteeing an unique number for each (provided that parsers obtain non-overlapping ranges).
 	\item Number of inner moving concatenations: helps determining required storage for the backtrack as well as retrieving the appropriate index in the backtrack phase
 	\ule
-	Additionally, the BaseParser implements the analysis that are shared by both the Scala and the CUDA version: dead rules elimination, yield analysis and dependencies ordering. Finally, it provides some implicit functions to flatten nested tuples (that are constructed by multiple concatenations).
+	Additionally, the BaseParser implements the analysis that is shared by both the Scala and the CUDA version: dead rules elimination, yield analysis and dependencies ordering. Finally, it provides some implicit functions to flatten nested tuples (that are constructed by multiple concatenations).
 \item \textbf{ADPParsers:} used as basis for a single track DP grammar (using one input sequence). It defines the concatenation operator $\sim$ ({\tt Concat} wrapper), and the terminals (empty, element and sequence). Additionally, it defines the interface functions {\tt parse(input)}, {\tt backtrack(input)} and {\tt build(in,backtrack)} that respectively compute the result, the backtrack and the result corresponding to a trace.
 \item \textbf{TTParsers:} used to define two-track DP grammar (using a pair of sequences as input). Similarly, this class defines concatenations $-\!\!\sim$ and $\sim\!\!-$, terminals (for each track) and the {\tt parse(in1,in2)}, {\tt backtrack(in1,in2)} and {\tt build(in1,in2,backtrack)} functions.
 \ule
@@ -146,7 +146,7 @@ The code generation step produces multiple outputs that are tightly bound to eac
 
 % ----------------------------------------------
 \subsubsection{Scala structures conversion (JNI)}
-Since Scala general types can be extremely complex and might heavily depend of the JVM, we want to restrict the supported types; additionally types should be of fixed size for more efficient processing and easier memory allocation. We support the following types:\ul
+Since general Scala types can be extremely complex and might depend of the JVM context (file stream, closures, ...), we want to restrict the supported types; additionally types should be of fixed size for more efficient processing and easier memory allocation. We support the following types:\ul
 \item \textbf{Primitive types:} natively supported in both Java and C. Since there is some little semantics difference between these two languages types, we used C (signed) types as reference. Supported types are: boolean, byte (unsigned char), char, short, int (32bit), long (64bit), float and double.
 \item \textbf{Empty case classes:} user-defined types might be more complex, so we allow users to define case classes that serve as data container and would be translated into C {\tt struct}s.
 \item \textbf{Tuples:} if the user-defined type is fairly simple, a named case class might be cumbersome. Tuples are a syntactical lightweight alternative to case classes, although they translate very similarly. Since Tuple classes are generic and can carry different member types; need to name tuple types uniquely, according to their arity and inner types.
@@ -165,7 +165,7 @@ The output method consist of two different steps:\ul
 
 % ----------------------------------------------
 \subsubsection{Host wrappers}
-The host wrappers are the functions bridging between JNI and CUDA; their duties are:\ul
+Host wrappers are functions bridging between JNI and CUDA; their duties are:\ul
 \item Exposing JNI parsing and backtracking functions
 \item Calling appropriate conversion methods
 \item Allocating host and CUDA memory (and managing transfers between them)
@@ -176,7 +176,7 @@ One peculiarity of our execution environment, is that the kernel execution durat
 
 Since computations are made diagonal-by-diagonal (see \ref{matrix_scheduling}), we can easily decompose the matrix computation by adapting the number of diagonals computed per kernel. The global complexity being the product of the number of elements and the complexity per element, the latter being equal to the number of unbounded concatenations (where maximal size is infinite).
 
-\textbf{Bonus: problems larger than device memory}\\
+\textbf{Problems larger than device memory}\\
 Problems larger than the device memory can actually be processed on recent CUDA devices (with CUDA architecture $\ge 2.0$) as these are able to address the main memory from the device. However, since the distance between CUDA processors and memory is increased, there is an approximate $5\times$ slowdown penalty to be paid in this configuration (experimentally, on a $1024\times 1024$ triangular matrix). Nevertheless, this workaround implementation has 2 benefits:\ul
 \item It allows larger problem to be solved, with very little implementation effort, would the user be patient enough for the computation to terminate
 \item It provides a good estimation of the main memory usage penalty, and thereby a strong argument in favor of the implementation described in \ref{ns_mem_transfer} (with lest than 1\% overhead due to transfers). However, since we have not found concrete applications with such matrix size, the benefit of supporting large matrices is unclear, hence we leave the optimal implementation for future work.
@@ -236,8 +236,8 @@ Intermediate types must be correctly declared. To do that each user-defined func
 
 % ----------------------------------------------
 \subsubsection{Backtracking on the GPU}
-The backtracking is processed similarly as with the Scala parser, the major difference being that since we are generating the C code, we can provide an immediate mapping from the subrule index to the backtrack elements to add to the trace. The backtrack is done in 3 steps:\ul
-\item If window is set, the windowing aggregation kernel is run to determine the position of the best result within the matrix. Otherwise the best position can be found at the last computed element of the matrix.
+The backtracking is processed similarly to the Scala parser, the major difference being that since we are generating C code, we can provide an immediate mapping from the subrule index to the backtrack elements to add to the trace. The backtrack is done in 3 steps:\ul
+\item If a window is set, the windowing aggregation kernel is run to determine the position of the best result within the matrix. Otherwise the best position can be found at the last computed element of the matrix.
 \item For a $m\times n$ matrix, allocate a $m+n$ vector with two heads (reading, writing, initialized at the same position). Write the best element in the vector.
 \item While there is a vector element that has been written but not read\ul
 	\item From the parser id and its position retrieve the corresponding (subrule, concatenation indices) pair by reading in the corresponding matrix cell
@@ -245,7 +245,7 @@ The backtracking is processed similarly as with the Scala parser, the major diff
 	\ule
 \ule
 
-Since code is generated, it is possible to write the last step using a switch case, thereby flattening the writes in the vector (compared to recursive calls in Scala). Finally, since the trace has to be reversed, we can obtain this transformation for free by constructing the trace list from the end in the JNI conversion. Reversing the list present the advantage that trace is immediately usable to construct the desired element. It might be possible that Scala and CUDA parser provide different traces to construct the same result, because the trace verifies the dependency order, which is only a partial order.
+Since code is generated, it is possible to write the last step using a switch case, thereby flattening the writes in the vector (compared to recursive calls in Scala). Finally, since the trace has to be reversed, we can obtain this transformation for free by constructing the trace list from the end in the JNI conversion. Reversing the list presents the advantage that the trace is immediately usable to construct the desired element. It might be possible that Scala and CUDA parsers provide different traces to construct the same result, because the trace verifies the dependency order, which is only a partial order.
 
 % ----------------------------------------------
 \subsubsection{User functions generation} \label{user_fun_gen}
