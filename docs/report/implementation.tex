@@ -1,7 +1,7 @@
 \newpage
 \section{Implementation} \label{implementation}
 % ------------------------------------------------------------------------------------------------
-\subsection{Ad-hoc CUDA}
+\subsection{Ad-hoc CUDA} \label{ad_hoc_impl}
 In the project planning, an ad-hoc implementation phase immediately followed the problem analysis (we also present the parallelogram matrix case). The goal of this phase is threefold:\ol
 \item Better understand the challenges in CUDA implementation of dynamic programming problems and get on par with state-of-art implementations.
 \item Have a baseline implementation that is independent of the hardware and that could be benchmarked. We also tried to contact the authors of \cite{swat_mega} and \cite{gpu_atlp} to obtain their implementation. The former provided us with their implementation, which turned out to address large serial problems whereas our focus was on smaller non-serial problems, the latter did not respond to our solicitations.

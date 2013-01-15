@@ -203,9 +203,9 @@ Although the latter notation seems more explicit, it introduces non-serial depen
 
 % ----------------------------------------------
 \newpage
-\subsubsection{Convex polygon triangulation}\ol
-\item Problem: triangulating a polygon of $n$ vertices with least total cost for added edges. We denote the cost of adding an edge between the  pair of edges $i,j$ by $S_{(i,j)}$, Where $S_{n \times n}$ is a symmetric matrix (can be stored as a triangular matrix with 0 diagonal that can be omitted), hence $|S|=\tfrac{n(n-1)}{2}=N$.
-\item Matrices: $M_{(n+1)\times (n+1)}, B_{(n+1)\times (n+1)}$ \textit{indices denote <<first vertex, last vertex>>}.\\ Upper triangular matrices including main diagonal. Note that the vertex $n$ is the same as the vertex $0$ due to the cyclic nature of the problem.
+\subsubsection{Convex polygon triangulation} \label{polygon_tri} \ol
+\item Problem: triangulating a convex polygon of $n$ vertices at minimal cost. Adding an edge $[i,j]$ has a cost $S_{(i,j)}$, where $S$ is a $(n\times n)$ matrix.
+\item Matrices: $M_{(n+1)\times (n+1)}, B_{(n+1)\times (n+1)}$, upper triangular matrices including main diagonal. Indices denote \textit{<<first vertex, last vertex>>}; the vertex $n$ is the same as the vertex $0$ due to the cyclic nature of the problem.
 \item Alphabets:\ul
 	\item Input: $\Sigma(S_{(i,j)})=\{0..m\}$ with $m=\max_{i,j} S_{(i,j)}$ determined at runtime\footnote{We need to have statistics about $S$, this is where dynamic compilation might play a role}.
 	\item Cost matrix: $\Sigma(M)=\{0..z\}$ with $z = m \cdot (n-2)$ (a triangulation of a polygon of $n$ edges adds at most $n-2$ edges).
@@ -234,11 +234,13 @@ Although the latter notation seems more explicit, it introduces non-serial depen
 	\put(5.5,4.5){\line(1,-3){1}}
 }
 
-\item Optimizations: if the cost of edges between contiguous vertices is 0, we do not need to handle special cases in the DP program (i.e. existing edges cannot be added).
+\item Optimizations:\ul
+	\item If the cost of edges between contiguous vertices is 0, we do not need to handle special cases in the DP program (i.e. existing edges cannot be added).
+	\item The matrix cost $S$ is a symmetric matrix and can be stored as a triangular matrix with 0 diagonal that can be omitted), hence $|S|=\tfrac{n(n-1)}{2}=N$.
+	\ule
 \ole
 
 % ----------------------------------------------
-\newpage
 \subsubsection{Matrix chain multiplication}\label{mat_mult_plain}\ol
 \item Problem: find an optimal parenthesizing of the multiplication of $n$ matrices $A_i$. Each matrix $A_i$ is of dimension $r_i \times c_i$ and $c_i=r_{i+1} \forall i$. \textit{<<r=rows, c=columns>>}
 \item Matrices: $M_{n \times n}, B_{n \times n}$ \textit{(first, last matrix)}
@@ -269,12 +271,15 @@ Although the latter notation seems more explicit, it introduces non-serial depen
 	\put(3.5,4.5){\line(3,-1){3}}\put(4.5,4.5){\line(2,-2){2}}\put(5.5,4.5){\line(1,-3){1}}
 }
 
-\item Optimizations: we could normalize the semantics of indices and use $(n+1) \times (n+1)$ matrices where the meaning of cell $(i,j)$ would be $\underset{i\le k<j}{\rm chain}(A_k)$.
+\item Optimizations:\ul
+	\item We could normalize the semantics of indices and use $(n+1) \times (n+1)$ matrices where the meaning of cell $(i,j)$ would be $\underset{i\le k<j}{\rm chain}(A_k)$.
 	%\ul
 	%\item We need to swap vertically the matrix to have a normalized progression towards bottom right. To do that, we need to map all indices $i \mapsto n-1-i$ and we obtain a new recurrence relation:
 	%\[M_{(i,j)}=\min_{i\le k<j}\left\{\begin{array}{l} M_{(i,k)}+M_{(2i-1 -k,j)}+r_i \cdot c_k \cdot c_j \end{array}\right. \]
 	%With the initialization at $M_{(i,n-i-1)}$
 	%\ule
+	\item Alternatively, we could encode the dimension of the resulting matrix within the cost matrix by using a triplet (rows,columns,cost) and taking minimum appropriately.
+	\ule
 \ole
 
 % ----------------------------------------------
@@ -417,41 +422,16 @@ The corresponding energy functions are:\ul
 \item $Es(i,j)$ energy of two stacked base pairs $i\cdot j$ and $(i+1)\cdot(j-1)$.
 \ule
 
-This recurrence is more amenable to be converted into a grammar (in pseudo-code)
-\begin{lstlisting}[language=Scala,caption=Pseudocode of the alternative Zuker grammar]
-Qp : matrix(
-  ( seq            ^^ x => Eh(x)
-  | el  ~ Qp ~ el  ^^ (a,b,c) => Es(a,c) + b
-  | seq ~ Qp ~ seq ^^ (a,b,c) => Ei(a.start, a.end, c.start, c.end) + b
-  | el  ~ QM  ~ el ^^ (a,b,c) => b
-  ).filter(basepair).getMinimum)
-
-QM : matrix(
-  ( Q ~ Q ^^ (a,b) => a+b
-  ).filter(size>=4).getMinimum)
-
-Q : matrix(
-  ( QM
-  | el ~ Q ^^ (a,b) => b
-  | Q ~ el ^^ (a,b) => a
-  | Qp
-  ).filter(size>=2).getMinimum)
-
-\end{lstlisting}
-\begin{center}
-\vspace{-24pt}
-\footnotesize ({\tt seq} represent a nonempty sequence of elements and {\tt el} a single element)
-\end{center}
+This latter recurrence is more amenable to be converted into a grammar as the matrix are all of the same dimension. See the example in \S\ref{ex_rnafold} for a detailed implementation of this problem.
 
 % ------------------------------------------------------------------------------------------------
-\newpage
 \subsection{Related problems}
-The aim of this section is to demonstrate that the problems described above are very similar or encompass a significant part of the common dynamic programming problems\footnote{There are hyperlinks on the problems name to their detailed description.}.
+The aim of this section is to demonstrate that the problems previously described are very similar or encompass a significant part of the common dynamic programming problems\footnote{There are hyperlinks on the problems name to their detailed description.}.
 
 \begin{table}[H]\begin{center}\begin{tabular}{llcc} \toprule
 \bf Serial problems & \bf Shape & \bf Matrices & \bf Wavefront \\ \midrule
-Smith-Waterman \footnotesize simple & rectangle & 1 & -- \\
-Smith-Waterman \footnotesize affine gap extension & rectangle & 3 & (can replace 2 matrices) \\
+Smith-Waterman \footnotesize simple (\S\ref{swat_simple}) & rectangle & 1 & -- \\
+Smith-Waterman \footnotesize affine gap extension (\S\ref{swat_affine}) & rectangle & 3 & (can replace 2 matrices) \\
 \href{http://en.wikipedia.org/wiki/Needleman-Wunsch_algorithm}{Needleman-Wunsch} & rectangle & 1 & -- \\
 \href{http://en.wikipedia.org/wiki/Dynamic_programming#Checkerboard}{Checkerboard} & rectangle & 1 & -- \\
 \href{http://en.wikipedia.org/wiki/Longest_common_subsequence_problem\#Code_for_the_dynamic_programming_solution}{Longest common subsequence} & rectangle & 1 & -- \\
@@ -460,11 +440,11 @@ Smith-Waterman \footnotesize affine gap extension & rectangle & 3 & (can replace
 \href{http://en.wikipedia.org/wiki/De_Boor's_algorithm}{De Boor} \footnotesize evaluating B-spline curves & rectangle & 1 & -- \vspace{.4cm} \\
 \toprule
 \bf Non-serial problems & \bf Shape & \bf Matrices & \bf Wavefront \\ \midrule
-Smith-Waterman \footnotesize arbitrary gap cost & rectangle & 1 & -- \\
-Convex polygon triangulation & triangle & 1 & -- \\
-Matrix chain multiplication & triangle & 1 & -- \\
-Nussinov & triangle & 1 & -- \\
-Zuker folding & triangle & 3 & -- \\
+Smith-Waterman \footnotesize arbitrary gap cost (\S\ref{swat_arbitrary}) & rectangle & 1 & -- \\
+Convex polygon triangulation \footnotesize (\S\ref{polygon_tri}) & triangle & 1 & -- \\
+Matrix chain multiplication \footnotesize (\S\ref{mat_mult_plain}) & triangle & 1 & -- \\
+Nussinov \footnotesize (\S\ref{nussinov}) & triangle & 1 & -- \\
+\href{http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi}{Zuker folding} \footnotesize (\S\ref{zuker}) & triangle & 3 & -- \\
 \href{http://en.wikipedia.org/wiki/CYK_algorithm}{CYK} \footnotesize Cocke-Younger-Kasami & triangle & \#rules & -- \\
 \href{http://en.wikipedia.org/wiki/Knapsack_problem#Dynamic_programming}{Knapsack} \footnotesize (pseudo-polynomial) & rectangle & 1 & --\\
 \end{tabular}\end{center}
@@ -480,14 +460,13 @@ Zuker folding & triangle & 3 & -- \\
 \item \href{http://www.ccs.neu.edu/home/jaa/CSG713.04F/Information/Handouts/dyn_prog.pdf}{Coin Change}: 1D non-serial
 \ule
 
-These algorithm also involve dynamic programming. However, we do not evaluate thoroughly their shape and number of matrices as this is not relevant in the scope of this project.\ul
+These algorithms also involve dynamic programming. However, we do not thoroughly evaluate their shape and number of matrices as a detailed description is not the focus of this project.\ul
 \item \href{http://en.wikipedia.org/wiki/Floyd-Warshall_algorithm}{Floyd-Warshall}
 \item \href{http://en.wikipedia.org/wiki/Viterbi_algorithm}{Viterbi \footnotesize (hidden Markov models)}: $T$ non-serial iterations over a vector
 \item \href{http://en.wikipedia.org/wiki/Bellman-Ford_algorithm}{Bellman-Ford} (finding the shortest distance in a graph)
 \item \href{http://en.wikipedia.org/wiki/Earley_parser#Pseudocode}{Earley parser} (a type of chart parser)
 \item \href{http://en.wikipedia.org/wiki/Maximum_subarray_problem}{Kadane maximum subarray} 1D serial, look at
 \href{http://www.cosc.canterbury.ac.nz/tad.takaoka/cats02.pdf}{Takaoka} for 2D
-\item \href{http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi}{RNA structure prediction}
 \item \href{http://en.wikipedia.org/wiki/Recursive_least_squares_filter}{Recursive least squares}
 \item \href{http://www.math.utep.edu/Faculty/pmdelgado2/courses/adv_algorithms/homework-08_anser.pdf}{Bitonic tour}
 \item \href{http://www.cs.berkeley.edu/~vazirani/algorithms/chap6.pdf}{Shortest path, Shortest path in DAGs, All pair shortest paths, Independent sets in trees}
@@ -498,13 +477,13 @@ These algorithm also involve dynamic programming. However, we do not evaluate th
 \ule
 
 \subsubsection{Conclusion}
-In the rest of the project, we use a different description of the problems that is based on ADP \cite{adp}, which is more convenient but does not share much with the above description (even though ultimately the executed computations are very similar). Although not of immediate use, the description of the above problem and ad-hoc CUDA implementation of three of them (Smith-Waterman with arbitrary gap cost, Matrix chain multiplication and Convex polygon triangulation) helped us to understand:\ol
-\item There is a difference between dynamic programming as seen in algorithmic classes and their concrete implementation, mainly because special care must be taken for correct indices and preventing off-by-one errors.
+In the rest of the report, we use a different description of the problems that is based on ADP \cite{adp}, which is more convenient but does not share much with the above description (even though ultimately the executed computations are very similar). Although not of immediate use, the description of the above problem and ad-hoc CUDA implementation of three of them (Smith-Waterman with arbitrary gap cost, Matrix chain multiplication and Convex polygon triangulation) helped us to understand:\ol
+\item There is a difference between dynamic programming as seen in algorithmic schoolbooks and their concrete implementation, mainly because special care must be taken for correct indices and preventing off-by-one errors.
 \item Problems can be classified in two categories: single track (input) and two-tracks (2 input sequences). Most of the interesting dynamic programming problems that could be parallelized fall in these two categories.
 \item Sometimes matrices are initially padded with zeroes (or initial value), although this might be ignored at algorithm design, care must be taken for these special values and their inclusion in the matrix should be decided according to the complexity of the recurrence formula.
-\item Incidentally, we proposed a cyclic variant of the convex polygon triangulation, which uses a parallelogram matrix instead of a triangular one (upper right triangle extended by a lower triangle on the right). Unfortunately, this proved to be based on an erroneous recurrence relation analysis, which could be reduced to the more natural triangular case.
+\item Incidentally, we proposed a cyclic variant of the convex polygon triangulation, which uses a parallelogram matrix (see \S\ref{mem_layout}). Unfortunately, this proved to be based on an erroneous recurrence relation analysis, and can only use a triangular matrix as described in \S\ref{polygon_tri}.
 
-Although the polygon triangulation problem can be solved with a regular triangular matrix and we have not found real problem requiring a parallelogram matrix, we still present this version in the analysis part of the project, which could be justified for cyclic problems that require dynamic programming for each unfolding position (that is for all position in the circular structure, break the cycle at this position, and solve the dynamic programming problem on the resulting flattened sequence). For example, one could be interested in finding the longest subsequence verifying some property in a cycle, such that the subsequence score changes if it is rotated.
+Although we have not found a real problem requiring a parallelogram matrix, we still present this version in \S\ref{mem_layout} and \S\ref{ad_hoc_impl}. Such matrix layout could be adapted for cyclic problems that could be broken into a linear sequence anywhere (that is for all position in the circular structure, break the cycle at this position, and solve the dynamic programming problem on the resulting flattened sequence). For example, one could be interested in finding the longest subsequence verifying some property in a cycle, such that the subsequence score changes if it is rotated.
 \ole
 
 % ------------------------------------------------------------------------------------------------
@@ -524,6 +503,8 @@ The research on ad-hoc implementation has focused on three kind of problems:\ul
 \item Biological sequence alignment (Smith-Waterman) for huge sequences: \cite{swat_gpu}, \cite{swat_linear} \cite{swat_mega}.
 \ule
 
-Considered as possible solutions to store a varying number of results per matrix cell were dynamic memory allocation \cite{nvidia} available on recent graphic cards, ad-hoc memory allocation \cite{scatter_alloc} or hash tables \cite{parallel_hashing}, however the costs associated with dynamic memory allocation makes it unattractive for this particular kind of problem, also the use of cuckoo hash tables adds a constant factor penalty to every memory access. Finally both solution introduce undesirable possibility of failure (respectively out of memory or unrecoverable collision) in the middle of the algorithm computation process.
+Since this project involves various domains, we also investigated in the memory management on graphic cards and existing code generation frameworks.
 
-Automated code generation and execution flow is addressed by Delite \cite{lms2}, \cite{lms3}, \cite{delite}, that leverages LMS to generate from the same source code efficient implementation for heterogeneous platforms at runtime. Although our project shares many patterns with this project we can not reuse it because the scheduling and computation is tightly interleaved in dynamic programming (see \ref{bg_lms}) whereas this framework focuses on parallelizing operations on independent elements.
+In an attempt to support a varying number of results per matrix cell, we considered dynamic memory allocation \cite{nvidia} (available on recent graphic cards), ad-hoc memory allocation \cite{scatter_alloc} and hash tables \cite{parallel_hashing}. However the costs associated with dynamic memory allocation makes it unattractive for this particular kind of problem, and the use of cuckoo hash tables adds a constant factor penalty to every memory access. Finally both solution introduce undesirable possibility of failure (respectively out of memory or unrecoverable collision) in the middle of the algorithm computation process.
+
+Automated code generation and execution flow is addressed by Delite \cite{lms2}, \cite{lms3}, \cite{delite}, that leverages LMS\cite{lms_thesis} to generate from the same source code efficient implementation for heterogeneous platforms (including CUDA) at runtime. Although this shares many patterns with our project, we can not reuse this framework because the scheduling and computation is tightly interleaved in dynamic programming (see \ref{bg_lms}) whereas Delite focuses on parallelizing operations on collections (array, lists, maps, ...) of independent elements.
