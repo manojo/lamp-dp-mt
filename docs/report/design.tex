@@ -47,7 +47,7 @@ Another optimization that is easier to implement is dead rule elimination. Tradi
 In this section, we provide a concise description of the Algebraic Dynamic Programming. Would the reader be interested in the mathematical details of the notation, we encourage him to read the section 3 of \cite{adp}.
 
 ADP is a formalization of parsers that introduces a distinction between the \textbf{parsing grammar} (recognition phase) and an associated \textbf{algebra} (evaluation phase). Such separation makes possible to define multiple algebra for the same grammar. This has two main applications:\ol
-\item Experiment variants with the same grammar:  for example, Needleman-Wunsch and Smith-Watermann share the same grammar but have a different evaluation algebra
+\item Experiment variants with the same grammar:  for example, Needleman-Wunsch and Smith-Waterman share the same grammar but have a different evaluation algebra
 \item Use an evaluation and execution algebra: a dynamic programming problem is solved in two steps: computing one optimal solution and applying it over actual data. For example in matrix chain multiplication, the first step solves the underlying dynamic problem by evaluating the number of necessary multiplications, the second step \textit{effectively} multiplies matrices according to the order previously defined.
 \ole
 
