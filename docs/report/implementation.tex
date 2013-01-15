@@ -1,8 +1,8 @@
 \newpage
 \section{Implementation} \label{implementation}
 % ------------------------------------------------------------------------------------------------
-\subsection{Ad-hoc CUDA} \label{ad_hoc_impl}
-In the project planning, an ad-hoc implementation phase immediately followed the problem analysis (we also present the parallelogram matrix case). The goal of this phase is threefold:\ol
+\subsection{CUDA baseline} \label{baseline_impl}
+In the project planning, an baseline implementation phase immediately followed the problem analysis (we also present the parallelogram matrix case). The goal of this phase is threefold:\ol
 \item Better understand the challenges in CUDA implementation of dynamic programming problems and get on par with state-of-art implementations.
 \item Have a baseline implementation that is independent of the hardware and that could be benchmarked. We also tried to contact the authors of \cite{swat_mega} and \cite{gpu_atlp} to obtain their implementation. The former provided us with their implementation, which turned out to address large serial problems whereas our focus was on smaller non-serial problems, the latter did not respond to our solicitations.
 \item Have an optimal implementation that can serve as a   to be imitated and generalized by the code generation.
@@ -42,7 +42,7 @@ Processing power \unt{GFLOPS}	&564.5		& 622.08 \\ \midrule
 
 % ----------------------------------------------
 \subsubsection{Results}
-We present here the timings of our ad-hoc implementation. For correctness, we first implemented a CPU single thread version (in C) that we used to compare CUDA results against. Input data is made of random numbers. The implemented dynamic programming problems are:\ul
+We present here the timings of our baseline implementation. For correctness, we first implemented a CPU single thread version (in C) that we used to compare CUDA results against. Input data is made of random numbers. The implemented dynamic programming problems are:\ul
 \item Rectangle: Smith-Waterman with arbitrary cost (\S\ref{swat_arbitrary})
 \item Triangle: matrix chain multiplication (\S\ref{mat_mult_plain})
 \item Parallelogram: polygon triangulation (\S\ref{polygon_tri}) using a matrix larger than necessary (\S\ref{problems_end}). Note that this implementation uses at most 32 blocks to prevent dead locks on our hardware (restriction due to the number of concurrent threads on the device).
@@ -184,7 +184,7 @@ Problems larger than the device memory can actually be processed on recent CUDA 
 
 % ----------------------------------------------
 \subsubsection{Matrix computation scheduling} \label{matrix_scheduling}
-Similarly as in the ad-hoc implementation, progress is made along the diagonal (see \ref{mem_layout}) and each thread is responsible of one line. That is, the matrix is swept horizontally by a <<diagonal of threads>>, that are enabled only if they are within a valid matrix cell.
+Similarly as in the baseline implementation, progress is made along the diagonal (see \ref{mem_layout}) and each thread is responsible of one line. That is, the matrix is swept horizontally by a <<diagonal of threads>>, that are enabled only if they are within a valid matrix cell.
 
 \begin{figure}[H]\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(6,6)
 	\def\Cfl2#1{#1{0,4}#1{0,3}#1{1,3}#1{0,2}#1{1,2}#1{2,2}#1{0,1}#1{1,1}#1{2,1}#1{3,1}#1{0,0}#1{1,0}#1{2,0}#1{3,0}#1{4,0}}
