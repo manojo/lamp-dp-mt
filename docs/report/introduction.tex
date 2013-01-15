@@ -35,23 +35,24 @@ To solve these concerns, Algebraic Dynamic Programming (ADP) \cite{adp} proposes
 \item Finally, results are \textbf{tabulated} (memoized in an array) in corresponding matrices. Tabulation process regulates the trade-off between running time and space efficiency by memoizing appropriate results that are reused multiple times.
 \ole
 
-By using a parsing grammar, ADP makes the candidate structure explicit. An additional signature serves as interface between the grammar, the scoring algebra and the aggregation function which makes possible that different grammars share different algebra or vice versa. Tabulation indices issues are hidden from the programmer, thereby removing one source of errors. Finally, since the expression of the dynamic program is formalized and abstracted into a grammar and algebra, it becomes possible to convert it to efficient recurrences for many-core platforms such as GPUs. \cite{adp_gpu}
+By using a parsing grammar, ADP makes the candidate structure explicit. A signature serves as interface between the grammar, the scoring algebra and the aggregation function making possible that different grammars share different algebra or vice versa. Tabulation indices issues are hidden from the programmer, thereby removing potential errors. Finally, since the expression of the dynamic program is formalized and abstracted into a grammar and algebra, it becomes possible to convert it to efficient recurrences for many-core platforms such as GPUs. \cite{adp_gpu}
 
 % -----------------------------
 DynaProg implements the concepts of ADP in Scala as an embedded DSL (domain-specific language) with a syntax similar to the combinators parsers of Scala library\footnote{See \url{http://www.scala-lang.org/api/current/index.html\#scala.util.parsing.combinator.Parsers}}. It extends ADP by allowing grammars for pairing two sequences (multi-track grammars) similarly as GAPC\cite{gapc_thesis}, simplifies the process of writing programs by inferring additional information (\S\ref{yield_analysis}) and can translate them into efficient CUDA\footnote{Compute Unified Device Architecture: a parallel computing platform and programming model created by NVIDIA, supported by their graphics processing units (GPUs).} program that are competitive to their handwritten counterpart (\S\ref{benchmarks}). Since the program structure is formalized in ADP framework, it can be analyzed to remove unused grammar productions (dead code elimination) and avoid some non-termination issues; since it is generated, correct scheduling is guaranteed and indices errors are avoided, thereby producing an arguably more reliable program.
 
-DynaProg provides a generic way of backtracking the results, such that the same backtrack trace can be used with multiple algebras if they share the same grammar. This allows to construct a two step pattern for solving problems: first the DP problem is solved using the appropriate cost function; then from the backtrack of its optimal, the desired result is computed. As example, consider multiplying a chain\footnote{Assuming matrices are of appropriated dimension to be multiplied with each other} of matrices efficiently. In the first step, optimal execution scheduling (or parenthesization) is found using dynamic programming (\S\ref{mat_mult_plain}). In the second step, the backtrack trace of optimal solution is used to multiply the actual matrices (given the corresponding algebra).
+DynaProg provides a generic way of backtracking the results, such that the same backtrack trace can be used with multiple algebras if they share the same grammar. This allows to construct a two step pattern for solving problems: first the DP problem is solved using the appropriate cost function; then from the backtrack of its optimal, the desired result is computed. As example, consider multiplying a chain\footnote{Assuming matrices are of appropriated dimension to be multiplied with each other} of matrices efficiently: first, optimal execution scheduling (or parenthesization) trace is found using dynamic programming and cost algebra (\S\ref{mat_mult_plain}). The backtrack trace is then used (with a multiplication algebra) to multiply the actual matrices.
 
 Finally, offloading dynamic programming computations to CUDA devices has been made effortless for the programmer: it suffices to enable code generation to schedule dynamic compilation and execution of the GPU-optimized program, as if it was executed in plain Scala.
 
 This project resulted is an open-source\footnote{\url{https://github.com/manojo/lamp-dp-mt}} implementation of dynamic programming parsers for Scala optimized for both on CPU and GPU and featuring several analyses (\S\ref{architecture}) to ease the writing of dynamic programs. Its contribution is an automated approach to encode and process backtracking information such that the reconstruction complexity is reduced compared to \cite{gapc_thesis} and backtrack trace can be exchanged among different algebras sharing the same grammar. 
 
 The rest of the document consists of:\ul
-\item A brief background on dynamic programming (\S\ref{intro_dp}), followed by an explanation of some of the Scala programming language (\S\ref{intro_scala}) and LMS framework (\S\ref{intro_lms}) features.
-\item A classification of DP problems in terms of matrix shape and dependencies in section~\ref{problems}, followed by a detailed analysis of some specific problems is provided. Related work addressing the dynamic programming challenges is presented in \ref{related_work}.
+\item A brief background on dynamic programming, followed by an explanation of some of the Scala programming language and LMS framework features (\S\ref{background}).
+\item A classification of DP problems in terms of matrix shape and dependencies, followed by a detailed analysis of some specific problems is provided (\S\ref{problems}). Related work addressing dynamic programming challenges is presented in (\S\ref{related_work}).
 \item A description of the whole parser stack (\S\ref{architecture}), going from the user facing language (\S\ref{user_lang}, \S\ref{adp_grammar}) to optimizations (\S\ref{recurrences}, \S\ref{backtracking}) and implementation constraints (\S\ref{normalization}, \S\ref{memory_constr}), describing all the architectural decisions we made.
 \item The concrete implementation of these ideas (\S\ref{implementation}) in the form of a DSL for Scala (\S\ref{scala_parsers}) and in efficient CUDA code generation (\S\ref{codegen}).
-\item An evaluation of the performance of our work (\S\ref{benchmarks}) by providing appropriate benchmarks against existing implementations.
+\item A brief usage explanation detailing the available features for the DSL user (\S\ref{usage}).
+\item An evaluation of the performance of our work by providing appropriate benchmarks against existing implementations (\S\ref{benchmarks}).
 \ule
 
 %\item Propose a systematic approach to encode backtracking information such that the backtracking process can be made linear to the size of the problem
@@ -72,43 +73,45 @@ The rest of the document consists of:\ul
 
 % ------------------------------------------------------------------------------------------------
 \newpage
-%\section{Background}
-\subsection{Dynamic programming} \label{intro_dp}
-Dynamic programming consists of solving a problem by reusing subproblems solutions. A famous example of dynamic programming is the Fibonacci series that is defined by the recurrence
+\section{Background} \label{background}
+\subsection{Dynamic programming} \label{bg_dp}
+Dynamic programming consists of solving a problem by constructing its solution from solutions to subproblems. A famous example of dynamic programming is the Fibonacci series that is defined by the following recurrence:
 \[F(n+1) = F(n)+F(n-1) \qquad \text{ with } F(0)=F(1)=1 \]
 which expands to (first 21 numbers)
 \[1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, ...\]
 
-A typical characteristic is that an intermediate solution is reused multiple times to construct larger solutions (here $F(3)$ helps constructing $F(4)$ and $F(5)$). Reusing an existing solution avoid redoing expensive computations: with memoization (memorizing intermediate results), the solution of $F(n)$ would be obtained after $n$ additions whereas without memoization it requires $F(n)-1$ additions !
+A typical characteristic is that an intermediate solution is reused multiple times to construct larger solutions (here $F(3)$ helps constructing $F(4)$ and $F(5)$). Reusing an existing solution avoids redoing expensive computations: with memoization (memorizing intermediate results), the solution for $F(n)$ would be obtained after $n$ additions whereas without memoization it requires $F(n)-1$ additions !
 
-Formally, dynamic programming problems respect the Bellman's principle of optimality: \textit{<<An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision>>}. This means that every intermediate result is computed only once, although it might be reused as basis for multiple larger problems, hence our first observation.
+Formally, dynamic programming problems respect the Bellman's principle of optimality\cite{bellman_principle}: \textit{<<An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision>>}\footnote{\url{http://en.wikipedia.org/wiki/Bellman\_equation\#Bellman.27s\_Principle\_of\_Optimality}}. This means that every intermediate result needs to be computed only once, although it might be reused as a basis for multiple larger problems, hence our first observation.
 
 There exist various categories of dynamic programming:\ul
-\item Series that operates usually on a single dimension (like Fibonacci)
-\item Sequences alignment (matching two sequences at best), top-down grammar analysis (parenthesizing), sequence folding, ...
-\item Tree-related algorithms: phylogenetic, trees raking, maximum tree independent set, ...
+\item Series that operate usually on a single dimension (like Fibonacci)
+\item Sequences alignment (matching two sequences at best), top-down grammar analysis (parenthesizing), sequence folding, ... (see \S\ref{problems} for more examples and detailed classification)
+\item Tree-related algorithms: phylogenetic, trees raking, maximum tree independent set, ... (can be viewed as a sparse version of the second category)
 \ule
 
-Since the first category is inherently sequential (progress cannot be faster than one element at a time) and the third category is both hard to parallelize efficiently (similar to a sparse version of the second category) and does not share much with the previous category, we focus on the second type of problems, which is also the most common.
+Since the first category operates on a single dimension, to benefit of the smaller solutions to compute larger ones, elements must be computed sequentially (one at a time), hence computations cannot be made parallel (unless duplicated, thereby hindering benefits of memoization). The third category suffers from limited parallelism \cite{philogeny} and its implementation does not share much with the previous category, hence we focus on the second type of problems.
 
-Taking real-world examples, the average input size for sequence alignment is around 300K whereas for problems like RNA folding, input are usually around few thousands. Multiple input problems also require more memory: for instance matching 3 sequences is $O(n^3)$-space complex. Since we target a single computer with one or more attached devices (GPUs, FPGAs), and since we plan to maintain data in memory (due to the multiple reuse of intermediate solutions) the storage complexity must be relatively limited, compared to other problem that could leverage the disk storage. Hence in general, we focus on problems that have $O(n^2)$-space complexity whereas time complexity is usually $O(n^3)$ or larger. We encourage you to refer to the section~\ref{problems} for further classification and examples.
+Taking real-world examples in biology, the average input size for sequence alignment (\S\ref{swat_affine}) is around 300K whereas for problems like RNA folding (\S\ref{zuker}), input are usually around few thousands. Problems operating on multiple input sequences also require more memory: for instance matching 3 sequences is $O(n^3)$-space complex (as intermediate results needs to be stored in a position representing the progress in each of the involved sequence). Since we target a single computer with one or more attached devices (GPUs, FPGAs), and since we plan to maintain data in memory (due to the multiple reuse of intermediate solutions) the storage complexity must be relatively limited, compared to other problem that could leverage the disk storage. Hence in general, we focus on problems that have $O(n^2)$-space complexity whereas time complexity is usually $O(n^3)$ or larger. We encourage you to refer to \S\ref{problems} for further classification and examples.
 
 % ------------------------------------------------------------------------------------------------
 \newpage
-\subsection{Scala} \label{intro_scala}
+\subsection{Scala} \label{bg_scala}
 \textit{<<Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way. It smoothly integrates features of object-oriented and functional languages, enabling programmers to be more productive. Many companies depending on Java for business critical applications are turning to Scala to boost their development productivity, applications scalability and overall reliability.>>}\footnote{\url{http://www.scala-lang.org}}
 
 As the Scala \cite{scala} programming language is developed by our laboratory (LAMP, EPFL), it seems natural to use it as host language for our project, however, we would list some of its features \cite{scala_api} that makes it an interesting development language for this project:\ul
-\item The functional programming style and syntactic sugar offered by Scala allows concise writing of implementation, analysis and transformations of our DSL, which would have been much more complex and tiresome in an imperative language like C.
-\item Scala is largely adopted in the industry, which makes both the adoption of related project easier and offer a steeper learning curve to their potential users.
-\item Since Scala programs execute in the JVM, they can benefit of the JNI, that is the possibility to dynamically load C libraries and interact with them, possibly leveraging  underlying hardware by launching CUDA kernels.
+\item The functional programming style and syntactic sugar offered by Scala allow concise writing of implementation, analysis and transformations of our DSL, allowing us to focus on \textit{what} we want to achieve instead of \textit{how}.
+\item Scala is largely adopted in the industry\footnote{\url{http://www.scala-lang.org/node/1658}}, which makes both the adoption of related project easier and reduces the learning time of its potential users.
+\item Since Scala programs execute in the Java Virtual Machine (JVM), they can benefit of the native interface (JNI) that offers the possibility to dynamically load libraries (usually written in C) and possibly interact with CUDA to leverage the GPU.
+\item Scala is equipped with a strong typing and type inference system that reduces the syntactical constraints while putting strong guarantees on type correctness at compilation.
+\item Implicit functions definition can help interfacing functions by automatically changing the type of passed arguments
+\item Manifests (or TypeTags and ClassTags) allow type extraction at runtime (we use this to convert a Scala type into a C/CUDA type)
+\item Macros\cite{scala_macros} and LMS (\S\ref{bg_lms}) could be used to modify the semantics of a specific part of the user program (we currently use LMS to produce the corresponding C function).
 \item One Scala concept that we heavily use is \textit{traits} that can be viewed as abstract classes and mixed together, thereby allowing multiple inheritance.
 \ule
 
 % ------------------------------------------------------------------------------------------------
-\subsection{Lightweight Modular Staging} \label{intro_lms}
+\subsection{Lightweight Modular Staging} \label{bg_lms}
 Lightweight Modular Staging (LMS) \cite{lms}, \cite{lms_thesis} is a runtime code generation built on top of Scala virtualized \cite{scala_virtualized} that uses types to distinguish between binding time (compilation and runtime) for code compilation. This makes possible to annotate parts of the code with special types, such that their compilation is delayed until the program is executed. At run time, these parts are represented as a \textit{sea of nodes} that serve as the basis for another compilation phase where all the code executed until this point provides additional information to produce a more efficient compilation. The process of delaying the compilation is known as \textit{lifting} whereas \textit{lowering} corresponds to transforming this intermediate representation into executable code. LMS code generation is not limited to Scala, it can also target other languages like C. In short, LMS is an optimizing compiler framework that allows integration of domain-specific abstractions and optimizations into the generation process.
 
-At first glance, LMS seems the ideal candidate to transform Scala code into its C-like equivalent. However, the concern in this project is that the GPU code sensibly differers from the original CPU code because the two implementations serve different purposes: CPU version (Scala) is more general whereas the GPU version trades some functionalities for performance and suffer additional restrictions, in particular for memory management and alignment. Ad-hoc C translation seems more appropriate than writing Scala code and convert it with LMS because LMS only understand a subset of both languages.
-
-LMS would still be helpful for generating user-specific functions, as they are independent of the rest of the program and user wants to write his functions only once for both Scala and CUDA.
+A discussion of the integration of LMS in our project can be found in \S\ref{lms_use}.

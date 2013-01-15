@@ -2,7 +2,7 @@
 \section{Dynamic programming problems} \label{problems}
 % ------------------------------------------------------------------------------------------------
 \subsection{Problems classification}
-Since <<dynamic programming>> defines a very general technique, we already focused on grammar and alignment problems in \ref{intro_dp}. Before exploring some particular problem instances, we want to define some characteristics that will be used through the rest of the document to describe dynamic programming problems.
+Since <<dynamic programming>> defines a very general technique, we already focused on grammar and alignment problems in \ref{bg_dp}. Before exploring some particular problem instances, we want to define some characteristics that will be used through the rest of the document to describe dynamic programming problems.
 
 \subsubsection{Definitions}\ul
 \item \textbf{Cost or score:} refers to the result of the dynamic programming recurrence formula.
@@ -16,7 +16,7 @@ Since <<dynamic programming>> defines a very general technique, we already focus
 \ule
 
 \subsubsection{Litterature classification}
-In the literature, dynamic programming problems are classified according to two criteria:\ul
+In \cite{gpu_atlp}, dynamic programming problems are classified according to two criteria:\ul
 \item \textbf{Monadic/polyadic:} a problem is monadic when only one of the previously computed term appears in the right hand-side of the recurrence formula (ex: Smith-Waterman). When two or more terms appear, the problem is polyadic (ex: Fibonacci, $F_n = F_{n-1} + F_{n-2}$).
 When a problem is polyadic with index $p$, it also means that its backtracking forms a $p$-ary tree (where each node has at most $p$ children).
 
@@ -73,7 +73,7 @@ A tighter analysis on the alphabet and intermediate results size is done because
 
 % ----------------------------------------------
 \newpage
-\subsubsection{Smith-Waterman (simple)}\label{sswat}\ol
+\subsubsection{Smith-Waterman (simple)}\label{swat_simple}\ol
 \item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$.
 \item Matrices: $M_{(m+1) \times (n+1)}, B_{(m+1) \times (n+1)}$
 \item Alphabets:\ul
@@ -111,8 +111,8 @@ A tighter analysis on the alphabet and intermediate results size is done because
 
 % ----------------------------------------------
 \newpage
-\subsubsection{Smith-Waterman with affine gap extension cost}\ol
-
+\subsubsection{Smith-Waterman with affine gap extension cost} \label{swat_affine}
+\ol
 \item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$.
 \item Matrices: $M_{(m+1) \times (n+1)}, E_{(m+1) \times (n+1)}, F_{(m+1) \times (n+1)}, B_{(m+1) \times (n+1)}$
 \item Alphabets:\ul
@@ -157,14 +157,14 @@ That can be written alternatively as:
 Although the latter notation seems more explicit, it introduces non-serial dependencies that the former set of recurrences is free of. So we need to implement the former rules whose kernel is
 \[ [M;E;F]_{(i,j)} = f_{\rm kernel} ( [M;E]_{(i,j-1)}, [M;F]_{(i-1,j)}, M_{(i-1,j-1)} ) \]
 
-\item Backtracking: similar to \nameref{sswat}
-\item Visualization: same as \nameref{sswat}
-\item Optimizations: Notice that this recurrence is very similar to \nameref{sswat} except that we propagate 3 values ($M,E,F$) instead of a single one ($M$). Also notice that it is possible to propagate $E$ and $F$ inside a respectively horizontal and vertical wavefront, hence removing the need of two additional matrices.
+\item Backtracking: similar to \nameref{swat_simple}
+\item Visualization: same as \nameref{swat_simple}
+\item Optimizations: Notice that this recurrence is very similar to \nameref{swat_simple} except that we propagate 3 values ($M,E,F$) instead of a single one ($M$). Also notice that it is possible to propagate $E$ and $F$ inside a respectively horizontal and vertical wavefront, hence removing the need of two additional matrices.
 \ole
 
 % ----------------------------------------------
 \newpage
-\subsubsection{Smith-Waterman with arbitrary gap cost}\label{aswat}\ol
+\subsubsection{Smith-Waterman with arbitrary gap cost}\label{swat_arbitrary}\ol
 \item Problem: matching two strings $S$, $T$ with $|S|=m, |T|=n$ with an arbitrary gap function $g(x)\ge 0$ where $x$ is the size of the gap. Without loss of generality, let $m\ge n$ (swap inputs if necessary). Example penalty function could be\footnote{Intuition: long gaps penalize less, at some point, one large gap is better than matching with smaller gaps.} $g(x)=m-x$.
 \item Matrices: $M_{(m+1) \times (n+1)}, B_{(m+1) \times (n+1)}$
 \item Alphabets:\ul
@@ -185,7 +185,7 @@ Although the latter notation seems more explicit, it introduces non-serial depen
 	\max_{1 \le k \le i-1} M_{(i-k,j)} - g(k) & W_k\\
 \end{array}\right\}=B_{(i,j)} \]
 
-\item Backtracking: similar to \nameref{sswat} except that you can jump of $k$ cells along the rows or along the columns.
+\item Backtracking: similar to \nameref{swat_simple} except that you can jump of $k$ cells along the rows or along the columns.
 \item Visualization:
 \CFig{Smith-Waterman (arbitrary gap cost) dependencies}{
 	\put(-.5,7.5){S}\put(-.35,7.4){\linethickness{1pt}\vector(0,-1){2}}
@@ -278,7 +278,7 @@ Although the latter notation seems more explicit, it introduces non-serial depen
 
 % ----------------------------------------------
 \newpage
-\subsubsection{Nussinov algorithm}\ol
+\subsubsection{Nussinov algorithm} \label{nussinov} \ol
 \item Problem: folding a RNA string $S$ over itself $|S|=n$.
 \item Matrices: $M_{n\times n}, B_{n \times n}$
 \item Alphabets:\ul
@@ -313,7 +313,7 @@ Although the latter notation seems more explicit, it introduces non-serial depen
 
 % ----------------------------------------------
 \newpage
-\subsubsection{Zuker RNA folding}\ol
+\subsubsection{Zuker RNA folding} \label{zuker} \ol
 \item Problem: folding a RNA string $S$ over itself $|S|=n$ by minimizing the free energy.
 \item Matrices: $V_{n\times n}, W_{n\times n}, F_n$ (Free Energy),  $BV_{n \times n}, BW_{n \times n}, BF_n$
 \item Alphabets:\ul
@@ -381,7 +381,7 @@ With $\delta$ a lookup table. In practice, we don't go backward for larger value
 \item Visualization\footnote{Reproductions of the illustrations from \cite{para_dprec} pp.148,149}:
 \begin{figure}[H]\begin{center}\includegraphics[width=8cm]{inc/zuker_rec.pdf}\end{center}\caption{Zuker folding dependencies}\end{figure}
 
-The recurrence consists of two non-serial dependencies as in \textit{\nameref{aswat}} plus a bounded 2-dimensional dependency for bulges.\\[12pt]
+The recurrence consists of two non-serial dependencies as in \textit{\nameref{swat_arbitrary}} plus a bounded 2-dimensional dependency for bulges.\\[12pt]
 Since this problem is non-trivial to understand from the recurrences, we propose an additional illustration of a RNA chain folded according to the Zuker folding algorithm.
 \begin{figure}[H]\begin{center}
 \includegraphics[width=10cm]{inc/zuker_struct.pdf} \\
@@ -525,4 +525,4 @@ The research on ad-hoc implementation has focused on three kind of problems:\ul
 
 Considered as possible solutions to store a varying number of results per matrix cell were dynamic memory allocation \cite{nvidia} available on recent graphic cards, ad-hoc memory allocation \cite{scatter_alloc} or hash tables \cite{parallel_hashing}, however the costs associated with dynamic memory allocation makes it unattractive for this particular kind of problem, also the use of cuckoo hash tables adds a constant factor penalty to every memory access. Finally both solution introduce undesirable possibility of failure (respectively out of memory or unrecoverable collision) in the middle of the algorithm computation process.
 
-Automated code generation and execution flow is addressed by Delite \cite{lms2}, \cite{lms3}, \cite{delite}, that leverages LMS to generate from the same source code efficient implementation for heterogeneous platforms at runtime. Although our project shares many patterns with this project we can not reuse it because the scheduling and computation is tightly interleaved in dynamic programming (see \ref{intro_lms}) whereas this framework focuses on parallelizing operations on independent elements.
+Automated code generation and execution flow is addressed by Delite \cite{lms2}, \cite{lms3}, \cite{delite}, that leverages LMS to generate from the same source code efficient implementation for heterogeneous platforms at runtime. Although our project shares many patterns with this project we can not reuse it because the scheduling and computation is tightly interleaved in dynamic programming (see \ref{bg_lms}) whereas this framework focuses on parallelizing operations on independent elements.
