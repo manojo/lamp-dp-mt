@@ -19,11 +19,20 @@ This project has been achieved in collaboration with Manohar Jonnalagedda. I als
 \setcounter{tocdepth}{2} \tableofcontents
 \newpage
 \section{Introduction} \label{intro}
-Dynamic programming (DP) is a technique to solve combinatorial optimization problems that verify the Bellman's principle\cite{bellman_principle}: optimal solutions depends on optimal solutions of sub-problems. This property allows to find solutions in an exponential search space (meaning an exponential running time) in polynomial running time by memoizing intermediate optimal solutions and reusing them multiple times. Dynamic programming problems are usually described in the textbooks by matrices recurrence relations involving indices and optimality is defined in terms of an objective function (maximum/minimum cost, ...). The computation is generally split in two phases: first intermediate optimal solutions are memoized in a matrix (tabulation) and reused to construct scores for larger problems; then a backtrack stage retrieves the solution associated with the optimal score for the problem. This solution describes how to obtain the optimal score and is called trace or backtrack trace, and heavily depends on the matrix design.
+Dynamic programming (DP) is an algorithmic technique to solve optimization problems. For example, we might want to multiply a chain of matrices\footnote{Such that matrices have appropriate dimensions to be multiplied with each other.} efficiently. The order in which matrices are combined changes the number of required scalar multiplications, we would want to find an optimal order that minimizes this number. Notice that if knew how to split of the chain into two subparts, we could recursively find an optimal order in these two parts and recombine them. Such combinatorial problems verify the Bellman's principle\cite{bellman_principle}: \textit{<<optimal solutions depends on optimal solutions of sub-problems>>}\footnote{\url{http://en.wikipedia.org/wiki/Bellman\_equation\#Bellman.27s\_Principle\_of\_Optimality}}. Because we don't know a priori where we could split the chain, we would need to explore an exponential number of possibilities. Using the Bellman's principle, we can memoize intermediate optimal solutions to save redundant computations, hereby reducing the problem to a polynomial complexity.
 
-Dynamic programming problems arise in several disciplines of applied Computer Science such as biosequence analysis, natural language processing and operational research: sequence alignment, RNA sequence folding or expression parenthesisation are examples of such problems. Unfortunately, these often appear in multiple variations and with a considerable degree of sophistication such that there is a mismatch between the textbook solution and its concrete implementation. The user is often interested in one optimal solution, but he might also request \textit{all} co-optimal solutions, a fixed number of near-optimal solutions, or some synthetic properties of the search space (size, sum of scores, ...). The backtracking is usually ad-hoc because it needs both to be kept consistent with matrix filling and present the information in a format suitable for the user (human readable or ready to drive further computations). Additionally, debugging matrix indices is tedious and requires a lot of time, and little changes in the formulae might imply large rewrites of the matrices and recurrences \cite{gapc_yield}. Finally, once the implementation is correct, it is possible to turn it into an efficient implementation for specific architectures such as multi-CPU, GPU or programmable hardware (FPGA). However, a domain specialist who writes the recurrences might not be very familiar with these platforms, whereas parallelization and hardware experts might not deeply understand the domain of the dynamic programming recurrences.
+Dynamic programming problems are usually expressed in terms of recurrences on intermediate solutions that are stored in matrices, whereas optimality is defined in terms of an objective function (min/max cost, ...). In the case of a chain of $n$ matrices, the recurrence is:
+	\[M_{(i,i)}=0 \quad\land\quad M_{(i,j)}=\min_{1\le i\le k<j\le n}\{M_{(i,k)}+M_{(k+1,j)}+r_i \cdot c_k \cdot c_j\} \qquad \forall 1\le i,j\le n\]
+where $r_i$ and $c_i$ denotes respectively the row and column of the $i^{\rm th}$ matrix in the chain, $M$ is an $n \times n$ matrix and $M_{(i,j)}$ stores the number of multiplications to obtain the product of matrices in the chain $i,...,j$. The total number of required scalar multiplications is given by $M_{(1,n)}$ (refer to \S\ref{mat_mult_plain} for details). Once the optimal result is found, a second backtrack phase retrieves the construction trace associated with the optimal score for the problem. This trace (or backtrack trace) describes how to obtain the optimal score, and heavily depends on the matrix design.
 
-To overcome these difficulties, Algebraic Dynamic Programming (ADP) \cite{adp} proposes a language-independent declarative approach that separate the concerns of dynamic programming on sequences into four distinct components that are tightly connected:\ol
+Dynamic programming problems arise in several disciplines of applied Computer Science such as biosequence analysis, natural language processing and operational research: sequence alignment, RNA sequence folding or expression parenthesisation are examples of such problems. Unfortunately, these often appear in multiple variations and with a considerable degree of sophistication such that there is a mismatch between the textbook solution and its concrete implementation. The user is often interested in one optimal solution, but he might also request \textit{all} co-optimal solutions, a fixed number of near-optimal solutions, or some synthetic properties of the search space (size, sum of scores, ...).
+
+The backtracking is usually ad-hoc because it needs both to be kept consistent with matrix filling and present the information in a format suitable for the user (human readable or ready to drive further computations). Additionally, debugging matrix indices is tedious and requires a lot of time, and little changes in the formulae might imply large rewrites of the matrices and recurrences \cite{gapc_yield}.
+
+Finally, once the implementation is correct, it is possible to turn it into an efficient implementation for specific architectures such as multi-CPU, GPU or programmable hardware (FPGA). However, a domain specialist who writes the recurrences might not be very familiar with these platforms, whereas parallelization and hardware experts might not deeply understand the domain of the dynamic programming recurrences.
+
+\newpage
+To simplify the expression of dynamic problems, Algebraic Dynamic Programming (ADP) \cite{adp} proposes a language-independent declarative approach that separate the concerns of dynamic programming on sequences into four distinct components that are tightly connected:\ol
 \item The search space is described by a context-free \textbf{parsing grammar} that produces intermediate solution candidates whose score might be inserted in the matrix.
 \item Constructed candidates are then evaluated by a \textbf{scoring function} (where all these functions form an \textbf{algebra}), so that they can be compared appropriately.
 \item The \textbf{objective function} (or aggregation function) operates on the scores previously obtained to retain valid candidates.
@@ -35,10 +44,11 @@ A \textbf{signature} serves as interface between the grammar, the scoring algebr
 % -----------------------------
 DynaProg, the DSL we present in this report, implements the concepts of ADP in Scala as an embedded DSL (domain-specific language) with a syntax similar to the combinators parsers of Scala library\footnote{See \url{http://www.scala-lang.org/api/current/index.html\#scala.util.parsing.combinator.Parsers}}. It extends ADP by allowing grammars for pairing two sequences (multi-track grammars) similarly as GAPC\cite{gapc_thesis}, simplifies the process of writing programs by inferring additional information (\S\ref{yield_analysis}) and can translate them into efficient CUDA\footnote{Compute Unified Device Architecture: a parallel computing platform and programming model created by NVIDIA, supported by their graphics processing units (GPUs).} program that are competitive to their handwritten counterpart (\S\ref{benchmarks}). Since the program structure is formalized in ADP framework, it can be analyzed to remove unused grammar rules (\S\ref{dead_rules}) and avoid some non-termination issues; since it is generated, correct scheduling is guaranteed and indices errors are avoided, thereby producing an arguably more reliable program.
 
-DynaProg provides a generic way of backtracking the results such that the same trace can be used with different algebras sharing the same grammar. This allows to construct a two step pattern for solving problems: first the DP problem is solved using the appropriate cost functions; then from the backtrack of its optimal, the desired result is computed. As example, consider multiplying a chain\footnote{Assuming matrices are of appropriated dimension to be multiplied with each other} of matrices efficiently: first, optimal execution scheduling (or parenthesization) trace is found using dynamic programming and cost algebra (\S\ref{mat_mult_plain}). The backtrack trace is then used (with a multiplication algebra) to multiply the actual matrices.
+DynaProg provides a generic way of backtracking the results such that the same trace can be used with different algebras sharing the same grammar. This allows to construct a two step pattern for solving problems: first the DP problem is solved using the appropriate cost functions; then from the backtrack of its optimal, the desired result is computed. As example, consider multiplying a chain\footnote{Assuming matrices are of appropriated dimension to be multiplied with each other} of matrices efficiently: first, optimal execution scheduling (or parenthesisation) trace is found using dynamic programming and cost algebra (\S\ref{mat_mult_plain}). The backtrack trace is then used (with a multiplication algebra) to multiply the actual matrices.
 
 Finally, offloading dynamic programming computations to CUDA devices has been made effortless for the programmer: it suffices to enable code generation to schedule dynamic compilation and execution of the GPU-optimized program, as if it was executed in plain Scala.
 
+\newpage
 This project is currently available online\footnote{\url{https://github.com/manojo/lamp-dp-mt}}; it implements dynamic programming parsers in Scala (CPU) and CUDA (GPU). Its contribution is an novel approach to systematically encode and process backtracking information such that the reconstruction complexity is reduced compared to \cite{gapc_thesis}, and backtrack trace can be exchanged among different algebras sharing the same grammar.
 
 The rest of the document consists of:\ul
@@ -66,41 +76,100 @@ The rest of the document consists of:\ul
 %%\item Code generator to transform a grammar into efficient code for CPU, GPU (and FPGA)
 %\ule
 
-% ------------------------------------------------------------------------------------------------
-\newpage
-\section{Background} \label{background}
-\subsection{Dynamic programming} \label{bg_dp}
+%Optimization problem: 
+%1. cut / recursivity
+%2. bellman
+%classic = recurrence
+%B. complex problems
+%C. backtrack
+%D. execute fast
+ 
+% XXX: grammar for all the examples of problems
 
-{\color{red} XXX: replace this with el-mamoun}
-
-{\color{red} XXX: replace this with el-mamoun}
-
-{\color{red} XXX: replace this with el-mamoun}
+% XXX: background sur graphic cards
 
 % Is Fibonacci a good example wrt what we describe in the rest of the report? After all we only deal with problems on sequences ?
 % - A typical characteristic => As one can see, a Fibonacci number is described __recursively__ in terms of "smaller" Fibonacci numbers. The naive algorithm for computing F(n) would require recomputing subsolutions many times (here F(3) helps ... ). Reusing ... F(n)-1 additions!
-A classic example of dynamic programming is the Fibonacci series that is defined by the following recurrence:
-\[F(n+1) = F(n)+F(n-1) \qquad \text{ with } F(0)=F(1)=1 \]
-which expands to (first 21 numbers)
-\[1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, ...\]
+%A classic example of dynamic programming is the Fibonacci series that is defined by the following recurrence:
+%\[F(n+1) = F(n)+F(n-1) \qquad \text{ with } F(0)=F(1)=1 \]
+%which expands to (first 21 numbers)
+%\[1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, ...\]
+%
+%As one can see, Fibonacci numbers are described recursively in terms of previous series elements, which are reused multiple times to construct the following elements (here $F(3)$ helps constructing $F(4)$ and $F(5)$). Reusing an existing solution avoids redoing expensive computations: with memoization (memorizing intermediate results), the solution for $F(n)$ would be obtained after $n$ additions whereas without memoization it requires $F(n)-1$ additions !
+%
+%Formally, dynamic programming problems respect the Bellman's principle of optimality\cite{bellman_principle}: \textit{<<An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision>>}. This means that every intermediate result needs to be computed only once, although it might be reused as a basis for multiple larger problems, hence our first observation.
 
-As one can see, Fibonacci numbers are described recursively in terms of previous series elements, which are reused multiple times to construct the following elements (here $F(3)$ helps constructing $F(4)$ and $F(5)$). Reusing an existing solution avoids redoing expensive computations: with memoization (memorizing intermediate results), the solution for $F(n)$ would be obtained after $n$ additions whereas without memoization it requires $F(n)-1$ additions !
+% ------------------------------------------------------------------------------------------------
+\newpage
+\section{Background} \label{background}
+\subsection{Graphic cards}
+{\color{red} background on graphic cards}
 
-Formally, dynamic programming problems respect the Bellman's principle of optimality\cite{bellman_principle}: \textit{<<An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision>>}\footnote{\url{http://en.wikipedia.org/wiki/Bellman\_equation\#Bellman.27s\_Principle\_of\_Optimality}}. This means that every intermediate result needs to be computed only once, although it might be reused as a basis for multiple larger problems, hence our first observation.
+\subsection{ADP and parsing grammars} \label{adp_grammar}
+In this section, we provide a concise description of the Algebraic Dynamic Programming. Would the reader be interested in the mathematical details of the notation, we encourage him to read the section 3 of \cite{adp}.
 
-{\color{red} XXX: replace this with el-mamoun}
+{\color{red} recall some ADP formal definitions}
+%    - terms like algebra, signature, etc. might need to be defined more formally later on, because these are highly mathematical terms which, for example, Viktor could ask you questions on during your presentation
 
-{\color{red} XXX: replace this with el-mamoun}
 
-There exist various categories of dynamic programming:\ul
-\item Series that operate usually on a single dimension (like Fibonacci)
-\item Sequences alignment (matching two sequences at best), top-down grammar analysis (parenthesizing), sequence folding, ... (see \S\ref{problems} for more examples and detailed classification)
-\item Tree-related algorithms: phylogeny \cite{philogeny}, trees raking \cite{tree_raking}, maximum tree independent set \cite{tree_independent_set}, ... (can be viewed as a sparse version of the second category)
+ADP is a formalization of parsers that introduces a distinction between the \textbf{parsing grammar} (recognition phase) and an associated \textbf{algebra} (evaluation phase). Such separation makes it possible to define multiple algebra for the same grammar. This has two main applications:\ol
+\item Experiment variants with the same grammar:  for example, Needleman-Wunsch and Smith-Waterman share the same grammar but have a different evaluation algebra
+\item Use an evaluation and execution algebra: a dynamic programming problem is solved in two steps: computing one optimal solution and applying it over actual data. For example in matrix chain multiplication, the first step solves the underlying dynamic program by evaluating the number of necessary multiplications, the second step \textit{effectively} multiplies matrices according to the order previously defined.
+\ole
+
+Practically, an ADP program is made of 3 components: a \textbf{signature} that define a set of function signatures, one or more \textbf{algebrae} implementing these functions and a \textbf{grammar} containing parsers that make use of the functions defined in the signature. The concrete program instance combines the algebra with the grammar. The grammar parsers' intermediate results are memoized in a matrix (tabulation parser). A parser usually consist of a tree of:\ul
+\item \textbf{Terminal:} operates on a subsequence of input elements and returns either its content or position (or a failure if the sequence does not fit the terminal).
+\item \textbf{Filter:} accepts only subsequences matching a certain predicate. The condition is evaluated ahead of its actual content evaluation.
+\item \textbf{Or:} expresses alternative between two different parsers and returns their result union.
+\item \textbf{Concatenation:} constructs all possible combinations from two subsequences. The subsequences can be of fixed or varying size and concatenation operators might impose restrictions on the subsequences length to be considered.
+\item \textbf{Map:} this parser transform its input using a user-defined function. It is typically used to transform a subword into a score that can later be aggregated.
+\item \textbf{Aggregation:} the aggregation applies a functions that reduces the list of results, typically minimum or maximum, but the function can be arbitrarily defined.
+\item \textbf{Tabulation:} the tabulation's primary function is to store intermediate results and possibly serve as connection point between different parsers.
 \ule
 
-Since the first category operates on a single dimension, to benefit of the smaller solutions to compute larger ones, elements must be computed sequentially (one at a time), hence computations cannot be made parallel (unless duplicated, thereby hindering benefits of memoization). The third category suffers from limited parallelism \cite{philogeny} and its implementation does not share much with the previous category, hence we focus on the second type of problems.
+Additionally, the signature must define an input alphabet ({\tt Alphabet}), and an output alphabet ({\tt Answer}) can be defined either in the signature or in the algebra. Finally, the grammar needs to have a starting point, denoted as axiom. Finally, the default aggregation function $h$ must be defined\footnote{Although aggregation usage is not mandatory in the framework, we force the existence of an aggregation function over the ouput type so that we can use it to aggregate windowed results.}. To make it more clear, we propose an example of the matrix chain multiplication problem\footnote{The original ADP framework was embedded in Haskell, however, we assume that the reader is more familiar with Scala notation and immediately present the syntax of our implementation.}.
 
-Taking real-world examples in biology, the average input size for sequence alignment (\S\ref{swat_affine}) is around 300'000 whereas for problems like RNA folding (\S\ref{zuker}), input length is usually below 1000. Problems operating on multiple input sequences also require more memory: for instance matching 3 sequences is $O(n^3)$-space complex (as intermediate results needs to be stored in a position representing the progress in each of the involved sequence). Since we target a single computer with one or more attached devices (GPUs, FPGAs), and since we plan to maintain data in memory (due to the multiple reuse of intermediate solutions) the storage complexity must be relatively limited, compared to other problem that could leverage the disk storage. Hence in general, we focus on problems that have $O(n^2)$-space complexity whereas time complexity is usually $O(n^3)$ or larger. We encourage you to refer to \S\ref{problems} for further classification and examples.
+\newpage
+\begin{lstlisting}[language=Scala, caption=Matrix chain mulitiplication DSL implementation]
+trait MatrixSig extends Signature {
+  type Alphabet = (Int,Int) // Matrix(rows, columns)
+  val single:Alphabet=>Answer
+  val mult:(Answer,Answer)=>Answer
+}
+
+trait MatrixAlgebra extends MatrixSig {
+  type Answer = (Int,(Int,Int)) // Answer(cost, Matrix(rows, columns))
+  override val h = minBy((a:Answer) => a._1)
+  val single = (a: Alphabet) => (0, a)
+  val mult = (a:Answer,b:Answer) =>
+    { val ((m1,(r1,c1)),(m2,(r2,c2)))=(a,b); (m1+m2+r1*c1*c2, (r1,c2)) }
+}
+
+trait MatrixGrammar extends ADPParsers with MatrixSig {
+  val axiom:Tabulate = tabulate("M",
+    (el ^^ single | axiom ~ axiom ^^ mult) aggregate h)
+}
+
+object MatrixMult extends MatrixGrammar with MatrixAlgebra with App {
+  println(parse(Array((10,100),(100,5),(5,50)))) // List((7500,(10,50)))
+}
+\end{lstlisting}
+\begin{center}\vspace{-18pt} with or: $|\,\,$ map: $\land\land\,\,$ concatenation: $\sim$ \end{center}
+
+%\vspace{3cm}
+This program grammar can also be expressed in BNF\footnote{\url{http://en.wikipedia.org/wiki/Backus-Naur\_Form}}:
+\[\begin{array}{lrl}
+axiom &::=& \text{matrix} \\
+ &|& axiom \,\,\, axiom
+\end{array}\]
+
+and it encodes the following recurrence (cost only):
+	\[M_{(i,j)}=\left\{\begin{array}{ll}
+		0 & \text{if } i+1= j\\
+		\min_{i<k<j} M_{(i,k)}+M_{(k,j)}+r_i \cdot c_k \cdot c_j & \text{otherwise}
+	\end{array}\right. \]
+
+Notice that the semantics of indices differ slightly from the problem presented in \ref{mat_mult_plain}; this is because empty chain are made expressible (denoted $M_{(i,i)}$, single matrices are denoted $M_{(i,i+1)}$).
 
 % ------------------------------------------------------------------------------------------------
 \newpage
@@ -128,3 +197,27 @@ As the Scala \cite{scala} programming language is developed by our laboratory (L
 Lightweight Modular Staging (LMS) \cite{lms}, \cite{lms_thesis} is a runtime code generation built on top of Scala virtualized \cite{scala_virtualized} that uses types to distinguish between binding time (compilation and runtime) for code compilation. This makes possible to annotate parts of the code with special types, such that their compilation is delayed until the program is executed. At run time, these parts are represented as a \textit{sea of nodes} that serve as the basis for another compilation phase where all the code executed until this point provides additional information to produce a more efficient compilation. The process of delaying the compilation is known as \textit{lifting} whereas \textit{lowering} corresponds to transforming this intermediate representation into executable code. LMS code generation is not limited to Scala, it can also target other languages like C. In short, LMS is an optimizing compiler framework that allows integration of domain-specific abstractions and optimizations into the generation process.
 
 A discussion of the integration of LMS in our project can be found in \S\ref{lms_use}.
+
+% ------------------------------------------------------------------------------------------------
+\newpage
+\subsection{Related work} \label{related_work}
+Work related to dynamic programming can be separated in two categories: ad-hoc implementations and grammar-based implementations. The former focus on the performance for a specific problem whereas the latter generalize and formalize the dynamic programming problem description into a parsing grammar paired with a costing algebra.
+
+Grammar-based dynamic programming was inseminated by ADP \cite{adp_discipline} and first implemented as a Haskell DSL \cite{adp}. To overcome performance issues, multiple solutions were devised:\ul
+\item Converting Haskell parsers in their C or CUDA equivalent \cite{adp_gpu}
+\item Modifying Haskell execution environment to provide loop fusion to improve ADP parsers performance \cite{adp_fusion}, \cite{adp_fusion_pkg}.
+\item Ultimately, the dynamic programming algebra and grammar were formalized into a specific language \cite{gapl} provided with an ad-hoc compiler \cite{gapc_thesis}, thereby allowing more advanced analysis of the grammar \cite{gapc_yield}.
+\ule
+
+The research on ad-hoc implementation has focused on three kind of problems:\ul
+\item Genral problems, attempting to provide the most efficient implementation for a particular problem \cite{gpu_atlp}, \cite{robust_mapping}, \cite{gpu_from_dsl}.
+\item RNA sequence folding (variants of the Zuker folding): \cite{nussinov_gpu}, \cite{gpu_rnafold}.
+\item Biological sequence alignment (Smith-Waterman) for huge sequences: \cite{swat_gpu}, \cite{swat_linear} \cite{swat_mega}.
+\ule
+
+Since this project involves various domains, we also investigated in the memory management on graphic cards and existing code generation frameworks.
+
+In an attempt to support a varying number of results per matrix cell, we considered dynamic memory allocation \cite{nvidia} (available on recent graphic cards), ad-hoc memory allocation \cite{scatter_alloc} and hash tables \cite{parallel_hashing}. However the costs associated with dynamic memory allocation makes it unattractive for this particular kind of problem, and the use of cuckoo hash tables adds a constant factor penalty to every memory access. Finally both solution introduce undesirable possibility of failure (respectively out of memory or unrecoverable collision) in the middle of the algorithm computation process.
+
+Automated code generation and execution flow is addressed by Delite \cite{lms2}, \cite{lms3}, \cite{delite}, that leverages LMS\cite{lms_thesis} to generate from the same source code efficient implementation for heterogeneous platforms (including CUDA) at runtime. Although this shares many patterns with our project, we can not reuse this framework because the scheduling and computation is tightly interleaved in dynamic programming (see \ref{bg_lms}) whereas Delite focuses on parallelizing operations on collections (array, lists, maps, ...) of independent elements.
+

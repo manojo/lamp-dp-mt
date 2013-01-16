@@ -1,8 +1,18 @@
 \newpage
 \section{Dynamic programming problems} \label{problems}
+There exist various categories of dynamic programming:\ul
+\item Series that operate usually on a single dimension (like Fibonacci\footnote{http://en.wikipedia.org/wiki/Fibonacci_number})
+\item Sequences alignment (matching two sequences at best), top-down grammar analysis (parenthesizing), sequence folding, ... (see \S\ref{problems} for more examples and detailed classification)
+\item Tree-related algorithms: phylogeny \cite{philogeny}, trees raking \cite{tree_raking}, maximum tree independent set \cite{tree_independent_set}, ... (can be viewed as a sparse version of the second category)
+\ule
+
+Since the first category operates on a single dimension, to benefit of the smaller solutions to compute larger ones, elements must be computed sequentially (one at a time), hence computations cannot be made parallel (unless duplicated, thereby hindering benefits of memoization). The third category suffers from limited parallelism \cite{philogeny} and its implementation does not share much with the previous category, hence we focus on the second type of problems.
+
+Taking real-world examples in biology, the average input size for sequence alignment (\S\ref{swat_affine}) is around 300'000 whereas for problems like RNA folding (\S\ref{zuker}), input length is usually below 1000. Problems operating on multiple input sequences also require more memory: for instance matching 3 sequences is $O(n^3)$-space complex (as intermediate results needs to be stored in a position representing the progress in each of the involved sequence). Since we target a single computer with one or more attached devices (GPUs, FPGAs), and since we plan to maintain data in memory (due to the multiple reuse of intermediate solutions) the storage complexity must be relatively limited, compared to other problem that could leverage the disk storage. Hence in general, we focus on problems that have $O(n^2)$-space complexity whereas time complexity is usually $O(n^3)$ or larger. We encourage you to refer to \S\ref{problems} for further classification and examples.
+
 % ------------------------------------------------------------------------------------------------
 \subsection{Problems classification}
-Since <<dynamic programming>> defines a very general technique, we already focused on grammar and alignment problems in \ref{bg_dp}. Before exploring some particular problem instances, we want to define some characteristics that will be used through the rest of the document to describe dynamic programming problems.
+Since <<dynamic programming>> defines a very general technique, we already focused on grammar and alignment problems. Before exploring some particular problem instances, we want to define some characteristics that will be used through the rest of the document to describe dynamic programming problems.
 
 % ----------------------------------------------
 \subsubsection{Definitions}\ul
@@ -486,25 +496,3 @@ In the rest of the report, we use a different description of the problems that i
 Although we have not found a real problem requiring a parallelogram matrix, we still present this version in \S\ref{mem_layout} and \S\ref{baseline_impl}. Such matrix layout could be adapted for cyclic problems that could be broken into a linear sequence anywhere (that is for all position in the circular structure, break the cycle at this position, and solve the dynamic programming problem on the resulting flattened sequence). For example, one could be interested in finding the longest subsequence verifying some property in a cycle, such that the subsequence score changes if it is rotated.
 \ole
 
-% ------------------------------------------------------------------------------------------------
-\newpage
-\subsection{Related work} \label{related_work}
-Work related to dynamic programming can be separated in two categories: ad-hoc implementations and grammar-based implementations. The former focus on the performance for a specific problem whereas the latter generalize and formalize the dynamic programming problem description into a parsing grammar paired with a costing algebra.
-
-Grammar-based dynamic programming was inseminated by ADP \cite{adp_discipline} and first implemented as a Haskell DSL \cite{adp}. To overcome performance issues, multiple solutions were devised:\ul
-\item Converting Haskell parsers in their C or CUDA equivalent \cite{adp_gpu}
-\item Modifying Haskell execution environment to provide loop fusion to improve ADP parsers performance \cite{adp_fusion}, \cite{adp_fusion_pkg}.
-\item Ultimately, the dynamic programming algebra and grammar were formalized into a specific language \cite{gapl} provided with an ad-hoc compiler \cite{gapc_thesis}, thereby allowing more advanced analysis of the grammar \cite{gapc_yield}.
-\ule
-
-The research on ad-hoc implementation has focused on three kind of problems:\ul
-\item Genral problems, attempting to provide the most efficient implementation for a particular problem \cite{gpu_atlp}, \cite{robust_mapping}, \cite{gpu_from_dsl}.
-\item RNA sequence folding (variants of the Zuker folding): \cite{nussinov_gpu}, \cite{gpu_rnafold}.
-\item Biological sequence alignment (Smith-Waterman) for huge sequences: \cite{swat_gpu}, \cite{swat_linear} \cite{swat_mega}.
-\ule
-
-Since this project involves various domains, we also investigated in the memory management on graphic cards and existing code generation frameworks.
-
-In an attempt to support a varying number of results per matrix cell, we considered dynamic memory allocation \cite{nvidia} (available on recent graphic cards), ad-hoc memory allocation \cite{scatter_alloc} and hash tables \cite{parallel_hashing}. However the costs associated with dynamic memory allocation makes it unattractive for this particular kind of problem, and the use of cuckoo hash tables adds a constant factor penalty to every memory access. Finally both solution introduce undesirable possibility of failure (respectively out of memory or unrecoverable collision) in the middle of the algorithm computation process.
-
-Automated code generation and execution flow is addressed by Delite \cite{lms2}, \cite{lms3}, \cite{delite}, that leverages LMS\cite{lms_thesis} to generate from the same source code efficient implementation for heterogeneous platforms (including CUDA) at runtime. Although this shares many patterns with our project, we can not reuse this framework because the scheduling and computation is tightly interleaved in dynamic programming (see \ref{bg_lms}) whereas Delite focuses on parallelizing operations on collections (array, lists, maps, ...) of independent elements.
