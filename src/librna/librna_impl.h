@@ -100,10 +100,11 @@ my_dev int termau_energy(rsize i, rsize j) { return ((my_seq[i]==G_BASE && my_se
 
 my_dev static int strMatch(rsize i, rsize j, const char *str, int strlen, int step) {
   int len = j-i+1; // length of the sequence to match
-  for (const char* p=str; p<p+strlen; p+=step) { // p is str candidate
+  for (const char* p=str; p<str+strlen; p+=step) { // p is str candidate
     int n,k;
     for (n=0,k=0;n<len;++n) { // for all items in [i,j]
-      char c=my_seq[i+n]; if (c==GAP_BASE) continue;
+      char c=my_seq[i+n];
+      if (c==GAP_BASE) continue;
       else if (c==N_BASE) { if (p[k]!='N') break; ++k; }
       else if (c==A_BASE) { if (p[k]!='A') break; ++k; }
       else if (c==C_BASE) { if (p[k]!='C') break; ++k; }
@@ -120,15 +121,12 @@ my_dev int hl_energy(rsize i, rsize j) { // assert(j-i>1);
   rsize size = j-i-1 - noGaps(i+1,j-1);
   int entropy = hl_ent(size);
   int stack_mismatch = hl_stack(i,j);
-
   if (size < 3) return 600;
-  if (size == 3 || size == 4 || size == 6) {
-    int pos;
-    switch (noGaps(i,j)) {
-      case 3+2: if ((pos=strMatch(i,j,my_P->Triloops  ,my_P->TriloopsLen  ,6))!=-1) return my_P->Triloop_E[pos/6]; break; // special triloop cases
-      case 4+2: if ((pos=strMatch(i,j,my_P->Tetraloops,my_P->TetraloopsLen,7))!=-1) return my_P->Tetraloop_E[pos/7]; break; // special tetraloop cases
-      case 6+2: if ((pos=strMatch(i,j,my_P->Hexaloops ,my_P->HexaloopsLen ,9))!=-1) return my_P->Hexaloop_E[pos/9]; break; //special hexaloop cases
-    }
+  int pos;
+  switch (size) {
+    case 3: if ((pos=strMatch(i,j,my_P->Triloops  ,my_P->TriloopsLen  ,6))!=-1) return my_P->Triloop_E[pos]; break; // special triloop cases
+    case 4: if ((pos=strMatch(i,j,my_P->Tetraloops,my_P->TetraloopsLen,7))!=-1) return my_P->Tetraloop_E[pos]; break; // special tetraloop cases
+    case 6: if ((pos=strMatch(i,j,my_P->Hexaloops ,my_P->HexaloopsLen ,9))!=-1) return my_P->Hexaloop_E[pos]; break; //special hexaloop cases
   }
   if (size == 3) return entropy + termau_energy(i, j); //normal hairpins of loop size 3
   else return entropy + stack_mismatch; //normal hairpins of loop sizes larger than three

@@ -1,65 +1,76 @@
-#include "../rnalib.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// FLAGS:= -std=c99 ../rnalib.c ../vienna/*.c
+// FLAGS:= -std=c99 ../librna.c ../vienna/*.c
 
-void conv(char *x) {
-  for (int i=0,l=strlen(x); i < l; i++) switch (x[i]) {
-    case 'a' : x[i] = 1; break;
-    case 'c' : x[i] = 2; break;
-    case 'g' : x[i] = 3; break;
-    case 'u' : x[i] = 4; break;
+#define my_len c_len
+#define my_seq c_seq
+#define my_P c_P
+#define my_dev
+#include "../librna_impl.h"
+#include "../vienna/vienna.h"
+#define my_seq c_seq
+
+#define PRIVATE static
+#define MIN2(a,b) ((a)<(b) ? (a) : (b))
+#include "../rnafold/loop_energies.h"
+
+void freeSeq() { free(c_seq); free(c_P); }
+void initSeq(const char* param, const char* seq) {
+  read_parameter_file(param);
+  c_P = get_scaled_parameters();
+  c_len = strlen(seq);
+  c_seq = malloc(c_len+1);
+  for (int i=0; i < c_len; ++i) switch (seq[i]) {
+    case 'a' : c_seq[i] = 1; break;
+    case 'c' : c_seq[i] = 2; break;
+    case 'g' : c_seq[i] = 3; break;
+    case 'u' : c_seq[i] = 4; break;
     default: exit(1);
   }
 }
 
+
+int E_stack(int i, int j) {
+  return c_P->stack[_bp(i,j)][_bp(j-1,i+1)];
+}
+
+
+
 int main(int argc, char **argv) {
-  char s[]="gccaaccucgugca";
-  //        (((......).)).     len=14
-  //        --        --- bulgeRight(0,12)
-  //          -      - sr(2,9)
+  const char* s=
+     "ugcucaggca";
+  // (((....)))   len=10
+  //  --    --    hairpin(1,8)
+  // -        -   sr(0,9)
 
-  conv(s);
-  librna_read_param_file("../vienna/rna_turner2004.par");
+  initSeq("../vienna/rna_turner2004.par",s);
 
-  /*
-  // ml
-  printf("%d\n",ml_energy());
-  printf("%d\n",ul_energy());
-  printf("%d\n",ml_mismatch_energy(s, 1, 12));
-  printf("%d\n",sr_energy(s, 0, 13));
-  printf("%d\n",termau_energy(s, 0, 13));
-  printf("%d\n",ml_mismatch_energy(s, 1, 12));
-  // il
-  printf("%d\n",il_energy(s, 1, 2, 11, 12));
-  printf("%d\n",sr_energy(s,0, 13));
-  */
-  /*
-  printf("%d\n",br_energy(s,1,9,9,11,11));
-  printf("%d\n",br_energy(s,1,10,10,11,11));
-  printf("%d\n",br_energy(s,1,9,9,12,11));
-  */
+  printf("%d -- /\n",ext_mismatch_energy(0, 9)); // dlr
+  printf("%d -- /\n",termau_energy(0,9));
+
+  printf("%d -- %d\n",sr_energy(0,9), E_stack(0,9)); // stack
+  printf("%d -- %d\n",sr_energy(1,8), E_stack(1,8)); // hairpin
+  printf("%d -- %d\n",hl_energy(2,7), E_Hairpin(4,_bp(2,7),3,6,"CUCAGG",c_P));
+/*
+ *  \param  size  The size of the loop (number of unpaired nucleotides)
+ *  \param  type  The pair type of the base pair closing the hairpin
+ *  \param  si1   The 5'-mismatching nucleotide
+ *  \param  sj1   The 3'-mismatching nucleotide
+ *  \param  string  The sequence of the loop
+ *  \param  P     The datastructure containing scaled energy parameters
+ *  \return The Free energy of the Hairpin-loop in dcal/mol
+*/
 
   int r =
-    ext_mismatch_energy(s,0, 12, 14) + termau_energy(s,0,12) + // dlr(0..12)
-    // br: bulge right
-    br_energy(s,1,9,11,11,2) +
-    sr_energy(s,0,12) + // bulge
+    ext_mismatch_energy(0, 9) + termau_energy(0,9) + // dlr(0,9)
+    sr_energy(0,9) + // stack(0,9)
+    sr_energy(1,8) + hl_energy(2,7); // hairpin (1,8)
 
+  printf("Result = %d (goal = -130)\n",r);
 
-    //hl_energy(s,5,9) +
-
-    // ml: multi-loop
-    //ml_energy() + ul_energy() +
-    //sr_energy(s, 0, 13) + termau_energy(s, 0, 13) + ml_mismatch_energy(s, 1, 12) +
-
-    sr_energy(s,2,9); // inner sr
-
-
-  printf("Result = %d (goal = -10)\n",r);
-
+  freeSeq();
   return 0;
 }

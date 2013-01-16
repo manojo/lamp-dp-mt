@@ -110,7 +110,7 @@ trait ZukerExplain extends ZukerSig {
   val sadd = (lb:Int, e:Answer) => "."+e +" sadd"
   val cadd = (x:Answer, e:Answer) => x+e +" cadd"
   val dlr = (lb:Int, e:Answer, rb:Int) => e + " dlr"+(lb,rb)
-  val sr = (lb:Int, e:Answer, rb:Int) => "("+e+")"  +" sr"
+  val sr = (lb:Int, e:Answer, rb:Int) => e +" sr("+lb+","+rb+")"
   val hl = (lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) => "{"+lb+","+rb+"}"
   val bl = (lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) => "(("+dots(x)+e+"))"  +" lb"
   val br = (lb:Int, f1:Int, e:Answer, x:SSeq, f2:Int, rb:Int) => "(("+e+dots(x)+"))"  +" br"
@@ -218,6 +218,6 @@ object Zuker extends App {
   // Our: (((....))) ( -0.40) FAILED
   testSeq("ugcucaggca")
   
-  //for (k<-0 until 100) testSeq(RNAUtils.genSeq(100))
+  for (k<-0 until 200) testSeq(RNAUtils.genSeq(50))
 
 }

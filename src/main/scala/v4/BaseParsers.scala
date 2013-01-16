@@ -124,7 +124,7 @@ trait BaseParsers { this:Signature =>
   def tabInit(w:Int,h:Int) = rules.foreach{ case (_,t) => t.init(w,h) }
   def tabReset = rules.foreach{ //case (_,t) => t.reset
     case (n,t) => 
-    
+    /*
     if (n=="st") t.data(t.idx(0,t.mW-1)) match { case (x:Int,_)::xs =>
       for (i<-0 until t.mH) {
         for (j<-0 until t.mW) {
@@ -139,7 +139,7 @@ trait BaseParsers { this:Signature =>
       }
       case _ =>
     }
-    
+    */
     t.reset
   }
 
