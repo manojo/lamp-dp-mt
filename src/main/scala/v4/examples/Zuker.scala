@@ -212,21 +212,12 @@ object Zuker extends App {
   // Having separate JVM instances is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
-  // PART 1: moved into v4.examples.Test
-  testSeq("ccuuuuucaaagg")
-  testSeq("guacgucaguacguacgugacugucagucaac")
-  testSeq("aaaaaggaaacuccucuuu")
-  testSeq("uucuccucaggaaga")
-  testSeq("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
-  testSeq("gccaaccucgugca")
-  testSeq("ggccaaccucgugcaa")
-  testSeq("guugcucagcacgcguaaga")
-  // PART 2: some failing sequences
-  testSeq("gggcgcucaaccgagucagcagugcaauauagggccc")
-  testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
-  testSeq("accacuccucauuugacuuauaggcucagaauuaguagaccacaguucacugugaaagga")
-  testSeq("uugcccuaugucaaacauaugucgcaaagcacacgucguauucaccacgaucaaccaggg")
-  testSeq("ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug")
-  //for (k<-0 until 100) RNAUtils.testSeq(genSeq(60))
+
+  // Seq: ugcucaggca
+  // Ref: (((....))) ( -1.30)
+  // Our: (((....))) ( -0.40) FAILED
+  testSeq("ugcucaggca")
+  
+  //for (k<-0 until 100) testSeq(RNAUtils.genSeq(100))
 
 }

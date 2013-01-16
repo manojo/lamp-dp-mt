@@ -2,6 +2,6 @@
 
 cd "`dirname $0`"
 gcc -Wall -O2 -Ilibs -I../vienna *.c ../vienna/*.c -o RNAfold  && \
-echo gggcgcucaaccgagucagcagugcaauauagggccc | ./RNAfold ../vienna/rna_turner2004.par
+echo ugcucaggca | ./RNAfold ../vienna/rna_turner2004.par
 #echo guacgucaguacguacgugacugucagucaac | ./RNAfold ../vienna/rna_turner2004.par && \
 #echo augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc | ./RNAfold ../vienna/rna_turner2004.par
