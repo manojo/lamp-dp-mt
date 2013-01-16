@@ -72,7 +72,7 @@ my_dev static int bp_index(char x, char y) {
 }
 
 my_dev static rsize noGaps(rsize i, rsize j) {
-  rsize noGaps=0; for (rsize k=i; k<=j; ++k) if (my_seq[k] == GAP_BASE) ++noGaps;
+  rsize noGaps=0; rsize k; for (k=i;k<=j;++k) if (my_seq[k]==GAP_BASE) ++noGaps;
   return noGaps;
 }
 
@@ -100,7 +100,8 @@ my_dev int termau_energy(rsize i, rsize j) { return ((my_seq[i]==G_BASE && my_se
 
 my_dev static int strMatch(rsize i, rsize j, const char *str, int strlen, int step) {
   int len = j-i+1; // length of the sequence to match
-  for (const char* p=str; p<str+strlen; p+=step) { // p is str candidate
+  const char* p;
+  for (p=str; p<str+strlen; p+=step) { // p is str candidate
     int n,k;
     for (n=0,k=0;n<len;++n) { // for all items in [i,j]
       char c=my_seq[i+n];

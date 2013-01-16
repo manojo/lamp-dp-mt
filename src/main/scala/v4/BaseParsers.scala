@@ -151,8 +151,8 @@ trait BaseParsers { this:Signature =>
     def max = maxv; var maxv = 0
 
     // Matrix storage
-    /*private*/ var data:Array[List[(Answer,Backtrack)]] = null
-    /*private*/ var (mW,mH) = (0,0)
+    private var data:Array[List[(Answer,Backtrack)]] = null
+    private var (mW,mH) = (0,0)
     def init(w:Int,h:Int) { mW=w; mH=h; val sz=if (twotracks) w*h else { assert(w==h); h*(h+1)/2 }; data=new Array(sz); }
     def reset { data=null; mW=0; mH=0; }
 
@@ -160,7 +160,7 @@ trait BaseParsers { this:Signature =>
     rules += ((name,this))
 
     var id:Int = -1 // subrules base index
-    /*@inline private*/ def idx(sw:Subword):Int = if (twotracks) sw._1*mW+sw._2 else { val (i,j)=sw; val d=mH+1+i-j; ( mH*(mH+1) - d*(d-1) ) /2 + i }
+    @inline private def idx(sw:Subword):Int = if (twotracks) sw._1*mW+sw._2 else { val (i,j)=sw; val d=mH+1+i-j; ( mH*(mH+1) - d*(d-1) ) /2 + i }
     private def get(sw:Subword) = { val i=idx(sw); val v1=data(i); if (v1!=null) v1 else { val v=inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}; data(i)=v; v } }
     private def put(sw:Subword,v:List[(Answer,Backtrack)]) { data(idx(sw))=v; }
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}

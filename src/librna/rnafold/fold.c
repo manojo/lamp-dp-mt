@@ -97,7 +97,7 @@ PRIVATE void init_fold(int length, paramT *parameters){
 
 /*--------------------------------------------------------------------------*/
 
-#define DBG
+//#define DBG
 #ifdef DBG
 unsigned my_size=0;
 #endif

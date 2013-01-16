@@ -34,6 +34,7 @@ object Tests extends App {
   Zuker.testSeq("accacuccucauuugacuuauaggcucagaauuaguagaccacaguucacugugaaagga")
   Zuker.testSeq("uugcccuaugucaaacauaugucgcaaagcacacgucguauucaccacgaucaaccaggg")
   Zuker.testSeq("ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug")
+  Zuker.testSeq("ugcucaggca")
   println
   
   val (s1,s2)=("CGATTACA","CCCATTAGAG")

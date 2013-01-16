@@ -201,7 +201,7 @@ object Zuker extends App {
 
   def testSeq(seq:String) {
     val (score,bt,res)=parse(seq)
-    val ref=RNAUtils.refFold(seq,"resources/RNAfold_orig_mac" /*"src/librna/rnafold/RNAfold"*/)
+    val ref=RNAUtils.refFold(seq,"src/librna/rfold" /*"resources/RNAfold_orig_mac"*/)
     val our=res+" (%6.2f)".format(score/100.0)
     if (ref==our) print(".")
     else println("\nSeq: "+seq+"\nRef: "+ref+"\nOur: "+res+" (%6.2f)".format(score/100.0)+" FAILED\n"+explain.build(seq.toArray,bt)+"\n")
@@ -213,11 +213,11 @@ object Zuker extends App {
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
 
-  // Seq: ugcucaggca
-  // Ref: (((....))) ( -1.30)
-  // Our: (((....))) ( -0.40) FAILED
-  testSeq("ugcucaggca")
+  // Seq: aagcaccagcccccgguuaagaauacacuaagaaggagauuucuccgcccaacugacuccccuguaaaugcugcu
+  // Ref: .((((.((.....(((....((............((((....))))...........))..)))....)).)))) ( -8.30)
+  // Our: ......((((........................((((....)))).......................)))).. ( -8.62) FAILED
+  testSeq("cagcccccgguuaagaauaaaggagauuucuccgcccaaccccuguaaaugcug")
   
-  for (k<-0 until 200) testSeq(RNAUtils.genSeq(50))
+  //for (k<-0 until 500) testSeq(RNAUtils.genSeq(75))
 
 }

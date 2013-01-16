@@ -7,9 +7,14 @@ JAVA_INC="-I$JAVA_HOME/include -I$JAVA_HOME/include/linux"
 if [ "$OSTYPE" = "darwin" ]; then
   JAVA_INC="$JAVA_INC -I/System/Library/Frameworks/JavaVM.framework/Headers"
   md5_hash() { md5 -q $@; }
+  CCFLAGS=""
 else
+  CCFLAGS="-lm"
   md5_hash() { md5sum $@; }
 fi
+
+# --------------------------------------------------
+# JNI library
 
 if [ "$1" = "" ]; then out="bin"; rm -r "$out" 2>/dev/null; mkdir -p "$out";
 else from=`pwd`; mkdir -p "$1"; cd "$1"; out=`pwd`; cd $from; fi
@@ -18,11 +23,26 @@ cd `dirname $0`;
 name="libRNA.jnilib"
 md5_hash *.[ch] vienna/*.[ch] > "$out/$name.tmp"
 if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f "$out/$name" ]; then
-	echo "[info] $name up to date."; rm "$out/$name.tmp"; exit;
+	echo "[make] $name up to date."; rm "$out/$name.tmp";
+else
+	printf "[make] Compiling $name ... "
+	gcc -Wall -O2 $CCFLAGS -fPIC -shared $JAVA_INC librna.c \
+		vienna/energy_par.c vienna/vienna.c -o "$out"/libRNA.jnilib || exit
+	mv "$out/$name.tmp" "$out/$name.md5"
+	echo 'done.'
 fi
 
-printf "Compiling $name ... "
-gcc -Wall -std=c99 -fPIC -shared $JAVA_INC librna.c \
-	vienna/energy_par.c vienna/vienna.c -o "$out"/libRNA.jnilib || exit
-mv "$out/$name.tmp" "$out/$name.md5"
-echo 'done.'
+
+# --------------------------------------------------
+# Reference RNAfold (ViennaRNA)
+
+name="RNAfold"
+md5_hash *.[ch] rnafold/*.[ch] vienna/*.[ch] > "$out/$name.tmp"
+if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f rfold ]; then
+	echo "[make] $name up to date."; rm "$out/$name.tmp";
+else
+	printf "[make] Compiling $name ... "
+	gcc -Wall -O2 $CCFLAGS -Ivienna rnafold/*.c vienna/*.c -o rfold || exit
+	mv "$out/$name.tmp" "$out/$name.md5"
+	echo 'done.'
+fi
