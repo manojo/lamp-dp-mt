@@ -76,41 +76,23 @@ The rest of the document consists of:\ul
 %%\item Code generator to transform a grammar into efficient code for CPU, GPU (and FPGA)
 %\ule
 
-%Optimization problem: 
-%1. cut / recursivity
-%2. bellman
-%classic = recurrence
-%B. complex problems
-%C. backtrack
-%D. execute fast
- 
 % XXX: grammar for all the examples of problems
 
-% XXX: background sur graphic cards
-
-% Is Fibonacci a good example wrt what we describe in the rest of the report? After all we only deal with problems on sequences ?
-% - A typical characteristic => As one can see, a Fibonacci number is described __recursively__ in terms of "smaller" Fibonacci numbers. The naive algorithm for computing F(n) would require recomputing subsolutions many times (here F(3) helps ... ). Reusing ... F(n)-1 additions!
-%A classic example of dynamic programming is the Fibonacci series that is defined by the following recurrence:
-%\[F(n+1) = F(n)+F(n-1) \qquad \text{ with } F(0)=F(1)=1 \]
-%which expands to (first 21 numbers)
-%\[1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, ...\]
-%
-%As one can see, Fibonacci numbers are described recursively in terms of previous series elements, which are reused multiple times to construct the following elements (here $F(3)$ helps constructing $F(4)$ and $F(5)$). Reusing an existing solution avoids redoing expensive computations: with memoization (memorizing intermediate results), the solution for $F(n)$ would be obtained after $n$ additions whereas without memoization it requires $F(n)-1$ additions !
-%
-%Formally, dynamic programming problems respect the Bellman's principle of optimality\cite{bellman_principle}: \textit{<<An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision>>}. This means that every intermediate result needs to be computed only once, although it might be reused as a basis for multiple larger problems, hence our first observation.
-
 % ------------------------------------------------------------------------------------------------
-\newpage
 \section{Background} \label{background}
 \subsection{Graphic cards}
-{\color{red} background on graphic cards}
+Modern graphic cards\footnote{We cover here interesting features of the CUDA devices and programming paradigm; however, the same concept should be applicable to graphic cards from other vendors.} are powered by massively parallel processor: they can typically run hundreds or thousands of cores, each able to schedule multiple threads. The threads are usually grouped in warps that are scheduled synchronously. This means that if there is a divergence in the execution path, both alternative are executed sequentially, hereby stalling other warp's threads. Threads are logically grouped in blocks by the programmer whereas warps correspond to a physical constraint. In a deliberate design decision to simplify the hardware, there exist no global synchronization.
 
+On graphic cards, there exist two levels of memory that are visible for the programmer: the global memory, which can be accessed by any thread, and the shared memory, that corresponds to an explicitly addressable cache memory, whose access is faster but restricted to threads in the same block. Finally, access to the main memory of the computer is possible on recent cards but suffers an additional penalty, which makes it not desirable.
+
+Since in such architecture the major bottleneck is often the access to the global memory, threads should access contiguous memory at the same time. This is called coalesced memory access and improving the memory layout in this direction can lead to significant speedup\footnote{\url{http://mc.stanford.edu/cgi-bin/images/5/5f/Darve_cme343_cuda_2.pdf}}.
+
+\newpage
 \subsection{ADP and parsing grammars} \label{adp_grammar}
 In this section, we provide a concise description of the Algebraic Dynamic Programming. Would the reader be interested in the mathematical details of the notation, we encourage him to read the section 3 of \cite{adp}.
 
 {\color{red} recall some ADP formal definitions}
 %    - terms like algebra, signature, etc. might need to be defined more formally later on, because these are highly mathematical terms which, for example, Viktor could ask you questions on during your presentation
-
 
 ADP is a formalization of parsers that introduces a distinction between the \textbf{parsing grammar} (recognition phase) and an associated \textbf{algebra} (evaluation phase). Such separation makes it possible to define multiple algebra for the same grammar. This has two main applications:\ol
 \item Experiment variants with the same grammar:  for example, Needleman-Wunsch and Smith-Waterman share the same grammar but have a different evaluation algebra
