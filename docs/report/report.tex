@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 \input{inc/style.sty}
-\usepackage{multicol}
+\usepackage{multicol,nameref}
 \usepackage{etoolbox}
 
 \title{DynaProg for Scala}
@@ -14,6 +14,17 @@
 
 
 \section{Usage} \label{usage}
+
+Example based
+- Matrix mult + parenthesizing
+- SWat / Needleman
+
+go check the examples/ folder
+
+List of options at the end
+
+
+
 {\color{red} usage, make reference from problems to usage
 
 XXX: do not introduce pseudocode but refere to usage in RNAfold problem
@@ -140,13 +151,13 @@ As the device memory is quite limited, it seems interesting to also take into ac
 
 \subsection{Benchmarking platform}
 
-\begin{verbatim}
-NEW:
-- CPU: Dynaprog vs ADPFusion vs RNAfold vs GAPC
-- GPU: (Zuker) Dynaprog vs GAPC (si on arrive a faire marcher)
-- GPU: (MatMult) Dynaprog vs ATLP
-- GPU: (SWat) Dynaprog vs  CUDAlign
-\begin{verbatim}
+\subsubsection{Test Scala / C / CUDA}
+\subsubsection{Test 1 : CPU MatrixMult VS hand optimized VS GAPC VS ADPFusion)}
+\subsubsection{Test 2 : GPU MatirxMult VS hand optimized VS ATLP)}
+\subsubsection{Test 3 : CPU SWat VS hand optimized VS GAPC VS ADPFusion)}
+\subsubsection{Test 4 : GPU SWat VS hand optimized VS CUDAlign)}
+\subsubsection{Test 5 : CPU Zuker VS GAPC VS ADPFusion VS ViennaRNA)}
+\subsubsection{Test 6 : GPU Zuker VS RNAFold?/Lavenier VS ViennaRNA-OpenCL)}
 
 RUN 5-10x until running time stabilizes on Scala
 
@@ -160,16 +171,7 @@ XXX: future work, resize tables appropriately as in GAPL.
 {\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: CONTINUE HERE :XXX \\}
 % ------------------------------------------------------------------------------------------------
 
-\subsubsection{Test 1 : Ad-hoc VS CUDA parsers (implies ATLP rescaled comparison)}
-
-\subsubsection{Test 2 : CUDAlign vs CUDA parsers for small sequences}
-Also CUDASW++
-
-\subsubsection{Test 3 : GAPC vs Java parsers vs CUDA parsers}
-
-\subsubsection{Test 4 ? : GPU RNAfolding vs CUDA parsers}
-
-\subsection{Java parsers}
+\subsection{Scala parsers}
 {\color{red}
 MatrixMult-512, Mac+JDK7\ul
 \item Original: 24.937 sec / 24.658 sec
@@ -216,6 +218,19 @@ Matrix of different dimensions must be stored in their own array (versus being i
 
 \section{Conclusion}
 {\color{red} XXX}
+
+\begin{verbatim}
+
+recap of the report
+
+recap of the results
+
+big picture: with actual compiler technology we 
+Embedded DSL vs external DSL
+Larger picture how to go further
+
+\end{verbatim}
+
 
 % ------------------------------------------------------------------------------------------------
 \newpage

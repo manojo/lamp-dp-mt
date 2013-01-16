@@ -70,6 +70,13 @@ The rest of the document consists of:\ul
 \newpage
 \section{Background} \label{background}
 \subsection{Dynamic programming} \label{bg_dp}
+
+{\color{red} XXX: replace this with el-mamoun}
+
+{\color{red} XXX: replace this with el-mamoun}
+
+{\color{red} XXX: replace this with el-mamoun}
+
 % Is Fibonacci a good example wrt what we describe in the rest of the report? After all we only deal with problems on sequences ?
 % - A typical characteristic => As one can see, a Fibonacci number is described __recursively__ in terms of "smaller" Fibonacci numbers. The naive algorithm for computing F(n) would require recomputing subsolutions many times (here F(3) helps ... ). Reusing ... F(n)-1 additions!
 A classic example of dynamic programming is the Fibonacci series that is defined by the following recurrence:
@@ -80,6 +87,10 @@ which expands to (first 21 numbers)
 As one can see, Fibonacci numbers are described recursively in terms of previous series elements, which are reused multiple times to construct the following elements (here $F(3)$ helps constructing $F(4)$ and $F(5)$). Reusing an existing solution avoids redoing expensive computations: with memoization (memorizing intermediate results), the solution for $F(n)$ would be obtained after $n$ additions whereas without memoization it requires $F(n)-1$ additions !
 
 Formally, dynamic programming problems respect the Bellman's principle of optimality\cite{bellman_principle}: \textit{<<An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision>>}\footnote{\url{http://en.wikipedia.org/wiki/Bellman\_equation\#Bellman.27s\_Principle\_of\_Optimality}}. This means that every intermediate result needs to be computed only once, although it might be reused as a basis for multiple larger problems, hence our first observation.
+
+{\color{red} XXX: replace this with el-mamoun}
+
+{\color{red} XXX: replace this with el-mamoun}
 
 There exist various categories of dynamic programming:\ul
 \item Series that operate usually on a single dimension (like Fibonacci)

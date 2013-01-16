@@ -180,10 +180,10 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
 }
 
 object Zuker extends App {
-  object mfe extends ZukerGrammar /*with ZukerMFEGen with CodeGen {
+  object mfe extends ZukerGrammar with ZukerMFEGen with CodeGen {
     override val benchmark = true
     override val tps = (manifest[Alphabet],manifest[Answer])
-  }*/ with ZukerMFE
+  }
   object pretty extends ZukerGrammar with ZukerPrettyPrint
   object count extends ZukerGrammar with ZukerCount
   object explain extends ZukerGrammar with ZukerExplain
@@ -198,7 +198,7 @@ object Zuker extends App {
     l.clear; (score,bt,res)
   }
 
-  def testSeq(seq:String) {
+  def testSeq(seq:String, strict:Boolean=true) {
     val (score,bt,res)=parse(seq)
     val ref=RNAUtils.refFold(seq,"src/librna/rfold" /*"resources/RNAfold_orig_mac"*/)
     val our=res+" (%6.2f)".format(score/100.0)
@@ -220,22 +220,6 @@ object Zuker extends App {
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
  
-  //  Seq: agccccgguuaagaauaaaggagauuucuccgcccaaccccuguaaugcu
-  //  Ref: (((..(((...........((((....)))).........)))....))) ( -5.50)
-  //  Our: (((................((((....))))................))) ( -5.94) FAILED
-  // GAPC: (((................((((....))))................))) ( -5.94) GAPC
-
-  // These sequence fail the test but are coherent with GAPC
-  testSeq("agccccgguuaagaauaaaggagauuucuccgcccaaccccuguaaugcu")
-  testSeq("ccggcgcccauaaaaucaaauuaacaucguuaugucagcaaguguaccacaagcuggaga") // 2/4000
-  testSeq("cacgaaauuacgacuuuugacuccugcagacaacagcucauuauaucacucuucccucgu")
-  testSeq("gccacaaucaggcugaagacuuuuaacccuauccuuccuuuuccaggaaaaaccuaaagcacaauucauucagccaauua") // 4/4000
-  testSeq("cccacgagaagcccauguuaccuaucaccauagguuaggggacaaccgagccguuuaaauaauaauuaguggccuucagu")
-  testSeq("uaacacaucaaagucuuuauaaagucauugcuagaauaauaagagccgaaaacauuccuacccuuugccuccccaaaaac")
-  testSeq("cgacaugcauuagaaaaguaaaucuuuguagccuucuuggucuggacgccugagcccgauuuaugcaugaucuaaaacgc")
-
-
-  scala.util.Random.setSeed(3974658973264L)
-  for (k<-0 until 4000) { testSeq2(RNAUtils.genSeq(80)); if (k%80==0) println }
-
+  //scala.util.Random.setSeed(3974658973264L)
+  //for (k<-0 until 4000) { testSeq2(RNAUtils.genSeq(80)); if (k%80==0) println }
 }

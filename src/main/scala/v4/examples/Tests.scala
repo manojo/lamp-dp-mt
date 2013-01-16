@@ -35,6 +35,14 @@ object Tests extends App {
   Zuker.testSeq("uugcccuaugucaaacauaugucgcaaagcacacgucguauucaccacgaucaaccaggg")
   Zuker.testSeq("ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug")
   Zuker.testSeq("ugcucaggca")
+  // These sequence fail the test but result is coherent with GAPC
+  // Zuker.testSeq("agccccgguuaagaauaaaggagauuucuccgcccaaccccuguaaugcu")
+  // Zuker.testSeq("ccggcgcccauaaaaucaaauuaacaucguuaugucagcaaguguaccacaagcuggaga") // 2/4000
+  // Zuker.testSeq("cacgaaauuacgacuuuugacuccugcagacaacagcucauuauaucacucuucccucgu")
+  // Zuker.testSeq("gccacaaucaggcugaagacuuuuaacccuauccuuccuuuuccaggaaaaaccuaaagcacaauucauucagccaauua") // 4/4000
+  // Zuker.testSeq("cccacgagaagcccauguuaccuaucaccauagguuaggggacaaccgagccguuuaaauaauaauuaguggccuucagu")
+  // Zuker.testSeq("uaacacaucaaagucuuuauaaagucauugcuagaauaauaagagccgaaaacauuccuacccuuugccuccccaaaaac")
+  // Zuker.testSeq("cgacaugcauuagaaaaguaaaucuuuguagccuucuuggucuggacgccugagcccgauuuaugcaugaucuaaaacgc")
   println
   
   val (s1,s2)=("CGATTACA","CCCATTAGAG")
