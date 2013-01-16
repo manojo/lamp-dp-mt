@@ -66,7 +66,7 @@ trait RNASignature extends Signature {
     val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(i,j)!=NO_BP;","Boolean")
   }
   val stackpairing = new ((Int,Int)=>Boolean) with CFun {
-    def apply(i:Int,j:Int):Boolean = (i+3<=j) && basepairing(i,j) && basepairing(i+1,j-1)
+    def apply(i:Int,j:Int):Boolean = basepairing(i,j) && basepairing(i+1,j-1)
     val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(i,j)!=NO_BP && bp_index(i+1,j-1)!=NO_BP;","Boolean")
   }
 }

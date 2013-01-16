@@ -171,7 +171,7 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
     | (dangle ^^ ul) ~ ml_comps1 ^^ app
     ) aggregate h)
   val ml_comps1:Tabulate = tabulate("ml1",(
-      BASE ~ ml_comps ^^ sadd
+      BASE ~ ml_comps1 ^^ sadd
     | (dangle ^^ ul) ~ ml_comps1 ^^ app
     | dangle ^^ ul
     | (dangle ^^ ul) ~ REG ^^ addss
@@ -184,7 +184,7 @@ object Zuker extends App {
   object mfe extends ZukerGrammar /*with ZukerMFEGen with CodeGen {
     override val benchmark = true
     override val tps = (manifest[Alphabet],manifest[Answer])
-  }*/ with ZukerMFE { override val debug=true }
+  }*/ with ZukerMFE
   object pretty extends ZukerGrammar with ZukerPrettyPrint
   object count extends ZukerGrammar with ZukerCount
   object explain extends ZukerGrammar with ZukerExplain
@@ -201,11 +201,10 @@ object Zuker extends App {
 
   def testSeq(seq:String) {
     val (score,bt,res)=parse(seq)
-    val ref=RNAUtils.refFold(seq,"src/librna/rnafold/RNAfold")
+    val ref=RNAUtils.refFold(seq,"resources/RNAfold_orig_mac" /*"src/librna/rnafold/RNAfold"*/)
     val our=res+" (%6.2f)".format(score/100.0)
     if (ref==our) print(".")
     else println("\nSeq: "+seq+"\nRef: "+ref+"\nOur: "+res+" (%6.2f)".format(score/100.0)+" FAILED\n"+explain.build(seq.toArray,bt)+"\n")
-
   }
 
   //println(mfe.gen)
@@ -214,7 +213,6 @@ object Zuker extends App {
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
   // PART 1: moved into v4.examples.Test
-  /*
   testSeq("ccuuuuucaaagg")
   testSeq("guacgucaguacguacgugacugucagucaac")
   testSeq("aaaaaggaaacuccucuuu")
@@ -223,15 +221,12 @@ object Zuker extends App {
   testSeq("gccaaccucgugca")
   testSeq("ggccaaccucgugcaa")
   testSeq("guugcucagcacgcguaaga")
-  */
   // PART 2: some failing sequences
   testSeq("gggcgcucaaccgagucagcagugcaauauagggccc")
-  /*
   testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
   testSeq("accacuccucauuugacuuauaggcucagaauuaguagaccacaguucacugugaaagga")
   testSeq("uugcccuaugucaaacauaugucgcaaagcacacgucguauucaccacgaucaaccaggg")
   testSeq("ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug")
-  */
   //for (k<-0 until 100) RNAUtils.testSeq(genSeq(60))
 
 }
