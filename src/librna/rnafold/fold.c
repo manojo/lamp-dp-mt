@@ -13,12 +13,11 @@
 
 int  noGU = 0;             /* GU not allowed at all */
 int  no_closingGU = 0;     /* GU allowed only inside stacks */
-int  tetra_loop = 1;       /* Fold with specially stable 4-loops */
 int  energy_set = 0;       /* 0 = BP; 1=any with GC; 2=any with AU parameters */
 int  dangles = 2;          /* use dangling end energies */
 int  noLonelyPairs = 1;    /* avoid helices of length 1 */
 char backtrack_type = 'F'; /* 'C' require (1,N) to be bonded;
-                                     'M' seq is part of s multi loop */
+                              'M' seq is part of s multi loop */
 #define PUBLIC
 #define PRIVATE static
 

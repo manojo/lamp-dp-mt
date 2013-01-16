@@ -140,10 +140,17 @@ As the device memory is quite limited, it seems interesting to also take into ac
 
 \subsection{Benchmarking platform}
 
+\begin{verbatim}
+NEW:
+- CPU: Dynaprog vs ADPFusion vs RNAfold vs GAPC
+- GPU: (Zuker) Dynaprog vs GAPC (si on arrive a faire marcher)
+- GPU: (MatMult) Dynaprog vs ATLP
+- GPU: (SWat) Dynaprog vs  CUDAlign
+\begin{verbatim}
+
 RUN 5-10x until running time stabilizes on Scala
 
  {\color{red} Size analysis to know what storage size we require: ex: Zucker requires $O(n^2)+O(n)$ storage...}
-
 
 XXX: future work: proper support of two-track grammars
 

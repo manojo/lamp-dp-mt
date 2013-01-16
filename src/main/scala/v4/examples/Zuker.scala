@@ -114,7 +114,7 @@ trait ZukerExplain extends ZukerSig {
   val hl = (lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) => "{"+lb+","+rb+"}"
   val bl = (lb:Int, f1:Int, x:SSeq, e:Answer, f2:Int, rb:Int) => "(("+dots(x)+e+"))"  +" lb"
   val br = (lb:Int, f1:Int, e:Answer, x:SSeq, f2:Int, rb:Int) => "(("+e+dots(x)+"))"  +" br"
-  val il = (f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) => "(("+dots(r1)+x+dots(r2)+"))"  +" il"
+  val il = (f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) => "(("+dots(r1)+x+dots(r2)+"))"  +" il"+(f2,r1._2,r2._1-1,f3)
   val ml = (bl:Int, f1:Int, x:Answer, f2:Int, rb:Int) => "(("+x+"))"  +" ml"+(bl,rb)
   val app = (c1:Answer, c:Answer) => c1+c  +" app"
   val ul = (c1:Answer) => c1  +" ul"
@@ -176,7 +176,6 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
     | dangle ^^ ul
     | (dangle ^^ ul) ~ REG ^^ addss
     ) aggregate h)
-
   val axiom = struct
 }
 
@@ -207,17 +206,36 @@ object Zuker extends App {
     else println("\nSeq: "+seq+"\nRef: "+ref+"\nOur: "+res+" (%6.2f)".format(score/100.0)+" FAILED\n"+explain.build(seq.toArray,bt)+"\n")
   }
 
+  def testSeq2(seq:String) {
+    val (score,bt,res)=parse(seq)
+    val ref=RNAUtils.refFold(seq,"src/librna/rfold" /*"resources/RNAfold_orig_mac"*/)
+    val our=res+" (%6.2f)".format(score/100.0)
+    if (ref.substring(res.size)==" (%6.2f)".format(score/100.0)) print(".")
+    else println("\nSeq: "+seq+"\nRef: "+ref+"\nOur: "+res+" (%6.2f)".format(score/100.0)+" FAILED\n"+explain.build(seq.toArray,bt)+"\n")
+  }
+
   //println(mfe.gen)
 
   // Having separate JVM instances is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
+ 
+  //  Seq: agccccgguuaagaauaaaggagauuucuccgcccaaccccuguaaugcu
+  //  Ref: (((..(((...........((((....)))).........)))....))) ( -5.50)
+  //  Our: (((................((((....))))................))) ( -5.94) FAILED
+  // GAPC: (((................((((....))))................))) ( -5.94) GAPC
 
-  // Seq: aagcaccagcccccgguuaagaauacacuaagaaggagauuucuccgcccaacugacuccccuguaaaugcugcu
-  // Ref: .((((.((.....(((....((............((((....))))...........))..)))....)).)))) ( -8.30)
-  // Our: ......((((........................((((....)))).......................)))).. ( -8.62) FAILED
-  testSeq("cagcccccgguuaagaauaaaggagauuucuccgcccaaccccuguaaaugcug")
-  
-  //for (k<-0 until 500) testSeq(RNAUtils.genSeq(75))
+  // These sequence fail the test but are coherent with GAPC
+  testSeq("agccccgguuaagaauaaaggagauuucuccgcccaaccccuguaaugcu")
+  testSeq("ccggcgcccauaaaaucaaauuaacaucguuaugucagcaaguguaccacaagcuggaga") // 2/4000
+  testSeq("cacgaaauuacgacuuuugacuccugcagacaacagcucauuauaucacucuucccucgu")
+  testSeq("gccacaaucaggcugaagacuuuuaacccuauccuuccuuuuccaggaaaaaccuaaagcacaauucauucagccaauua") // 4/4000
+  testSeq("cccacgagaagcccauguuaccuaucaccauagguuaggggacaaccgagccguuuaaauaauaauuaguggccuucagu")
+  testSeq("uaacacaucaaagucuuuauaaagucauugcuagaauaauaagagccgaaaacauuccuacccuuugccuccccaaaaac")
+  testSeq("cgacaugcauuagaaaaguaaaucuuuguagccuucuuggucuggacgccugagcccgauuuaugcaugaucuaaaacgc")
+
+
+  scala.util.Random.setSeed(3974658973264L)
+  for (k<-0 until 4000) { testSeq2(RNAUtils.genSeq(80)); if (k%80==0) println }
 
 }

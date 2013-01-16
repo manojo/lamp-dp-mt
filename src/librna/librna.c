@@ -64,11 +64,13 @@ void _fun(setSequence)(_p0, jstring sequence) {
   if (c_seq==NULL) { fprintf(stderr,"Sequence memory allocation error.\n"); exit(EXIT_FAILURE); }
   else {
     for (i=0;i<c_len;++i) switch(str[i]) {
-      case 'a' : c_seq[i] = 1; break;
-      case 'c' : c_seq[i] = 2; break;
-      case 'g' : c_seq[i] = 3; break;
-      case 'u' : c_seq[i] = 4; break;
-      default: fprintf(stderr,"Bad character '%c' (%d) in the provided sequence.\n",str[i],str[i]); exit(EXIT_FAILURE);
+      case 'a': c_seq[i]=1; break;
+      case 'c': c_seq[i]=2; break;
+      case 'g': c_seq[i]=3; break;
+      case 'u': c_seq[i]=4; break;
+      default:
+        fprintf(stderr,"Bad character '%c' (%d) in the provided sequence.\n",str[i],str[i]);
+        exit(EXIT_FAILURE);
     }
   	c_seq[c_len]=0;
   }

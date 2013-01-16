@@ -122,26 +122,7 @@ trait BaseParsers { this:Signature =>
   var rulesOrder:List[String]=Nil // Order of tabulations evaluation
   val rules = new HashMap[String,Tabulate]
   def tabInit(w:Int,h:Int) = rules.foreach{ case (_,t) => t.init(w,h) }
-  def tabReset = rules.foreach{ //case (_,t) => t.reset
-    case (n,t) => 
-    /*
-    if (n=="st") t.data(t.idx(0,t.mW-1)) match { case (x:Int,_)::xs =>
-      for (i<-0 until t.mH) {
-        for (j<-0 until t.mW) {
-          val ix=t.idx((i,j))
-          (if(ix>=0 && ix < t.data.size) t.data(ix) else Nil) match {
-            case (x:Int,_)::xs => print("%5d |".format(x))
-            case _ if (j>=i) => print("  .   |")
-            case _ => print("      |")
-          }
-        }
-        println
-      }
-      case _ =>
-    }
-    */
-    t.reset
-  }
+  def tabReset = rules.foreach{ case (_,t) => t.reset }
 
   def tabulate(name:String, inner: => Parser[Answer], alwaysValid:Boolean=false) = new Tabulate(inner,name,alwaysValid)
   class Tabulate(in: => Parser[Answer], val name:String, val alwaysValid:Boolean=false) extends Parser[Answer] {
