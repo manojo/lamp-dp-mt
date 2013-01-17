@@ -89,11 +89,48 @@ Since in such architecture the major bottleneck is often the access to the globa
 
 \newpage
 \subsection{ADP and parsing grammars} \label{adp_grammar}
-In this section, we provide a concise description of the Algebraic Dynamic Programming. Would the reader be interested in the mathematical details of the notation, we encourage him to read the section 3 of \cite{adp}.
+\subsubsection{ADP formal specifications}
+\textit{This subsection is an excerpt of "Algebraic Dynamic Programming" \cite{adp}, section 3. Would the reader be interested in more details, we encourage him to read the corresponding paper.} \\[6pt]
+\textbf{Terminology}\\
+An \textbf{alphabet} $\mathcal{A}$ is a finite set of symbols. Sequence of symbols are called strings. $\epsilon$ denotes the empty string, $\mathcal{A}^1=\mathcal{A}$, $\mathcal{A}^{n+1}=\{ax|a\in\mathcal{A},x\in\mathcal{A}^n\}$, $\mathcal{A}^+=\bigcup_{n\ge 1}\mathcal{A}^n,\mathcal{A}^*=\mathcal{A}^+\cup\{\epsilon\}$.
 
-{\color{red} recall some ADP formal definitions}
-%    - terms like algebra, signature, etc. might need to be defined more formally later on, because these are highly mathematical terms which, for example, Viktor could ask you questions on during your presentation
+A \textbf{signature} $\Sigma$ over some alphabet $\mathcal{A}$ consists of a sort symbol $S$ with a family of operators. Each operator $\circ$ has fixed arity: $\circ:s_1,...,s_k\to S$ where each $s_i$ is either $S$ or $\mathcal{A}$.
 
+A $\Sigma$-\textbf{algebra} $\mathcal{I}$ over $\mathcal{A}$, also called an interpretation, is a set $S_\mathcal{I}$ of values together with a function $\circ_\mathcal{I}$ for each operator $\circ$. Each $\circ_\mathcal{I}$ has type $\circ_\mathcal{I}: (s_1)_\mathcal{I} ...(s_k)_\mathcal{I} \to S_\mathcal{I}$ where $\mathcal{A}_\mathcal{I} = \mathcal{A}$.
+
+A \textbf{term algebra} $T_\Sigma$ arises by interpreting the operators in $\Sigma$ as constructors, building bigger terms from smaller ones.
+When variables from a set $V$ can take the place of arguments to constructors, we speak of a term algebra with variables $T_\Sigma(V)$ with $V\subset T_\Sigma(V)$.
+
+Terms will be viewed as rooted, ordered, node-labeled trees in the obvious way. According to the special role of $\mathcal{A}$, only leaf nodes can carry symbols from $\mathcal{A}$. A term/tree with variables is called a tree pattern. A tree containing a designated occurrence of a subtree $t$ is denoted $C[...t...]$.A tree language over $\Sigma$ is a subset of $T_\Sigma$. Tree languages are described by tree grammars, which can be defined in analogy to the Chomsky hierarchy of string grammars.
+
+\textbf{Definition 1:} (Tree grammar $\mathcal{G}$ over $\Sigma$ and $\mathcal{A}$) \\
+A (regular) tree grammar $\mathcal{G}$ over $\Sigma$ and $\mathcal{A}$ is given by\ul
+\item A set $V$ of nonterminal symbols
+\item A designated nonterminal symbol $Ax$ called the axiom
+\item A set $P$ of productions of the form $v\to t$ where $v\in V$ and $t\in T_\Sigma(V)$
+\ule
+The derivation relation for tree grammars is $\to^*$, with $C[...v...] \to C[...t...]$ if $v\to t\in P$. The language of $v\in V$ is $\mathcal{L}(v)=\{t\in T_\Sigma | v\to^* t\}$. The language of $\mathcal{G}$ is $\mathcal{L}(\mathcal{G})=\mathcal{L}(Ax)$.
+
+\textbf{Definition 2:} (Evaluation algebra)\\ Let $\Sigma$ be a signature over $\mathcal{A}$ with sort symbol $Ans$. A $\Sigma$-evaluation algebra is a $\Sigma$-algebra augmented with an objective function $h: [Ans] \to [Ans]$, where $[Ans]$ denotes lists over $Ans$.
+
+\textbf{Definition 3:} (Yield grammars and yield languages)\\
+Let $\mathcal{G}$ be a tree grammar over $\Sigma$ and $\mathcal{A}$, and $y$ the yield function. The pair $(\mathcal{G}, y)$ is called a yield grammar. It defines the yield language $\mathcal{L}(\mathcal{G}, y) = y(\mathcal{L}(\mathcal{G}))$.\textbf{Definition 4:} (Yield parsing)\\
+Given a yield grammar $(\mathcal{G}, y)$ over $\mathcal{A}$ and $w\in\mathcal{A}^*$, the yield parsing problem is to find $P_\mathcal{G}(w) := \{t\in \mathcal{L}(\mathcal{G})|y(t) = w\}$..
+
+\textbf{Definition 5:} (Algebraic dynamic programming)\ul
+\item An ADP problem is specified by a signature $\Sigma$ over $\mathcal{A}$, a yield grammar $(\mathcal{G}, y)$ over $\Sigma$, and a $\Sigma$-evaluation algebra $I$ with objective function $h_I$ .\item An ADP problem instance is posed by a string $w\in\mathcal{A}^*$. The search space it spawns is the set of all its parses, $P_\mathcal{G}(w)$.\item Solving an ADP problem is computing $h_I\{t_I | t\in P_\mathcal{G}(w)\}$in polynomial time and space.
+\ule
+
+\textbf{Definition 6:} (Algebraic version of Bellman’s principle)\\
+For each $k$-ary operator $f$ in $\Sigma$, and all answer lists $z_1,\ldots, z_k$, the objective function $h$ satisfies
+\[\begin{array}{rl}
+& h( [ f(x_1,\ldots,x_k) | x_1\leftarrow z_1,\ldots ,x_k\leftarrow z_k ] ) \\[4pt]
+= & h( [ f(x_1,\ldots,x_k) | x_1\leftarrow h(z_1),\ldots,x_k\leftarrow h(z_k) ] )
+\end{array}\]
+Furthermore, the same property holds for the concatenation of answer lists: \[h(z_1 ::: z_2) = h(h(z_1) ::: h(z_2))\]
+
+% -----------------------------
+\subsubsection{ADP in practice}
 ADP is a formalization of parsers that introduces a distinction between the \textbf{parsing grammar} (recognition phase) and an associated \textbf{algebra} (evaluation phase). Such separation makes it possible to define multiple algebra for the same grammar. This has two main applications:\ol
 \item Experiment variants with the same grammar:  for example, Needleman-Wunsch and Smith-Waterman share the same grammar but have a different evaluation algebra
 \item Use an evaluation and execution algebra: a dynamic programming problem is solved in two steps: computing one optimal solution and applying it over actual data. For example in matrix chain multiplication, the first step solves the underlying dynamic program by evaluating the number of necessary multiplications, the second step \textit{effectively} multiplies matrices according to the order previously defined.
@@ -109,9 +146,8 @@ Practically, an ADP program is made of 3 components: a \textbf{signature} that d
 \item \textbf{Tabulation:} the tabulation's primary function is to store intermediate results and possibly serve as connection point between different parsers.
 \ule
 
-Additionally, the signature must define an input alphabet ({\tt Alphabet}), and an output alphabet ({\tt Answer}) can be defined either in the signature or in the algebra. Finally, the grammar needs to have a starting point, denoted as axiom. Finally, the default aggregation function $h$ must be defined\footnote{Although aggregation usage is not mandatory in the framework, we force the existence of an aggregation function over the ouput type so that we can use it to aggregate windowed results.}. To make it more clear, we propose an example of the matrix chain multiplication problem\footnote{The original ADP framework was embedded in Haskell, however, we assume that the reader is more familiar with Scala notation and immediately present the syntax of our implementation.}.
+Additionally, the signature must define an input alphabet ({\tt Alphabet}), and an output alphabet ({\tt Answer}) can be defined either in the signature or in the algebra. Finally, the grammar needs to have a starting point, denoted as axiom. Finally, the default aggregation function $h$ must be defined\footnote{Although aggregation usage is not mandatory in the framework, we force the existence of an aggregation function over the ouput type so that we can use it to aggregate windowed results.}. To make it more clear, we propose an example of the matrix chain multiplication problem\footnote{The original ADP framework is an embedded DSL of Haskell, however, we assume that the reader is more familiar with Scala notation and immediately present the syntax of our implementation.}.
 
-\newpage
 \begin{lstlisting}[language=Scala, caption=Matrix chain mulitiplication DSL implementation]
 trait MatrixSig extends Signature {
   type Alphabet = (Int,Int) // Matrix(rows, columns)
@@ -151,7 +187,7 @@ and it encodes the following recurrence (cost only):
 		\min_{i<k<j} M_{(i,k)}+M_{(k,j)}+r_i \cdot c_k \cdot c_j & \text{otherwise}
 	\end{array}\right. \]
 
-Notice that the semantics of indices differ slightly from the problem presented in \ref{mat_mult_plain}; this is because empty chain are made expressible (denoted $M_{(i,i)}$, single matrices are denoted $M_{(i,i+1)}$).
+Notice that the semantics of indices differ slightly from the problem presented in \S\ref{mat_mult_plain}; this is because empty chain are made expressible (denoted $M_{(i,i)}$, single matrices are denoted $M_{(i,i+1)}$).
 
 % ------------------------------------------------------------------------------------------------
 \newpage
