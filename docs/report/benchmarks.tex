@@ -1,10 +1,10 @@
 \newpage
 \section{Usage} \label{usage}
 \subsection{Program examples}
-In this section, we explain how to use DynaProg, as a parser library. Use an example based approach, we focus on three additional examples: Smith-Waterman/Needleman-Wunsch to present two-tracks grammars and multiple algebras, RNAfold\cite{gpu_rnafold} to describe RNA library usage and reconstruction from backtrack trace, and finally we extend Matrix chain multiplication (\S\ref{adp_practice}) with CUDA code generation.
+In this section, we explain how to use the DynaProg DSL using an example based approach. We focus on three additional examples: Smith-Waterman (\S\ref{swat_affine}) and Needleman-Wunsch to present two-tracks grammars and multiple algebras, RNAfold\cite{gpu_rnafold} (\S\ref{zuker}, alternative) to describe RNA library usage and reconstruction from backtrack trace, and finally we extend matrix chain multiplication (\S\ref{adp_practice}) with CUDA code generation.
 
 \subsubsection{Smith-Waterman and Needleman-Wunsch} \label{ex_swat}
-First define a signature that can fit both algebrae, then specify for each algebra the functions. In this example, both algebra operate on the same output domain and share the same optimization function (although this is not true in general, see \S\ref{ex_rnafold}).
+First define a signature that can fit both algebrae, then specify for each algebra the related functions. In this example, both algebra operate on the same output domain and share the same optimization function (although this is not true in general).
 \begin{lstlisting}[language=Scala,captionpos=none]
 trait SeqAlignSignature extends Signature {
   type Alphabet = Char
@@ -39,7 +39,7 @@ trait NeedlemanWunschAlgebra extends SeqAlignSignature {
 }
 \end{lstlisting}
 
-To obtain a visual representation of the alignment, a naive idea would be to construct the two aligned strings immediately in the forward phase (in the {\tt Answer}). However, this approach must be avoided as it is not efficient at all, both in terms of running time and space complexity perspective because intermediate strings are created (and stored in memory) for every intermediate result. The correct way to solve this issue is to use backtracking and forward construct these strings with a pretty printing algebra:
+To obtain a visual representation of the alignment, a naive idea would be to construct the two aligned strings immediately in the forward phase (in the {\tt Answer}). However, this approach must be avoided as it is extremely inefficient, both in terms of running time and space complexity because intermediate strings are created (and stored in memory) for every intermediate result. The correct way to solve this issue is to use backtracking and forward construct these strings with a pretty printing algebra:
 \begin{lstlisting}[language=Scala,captionpos=none]
 trait SeqPrettyPrint extends SeqAlignSignature {
   type Answer = (String,String)
@@ -57,7 +57,7 @@ trait SeqPrettyPrint extends SeqAlignSignature {
 }
 \end{lstlisting}
 
-Finally, we can describe the associated grammar and the programs that mixes algebra and grammar. Note that we need one instance of each pair of grammar and algebra. Once we have done that, we can request scores and backtracks associated with an evaluation algebra (Smith-Waterman or Needleman-Wunsch) and reuse the obtained backtrack to construct the matching aligned sequences:
+Finally, we describe the associated grammar and the programs that mixes the algebrae and the grammar. Note that we need one instance of each pair of grammar and algebra. Once we have done that, we can request scores and backtracks associated with an evaluation algebra (Smith-Waterman or Needleman-Wunsch) and reuse the obtained backtrack to construct the matching aligned sequences:
 \begin{lstlisting}[language=Scala,captionpos=none]
 trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
   val axiom:Tabulate = tabulate("M",(
@@ -170,7 +170,7 @@ object RNAFold extends App {
 
 \newpage
 \subsubsection{Matrix multiplication with CUDA code generation} \label{ex_matmult_cuda_lms}
-Leveraging the existing definitions of the signature and grammar
+Leveraging the existing definitions of the signature and grammar (repeated here for convenience)
 \begin{lstlisting}[language=Scala,captionpos=none]
 trait MatrixSig extends Signature {
   type Alphabet = (Int,Int) // Matrix(rows, columns)
@@ -213,25 +213,19 @@ object MatrixMultLMS extends MatrixSig with MatrixGrammar
 }
 \end{lstlisting}
 
-For further examples, we encourage you to have a look in the {\tt examples/} folder of the project.
+The complete source file of the presented problems can be found in the {\tt report/} folder. For further examples and variants, we encourage you to have a look in the {\tt examples/} folder.
 
 \newpage
 \subsection{Other usage options}
 We here provide a list of relevant variables and traits that the programmer might be interested to use. This list only serves the purpose of documenting features that might otherwise be difficult to find within the code.
 
-Although the whole program can be defined in a single trait, it is preferable to cleanly separate the signature from the grammar and the algebra, this good practice would help adding new algebrae easily. The signature needs to inherit either from {\tt Signature} or {\tt RNASignature}, would the RNA folding energies be needed. The grammar can be either single track or two-tracks by inheriting respectively from  {\tt ADPParsers} and {\tt TTParsers}. Note that RNA folding only works for single track grammars and enables the library setup (could be disabled by setting the RNASignature {\tt energies} flag to false).
+Although the whole program can be defined in a single trait, it is preferable to cleanly separate the signature from the grammar and the algebra, this good practice would help adding new algebrae easily. The signature needs to inherit either from {\tt Signature} or {\tt RNASignature}, would the RNA folding energies be needed. The grammar can be either single track or two-tracks by inheriting respectively from  {\tt ADPParsers} and {\tt TTParsers}. Note that RNA folding only works for single track grammars and library setup is enabled by the usage of the trait {\tt RNASignature} (this could be changed by disabling the flag {\tt energies}).
 
-The code generator is used by simply mixing in the {\tt CodeGen} trait, which requires the idiom
+The code generator is used by simply mixing in the {\tt CodeGen} trait, using the following idiom
 	\[\text{\tt val tps=(manifest[Alphabet],manifest[Answer])}\]
-to be placed anywhere at the intersection of the CodeGen inheritance and definition of these types (usually in the final program). Further configuration of the execution environment can be tuned by overriding the following variables: {\tt compiler} (for system paths and flags), {\tt cudaSplit} and {\tt cudaDevice}.
+anywhere at the intersection of the CodeGen inheritance and definition of these types (usually in the final program). Further configuration of the execution environment can be tuned by overriding the following variables: {\tt compiler} (for system paths and flags), {\tt cudaSplit} and {\tt cudaDevice}. The {\tt benchmark} flag can be set to enable timing measurements.
 
-Finally, the user can look in the files {\tt ADPParsers.scala} and {\tt TTParsers.scala} for a list of the available terminals, and possibly create new ones, . 
-
----------------------------------------
-
-XXX: List of options at the end
-
-{\color{red} usage, make reference from problems to usage}
+Finally, the user can look in the files {\tt ADPParsers.scala} and {\tt TTParsers.scala} for a list of the available terminals, and possibly create new ones.
 
 \section{Benchmarks} \label{benchmarks}
 In an attempt to provide realistic benchmarks, we tried to gather related implementations. The authors of \cite{gpu_atlp} did not respond to our multiple solicitations. The authors of \cite{swat_mega} were very friendly and provided us their source code. Unfortunately, since they address a different category of problem (they focus on huge serial problems whereas we focus on smaller non-serial problems) their implementation might be biased towards large sequences that our implementation cannot address. Finally, we asked lately the authors of \cite{gpu_rnafold} {\color{red} who did not respond so far}.
@@ -239,19 +233,31 @@ In an attempt to provide realistic benchmarks, we tried to gather related implem
 We organize the benchmarks as follow: if we have at our disposal a working implementation that could be run on our evaluation platform, we use it, otherwise, we refer to the related paper and rescale the result according to the memory throughput and computation throughput of the related device so that we can have a good approximation of how they could compare.
 
 \subsection{Metrics}
-{\color{red} The main metric we focus on is the running time.}
+The main metrix of interest is the running time. In an attempt to reduce the variance, we run 20 consecutive test and take the median running time (since median is less sensitive to outlier than the average).
 
 As the device memory is quite limited, it seems interesting to also take into account the space usage. The space requirement limits the maximal size of addressable problems  on a particular hardware. This might be a concern for large problems, because they would require special adaptation to handle such cases both correctly and efficiently. However, simple solutions like using a device with larger memory or using main memory (if a $5\times$ slowdown is still acceptable) could solve this issue.
 
 \subsection{Benchmarking platform}
+Our benchmarking platform is a notebook with a Core i7-3720QM, 16Gb or main memory and an NVIDIA GeForce GT 650M running under MacOS X 10.8. Tests are made when the discrete GPU is not involved in rendering the user interface\footnote{This involves a workaround to keep the discrete GPU powered, while the CPU is involved in rendering graphics; source code available on demand.}. Due to impossibility to disable the watchdog timer in MacOS, CUDA kernels are limited to few seconds of running time before they are automatically aborted.
 
-\subsubsection{Test Scala / C / CUDA}
-\subsubsection{Test 1 : CPU MatrixMult VS hand optimized VS GAPC VS ADPFusion)}
-\subsubsection{Test 2 : GPU MatirxMult VS hand optimized VS ATLP)}
-\subsubsection{Test 3 : CPU SWat VS hand optimized VS GAPC VS ADPFusion)}
-\subsubsection{Test 4 : GPU SWat VS hand optimized VS CUDAlign)}
-\subsubsection{Test 5 : CPU Zuker VS GAPC VS ADPFusion VS ViennaRNA)}
-\subsubsection{Test 6 : GPU Zuker VS RNAFold?/Lavenier VS ViennaRNA-OpenCL)}
+% ------------------------------------------------------------------------------------------------
+{\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: CONTINUE HERE :XXX \\}
+% ------------------------------------------------------------------------------------------------
+
+\subsection{Matrix chain multiplication}
+\subsubsection{CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion}
+\subsubsection{GPU: DynaProg(CUDA), hand optimized CUDA, ATLP and GAPC-OpenCL?}
+
+\subsection{Smith-Watermann}
+\subsubsection{CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion}
+\subsubsection{GPU: DynaProg(CUDA), hand optimized CUDA, CUDAlign}
+
+\subsection{Zuker RNA folding}
+\subsubsection{CPU: DynaProg(Scala), GAPC, ADPFusion and ViennaRNA}
+\subsubsection{GPU: DynaProg(CUDA), RNAFold?/Lavenier VS ViennaRNA-OpenCL?, GAPC-OpenCL?}
+
+\subsection{Synthetical results}
+{\color{red} We want to see the benefits of moving to CUDA, also compare to how far Scala is from C.}
 
 RUN 5-10x until running time stabilizes on Scala
 
@@ -261,9 +267,6 @@ XXX: future work: proper support of two-track grammars
 
 XXX: future work, resize tables appropriately as in GAPL.
 
-% ------------------------------------------------------------------------------------------------
-{\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: CONTINUE HERE :XXX \\}
-% ------------------------------------------------------------------------------------------------
 
 \subsection{Scala parsers}
 {\color{red}
