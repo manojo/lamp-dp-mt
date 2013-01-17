@@ -4,62 +4,81 @@
 In this section, we explain how to use DynaProg, as a parser library. Use an example based approach, we focus on three additional examples: Smith-Waterman/Needleman-Wunsch to present two-tracks grammars and multiple algebras, RNAfold\cite{gpu_rnafold} to describe RNA library usage and reconstruction from backtrack trace, and finally we extend Matrix chain multiplication (\S\ref{adp_practice}) with CUDA code generation.
 
 \subsubsection{Smith-Waterman and Needleman-Wunsch} \label{ex_swat}
-We first define a signature that can fit both algebrae, then we specify for each algebra the functions. In this example, both algebra operate on the same output domain and share the same optimization function (although this is not true in general, see \S\ref{ex_rnafold}).
-
-We also want to emphasize how bad this example is, with respect to the result construction, as every intermediate result would contain its whole backtrack, hereby duplicating the information multiple times. To overcome this issue {\color{red} XXX}
+First define a signature that can fit both algebrae, then specify for each algebra the functions. In this example, both algebra operate on the same output domain and share the same optimization function (although this is not true in general, see \S\ref{ex_rnafold}). A naive idea would be to construct the alignment string immediately in the forward phase (that is immediately in the {\tt Answer}). However, is not efficient at all, both in terms of running time and space complexity perspective because substring are duplicated for every cell. The correct way to solve this issue is to use backtracking and forward construct these strings, as described below:
 \begin{lstlisting}[language=Scala,captionpos=none]
 trait SeqAlignSignature extends Signature {
   type Alphabet = Char
-  type Answer = (Int,String,String) // score, seq1, seq2
-  override val h = maxBy((x:Answer)=>x._1)
-
-  def gap(current:Int, g:(Int,Int)):Int
-  def pair(a:Alphabet,b:Alphabet):Int
+  def start(x:Unit):Answer
+  def gap1(g:(Int,Int),a:Answer):Answer
+  def gap2(a:Answer,g:(Int,Int)):Answer
+  def pair(c1:Alphabet,a:Answer,c2:Alphabet):Answer
 }
 
 trait SmithWatermanAlgebra extends SeqAlignSignature {
+  type Answer = Int
+  override val h = max[Int] _
   private val open = -3
   private val extend = -1
-  def gap(score:Int, g:(Int,Int)) = { val size=g._2-g._1; Math.max(0, score + ( open + (size-1) * extend )) }
-  def pair(a:Char,b:Char) = if (a==b) 10 else -3
+  def start(x:Unit) = 0
+  def gap1(g:(Int,Int),a:Answer) = gap2(a,g)
+  def gap2(a:Answer,g:(Int,Int)) = { val size=g._2-g._1; Math.max(0, a + ( open + (size-1) * extend )) }
+  def pair(c1:Alphabet,a:Answer,c2:Alphabet) = a + (if (c1==c2) 10 else -3)
 }
 
 trait NeedlemanWunschAlgebra extends SeqAlignSignature {
+  type Answer = Int
+  override val h = max[Int] _
   private val open = -15
   private val extend = -1
-  def gap(score:Int, g:(Int,Int)) = { val size=g._2-g._1; score + ( open + (size-1) * extend ) }
-  def pair(a:Char,b:Char) = if (a==b) 4 else -3
+  def start(x:Unit) = 0
+  def gap1(g:(Int,Int),a:Answer) = gap2(a,g)
+  def gap2(a:Answer,g:(Int,Int)) = { val size=g._2-g._1; a + ( open + (size-1) * extend ) }
+  def pair(c1:Alphabet,a:Answer,c2:Alphabet) = a + (if (c1==c2) 4 else -3)
 }
 \end{lstlisting}
 
 \begin{lstlisting}[language=Scala,captionpos=none]
-trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
-  private def prettyGap(sw:Subword,in:Function1[Int,Char]):(String,String) = {
+trait SeqPrettyPrint extends SeqAlignSignature {
+  type Answer = (String,String)
+
+  def in1(k:Int):Alphabet
+  def in2(k:Int):Alphabet
+  private def prettyGap(sw:(Int,Int),in:Function1[Int,Char]):(String,String) = {
     val g=(sw._1 until sw._2).toList; (g.map{x=>in(x)}.mkString(""),g.map{x=>"-"}.mkString(""))
   }
 
+  def start(x:Unit) = (".",".")
+  def gap1(g:(Int,Int),a:Answer) = { val (g1,g2)=prettyGap(g,in1); (a._1+g1,a._2+g2) }
+  def gap2(a:Answer,g:(Int,Int)) = { val (g2,g1)=prettyGap(g,in2); (a._1+g1,a._2+g2) }
+  def pair(c1:Char,a:Answer,c2:Char) = (a._1+c1,a._2+c2)
+}
+
+trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
   val alignment:Tabulate = tabulate("M",(
-    empty                         ^^ { _ => (0,".",".") }
-  | seq1() -~ alignment           ^^ { case (g,(score,s1,s2)) => val (g1,g2)=prettyGap(g,in1); (gap(score,g),s1+g1,s2+g2) }
-  |           alignment ~- seq2() ^^ { case ((score,s1,s2),g) => val (g1,g2)=prettyGap(g,in2); (gap(score,g),s1+g2,s2+g1) }
-  | el1    -~ alignment ~- el2    ^^ { case (c1,((score,s1,s2),c2)) => (score+pair(c1,c2),s1+c1, s2+c2) }
+    empty                         ^^ start
+  | seq1() -~ alignment           ^^ gap1
+  |           alignment ~- seq2() ^^ gap2
+  | el1    -~ alignment ~- el2    ^^ pair
   ) aggregate h)
 
   val axiom = alignment
-
-  def align(s1:String,s2:String) = parse(s1.toArray,s2.toArray).head
 }
 
 object SeqAlign extends App {
-  object SWat extends SeqAlignGrammar with SmithWatermanAlgebra   // Smith-Waterman
-  object NWun extends SeqAlignGrammar with NeedlemanWunschAlgebra // Needleman-Wunsch
+  object SWat extends SeqAlignGrammar with SmithWatermanAlgebra
+  object NWun extends SeqAlignGrammar with NeedlemanWunschAlgebra
+  object pretty extends SeqAlignGrammar with SeqPrettyPrint
   val seq1 = "CGATTACA"
   val seq2 = "CCCATTAGAG"
 
-  val (swScore,sw1,sw2) = SWat.align(seq1,seq2)
-  println("Smith-Waterman alignment\n- Score: "+swScore+"\n- Seq1: "+sw1+"\n- Seq2: "+sw2+"\n")
-  val (nwScore,nw1,nw2) = NWun.align(seq1,seq2)
-  println("Needleman-Wunsch alignment\n- Score: "+nwScore+"\n- Seq1: "+nw1+"\n- Seq2: "+nw2+"\n")
+  def align(name:String,s1:String,s2:String,g:SeqAlignGrammar) = {
+    val (score,bt) = g.backtrack(s1.toArray,s2.toArray).head
+    val (a1,a2) = pretty.build(s1.toArray,s2.toArray,bt)
+    println(name+" alignment\n- Score: "+score+"\n- Seq1: "+a1+"\n- Seq2: "+a2+"\n")
+  }
+
+  align("Smith-Waterman",seq1,seq2,SWat)
+  align("Needleman-Wunsch",seq1,seq2,SWat)
 }
 \end{lstlisting}
 
