@@ -3,6 +3,12 @@ import v4._
 
 // Sequence alignment problem.
 // Demonstrates two algebrae for the same problem.
+// +--------------------------------------------------------+
+// | This example is VERY BAD as the sequences are computed |
+// | in the forward computation (and eat additional space). |
+// | See v4.report.SeqAlign for the correct way to do it.   |
+// +--------------------------------------------------------+
+
 trait SeqAlignSignature extends Signature {
   override type Alphabet = Char
   type Answer = (Int,String,String) // score, sequence1, sequence2

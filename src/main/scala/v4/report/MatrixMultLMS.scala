@@ -25,7 +25,7 @@ trait RepWorld extends NumericOps with TupleOps {
 
 object MatrixMultLMS extends MatrixSig with MatrixGrammar
     with CodeGen with App {
-  override val tps=(manifest[Alphabet],manifest[Answer])
+  val tps=(manifest[Alphabet],manifest[Answer])
   override val benchmark = true // display timing measurements
 
   // Algebra is defined immediately in the concrete program
