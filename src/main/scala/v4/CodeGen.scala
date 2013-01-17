@@ -428,9 +428,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   // Wrappers for CUDA invocation, these are automatically called by ADPParsers/TTParsers
   def parseCU(in1:Input) = { val f=compiler.genDP[Input=>Answer](in1.size,in1.size,false,false); time("Execution"){()=> f(in1) } }
-  def backtrackCU(in1:Input) = { val f = compiler.genDP[Input=>(Answer,List[(Subword,Backtrack)])](in1.size,in1.size,true,false); time("Execution"){()=> f(in1) } }
+  def backtrackCU(in1:Input) = { val f = compiler.genDP[Input=>(Answer,Trace)](in1.size,in1.size,true,false); time("Execution"){()=> f(in1) } }
   def parseCUTT(in1:Input,in2:Input) = { val f = compiler.genDP[(Input,Input)=>Answer](in1.size,in2.size,false,true); time("Execution"){()=> f(in1,in2) } }
-  def backtrackCUTT(in1:Input,in2:Input) = { val f = compiler.genDP[(Input,Input)=>(Answer,List[(Subword,Backtrack)])](in1.size,in2.size,true,true); time("Execution"){()=> f(in1,in2) } }
+  def backtrackCUTT(in1:Input,in2:Input) = { val f = compiler.genDP[(Input,Input)=>(Answer,Trace)](in1.size,in2.size,true,true); time("Execution"){()=> f(in1,in2) } }
 
   // Debug
   def gen:String = {

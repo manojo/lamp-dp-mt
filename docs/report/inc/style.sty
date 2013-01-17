@@ -57,7 +57,7 @@
 % define Scala syntax
 \lstdefinelanguage{Scala}{
 	morekeywords={abstract,case,catch,class,def,do,else,extends,false,final,finally,for,if,implicit,import,%
-	match,mixin,new,null,object,override,package,	private,protected,requires,return,sealed,super,this,%
+	match,mixin,new,null,object,override,package,lazy,private,protected,requires,return,sealed,super,this,%
 	throw,trait,true,try,type,val,var,while,with,yield},
 	otherkeywords={=>,<-,<\%,<:,>:,\#,@},sensitive=true,
 	morecomment=[l]{//},	morecomment=[n]{/*}{*/},
@@ -109,8 +109,12 @@
 	{\fontsize{40pt}{11pt}\fonthl \@title} \vspace{0.2cm} \\ {\fontsize{20pt}{11pt}\fonthl \@subtitle} \\
 	\vspace{1.5cm} \\
 	{\begin{tabular}{ll}
-	Laboratory	& \href{http://lamp.epfl.ch}{Programming Methods Laboratory, LAMP}, \href{http://www.epfl.ch}{EPFL} \\	Professor		& \href{mailto:martin.odersky@epfl.ch}{Martin Odersky} \\
-	Supervisors	& \href{mailto:vojin.jovanovic@epfl.ch}{Vojin Jovanovic}, \href{mailto:manohar.jonnalagedda@epfl.ch}{Manohar Jonnalagedda}   \\	Expert		& \href{mailto:mirco.dotta@typesafe.com}{Mirco Dotta}, \href{http://typesafe.com}{Typesafe} \\	Student		& \href{mailto:thierry.coppey@epfl.ch}{Thierry Coppey} \\	Semester		& Autumn 2012 \\
+	Laboratory	& \href{http://lamp.epfl.ch}{Programming Methods Laboratory, LAMP}, \href{http://www.epfl.ch}{EPFL} \\
+	Professor	& \href{mailto:martin.odersky@epfl.ch}{Martin Odersky} \\
+	Supervisors	& \href{mailto:vojin.jovanovic@epfl.ch}{Vojin Jovanovic}, \href{mailto:manohar.jonnalagedda@epfl.ch}{Manohar Jonnalagedda}   \\
+	Expert		& \href{mailto:mirco.dotta@typesafe.com}{Mirco Dotta}, \href{http://typesafe.com}{Typesafe} \\
+	Student		& \href{mailto:thierry.coppey@epfl.ch}{Thierry Coppey} \\
+	Semester		& Autumn 2012 \\
 	\end{tabular}}
 	\my@heading
 	\newpage
@@ -129,7 +133,7 @@
 
 % \tbox : multiline textbox for pictures; \tbox[0=no frame,l=left_align]{width}{height}{content}
 \makeatletter
-\def\instr#1#2{TT\fi\begingroup\edef\x{\endgroup\noexpand\in@{#1}{#2}}\x\ifin@} 
+\def\instr#1#2{TT\fi\begingroup\edef\x{\endgroup\noexpand\in@{#1}{#2}}\x\ifin@}
 \newlength{\tbox@len}
 \newcommand\tbox[4][]{\setlength{\tbox@len}{\unitlength}
 	\if\instr{0}{#1}\else \put(0,0){\framebox(#2,#3)[c]{}} \fi

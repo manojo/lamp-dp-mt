@@ -21,6 +21,7 @@ trait BaseParsers { this:Signature =>
   type Subword = (Int, Int)
   type Backtrack = (Int,List[Int]) // (subrule_id, indices)
   type BTItem = (Subword,Answer,Backtrack)
+  type Trace = List[(Subword,Backtrack)]
 
   val axiom:Tabulate // initial parser to be applied
   val twotracks = false // whether grammar is multi-track
@@ -149,13 +150,13 @@ trait BaseParsers { this:Signature =>
     def reapply(sw:Subword,bt:Backtrack) = { val v=data(idx(sw)); if (v!=null) v.head._1 else sys.error("Failed reapply"+sw) }
 
     def backtrack(sw:Subword) = countMap(get(sw), (e:(Answer,Backtrack),n:Int)=>backtrack0(n,Nil,List((sw,e._1,e._2))).map{x=>(e._1,x)} ).flatten
-    def build(bt:List[(Subword,Backtrack)]):Answer = bt match {
+    def build(bt:Trace):Answer = bt match {
       case bh::bs => val (sw,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(sw,(rr,b)); if (bs==Nil) a else { t.put(sw,List((a,bt0))); build(bs) }
       case Nil => sys.error("No backtrack provided")
     }
 
     private def countMap[T,U](ls:List[T],f:((T,Int)=>U)):List[U] = ls.groupBy(x=>x).map{ case(e,l)=>f(e,l.length) }.toList
-    private def backtrack0(mult:Int,tail:List[(Subword,Backtrack)],pending:List[BTItem]):List[List[(Subword,Backtrack)]] = pending match {
+    private def backtrack0(mult:Int,tail:Trace,pending:List[BTItem]):List[Trace] = pending match {
       case Nil => List(tail)
       case (sw,score,(rule,bt))::ps => val (t,rr) = findTab(rule)
         val res = t.inner.unapply(sw, (rr,bt)).filter{case(r,l)=>r==score}.map{case(r,l)=>l}.take(mult)
@@ -356,8 +357,8 @@ trait BaseParsers { this:Signature =>
   //           "    def apply(t:"+lr()+") = { val "+lr('a')+"=t; fn("+ls('a')+") } }") }
 
   // --------------------------------------------------------------------------
-  // Utilities for debugging and pretty-printing
-  def printBT(bs:List[(Answer,List[(Subword,Backtrack)])]) = {
+  // Debug: pretty print multiple answer/backtrack traces
+  def printBT(bs:List[(Answer,Trace)]) = {
     println("Backtrack = {")
     for(b<-bs) { print("  "+b._1+"   BT =")
       for (((i,j),(r,bt)) <- b._2) { print(" ["+i+","+j+"]="+r+","+bt+" ") }; println

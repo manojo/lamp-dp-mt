@@ -180,7 +180,7 @@ class CodeHeader(within:Any) {
     "    jobject el = J_PAIR( J_PAIR(J_INT(tr->i),J_INT(tr->j)) , J_PAIR(J_INT(tr->rule),ixs) );\n"+
     "    jtrace = J_CONS(el, jtrace);\n"+
     "  }\n"+
-    // Result is (Answer,List[(Subword,Backtrack)]), Subword=(Int,Int), Backtrack=(Int,List[Int])
+    // Result is (Answer,Trace), Trace=List[(Subword,Backtrack)], Subword=(Int,Int), Backtrack=(Int,List[Int])
     "  return J_PAIR(res,jtrace);\n}\n"
   }
 }

@@ -9,12 +9,18 @@ trait ADPParsers extends BaseParsers { this:Signature =>
     case c:CodeGen if (!forceScala) => List(c.parseCU(in.asInstanceOf[c.Input]).asInstanceOf[Answer])
     case _ => run(in,()=>(if (window>0) aggr(((0 to size-window).flatMap{x=>axiom(x,window+x)}).toList, h) else axiom(0,size)).map{_._1})
   }
-  def backtrack(in:Input,forceScala:Boolean=false):List[(Answer,List[(Subword,Backtrack)])] = this match {
-    case c:CodeGen if (!forceScala) => List(c.backtrackCU(in.asInstanceOf[c.Input]).asInstanceOf[(Answer,List[(Subword,Backtrack)])])
+  def backtrack(in:Input,forceScala:Boolean=false):List[(Answer,Trace)] = this match {
+    case c:CodeGen if (!forceScala) => List(c.backtrackCU(in.asInstanceOf[c.Input]).asInstanceOf[(Answer,Trace)])
     case _ => run(in,()=>if (window>0) aggr(((0 to size-window).flatMap{x=>axiom.backtrack(x,window+x)}).toList, h) else axiom.backtrack(0,size))
   }
-  def build(in:Input,bt:List[(Subword,Backtrack)]):Answer = run(in, ()=>axiom.build(bt))
-  private def run[T](in:Input, f:()=>T) = { input=in; analyze; tabInit(in.size+1,in.size+1); val res=time("Execution")(f); tabReset; input=null; res }
+  def build(in:Input,bt:Trace):Answer = run(in,()=>axiom.build(bt))
+  private def run[T](in:Input, f:()=>T) = {
+    input=in; analyze; tabInit(in.size+1,in.size+1);
+    this match { case s:RNASignature => if (s.energies) librna.LibRNA.setSequence(in.mkString) case _ => }
+    val res=time("Execution")(f);
+    this match { case s:RNASignature => if (s.energies) librna.LibRNA.clear case _ => }
+    tabReset; input=null; res
+  }
 
   // Concatenation operations
   import scala.language.implicitConversions
@@ -57,6 +63,7 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
 }
 
 trait RNASignature extends Signature {
+  val energies = true
   type Alphabet = Char
   def in(x:Int):Char
   val basepairing = new ((Int,Int)=>Boolean) with CFun {
@@ -69,6 +76,7 @@ trait RNASignature extends Signature {
     def apply(i:Int,j:Int):Boolean = basepairing(i,j) && basepairing(i+1,j-1)
     val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(i,j)!=NO_BP && bp_index(i+1,j-1)!=NO_BP;","Boolean")
   }
+  def setParams(file:String) = if (energies) librna.LibRNA.setParams(file)
 }
 
 object RNAUtils {

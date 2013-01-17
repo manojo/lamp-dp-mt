@@ -31,19 +31,14 @@ compile in Compile <<= (compile in Compile) map { x => ("src/librna/make target/
 // custom commands to execute JNI and CUDA targets
 {
   def t(n:String) = { val t=TaskKey[Unit](n); t.dependsOn(compile in Compile); t }
-  def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, "v4.examples."+cl ), fork in t := true, javaOptions in t += "-Xss64m")
-  val (mm1,mm2,mm3,align,zuker,rnafold)=(t("mm1"),t("mm2"),t("mm3"),t("align"),t("zuker"),t("rnafold"))
-  s(mm1,"MatrixMultGen") ++ s(mm2,"MatrixMultGen2") ++ s(mm3,"MatrixMultGen3") ++ s(align,"SeqAlignGen") ++ s(zuker,"Zuker") ++ s(rnafold,"RNAFold")
+  def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, cl), fork in t:=true, javaOptions in t+="-Xss64m")
+  val (mm1,mm2,mm3,align,zuker,rnafold)=(t("mm1"),t("mm2"),t("mm3"),t("align"),t("zuker"),t("rnafold")) // Examples
+  val (mml,mmr,rr)=(t("mml"),t("mmr"),t("rr")) // LMS and report
+  s(mm1,"v4.examples.MatrixMultGen") ++ s(mm2,"v4.examples.MatrixMultGen2") ++ s(mm3,"v4.examples.MatrixMultGen3") ++
+  s(align,"v4.examples.SeqAlignGen") ++ s(zuker,"v4.examples.Zuker") ++ s(rnafold,"v4.examples.RNAFold") ++
+  s(mml,"lms.LMSMatrixAlgebraGen") ++ s(mmr,"v4.report.MatrixMultLMS") ++ s(rr,"v4.report.RNAFold")
 }
 // TaskKey[Unit]("zuker") := { "scala -cp target/scala-2.10/classes v4.examples.Zuker".run.exitValue }
 // http://stackoverflow.com/questions/6951261/how-to-define-tasks-to-run-with-hprof-from-sbt-0-10
-
-// custom LMS+CUDA targets
-{
-  def t(n:String) = { val t=TaskKey[Unit](n); t.dependsOn(compile in Compile); t }
-  def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, "lms."+cl ), fork in t := true, javaOptions in t += "-Xss64m")
-  val mml=t("mml")
-  s(mml,"LMSMatrixAlgebraGen")
-}
 
 addCommandAlias("chk", ";clean;run-main v4.examples.Tests;zuker;rnafold;align;mm1;mm2;mm3")

@@ -1,0 +1,324 @@
+\newpage
+\section{Usage} \label{usage}
+\subsection{Program examples}
+In this section, we explain how to use DynaProg, as a parser library. Use an example based approach, we focus on three additional examples: Smith-Waterman/Needleman-Wunsch to present two-tracks grammars and multiple algebras, RNAfold\cite{gpu_rnafold} to describe RNA library usage and reconstruction from backtrack trace, and finally we extend Matrix chain multiplication (\S\ref{adp_practice}) with CUDA code generation.
+
+\subsubsection{Smith-Waterman and Needleman-Wunsch} \label{ex_swat}
+We first define a signature that can fit both algebrae, then we specify for each algebra the functions. In this example, both algebra operate on the same output domain and share the same optimization function (although this is not true in general, see \S\ref{ex_rnafold}).
+
+We also want to emphasize how bad this example is, with respect to the result construction, as every intermediate result would contain its whole backtrack, hereby duplicating the information multiple times. To overcome this issue {\color{red} XXX}
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait SeqAlignSignature extends Signature {
+  type Alphabet = Char
+  type Answer = (Int,String,String) // score, seq1, seq2
+  override val h = maxBy((x:Answer)=>x._1)
+
+  def gap(current:Int, g:(Int,Int)):Int
+  def pair(a:Alphabet,b:Alphabet):Int
+}
+
+trait SmithWatermanAlgebra extends SeqAlignSignature {
+  private val open = -3
+  private val extend = -1
+  def gap(score:Int, g:(Int,Int)) = { val size=g._2-g._1; Math.max(0, score + ( open + (size-1) * extend )) }
+  def pair(a:Char,b:Char) = if (a==b) 10 else -3
+}
+
+trait NeedlemanWunschAlgebra extends SeqAlignSignature {
+  private val open = -15
+  private val extend = -1
+  def gap(score:Int, g:(Int,Int)) = { val size=g._2-g._1; score + ( open + (size-1) * extend ) }
+  def pair(a:Char,b:Char) = if (a==b) 4 else -3
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
+  private def prettyGap(sw:Subword,in:Function1[Int,Char]):(String,String) = {
+    val g=(sw._1 until sw._2).toList; (g.map{x=>in(x)}.mkString(""),g.map{x=>"-"}.mkString(""))
+  }
+
+  val alignment:Tabulate = tabulate("M",(
+    empty                         ^^ { _ => (0,".",".") }
+  | seq1() -~ alignment           ^^ { case (g,(score,s1,s2)) => val (g1,g2)=prettyGap(g,in1); (gap(score,g),s1+g1,s2+g2) }
+  |           alignment ~- seq2() ^^ { case ((score,s1,s2),g) => val (g1,g2)=prettyGap(g,in2); (gap(score,g),s1+g2,s2+g1) }
+  | el1    -~ alignment ~- el2    ^^ { case (c1,((score,s1,s2),c2)) => (score+pair(c1,c2),s1+c1, s2+c2) }
+  ) aggregate h)
+
+  val axiom = alignment
+
+  def align(s1:String,s2:String) = parse(s1.toArray,s2.toArray).head
+}
+
+object SeqAlign extends App {
+  object SWat extends SeqAlignGrammar with SmithWatermanAlgebra   // Smith-Waterman
+  object NWun extends SeqAlignGrammar with NeedlemanWunschAlgebra // Needleman-Wunsch
+  val seq1 = "CGATTACA"
+  val seq2 = "CCCATTAGAG"
+
+  val (swScore,sw1,sw2) = SWat.align(seq1,seq2)
+  println("Smith-Waterman alignment\n- Score: "+swScore+"\n- Seq1: "+sw1+"\n- Seq2: "+sw2+"\n")
+  val (nwScore,nw1,nw2) = NWun.align(seq1,seq2)
+  println("Needleman-Wunsch alignment\n- Score: "+nwScore+"\n- Seq1: "+nw1+"\n- Seq2: "+nw2+"\n")
+}
+\end{lstlisting}
+
+\newpage
+\subsubsection{RNA folding} \label{ex_rnafold}
+We define a signature with two evaluation algebras: {\tt RNAFoldAlgebra} actually computes the folding whereas {\tt RNAFoldPrettyPrint} describes the folding in a string. The energy functions are provided by an external library ({\tt LibRNA}). This library encodes substring as (first character, last character) whereas our framework encodes them as (first character, first character + length), which explains the off-by-one corrections. {\tt energies} variable is set to false in {\tt RNAFoldPrettyPrint} because this algebra does not involve the LibRNA energies functions (that require encoding the input RNA sequence in a special format; this option is enabled by default in the RNASignature trait).
+
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait RNAFoldSig extends RNASignature {
+  def hairpin(ij:(Int,Int)):Answer
+  def stack(i:Int,s:Answer,j:Int):Answer
+  def iloop(ik:(Int,Int),s:Answer,lj:(Int,Int)):Answer
+  def mloop(i:Int,s:Answer,j:Int):Answer
+  def left(l:Answer,r:Int):Answer
+  def right(l:Int,r:Answer):Answer
+  def join(l:Answer,r:Answer):Answer
+}
+
+trait RNAFoldAlgebra extends RNAFoldSig {
+  type Answer = Int
+  import librna.LibRNA._ // indexing convention: first base,last base
+  def hairpin(ij:(Int,Int)) = hl_energy(ij._1,ij._2-1) // Eh
+  def stack(i:Int,s:Int,j:Int) = sr_energy(i,j) + s // Es
+  def iloop(ik:(Int,Int),s:Int,lj:(Int,Int)) =
+      il_energy(ik._1,ik._2,lj._1-1,lj._2-1) + s // Ei
+  def mloop(i:Int,s:Int,j:Int) = s
+  def left(l:Int,r:Int) = l
+  def right(l:Int,r:Int) = r
+  def join(l:Int,r:Int) = l+r
+  override val h = min[Answer] _
+}
+
+trait RNAFoldPrettyPrint extends RNAFoldSig {
+  type Answer = String
+  override val energies=false
+  private def dots(n:Int,c:Char='.') = (0 until n).map{_=>c}.mkString
+  def hairpin(ij:(Int,Int)) = "("+dots(ij._2-ij._1-2)+")"
+  def stack(i:Int,s:String,j:Int) = "("+s+")"
+  def iloop(ik:(Int,Int),s:String,lj:(Int,Int)) =
+      "("+dots(ik._2-1-ik._1)+s+dots(lj._2-1-lj._1)+")"
+  def mloop(i:Int,s:String,j:Int) = "("+s+")"
+  def left(l:String,r:Int) = l+"."
+  def right(l:Int,r:String) = "."+r
+  def join(l:String,r:String) = l+r
+}
+\end{lstlisting}
+
+\newpage
+We can then define the associated grammar
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait RNAFoldGrammar extends ADPParsers with RNAFoldSig {
+  lazy val Qp:Tabulate = tabulate("Qp",(
+    seq(3,maxN)        ^^ hairpin
+  | eli   ~ Qp ~ eli   ^^ stack
+  | seq() ~ Qp ~ seq() ^^ iloop
+  | eli   ~ QM ~ eli   ^^ mloop
+  ) filter basepairing aggregate h)
+
+  lazy val QM:Tabulate = tabulate("QM",(Q ~ Q ^^ join) filter((i:Int,j:Int)=>i<=j+4) aggregate h)
+
+  lazy val Q:Tabulate = tabulate("Q",(
+    QM
+  | Q ~ eli ^^ left
+  | eli ~ Q ^^ right
+  | Qp
+  ) filter((i:Int,j:Int)=>i<=j+2) aggregate h)
+
+  override val axiom = Q
+}
+\end{lstlisting}
+
+In the application, we create two objects, each combining the grammar with a particular algebra. We can optionally specify a coefficient parameter file with {\tt setParams(file:String)}, otherwise the \textit{Turner2004} coefficients are used. The library is automatically loaded and fed with the sequence to produce correct energy coefficients. We request both the score and the backtrack trace (in {\tt bt}) so that we can reconstruct the folding using the pretty printing grammar.
+\begin{lstlisting}[language=Scala,captionpos=none]
+object RNAFold extends App {
+  object fold extends RNAFoldGrammar with RNAFoldAlgebra
+  object pretty extends RNAFoldGrammar with RNAFoldPrettyPrint
+
+  val seq="aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagagg"
+
+  val (score,bt) = fold.backtrack(seq.toArray).head
+  val res = pretty.build(seq.toArray,bt)
+  println("Folding : "+res+" (%5.2f)".format(score/100.0));
+}
+\end{lstlisting}
+
+\newpage
+\subsubsection{Matrix multiplication with CUDA code generation} \label{ex_matmult_cuda_lms}
+Leveraging the existing definitions of the signature and grammar
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait MatrixSig extends Signature {
+  type Alphabet = (Int,Int) // Matrix(rows, columns)
+  val single:Alphabet=>Answer
+  val mult:(Answer,Answer)=>Answer
+}
+
+trait MatrixGrammar extends ADPParsers with MatrixSig {
+  val axiom:Tabulate = tabulate("M",
+    (el ^^ single | axiom ~ axiom ^^ mult) aggregate h)
+}
+\end{lstlisting}
+We need describe the algebra functions in the LMS syntax ({\tt RepWorld}) that we can later compile to use as regular functions, augmented with C code description (necessary for code generation). Finally, we need to mix the {\tt CodeGen} trait to enable code generation and provide the manifest for input and ouput types ({\tt Alphabet} and {\tt Answer}).
+
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait RepWorld extends NumericOps with TupleOps {
+  type Alphabet = (Int, Int)
+  type Answer = (Int, Int, Int)
+
+  def hf(a: Rep[Answer]) :Rep[Int] = a._2
+  def repSingle(a: Rep[Alphabet]): Rep[Answer] = (a._1, unit(0), a._2)
+  def repMult(l: Rep[Answer], r: Rep[Answer]): Rep[Answer] =
+    (l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3)
+}
+
+object MatrixMultLMS extends MatrixSig with MatrixGrammar
+    with CodeGen with App {
+  override val tps=(manifest[Alphabet],manifest[Answer])
+  override val benchmark = true // display timing measurements
+
+  // Algebra is defined immediately in the concrete program
+  type Answer = (Int, Int, Int)
+  val concreteProg = new RepWorld with RepPackage
+  override val h = minBy(concreteProg.gen(concreteProg.hf))
+  val single = concreteProg.gen(concreteProg.repSingle)
+  val mult = concreteProg.gen2(concreteProg.repMult)
+
+  val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray
+  println(parse(input).head) // -> 1x3 matrix, 122 multiplications
+}
+\end{lstlisting}
+
+\newpage
+----------------------------------------
+
+
+
+ and focus on three different problem: our matrix multiplication example, 
+
+Example based
+- Matrix mult + parenthesizing
+- SWat / Needleman
+
+go check the examples/ folder
+
+List of options at the end
+
+
+
+{\color{red} usage, make reference from problems to usage
+
+XXX: do not introduce pseudocode but refere to usage in RNAfold problem
+
+}
+
+
+\subsubsection{Matrix multiplication} \label{ex_matmult}
+\begin{lstlisting}[language=Scala,caption={Matrix Multiplication}]
+import v4._
+
+trait MatrixSig extends Signature {
+  type Alphabet = (Int,Int) // Matrix(rows, columns)
+  val single:Alphabet=>Answer
+  val mult:(Answer,Answer)=>Answer
+}
+
+trait MatrixAlgebra extends MatrixSig {
+  type Answer = (Int,(Int,Int)) // Answer(cost, Matrix(rows, columns))
+
+  override val h = minBy((a:Answer) => a._1)
+  val single = (a: Alphabet) => (0, a)
+  val mult = (a:Answer,b:Answer) =>
+    { val ((m1,(r1,c1)),(m2,(r2,c2)))=(a,b); (m1+m2+r1*c1*c2, (r1,c2)) }
+}
+
+trait MatrixGrammar extends ADPParsers with MatrixSig {
+  val axiom:Tabulate = tabulate("M",
+    (el ^^ single | axiom ~ axiom ^^ mult) aggregate h)
+}
+
+object MatrixMult extends MatrixGrammar with MatrixAlgebra with App {
+  println(parse(Array((10,100),(100,5),(5,50)))) // List((7500,(10,50)))
+}
+\end{lstlisting}
+
+
+
+
+\section{Benchmarks} \label{benchmarks}
+In an attempt to provide realistic benchmarks, we tried to gather related implementations. The authors of \cite{gpu_atlp} did not respond to our multiple solicitations. The authors of \cite{swat_mega} were very friendly and provided us their source code. Unfortunately, since they address a different category of problem (they focus on huge serial problems whereas we focus on smaller non-serial problems) their implementation might be biased towards large sequences that our implementation cannot address. Finally, we asked lately the authors of \cite{gpu_rnafold} {\color{red} who did not respond so far}.
+
+We organize the benchmarks as follow: if we have at our disposal a working implementation that could be run on our evaluation platform, we use it, otherwise, we refer to the related paper and rescale the result according to the memory throughput and computation throughput of the related device so that we can have a good approximation of how they could compare.
+
+\subsection{Metrics}
+{\color{red} The main metric we focus on is the running time.}
+
+As the device memory is quite limited, it seems interesting to also take into account the space usage. The space requirement limits the maximal size of addressable problems  on a particular hardware. This might be a concern for large problems, because they would require special adaptation to handle such cases both correctly and efficiently. However, simple solutions like using a device with larger memory or using main memory (if a $5\times$ slowdown is still acceptable) could solve this issue.
+
+\subsection{Benchmarking platform}
+
+\subsubsection{Test Scala / C / CUDA}
+\subsubsection{Test 1 : CPU MatrixMult VS hand optimized VS GAPC VS ADPFusion)}
+\subsubsection{Test 2 : GPU MatirxMult VS hand optimized VS ATLP)}
+\subsubsection{Test 3 : CPU SWat VS hand optimized VS GAPC VS ADPFusion)}
+\subsubsection{Test 4 : GPU SWat VS hand optimized VS CUDAlign)}
+\subsubsection{Test 5 : CPU Zuker VS GAPC VS ADPFusion VS ViennaRNA)}
+\subsubsection{Test 6 : GPU Zuker VS RNAFold?/Lavenier VS ViennaRNA-OpenCL)}
+
+RUN 5-10x until running time stabilizes on Scala
+
+ {\color{red} Size analysis to know what storage size we require: ex: Zucker requires $O(n^2)+O(n)$ storage...}
+
+XXX: future work: proper support of two-track grammars
+
+XXX: future work, resize tables appropriately as in GAPL.
+
+% ------------------------------------------------------------------------------------------------
+{\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: CONTINUE HERE :XXX \\}
+% ------------------------------------------------------------------------------------------------
+
+\subsection{Scala parsers}
+{\color{red}
+MatrixMult-512, Mac+JDK7\ul
+\item Original: 24.937 sec / 24.658 sec
+\item Optimized concatenation: 19.329 sec / 18.924 sec
+\item Tabulation as arrays+inline: 14.976 sec / 14.849 sec
+\ule}
+
+\subsection{CUDA parsers}
+{\color{red} XXX: explain why slower: approx 3x more memory used per score (maintain matrix dimensions)
+
+XXX: continue benchmarking here
+}
+\begin{table}[H]\begin{center}\begin{tabular}{lrrrrrr} \toprule
+Matrix size			& 1024	& 2048	& 4096	& 8192 \\
+Splits				& 1		& 8		& 64		& 512 \\ \midrule
+Analysis				& 0.007	& 0.007	& 0.007	& 0.007 \\
+Code generation		& 0.071	& 0.072	& 0.073	& 0.071 \\
+C/CUDA compilation	& 3.025	& 1.836	& 1.832	& 1.841 \\
+Scala compilation		& 1.837	& 1.853	& 1.830	& 1.767 \\ \midrule
+- JNI read				& 0.027	& 0.028	& 0.029	& 0.058 \\
+- CUDA compute		& 0.868	& 3.378	& 19.782	& 139.697 \\
+- CUDA backtrack		& 0.009	& 0.012	& 0.023	& 0.045 \\
+- JNI output			& 0.005	& 0.009	& 0.018	& 0.032 \\
+Total execution			& 0.915	& 3.432	& 19.860	& 139.846 \\ \bottomrule
+\end{tabular}\end{center}\caption{Preliminary results for MatrixMultGen}\end{table}
+
+{\color{red} XXX: Compare current implementation versus ad-hoc implementation. Compare CUDA vs Scala (we might need to ad-hoc fix stack overflows in Scala).If Zuker coefficients can be fixed, compare performance with \cite{adp_gpu} by rescaling numbers wrt to bandwidth and computation performance.}
+
+\section{Future work}
+We consider several directions and possible extensions for our work. We briefly describe each of them and give an idea of how they could be implemented:\ol
+\item \textbf{Non-serial scheduling for problems larger than the device memory:} as described in \ref{ns_mem_transfer}, it could be possible to handle problems that are larger than the device memory in an efficient way, thereby dramatically reducing the memory transfer penalties introduced by the main memory usage. However, this comes at the price of a more involved kernel scheduling and a complex element indexing strategy (since we first need to find the enclosing matrix block before addressing the element relatively to it).
+\item \textbf{Algorithmic analysis:} so far, we considered that the DSL user would write an optimal program. Another direction in which we could improve the parsers is the recurrence analysis, either by removing serial dependencies when possible (see \ref{calc_simplifications}) or reducing the algorithmic complexity by creating intermediate tabulations (see \ref{user_lang}). These analysis would certainly involve a strong mathematical analysis and the ratio benefit over implementation complexity would be quite small under the initial assumption that the DSL users are experts in their field (hereby knowing how to optimize manually the grammar). 
+\item \textbf{Serial problems larger than memory:} As discussed in \ref{serial_memory}, this class of problems require a completely different implementation. Since the authors of \cite{swat_mega} are planning to write extensions to their implementation, duplicating the effort might not be worth the price; however, would their future implementation be sufficiently modular, we could integrate it in our framework and redirect compatible grammars to this state of art implementation.
+\item \textbf{Add FPGA as target platform:} Initially envisioned a second target platform by George Nithin, a PhD student of the LAP (Laboratory of processors architecture), the underlying complexity of transforming DP recurrences into VHDL code made us leave this platform aside for the scope of this project. The reconfigurability possibilities of FPGA make them attractive whenever it comes to very simple and massively parallel computations where the memory can be pipelined; this makes serial dynamic programming problems good candidates for such implementation.
+\item \textbf{Multi-dimensional matrices and independent computations:} In the current implementation, all the matrices are encoded such that they are of the same size. Leveraging the yield analysis, we could reduce the dimension of matrices that are of smaller dimension (for tabulations with bounded maximal size). In the problems we have analyzed, no such special case appeared, this is why we do not support this optimization at present.
+
+Matrix of different dimensions must be stored in their own array (versus being in a single array of struct enclosing corresponding element of all matrices). Also matrices might possibly be of different storage complexity: looking back at the Zuker problem description, there are two $O(n^2)$ matrices and one $O(n)$ matrix. This discrepancy in the sizes also leads to multiple indexing strategies (depending on the complexity) and a more complex scheduling where matrix must be computed one after another whereas in the current computation, the same cell in all matrices is computed at once. 
+\item \textbf{Data granularity:} Since the major bottleneck of CUDA architecture is the memory, we focus on data representation; in the current project, data is stored in primary types but we could store them more efficiently. For example, RNA is represented with only 4 letters (g,a,t,c), thus 4 symbols could be encoded in a single byte. Unfortunately, this optimizations seems to only apply for the input data. Another solution in this direction is to operate on multiple cells with one thread, the argument being that they could share a row or a column, thereby dividing the number of memory accesses for non-serial dependencies on the shared axis.
+\item \textbf{Pruning:} described in \cite{swat_mega}, this optimization could lead to a reduction of the computation, provided that the algorithm final score can be bounded. Such optimization would only be relevant with a non-uniform computation strategy where the matrix is tiled, thereby making it possible to prune entire computation tiles.
+\item \textbf{Fusion with LMS:} Although we gained some speedup by optimizing manually the Scala parsers, we cannot benefit from grammar-specific optimization. Passing the whole grammar to LMS could possibly lead to more efficient code, by folding multiple parser function calls into a single function making equivalent calls. The added cost of function lookup, even if minimal, might still account for a non-negligible part of the total running time as parser processing is very simple but run repeatedly a large number of time.
+\item \textbf{Using macros:} macros provide an interesting meta-programming opportunity as they are being run after the typing phase of the Scala compiler and can leverage all the compile-time typing information. We could use them to either simplify the user-functions description (by implicitly bootstrapping LMS code translation) or even completely replace LMS types by either type conversion or by providing ad-hoc conversion from the Scala AST to C code.
+\item \textbf{CUDA $k$-best parsers:} since a $k$-best algorithm has constant memory requirements, an efficient algorithm for CUDA could be devised: instead of comparing with only one value to find the best value, it suffice to compare with $k$ values instead. Hence cost and backtrack matrix would contain $k$ elements per cell. Since the problem of result validity is already addressed, cells with fewer results would simply have fewer cells marked valid.
+\ole
