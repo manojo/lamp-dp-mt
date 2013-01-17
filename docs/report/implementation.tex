@@ -124,7 +124,7 @@ The Scala parsers consist in 4 traits that are used to construct a DSL program:\
 The code generation step produces multiple outputs that are tightly bound to each other. Besides the Scala wrapper (a simple JNI interface), in the C/CUDA code generated we distinguish:\ol
 \item JNI input and output conversion functions
 \item Host helpers for memory management and scheduling of CUDA kernels
-\item CUDA matrix computation, which can be further decomposed into matrix scheduling (loops) and (matrix cell) computation. 
+\item CUDA matrix computation, which can be further decomposed into matrix scheduling (loops) and (matrix cell) computation.
 \item CUDA backtrack collection kernel
 \ole
 
@@ -271,3 +271,237 @@ Since the energy computation for RNA folding involve complex coefficient and com
 {\color{red}
 XXX: attempt to strip it to make CUDA version
 }
+
+% ------------------------------------------------------------------------------------------------
+\newpage
+\section{Usage} \label{usage}
+\subsection{Program examples}
+In this section, we explain how to use the DynaProg DSL using an example based approach. We focus on three additional examples: Smith-Waterman (\S\ref{swat_affine}) and Needleman-Wunsch to present two-tracks grammars and multiple algebras, RNAfold\cite{gpu_rnafold} (\S\ref{zuker}, alternative) to describe RNA library usage and reconstruction from backtrack trace, and finally we extend matrix chain multiplication (\S\ref{adp_practice}) with CUDA code generation.
+
+% ----------------------------------------------
+\subsubsection{Smith-Waterman and Needleman-Wunsch} \label{ex_swat}
+First define a signature that can fit both algebrae, then specify for each algebra the related functions. In this example, both algebra operate on the same output domain and share the same optimization function (although this is not true in general).
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait SeqAlignSignature extends Signature {
+  type Alphabet = Char
+  def start(x:Unit):Answer
+  def gap1(g:(Int,Int),a:Answer):Answer
+  def gap2(a:Answer,g:(Int,Int)):Answer
+  def pair(c1:Alphabet,a:Answer,c2:Alphabet):Answer
+}
+
+trait SmithWatermanAlgebra extends SeqAlignSignature {
+  type Answer = Int
+  override val h = max[Int] _
+  private val open = -3
+  private val extend = -1
+  def start(x:Unit) = 0
+  def gap1(g:(Int,Int),a:Int) = gap2(a,g) // by symmetry
+  def gap2(a:Int,g:(Int,Int)) =
+    { val size=g._2-g._1; Math.max(0, a + ( open + (size-1)*extend )) }
+  def pair(c1:Char,a:Int,c2:Char) = a + (if (c1==c2) 10 else -3)
+}
+
+trait NeedlemanWunschAlgebra extends SeqAlignSignature {
+  type Answer = Int
+  override val h = max[Int] _
+  private val open = -15
+  private val extend = -1
+  def start(x:Unit) = 0
+  def gap1(g:(Int,Int),a:Int) = gap2(a,g) // by symmetry
+  def gap2(a:Int,g:(Int,Int)) =
+    { val size=g._2-g._1; a + ( open + (size-1)*extend ) }
+  def pair(c1:Char,a:Int,c2:Char) = a + (if (c1==c2) 4 else -3)
+}
+\end{lstlisting}
+
+To obtain a visual representation of the alignment, a naive idea would be to construct the two aligned strings immediately in the forward phase (in the {\tt Answer}). However, this approach must be avoided as it is extremely inefficient, both in terms of running time and space complexity because intermediate strings are created (and stored in memory) for every intermediate result. The correct way to solve this issue is to use backtracking and forward construct these strings with a pretty printing algebra:
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait SeqPrettyPrint extends SeqAlignSignature {
+  type Answer = (String,String)
+  def in1(k:Int):Alphabet; def in2(k:Int):Alphabet // make it visible
+  private def gap(sw:(Int,Int),in:Function1[Int,Char]) = {
+    val g=(sw._1 until sw._2).toList
+    (g.map{x=>in(x)}.mkString,g.map{x=>"-"}.mkString)
+  }
+  def start(x:Unit) = (".",".")
+  def gap1(g:(Int,Int),a:Answer) =
+    { val (g1,g2)=gap(g,in1); (a._1+g1,a._2+g2) }
+  def gap2(a:Answer,g:(Int,Int)) =
+    { val (g2,g1)=gap(g,in2); (a._1+g1,a._2+g2) }
+  def pair(c1:Char,a:Answer,c2:Char) = (a._1+c1,a._2+c2)
+}
+\end{lstlisting}
+
+Finally, we describe the associated grammar and the programs that mixes the algebrae and the grammar. Note that we need one instance of each pair of grammar and algebra. Once we have done that, we can request scores and backtracks associated with an evaluation algebra (Smith-Waterman or Needleman-Wunsch) and reuse the obtained backtrack to construct the matching aligned sequences:
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
+  val axiom:Tabulate = tabulate("M",(
+    empty                     ^^ start
+  | seq1() -~ axiom           ^^ gap1
+  |           axiom ~- seq2() ^^ gap2
+  | el1    -~ axiom ~- el2    ^^ pair
+  ) aggregate h)
+}
+
+object SeqAlign extends App {
+  object SWat extends SeqAlignGrammar with SmithWatermanAlgebra
+  object NWun extends SeqAlignGrammar with NeedlemanWunschAlgebra
+  object pretty extends SeqAlignGrammar with SeqPrettyPrint
+  val seq1 = "CGATTACA"
+  val seq2 = "CCCATTAGAG"
+
+  def align(name:String,s1:String,s2:String,g:SeqAlignGrammar) = {
+    val (score,bt) = g.backtrack(s1.toArray,s2.toArray).head
+    val (a1,a2) = pretty.build(s1.toArray,s2.toArray,bt)
+    println(name+" alignment\n- Score: "+score)
+    println("- Seq1: "+a1+"\n- Seq2: "+a2+"\n")
+  }
+  align("Smith-Waterman",seq1,seq2,SWat)
+  align("Needleman-Wunsch",seq1,seq2,SWat)
+}
+\end{lstlisting}
+
+% ----------------------------------------------
+\newpage
+\subsubsection{RNA folding} \label{ex_rnafold}
+We define a signature with two evaluation algebras: {\tt RNAFoldAlgebra} actually computes the folding whereas {\tt RNAFoldPrettyPrint} describes the folding in a string. The energy functions are provided by an external library ({\tt LibRNA}). This library encodes substring as (first character, last character) whereas our framework encodes them as (first character, first character + length), which explains the off-by-one corrections. {\tt energies} variable is set to false in {\tt RNAFoldPrettyPrint} because this algebra does not involve the LibRNA energies functions (that require encoding the input RNA sequence in a special format; this option is enabled by default in the RNASignature trait).
+
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait RNAFoldSig extends RNASignature {
+  def hairpin(ij:(Int,Int)):Answer
+  def stack(i:Int,s:Answer,j:Int):Answer
+  def iloop(ik:(Int,Int),s:Answer,lj:(Int,Int)):Answer
+  def mloop(i:Int,s:Answer,j:Int):Answer
+  def left(l:Answer,r:Int):Answer
+  def right(l:Int,r:Answer):Answer
+  def join(l:Answer,r:Answer):Answer
+}
+
+trait RNAFoldAlgebra extends RNAFoldSig {
+  type Answer = Int
+  import librna.LibRNA._ // indexing convention: first base,last base
+  def hairpin(ij:(Int,Int)) = hl_energy(ij._1,ij._2-1) // Eh
+  def stack(i:Int,s:Int,j:Int) = sr_energy(i,j) + s // Es
+  def iloop(ik:(Int,Int),s:Int,lj:(Int,Int)) =
+      il_energy(ik._1,ik._2,lj._1-1,lj._2-1) + s // Ei
+  def mloop(i:Int,s:Int,j:Int) = s
+  def left(l:Int,r:Int) = l
+  def right(l:Int,r:Int) = r
+  def join(l:Int,r:Int) = l+r
+  override val h = min[Answer] _
+}
+
+trait RNAFoldPrettyPrint extends RNAFoldSig {
+  type Answer = String
+  override val energies=false
+  private def dots(n:Int,c:Char='.') = (0 until n).map{_=>c}.mkString
+  def hairpin(ij:(Int,Int)) = "("+dots(ij._2-ij._1-2)+")"
+  def stack(i:Int,s:String,j:Int) = "("+s+")"
+  def iloop(ik:(Int,Int),s:String,lj:(Int,Int)) =
+      "("+dots(ik._2-1-ik._1)+s+dots(lj._2-1-lj._1)+")"
+  def mloop(i:Int,s:String,j:Int) = "("+s+")"
+  def left(l:String,r:Int) = l+"."
+  def right(l:Int,r:String) = "."+r
+  def join(l:String,r:String) = l+r
+}
+\end{lstlisting}
+
+\newpage
+We can then define the associated grammar
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait RNAFoldGrammar extends ADPParsers with RNAFoldSig {
+  lazy val Qp:Tabulate = tabulate("Qp",(
+    seq(3,maxN)        ^^ hairpin
+  | eli   ~ Qp ~ eli   ^^ stack
+  | seq() ~ Qp ~ seq() ^^ iloop
+  | eli   ~ QM ~ eli   ^^ mloop
+  ) filter basepairing aggregate h)
+
+  lazy val QM:Tabulate = tabulate("QM",(Q ~ Q ^^ join) filter((i:Int,j:Int)=>i<=j+4) aggregate h)
+
+  lazy val Q:Tabulate = tabulate("Q",(
+    QM
+  | Q ~ eli ^^ left
+  | eli ~ Q ^^ right
+  | Qp
+  ) filter((i:Int,j:Int)=>i<=j+2) aggregate h)
+
+  override val axiom = Q
+}
+\end{lstlisting}
+
+In the application, we create two objects, each combining the grammar with a particular algebra. We can optionally specify a coefficient parameter file with {\tt setParams(file:String)}, otherwise the \textit{Turner2004} coefficients are used. The library is automatically loaded and fed with the sequence to produce correct energy coefficients. We request both the score and the backtrack trace (in {\tt bt}) so that we can reconstruct the folding using the pretty printing grammar.
+\begin{lstlisting}[language=Scala,captionpos=none]
+object RNAFold extends App {
+  object fold extends RNAFoldGrammar with RNAFoldAlgebra
+  object pretty extends RNAFoldGrammar with RNAFoldPrettyPrint
+
+  val seq="aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagagg"
+
+  val (score,bt) = fold.backtrack(seq.toArray).head
+  val res = pretty.build(seq.toArray,bt)
+  println("Folding : "+res+" (%5.2f)".format(score/100.0));
+}
+\end{lstlisting}
+
+% ----------------------------------------------
+\newpage
+\subsubsection{Matrix multiplication with CUDA code generation} \label{ex_matmult_cuda_lms}
+Leveraging the existing definitions of the signature and grammar (repeated here for convenience)
+\begin{lstlisting}[language=Scala,captionpos=none]
+trait MatrixSig extends Signature {
+  type Alphabet = (Int,Int) // Matrix(rows, columns)
+  val single:Alphabet=>Answer
+  val mult:(Answer,Answer)=>Answer
+}
+
+trait MatrixGrammar extends ADPParsers with MatrixSig {
+  val axiom:Tabulate = tabulate("M",
+    (el ^^ single | axiom ~ axiom ^^ mult) aggregate h)
+}
+\end{lstlisting}
+We need describe the algebra functions in the LMS syntax ({\tt RepWorld}) that we can later compile to use as regular functions, augmented with C code description (necessary for code generation). Finally, we need to mix the {\tt CodeGen} trait to enable code generation and provide the manifest for input and ouput types ({\tt Alphabet} and {\tt Answer}).
+
+\begin{lstlisting}[language=Scala]
+trait RepWorld extends NumericOps with TupleOps {
+  type Alphabet = (Int, Int)
+  type Answer = (Int, Int, Int)
+
+  def hf(a: Rep[Answer]) :Rep[Int] = a._2
+  def repSingle(a: Rep[Alphabet]): Rep[Answer] = (a._1, unit(0), a._2)
+  def repMult(l: Rep[Answer], r: Rep[Answer]): Rep[Answer] =
+    (l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3)
+}
+
+object MatrixMultLMS extends MatrixSig with MatrixGrammar
+    with CodeGen with App {
+  val tps=(manifest[Alphabet],manifest[Answer])
+  override val benchmark = true // display timing measurements
+
+  // Algebra is defined immediately in the concrete program
+  type Answer = (Int, Int, Int)
+  val concreteProg = new RepWorld with RepPackage
+  override val h = minBy(concreteProg.gen(concreteProg.hf))
+  val single = concreteProg.gen(concreteProg.repSingle)
+  val mult = concreteProg.gen2(concreteProg.repMult)
+
+  val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray
+  println(parse(input).head) // -> 1x3 matrix, 122 multiplications
+}
+\end{lstlisting}
+
+The complete source file of the presented problems can be found in the {\tt report/} folder. For further examples and variants, we encourage you to have a look in the {\tt examples/} folder.
+
+% ------------------------------------------------------------------------------------------------
+\newpage
+\subsection{Other usage options}
+We here provide a list of relevant variables and traits that the programmer might be interested to use. This list only serves the purpose of documenting features that might otherwise be difficult to find within the code.
+
+Although the whole program can be defined in a single trait, it is preferable to cleanly separate the signature from the grammar and the algebra, this good practice would help adding new algebrae easily. The signature needs to inherit either from {\tt Signature} or {\tt RNASignature}, would the RNA folding energies be needed. The grammar can be either single track or two-tracks by inheriting respectively from  {\tt ADPParsers} and {\tt TTParsers}. Note that RNA folding only works for single track grammars and library setup is enabled by the usage of the trait {\tt RNASignature} (this could be changed by disabling the flag {\tt energies}).
+
+The code generator is used by simply mixing in the {\tt CodeGen} trait, using the following idiom
+	\[\text{\tt val tps=(manifest[Alphabet],manifest[Answer])}\]
+anywhere at the intersection of the CodeGen inheritance and definition of these types (usually in the final program). Further configuration of the execution environment can be tuned by overriding the following variables: {\tt compiler} (for system paths and flags), {\tt cudaSplit} and {\tt cudaDevice}. The {\tt benchmark} flag can be set to enable timing measurements.
+
+Finally, the user can look in the files {\tt ADPParsers.scala} and {\tt TTParsers.scala} for a list of the available terminals, and possibly create new ones.
