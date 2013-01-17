@@ -192,29 +192,23 @@ Notice that the semantics of indices differ slightly from the problem presented 
 % ------------------------------------------------------------------------------------------------
 \newpage
 \subsection{Scala} \label{bg_scala}
-%  - However, we would list some ... => ; this is of course not the only reason; Scala offers some interesting features which make it a nice language to develop a DSL in ?
-%  - large adoption in the industry is not really a feature is it?
-%  - Implicit functions definition => implicit functions and parameters offer a way to neatly integrate primitive/pre-existing constructs into a DSL, by converting their types in order to correspond to the DSL semantics, while at the same time guarantee-ing type safety.
-%  - Macros[6] and LMS are mechanisms to modify semantics of a program; in particular, these tools can be used to implement domain-specific optimizations of programs. LMS also contains a code generation platform which we use to generate some functions in C (link to section).
-%  - Mixin composition (traits) allow for multiple inheritance and composition, which makes it easy to represent, in our DSL, multiple algebrae, and also interface with different runtimes (link to section).
 \textit{<<Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way. It smoothly integrates features of object-oriented and functional languages, enabling programmers to be more productive. Many companies depending on Java for business critical applications are turning to Scala to boost their development productivity, applications scalability and overall reliability.>>}\footnote{\url{http://www.scala-lang.org/node/25}}
 
-As the Scala \cite{scala} programming language is developed by our laboratory (LAMP, EPFL), it seems natural to use it as host language for our project, however, we would list some of its features \cite{scala_api} that makes it an interesting development language for this project:\ul
+As the Scala \cite{scala} programming language is developed by our laboratory (LAMP, EPFL), it seems natural host language for our project. Its large adoption\footnote{\url{http://www.scala-lang.org/node/1658}}, would make the adoption of our DSL easier while reducing the learning time of its potential users. Additionally, some features \cite{scala_api} of Scala makes it an interesting development language for this project:\ul
 \item The functional programming style and syntactic sugar offered by Scala allow concise writing of implementation, analysis and transformations of our DSL, allowing us to focus on \textit{what} we want to achieve instead of \textit{how}.
-\item Scala is largely adopted in the industry\footnote{\url{http://www.scala-lang.org/node/1658}}, which makes both the adoption of related project easier and reduces the learning time of its potential users.
 \item Since Scala programs execute in the Java Virtual Machine (JVM), they can benefit of the native interface (JNI) that offers the possibility to dynamically load libraries (usually written in C) and possibly interact with CUDA to leverage the GPU.
 \item Scala is equipped with a strong typing and type inference system that reduces the syntactical constraints while putting strong guarantees on type correctness at compilation.
-\item Implicit functions definition can help interfacing functions by automatically changing the type of passed arguments
+\item Implicit functions and parameters allow to simplify the syntactic usage of the DSL by implementing automatic conversions, while at the same time preserving type safety.
 \item Manifests (or TypeTags and ClassTags) allow type extraction at runtime (we use this to convert a Scala type into a C/CUDA type)
-\item Macros\cite{scala_macros} and LMS (\S\ref{bg_lms}) could be used to modify the semantics of a specific part of the user program (we currently use LMS to produce the corresponding C function).
-\item One Scala concept that we heavily use is \textit{traits} that can be viewed as abstract classes and mixed together, thereby allowing multiple inheritance.
+\item Macros\cite{scala_macros} and LMS (\S\ref{bg_lms}) could be used to modify the semantics of specific parts, or implement domain-specific optimizations of the user program. LMS also contains a multi-language code generator that we leverage to produce C functions (see \S\ref{user_fun_gen}).
+\item One Scala concept that we heavily use is \textit{traits} that can be viewed as abstract classes and combined (mixin composition), thereby allowing multiple inheritance. We use this feature in particular to smoothly combine algebra, grammar and possibly code generation (\S\ref{codegen}) into a concrete program.
 \ule
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Lightweight Modular Staging} \label{bg_lms}
 Lightweight Modular Staging (LMS) \cite{lms}, \cite{lms_thesis} is a runtime code generation built on top of Scala virtualized \cite{scala_virtualized} that uses types to distinguish between binding time (compilation and runtime) for code compilation. This makes possible to annotate parts of the code with special types, such that their compilation is delayed until the program is executed. At run time, these parts are represented as a \textit{sea of nodes} that serve as the basis for another compilation phase where all the code executed until this point provides additional information to produce a more efficient compilation. The process of delaying the compilation is known as \textit{lifting} whereas \textit{lowering} corresponds to transforming this intermediate representation into executable code. LMS code generation is not limited to Scala, it can also target other languages like C. In short, LMS is an optimizing compiler framework that allows integration of domain-specific abstractions and optimizations into the generation process.
 
-A discussion of the integration of LMS in our project can be found in \S\ref{lms_use}.
+A discussion on the integration of LMS in our project can be found in \S\ref{lms_use}.
 
 % ------------------------------------------------------------------------------------------------
 \newpage

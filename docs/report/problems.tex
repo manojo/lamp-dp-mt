@@ -1,7 +1,7 @@
 \newpage
 \section{Dynamic programming problems} \label{problems}
 There exist various categories of dynamic programming:\ul
-\item Series that operate usually on a single dimension (like Fibonacci\footnote{http://en.wikipedia.org/wiki/Fibonacci_number})
+\item Series that operate usually sequentially on a single dimension (like Fibonacci\footnote{\url{http://en.wikipedia.org/wiki/Fibonacci\_number}})
 \item Sequences alignment (matching two sequences at best), top-down grammar analysis (parenthesizing), sequence folding, ... (see \S\ref{problems} for more examples and detailed classification)
 \item Tree-related algorithms: phylogeny \cite{philogeny}, trees raking \cite{tree_raking}, maximum tree independent set \cite{tree_independent_set}, ... (can be viewed as a sparse version of the second category)
 \ule
@@ -18,7 +18,7 @@ Since <<dynamic programming>> defines a very general technique, we already focus
 \subsubsection{Definitions}\ul
 \item \textbf{Cost or score:} refers to the result of the dynamic programming recurrence formula.
 \item \textbf{Backtrack:} the backtrack is the information related to a score that describe how it has been obtained by referring to immediately previous elements. By induction on the backtrack, the \textbf{trace} (that describe \textit{all} thee steps to obtain the result) can be obtained.
-\item \textbf{Alphabets:} an alphabet is an enumeration of the possible values. Its size helps determining how many bits are required in the implementation to store all values. Alphabets are defined for input, cost, backtrack and wavefront.
+\item \textbf{Alphabets:} an alphabet is an set of possible values. Its size helps determining how many bits are required in the implementation to represent all its elements. Alphabets are defined for input, cost, backtrack and wavefront.
 \item \textbf{Dimensions:} let $n$ the size of the input and $d$ the dimension of the underlying matrix.
 \item \textbf{Matrices:} we refer by \textit{matrix} or \textit{matrices} to all the memoized intermediate cost- and backtrack-related information that is necessary to solve the dynamic programming problem of interest. Matrix elements are usually denoted by $M_{(i,j)}$ ($i^{\rm th}$ line , $j^{\rm th}$ column).
 \item \textbf{Computation block:} this is a part of the DP matrix (cost and backtrack) that we want to compute. A block might be either a sub-matrix (rectangular) or a parallelogram (possibly reduced by taking the intersection with its enclosing matrix).
@@ -50,6 +50,7 @@ Where the matrix $C$ stores the maximum along the column and matrix $A$ stores t
 Although this simplification removes some non-serial dependencies at the cost of extra storage in the wavefront, it is not sufficient to transform all non-serial monadic problems into serial problems (ex: this does not apply to Smith-Waterman with arbitrary gap cost).
 
 % ------------------------------------------------------------------------------------------------
+\newpage
 \subsection{Problems of interest} \label{problem_examples}
 We here focus on problems that have an underlying bi-dimensional matrix ($d=2$) because they can be parallelized (as opposed to be serial if $d=1$) and can solve large problems (of size $n$). Problems of higher matrix dimensionality ($d\ge3$) require substantial memory which severely impacts their scalability. Also it seems that most problems of interest have an algorithmic complexity of at most $O(n^4)$, probably because running time would otherwise becomes a severely limiting factor for the size of the problem.
 
@@ -295,7 +296,7 @@ Although the latter notation seems more explicit, it introduces non-serial depen
 % ----------------------------------------------
 \newpage
 \subsubsection{Nussinov algorithm} \label{nussinov} \ol
-\item Problem: folding a RNA string $S$ over itself $|S|=n$.
+\item Problem: folding a RNA string $S$ over itself $|S|=n$, according to matching properties ($\omega$) of its elements (also called bases).
 \item Matrices: $M_{n\times n}, B_{n \times n}$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\{a,c,g,u\}$.
@@ -330,7 +331,7 @@ Although the latter notation seems more explicit, it introduces non-serial depen
 % ----------------------------------------------
 \newpage
 \subsubsection{Zuker RNA folding} \label{zuker} \ol
-\item Problem: folding a RNA string $S$ over itself $|S|=n$ by minimizing the free energy.
+\item Problem: folding a RNA string $S$ over itself $|S|=n$ by minimizing the free energy (which is based on actual measurements, hereby much more complicated than Nussinov \S\ref{nussinov}).
 \item Matrices: $V_{n\times n}, W_{n\times n}, F_n$ (Free Energy),  $BV_{n \times n}, BW_{n \times n}, BF_n$
 \item Alphabets:\ul
 	\item Input: $\Sigma(S)=\{a,c,g,u\}$.
@@ -375,7 +376,7 @@ F_{(j)}&=&\min\left\{\begin{array}{l|l}
 
 With $\delta$ a lookup table. In practice, we don't go backward for larger values than 30, so we can replace $\min_{i<k<j}$ by $\min_{\max(i,j-30)<k<j}$ in the expressions of $VBI$.
 
-\item Backtracking: Start at $BF_{(n)}$ using the recurrences
+\item Backtracking: starts at $BF_{(n)}$ and uses the recurrences
  \[\begin{array}{rcl}
 	BF_{(j)} &=& \left\{\begin{array}{rcl} P&\implies& BF_{(j-1)} \\ i &\implies& BF_{(i-1)} + BV_{(i,j)} \end{array} \right.\\
 	\\
@@ -397,7 +398,9 @@ With $\delta$ a lookup table. In practice, we don't go backward for larger value
 \item Visualization\footnote{Reproductions of the illustrations from \cite{para_dprec} pp.148,149}:
 \begin{figure}[H]\begin{center}\includegraphics[width=8cm]{inc/zuker_rec.pdf}\end{center}\caption{Zuker folding dependencies}\end{figure}
 
-The recurrence consists of two non-serial dependencies as in \S\ref{swat_arbitrary} plus a bounded 2-dimensional dependency for bulges.\\[12pt]
+The recurrence consists of two non-serial dependencies as in \S\ref{swat_arbitrary} plus a bounded 2-dimensional dependency for bulges.
+
+\newpage
 Since this problem is non-trivial to understand from the recurrences, we propose an additional illustration of a RNA chain folded according to the Zuker folding algorithm.
 \begin{figure}[H]\begin{center}
 \includegraphics[width=10cm]{inc/zuker_struct.pdf} \\
