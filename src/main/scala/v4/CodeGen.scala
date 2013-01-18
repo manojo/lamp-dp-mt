@@ -125,14 +125,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
         def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u!=maxN) j.leq(i,-f-u)::ls else ls }
         val (c,k):(List[Cond],Var) = (tt,cc.indices) match {
           // low=up in at least one side
-// XXX:
-          //case (0,(iL,iU,jL,jU)) if (iU==maxN && jU==maxN) => val k0=g.get; (List(k0.loop(i.add(iL),j.add(-jL))), k0)
           case (0,(iL,iU,jL,jU)) if (iL==iU && jL==jU) => (List(i.eq(j,iL+jL)), i.add(iL))
-          //case (0,(iL,iU,0 ,jU)) if (iL==iU && jU==maxN) => (List(i.leq(j,iL)), i.add(iL))
-          //case (0,(0 ,iU,jL,jU)) if (jL==jU && iU==maxN) => (List(i.leq(j,jL)), j.add(-jL))
           case (0,(iL,iU,jL,jU)) if (iL==iU) => (bf1(iL,jL,jU), i.add(iL))
           case (0,(iL,iU,jL,jU)) if (jL==jU) => (bf1(jL,iL,iU), j.add(-jL))
-
           // most general case
           case (0,(iL,iU,jL,jU)) => val k0=g.get; var cs:List[Cond]=Nil;
             if (jU!=maxN) cs = j.leq(k0,-jU) :: cs
@@ -184,43 +179,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
     "unsigned tP=s_start; // block progress\n"+loops+"    if (j<M_W) {\n"+ind(kern,3)+"    }\n  }\n"+
     "  // Sync between blocks, removing __threadfence() here is incorrect but works\n  // __threadfence();\n"+
     "  if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }\n  __syncthreads();\n}")+"}\n"
-// XXX
-/*
-"""
-  if (tI==0) {
-    unsigned int i,j;
-    #define PRINT_TAB(TAB) printf("CUDA: %s\n",#TAB); \
-    for (i=0;i<M_H;++i) { \
-      for (j=0;j<M_W;++j) { \
-        if (j>=i) { \
-          int v = cost[idx(i,j)].TAB; \
-          int r = back[idx(i,j)].TAB.rule; \
-          if (r==-1) printf("  .   |"); \
-          else printf("%5d |",v); \
-        } else printf("      |"); \
-      } \
-      printf("\n"); \
-    }
-    PRINT_TAB(st)
-    PRINT_TAB(cl)
-
-    #define PRINT_RULE(TAB) printf("CUDA-rules: %s\n",#TAB); \
-    for (i=0;i<M_H;++i) { \
-      for (j=0;j<M_W;++j) { \
-        if (j>=i) { \
-          int r = back[idx(i,j)].TAB.rule; \
-          if (r==-1) printf("  .   |"); \
-          else printf("%5d |",r); \
-        } else printf("      |"); \
-      } \
-      printf("\n"); \
-    }
-    //PRINT_RULE(st)
-    //PRINT_RULE(cl)
-  }
-"""+
-*/
-// XXX
   }
 
   // --------------------------------------------------------------------------
@@ -413,6 +371,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
   private def useRna = this match { case s:RNASignature => s.energies case _ => false }
 
   def genRNA = this match {
+    // XXX: fix path automatically
+    // XXX: add way to link pre-existing object to spare compilation phase
     case s:RNASignature if (s.energies) =>
       def path ="../src/librna/"
       "// --------------------------------\n"+
@@ -464,12 +424,12 @@ trait CodeGen extends BaseParsers { this:Signature =>
       head.add("typedef struct { "+rulesOrder.map{n=>val c=rules(n).inner.cat; btTpe(c)+" "+n+";"}.mkString(" ")+" } back_t;")
       // Time complexity of computations: O(n^( max(#unbounded concatenations) + matrix_dimensions=2 ))
       def ucc[T](p0:Parser[T]):Int = p0 match {
-        case cc@Concat(l,r,_) => ucc(l)+ucc(r)+(if (cc.max== -1) 1 else 0)
+        case cc@Concat(l,r,_) => Math.max(ucc(l),ucc(r))+(if (l.max==maxN && r.max==maxN) 1 else 0)
         case Aggregate(p,_)=>ucc(p) case Filter(p,_)=>ucc(p) case Map(p,_)=>ucc(p) case Or(l,r)=>Math.max(ucc(l),ucc(r)) case _=>0
       }
       val cpx = rules.map{case(_,t)=>ucc(t.inner)}.max + 2
       // Code generation informations
-      val info="// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+", complexity/element=O(n^"+cpx+"), splits={SPLITS}\n"+
+      val info="// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+", complexity=O(n^"+cpx+"), splits={SPLITS}\n"+
         rulesOrder.zipWithIndex.map { case(n,i)=> val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max) }.mkString
       // Generate modules code
       val kern=genKern; val bt=genBT; var hlp=genHelpers(); var jni=genJNI; var rna=genRNA; var (hpub,hpriv,hfun)=head.flush
@@ -510,12 +470,4 @@ trait CodeGen extends BaseParsers { this:Signature =>
     "------------- jni -------------\n"+code_c+
     "------------- end -------------\n"
   }
-
-  // ------------------------
-  // XXX: (Manohar) Transform plain Scala function to CFun functions using Macros or LMS
-  // XXX: 4. Fix the Zuker coefficients (Scala)
-  // XXX: 5. Make the Zuker coefficients work for CUDA
-  // Write report => benchmarking strategy
-  // Benchmark
-  // Make presentation
 }

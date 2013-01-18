@@ -22,8 +22,6 @@ trait MatrixSig3 extends Signature {
     def apply(i:Int,l:Answer,k:Int,r:Answer,j:Int) = l + r + in(i)._1 * in(k)._1 * in(j-1)._2
     val args=List(("i","Int"),("l","Int"),("k","Int"),("r","Int"),("j","Int"))
     val body = "return l + r + _in1[i]._1 * _in1[k]._1 * _in1[j-1]._2;"
-      // XXX: fix in for cuda => pass as implicit argument for device functions ??
-      // XXX: use a __device__ input_t *in1, *in2; ??
     val tpe ="Int"
   }
 }

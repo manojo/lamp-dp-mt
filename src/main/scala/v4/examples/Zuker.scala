@@ -185,16 +185,13 @@ object Zuker extends App {
       "CXP: "+explain.build(seq.toArray,btC)+"\nGXP: "+explain.build(seq.toArray,btG)+"\n")
   }
 
-  //println(mfe.gen)
-  //println(mfe.code_h)
-
   // Having separate JVM instances is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
 
-  // XXX: also fix the complexity estimation
-  Zuker.testSeq("acgcaccggcauacgugugcucgaaaagcgu")
-  Zuker.testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
+  //println(mfe.gen)
+  testSeq("acgcaccggcauacgugugcucgaaaagcgu")
+  testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
 
   //scala.util.Random.setSeed(3974658973264L)
   //for (k<-0 until 50) { testSeq(RNAUtils.genSeq(80),false); if (k%80==0) println }

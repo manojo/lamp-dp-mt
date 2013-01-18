@@ -152,34 +152,7 @@ trait BaseParsers { this:Signature =>
     private var data:Array[List[(Answer,Backtrack)]] = null
     private var (mW,mH) = (0,0)
     def init(w:Int,h:Int) { mW=w; mH=h; val sz=if (twotracks) w*h else { assert(w==h); h*(h+1)/2 }; data=new Array(sz); }
-    def reset {
-      /*
-      if (name=="st"||name=="cl") data(idx((0,mW-1))) match { case (x:Int,_)::xs =>
-        println("Scala: "+name)
-        for (i<-0 until mH) {
-          for (j<-0 until mW) {
-            if (j>=i) data(idx((i,j))) match {
-              case (x:Int,_)::xs => print("%5d |".format(x))
-              case _ => print("  .   |")
-            } else print("      |")
-          }
-          println
-        }
-        println("Scala-rules: "+name)
-        for (i<-0 until mH) {
-          for (j<-0 until mW) {
-            if (j>=i) data(idx((i,j))) match {
-              case (_,(r:Int,_))::xs => print("%5d |".format(r))
-              case _ => print("  .   |")
-            } else print("      |")
-          }
-          println
-        }
-        case _ =>
-      }
-      */
-      data=null; mW=0; mH=0;
-    }
+    def reset { data=null; mW=0; mH=0; }
 
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
