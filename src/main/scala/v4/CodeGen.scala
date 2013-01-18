@@ -248,9 +248,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "#define cuStreamDestroy(stream) cuErr(cudaStreamDestroy(stream))\n"+
       "#define cuAlloc2(cond,host,dev,size) bool cond = cudaMalloc((void**)&dev,size)==cudaSuccess; if (!cond) { cuMap(host,dev,size); }\n"+
       "#define cuFree2(host,dev) { if (host!=NULL) { cuUnmap(host); host=NULL; } else cuFree(dev); dev=NULL; }"
-
     )
-    head.addPriv("#define _unroll _Pragma(\"unroll 5\")") // experimental optimal
+    head.addPriv("#define _unroll _Pragma(\"unroll "+(if(useRna) 1 else cudaUnroll)+"\")") // experimental optimal
     head.addPriv("#define M_W {MAT_WIDTH}")
     head.addPriv("#define M_H {MAT_HEIGHT}")
     if (twotracks) {
@@ -271,12 +270,13 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "int dev="+cudaDevice+"; cuErr("+(if(cudaDevice>=0)"cudaSetDevice(dev)" else "cudaGetDevice(&dev)")+");\n"+
       "cuMalloc(g_in1,sizeof(input_t)*(M_H-1)); cuPut(in1,g_in1,sizeof(input_t)*(M_H-1),NULL);\n"+
       (if (twotracks) "cuMalloc(g_in2,sizeof(input_t)*(M_W-1)); cuPut(in2,g_in2,sizeof(input_t)*(M_W-1),NULL);\n" else "g_in2=NULL;\n")+
-      "cudaDeviceProp prop; cuErr(cudaGetDeviceProperties(&prop, dev));\n"+
+      (if (useRna)"rna_init();\n" else "")+
       "size_t s_cost = sizeof(cost_t)*MEM_MATRIX;\n"+
       "size_t s_back = sizeof(back_t)*MEM_MATRIX;\n"+
       // Test & fail memory allocation (more reliable than estimations)
       "cuAlloc2(costDev,c_cost,g_cost,s_cost); cuAlloc2(backDev,c_back,g_back,s_back);\ngpu_input<<<1,1>>>(g_in1,g_in2);"+
-      (if (!benchmark)"" else "\nsize_t mem = (sizeof(input_t)+sizeof(trace_t))*(M_W+M_H) + s_cost + s_back;\n"+
+      (if (!benchmark)"" else "\ncudaDeviceProp prop; cuErr(cudaGetDeviceProperties(&prop, dev));\n"+
+        "size_t mem = (sizeof(input_t)+sizeof(trace_t))*(M_W+M_H) + s_cost + s_back;\n"+
         "printf(\"%-20s : %.2fMb / %.2fMb -> cost:%s, backtrack:%s\\n\",\"Memory selection\","+
         "mem/1048576.0,prop.totalGlobalMem/1048576.0, costDev?\"device\":\"host\", backDev?\"device\":\"host\");")
       // Estimation memory allocation: val cudaKernMem=32 must be sufficiently large. => up to 996/1024 memory available in "CUDA mode" (but this varies depending usage)
@@ -287,7 +287,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       // "else if (prop.canMapHostMemory) { cuMap(c_cost,g_cost,s_cost); cuMap(c_back,g_back,s_back); }\n"+
       // "else { fprintf(stderr,\"Not enough memory on '%s'.\\n\",prop.name); exit(EXIT_FAILURE); }"
       )+"}\n\n"+
-      "void g_free() {\n"+ind("cuFree(g_in1);"+(if(twotracks) " cuFree(g_in2);" else "")+"\n"+
+      "void g_free() {\n"+ind("cuFree(g_in1);"+(if(twotracks) " cuFree(g_in2);" else "")+(if (useRna)" rna_free();" else "")+"\n"+
       "cuFree2(c_cost,g_cost); cuFree2(c_back,g_back); cuReset;")+"}\n\n"
 
     // Wrapper to run the matrix computation
@@ -369,10 +369,42 @@ trait CodeGen extends BaseParsers { this:Signature =>
   }
 
   // --------------------------------------------------------------------------
+  // RNA folding specific additions
+
+  private def useRna = this match { case s:RNASignature => s.energies case _ => false }
+
+  def genRNA = this match {
+    case s:RNASignature if (s.energies) =>
+      def path ="../src/librna/"
+      "// --------------------------------\n"+
+      "#include \""+path+"vienna/vienna.h\"\n"+
+      "#define my_len M_H\n"+
+      "#define my_seq _in1\n"+
+      "#define my_P g_P\n"+
+      "#define my_dev __device__\n"+
+      "#include \""+path+"librna_impl.h\"\n"+
+      "#include \""+path+"vienna/vienna.c\"\n"+
+      "#include \""+path+"vienna/energy_par.c\"\n\n"+
+      "static paramT *cg_P=NULL;\n"+
+      "__global__ static void _initP(paramT* params) { g_P=params; }\n"+
+      "static inline void rna_init() {\n"+
+      "  read_parameter_file(\""+s.paramsFile+"\");\n"+
+      "  paramT* P = get_scaled_parameters();\n"+
+      "  cuMalloc(cg_P,sizeof(paramT));\n"+
+      "  cuPut(P,cg_P,sizeof(paramT),NULL);\n"+
+      "  _initP<<<1,1>>>(cg_P); free(P);\n"+
+      "}\n"+
+      "static inline void rna_free() { cuFree(cg_P); }\n"+
+      "// --------------------------------\n"
+    case _ => ""
+  }
+
+  // --------------------------------------------------------------------------
   // Configuration
 
   val cudaSplit = 1024 // threshold for multiple CUDA kernels
   val cudaDevice = -1  // preferred execution CUDA device
+  val cudaUnroll = 5 // experimental unrolling optimal
   val compiler = new CodeCompiler {
     override val outPath = "bin"
     override val cudaPath = "/usr/local/cuda"
@@ -401,8 +433,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
       val info="// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+", complexity/element=O(n^"+cpx+"), splits={SPLITS}\n"+
         rulesOrder.zipWithIndex.map { case(n,i)=> val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max) }.mkString
       // Generate modules code
-      val kern=genKern; val bt=genBT; var hlp=genHelpers(); var jni=genJNI; var (hpub,hpriv)=head.flush
-      (info+hpub, hpriv+"\n"+kern+"\n"+bt+"\n"+hlp, jni, cpx)
+      val kern=genKern; val bt=genBT; var hlp=genHelpers(); var jni=genJNI; var rna=genRNA; var (hpub,hpriv,hfun)=head.flush
+      (info+hpub, hpriv+"\n"+rna+"\n"+hfun+"\n"+kern+"\n"+bt+"\n"+hlp, jni, cpx)
     }
   }
 

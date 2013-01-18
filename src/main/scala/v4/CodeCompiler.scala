@@ -36,6 +36,7 @@ trait ScalaCompiler {
     if (this.compiler eq null) setupCompiler
     val compiler = this.compiler
     val run = new compiler.Run
+    new File(outPath).mkdirs
     val fileSystem = new scala.tools.nsc.io.PlainFile(outPath) // this fails with VirtualDirectory("<vfs>", None). Bug?
     compiler.settings.outputDirs.setSingleOutput(fileSystem)
     run.compileSources(List(new scala.reflect.internal.util.BatchSourceFile("<stdin>", source)))
@@ -105,6 +106,7 @@ trait CCompiler {
   // generate and load library
   def gen {
     val f = "comp"+CompileCounter.get
+    new File(outPath).mkdirs
     dataMap.foreach { case (ext,data) => val out=new FileWriter(outPath+"/"+f+"."+ext); out.write(replace(data,Map(("file",f)))); out.close }
     dataMap.foreach {
       case("c",_) =>   run("g++ "+ccFlags+" "+f+".c -c -o "+f+"_c.o") // gcc fails to link properly with nvcc object files

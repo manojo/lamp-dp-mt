@@ -63,25 +63,36 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
 }
 
 trait RNASignature extends Signature {
+  final type Alphabet = Char
   val energies = true
-  type Alphabet = Char
-  def in(x:Int):Char
+  var paramsFile:String = null // parameters for CodeGen
+  
+  // Setting LibRNA parameters
+  def setParams(file:String) = this match {
+    case c:CodeGen => paramsFile = file
+    case _ => if (energies) librna.LibRNA.setParams(file)
+  }
+
+  // Pairing functions
+  def in(x:Int):Char // expose ADPParsers
   val basepairing = new ((Int,Int)=>Boolean) with CFun {
     def apply(i:Int,j:Int):Boolean = if (i+2>j) false else (in(i),in(j-1)) match {
-      case ('a','u') | ('u','a') | ('u','g') | ('g','u') | ('g','c') | ('c','g') => true case _ => false
+      //case ('a','u') | ('u','a') | ('u','g') | ('g','u') | ('g','c') | ('c','g') => true
+      case ('\1','\4') | ('\4','\1') | ('\4','\3') | ('\3','\4') | ('\3','\2') | ('\2','\3') => true
+      case _ => false
     }
-    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(i,j)!=NO_BP;","Boolean")
+    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(_in1[i],_in1[j])!=NO_BP;","Boolean")
   }
   val stackpairing = new ((Int,Int)=>Boolean) with CFun {
     def apply(i:Int,j:Int):Boolean = basepairing(i,j) && basepairing(i+1,j-1)
-    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(i,j)!=NO_BP && bp_index(i+1,j-1)!=NO_BP;","Boolean")
+    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(_in1[i],_in1[j])!=NO_BP && bp_index(_in1[i+1],_in1[j-1])!=NO_BP;","Boolean")
   }
-  def setParams(file:String) = if (energies) librna.LibRNA.setParams(file)
+  def convert(in:String):Array[Alphabet] = in.toArray.map { case 'A'|'a'=>'\1' case 'C'|'c'=>'\2' case 'G'|'g'=>'\3' case 'U'|'u'=>'\4' case _ => sys.error("Invalid sequence") }
 }
 
 object RNAUtils {
   // Debugging helper, program must be Vienna/RNAfold-compatible
-  def refFold(seq:String,prog:String="RNAfold"):String = {
+  def refFold(seq:String,prog:String="./RNAfold"):String = {
     import java.io._
     val p = Runtime.getRuntime.exec(prog+" --noPS --noLP -d2");
     val in = new PrintStream(p.getOutputStream());

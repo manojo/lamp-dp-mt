@@ -102,7 +102,7 @@ trait BaseParsers { this:Signature =>
       cs.foreach { case (n,ds) if (ds.isEmpty||(true/:ds.map{d=>rulesOrder.contains(d)}){case(a,b)=>a&&b}) => rem=true; rulesOrder=n::rulesOrder; cs.remove(n); case _ => }
       if (rem==false) sys.error("Loop between tabulations, error in grammar")
     }
-    rulesOrder.reverse
+    rulesOrder = rulesOrder.reverse
     // Identify subrules (uniquely within the same grammar as sorted by name)
     var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.inner.alt; }
     true

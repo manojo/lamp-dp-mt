@@ -164,8 +164,8 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
   lazy val leftB   = BASE ~ BASE ~ REG30 ~ closed ~ BASE ~ BASE ^^ bl aggregate h
   lazy val rightB  = BASE ~ BASE ~ closed ~ REG30 ~ BASE ~ BASE ^^ br aggregate h
   lazy val iloop   = BASE ~ BASE ~ REG30 ~ closed ~ REG30 ~ BASE ~ BASE ^^ il aggregate h
-
   lazy val multiloop = BASE ~ BASE ~ ml_comps ~ BASE ~ BASE ^^ ml
+
   val ml_comps:Tabulate = tabulate("ml",(
       BASE ~ ml_comps ^^ sadd
     | (dangle ^^ ul) ~ ml_comps1 ^^ app
@@ -188,31 +188,23 @@ object Zuker extends App {
   object count extends ZukerGrammar with ZukerCount
   object explain extends ZukerGrammar with ZukerExplain
 
-  import librna.{LibRNA=>l}
-  l.setParams("src/librna/vienna/rna_turner2004.par")
+  mfe.setParams("src/librna/vienna/rna_turner2004.par")
   def parse(s:String) = {
-    l.setSequence(s);
-    val seq=s.toArray
+    val seq=mfe.convert(s)
     val (score,bt) = mfe.backtrack(seq).head;
     val res = pretty.build(seq,bt)
-    l.clear; (score,bt,res)
+    (score,bt,res)
   }
 
   def testSeq(seq:String, strict:Boolean=true) {
     val (score,bt,res)=parse(seq)
     val ref=RNAUtils.refFold(seq,"src/librna/rfold" /*"resources/RNAfold_orig_mac"*/)
     val our=res+" (%6.2f)".format(score/100.0)
-    if (ref==our) print(".")
+    if (ref==our || !strict && ref.substring(res.size)==our.substring(res.size)) print(".")
     else println("\nSeq: "+seq+"\nRef: "+ref+"\nOur: "+res+" (%6.2f)".format(score/100.0)+" FAILED\n"+explain.build(seq.toArray,bt)+"\n")
   }
 
-  def testSeq2(seq:String) {
-    val (score,bt,res)=parse(seq)
-    val ref=RNAUtils.refFold(seq,"src/librna/rfold" /*"resources/RNAfold_orig_mac"*/)
-    val our=res+" (%6.2f)".format(score/100.0)
-    if (ref.substring(res.size)==" (%6.2f)".format(score/100.0)) print(".")
-    else println("\nSeq: "+seq+"\nRef: "+ref+"\nOur: "+res+" (%6.2f)".format(score/100.0)+" FAILED\n"+explain.build(seq.toArray,bt)+"\n")
-  }
+  println(mfe.code_h)
 
   //println(mfe.gen)
 
@@ -220,6 +212,10 @@ object Zuker extends App {
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
  
+  Zuker.testSeq("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
+  //Zuker.testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
+
+
   //scala.util.Random.setSeed(3974658973264L)
-  //for (k<-0 until 4000) { testSeq2(RNAUtils.genSeq(80)); if (k%80==0) println }
+  //for (k<-0 until 4000) { testSeq(RNAUtils.genSeq(80),false); if (k%80==0) println }
 }

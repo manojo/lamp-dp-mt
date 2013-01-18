@@ -16,7 +16,8 @@ __attribute__((unused)) static inline void cuErr_(cudaError_t err, const char *f
 #define cuGet(host,dev,size,stream) cuErr(cudaMemcpyAsync(host,dev,size,cudaMemcpyDeviceToHost,stream))
 // -----------------------------
 
-#include "vienna/vienna.h" // paramT
+__device__ static char* g_seq = NULL;
+__device__ static int g_len = 0;
 
 #define my_len g_len
 #define my_seq g_seq
@@ -52,11 +53,30 @@ void freeSeq() { cuFree(cg_seq); }
 #include "vienna/vienna.c"
 #include "vienna/energy_par.c"
 
+__global__ void testKern(int* out) {
+	*out =
+    ext_mismatch_energy(0, 9) + termau_energy(0,9) + // dlr(0,9)
+    sr_energy(0,9) + // stack(0,9)
+    sr_energy(1,8) + hl_energy(2,7); // hairpin (1,8)
+
+}
+
 int main() {
     read_parameter_file("vienna/rna_turner2004.par");
     initP();
     initSeq("guaugagaua");
+
     // execution here
+    int c;
+    int *g;
+    cuMalloc(g,sizeof(int));
+    testKern<<<1,1>>>(g);
+    cuGet(&c,g,sizeof(int),NULL);
+    printf("Result = %d\n",c);
+
+    cuFree(g);
+
+
     freeSeq();
     freeP();
     return 0;

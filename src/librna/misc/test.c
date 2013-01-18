@@ -5,6 +5,9 @@
 
 // FLAGS:= ../vienna/*.c
 
+int c_len=0;
+char* c_seq=NULL;
+
 #define my_len c_len
 #define my_seq c_seq
 #define my_P c_P
@@ -39,7 +42,7 @@ int E_stack(int i, int j) { // = sr_energy
 
 
 int main(int argc, char **argv) {
-  const char* s= "agccccgguuaagaauaaaggagauuucuccgcccaaccccuguaaugcu";
+  const char* s= "guaugagaua";
 
   initSeq("../vienna/rna_turner2004.par",s);
 
@@ -52,12 +55,9 @@ int main(int argc, char **argv) {
   */
 
   int r =
-    termau_energy(0,49);
-    /*
     ext_mismatch_energy(0, 9) + termau_energy(0,9) + // dlr(0,9)
     sr_energy(0,9) + // stack(0,9)
     sr_energy(1,8) + hl_energy(2,7); // hairpin (1,8)
-    */
 
   printf("Result = %d (goal = -130)\n",r);
 

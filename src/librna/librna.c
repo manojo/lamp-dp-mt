@@ -44,6 +44,9 @@ JNIEXPORT jboolean JNICALL _fun(iupac_match)(_p0, jbyte, jbyte);
 }
 #endif
 
+static char* c_seq = NULL;
+static int c_len = 0;
+
 #define my_len c_len
 #define my_seq c_seq
 #define my_P c_P
@@ -59,21 +62,22 @@ void _fun(setParams)(_p0, jstring file) {
 void _fun(setSequence)(_p0, jstring sequence) {
   c_P=get_scaled_parameters();
   const char *str = (*env)->GetStringUTFChars(env, sequence, 0);
-  size_t i; if (c_seq) free(c_seq);
-  c_len=strlen(str); c_seq=malloc((c_len+1)*sizeof(char));
+  c_len=strlen(str); if (c_seq) free(c_seq); c_seq=malloc((c_len+1)*sizeof(char));
   if (c_seq==NULL) { fprintf(stderr,"Sequence memory allocation error.\n"); exit(EXIT_FAILURE); }
-  else {
-    for (i=0;i<c_len;++i) switch(str[i]) {
-      case 'a': c_seq[i]=1; break;
-      case 'c': c_seq[i]=2; break;
-      case 'g': c_seq[i]=3; break;
-      case 'u': c_seq[i]=4; break;
-      default:
-        fprintf(stderr,"Bad character '%c' (%d) in the provided sequence.\n",str[i],str[i]);
-        exit(EXIT_FAILURE);
-    }
-  	c_seq[c_len]=0;
+  strncpy(c_seq,str,c_len);
+  /*
+  size_t i;
+  for (i=0;i<c_len;++i) switch(str[i]) {
+    case 'a': c_seq[i]=1; break;
+    case 'c': c_seq[i]=2; break;
+    case 'g': c_seq[i]=3; break;
+    case 'u': c_seq[i]=4; break;
+    default:
+      fprintf(stderr,"Bad character '%c' (%d) in the provided sequence.\n",str[i],str[i]);
+      exit(EXIT_FAILURE);
   }
+  c_seq[c_len]=0;
+  */
   (*env)->ReleaseStringUTFChars(env, sequence, str);
 }
 

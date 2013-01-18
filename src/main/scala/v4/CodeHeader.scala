@@ -86,12 +86,13 @@ class CodeHeader(within:Any) {
   def add(str:String) { user = user + str + "\n" }
   def addPriv(str:String) { priv = priv + str + "\n" }
 
-  def flush:(String,String) = { // declared types must be written down in order to avoid 'incomplete type' issues
+  def flush = { // declared types must be written down in order to avoid 'incomplete type' issues
     val h1 = tps.toList.map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
              tps.toList.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" + user
-    val h2 = priv + "\n" + fns.toList.sortBy(_._2).map{case (f,n) => "__device__ static inline "+getType(f.tpe)+" "+n+"("+
+    val h2 = priv
+    val h3 = fns.toList.sortBy(_._2).map{case (f,n) => "__device__ static inline "+getType(f.tpe)+" "+n+"("+
              f.args.map{case (n,tp)=>(getType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n")+"\n"
-    tps.clear(); fns.clear(); tpc=0; fnc=0; user=""; priv=""; (h1,h2)
+    tps.clear(); fns.clear(); tpc=0; fnc=0; user=""; priv=""; (h1,h2,h3)
   }
 
   // --------------------------------------------------------------------------
