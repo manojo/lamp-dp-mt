@@ -81,11 +81,11 @@ trait RNASignature extends Signature {
       case ('\1','\4') | ('\4','\1') | ('\4','\3') | ('\3','\4') | ('\3','\2') | ('\2','\3') => true
       case _ => false
     }
-    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(_in1[i],_in1[j])!=NO_BP;","Boolean")
+    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(_in1[i],_in1[j-1])!=NO_BP;","Boolean")
   }
   val stackpairing = new ((Int,Int)=>Boolean) with CFun {
     def apply(i:Int,j:Int):Boolean = basepairing(i,j) && basepairing(i+1,j-1)
-    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(_in1[i],_in1[j])!=NO_BP && bp_index(_in1[i+1],_in1[j-1])!=NO_BP;","Boolean")
+    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(_in1[i],_in1[j-1])!=NO_BP && bp_index(_in1[i+1],_in1[j-2])!=NO_BP;","Boolean")
   }
   def convert(in:String):Array[Alphabet] = in.toArray.map { case 'A'|'a'=>'\1' case 'C'|'c'=>'\2' case 'G'|'g'=>'\3' case 'U'|'u'=>'\4' case _ => sys.error("Invalid sequence") }
 }

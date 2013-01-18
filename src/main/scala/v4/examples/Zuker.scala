@@ -21,7 +21,6 @@ trait ZukerSig extends RNASignature {
   val app:(Answer, Answer) => Answer
   val ul:(Answer) => Answer
   val addss:(Answer, SSeq) => Answer
-  val ssadd:(SSeq, Answer) => Answer
   val nil : Unit => Answer
 }
 
@@ -39,7 +38,6 @@ trait ZukerCount extends ZukerSig {
   val app = (c1:Answer, c:Answer) => c1 * c
   val ul = (c1:Answer) => c1
   val addss = (c1:Answer, e:SSeq) => c1
-  val ssadd = (e:SSeq, x:Answer) => x
   val nil = (d:Unit) => 1
   override val h = sum[Answer] _
 }
@@ -59,7 +57,6 @@ trait ZukerPrettyPrint extends ZukerSig {
   val app = (c1:Answer, c:Answer) => c1+c
   val ul = (c1:Answer) => c1
   val addss = (c1:Answer, e:SSeq) => c1+dots(e)
-  val ssadd = (e:SSeq, x:Answer) => dots(e)+x
   val nil = (d:Unit) => ""
 }
 
@@ -83,7 +80,6 @@ trait ZukerMFEGen extends ZukerSig {
   val app=cfun2((c1:Int, c:Int)=>c1+c,"c1,c","return c1+c;")
   val ul=cfun1((c1:Int)=>ul_energy+c1,"c1","return ul_energy()+c1;")
   val addss=cfun2((c1:Int, e:SSeq)=>c1,"c1,e","return c1;")
-  val ssadd=cfun2((e:SSeq,x:Int)=>ul_energy+x,"e,x","return ul_energy()+x;")
   val nil=cfun1((d:Unit)=>0,"","return 0;")
   override val h = min[Answer] _
 
@@ -119,7 +115,6 @@ trait ZukerExplain extends ZukerSig {
   val app = (c1:Answer, c:Answer) => c1+c  +" app"
   val ul = (c1:Answer) => c1  +" ul"
   val addss = (c1:Answer, e:SSeq) => c1+dots(e) +" addss"
-  val ssadd = (e:SSeq, x:Answer) => dots(e)+x   +" ssadd"
   val nil = (d:Unit) => ""  +" nil"
 }
 
@@ -138,7 +133,6 @@ trait ZukerMFE extends ZukerSig {
   val app = (c1:Answer, c:Answer) => c1 + c
   val ul = (c1:Answer) => ul_energy + c1
   val addss = (c1:Answer, e:SSeq) => c1 // + ss_energy(e._1,e._2-1)=0 OK
-  val ssadd = (e:SSeq, x:Answer) => ul_energy + x // + ss_energy(e._1,e._2-1)=0 OK
   val nil = (d:Unit) => 0
   override val h = min[Answer] _
 }
@@ -154,7 +148,7 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
       BASE   ~ struct ^^ sadd
     | dangle ~ struct ^^ cadd
     | empty           ^^ nil
-    ) aggregate h);
+    ) aggregate h, true); // always nonempty
 
   lazy val dangle = LOC ~ closed ~ LOC ^^ dlr
   val closed:Tabulate = tabulate("cl", (stack | hairpin | leftB | rightB | iloop | multiloop) filter stackpairing aggregate h)
@@ -204,9 +198,8 @@ object Zuker extends App {
     else println("\nSeq: "+seq+"\nRef: "+ref+"\nOur: "+res+" (%6.2f)".format(score/100.0)+" FAILED\n"+explain.build(seq.toArray,bt)+"\n")
   }
 
-  println(mfe.code_h)
 
-  //println(mfe.gen)
+  println(mfe.gen)
 
   // Having separate JVM instances is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
