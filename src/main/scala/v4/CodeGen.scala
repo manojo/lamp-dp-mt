@@ -59,17 +59,17 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   // Optimizations and conditions simplifications, voluntarily not comprehensive as C compiler re-optimize them later
   def simplify(conds: List[Cond]):List[Cond] = {
-      var cs = conds.distinct.filter { case CEq(a,b,0) if (a==b) => false case _ => true } // 1. filter x+0=x
-      cs = cs.map { case CFor(v,l,ld,u,ud) => var lm=ld; var um=ud; // 2. minimize the range of for loop
-          cs.foreach { case CLeq(a,b,d) => if (a==l && b==v && d>lm) lm=d; if (a==v && b==u && d>um) um=d; case _ => }
-          CFor(v,l,lm,u,um)
-        case x => x
-      }
-      cs.foreach { // 3. drop useless Leq (either contained by a For or superseded by another constraint on the same pair)
-        case CLeq(a,b,x) => cs=cs.filter { case CLeq(c,d,y) if (c==a && d==b && y<x) => false case _ => true }
-        case CFor(v,l,_,u,_) => cs=cs.filter { case CLeq(c,d,_) if (c==l && d==v || c==v && d==u) => false case _ => true }
-        case _ =>
-      }; cs
+    var cs = conds.distinct.filter { case CEq(a,b,0) if (a==b) => false case _ => true } // 1. filter x+0=x
+    cs = cs.map { case CFor(v,l,ld,u,ud) => var lm=ld; var um=ud; // 2. minimize the range of for loop
+        cs.foreach { case CLeq(a,b,d) => if (a==l && b==v && d>lm) lm=d; if (a==v && b==u && d>um) um=d; case _ => }
+        CFor(v,l,lm,u,um)
+      case x => x
+    }
+    cs.foreach { // 3. drop useless Leq (either contained by a For or superseded by another constraint on the same pair)
+      case CLeq(a,b,x) => cs=cs.filter { case CLeq(c,d,y) if (c==a && d==b && y<x) => false case _ => true }
+      case CFor(v,l,_,u,_) => cs=cs.filter { case CLeq(c,d,_) if (c==l && d==v || c==v && d==u) => false case _ => true }
+      case _ =>
+    }; cs
   }
 
   // Code indentation helper
@@ -128,15 +128,15 @@ trait CodeGen extends BaseParsers { this:Signature =>
 // XXX:
           //case (0,(iL,iU,jL,jU)) if (iU==maxN && jU==maxN) => val k0=g.get; (List(k0.loop(i.add(iL),j.add(-jL))), k0)
           case (0,(iL,iU,jL,jU)) if (iL==iU && jL==jU) => (List(i.eq(j,iL+jL)), i.add(iL))
-          case (0,(iL,iU,0 ,jU)) if (iL==iU && jU==maxN) => (List(i.leq(j,iL)), i.add(iL))
-          case (0,(0 ,iU,jL,jU)) if (jL==jU && iU==maxN) => (List(i.leq(j,jL)), j.add(-jL))
+          //case (0,(iL,iU,0 ,jU)) if (iL==iU && jU==maxN) => (List(i.leq(j,iL)), i.add(iL))
+          //case (0,(0 ,iU,jL,jU)) if (jL==jU && iU==maxN) => (List(i.leq(j,jL)), j.add(-jL))
           case (0,(iL,iU,jL,jU)) if (iL==iU) => (bf1(iL,jL,jU), i.add(iL))
           case (0,(iL,iU,jL,jU)) if (jL==jU) => (bf1(jL,iL,iU), j.add(-jL))
 
           // most general case
           case (0,(iL,iU,jL,jU)) => val k0=g.get; var cs:List[Cond]=Nil;
             if (jU!=maxN) cs = j.leq(k0,-jU) :: cs
-            if (iU!=maxN) cs = i.leq(k0,iU) :: cs // we might want to simplify if min_k==i || max_k==j
+            if (iU!=maxN) cs = k0.leq(i,-iU) :: cs // we might want to simplify if min_k==i || max_k==j
             (CFor(k0.v,i.v,iL,j.v,jL)::cs, k0)
           // concat1,concat2
           case (t,(a,b,c,d)) if (t==1||t==2) => val (l,u,v) = if (t==1) (a,b,i) else (c,d,j)
@@ -176,7 +176,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
              "cost_t _cost = {}; // init to 0\n#define VALID(I,J,RULE) (back[idx(I,J)].RULE.rule!=-1)\n"+
              rulesOrder.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)+"\ncost[idx(i,j)]."+n+" = _cost."+n+";\nback[idx(i,j)]."+n+" = _back."+n+";"}.mkString("\n")
     val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
-      (if (twotracks) "  for (unsigned i=tI; i<M_H; i+=tN) {\n    unsigned j = jj-tI;" else "  for (unsigned ii=tI; ii<M_H; ii+=tN) {\n    unsigned i = M_H-1-ii, j = i+jj;")+"\n"
+      (if (twotracks) "  for (int i=tI; i<M_H; i+=tN) {\n    int j = jj-tI;" else "  for (int ii=tI; ii<M_H; ii+=tN) {\n    int i = M_H-1-ii, j = i+jj;")+"\n"
     "__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {\n"+ind(
     "const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x;\n"+
     "const unsigned tN = blockDim.x * gridDim.x;\n"+
@@ -221,7 +221,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
 """+
 */
 // XXX
-    
   }
 
   // --------------------------------------------------------------------------

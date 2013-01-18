@@ -97,7 +97,7 @@ trait ZukerMFE extends ZukerSig {
   val il  = cfun7((f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) => x + il_energy(f2,r1._2,r2._1-1,f3) + sr_energy(f1,f4),
                   "f1,f2,r1,x,r2,f3,f4",                                  "return x + il_energy(f2,r1._2,r2._1-1,f3) + sr_energy(f1,f4);")
   val ml  = cfun5((lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) => ml_energy + ul_energy + x + termau_energy(f1,f2) + sr_energy(lb,rb) + ml_mismatch_energy(f1,f2),
-                  "lb,f1,x,f2,rb",                  "return ml_energy() + ul_energy() + x + termau_energy(f1,f2) + sr_energy(lb,rb) + ml_mismatch_energy(f1,f2);")  
+                  "lb,f1,x,f2,rb",                  "return ml_energy() + ul_energy() + x + termau_energy(f1,f2) + sr_energy(lb,rb) + ml_mismatch_energy(f1,f2);")
   val app = cfun2((c1:Int, c:Int)=> c1+c,  "c1,c", "return c1+c;")
   val ul  = cfun1((c1:Int)=> ul_energy+c1, "c1",   "return ul_energy()+c1;")
   val addss=cfun2((c1:Int, e:SSeq)=> c1,   "c1,e", "return c1;")
@@ -129,7 +129,7 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
   val LOC = emptyi
   val REG = seq()
   val REG3 = seq(3,maxN)
-  val REG30 = seq() // seq(1,30) // XXX: fix this
+  val REG30 = seq(1,30)
 
   val struct:Tabulate = tabulate("st",(
       BASE   ~ struct ^^ sadd
@@ -162,7 +162,7 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
 
 object Zuker extends App {
   object mfe extends ZukerGrammar with ZukerMFE with CodeGen {
-    //override val benchmark = true
+    override val benchmark = true
     override val tps = (manifest[Alphabet],manifest[Answer])
   }
   object pretty extends ZukerGrammar with ZukerPrettyPrint
@@ -191,12 +191,11 @@ object Zuker extends App {
   // Having separate JVM instances is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
- 
-  // XXX: also fix the complexity estimation
-  //Zuker.testSeq("acgcaccggcauacgugugcucgaaaagcgu")
-  //Zuker.testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
 
+  // XXX: also fix the complexity estimation
+  Zuker.testSeq("acgcaccggcauacgugugcucgaaaagcgu")
+  Zuker.testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
 
   //scala.util.Random.setSeed(3974658973264L)
-  for (k<-0 until 50) { testSeq(RNAUtils.genSeq(80),false); if (k%80==0) println }
+  //for (k<-0 until 50) { testSeq(RNAUtils.genSeq(80),false); if (k%80==0) println }
 }
