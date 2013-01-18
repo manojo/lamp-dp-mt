@@ -14,6 +14,22 @@ trait Signature {
   def count[T:Numeric]: List[T]=>List[T]
   def maxBy[T,U:Numeric](f:T=>U): List[T]=>List[T]
   def minBy[T,U:Numeric](f:T=>U): List[T]=>List[T]
+
+  // helpers to manually write CFun
+  def cfun1[A,R](fn:A=>R,as:String,bdy:String)(implicit mA:Manifest[A],mR:Manifest[R]) =
+    new Function1[A,R] with CFun { val (args,body,tpe)=((if(as!="") List(as) else Nil) zip List(mA).map{_.toString},bdy,mR.toString); def apply(a:A) = fn(a) }
+  def cfun2[A,B,R](fn:(A,B)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mR:Manifest[R]) =
+    new Function2[A,B,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB).map{_.toString},bdy,mR.toString); def apply(a:A,b:B) = fn(a,b) }
+  def cfun3[A,B,C,R](fn:(A,B,C)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mC:Manifest[C],mR:Manifest[R]) =
+    new Function3[A,B,C,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C) = fn(a,b,c) }
+  def cfun4[A,B,C,D,R](fn:(A,B,C,D)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mC:Manifest[C],mD:Manifest[D],mR:Manifest[R]) =
+    new Function4[A,B,C,D,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC,mD).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C,d:D) = fn(a,b,c,d) }
+  def cfun5[A,B,C,D,E,R](fn:(A,B,C,D,E)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mC:Manifest[C],mD:Manifest[D],mE:Manifest[E],mR:Manifest[R]) =
+    new Function5[A,B,C,D,E,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC,mD,mE).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C,d:D,e:E) = fn(a,b,c,d,e) }
+  def cfun6[A,B,C,D,E,F,R](fn:(A,B,C,D,E,F)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mC:Manifest[C],mD:Manifest[D],mE:Manifest[E],mF:Manifest[F],mR:Manifest[R]) =
+    new Function6[A,B,C,D,E,F,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC,mD,mE,mF).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C,d:D,e:E,f:F) = fn(a,b,c,d,e,f) }
+  def cfun7[A,B,C,D,E,F,G,R](fn:(A,B,C,D,E,F,G)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mC:Manifest[C],mD:Manifest[D],mE:Manifest[E],mF:Manifest[F],mG:Manifest[G],mR:Manifest[R]) =
+    new Function7[A,B,C,D,E,F,G,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC,mD,mE,mF,mG).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C,d:D,e:E,f:F,g:G) = fn(a,b,c,d,e,f,g) }
 }
 
 trait BaseParsers { this:Signature =>
@@ -136,7 +152,34 @@ trait BaseParsers { this:Signature =>
     private var data:Array[List[(Answer,Backtrack)]] = null
     private var (mW,mH) = (0,0)
     def init(w:Int,h:Int) { mW=w; mH=h; val sz=if (twotracks) w*h else { assert(w==h); h*(h+1)/2 }; data=new Array(sz); }
-    def reset { data=null; mW=0; mH=0; }
+    def reset {
+      /*
+      if (name=="st"||name=="cl") data(idx((0,mW-1))) match { case (x:Int,_)::xs =>
+        println("Scala: "+name)
+        for (i<-0 until mH) {
+          for (j<-0 until mW) {
+            if (j>=i) data(idx((i,j))) match {
+              case (x:Int,_)::xs => print("%5d |".format(x))
+              case _ => print("  .   |")
+            } else print("      |")
+          }
+          println
+        }
+        println("Scala-rules: "+name)
+        for (i<-0 until mH) {
+          for (j<-0 until mW) {
+            if (j>=i) data(idx((i,j))) match {
+              case (_,(r:Int,_))::xs => print("%5d |".format(r))
+              case _ => print("  .   |")
+            } else print("      |")
+          }
+          println
+        }
+        case _ =>
+      }
+      */
+      data=null; mW=0; mH=0;
+    }
 
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))

@@ -2,97 +2,90 @@ package v4.examples
 import v4._
 
 // Nussinov RNA folding
-trait PairingSig extends Signature {
-  def nil(a: Unit): Answer
-  def left(c: Alphabet, a: Answer): Answer
-  def right(a: Answer, c: Alphabet): Answer
-  def pair(l: Alphabet, a: Answer, r: Alphabet): Answer
-  def split(l: Answer, r: Answer): Answer
+trait NussinovSig extends Signature {
+  type Alphabet = Char
+  val nil:Unit=>Answer
+  val left:(Alphabet,Answer)=>Answer
+  val right:(Answer,Alphabet)=>Answer
+  val pair:(Alphabet,Answer,Alphabet)=>Answer
+  val split:(Answer,Answer)=>Answer
 }
 
-trait PairingAlgebra extends PairingSig {
+trait NussinovAlgebra extends NussinovSig {
   type Answer = Int
-
-  def nil(a: Unit) = 0
-  def left(c: Alphabet,a: Answer) = a
-  def right(a: Answer, c:Alphabet) = a
-  def pair(l: Alphabet, a: Answer, r: Alphabet) = a+1
-  def split(l: Answer, r: Answer) = l + r
-
+  /*
+  val nil = (a: Unit) => 0
+  val left = (c: Alphabet,a: Answer) => a
+  val right = (a: Answer, c:Alphabet) => a
+  val pair = (l: Alphabet, a: Answer, r: Alphabet) => a+1
+  val split = (l: Answer, r: Answer) => l + r
+  */
+  val nil   = cfun1((a: Unit) => 0, "", "return 0;")
+  val left  = cfun2((c: Alphabet,a: Answer) => a, "c,a", "return a;")
+  val right = cfun2((a: Answer,c: Alphabet) => a, "a,c", "return a;")
+  val pair  = cfun3((l: Alphabet, a: Answer, r: Alphabet) => a+1, "l,a,r", "return a+1;")
+  val split = cfun2((l: Answer, r: Answer) => l + r, "l,r", "return l+r;")
   override val h = max[Answer] _
 }
 
-/*
-trait PrettyPrintAlgebra extends PairingSig {
-  type Answer = (String,String)
-  type Alphabet = Char
+trait NussinovString extends NussinovSig {
+  type Answer = String
+  val nil = (a:Unit) => ""
+  val left = (c: Alphabet,a: Answer) => "."+a
+  val right = (a: Answer, c:Alphabet) => a+"."
+  val pair = (l: Alphabet, a: Answer, r: Alphabet) => "("+a+")"
+  val split = (l: Answer, r: Answer) => l+r
+}
 
-  def nil(a:Unit) = ("","")
-  def left(c: Alphabet,a: Answer) = ("."+a._1, c+a._2)
-  def right(a: Answer, c:Alphabet) = (a._1+".", a._2 + c)
-  def pair(l: Alphabet, a: Answer, r: Alphabet) = ("("+a._1+")", l+a._2+r)
-  def split(l: Answer, r: Answer) = (l._1+r._1, l._2+r._2)
+/*
+// Combining two algebrae: a bad idea as it is inefficient
+trait NussinovPrettyAlgebra extends NussinovSig {
+  type Answer = (Int, String)
+  val nil = (a: Unit) => (0, "")
+  val left = (c: Alphabet,a: Answer) => (a._1, "."+a._2)
+  val right = (a: Answer, c:Alphabet) => (a._1, a._2+".")
+  val pair = (l: Alphabet, a: Answer, r: Alphabet) => (a._1 + 1, "("+a._2+")")
+  val split = (l: Answer, r: Answer) => (l._1 + r._1, l._2 + r._2)
+  override val h = maxBy((a:Answer)=>a._1)
 }
 */
 
-// Combining two algebrae: done manually for now
-trait PrettyPairingAlgebra extends PairingSig {
-  type Answer = (Int, String)
-
-  def nil(a: Unit) = (0, "")
-  def left(c: Alphabet,a: Answer) = (a._1, "."+a._2)
-  def right(a: Answer, c:Alphabet) = (a._1, a._2+".")
-  def pair(l: Alphabet, a: Answer, r: Alphabet) = (a._1 + 1, "("+a._2+")")
-  def split(l: Answer, r: Answer) = (l._1 + r._1, l._2 + r._2)
-
-  override val h = (l:List[Answer]) => l match {
-    case Nil => Nil
-    case _ => l.maxBy(_._1)::Nil
+trait NussinovGrammar extends ADPParsers with NussinovSig {
+  val basePair = cfun2((i:Int,j:Int) => if (i+2>j) false else (in(i),in(j-1)) match {
+    case ('a','u') | ('u','a') | ('g','u') | ('u','g') | ('c','g') | ('g','c') => true
+    case _ => false
+  },"i,j","if (i+2>j) return false; char a=_in1[i],b=_in1[j-1];"+
+    " return (a=='a'&&b=='u') || (a=='u'&&b=='a') || (a=='g'&&b=='u') || (a=='u'&&b=='g') || (a=='c'&&b=='g') || (a=='g'&&b=='c');")
+  /*
+  def basePair(i:Int,j:Int) = (in(i),in(j-1)) match {
+    case ('a','u') | ('u','a') | ('g','u') | ('u','g') | ('c','g') | ('g','c') => true
+    case _ => false
   }
-}
-
-trait NussinovGrammar extends LexicalParsers with PrettyPairingAlgebra {
-  val basePairs = List(('a','u'),('u','a'),('g','u'),('u','g'),('c','g'),('g','c'))
-  def isBasePair(a: Char, b: Char) = basePairs contains (a,b)
+  */
 
   val s:Tabulate = tabulate("s",(
-    empty    ^^ nil
-  | s ~ char ^^ right
-  | s ~ t    ^^ split
+    empty  ^^ nil
+  | el ~ s ^^ left
+  | s ~ el ^^ right
+  | s ~ t  ^^ split
   ) aggregate h)
 
-  val t:Tabulate = tabulate("t",
-    ((char ~ s ~ char)
-      filter {case (i,j) => isBasePair(in(i),in(j-1))}) ^^ pair
-  )
+  val t:Tabulate = tabulate("t", (el ~ s ~ el filter basePair) ^^ pair)
 
   val axiom=s
 }
 
-object Nussinov extends NussinovGrammar with App {
-  println(parse("guaugu"))
-  println(parse("acguacguacguacguacguacgu"))
-
-
-  def testSeq(s:String) = {
-    println(s)
-    println(parse(s))
-    println
+object Nussinov extends App {
+  object nu extends NussinovGrammar with NussinovAlgebra with CodeGen {
+    override val tps = (manifest[Alphabet],manifest[Answer])
   }
-  testSeq("ccuuuuucaaagg")
-  testSeq("guacgucaguacguacgugacugucagucaac")
-  testSeq("aaaaaggaaacuccucuuu")
-  testSeq("uucuccucaggaaga")
-  testSeq("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
-  testSeq("gccaaccucgugca")
-  testSeq("ggccaaccucgugcaa")
-  testSeq("guugcucagcacgcguaaga")
-  // PART 2
-  testSeq("gggcgcucaaccgagucagcagugcaauauagggccc")
-  testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
-  testSeq("accacuccucauuugacuuauaggcucagaauuaguagaccacaguucacugugaaagga")
-  testSeq("uugcccuaugucaaacauaugucgcaaagcacacgucguauucaccacgaucaaccaggg")
-  testSeq("ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug")
-
-
+  object pretty extends NussinovGrammar with NussinovString
+  def testSeq(seq:String) = {
+    val s=seq.toArray
+    val (score,bt) = nu.backtrack(s).head
+    println(seq+"\nGPU: "+pretty.build(s,bt)+" ("+score+")")
+    val (score2,bt2) = nu.backtrack(s,true).head
+    println("CPU: "+pretty.build(s,bt2)+" ("+score2+")\n")
+  }
+  for (k<-0 until 30) testSeq(RNAUtils.genSeq(180))
 }

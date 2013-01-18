@@ -42,7 +42,7 @@ int E_stack(int i, int j) { // = sr_energy
 
 
 int main(int argc, char **argv) {
-  const char* s= "guaugagaua";
+  const char* s= "aacaaaccggguuuguu";
 
   initSeq("../vienna/rna_turner2004.par",s);
 
@@ -54,12 +54,27 @@ int main(int argc, char **argv) {
   printf("%d -- %d\n",hl_energy(2,7), E_Hairpin(4,_bp(2,7),3,6,"CUCAGG",c_P));
   */
 
+/*
   int r =
     ext_mismatch_energy(0, 9) + termau_energy(0,9) + // dlr(0,9)
     sr_energy(0,9) + // stack(0,9)
     sr_energy(1,8) + hl_energy(2,7); // hairpin (1,8)
 
   printf("Result = %d (goal = -130)\n",r);
+*/
+
+
+  printf("CPU Result = %d\n",
+    ext_mismatch_energy(1,16) + termau_energy(1,16)
+  );
+
+  printf("GPU Result = %d\n",
+    ext_mismatch_energy(0,17) + termau_energy(0,17) +
+    sr_energy(1,16)
+  );
+
+
+
 
   freeSeq();
   return 0;

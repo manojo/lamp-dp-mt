@@ -20,10 +20,8 @@ enum bp_t { N_BP, CG_BP, GC_BP, GU_BP, UG_BP, AU_BP, UA_BP, NO_BP };
 typedef unsigned int rsize;
 
 my_dev static paramT *my_P = NULL;
-/*
-my_dev static char* my_seq = NULL;
-my_dev static int my_len = 0;
-*/
+// my_dev static char* my_seq = NULL;
+// my_dev static int my_len = 0;
 
 my_dev int termau_energy(rsize i, rsize j);
 my_dev int hl_energy(rsize i, rsize j);

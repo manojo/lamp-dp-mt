@@ -23,7 +23,7 @@ __device__ static int g_len = 0;
 #define my_seq g_seq
 #define my_P g_P
 #define my_dev __device__
-#include "librna_impl.h"
+#include "../librna_impl.h"
 
 // -----------------------------
 // transfer helpers
@@ -50,10 +50,22 @@ void freeSeq() { cuFree(cg_seq); }
 // EXAMPLE APPLICATION
 // -----------------------------------------------------------------------------
 
-#include "vienna/vienna.c"
-#include "vienna/energy_par.c"
+#include "../vienna/vienna.c"
+#include "../vienna/energy_par.c"
 
 __global__ void testKern(int* out) {
+
+
+  printf("CPU Result = %d\n",
+    ext_mismatch_energy(1,16) + termau_energy(1,16)
+  );
+
+  printf("GPU Result = %d\n",
+    ext_mismatch_energy(0,17) + termau_energy(0,17) +
+    sr_energy(1,16)
+  );
+
+
 	*out =
     ext_mismatch_energy(0, 9) + termau_energy(0,9) + // dlr(0,9)
     sr_energy(0,9) + // stack(0,9)
@@ -62,9 +74,9 @@ __global__ void testKern(int* out) {
 }
 
 int main() {
-    read_parameter_file("vienna/rna_turner2004.par");
+    read_parameter_file("../vienna/rna_turner2004.par");
     initP();
-    initSeq("guaugagaua");
+    initSeq("aacaaaccggguuuguu");
 
     // execution here
     int c;

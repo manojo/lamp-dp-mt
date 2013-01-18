@@ -122,19 +122,21 @@ trait CodeGen extends BaseParsers { this:Signature =>
       case Map(p,f) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr); (c,hb,genFun(f)+"("+b+")",bti)
       case Filter(p,f) => val (c,hb,b,bti)=gen(p,i,j,g,rule,aggr); (CUser(genFun(f)+"("+i+","+j+")")::c,hb,b,bti)
       case cc@Concat(l,r,tt) =>
-        def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u>0) j.leq(i,-f-u)::ls else ls }
+        def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u!=maxN) j.leq(i,-f-u)::ls else ls }
         val (c,k):(List[Cond],Var) = (tt,cc.indices) match {
           // low=up in at least one side
-          case (0,(0,0,0,0)) => val k0=g.get; (List(k0.loop(i,j)), k0)
-          case (0,(iL,iU,0,0)) if (iL==iU) => (List(i.leq(j,iL)), i.add(iL))
-          case (0,(0,0,jL,jU)) if (jL==jU) => (List(i.leq(j,jL)), j.add(-jL))
+// XXX:
+          //case (0,(iL,iU,jL,jU)) if (iU==maxN && jU==maxN) => val k0=g.get; (List(k0.loop(i.add(iL),j.add(-jL))), k0)
           case (0,(iL,iU,jL,jU)) if (iL==iU && jL==jU) => (List(i.eq(j,iL+jL)), i.add(iL))
+          case (0,(iL,iU,0 ,jU)) if (iL==iU && jU==maxN) => (List(i.leq(j,iL)), i.add(iL))
+          case (0,(0 ,iU,jL,jU)) if (jL==jU && iU==maxN) => (List(i.leq(j,jL)), j.add(-jL))
           case (0,(iL,iU,jL,jU)) if (iL==iU) => (bf1(iL,jL,jU), i.add(iL))
           case (0,(iL,iU,jL,jU)) if (jL==jU) => (bf1(jL,iL,iU), j.add(-jL))
+
           // most general case
           case (0,(iL,iU,jL,jU)) => val k0=g.get; var cs:List[Cond]=Nil;
-            if (jU>0) cs = j.leq(k0,-jU) :: cs
-            if (iU>0) cs = i.leq(k0,iU) :: cs // we might want to simplify if min_k==i || max_k==j
+            if (jU!=maxN) cs = j.leq(k0,-jU) :: cs
+            if (iU!=maxN) cs = i.leq(k0,iU) :: cs // we might want to simplify if min_k==i || max_k==j
             (CFor(k0.v,i.v,iL,j.v,jL)::cs, k0)
           // concat1,concat2
           case (t,(a,b,c,d)) if (t==1||t==2) => val (l,u,v) = if (t==1) (a,b,i) else (c,d,j)
@@ -155,7 +157,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       } foldRight List[Cond]()) { case (CUser(c1),CUser(c2)::as) => CUser(c1+" && "+c2)::as case (c,acc)=>c::acc }
       var hb=false; var br=false
       val cc=(cs foldRight body){
-        case (CFor(v,l,ld,u,ud),b) => val b2=(if ((hbody+body).contains("_unroll")) "" else "_unroll ")+
+        case (CFor(v,l,ld,u,ud),b) => val b2=(if ((hbody+b).contains("_unroll")) "" else "_unroll ")+
           "for(int "+v+"="+Var(l,ld)+(ud match {
             case 0 => "; "+v+"<="+u case 1 => "; "+v+"<"+u
             case _ => ","+v+"u="+u+"-"+ud+"; "+v+"<="+v+"u"
@@ -172,7 +174,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   def genKern = {
     val kern="back_t _back = {"+rulesOrder.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n"+
              "cost_t _cost = {}; // init to 0\n#define VALID(I,J,RULE) (back[idx(I,J)].RULE.rule!=-1)\n"+
-             rulesOrder.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)}.mkString("\n")+"\ncost[idx(i,j)] = _cost;\nback[idx(i,j)] = _back;"
+             rulesOrder.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)+"\ncost[idx(i,j)]."+n+" = _cost."+n+";\nback[idx(i,j)]."+n+" = _back."+n+";"}.mkString("\n")
     val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
       (if (twotracks) "  for (unsigned i=tI; i<M_H; i+=tN) {\n    unsigned j = jj-tI;" else "  for (unsigned ii=tI; ii<M_H; ii+=tN) {\n    unsigned i = M_H-1-ii, j = i+jj;")+"\n"
     "__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {\n"+ind(
@@ -182,6 +184,44 @@ trait CodeGen extends BaseParsers { this:Signature =>
     "unsigned tP=s_start; // block progress\n"+loops+"    if (j<M_W) {\n"+ind(kern,3)+"    }\n  }\n"+
     "  // Sync between blocks, removing __threadfence() here is incorrect but works\n  // __threadfence();\n"+
     "  if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }\n  __syncthreads();\n}")+"}\n"
+// XXX
+/*
+"""
+  if (tI==0) {
+    unsigned int i,j;
+    #define PRINT_TAB(TAB) printf("CUDA: %s\n",#TAB); \
+    for (i=0;i<M_H;++i) { \
+      for (j=0;j<M_W;++j) { \
+        if (j>=i) { \
+          int v = cost[idx(i,j)].TAB; \
+          int r = back[idx(i,j)].TAB.rule; \
+          if (r==-1) printf("  .   |"); \
+          else printf("%5d |",v); \
+        } else printf("      |"); \
+      } \
+      printf("\n"); \
+    }
+    PRINT_TAB(st)
+    PRINT_TAB(cl)
+
+    #define PRINT_RULE(TAB) printf("CUDA-rules: %s\n",#TAB); \
+    for (i=0;i<M_H;++i) { \
+      for (j=0;j<M_W;++j) { \
+        if (j>=i) { \
+          int r = back[idx(i,j)].TAB.rule; \
+          if (r==-1) printf("  .   |"); \
+          else printf("%5d |",r); \
+        } else printf("      |"); \
+      } \
+      printf("\n"); \
+    }
+    //PRINT_RULE(st)
+    //PRINT_RULE(cl)
+  }
+"""+
+*/
+// XXX
+    
   }
 
   // --------------------------------------------------------------------------
@@ -378,7 +418,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       def path ="../src/librna/"
       "// --------------------------------\n"+
       "#include \""+path+"vienna/vienna.h\"\n"+
-      "#define my_len M_H\n"+
+      "#define my_len (M_H-1)\n"+
       "#define my_seq _in1\n"+
       "#define my_P g_P\n"+
       "#define my_dev __device__\n"+

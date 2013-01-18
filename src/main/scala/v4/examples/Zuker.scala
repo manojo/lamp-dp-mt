@@ -60,43 +60,49 @@ trait ZukerPrettyPrint extends ZukerSig {
   val nil = (d:Unit) => ""
 }
 
-trait ZukerMFEGen extends ZukerSig {
+trait ZukerMFE extends ZukerSig {
   type Answer = Int
   import librna.LibRNA._
-  val sadd=cfun2((lb:Int,e:Int)=>e, "lb,e", "return e;")
-  val cadd=cfun2((x:Int,e:Int)=>x+e, "x,e", "return x+e;")
-  val dlr=cfun3((lb:Int, e:Answer, rb:Int)=>e+ext_mismatch_energy(lb,rb-1)+termau_energy(lb,rb-1),"lb,e,rb","return e+ext_mismatch_energy(lb, rb-1)+termau_energy(lb, rb-1);")
-  val sr=cfun3((lb:Int, e:Answer, rb:Int)=>e+sr_energy(lb,rb),"lb,e,rb","return e+sr_energy(lb,rb);")
-  val hl=cfun5((lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) => hl_energy(f1,f2) + sr_energy(lb, rb),
-    "lb,f1,x,f2,rb","return hl_energy(f1,f2)+sr_energy(lb, rb);")
-  val bl=cfun6((lb:Int, f1:Int, b:SSeq, x:Answer, f2:Int, rb:Int) => x + bl_energy(f1,b._1,b._2-1,f2,f2-1) + sr_energy(lb, rb),
-    "lb,f1,b,x,f2,rb","return x + bl_energy(f1,b._1,b._2-1,f2,f2-1) + sr_energy(lb, rb);")
-  val br=cfun6((lb:Int, f1:Int, x:Answer, b:SSeq, f2:Int, rb:Int) => x + br_energy(f1,b._1,b._2-1,f2,f1+1) + sr_energy(lb, rb),
-    "lb,f1,x,b,f2,rb","return x + br_energy(f1,b._1,b._2-1,f2,f1+1) + sr_energy(lb, rb);")
-  val il=cfun7((f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) => x + il_energy(f2,r1._2,r2._1-1,f3) + sr_energy(f1, f4),
-    "f1,f2,r1,x,r2,f3,f4","return x + il_energy(f2,r1._2,r2._1-1,f3) + sr_energy(f1, f4);")
-  val ml=cfun5((lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) => ml_energy + ul_energy + x + termau_energy(f1, f2) + sr_energy(lb, rb) + ml_mismatch_energy(f1,f2),
-    "lb,f1,x,f2,rb","return ml_energy() + ul_energy() + x + termau_energy(f1, f2) + sr_energy(lb, rb) + ml_mismatch_energy(f1,f2);")
-  val app=cfun2((c1:Int, c:Int)=>c1+c,"c1,c","return c1+c;")
-  val ul=cfun1((c1:Int)=>ul_energy+c1,"c1","return ul_energy()+c1;")
-  val addss=cfun2((c1:Int, e:SSeq)=>c1,"c1,e","return c1;")
-  val nil=cfun1((d:Unit)=>0,"","return 0;")
+  /*
+  val sadd = (lb:Int, e:Answer) => e
+  val cadd = (x:Answer, e:Answer) => x + e
+  val dlr = (lb:Int, e:Answer, rb:Int) => e + ext_mismatch_energy(lb, rb-1) + termau_energy(lb, rb-1) // OK
+  val sr = (lb:Int, e:Answer, rb:Int) => e + sr_energy(lb,rb) // OK
+  val hl = (lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) => hl_energy(f1,f2) + sr_energy(lb, rb) // OK
+  val bl = (lb:Int, f1:Int, b:SSeq, x:Answer, f2:Int, rb:Int) => x + bl_energy(f1,b._1,b._2-1,f2,f2-1) + sr_energy(lb, rb) // OK
+  val br = (lb:Int, f1:Int, x:Answer, b:SSeq, f2:Int, rb:Int) => x + br_energy(f1,b._1,b._2-1,f2,f1+1) + sr_energy(lb, rb) // OK
+  val il = (f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) => x + il_energy(f2,r1._2,r2._1-1,f3) + sr_energy(f1, f4) // OK
+  val ml = (lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) => ml_energy + ul_energy + x + termau_energy(f1, f2) + sr_energy(lb, rb) + ml_mismatch_energy(f1,f2)
+  val app = (c1:Answer, c:Answer) => c1 + c
+  val ul = (c1:Answer) => ul_energy + c1
+  val addss = (c1:Answer, e:SSeq) => c1 // + ss_energy(e._1,e._2-1)=0 OK
+  val nil = (d:Unit) => 0
   override val h = min[Answer] _
+  */
 
-  def cfun1[A,R](fn:A=>R,as:String,bdy:String)(implicit mA:Manifest[A],mR:Manifest[R]) =
-    new Function1[A,R] with CFun { val (args,body,tpe)=((if(as!="") List(as) else Nil) zip List(mA).map{_.toString},bdy,mR.toString); def apply(a:A) = fn(a) }
-  def cfun2[A,B,R](fn:(A,B)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mR:Manifest[R]) =
-    new Function2[A,B,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB).map{_.toString},bdy,mR.toString); def apply(a:A,b:B) = fn(a,b) }
-  def cfun3[A,B,C,R](fn:(A,B,C)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mC:Manifest[C],mR:Manifest[R]) =
-    new Function3[A,B,C,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C) = fn(a,b,c) }
-  def cfun4[A,B,C,D,R](fn:(A,B,C,D)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mC:Manifest[C],mD:Manifest[D],mR:Manifest[R]) =
-    new Function4[A,B,C,D,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC,mD).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C,d:D) = fn(a,b,c,d) }
-  def cfun5[A,B,C,D,E,R](fn:(A,B,C,D,E)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mC:Manifest[C],mD:Manifest[D],mE:Manifest[E],mR:Manifest[R]) =
-    new Function5[A,B,C,D,E,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC,mD,mE).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C,d:D,e:E) = fn(a,b,c,d,e) }
-  def cfun6[A,B,C,D,E,F,R](fn:(A,B,C,D,E,F)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mC:Manifest[C],mD:Manifest[D],mE:Manifest[E],mF:Manifest[F],mR:Manifest[R]) =
-    new Function6[A,B,C,D,E,F,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC,mD,mE,mF).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C,d:D,e:E,f:F) = fn(a,b,c,d,e,f) }
-  def cfun7[A,B,C,D,E,F,G,R](fn:(A,B,C,D,E,F,G)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mC:Manifest[C],mD:Manifest[D],mE:Manifest[E],mF:Manifest[F],mG:Manifest[G],mR:Manifest[R]) =
-    new Function7[A,B,C,D,E,F,G,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC,mD,mE,mF,mG).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C,d:D,e:E,f:F,g:G) = fn(a,b,c,d,e,f,g) }
+  val sadd = cfun2((lb:Int,e:Int) => e,    "lb,e", "return e;")
+  val cadd = cfun2((x:Int,e:Int) => x + e, "x,e" , "return x+e;")
+  val dlr = cfun3((lb:Int, e:Answer, rb:Int)=> e + ext_mismatch_energy(lb,rb-1) + termau_energy(lb,rb-1),
+                  "lb,e,rb",           "return e + ext_mismatch_energy(lb,rb-1) + termau_energy(lb,rb-1);")
+  val sr  = cfun3((lb:Int, e:Answer, rb:Int)=> e + sr_energy(lb,rb),
+                  "lb,e,rb",           "return e + sr_energy(lb,rb);")
+  val hl  = cfun5((lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) => hl_energy(f1,f2) + sr_energy(lb,rb),
+                  "lb,f1,x,f2,rb",                    "return hl_energy(f1,f2) + sr_energy(lb,rb);")
+
+  val bl  = cfun6((lb:Int, f1:Int, b:SSeq, x:Answer, f2:Int, rb:Int) => x + bl_energy(f1,b._1,b._2-1,f2,f2-1) + sr_energy(lb,rb),
+                  "lb,f1,b,x,f2,rb",                            "return x + bl_energy(f1,b._1,b._2-1,f2,f2-1) + sr_energy(lb,rb);")
+  val br  = cfun6((lb:Int, f1:Int, x:Answer, b:SSeq, f2:Int, rb:Int) => x + br_energy(f1,b._1,b._2-1,f2,f1+1) + sr_energy(lb,rb),
+                  "lb,f1,x,b,f2,rb",                            "return x + br_energy(f1,b._1,b._2-1,f2,f1+1) + sr_energy(lb,rb);")
+
+  val il  = cfun7((f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) => x + il_energy(f2,r1._2,r2._1-1,f3) + sr_energy(f1,f4),
+                  "f1,f2,r1,x,r2,f3,f4",                                  "return x + il_energy(f2,r1._2,r2._1-1,f3) + sr_energy(f1,f4);")
+  val ml  = cfun5((lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) => ml_energy + ul_energy + x + termau_energy(f1,f2) + sr_energy(lb,rb) + ml_mismatch_energy(f1,f2),
+                  "lb,f1,x,f2,rb",                  "return ml_energy() + ul_energy() + x + termau_energy(f1,f2) + sr_energy(lb,rb) + ml_mismatch_energy(f1,f2);")  
+  val app = cfun2((c1:Int, c:Int)=> c1+c,  "c1,c", "return c1+c;")
+  val ul  = cfun1((c1:Int)=> ul_energy+c1, "c1",   "return ul_energy()+c1;")
+  val addss=cfun2((c1:Int, e:SSeq)=> c1,   "c1,e", "return c1;")
+  val nil = cfun1((d:Unit)=>0,"","return 0;")
+  override val h = min[Answer] _
 }
 
 trait ZukerExplain extends ZukerSig {
@@ -118,31 +124,12 @@ trait ZukerExplain extends ZukerSig {
   val nil = (d:Unit) => ""  +" nil"
 }
 
-trait ZukerMFE extends ZukerSig {
-  type Answer = Int
-  import librna.LibRNA._
-  val sadd = (lb:Int, e:Answer) => e
-  val cadd = (x:Answer, e:Answer) => x + e
-  val dlr = (lb:Int, e:Answer, rb:Int) => e + ext_mismatch_energy(lb, rb-1) + termau_energy(lb, rb-1) // OK
-  val sr = (lb:Int, e:Answer, rb:Int) => e + sr_energy(lb,rb) // OK
-  val hl = (lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) => hl_energy(f1,f2) + sr_energy(lb, rb) // OK
-  val bl = (lb:Int, f1:Int, b:SSeq, x:Answer, f2:Int, rb:Int) => x + bl_energy(f1,b._1,b._2-1,f2,f2-1) + sr_energy(lb, rb) // OK
-  val br = (lb:Int, f1:Int, x:Answer, b:SSeq, f2:Int, rb:Int) => x + br_energy(f1,b._1,b._2-1,f2,f1+1) + sr_energy(lb, rb) // OK
-  val il = (f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) => x + il_energy(f2,r1._2,r2._1-1,f3) + sr_energy(f1, f4) // OK
-  val ml = (lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) => ml_energy + ul_energy + x + termau_energy(f1, f2) + sr_energy(lb, rb) + ml_mismatch_energy(f1,f2)
-  val app = (c1:Answer, c:Answer) => c1 + c
-  val ul = (c1:Answer) => ul_energy + c1
-  val addss = (c1:Answer, e:SSeq) => c1 // + ss_energy(e._1,e._2-1)=0 OK
-  val nil = (d:Unit) => 0
-  override val h = min[Answer] _
-}
-
 trait ZukerGrammar extends ADPParsers with ZukerSig {
   val BASE = eli
   val LOC = emptyi
   val REG = seq()
   val REG3 = seq(3,maxN)
-  val REG30 = seq(1,30)
+  val REG30 = seq() // seq(1,30) // XXX: fix this
 
   val struct:Tabulate = tabulate("st",(
       BASE   ~ struct ^^ sadd
@@ -174,8 +161,8 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
 }
 
 object Zuker extends App {
-  object mfe extends ZukerGrammar with ZukerMFEGen with CodeGen {
-    override val benchmark = true
+  object mfe extends ZukerGrammar with ZukerMFE with CodeGen {
+    //override val benchmark = true
     override val tps = (manifest[Alphabet],manifest[Answer])
   }
   object pretty extends ZukerGrammar with ZukerPrettyPrint
@@ -183,32 +170,33 @@ object Zuker extends App {
   object explain extends ZukerGrammar with ZukerExplain
 
   mfe.setParams("src/librna/vienna/rna_turner2004.par")
-  def parse(s:String) = {
+  def parse(s:String,forceScala:Boolean=false) = {
     val seq=mfe.convert(s)
-    val (score,bt) = mfe.backtrack(seq).head;
-    val res = pretty.build(seq,bt)
-    (score,bt,res)
+    val (score,bt) = mfe.backtrack(seq,forceScala).head
+    (pretty.build(seq,bt)+" (%6.2f)".format(score/100.0),bt)
   }
 
   def testSeq(seq:String, strict:Boolean=true) {
-    val (score,bt,res)=parse(seq)
+    val (gpu,btG)=parse(seq)
+    val (cpu,btC)=parse(seq,true)
     val ref=RNAUtils.refFold(seq,"src/librna/rfold" /*"resources/RNAfold_orig_mac"*/)
-    val our=res+" (%6.2f)".format(score/100.0)
-    if (ref==our || !strict && ref.substring(res.size)==our.substring(res.size)) print(".")
-    else println("\nSeq: "+seq+"\nRef: "+ref+"\nOur: "+res+" (%6.2f)".format(score/100.0)+" FAILED\n"+explain.build(seq.toArray,bt)+"\n")
+    if (ref==gpu || !strict && ref.substring(seq.size)==gpu.substring(seq.size)) print(".")
+    else println("\nSeq: "+seq+"\nRef: "+ref+"\nCPU: "+cpu+"\nGPU: "+gpu+"\n"+
+      "CXP: "+explain.build(seq.toArray,btC)+"\nGXP: "+explain.build(seq.toArray,btG)+"\n")
   }
 
-
-  println(mfe.gen)
+  //println(mfe.gen)
+  //println(mfe.code_h)
 
   // Having separate JVM instances is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
  
-  Zuker.testSeq("aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
+  // XXX: also fix the complexity estimation
+  //Zuker.testSeq("acgcaccggcauacgugugcucgaaaagcgu")
   //Zuker.testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
 
 
   //scala.util.Random.setSeed(3974658973264L)
-  //for (k<-0 until 4000) { testSeq(RNAUtils.genSeq(80),false); if (k%80==0) println }
+  for (k<-0 until 50) { testSeq(RNAUtils.genSeq(80),false); if (k%80==0) println }
 }
