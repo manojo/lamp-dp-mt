@@ -1,5 +1,15 @@
 package v4
 
+// These trait are interfaces for compiled CUDA wrappers
+trait ADPWrapper[A,R] {
+  def parse(in:Array[A]):R
+  def backtrack(in:Array[A]):(R,List[((Int, Int),(Int,List[Int]))])
+}
+trait TTWrapper[A,R] {
+  def parse(in1:Array[A],in2:Array[A]):R
+  def backtrack(in1:Array[A],in2:Array[A]):(R,List[((Int, Int),(Int,List[Int]))])
+}
+
 trait CodeGen extends BaseParsers { this:Signature =>
   private val head = new CodeHeader(this) // User code and helpers store
   private lazy val tpAlphabet = head.parse(tps._1.toString)
@@ -276,13 +286,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
         "size_t mem = (sizeof(input_t)+sizeof(trace_t))*(M_W+M_H) + s_cost + s_back;\n"+
         "printf(\"%-20s : %.2fMb / %.2fMb -> cost:%s, backtrack:%s\\n\",\"Memory selection\","+
         "mem/1048576.0,prop.totalGlobalMem/1048576.0, costDev?\"device\":\"host\", backDev?\"device\":\"host\");")
-      // Estimation memory allocation: val cudaKernMem=32 must be sufficiently large. => up to 996/1024 memory available in "CUDA mode" (but this varies depending usage)
-      // "size_t mem = (sizeof(input_t)+sizeof(trace_t))*(M_W+M_H) + s_cost + s_back;\n"+
-      // "bool memFit = mem + "+(cudaKernMem*1048576L)+"ULL <= prop.totalGlobalMem;\n"+
-      // (if (benchmark)"printf(\"%-20s : %.2fMb / %.2fMb -> %s\\n\",\"Memory selection\", mem/1048576.0, prop.totalGlobalMem/1048576.0, memFit?\"device\":\"host\");\n" else "")+
-      // "if (memFit) { cuMalloc(g_cost,s_cost); cuMalloc(g_back,s_back); }\n"+
-      // "else if (prop.canMapHostMemory) { cuMap(c_cost,g_cost,s_cost); cuMap(c_back,g_back,s_back); }\n"+
-      // "else { fprintf(stderr,\"Not enough memory on '%s'.\\n\",prop.name); exit(EXIT_FAILURE); }"
       )+"}\n\n"+
       "void g_free() {\n"+ind("cuFree(g_in1);"+(if(twotracks) " cuFree(g_in2);" else "")+(if (useRna)" rna_free();" else "")+"\n"+
       "cuFree2(c_cost,g_cost); cuFree2(c_back,g_back); cuReset;")+"}\n\n"
@@ -350,7 +353,10 @@ trait CodeGen extends BaseParsers { this:Signature =>
     val flush = if (benchmark) "  fflush(stdout); fflush(stderr);\n" else ""
     val solve = (if(benchmark)"  struct timeval ts,te; double delta;\n" else"")+ctime("  input_t *in1=NULL; jni_read(env,input1,&in1);\n"+
       (if (twotracks) "  input_t *in2=NULL; jni_read(env,input2,&in2);\n  g_init(in1,in2); free(in2);"
-                 else "  g_init(in1,NULL);"),"- JNI read")+" free(in1);\n"+ctime("  g_solve();\n","- CUDA compute")
+                 else "  g_init(in1,NULL);"),"- JNI read")+" free(in1);\n"+
+    (if (benchmark) "  for (int i=0;i<10;++i) g_solve();" else "")+ // warm up the GPU
+    ctime("  g_solve();\n","- CUDA compute")
+    
     "#include <jni.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <sys/time.h>\n#include \"{file}.h\"\n#ifdef __cplusplus\n"+
     "extern \"C\" {\n#endif\n"+call+"parse"+parm+";\n"+call+"backtrack"+parm+";\n#ifdef __cplusplus\n}\n#endif\n\n"+
     head.jniRead(tpAlphabet)+"\n"+head.jniWrite(tpAnswer,catMax>0)+"\n"+
@@ -437,8 +443,16 @@ trait CodeGen extends BaseParsers { this:Signature =>
     }
   }
 
+  // Memoize reference to the generated code such that we compile only once for a particular problem size
+  // Unfortunately this does not seems to help much the CUDA code to 'warm-up'
   abstract class CodeCompiler extends CCompiler with ScalaCompiler {
-    def genDP[T](size1:Int,size2:Int,bt:Boolean,tt:Boolean)(implicit mT: scala.reflect.ClassTag[T]):T = {
+    import scala.collection.mutable.HashMap
+    private val adp = new HashMap[Int,ADPWrapper[Alphabet,Answer]]
+    private val tt = new HashMap[(Int,Int),TTWrapper[Alphabet,Answer]]
+    def getADP(size1:Int):ADPWrapper[Alphabet,Answer] = adp.getOrElseUpdate(size1,genDP[ADPWrapper[Alphabet,Answer]](size1,size1,false) )
+    def getTT(size1:Int,size2:Int):TTWrapper[Alphabet,Answer] = tt.getOrElseUpdate((size1,size2),genDP[TTWrapper[Alphabet,Answer]](size1,size2,true) )
+
+    def genDP[T](size1:Int,size2:Int,tt:Boolean)(implicit mT: scala.reflect.ClassTag[T]):T = {
       val className = "CompWrapper"+CompileCounter.get // fresh namespace for the problem (code+in1+in2)
       // Problems up to 'cudaSplit' can be solve within a single kernel, otherwise, divide running time in splits
       val splits:Int = Math.ceil(Math.pow(Math.max(size1,size2)*1.0/cudaSplit,code_cpx)).intValue
@@ -448,20 +462,21 @@ trait CodeGen extends BaseParsers { this:Signature =>
         add("h", code_h, map); add("c", code_c, map); add("cu", code_cu, map); gen
       }
       time("Scala compilation"){()=>
-        val at = "Array["+(tpAlphabet match {case head.TPri(s,_,_)=>s case _=>"Any"})+"]"
-        val wrap = "class "+className+" extends Function"+(if(tt)"2["+at+"," else "1[")+at+",Any] {\n"+
-          "@native def parse(in1:"+at+(if(tt)",in2:"+at else "")+"):Any\n@native def backtrack(in1:"+at+(if(tt)",in2:"+at else "")+"):Any\n"+
-          "override def apply(in1:"+at+(if(tt)",in2:"+at else "")+") = this."+(if (bt) "backtrack" else "parse")+"(in1"+(if(tt)",in2" else "")+")\n}"
+        val cl = (if(tt) classOf[TTWrapper[Alphabet,Answer]] else classOf[ADPWrapper[Alphabet,Answer]]).getCanonicalName
+        val al = tpAlphabet match {case head.TPri(s,_,_)=>s case _=>"Any"}
+        val args = "(in1:Array["+al+"]"+(if(tt)",in2:Array["+al+"]" else "")+")"
+        val wrap = "class "+className+" extends "+cl+"["+al+",Any] {\n"+
+          "@native def parse"+args+":Any\n@native def backtrack"+args+":(Any,List[((Int, Int),(Int,List[Int]))])\n}"
         compile[T](className,wrap)
       }
     }
   }
 
   // Wrappers for CUDA invocation, these are automatically called by ADPParsers/TTParsers
-  def parseCU(in1:Input) = { val f=compiler.genDP[Input=>Answer](in1.size,in1.size,false,false); time("Execution"){()=> f(in1) } }
-  def backtrackCU(in1:Input) = { val f = compiler.genDP[Input=>(Answer,Trace)](in1.size,in1.size,true,false); time("Execution"){()=> f(in1) } }
-  def parseCUTT(in1:Input,in2:Input) = { val f = compiler.genDP[(Input,Input)=>Answer](in1.size,in2.size,false,true); time("Execution"){()=> f(in1,in2) } }
-  def backtrackCUTT(in1:Input,in2:Input) = { val f = compiler.genDP[(Input,Input)=>(Answer,Trace)](in1.size,in2.size,true,true); time("Execution"){()=> f(in1,in2) } }
+  def parseCU(in1:Input) = { val w=compiler.getADP(in1.size); time("Execution"){()=> w.parse(in1) } }
+  def backtrackCU(in1:Input) = { val w=compiler.getADP(in1.size); time("Execution"){()=> w.backtrack(in1) } }
+  def parseCUTT(in1:Input,in2:Input) = { val w=compiler.getTT(in1.size,in2.size); time("Execution"){()=> w.parse(in1,in2) } }
+  def backtrackCUTT(in1:Input,in2:Input) = { val w=compiler.getTT(in1.size,in2.size); time("Execution"){()=> w.backtrack(in1,in2) } }
 
   // Debug
   def gen:String = {

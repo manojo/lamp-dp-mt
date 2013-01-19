@@ -4,7 +4,11 @@ In an attempt to provide realistic benchmarks, we tried to gather related implem
 We organize the benchmarks as follow: if we have at our disposal a working implementation that could be run on our evaluation platform, we use it, otherwise, we refer to the related paper and rescale the result according to the memory throughput and computation throughput of the related device so that we can have a good approximation of how they could compare.
 
 \subsection{Metrics}
-The main metrix of interest is the running time. In an attempt to reduce the variance, we run 20 consecutive test and take the median running time (since median is less sensitive to outlier than the average).
+The main metrics of interest is the running time. In an attempt to reduce the variance, we would like to run multiple consecutive test and take the median running time (since median is less sensitive to outlier than the average). Unfortunately, several factors hampers these ideal conditions. First the variance in the running time of CUDA kernels might be quite significant, in particular for short running time. This is due to the fact that the GPU needs to be 'warmed-up' during few seconds before actual computation can happen
+
+  In case the variance is significant, we wou
+
+talk about input sensivity, backup with results on rnafold and matrix mult
 
 As the device memory is quite limited, it seems interesting to also take into account the space usage. The space requirement limits the maximal size of addressable problems  on a particular hardware. This might be a concern for large problems, because they would require special adaptation to handle such cases both correctly and efficiently. However, simple solutions like using a device with larger memory or using main memory (if a $5\times$ slowdown is still acceptable) could solve this issue.
 
