@@ -4,31 +4,53 @@ In an attempt to provide realistic benchmarks, we tried to gather related implem
 We organize the benchmarks as follow: if we have at our disposal a working implementation that could be run on our evaluation platform, we use it, otherwise, we refer to the related paper and rescale the result according to the memory throughput and computation throughput of the related device so that we can have a good approximation of how they could compare.
 
 \subsection{Metrics}
-The main metrics of interest is the running time. In an attempt to reduce the variance, we would like to run multiple consecutive test and take the median running time (since median is less sensitive to outlier than the average). Unfortunately, several factors hampers these ideal conditions. First the variance in the running time of CUDA kernels might be quite significant, in particular for short running time. This is due to the fact that the GPU needs to be 'warmed-up' during few seconds before actual computation can happen
+The main metrics of interest is the running time. In an attempt to reduce the variance, we would like to run multiple consecutive test and take the median running time, since the median is less sensitive to outlier than the average\cite{perfeval}. Unfortunately, several factors hampers these ideal conditions. First the variance in the running time of CUDA kernels might be significant, in particular for short running time. This is due to the fact that the GPU needs to be 'warmed-up' before actual computation can happen. Similarly, the JVM is also subject to running time variance that is mainly due to the garbage collection\footnote{\url{http://www.oracle.com/technetwork/java/javase/gc-tuning-6-140523.html\#cms.overhead}} and JIT optimizations \cite{java_jit}.
 
-  In case the variance is significant, we wou
+Also the input and problem might introduce variance. As example, we can consider two extreme cases: matrix chain multiplication and Zuker RNA folding, with a test environment of 100 random inputs (of length respectively 512 and 80) and a GPU warmup of 10 computations. In this settings, matrix chain multiplication computations are executed in a perfectly constant time (0.127 seconds), which mean that we sufficiently reduced the noise. Oppositely, the Zuker RNA folding running times appear much more scattered as presented below:
 
-talk about input sensivity, backup with results on rnafold and matrix mult
+\begin{figure}[H]\begin{center}\includegraphics[width=16cm]{inc/var_zuker.pdf}\end{center}
+\caption{Zuker folding running time (seconds). Quartiles: 0.152, 0.183 (median), 0.214}\label{fig:var_zuker}\end{figure}
 
-As the device memory is quite limited, it seems interesting to also take into account the space usage. The space requirement limits the maximal size of addressable problems  on a particular hardware. This might be a concern for large problems, because they would require special adaptation to handle such cases both correctly and efficiently. However, simple solutions like using a device with larger memory or using main memory (if a $5\times$ slowdown is still acceptable) could solve this issue.
+Using the QQplot\footnote{Quantile-to-quantile plot, used to compare two distributions against each other.}, the distribution is heavily tailed (has more results towards the ends of the range) than a Gaussian distribution (fig.~\ref{fig:var_zuker} center) but fits better an uniform distribution (fig.~\ref{fig:var_zuker} right). If we run multiple time the program over the same input, we obtain the same behavior as with the matrix multiplication (strictly identical time); hence we can conclude that Zuker is an input sensitive problem whereas matrix chain multiplication is not. It follows that we need to be careful to test with exactly identical input set different implementations.
+
+As the device memory is quite limited, it seems interesting to also take into account the space usage. The space requirement limits the maximal size of addressable problems  on a particular hardware. This might be a concern for large problems, because they would require special adaptation to handle such cases both correctly and efficiently. However, this metric heavily depends on the problem and simple solutions like using a device with larger memory or using main memory (if a $5\times$ slowdown is still acceptable) could solve this issue, hence we do not consider this metric hereafter (except as an upper bound on the dimension of the input).
 
 \subsection{Benchmarking platform}
-Our benchmarking platform is a notebook with a Core i7-3720QM, 16Gb or main memory and an NVIDIA GeForce GT 650M running under MacOS X 10.8. Tests are made when the discrete GPU is not involved in rendering the user interface\footnote{This involves a workaround to keep the discrete GPU powered, while the CPU is involved in rendering graphics; source code available on demand.}. Due to impossibility to disable the watchdog timer in MacOS, CUDA kernels are limited to few seconds of running time before they are automatically aborted.
+Our benchmarking platform is an Apple notebook with a Core i7-3720QM with 16Gb of main memory and an NVIDIA GeForce GT 650M running under MacOS X 10.8 and Oracle JDK 1.7.0-10. A workaround (see listing~\ref{cpu_workaround}) allows us to use the CPU to render the user interface while leaving the graphic card available to execute CUDA kernels. Unfortunately, due to impossibility to disable the watchdog timer in MacOS, CUDA kernels are limited to few seconds of running time before they are automatically aborted.
 
+% ----------------------------------------------
+% MatrixMult-512, Mac+JDK7\ul
+% Original: 24.937 sec / 24.658 sec
+% Optimized concatenation: 19.329 sec / 18.924 sec
+% Tabulation as arrays+inline: 14.976 sec / 14.849 sec
+\newpage
 % ------------------------------------------------------------------------------------------------
 {\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: CONTINUE HERE :XXX \\}
 % ------------------------------------------------------------------------------------------------
+\subsection{Matrix chain multiplication}
+
+\subsubsection{CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion}
+XXX
+
+\begin{table}[H]\begin{center}\begin{tabular}{rllll}\toprule
+\bf Size	& \bf DynaProg & \bf Optimized C & \bf GAPC & \bf ADP Fusion \\ \midrule
+128		&		&		&		& -		\\
+256		&		&		&		& -		\\
+512		&		&		&		& -		\\
+1024	&		&		&		& -		\\
+2048	&		&		&		& -		\\
+4096	&		&		&		& -		\\
+8192	&		&		&		& -		\\ \bottomrule
+\end{tabular}
+\end{center}
+\caption{Matrix chain multiplication results (CPU)}
+\end{table}
 
 {\color{red}\ol
-\item Make LibRNA work with CUDA generated parsers
-\item Finish the LibRNA section, write some conclusion ideas
+\item Write some conclusion ideas
 \item Run benchmark and add results in report (automate, generate raw Matlab/TeX output)
 \item Stabilize times, statistics, use CUDA profiler(?)
 \ole}
-
-\subsection{Matrix chain multiplication}
-\subsubsection{CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion}
-XXX
 
 \subsubsection{GPU: DynaProg(CUDA), hand optimized CUDA, ATLP and GAPC-OpenCL?}
 XXX
@@ -60,15 +82,9 @@ XXX: future work: proper support of two-track grammars
 
 XXX: future work, resize tables appropriately as in GAPL.
 
-XXX: future work: infer automatically "always non-emptiness"
+XXX: future work: infer automatically "always non-empty" property
 
 \subsection{Scala parsers}
-{\color{red}
-MatrixMult-512, Mac+JDK7\ul
-\item Original: 24.937 sec / 24.658 sec
-\item Optimized concatenation: 19.329 sec / 18.924 sec
-\item Tabulation as arrays+inline: 14.976 sec / 14.849 sec
-\ule}
 
 \subsection{CUDA parsers}
 {\color{red} XXX: explain why slower: approx 3x more memory used per score (maintain matrix dimensions)

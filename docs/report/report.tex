@@ -50,7 +50,7 @@
 %Dec. 24	& (sick 4 days), code generation: full JNI conversion support, rework CodeCompiler. \\
 %Dec. 31	& Writing report (design, implementation), fixing various issues, complexity analysis. \\
 %Jan. 7	& Writing report, attempt to fix Zuker, fix SBT, strip LibRNA. LMS C codegen (Manohar) \\
-%Jan. 14	& Report improvements, fixed Zuker (coherent with GAPC), {\color{red} XXX} \\
+%Jan. 14	& Report improvements, fixed Zuker (coherent with GAPC), Zuker for CUDA \\
 %\end{tabular}
 
 %Some GPU algorithms: http://hgpu.org/?cat=11
@@ -72,4 +72,9 @@
 \patchcmd{\endthebibliography}{\endlist}{\endlist\end{multicols}}{}{}
 \bibliographystyle{plain} % acm
 {\small \bibliography{bibliography.bib}}
+
+\newpage
+\appendix
+\lstinputlisting[language=C,label={cpu_workaround},caption={Workaround to enable GPU for CUDA and render UI with CPU}]{inc/gpu_power.m}
+
 \end{document}

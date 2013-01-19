@@ -19,16 +19,21 @@ Matrix of different dimensions must be stored in their own array (versus being i
 \section{Conclusion}
 {\color{red} XXX}
 
-// XXX: also fix the complexity estimation
-
 \begin{verbatim}
+Recap of the report:
+- Goal: generalize solving dynamic programming on sequences for GPUs
+- classification of the problems; in terms of recurrences = complicated, grammar = easier
+- general technique to describe backtracking information
+- implemented in Scala+CUDA
+- additional analysis to generate efficient code (1 result, memory alignment, scheduling)
 
-recap of the report
+Recap of the results:
+- XXX
 
-recap of the results
-
-big picture: with actual compiler technology we
-Embedded DSL vs external DSL
-Larger picture how to go further
+Big picture (Larger picture how to go further):
+- Code generation and actual compiler technology
+- Embedded DSL vs external DSL
+- Only a subset of the dynamic programming problems, easy to parallelize (similar memory accesses and scheduling pattern/progress)
+  - others are iterative or sparse, different scheduling => multiple scheduling patterns to be discovered and implemented efficiently, possibly in LMS (if time permits)
 
 \end{verbatim}

@@ -9,7 +9,7 @@ In the project planning, an baseline implementation phase immediately followed t
 \ole
 
 Leveraging the insights provided by \cite{gpu_atlp} and \cite{gpu_barrier}, we started with a basic implementation (where each CUDA thread processes one matrix line) with three additional optimizations:\ul
-\item Memory accesses must be coalesced (memory accesses account for a significant part of the total running time, according to both manufacturer documentation and experiments \cite{perfeval})
+\item Memory accesses must be coalesced (memory accesses account for a significant part of the total running time, according to both manufacturer documentation and experiments \cite{perfeval_gpu})
 \item Synchronization between threads can be done according to \cite{gpu_barrier}, additionally, we can slightly loosen the synchronization restrictions, as the paper describes a thread barrier whereas we only require a condition on previous thread progress (except for the parallelogram case, where we still require a barrier).
 \item Computation progresses element-wise along the diagonal (maximizes the parallelism level)
 \item Thread block size = warp size (32) to benefit from implicit synchronization within warps
@@ -66,7 +66,7 @@ We present here the timings of our baseline implementation. For correctness, we 
 
 % ----------------------------------------------
 \subsubsection{Results discussion}\ul
-\item \textbf{User interface:} It has been put in evidence in \cite{perfeval} that using the GPU exclusively for CUDA or in combination with UI display (Mac OS) affects the performance (GeForce 330M). With the newer architecture, this difference has been reduced to less than 3.5\%, decoupled UI and CUDA   performing best. So we can safely ignore this issue.
+\item \textbf{User interface:} It has been put in evidence in \cite{perfeval_gpu} that using the GPU exclusively for CUDA or in combination with UI display (Mac OS) affects the performance (GeForce 330M). With the newer architecture, this difference has been reduced to less than 3.5\%, decoupled UI and CUDA   performing best. So we can safely ignore this issue.
 \item \textbf{Blocks synchronization:}\ul
 	\item Removing {\tt \_\_threadfence()} before the synchronization is not syntactically correct but results still remains valid, this confirms the observation made by \cite{gpu_barrier}. Speedup for matrix size of 1024 are 67ms (parallelogram) 100ms (triangle) 180ms (rectangle).
 	\item In the parallelogram case, using all threads to monitor other blocks status instead of the first one only results in a 6.4x speedup (22.72$\to$3.52ms) for the parallelogram.

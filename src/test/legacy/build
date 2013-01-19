@@ -1,61 +1,40 @@
 #!/bin/sh
-# ------------------------------------------
-# System configuration
+cd `dirname $0`
+if [ "$OSTYPE" = "darwin" ]; then md5_hash() { md5 -q $@; };
+else md5_hash() { md5sum $@; }; fi
 
-JAVA_INC="$JAVA_HOME/include"; if [ "$OSTYPE" = "darwin" ]; then JAVA_INC="/System/Library/Frameworks/JavaVM.framework/Headers"; fi
+#YJP="/Applications/Tools/YourKit Java Profiler.app/bin/mac/libyjpagent.jnilib"
 
-FLAGS_CC="-Wall -O2"
-FLAGS_CUDA="-arch=sm_30 -O2 --compiler-options -Wall --linker-options -rpath,/usr/local/cuda/lib"
-
-OUT=bin
-
-# ------------------------------------------
-# Helpers
-cd `dirname $0`; BASE=`pwd`; mkdir -p $OUT
-c_check() { h=`md5 -q -s "$*" | cut -c 1-10`; md5 $@ > $OUT/$h.tmp; diff $OUT/$h.md5 $OUT/$h.tmp 1>/dev/null 2>/dev/null; }
-c_sign() { h=`md5 -q -s "$*" | cut -c 1-10`; mv $OUT/$h.tmp $OUT/$h.md5; }
-c_scala() { # $@:files to compiles => $?: true if recompiled, false otherwise
-	if ! c_check "$@"; then echo "> scalac $@"; scalac -cp $OUT -d $OUT $@ && c_sign "$@" || exit 1; fi
-}
-c_cc() { cc=$1; shift;
-	if ! c_check "$files"; then echo "> $cc $files";
-		stripH=`ls -1 $files | sed 's/[^ ]*.h//g'`
-		$cc "$@" $stripH && c_sign "$files" || exit 1;
-	fi
+scalac2() {
+	printf "Compiling %s ... " "$1"; shift; f=$1; shift; md5_hash $@ > bin/$f.tmp
+	if diff "bin/$f.md5" "bin/$f.tmp" 1>/dev/null 2>/dev/null; then rm "bin/$f.tmp"; echo 'up to date.'; false
+	else scalac -target:jvm-1.7 -optimise -unchecked -deprecation -classpath bin -d bin $@ || exit; mv "bin/$f.tmp" "bin/$f.md5"; echo 'done.'; true; fi
 }
 
-if [ "$1" = "clean" ]; then rm -rf "$BASE/bin"; exit 0; fi
+if [ "$1" = "clean" ]; then printf 'Cleaning ... '; rm -rf bin; echo 'done.'; exit; fi
+if [ "$1" = "help" ]; then echo "Run ./build with one of the following arguments:";
+	cat src/main/scala/v4/examples/* | grep object | grep App | sed 's/object /v4.examples./g' | sed 's/ .*//g'; exit
+fi
 
-# ------------------------------------------
-# LibRNA
-files="src/librna/*.c src/librna/vienna/*.c"
-c_cc gcc $FLAGS_CC -std=c99 -shared -I$JAVA_INC -o $OUT/libRNA.jnilib
-c_scala src/librna/LibRNA.scala
-	# if [ "$1" = "test" ]; then scala -cp bin librna.Test; fi
+printf 'LibRNA JNI: '; src/librna/make bin
+scalac2 'LibRNA' _rna src/librna/*.scala
+if scalac2 'Base parsers' _v4 src/main/scala/v4/*.scala; then rm bin/_ex.md5 2>/dev/null; fi
+scalac2 'Examples' _ex src/main/scala/v4/examples/*.scala
 
-# Parsers V4
-c_scala "src/main/scala/v4/*.scala"
-c_scala "src/main/scala/v4/examples/*.scala"
+scala2() {
+	opts="-J-Xss64m -cp bin"
+	if [ "$YJP" == "" ]; then scala $opts $@;
+	else scala -J-agentpath:"$YJP"=sampling,onexit=snapshot,builtinprobes=all $opts $@; fi;
+}
 
-# Scala CUDA/C compiler
-c_scala "src/main/c/CCompiler.scala"
-
-# Plain CUDA demo
-files="src/main/c/test.cu src/main/c/include/*.h"; touch $OUT/fake.h
-c_cc nvcc $FLAGS_CUDA -DSH_TRI -o $OUT/test_tri; files="$files $OUT/fake.h"
-c_cc nvcc $FLAGS_CUDA -DSH_RECT -o $OUT/test_rect; files="$files $OUT/fake.h"
-c_cc nvcc $FLAGS_CUDA -DSH_PARA -o $OUT/test_para; rm $OUT/fake.h
-
-# Scala Macros
-ln -fs src/main/scala/macros/Macros.txt Macros.scala 2>/dev/null
-ln -fs src/main/scala/macros/Test.txt Test.scala 2>/dev/null
-c_scala Macros.scala
-c_scala Test.scala
-rm Macros.scala Test.scala 2>/dev/null
-
-case "$1" in
-	cuda) bin/test_tri; bin/test_rect; bin/test_para;; # XXX: optirun ./test
-	ccomp) scala -cp bin TestCCompiler;;
-	macro) scala -cp bin TestMacros;;
-	ex) scala -cp bin v4.examples.$2;;
-esac
+if [ "$1" ]; then
+	echo
+	echo "Running $1"; scala2 $1
+else
+	echo
+	echo 'Running MatrixMultGen'; scala2 v4.examples.MatrixMultGen
+	echo
+	echo 'Running MatrixMultGen2'; scala2 v4.examples.MatrixMultGen2
+	echo
+	echo 'Running SeqAlignGen'; scala2 v4.examples.SeqAlignGen
+fi
