@@ -17,6 +17,7 @@
 
 // -----------------------------------------------------------------------------
 #ifdef SH_RECT
+
 // Smith-Waterman with affine gap cost (rectangular matrix).
 #define TI char     // input data type
 #define TI_CHR(X) X // conversion to char
@@ -28,7 +29,7 @@ typedef struct { int m,l,r; } cost_t;
 //#define TW int    // wavefront type (if not defined, no wavefront)
 // Initialization
 #define INIT(i,j)  ((i)==0 || (j)==0) // matrix initialization at [stop]
-#define INIT_VAL   {0,0,0}
+#define INIT_COST {0,0,0}
 // Input (returns padded strings)
 TI* p_input(bool horz=false) {
 	static unsigned sh=time(NULL), sv=time(NULL)+573; // keep consistent
@@ -40,14 +41,10 @@ TI* p_input(bool horz=false) {
 	return in;
 }
 // Computation kernel
-#define p_open (-3)
-#define p_ext (-1)
-#define p_match (10)
-#define p_fail (-3)
 #define p_kernel \
-	c.m = _cost(i-1,j-1).m + _ini(i)==_inj(j) ? p_match : p_fail; \
-	c.l = MAX(_cost(i-1,j).m + p_open, _cost(i-1,j).l + p_ext); \
-	c.r = MAX(_cost(i,j-1).m + p_open, _cost(i,j-1).r + p_ext); \
+	c.m = _cost(i-1,j-1).m + _ini(i)==_inj(j) ? 10 : -3; \
+	c.l = MAX(_cost(i-1,j).m -3, _cost(i-1,j).l -1); \
+	c.r = MAX(_cost(i,j-1).m -3, _cost(i,j-1).r -1); \
 	b = BT(DIR_DIAG,1); \
 	if (c.l>c.m) { c.m=c.l; b=BT(DIR_UP,1); } \
 	if (c.r>c.m) { c.m=c.r; b=BT(DIR_LEFT,1); } \
@@ -63,13 +60,10 @@ TI* p_input(bool horz=false) {
 #define TI char     // input data type
 #define TI_CHR(X) X // conversion to char
 #define TC int      // cost type
-#define TS int      // score type
-#define TS_MAP(C) (C) // cost->score mapping
 #define TB short    // backtrack type (2 bits for direction + 14 for value)
 //#define TW int    // wavefront type (if not defined, no wavefront)
 // Initialization
 #define INIT(i,j)  ((i)==0 || (j)==0) // matrix initialization at [stop]
-#define INIT_VAL   0
 // Input (returns padded strings)
 TI* p_input(bool horz=false) {
 	static unsigned sh=time(NULL), sv=time(NULL)+573; // keep consistent
@@ -93,7 +87,6 @@ _hostdev _inline TC p_cost(char s, char t) { return s==t?1:0; }
 // for (unsigned k=1; k<j; ++k) { c2=c_cost[idx(i,j-k)]-p_gap(k); if (c2>c) { c=c2; b=BT(DIR_LEFT,k); } }
 // c2 = c_cost[idx(i-1,j-1)]+p_cost(c_in[0][i],c_in[1][j]); if (c2>=c) { c=c2; b=BT(DIR_DIAG,1); }
 */
-
 #endif
 
 // -----------------------------------------------------------------------------
@@ -103,7 +96,7 @@ _hostdev _inline TC p_cost(char s, char t) { return s==t?1:0; }
 //   M[i,j]= min {i<=k<j} M[i,k] + M [k+1,j] + r_i * c_k * c_j
 //
 // Data types
-typedef struct { unsigned rows,cols; char print() { return 'X'; } } mat_t;
+typedef struct { unsigned rows,cols; } mat_t;
 #define TI mat_t         // input data type
 #define TI_CHR(X) ('0'+(X).rows) // conversion to char (debug)
 #define TC unsigned long // cost type
@@ -112,7 +105,7 @@ typedef struct { unsigned rows,cols; char print() { return 'X'; } } mat_t;
 #define TB short         // backtrack type (2 bits for direction + 14 for value)
 // Initialization
 #define INIT(i,j) (j<=i) // matrix initialization at [stop]
-#define INIT_VAL  0
+#define INIT_COST 0
 // Input
 TI* p_input() {
 	static unsigned s=time(NULL); mseed(s); // keep consistent
@@ -151,12 +144,10 @@ TI* p_input() {
 #define TI char          // input data type
 #define TI_CHR(X) (X)    // conversion to char (debug)
 #define TC unsigned      // cost type
-#define TS unsigned      // score type
-#define TS_MAP(C) (C)    // cost->score mapping
 #define TB short         // backtrack type (2 bits for direction + 14 for value)
 // Initialization
 #define INIT(i,j) (i>=j) // matrix initialization at [stop]
-#define INIT_VAL  0
+#define INIT_COST 0
 // Input
 TI* p_input() {
 	const char* names="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -167,7 +158,7 @@ TI* p_input() {
 }
 // Helpers functions
 _hostdev _inline TC p_cost(TI a, TI b) { long s=0xdeadbeef; //time(NULL); // seed, warning with static for GPU
-	long n = ( s ^ (a ^ b) ) % 44927; n=n%23; if (n==0) n=1; return n;
+	unsigned long n = ( s ^ (a ^ b) ) % 44927; n=n%23+1; return n; // must be (strictly) positive
 }
 // Computation kernel
 #define p_kernel \

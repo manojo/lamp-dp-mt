@@ -33,7 +33,7 @@ void c_solve() {
 		for (unsigned i=0; i<M_H; ++i) {
 			unsigned j=jj+i;
 #endif
-			TB b=BT_STOP; TC c=0,c2; // stop
+			TB b=BT_STOP; __attribute__((unused)) TC c=INIT_COST,c2; // stop
 			if (!INIT(i,j)) { p_kernel }
 			c_cost[idx(i,j)] = c;
 			c_back[idx(i,j)] = b;
@@ -58,19 +58,19 @@ void c_solve() {
 #include <list>
 #include <utility> // pair
 // simply return the pair of indices (i,j) that are in the backtrack
-TC c_backtrack(unsigned** bt, unsigned* size) {
-	TC score;
+TS c_backtrack(unsigned** bt, unsigned* size) {
+	TS score;
 	unsigned i,j;
 
 #ifdef SH_RECT // SWat
 	// Find the position with maximal cost along bottom+right borders
-	unsigned mi=0; TC ci=0;
-	unsigned mj=0; TC cj=0;
-	for (unsigned i=0; i<M_H; ++i) { TC c=c_cost[idx(i,M_W-1)]; if (c>ci) { mi=i; ci=c; } }
-	for (unsigned j=0; j<M_W; ++j) { TC c=c_cost[idx(M_H-1,j)]; if (c>cj) { mj=j; cj=c; } }
+	unsigned mi=0; TS ci=0;
+	unsigned mj=0; TS cj=0;
+	for (unsigned i=0; i<M_H; ++i) { TS c=TS_MAP(c_cost[idx(i,M_W-1)]); if (c>ci) { mi=i; ci=c; } }
+	for (unsigned j=0; j<M_W; ++j) { TS c=TS_MAP(c_cost[idx(M_H-1,j)]); if (c>cj) { mj=j; cj=c; } }
 	if (ci>cj) { i=mi; j=M_W-1; } else { i=M_H-1; j=mj; }
 
-	score = c_cost[idx(i,j)];
+	score = TS_MAP(c_cost[idx(i,j)]);
 	// Backtrack, returns a pair of coordinates in reverse order
 	if (bt && size) {
 		TB b;

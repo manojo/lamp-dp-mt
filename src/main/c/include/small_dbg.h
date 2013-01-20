@@ -28,11 +28,11 @@ void dbg_print(bool gpu, FILE* f) {
 		const char d[]={'#','|','-','\\'};
 		#define PR_W M_W
 		#define PR_BACK TB b = back[idx(i,j)]; if (b==BT_STOP) fprintf(f," #  "); else if (BT_V(b)) fprintf(f," %c%-2d",d[BT_D(b)],BT_V(b)); else fprintf(f," %c  ",d[BT_D(b)]);
-		#define PR_COST fprintf(f,"%4ld",(long)cost[idx(i,j)]);
+		#define PR_COST fprintf(f,"%4ld",(long)TS_MAP(cost[idx(i,j)]));
 	#elif defined(SH_TRI)
 		#define PR_W M_W
 		#define PR_BACK if (i<=j) { TB b=back[idx(i,j)]; if (b==BT_STOP) fprintf(f," #  "); else fprintf(f," _%-2d",b); } else fprintf(f,"    ");
-		#define PR_COST if (i<=j) fprintf(f,"%4ld",(long)cost[idx(i,j)]); else fprintf(f,"    ");
+		#define PR_COST if (i<=j) fprintf(f,"%4ld",(long)TS_MAP(cost[idx(i,j)])); else fprintf(f,"    ");
 	#elif defined(SH_PARA)
 		#define PR_W (2*M_W)
 		#define PR_BACK if (i<=j && j<i+M_W) { TB b=back[idx(i,j)]; if (b==BT_STOP) fprintf(f," #  "); else fprintf(f," _%-2d",b); } else fprintf(f,"    ");
@@ -69,7 +69,7 @@ void dbg_print(bool gpu, FILE* f) {
 void dbg_track(bool gpu, FILE* f) {
 	unsigned* bt;
 	unsigned sz;
-	TC score =
+	TS score =
 	#ifdef __CUDACC__
 		gpu ? g_backtrack(&bt,&sz) :
 	#endif
@@ -107,10 +107,10 @@ void dbg_compare() {
 #ifdef __CUDACC__
 	int err=0;
 	#ifdef SH_RECT // some extra memory is needed, we want to ignore it
-	for (unsigned i=0;i<M_H;++i) for (unsigned j=0;j<M_W;++j) { if (tc[idx(i,j)]!=c_cost[idx(i,j)]) ++err; }
+	for (int i=0;i<M_H;++i) for (int j=0;j<M_W;++j) { if (TS_MAP(tc[idx(i,j)])!=TS_MAP(c_cost[idx(i,j)])) ++err; }
 	// for (int j=0;j<M_W;++j) { for (int i=0;i<M_H;++i) printf("%c",tc[idx(i,j)]!=c_cost[idx(i,j)]?'!':' '); printf("\n"); }
 	#else
-	for (unsigned i=0;i<MEM_MATRIX;++i) { if (tc[i]!=c_cost[i]) ++err; }
+	for (unsigned i=0;i<MEM_MATRIX;++i) { if (TS_MAP(tc[i])!=TS_MAP(c_cost[i])) ++err; }
 	#endif
 	if (err==0) fprintf(stderr,"identical.\n"); else fprintf(stderr,"WARNING %d ERRORS !!\n",err);
 	free(tc);
@@ -118,7 +118,7 @@ void dbg_compare() {
 #endif
 	// Backtracking
 	ttc=0; ttg=0;
-	TC cost_c,cost_g;
+	TS cost_c,cost_g;
 	unsigned *bt,size;
 	t.start(); cost_c=c_backtrack(&bt,&size); ttc=t.stop(); if (size&&bt) free(bt);
 #ifdef __CUDACC__

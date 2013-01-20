@@ -90,8 +90,8 @@
 void c_solve(); // CPU
 void g_solve(); // GPU
 // Backtrack the solution, using the matrix
-TC c_backtrack(unsigned** bt, unsigned* size);
-TC g_backtrack(unsigned** bt, unsigned* size);
+TS c_backtrack(unsigned** bt, unsigned* size);
+TS g_backtrack(unsigned** bt, unsigned* size);
 
 // -----------------------------------------------------------------------------
 // CPU helpers

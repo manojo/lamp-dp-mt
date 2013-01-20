@@ -13,11 +13,10 @@
 #define _in(i) in0[i%M_H]
 #endif
 
-#define _unroll _Pragma ("unroll 5") // Optimized by hand for my GPU
 #define _cost(i,j) cost[idx(i,j)]
-#define _max_loop(K,MIN,MAX,EXPR,BACK) _unroll for (unsigned K=MIN; K<MAX; ++K) { c2=EXPR; if (c2>c) { c=c2; b=BACK; } }
+#define _max_loop(K,MIN,MAX,EXPR,BACK) for (unsigned K=MIN; K<MAX; ++K) { c2=EXPR; if (c2>c) { c=c2; b=BACK; } }
 #define _max(EXPR,BACK) c2=EXPR; if (c2>=c) { c=c2; b=BACK; }
-#define _min_loop(K,MIN,MAX,EXPR,BACK) _unroll for (unsigned K=MIN; K<MAX; ++K) { c2=EXPR; if (c2<c) { c=c2; b=BACK; } }
+#define _min_loop(K,MIN,MAX,EXPR,BACK) for (unsigned K=MIN; K<MAX; ++K) { c2=EXPR; if (c2<c) { c=c2; b=BACK; } }
 #define _min(EXPR,BACK) c2=EXPR; if (c2<=c) { c=c2; b=BACK; }
 
 // -----------------------------------------------------------------------------
@@ -28,24 +27,34 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 	const unsigned tB = blockIdx.x;
 	unsigned tP=s_start; // block progress
 
+#ifdef SH_RECT
+	#ifdef SPLITS
+	s_start += (tN*s_start)/M_W;
+	s_stop += (tN*s_stop)/M_W;
+	tP=s_start;
+	#else
+	s_stop+=tN;
+	#endif
+
 	for (unsigned jj=s_start; jj<s_stop; ++jj) {
-		#ifdef SH_RECT
 		for (unsigned i=tI; i<M_H; i+=tN) {
 			unsigned j = jj-tI;
 			if (j<M_W) {
-		#endif
-		#ifdef SH_TRI
+#endif
+#ifdef SH_TRI
+	for (unsigned jj=s_start; jj<s_stop; ++jj) {
 		for (unsigned ii=tI; ii<M_H; ii+=tN) {
 			unsigned i=M_H-1-ii;
 			unsigned j=i+jj;
 			if (j<M_W) {
-		#endif
-		#ifdef SH_PARA
+#endif
+#ifdef SH_PARA
+	for (unsigned jj=s_start; jj<s_stop; ++jj) {
 		for (unsigned i=tI; i<M_H; i+=tN) {
 			unsigned j=jj+i;
 			{
-		#endif
-				TB b=BT_STOP; TC c=0,c2; // stop
+#endif
+				TB b=BT_STOP; __attribute__((unused)) TC c=INIT_COST,c2; // stop
 				if (!INIT(i,j)) { p_kernel }
 				cost[idx(i,j)] = c;
 				back[idx(i,j)] = b;
@@ -82,31 +91,21 @@ void g_solve() {
 	cudaStream_t stream;
 	cuErr(cudaStreamCreate(&stream));
 	for (int i=0;i<SPLITS;++i) {
-		#ifdef SH_RECT
-		unsigned s0=((M_H+M_W)*i)/SPLITS;
-		unsigned s1=((M_H+M_W)*(i+1))/SPLITS;
-		#else
 		unsigned s0=(M_W*i)/SPLITS;
 		unsigned s1=(M_W*(i+1))/SPLITS;
-		#endif
 		gpu_solve<<<blk_num, blk_size, 0, stream>>>(g_in[0], g_in[1], g_cost, g_back, lock, s0, s1);
 	}
 	cuSync(stream);
 	cuErr(cudaStreamDestroy(stream));
 #else
-	#ifdef SH_RECT
-	unsigned s1 = M_W+M_H;
-	#else
-	unsigned s1 = M_W;
-	#endif
-	gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in[0], g_in[1], g_cost, g_back, lock, 0, s1);
+	gpu_solve<<<blk_num, blk_size, 0, NULL>>>(g_in[0], g_in[1], g_cost, g_back, lock, 0, M_W);
 #endif
 	cuFree(lock);
 }
 
 // -----------------------------------------------------------------------------
 
-typedef struct { unsigned size; TC score; } bt_info;
+typedef struct { unsigned size; TS score; } bt_info;
 #define QUEUE_PUSH(i,j) { tail[0]=i; tail[1]=j; tail+=2; ++sz; }
 #define QUEUE_POP(i,j) { i=head[0]; j=head[1]; head+=2; }
 #define QUEUE_EMPTY (head==tail)
@@ -119,12 +118,12 @@ __global__ void gpu_backtrack(bt_info* info, unsigned* bt, TC* cost, TB* back) {
 
 #if SH_RECT
 	// Find the position with maximal cost along bottom+right borders
-	unsigned mi=0; TC ci=0;
-	unsigned mj=0; TC cj=0;
-	for (unsigned i=0; i<M_H; ++i) { TC c=cost[idx(i,M_W-1)]; if (c>ci) { mi=i; ci=c; } }
-	for (unsigned j=0; j<M_W; ++j) { TC c=cost[idx(M_H-1,j)]; if (c>cj) { mj=j; cj=c; } }
+	unsigned mi=0; TS ci=0;
+	unsigned mj=0; TS cj=0;
+	for (unsigned i=0; i<M_H; ++i) { TS c=TS_MAP(cost[idx(i,M_W-1)]); if (c>ci) { mi=i; ci=c; } }
+	for (unsigned j=0; j<M_W; ++j) { TS c=TS_MAP(cost[idx(M_H-1,j)]); if (c>cj) { mj=j; cj=c; } }
 	if (ci>cj) { i=mi; j=M_W-1; } else { i=M_H-1; j=mj; }
-	info->score = cost[idx(i,j)];
+	info->score = TS_MAP(cost[idx(i,j)]);
 
 	// Backtrack, returns a pair of coordinates in reverse order
 	if (!bt) return;
@@ -181,7 +180,7 @@ __global__ void gpu_backtrack(bt_info* info, unsigned* bt, TC* cost, TB* back) {
 	info->size=sz;
 }
 
-TC g_backtrack(unsigned** bt, unsigned* size) {
+TS g_backtrack(unsigned** bt, unsigned* size) {
 	//if (bt && size) { *size=0; *bt=NULL; } return 0;
 	const unsigned sz=(M_W+M_H)*2*sizeof(unsigned);
 	const bool full = bt && size;
