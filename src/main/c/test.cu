@@ -7,47 +7,35 @@
 // Problem dimensions
 #define B_W 32LU    // block width
 #define B_H 32LU    // block height
-#define M_W 128LU   // matrix dimension (<=14336LU theo., <=12288LU actually)
-#define M_H 128LU   // matrix dimension
-//#define SPLITS 8  // number of kernels to be successively launched
+//#define M_W 1024LU   // matrix dimension (at most 14336LU for in-memory, 12288LU OK)
+//#define M_H 1024LU   // matrix dimension
 
 // -----------------------------------------------------------------------------
-#include "include/small_prob.h" // problem definitions
-#include "include/small.h"      // common functions
-#include "include/small_cpu.h"  // cpu implementation
-#include "include/small_gpu.h"  // gpu implementation
-#include "include/small_dbg.h"  // debug helpers
+#include "include/ns_prob.h" // problem definitions
+#include "include/ns.h"      // common functions
+#include "include/ns_cpu.h"  // cpu implementation
+#include "include/ns_gpu.h"  // gpu implementation
 // -----------------------------------------------------------------------------
-
-//#define FAST
 
 int main(int argc, char** argv) {
 	cuTimer t;
 	dbg_init();
-	#ifndef FAST
-	// CPU solving
-	for (int i=0;i<1;++i) { t.start(); c_solve(); t.stop(); }
-	fprintf(stderr,"- CPU: "); t.print(); fprintf(stderr,"\n");
-	fflush(stderr);
-	#endif
 
-	#ifdef __CUDACC__
 	// GPU solving
-		#ifdef FAST
-		const unsigned loops=1;
-		#else
-		const unsigned loops=4;
-		#endif
-	for (unsigned i=0;i<loops;++i) { t.start(); g_solve(); t.stop(); }
-	fprintf(stderr,"- GPU: "); t.print(); fprintf(stderr,"\n");
-	#endif
+	printf("- "); fflush(stdout); for (int i=0;i<10;++i) g_solve(); printf("GPU: "); fflush(stdout);
+	for (int i=0;i<20;++i) { t.start(); g_solve(); double dt=t.stop(); printf("  %.3f",dt/1000.0); fflush(stdout); }
+	printf("\n"); fflush(stdout);
 
-	#ifndef FAST
-	dbg_compare();
+	// CPU solving
+	printf("- "); fflush(stdout); c_solve(); printf("CPU: "); fflush(stdout);
+	for (int i=0;i<20;++i) { t.start(); c_solve(); double dt=t.stop(); printf("  %.3f",dt/1000.0); fflush(stdout); }
+	printf("\n"); fflush(stdout);
+
+	//dbg_compare();
+	// XXX: also compare backtrack
+
 	//dbg_print(false,stdout);
-	dbg_track(false,stdout);
-	dbg_track(true,stdout);
-	#endif
+	//dbg_track(false,stdout);
 
 	dbg_cleanup();
 	return 0;
