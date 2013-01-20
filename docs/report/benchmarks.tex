@@ -28,8 +28,8 @@ Our benchmarking platform is an Apple notebook with a Core i7-3720QM with 16Gb o
 {\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: CONTINUE HERE :XXX \\}
 % ------------------------------------------------------------------------------------------------
 \subsection{Matrix chain multiplication}
-Since we have seen that this problem is not input sensitive in (\S\ref{metrics}), we can safely use different random number generators among different implementations without compromising the validity of the results. For this problem, we modified the hand optimized version because the memory access was slightly different from the generated version (the original hand-optimized version was storing only the matrix multiplication score whereas the generated version also stores the matrix dimension in intermediate results, which proved a better pattern).
-
+Since we have seen that this problem is not input sensitive in (\S\ref{metrics}), we can safely use different random number generators among different implementations without compromising the validity of the results. 
+% XXX: is this true ?? For this problem, we modified the hand optimized version because the memory access was slightly different from the generated version (the original hand-optimized version was storing only the matrix multiplication score whereas the generated version also stores the matrix dimension in intermediate results, which proved a better pattern).
 Also note that the hand-optimized results are slightly worse than those presented in (\S\ref{baseline_impl}), this is because 64-bit mode is enabled. Because external libraries linked with the Java virtual machine must be in 64 bit, we also enabled this mode in hand-optimized version to maintain a fair comparison, thereby reducing the performance of CUDA operations.
 % CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion
 % GPU: GPU: DynaProg(CUDA), hand optimized CUDA, ATLP and GAPC-OpenCL?
@@ -41,26 +41,27 @@ Also note that the hand-optimized results are slightly worse than those presente
 & \hdr{DynaProg}{Scala version}
 	& 			& 			& 			& 			& 			& 			& 		 \\
 & \hdr{Optimized}{C, single thread}
-	& 			& 			& 			& 			& 			& 			& 		 \\
+	& 0.001		& 0.008		& 0.078		& 1.179		& 19.811		& 206.556	& 2010.485 \\
 & \hdr{GAPC}{\cite{gapc_thesis}, C, single thread}
 	& 			& 			& 			& 			& 			& 			& 		 \\
 & \hdr{ADP Fusion}{\cite{adp_fusion}}
-	& 			& 			& 			& 			& 			& 			& 		 \\
-\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf GPU $\qquad$}}
+	& 			& 			& 			& 			& 			& 			& 		 \\[-2pt]
+\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf GPU $\qquad\quad$}}
 & \hdr{DynaProg}{CUDA version}
 	& 			& 			& 			& 			& 			& 			& 		 \\
-& \hdr{Optimized 64 bit}{CUDA, multi-thread}
-	& 			& 			& 			& 			& 			& 			& 		 \\
-& \hdr{Optimized 32 bit}{CUDA, multi-thread}
-	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{Optimized}{CUDA, 64-bit}
+	& 0.011		& 0.020		& 0.074		& 0.315		& 1.651		& 10.354		& 72.376 \\
 & \hdr{ATLP}{\cite{gpu_atlp}, rescaled results}
 	& 			& 			& 			& 			& 			& 			& 		 \\
 & \hdr{GAPC}{\cite{gapc_thesis}, OpenCL}
 	& 			& 			& 			& 			& 			& 			& 		 \\
-\\ \bottomrule\end{tabular}}\end{center}
+\\[-10pt] \bottomrule\end{tabular}}\end{center}
 \caption{Running time of matrix chain multiplication (in seconds)}\end{table}
 
 % 1024=0.316, 2048=1.427, 4096=8.841, 8192=62.064
+
+
+
 
 {\color{red}\ol
 \item Write some conclusion ideas
@@ -81,24 +82,23 @@ XXX: move toward use of 3 matrices
 & \hdr{DynaProg}{Scala version}
 	& 			& 			& 			& 			& 			& 			& 		 \\
 & \hdr{Optimized}{C, single thread}
-	& 			& 			& 			& 			& 			& 			& 		 \\
+	& <0.001		& <0.001		& 0.002		& 0.009		& 0.042		& 0.171		& 0.706 \\
 & \hdr{GAPC}{\cite{gapc_thesis}, C, single thread}
 	& 			& 			& 			& 			& 			& 			& 		 \\
 & \hdr{ADP Fusion}{\cite{adp_fusion}}
-	& 			& 			& 			& 			& 			& 			& 		 \\
+	& 			& 			& 			& 			& 			& 			& 		 \\[-2pt]
 \midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf GPU $\qquad$}}
 & \hdr{DynaProg}{CUDA version}
 	& 			& 			& 			& 			& 			& 			& 		 \\
-& \hdr{Optimized 64 bit}{CUDA, multi-thread}
-	& 			& 			& 			& 			& 			& 			& 		 \\
-& \hdr{Optimized 32 bit}{CUDA, multi-thread}
-	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{Optimized}{CUDA, 64-bit}
+	& 0.002		& 0.004		& 0.004		& 0.007		& 0.024		& 0.070		& 0.270 \\
 & \hdr{CUDAlign}{\cite{swat_linear}, version 2.0}
 	& 			& 			& 			& 			& 			& 			& 		 \\
 & \hdr{GAPC}{\cite{gapc_thesis}, OpenCL}
 	& 			& 			& 			& 			& 			& 			& 		 \\
-\\ \bottomrule\end{tabular}}\end{center}
+\\[-10pt] \bottomrule\end{tabular}}\end{center}
 \caption{Running time of Smith-Waterman (in seconds)}\end{table}
+
 
 
 
