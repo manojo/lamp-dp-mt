@@ -3,10 +3,10 @@ In an attempt to provide realistic benchmarks, we tried to gather related implem
 
 We organize the benchmarks as follow: if we have at our disposal a working implementation that could be run on our evaluation platform, we use it, otherwise, we refer to the related paper and rescale the result according to the memory throughput and computation throughput of the related device so that we can have a good approximation of how they could compare.
 
-\subsection{Metrics}
+\subsection{Metrics} \label{metrics}
 The main metrics of interest is the running time. In an attempt to reduce the variance, we would like to run multiple consecutive test and take the median running time, since the median is less sensitive to outlier than the average\cite{perfeval}. Unfortunately, several factors hampers these ideal conditions. First the variance in the running time of CUDA kernels might be significant, in particular for short running time. This is due to the fact that the GPU needs to be 'warmed-up' before actual computation can happen. Similarly, the JVM is also subject to running time variance that is mainly due to the garbage collection\footnote{\url{http://www.oracle.com/technetwork/java/javase/gc-tuning-6-140523.html\#cms.overhead}} and JIT optimizations \cite{java_jit}.
 
-Also the input and problem might introduce variance. As example, we can consider two extreme cases: matrix chain multiplication and Zuker RNA folding, with a test environment of 100 random inputs (of length respectively 512 and 80) and a GPU warmup of 10 computations. In this settings, matrix chain multiplication computations are executed in a perfectly constant time (0.127 seconds), which mean that we sufficiently reduced the noise. Oppositely, the Zuker RNA folding running times appear much more scattered as presented below:
+Also the input and problem might introduce variance. As example, we can consider two extreme cases: matrix chain multiplication and Zuker RNA folding, with a test environment of 100 random inputs (of length respectively 512 and 80) and a GPU warmup of 10 computations. In this settings, matrix chain multiplication computations are executed in a perfectly constant time\footnote{With respect to truncation and measurment accurcy, has less than 1\% of variation (not observable).} (0.127 seconds), which mean that we sufficiently reduced the noise. Oppositely, the Zuker RNA folding running times appear much more scattered as presented below:
 
 \begin{figure}[H]\begin{center}\includegraphics[width=16cm]{inc/var_zuker.pdf}\end{center}
 \caption{Zuker folding running time (seconds). Quartiles: 0.152, 0.183 (median), 0.214}\label{fig:var_zuker}\end{figure}
@@ -28,6 +28,7 @@ Our benchmarking platform is an Apple notebook with a Core i7-3720QM with 16Gb o
 {\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: CONTINUE HERE :XXX \\}
 % ------------------------------------------------------------------------------------------------
 \subsection{Matrix chain multiplication}
+Since we have seen that this problem is not input sensitive in (\S\ref{metrics}), we can safely use different random number generators among different implementations without compromising the validity of the results.
 
 For this problem, we needed to modify the hand optimized version because the memory access was slightly different from the DynaProg version (the original hand-optimized version was storing only the matrix multiplication score whereas the DynaProg version also stores the matrix dimension in intermediate results). Also note that the hand-optimized results are slightly worse than those presented in (\S\ref{baseline_impl}), this is because 64-bit mode is enabled. Because external libraries linked with the Java virtual machine must be in 64 bit, we also enabled this mode in hand-optimized version to maintain a fair comparison, thereby reducing slightly the performance of CUDA operations.
 % CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion
