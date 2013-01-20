@@ -29,22 +29,34 @@ Our benchmarking platform is an Apple notebook with a Core i7-3720QM with 16Gb o
 % ------------------------------------------------------------------------------------------------
 \subsection{Matrix chain multiplication}
 
-\subsubsection{CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion}
-XXX
+For this problem, we needed to modify the hand optimized version because the memory access was slightly different from the DynaProg version (the original hand-optimized version was storing only the matrix multiplication score whereas the DynaProg version also stores the matrix dimension in intermediate results). Also note that the hand-optimized results are slightly worse than those presented in (\S\ref{baseline_impl}), this is because 64-bit mode is enabled. Because external libraries linked with the Java virtual machine must be in 64 bit, we also enabled this mode in hand-optimized version to maintain a fair comparison, thereby reducing slightly the performance of CUDA operations.
+% CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion
+% GPU: GPU: DynaProg(CUDA), hand optimized CUDA, ATLP and GAPC-OpenCL?
 
-\begin{table}[H]\begin{center}\begin{tabular}{rllll}\toprule
-\bf Size	& \bf DynaProg & \bf Optimized C & \bf GAPC & \bf ADP Fusion \\ \midrule
-128		&		&		&		& -		\\
-256		&		&		&		& -		\\
-512		&		&		&		& -		\\
-1024	&		&		&		& -		\\
-2048	&		&		&		& -		\\
-4096	&		&		&		& -		\\
-8192	&		&		&		& -		\\ \bottomrule
-\end{tabular}
-\end{center}
-\caption{Matrix chain multiplication results (CPU)}
-\end{table}
+\def\hdr#1#2{\begin{minipage}{3.5cm} {\bf #1} \\[-2pt] \footnotesize #2 \vspace{6pt} \end{minipage}}
+\begin{table}[H]\begin{center}{\small\begin{tabular}{llrrrrrrrr}\toprule
+& \normalsize\bf Matrix dimension & \normalsize\bf 128 & \normalsize\bf 256 & \normalsize\bf 512 & \normalsize\bf 1024 & \normalsize\bf 2048 & \normalsize\bf 4096 & \normalsize\bf 8192 \\
+\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\qquad$}}
+& \hdr{DynaProg}{Scala version}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{Optimized}{C, single thread}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{GAPC}{\cite{gapc_thesis}, C, single thread}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{ADP Fusion}{\cite{adp_fusion}}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf GPU $\qquad$}}
+& \hdr{DynaProg}{CUDA version}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{Optimized}{CUDA, multi-thread}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{ATLP}{\cite{gpu_atlp}, rescaled results}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{GAPC}{\cite{gapc_thesis}, OpenCL}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+\\ \bottomrule\end{tabular}}\end{center}
+\caption{Running time of matrix chain multiplication (in seconds)}\end{table}
+
 
 {\color{red}\ol
 \item Write some conclusion ideas
@@ -52,21 +64,42 @@ XXX
 \item Stabilize times, statistics, use CUDA profiler(?)
 \ole}
 
-\subsubsection{GPU: DynaProg(CUDA), hand optimized CUDA, ATLP and GAPC-OpenCL?}
-XXX
-
 \subsection{Smith-Watermann}
-\subsubsection{CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion}
-XXX
+% CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion
+% GPU: DynaProg(CUDA), hand optimized CUDA, CUDAlign
+XXX: to compare appropriately either use 3 matrices or constant gap penalty
+XXX: move toward use of 3 matrices
 
-\subsubsection{GPU: DynaProg(CUDA), hand optimized CUDA, CUDAlign}
-XXX
+\def\hdr#1#2{\begin{minipage}{3.5cm} {\bf #1} \\[-2pt] \footnotesize #2 \vspace{6pt} \end{minipage}}
+\begin{table}[H]\begin{center}{\small\begin{tabular}{llrrrrrrrr}\toprule
+& \normalsize\bf Matrix dimension & \normalsize\bf 128 & \normalsize\bf 256 & \normalsize\bf 512 & \normalsize\bf 1024 & \normalsize\bf 2048 & \normalsize\bf 4096 & \normalsize\bf 8192 \\
+\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\qquad$}}
+& \hdr{DynaProg}{Scala version}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{Optimized}{C, single thread}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{GAPC}{\cite{gapc_thesis}, C, single thread}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{ADP Fusion}{\cite{adp_fusion}}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf GPU $\qquad$}}
+& \hdr{DynaProg}{CUDA version}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{Optimized}{CUDA, multi-thread}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{CUDAlign}{\cite{swat_linear}, version 2.0}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+& \hdr{GAPC}{\cite{gapc_thesis}, OpenCL}
+	& 			& 			& 			& 			& 			& 			& 		 \\
+\\ \bottomrule\end{tabular}}\end{center}
+\caption{Running time of Smith-Waterman (in seconds)}\end{table}
+
+
+
 
 \subsection{Zuker RNA folding}
-\subsubsection{CPU: DynaProg(Scala), GAPC, ADPFusion and ViennaRNA}
-XXX
-
-\subsubsection{GPU: DynaProg(CUDA), RNAFold?/Lavenier VS ViennaRNA-OpenCL?, GAPC-OpenCL?}
+% CPU: DynaProg(Scala), GAPC, ADPFusion and ViennaRNA
+% GPU: DynaProg(CUDA), RNAFold?/Lavenier VS ViennaRNA-OpenCL?, GAPC-OpenCL?
 XXX
 
 \subsection{Synthetical results}
