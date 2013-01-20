@@ -50,25 +50,19 @@ trait TTParsers extends BaseParsers { this:Signature =>
 
   // Extra niceties
   import scala.language.implicitConversions
-  implicit def detupleTT3[A,B,C,R](fn:Function3[A,B,C,R]) = new ((  (A,(B,C))  )=>R) with DeTuple { override val f=fn
+  implicit def detupleTT3[A,B,C,D,R](fn:Function3[A,B,C,R]) = new (((A,(B,C)))=>R) with DeTuple { override val f=fn
     def apply(t:(A,(B,C))) = { val (a,(b,c))=t; fn(a,b,c) } }
-  implicit def detupleTT3l[A,B,C,R](fn:Function3[A,B,C,R]) = new ((  ((A,B),C)  )=>R) with DeTuple { override val f=fn
-    def apply(t:((A,B),C)) = { val ((a,b),c)=t; fn(a,b,c) } }
-  implicit def detupleTT4r[A,B,C,D,R](fn:Function4[A,B,C,D,R]) = new ((  ((A,B),(C,D))  )=>R) with DeTuple { override val f=fn
-    def apply(t:((A,B),(C,D))) = { val ((a,b),(c,d))=t; fn(a,b,c,d) } }
-  implicit def detupleTT4l[A,B,C,D,R](fn:Function4[A,B,C,D,R]) = new ((  (A,((B,C),D))  )=>R) with DeTuple { override val f=fn
-    def apply(t:(A,((B,C),D))) = { val (a,((b,c),d))=t; fn(a,b,c,d) } }
+  implicit def detupleTT4l[A,B,C,D,R](fn:Function4[A,B,C,D,R]) = new ((  ((A,(B,C)),D)  )=>R) with DeTuple { override val f=fn
+    def apply(t:((A,(B,C)),D)) = { val ((a,(b,c)),d)=t; fn(a,b,c,d) } }
+  implicit def detupleTT4r[A,B,C,D,R](fn:Function4[A,B,C,D,R]) = new ((  (A,(B,(C,D)))  )=>R) with DeTuple { override val f=fn
+    def apply(t:(A,(B,(C,D)))) = { val (a,(b,(c,d)))=t; fn(a,b,c,d) } }
   implicit def detupleTT5[A,B,C,D,E,R](fn:Function5[A,B,C,D,E,R]) = new ((  (A,((B,(C,D)),E))  )=>R) with DeTuple { override val f=fn
     def apply(t:(A,((B,(C,D)),E))) = { val (a,((b,(c,d)),e))=t; fn(a,b,c,d,e) } }
+  implicit def detupleTT5l[A,B,C,D,E,R](fn:Function5[A,B,C,D,E,R]) = new ((  (((A,(B,C)),D),E)  )=>R) with DeTuple { override val f=fn
+    def apply(t:(((A,(B,C)),D),E)) = { val (((a,(b,c)),d),e)=t; fn(a,b,c,d,e) } }
+  implicit def detupleTT5r[A,B,C,D,E,R](fn:Function5[A,B,C,D,E,R]) = new ((  (A,(B,(C,(D,E))))  )=>R) with DeTuple { override val f=fn
+    def apply(t:(A,(B,(C,(D,E))))) = { val (a,(b,(c,(d,e))))=t; fn(a,b,c,d,e) } }
 
-
-
-/*
-  implicit def detupleTT[A,B,C,D,R](fn:Function3[A,B,C,R]) = new (((A,(B,C)))=>R) with DeTuple { override val f=fn
-    def apply(t:(A,(B,C))) = { val (a,(b,c))=t; fn(a,b,c) } }
-*/
-
-  
   private val myself=this
   implicit def swapTT[A,B,R](fn:Function2[A,B,R]) = new (((B,A))=>R) with CFun {
     def apply(t:(B,A)) = { val (b,a)=t; fn(a,b) }
@@ -77,5 +71,4 @@ trait TTParsers extends BaseParsers { this:Signature =>
       case _=> if (myself.isInstanceOf[CodeGen]) sys.error("Cannot swap a plain function"); ("",Nil,"")
     }
   }
-  
 }
