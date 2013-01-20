@@ -44,6 +44,7 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   // ------- Extra codegen initialization
   //println(gen)
 
+  /*
   println("------ SCALA -------------------")
   val (res1,bt1) = backtrack(input,true).head
   println("--> "+res1)
@@ -52,4 +53,15 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   val (res2,bt2) = backtrack(input).head
   println("--> "+res2)
   println("--> "+build(input,bt2))
+  */
+
+  import scala.util.Random
+  Random.setSeed(123456748299L)
+  def rnd:Int = Math.abs(Random.nextInt)%253+1
+
+  def genMats(n:Int) = {
+    val s = Seq.fill(n)(rnd)
+    (Seq(rnd) ++ s).zip(s).map{case(x,y)=>(x,y)/*unbox ints!!*/}.toArray
+  }
+  for (k<-0 until 100) backtrack(genMats(512))
 }

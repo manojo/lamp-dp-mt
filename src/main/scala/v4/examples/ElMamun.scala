@@ -23,8 +23,8 @@ trait SellerAlgebra extends Bill {
 trait BillGrammar extends LexicalParsers with Bill {
   override type Alphabet = Char
 
-  def plus = charf(_ == '+')
-  def times = charf(_ == '*')
+  def plus = charf('+')
+  def times = charf('*')
 
   val billGrammar:Tabulate = tabulate("M",(
     digit

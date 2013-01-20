@@ -190,9 +190,14 @@ object Zuker extends App {
   // Note that sbt execute the program in the same JVM
 
   //println(mfe.gen)
-  testSeq("acgcaccggcauacgugugcucgaaaagcgu")
-  testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
+  //testSeq("acgcaccggcauacgugugcucgaaaagcgu")
+  //testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
 
   //scala.util.Random.setSeed(3974658973264L)
-  //for (k<-0 until 50) { testSeq(RNAUtils.genSeq(80),false); if (k%80==0) println }
+
+  //for (k<-0 until 100) { testSeq(RNAUtils.genSeq(80)); println }
+
+
+  val s = RNAUtils.genSeq(80)
+  for (k<-0 until 100) { testSeq(s); println }
 }

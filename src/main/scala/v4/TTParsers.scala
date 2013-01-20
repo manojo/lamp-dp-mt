@@ -33,27 +33,49 @@ trait TTParsers extends BaseParsers { this:Signature =>
 
   // Terminal parsers
   val empty = new Terminal[Unit](0,0,(i:Var,j:Var) => (List(zero.eq(i,0),zero.eq(j,0)),"")) {
-    def apply(sw:Subword) = sw match { case (i,j) => if(i==0 && j==0) List(({},bt0)) else Nil }
+    def apply(sw:Subword) = { val (i,j)=sw; if(i==0 && j==0) List(({},bt0)) else Nil }
   }
   val el1 = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"_in1["+i+"]")) {
-    def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in1(i),bt0)) else Nil }
+    def apply(sw:Subword) = { val (i,j)=sw; if(i+1==j) List((in1(i),bt0)) else Nil }
   }
   val el2 = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"_in2["+i+"]")) {
-    def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in2(i),bt0)) else Nil }
+    def apply(sw:Subword) = { val (i,j)=sw; if(i+1==j) List((in2(i),bt0)) else Nil }
   }
-  def seq1(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(T2ii){"+i+","+j+"}")) { // in1[i]..in1[j]
-    def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
+  val eli = new Terminal[Int](1,1,(i:Var,j:Var) => (Nil,"("+i+")")) {
+    def apply(sw:Subword) = { val (i,j)=sw; if(i+1==j) List((i,bt0)) else Nil }
   }
-  def seq2(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(T2ii){"+i+","+j+"}")) { // in2[i]..in2[j]
-    def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
+  def seq(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(T2ii){"+i+","+j+"}")) { // in{1,2}[i]..in{1,2}[j]
+    def apply(sw:Subword) = { val (i,j)=sw; if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
 
   // Extra niceties
   import scala.language.implicitConversions
-  implicit def detupleTT[A,B,C,R](fn:Function3[A,B,C,R]) = new (((A,(B,C)))=>R) with DeTuple { override val f=fn
+  implicit def detupleTT3[A,B,C,R](fn:Function3[A,B,C,R]) = new ((  (A,(B,C))  )=>R) with DeTuple { override val f=fn
     def apply(t:(A,(B,C))) = { val (a,(b,c))=t; fn(a,b,c) } }
+  implicit def detupleTT3l[A,B,C,R](fn:Function3[A,B,C,R]) = new ((  ((A,B),C)  )=>R) with DeTuple { override val f=fn
+    def apply(t:((A,B),C)) = { val ((a,b),c)=t; fn(a,b,c) } }
+  implicit def detupleTT4r[A,B,C,D,R](fn:Function4[A,B,C,D,R]) = new ((  ((A,B),(C,D))  )=>R) with DeTuple { override val f=fn
+    def apply(t:((A,B),(C,D))) = { val ((a,b),(c,d))=t; fn(a,b,c,d) } }
+  implicit def detupleTT4l[A,B,C,D,R](fn:Function4[A,B,C,D,R]) = new ((  (A,((B,C),D))  )=>R) with DeTuple { override val f=fn
+    def apply(t:(A,((B,C),D))) = { val (a,((b,c),d))=t; fn(a,b,c,d) } }
+  implicit def detupleTT5[A,B,C,D,E,R](fn:Function5[A,B,C,D,E,R]) = new ((  (A,((B,(C,D)),E))  )=>R) with DeTuple { override val f=fn
+    def apply(t:(A,((B,(C,D)),E))) = { val (a,((b,(c,d)),e))=t; fn(a,b,c,d,e) } }
+
+
+
+/*
+  implicit def detupleTT[A,B,C,D,R](fn:Function3[A,B,C,R]) = new (((A,(B,C)))=>R) with DeTuple { override val f=fn
+    def apply(t:(A,(B,C))) = { val (a,(b,c))=t; fn(a,b,c) } }
+*/
+
+  
+  private val myself=this
   implicit def swapTT[A,B,R](fn:Function2[A,B,R]) = new (((B,A))=>R) with CFun {
     def apply(t:(B,A)) = { val (b,a)=t; fn(a,b) }
-    val (body,args,tpe) = fn match {case f:CFun=>(f.body,f.args.reverse,f.tpe) case _=>("",Nil,"")} // TODO: error if CodeGen
+    val (body,args,tpe) = fn match {
+      case f:CFun=>(f.body,f.args.reverse,f.tpe)
+      case _=> if (myself.isInstanceOf[CodeGen]) sys.error("Cannot swap a plain function"); ("",Nil,"")
+    }
   }
+  
 }

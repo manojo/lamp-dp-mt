@@ -205,7 +205,7 @@ trait BaseParsers { this:Signature =>
     def min = inner.min
     def max = inner.max
     lazy val (alt,cat) = (inner.alt,inner.cat)
-    def apply(sw: Subword) = aggr(inner(sw),h)
+    def apply(sw:Subword) = aggr(inner(sw),h)
     def unapply(sw:Subword,bt:Backtrack) = aggr(inner.unapply(sw,bt),h)
     def reapply(sw:Subword,bt:Backtrack) = inner.reapply(sw,bt)
   }
@@ -216,7 +216,7 @@ trait BaseParsers { this:Signature =>
     def min = inner.min
     def max = inner.max
     lazy val (alt,cat) = (inner.alt,inner.cat)
-    def apply(sw: Subword) = if(pred(sw)) inner(sw) else Nil
+    def apply(sw:Subword) = if(pred(sw)) inner(sw) else Nil
     def unapply(sw:Subword,bt:Backtrack) = inner.unapply(sw,bt) // filter matched at apply
     def reapply(sw:Subword,bt:Backtrack) = inner.reapply(sw,bt) // ditto
   }

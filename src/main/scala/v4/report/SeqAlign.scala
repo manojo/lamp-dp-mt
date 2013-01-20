@@ -50,10 +50,10 @@ trait SeqPrettyPrint extends SeqAlignSignature {
 
 trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
   val axiom:Tabulate = tabulate("M",(
-    empty                     ^^ start
-  | seq1() -~ axiom           ^^ gap1
-  |           axiom ~- seq2() ^^ gap2
-  | el1    -~ axiom ~- el2    ^^ pair
+    empty                   ^^ start
+  | seq() -~ axiom          ^^ gap1
+  |          axiom ~- seq() ^^ gap2
+  | el1   -~ axiom ~- el2   ^^ pair
   ) aggregate h)
 }
 

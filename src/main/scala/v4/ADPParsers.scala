@@ -32,31 +32,36 @@ trait ADPParsers extends BaseParsers { this:Signature =>
 
   // Terminal parsers
   val empty = new Terminal[Unit](0,0,(i:Var,j:Var) => (Nil,"")) {
-    def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List(({},bt0)) else Nil }
+    def apply(sw:Subword) = { val (i,j)=sw; if (i==j) List(({},bt0)) else Nil }
   }
   val emptyi = new Terminal[Int](0,0,(i:Var,j:Var) => (Nil,"("+i+")")) {
-    def apply(sw:Subword) = sw match { case (i,j) => if (i==j) List((i,bt0)) else Nil }
+    def apply(sw:Subword) = { val (i,j)=sw; if (i==j) List((i,bt0)) else Nil }
   }
   val el = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"_in1["+i+"]")) {
-    def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((in(i),bt0)) else Nil }
+    def apply(sw:Subword) = { val (i,j)=sw; if(i+1==j) List((in(i),bt0)) else Nil }
   }
   val eli = new Terminal[Int](1,1,(i:Var,j:Var) => (Nil,"("+i+")")) {
-    def apply(sw:Subword) = sw match { case (i,j) => if(i+1==j) List((i,bt0)) else Nil }
+    def apply(sw:Subword) = { val (i,j)=sw; if(i+1==j) List((i,bt0)) else Nil }
   }
   def seq(min:Int=1, max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(T2ii){"+i+","+j+"}")) {
-    def apply(sw:Subword) = sw match { case (i,j) => if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
+    def apply(sw:Subword) = { val (i,j)=sw; if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
 }
 
 trait LexicalParsers extends ADPParsers { this:Signature =>
   override type Alphabet = Char
-  def char = el
-  def chari = eli
-  def charf(f: Char => Boolean) = el filter { // TODO: CUDA version
-    case(i,j) if(i+1==j) => f(in(i))
-    case _ => false
-  }
-  def digit: Parser[Int] = (charf {_.isDigit}) ^^ { c=>(c-'0').toInt } // TODO: CUDA version
+  def in(k:Int):Char
+  private def esc(s:String) = s.replace("\\","\\\\").replace("\"","\\\"").replace("'","\\'").replace("\n","\\n").replace("\r","\\r").
+                                replace("\t","\\t").replace("\0","\\0").replace("\b","\\b").replace("\f","\\f")
+  private def cf(f:Char=>Boolean,cc:String) = cfun1((i:Int,j:Int) => (i+1==j) && f(in(i)),"i,j","if (i+1!=j) return false; c=_in1[i]; "+cc)
+
+  // Additional terminals
+  val char = el
+  val chari = eli
+  val letter = char filter cf((c:Char)=>(c>='a' && c<='z') || (c>='A' && c<='Z'),"return (c>='a' && c<='z') || (c>='A' && c<='Z');")
+  val digit = (char filter cf((c:Char)=>c>='0' && c<='9',"return c>='0' && c<='9';")) ^^ cfun1((c:Char)=>(c-'0').toInt,"c","return c-'0';")
+  def charf(s:String) = char filter cf((c:Char)=>s.indexOf(c)!= -1,"const char* s=\""+esc(s)+"\"; for(;*s;++s) { if (*s==c) return true; } return false;")
+  def charf(c0:Char) = char filter cf((c:Char)=>c==c0,"return c=='"+esc(""+c0)+"';")
 
   import scala.language.implicitConversions
   implicit def toCharArray(s:String):Array[Char] = s.toArray

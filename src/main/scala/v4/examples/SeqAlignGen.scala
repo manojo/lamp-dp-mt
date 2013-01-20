@@ -33,10 +33,10 @@ trait SWatAlgGen extends SeqAlignSig {
 // Sequence alignment grammar
 trait SeqAlignGrammarGen extends TTParsers with SeqAlignSig {
   val alignment:Tabulate = tabulate("M",(
-    empty                         ^^ zro
-  | seq1() -~ alignment           ^^ gap
-  |           alignment ~- seq2() ^^ gap
-  | el1    -~ alignment ~- el2    ^^ pair
+    empty                       ^^ zro
+  | seq() -~ alignment          ^^ gap
+  |          alignment ~- seq() ^^ gap
+  | el1   -~ alignment ~- el2   ^^ pair
   ) aggregate h,true)
 
   val axiom = alignment
