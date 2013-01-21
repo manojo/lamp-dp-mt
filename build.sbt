@@ -31,7 +31,7 @@ compile in Compile <<= (compile in Compile) map { x => ("src/librna/make target/
 // custom commands to execute JNI and CUDA targets
 {
   def t(n:String) = { val t=TaskKey[Unit](n); t.dependsOn(compile in Compile); t }
-  def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, cl), fork in t:=true, javaOptions in t+="-Xss64m")
+  def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, cl), fork in t:=true, javaOptions in t++=List("-Xss512m" /*,"-Xmx8G","-Xms8G","-XX:MaxPermSize=8G","-verbose:gc"*/))
   val (mm1,mm2,mm3,align,zuker,rnafold,nu,swat)=(t("mm1"),t("mm2"),t("mm3"),t("align"),t("zuker"),t("rnafold"),t("nu"),t("swat")) // Examples
   val (mml,mmr,rr)=(t("mml"),t("mmr"),t("rr")) // LMS and report
   val ex="v4.examples."

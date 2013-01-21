@@ -284,8 +284,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "cuAlloc2(costDev,c_cost,g_cost,s_cost); cuAlloc2(backDev,c_back,g_back,s_back);\ngpu_input<<<1,1>>>(g_in1,g_in2);"+
       (if (!benchmark)"" else "\ncudaDeviceProp prop; cuErr(cudaGetDeviceProperties(&prop, dev));\n"+
         "size_t mem = (sizeof(input_t)+sizeof(trace_t))*(M_W+M_H) + s_cost + s_back;\n"+
-        "printf(\"%-20s : %.2fMb / %.2fMb -> cost:%s, backtrack:%s\\n\",\"Memory selection\","+
-        "mem/1048576.0,prop.totalGlobalMem/1048576.0, costDev?\"device\":\"host\", backDev?\"device\":\"host\");")
+        "printf(\"%-20s : %.2fMb / %.2fMb [in=%ld,tr=%ld,cost=%ld,back=%ld] -> cost:%s, backtrack:%s\\n\",\"Memory selection\","+
+        "mem/1048576.0,prop.totalGlobalMem/1048576.0, sizeof(input_t),sizeof(trace_t),sizeof(cost_t),sizeof(back_t), costDev?\"device\":\"host\", backDev?\"device\":\"host\");")
       )+"}\n\n"+
       "void g_free() {\n"+ind("cuFree(g_in1);"+(if(twotracks) " cuFree(g_in2);" else "")+(if (useRna)" rna_free();" else "")+"\n"+
       "cuFree2(c_cost,g_cost); cuFree2(c_back,g_back); cuReset;")+"}\n\n"
