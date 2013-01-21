@@ -65,7 +65,7 @@ We present here the timings of our baseline implementation. For correctness, we 
 \end{table}
 
 % ----------------------------------------------
-\subsubsection{Results discussion}\ul
+\subsubsection{Results discussion} \label{results_discussion} \ul
 \item \textbf{User interface:} It has been put in evidence in \cite{perfeval_gpu} that using the GPU exclusively for CUDA or in combination with UI display (Mac OS) affects the performance (GeForce 330M). With the newer architecture, this difference has been reduced to less than 3.5\%, decoupled UI and CUDA   performing best. So we can safely ignore this issue.
 \item \textbf{Blocks synchronization:}\ul
 	\item Removing {\tt \_\_threadfence()} before the synchronization is not syntactically correct but results still remains valid, this confirms the observation made by \cite{gpu_barrier}. Speedup for matrix size of 1024 are 67ms (parallelogram) 100ms (triangle) 180ms (rectangle).
@@ -78,13 +78,13 @@ First we need to prove that we use almost all the available memory bandwidth: fo
 \[\text{Total transfer}=\frac{n(n+1)}{2} \text{ writes} + \sum_{i=0}^{n-1} 2 i \cdot (n-i) \text{ reads}\]
 where each write is 10 bytes (long+short), and each read is 8 bytes (long). For $n=4096$ we transfer
 % n*(n + 1)/2*12 + Sum[2*i*(n - i), {i, 0, n - 1}]*8
-183'352'614'912 bytes which corresponds to 183.35GB. In 8.841 seconds, we can transfer theoretically at most $8.841\cdot 28.8 = 254 \rm GB$. Hence  72\% of the algorithm running time is spent into memory accesses.
+183'352'614'912 bytes which corresponds to 183.35GB. In 8.841 seconds, we can transfer theoretically at most $8.841\cdot 28.8 = 254.6 \rm GB$. Hence  72\% of the algorithm running time is spent into memory accesses.
 
 \item On a 4096 matrix, if we assume that the \cite{gpu_atlp} card would have the same bandwidth as our card, their running time would be
-\[2.57 \cdot (1-.72) + 2.57 \cdot 0.72 \cdot \tfrac{102.4_{GB/s}}{28.8_{GB/s}} = 9.43\rm s_{\text{ ATLP}} > 8.84\rm s_{\text{ our}}\]
+\[2.57 \cdot (1-.72) + 2.57 \cdot 0.72 \cdot \tfrac{102.4_{GB/s}}{28.8_{GB/s}} = 7.30\rm s_{\text{ ATLP}} < 8.84\rm s_{\text{ our}}\]
 This shows that our algorithm is comparable to theirs. However, we must avoid a close comparison because the fundamental hardware differences would make a tight computation almost intractable (additionally, we do not have \cite{gpu_atlp} source code).
 \ule
-As a conclusion, (1) it seems that the technique used in \cite{gpu_atlp} only applies to legacy hardware, however this remains a supposition (as we can not compare) and (2) we are on par, if not better with one of the best current implementations.
+As a conclusion, (1) it seems that the technique used in \cite{gpu_atlp} brings more performance improvement with legacy hardware, however this remains a supposition (as we can not compare) and (2) we are slightly worse than one of the best current implementations.
 
 \item \textbf{Number of threads:} reducing the number of threads launched at different splits of the algorithm (especially in latest splits in rectangular and triangular shapes) does not bring any speedup. Even worse, it slows down slightly the computation. We might attribute this to a better constant transformation by the compiler. Hence, having many idle threads does not impede performance.
 

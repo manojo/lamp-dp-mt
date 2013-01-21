@@ -35,13 +35,12 @@ trait TTParsers extends BaseParsers { this:Signature =>
   val empty = new Terminal[Unit](0,0,(i:Var,j:Var) => (List(zero.eq(i,0),zero.eq(j,0)),"")) {
     def apply(sw:Subword) = { val (i,j)=sw; if(i==0 && j==0) List(({},bt0)) else Nil }
   }
-  val empty1 = new Terminal[Unit](0,maxN,(i:Var,j:Var) => (List(zero.eq(i,0)),"")) {
-    def apply(sw:Subword) = { val (i,j)=sw; if(i==0 && j==0) List(({},bt0)) else Nil }
+  val empty1 = new Terminal[Int](0,maxN,(i:Var,j:Var) => (List(zero.eq(i,0)),"("+j+")")) {
+    def apply(sw:Subword) = { val (i,j)=sw; if(i==0) List((j,bt0)) else Nil }
   }
-  val empty2 = new Terminal[Unit](0,maxN,(i:Var,j:Var) => (List(zero.eq(j,0)),"")) {
-    def apply(sw:Subword) = { val (i,j)=sw; if(i==0 && j==0) List(({},bt0)) else Nil }
+  val empty2 = new Terminal[Int](0,maxN,(i:Var,j:Var) => (List(zero.eq(j,0)),"("+i+")")) {
+    def apply(sw:Subword) = { val (i,j)=sw; if(j==0) List((i,bt0)) else Nil }
   }
-
   val el1 = new Terminal[Alphabet](1,1,(i:Var,j:Var) => (Nil,"_in1["+i+"]")) {
     def apply(sw:Subword) = { val (i,j)=sw; if(i+1==j) List((in1(i),bt0)) else Nil }
   }
