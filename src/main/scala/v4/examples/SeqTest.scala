@@ -52,5 +52,5 @@ object SeqTest extends Signature with TTParsers with App {
 
   val in1="10101010".map{case '1'=>'\1'case _=>'\0'}.toArray
   val in2="10101010".map{case '1'=>'\1'case _=>'\0'}.toArray
-  printBT(backtrack(in1,in2))
+  Utils.printBT(backtrack(in1,in2))
 }

@@ -69,7 +69,7 @@ object SeqAlign extends App {
   val (swScore,sw1,sw2) = SWat.align(seq1,seq2).head
   println("Smith-Waterman alignment\n- Score: "+swScore+"\n- Seq1: "+sw1+"\n- Seq2: "+sw2+"\n")
   val bt = SWat.trace(seq1,seq2)
-  SWat.printBT(bt)
+  Utils.printBT(bt)
   println("Needleman-Wunsch score : "+NWun.build(seq1.toArray,seq2.toArray,bt.head._2)._1)
   println("--------------------------------------------\n")
   val (nwScore,nw1,nw2) = NWun.align(seq1,seq2).head

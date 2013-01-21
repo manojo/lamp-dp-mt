@@ -4,6 +4,17 @@ package v4
 // for our environment or mainly for benchmarking
 
 object Utils {
+  // Pretty print multiple answer/backtrack traces
+  def printBT[T](bs:List[(T,List[((Int, Int),(Int,List[Int]))])]) = {
+    println("Backtrack = {")
+    for(b<-bs) { print("  "+b._1+"   BT =")
+      for (((i,j),(r,bt)) <- b._2) { print(" ["+i+","+j+"]="+r+","+bt+" ") }; println
+    }
+    println("}")
+  }
+
+  // --------------------------------------------------------------------------
+
   import scala.util.Random
   Random.setSeed(123456748299L)
 

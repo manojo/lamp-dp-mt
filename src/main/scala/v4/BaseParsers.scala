@@ -371,14 +371,4 @@ trait BaseParsers { this:Signature =>
   //   def lr(c:Char='A') = ("("*(n-1))+c+","+(1 until n).map{x=>(c+x).toChar}.mkString("),")+")"
   //   println("  implicit def detuple"+n+"["+ls()+",R](fn:Function"+n+"["+ls()+",R]) = new (("+lr()+")=>R) with DeTuple { override val f=fn\n"+
   //           "    def apply(t:"+lr()+") = { val "+lr('a')+"=t; fn("+ls('a')+") } }") }
-
-  // --------------------------------------------------------------------------
-  // Debug: pretty print multiple answer/backtrack traces
-  def printBT(bs:List[(Answer,Trace)]) = {
-    println("Backtrack = {")
-    for(b<-bs) { print("  "+b._1+"   BT =")
-      for (((i,j),(r,bt)) <- b._2) { print(" ["+i+","+j+"]="+r+","+bt+" ") }; println
-    }
-    println("}")
-  }
 }

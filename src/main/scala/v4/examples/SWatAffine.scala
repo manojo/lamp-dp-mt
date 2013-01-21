@@ -45,13 +45,13 @@ trait SWatGrammar extends TTParsers with SWatSig {
   ) aggregate h,true)
 
   val g1:Tabulate = tabulate("g1",(
-    empty        ^^ start
-  // | el1 -~ axiom ^^ open1 // BUGGY
-  // | el1 -~ g1    ^^ ext1  // BUGGY
+    empty1       ^^ start
+  | el1 -~ axiom ^^ open1
+  | el1 -~ g1    ^^ ext1
   ) aggregate h,true)
 
   val g2:Tabulate = tabulate("g2",(
-    empty        ^^ start
+    empty2       ^^ start
   | axiom ~- el2 ^^ open2
   | g2    ~- el2 ^^ ext2
   ) aggregate h,true)
@@ -66,13 +66,13 @@ object SWatAffine extends App {
 
   val s1 = "CGATTACA".toArray
   val s2 = "CCCATTAGAG".toArray
+
+  Utils.printBT(swat.backtrack(s1,s2,true))
+  Utils.printBT(swat.backtrack(s1,s2))
   /*
   val (score,bt) = swat.backtrack(s1,s2).head
   val (a1,a2) = pretty.build(s1,s2,bt)
   println("- Score: "+score)
   println("- Seq1: "+a1+"\n- Seq2: "+a2+"\n")
   */
-
-  swat.backtrack(s1,s2)
-
 }

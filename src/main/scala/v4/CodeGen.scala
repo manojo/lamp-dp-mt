@@ -181,7 +181,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
              "cost_t _cost = {}; // init to 0\n#define VALID(I,J,RULE) (back[idx(I,J)].RULE.rule!=-1)\n"+
              rulesOrder.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)+"\ncost[idx(i,j)]."+n+" = _cost."+n+";\nback[idx(i,j)]."+n+" = _back."+n+";"}.mkString("\n")
     val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
-      (if (twotracks) "  for (int i=tI; i<M_H; i+=tN) {\n    int j = jj-tI;" else "  for (int ii=tI; ii<M_H; ii+=tN) {\n    int i = M_H-1-ii, j = i+jj;")+"\n"
+      (if (twotracks) "  for (int i=tI; i<M_H; i+=tN) {\n    int j = jj-i; if (j>=0)" else "  for (int ii=tI; ii<M_H; ii+=tN) {\n    int i = M_H-1-ii, j = i+jj;")+"\n"
     "__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {\n"+ind(
     "const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x;\n"+
     "const unsigned tN = blockDim.x * gridDim.x;\n"+

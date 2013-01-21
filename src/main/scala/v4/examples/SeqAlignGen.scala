@@ -54,5 +54,5 @@ object SeqAlignGen extends SeqAlignGrammarGen with SWatAlgGen with CodeGen with 
   //println(gen)
   val (swScore,swBt) = backtrack(seq1,seq2).head
   println("Smith-Waterman alignment\n- Score: "+swScore)
-  printBT(List((swScore,swBt)))
+  Utils.printBT(List((swScore,swBt)))
 }

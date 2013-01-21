@@ -38,7 +38,7 @@ __global__ void gpu_solve(const TI* in0, const TI* in1, TC* cost, TB* back, vola
 
 	for (unsigned jj=s_start; jj<s_stop; ++jj) {
 		for (unsigned i=tI; i<M_H; i+=tN) {
-			unsigned j = jj-tI;
+			unsigned j = jj-i;
 			if (j<M_W) {
 #endif
 #ifdef SH_TRI

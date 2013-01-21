@@ -38,5 +38,5 @@ trait BracketsGrammar extends LexicalParsers with BracketsSignature {
 object Brackets extends App with BracketsGrammar with BracketsAlgebra {
   val str = "(((3)))((2))(1)((6))((((8))))(3)((4))"
   println("Parse result = "+parse(str))
-  printBT(backtrack(str))
+  Utils.printBT(backtrack(str))
 }

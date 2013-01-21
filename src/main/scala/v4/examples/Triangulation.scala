@@ -32,6 +32,6 @@ object Triangulation extends LexicalParsers with TriangulationAlgebra {
 
   def main(args: Array[String]) = {
     println(parse("abcdef"))
-    printBT(backtrack("abcdef"))
+    Utils.printBT(backtrack("abcdef"))
   }
 }
