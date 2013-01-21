@@ -115,7 +115,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
         val (tc,tb) = if(aggr==0) ("_cost."+t.name,"_back."+t.name) else { aggid=aggid+1; ("_c"+aggid, "_b"+aggid) }
         // Generate aggregation body
         val updt = "{ "+tc+"=_c; "+tb+"=("+btTpe(if (aggr==0) t.inner.cat else p.cat)+"){"+rule+(if (p.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
-        val cc = h.toString match {
+        val cc = "{ "+(h.toString match {
           case "$$max$$" => tpe+" _c="+b+"; if (_c>"+tc+" || "+tb+".rule==-1) "+updt
           case "$$min$$" => tpe+" _c="+b+"; if (_c<"+tc+" || "+tb+".rule==-1) "+updt
           case "$$count$$" => tc+"+=1;"
@@ -123,7 +123,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
           case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)>"+f+"("+tc+") || "+tb+".rule==-1) "+updt
           case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)<"+f+"("+tc+") || "+tb+".rule==-1) "+updt
           case _ => sys.error("Unsupported aggregation: "+b)
-        }
+        })+" }"
         if (aggr==0) (c,hb,cc,bti) // hoist aggregation if contained
         else { val nv = tpe+" "+tc+"; "+btTpe(p.cat)+" "+tb+"={-1"+(if (p.cat>0)",{}" else "")+"};\n";
           (List(CUser(tb+".rule!=-1")),nv+emit((c,hb,cc,bti)),tc,(0 until p.cat).map{x=>tb+".pos["+x+"]"}.toList)

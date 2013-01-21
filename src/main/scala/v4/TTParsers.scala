@@ -44,7 +44,7 @@ trait TTParsers extends BaseParsers { this:Signature =>
   val eli = new Terminal[Int](1,1,(i:Var,j:Var) => (Nil,"("+i+")")) {
     def apply(sw:Subword) = { val (i,j)=sw; if(i+1==j) List((i,bt0)) else Nil }
   }
-  def seq(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(T2ii){"+i+","+j+"}")) { // in{1,2}[i]..in{1,2}[j]
+  def seq(min:Int=1,max:Int=maxN) = new Terminal[Subword](min,max,(i:Var,j:Var) => (Nil,"(T2ii){"+i+","+j+"}")) { // in{1,2}[i]..in{1,2}[j-1]
     def apply(sw:Subword) = { val (i,j)=sw; if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
   }
 

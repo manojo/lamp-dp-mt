@@ -32,10 +32,11 @@ compile in Compile <<= (compile in Compile) map { x => ("src/librna/make target/
 {
   def t(n:String) = { val t=TaskKey[Unit](n); t.dependsOn(compile in Compile); t }
   def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, cl), fork in t:=true, javaOptions in t+="-Xss64m")
-  val (mm1,mm2,mm3,align,zuker,rnafold,nu)=(t("mm1"),t("mm2"),t("mm3"),t("align"),t("zuker"),t("rnafold"),t("nu")) // Examples
+  val (mm1,mm2,mm3,align,zuker,rnafold,nu,swat)=(t("mm1"),t("mm2"),t("mm3"),t("align"),t("zuker"),t("rnafold"),t("nu"),t("swat")) // Examples
   val (mml,mmr,rr)=(t("mml"),t("mmr"),t("rr")) // LMS and report
-  s(mm1,"v4.examples.MatrixMultGen") ++ s(mm2,"v4.examples.MatrixMultGen2") ++ s(mm3,"v4.examples.MatrixMultGen3") ++
-  s(align,"v4.examples.SeqAlignGen") ++ s(zuker,"v4.examples.Zuker") ++ s(rnafold,"v4.examples.RNAFold") ++ s(nu,"v4.examples.Nussinov") ++
+  val ex="v4.examples."
+  s(mm1,ex+"MatrixMultGen") ++ s(mm2,ex+"MatrixMultGen2") ++ s(mm3,ex+"MatrixMultGen3") ++ s(align,ex+"SeqAlignGen") ++
+  s(zuker,ex+"Zuker") ++ s(rnafold,ex+"RNAFold") ++ s(nu,ex+"Nussinov") ++ s(swat,ex+"SWatAffine") ++
   s(mml,"lms.LMSMatrixAlgebraGen") ++ s(mmr,"v4.report.MatrixMultLMS") ++ s(rr,"v4.report.RNAFold")
 }
 // TaskKey[Unit]("zuker") := { "scala -cp target/scala-2.10/classes v4.examples.Zuker".run.exitValue }

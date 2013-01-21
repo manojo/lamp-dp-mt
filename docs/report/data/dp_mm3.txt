@@ -1,816 +1,96 @@
-> mm3
-[info] Compiling 3 Scala sources to /Documents/EPFL/MasterProj/lamp-dp-mt/target/scala-2.10/classes...
-[make] libRNA.jnilib up to date.
-[make] RNAfold up to date.
 [info] Running v4.examples.MatrixMultGen3
-[info] ====( CUDA warm-up )==============================================
+
+TOTAL CUDA (no compilation): 0.028 & 0.046 & 0.129 & 0.348 & 1.685 & 10.308 & 71.215
+
+C/CUDA compilation [1.753]  : 1.750 1.750 1.754 1.775 1.758 1.750 1.753
+Scala compilation  [0.086]  : 0.170 0.126 0.084 2.199 0.086 0.081 0.079
+
+[backtrack+compute for CUDA]
+mm3_128 : 0.001+0.004
+mm3_256 : 0.002+0.020
+mm3_512 : 0.004+0.100
+mm3_1024: 0.006+0.315
+mm3_2048: 0.012+1.639
+mm3_4096: 0.024+10.239
+mm3_8192: 0.048+71.100
+
+[info] ====( CUDA )======================================================
 [info] Analysis             : 0.008 sec
 [info] Code generation      : 0.060 sec
-[info] Size / splits        : 1024 x 1024 / 1
-[info] C/CUDA compilation   : 1.775 sec
-[info] Scala compilation    : 2.199 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,027 sec
-[info] - CUDA compute       : 0,560 sec
-[info] - CUDA backtrack     : 0,008 sec
-[info] - JNI output         : 0,007 sec
-[info] Execution            : 0.608 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,435 sec
-[info] - CUDA backtrack     : 0,007 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.471 sec
-[info] ====( CUDA )======================================================
 [info] ---- Size = 128 ----------------
-[info] Size / splits        : 128 x 128 / 1
-[info] C/CUDA compilation   : 1.750 sec
+[info] - CUDA backtrack     : 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001
+[info] - CUDA compute       : 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004
+[info] - JNI output         : 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001
+[info] - JNI read           : 0.015 0.015 0.015 0.015 0.015 0.015 0.015 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.017 0.017 0.017 0.017 0.017 0.017
+[info] C/CUDA compilation   : 1.750
+[info] Execution            : 0.026 0.026 0.027 0.027 0.027 0.027 0.027 0.027 0.027 0.028 0.028 0.028 0.028 0.028 0.028 0.028 0.028 0.029 0.029 0.030
+[info] Memory selection     : 0.07Mb / 1023.69Mb -> cost:device. backtrack:device
 [info] Scala compilation    : 0.170 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.030 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.028 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.029 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.027 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.026 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.027 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.028 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.027 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.026 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.027 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.027 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.028 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.028 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.028 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.028 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.027 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.028 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.029 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.027 sec
-[info] Memory selection     : 0,07Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,004 sec
-[info] - CUDA backtrack     : 0,001 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.028 sec
+[info] Size / splits        : 128 x 128 / 1
 [info] ---- Size = 256 ----------------
-[info] Size / splits        : 256 x 256 / 1
-[info] C/CUDA compilation   : 1.750 sec
+[info] - CUDA backtrack     : 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.002 0.003 0.003
+[info] - CUDA compute       : 0.019 0.019 0.020 0.020 0.020 0.020 0.020 0.020 0.020 0.020 0.020 0.020 0.020 0.020 0.020 0.020 0.020 0.020 0.020 0.020
+[info] - JNI output         : 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001
+[info] - JNI read           : 0.015 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.017 0.017 0.017 0.017 0.017 0.017 0.018 0.019
+[info] C/CUDA compilation   : 1.750
+[info] Execution            : 0.045 0.045 0.045 0.045 0.045 0.045 0.045 0.046 0.046 0.046 0.046 0.046 0.046 0.046 0.046 0.046 0.046 0.048 0.048 0.048
+[info] Memory selection     : 0.26Mb / 1023.69Mb -> cost:device. backtrack:device
 [info] Scala compilation    : 0.126 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,018 sec
-[info] - CUDA compute       : 0,019 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.048 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,019 sec
-[info] - CUDA backtrack     : 0,003 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.046 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.046 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.046 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.046 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,003 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.046 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.046 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.045 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.046 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.045 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.046 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.045 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.048 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.045 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.045 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.046 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,019 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.048 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.046 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.045 sec
-[info] Memory selection     : 0,26Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,020 sec
-[info] - CUDA backtrack     : 0,002 sec
-[info] - JNI output         : 0,001 sec
-[info] Execution            : 0.045 sec
+[info] Size / splits        : 256 x 256 / 1
 [info] ---- Size = 512 ----------------
-[info] Size / splits        : 512 x 512 / 1
-[info] C/CUDA compilation   : 1.754 sec
+[info] - CUDA backtrack     : 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.004 0.006 0.006 0.008 0.008
+[info] - CUDA compute       : 0.095 0.095 0.095 0.098 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.102 0.105 0.107 0.107 0.108 0.162 0.162 0.180 0.201
+[info] - JNI output         : 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003 0.003
+[info] - JNI read           : 0.015 0.015 0.015 0.015 0.015 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.017 0.017 0.017 0.018 0.019 0.019 0.020
+[info] C/CUDA compilation   : 1.754
+[info] Execution            : 0.122 0.123 0.123 0.127 0.128 0.128 0.128 0.128 0.128 0.129 0.129 0.130 0.135 0.136 0.137 0.140 0.196 0.198 0.217 0.240
+[info] Memory selection     : 1.02Mb / 1023.69Mb -> cost:device. backtrack:device
 [info] Scala compilation    : 0.084 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,020 sec
-[info] - CUDA compute       : 0,201 sec
-[info] - CUDA backtrack     : 0,008 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.240 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,019 sec
-[info] - CUDA compute       : 0,180 sec
-[info] - CUDA backtrack     : 0,008 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.217 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,019 sec
-[info] - CUDA compute       : 0,162 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.198 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,162 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.196 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,018 sec
-[info] - CUDA compute       : 0,108 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.140 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,107 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.137 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,107 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.136 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,105 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.135 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,102 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.130 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,100 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.129 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,100 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.128 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,100 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.128 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,100 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.127 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,100 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.128 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,100 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.128 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,100 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.129 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,098 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.128 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,095 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.123 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,095 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.122 sec
-[info] Memory selection     : 1,02Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,095 sec
-[info] - CUDA backtrack     : 0,004 sec
-[info] - JNI output         : 0,003 sec
-[info] Execution            : 0.123 sec
+[info] Size / splits        : 512 x 512 / 1
 [info] ---- Size = 1024 ----------------
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,418 sec
-[info] - CUDA backtrack     : 0,007 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.453 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 0,339 sec
-[info] - CUDA backtrack     : 0,007 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.373 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,320 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.352 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.349 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.347 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.347 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,006 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,314 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.347 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.348 sec
-[info] Memory selection     : 4,04Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 0,315 sec
-[info] - CUDA backtrack     : 0,006 sec
-[info] - JNI output         : 0,005 sec
-[info] Execution            : 0.347 sec
+[info] - CUDA backtrack     : 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.006 0.007 0.007
+[info] - CUDA compute       : 0.314 0.315 0.315 0.315 0.315 0.315 0.315 0.315 0.315 0.315 0.315 0.315 0.315 0.315 0.315 0.315 0.315 0.320 0.339 0.418
+[info] - JNI output         : 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.005 0.006
+[info] - JNI read           : 0.015 0.015 0.015 0.015 0.015 0.015 0.015 0.015 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.017
+[info] C/CUDA compilation   : 1.775
+[info] Execution            : 0.347 0.347 0.347 0.347 0.348 0.348 0.348 0.348 0.348 0.348 0.348 0.348 0.348 0.348 0.348 0.348 0.349 0.352 0.373 0.453
+[info] Memory selection     : 4.04Mb / 1023.69Mb -> cost:device. backtrack:device
+[info] Scala compilation    : 2.199 sec
+[info] Size / splits        : 1024 x 1024 / 1
 [info] ---- Size = 2048 ----------------
-[info] Size / splits        : 2048 x 2048 / 8
-[info] C/CUDA compilation   : 1.758 sec
+[info] - CUDA backtrack     : 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012 0.012
+[info] - CUDA compute       : 1.639 1.639 1.639 1.639 1.639 1.639 1.639 1.639 1.639 1.639 1.639 1.640 1.640 1.640 1.640 1.640 1.640 1.640 1.641 1.667
+[info] - JNI output         : 0.010 0.010 0.010 0.010 0.010 0.010 0.010 0.010 0.010 0.010 0.010 0.011 0.011 0.011 0.011 0.011 0.011 0.011 0.011 0.038
+[info] - JNI read           : 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.016 0.017 0.017 0.017 0.017 0.017 0.017 0.017 0.017 0.018 0.019
+[info] C/CUDA compilation   : 1.758
+[info] Execution            : 1.684 1.684 1.684 1.684 1.684 1.684 1.684 1.684 1.684 1.685 1.685 1.685 1.685 1.685 1.685 1.685 1.686 1.687 1.712 1.716
+[info] Memory selection     : 16.09Mb / 1023.69Mb -> cost:device. backtrack:device
 [info] Scala compilation    : 0.086 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,019 sec
-[info] - CUDA compute       : 1,667 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,011 sec
-[info] Execution            : 1.716 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 1,639 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,010 sec
-[info] Execution            : 1.684 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 1,640 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,011 sec
-[info] Execution            : 1.685 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 1,639 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,011 sec
-[info] Execution            : 1.684 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 1,639 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,010 sec
-[info] Execution            : 1.684 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 1,640 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,010 sec
-[info] Execution            : 1.685 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 1,640 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,010 sec
-[info] Execution            : 1.685 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 1,639 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,010 sec
-[info] Execution            : 1.684 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 1,640 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,010 sec
-[info] Execution            : 1.685 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 1,639 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,011 sec
-[info] Execution            : 1.684 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 1,639 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,010 sec
-[info] Execution            : 1.684 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 1,639 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,038 sec
-[info] Execution            : 1.712 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 1,641 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,010 sec
-[info] Execution            : 1.685 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 1,639 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,011 sec
-[info] Execution            : 1.684 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 1,640 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,010 sec
-[info] Execution            : 1.685 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 1,639 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,011 sec
-[info] Execution            : 1.686 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 1,639 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,010 sec
-[info] Execution            : 1.684 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,018 sec
-[info] - CUDA compute       : 1,640 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,011 sec
-[info] Execution            : 1.687 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 1,640 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,011 sec
-[info] Execution            : 1.685 sec
-[info] Memory selection     : 16,09Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 1,639 sec
-[info] - CUDA backtrack     : 0,012 sec
-[info] - JNI output         : 0,010 sec
-[info] Execution            : 1.684 sec
+[info] Size / splits        : 2048 x 2048 / 8
 [info] ---- Size = 4096 ----------------
-[info] Size / splits        : 4096 x 4096 / 64
-[info] C/CUDA compilation   : 1.750 sec
+[info] - CUDA backtrack     : 0.024 0.024 0.024 0.024 0.024 0.024 0.024 0.024 0.024 0.024
+[info] - CUDA compute       : 10.231 10.234 10.237 10.238 10.238 10.240 10.240 10.242 10.243 10.256
+[info] - JNI output         : 0.020 0.020 0.021 0.021 0.021 0.021 0.021 0.021 0.021 0.023
+[info] - JNI read           : 0.015 0.015 0.015 0.015 0.016 0.016 0.016 0.017 0.018 0.019
+[info] C/CUDA compilation   : 1.750
+[info] Execution            : 10.299 10.301 10.304 10.307 10.307 10.308 10.308 10.310 10.310 10.330
+[info] Memory selection     : 64.17Mb / 1023.69Mb -> cost:device. backtrack:device
 [info] Scala compilation    : 0.081 sec
-[info] Memory selection     : 64,17Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,019 sec
-[info] - CUDA compute       : 10,256 sec
-[info] - CUDA backtrack     : 0,024 sec
-[info] - JNI output         : 0,023 sec
-[info] Execution            : 10.330 sec
-[info] Memory selection     : 64,17Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 10,237 sec
-[info] - CUDA backtrack     : 0,024 sec
-[info] - JNI output         : 0,021 sec
-[info] Execution            : 10.304 sec
-[info] Memory selection     : 64,17Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 10,242 sec
-[info] - CUDA backtrack     : 0,024 sec
-[info] - JNI output         : 0,020 sec
-[info] Execution            : 10.310 sec
-[info] Memory selection     : 64,17Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 10,243 sec
-[info] - CUDA backtrack     : 0,024 sec
-[info] - JNI output         : 0,021 sec
-[info] Execution            : 10.310 sec
-[info] Memory selection     : 64,17Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 10,238 sec
-[info] - CUDA backtrack     : 0,024 sec
-[info] - JNI output         : 0,021 sec
-[info] Execution            : 10.307 sec
-[info] Memory selection     : 64,17Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 10,240 sec
-[info] - CUDA backtrack     : 0,024 sec
-[info] - JNI output         : 0,021 sec
-[info] Execution            : 10.308 sec
-[info] Memory selection     : 64,17Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 10,240 sec
-[info] - CUDA backtrack     : 0,024 sec
-[info] - JNI output         : 0,021 sec
-[info] Execution            : 10.307 sec
-[info] Memory selection     : 64,17Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,016 sec
-[info] - CUDA compute       : 10,231 sec
-[info] - CUDA backtrack     : 0,024 sec
-[info] - JNI output         : 0,021 sec
-[info] Execution            : 10.299 sec
-[info] Memory selection     : 64,17Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,015 sec
-[info] - CUDA compute       : 10,234 sec
-[info] - CUDA backtrack     : 0,024 sec
-[info] - JNI output         : 0,020 sec
-[info] Execution            : 10.301 sec
-[info] Memory selection     : 64,17Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,018 sec
-[info] - CUDA compute       : 10,238 sec
-[info] - CUDA backtrack     : 0,024 sec
-[info] - JNI output         : 0,021 sec
-[info] Execution            : 10.308 sec
+[info] Size / splits        : 4096 x 4096 / 64
 [info] ---- Size = 8192 ----------------
-[info] Size / splits        : 8192 x 8192 / 512
-[info] C/CUDA compilation   : 1.753 sec
+[info] - CUDA backtrack     : 0.048 0.048 0.048 0.048 0.048 0.048 0.048 0.048 0.048 0.048
+[info] - CUDA compute       : 71.089 71.091 71.091 71.096 71.099 71.101 71.104 71.106 71.108 71.121
+[info] - JNI output         : 0.040 0.041 0.041 0.041 0.042 0.042 0.042 0.042 0.042 0.042
+[info] - JNI read           : 0.017 0.017 0.017 0.017 0.017 0.018 0.018 0.019 0.020 0.021
+[info] C/CUDA compilation   : 1.753
+[info] Execution            : 71.204 71.207 71.208 71.211 71.215 71.215 71.223 71.223 71.224 71.242
+[info] Memory selection     : 256.34Mb / 1023.69Mb -> cost:device. backtrack:device
 [info] Scala compilation    : 0.079 sec
-[info] Memory selection     : 256,34Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,021 sec
-[info] - CUDA compute       : 71,121 sec
-[info] - CUDA backtrack     : 0,048 sec
-[info] - JNI output         : 0,042 sec
-[info] Execution            : 71.242 sec
-[info] Memory selection     : 256,34Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,018 sec
-[info] - CUDA compute       : 71,099 sec
-[info] - CUDA backtrack     : 0,048 sec
-[info] - JNI output         : 0,042 sec
-[info] Execution            : 71.215 sec
-[info] Memory selection     : 256,34Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 71,096 sec
-[info] - CUDA backtrack     : 0,048 sec
-[info] - JNI output         : 0,041 sec
-[info] Execution            : 71.211 sec
-[info] Memory selection     : 256,34Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,018 sec
-[info] - CUDA compute       : 71,108 sec
-[info] - CUDA backtrack     : 0,048 sec
-[info] - JNI output         : 0,041 sec
-[info] Execution            : 71.224 sec
-[info] Memory selection     : 256,34Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 71,091 sec
-[info] - CUDA backtrack     : 0,048 sec
-[info] - JNI output         : 0,042 sec
-[info] Execution            : 71.208 sec
-[info] Memory selection     : 256,34Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,019 sec
-[info] - CUDA compute       : 71,106 sec
-[info] - CUDA backtrack     : 0,048 sec
-[info] - JNI output         : 0,041 sec
-[info] Execution            : 71.223 sec
-[info] Memory selection     : 256,34Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,020 sec
-[info] - CUDA compute       : 71,104 sec
-[info] - CUDA backtrack     : 0,048 sec
-[info] - JNI output         : 0,042 sec
-[info] Execution            : 71.223 sec
-[info] Memory selection     : 256,34Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 71,089 sec
-[info] - CUDA backtrack     : 0,048 sec
-[info] - JNI output         : 0,042 sec
-[info] Execution            : 71.204 sec
-[info] Memory selection     : 256,34Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 71,091 sec
-[info] - CUDA backtrack     : 0,048 sec
-[info] - JNI output         : 0,042 sec
-[info] Execution            : 71.207 sec
-[info] Memory selection     : 256,34Mb / 1023,69Mb -> cost:device, backtrack:device
-[info] - JNI read           : 0,017 sec
-[info] - CUDA compute       : 71,101 sec
-[info] - CUDA backtrack     : 0,048 sec
-[info] - JNI output         : 0,040 sec
-[info] Execution            : 71.215 sec
+[info] Size / splits        : 8192 x 8192 / 512
 [info] ====( Scala warm-up )=============================================
 [info] Execution            : 49.768 sec
 [info] ====( Scala )=====================================================
 [info] ---- Size = 128 ----------------
-[info] Execution            : 0.780 sec
-[info] Execution            : 0.744 sec
-[info] Execution            : 0.762 sec
-[info] Execution            : 0.760 sec
-[info] Execution            : 0.742 sec
-[info] Execution            : 0.750 sec
-[info] Execution            : 0.745 sec
-[info] Execution            : 0.753 sec
-[info] Execution            : 0.757 sec
-[info] Execution            : 0.748 sec
-[info] Execution            : 0.742 sec
-[info] Execution            : 0.753 sec
-[info] Execution            : 0.759 sec
-[info] Execution            : 0.742 sec
-[info] Execution            : 0.787 sec
-[info] Execution            : 0.747 sec
-[info] Execution            : 0.761 sec
-[info] Execution            : 0.746 sec
-[info] Execution            : 0.764 sec
-[info] Execution            : 0.743 sec
+[info] Execution            : 0.780 0.744 0.762 0.760 0.742 0.750 0.745 0.753 0.757 0.748 0.742 0.753 0.759 0.742 0.787 0.747 0.761 0.746 0.764 0.743 sec
 [info] ---- Size = 256 ----------------
-[info] Execution            : 6.018 sec
-[info] Execution            : 6.001 sec
-[info] Execution            : 5.936 sec
-[info] Execution            : 5.934 sec
-[info] Execution            : 5.981 sec
-[info] Execution            : 5.947 sec
-[info] Execution            : 5.963 sec
-[info] Execution            : 5.963 sec
-[info] Execution            : 5.943 sec
-[info] Execution            : 5.943 sec
-[info] Execution            : 5.980 sec
-[info] Execution            : 5.950 sec
-[info] Execution            : 5.925 sec
-[info] Execution            : 5.977 sec
-[info] Execution            : 5.945 sec
-[info] Execution            : 5.934 sec
-[info] Execution            : 5.927 sec
-[info] Execution            : 6.013 sec
-[info] Execution            : 5.942 sec
-[info] Execution            : 5.959 sec
-[info] ---- Size = 512 ----------------
-^C#
+[info] Execution            : 6.018 6.001 5.936 5.934 5.981 5.947 5.963 5.963 5.943 5.943 5.980 5.950 5.925 5.977 5.945 5.934 5.927 6.013 5.942 5.959 sec
