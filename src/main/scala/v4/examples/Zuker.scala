@@ -179,7 +179,7 @@ object Zuker extends App {
   def testSeq(seq:String, strict:Boolean=true) {
     val (gpu,btG)=parse(seq)
     val (cpu,btC)=parse(seq,true)
-    val ref=RNAUtils.refFold(seq,"src/librna/rfold" /*"resources/RNAfold_orig_mac"*/)
+    val ref=Utils.refFold(seq,"src/librna/rfold" /*"resources/RNAfold_orig_mac --noPS --noLP -d2"*/)
     if (ref==gpu || !strict && ref.substring(seq.size)==gpu.substring(seq.size)) print(".")
     else println("\nSeq: "+seq+"\nRef: "+ref+"\nCPU: "+cpu+"\nGPU: "+gpu+"\n"+
       "CXP: "+explain.build(seq.toArray,btC)+"\nGXP: "+explain.build(seq.toArray,btG)+"\n")
@@ -193,11 +193,6 @@ object Zuker extends App {
   //testSeq("acgcaccggcauacgugugcucgaaaagcgu")
   //testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
 
-  //scala.util.Random.setSeed(3974658973264L)
-
-  //for (k<-0 until 100) { testSeq(RNAUtils.genSeq(80)); println }
-
-
-  val s = RNAUtils.genSeq(80)
+  val s = Utils.genSeq(80)
   for (k<-0 until 100) { testSeq(s); println }
 }

@@ -43,7 +43,6 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   override val tps=(manifest[Alphabet],manifest[Answer])
   // ------- Extra codegen initialization
   //println(gen)
-
   /*
   println("------ SCALA -------------------")
   val (res1,bt1) = backtrack(input,true).head
@@ -54,30 +53,8 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   println("--> "+res2)
   println("--> "+build(input,bt2))
   */
-
-  import scala.util.Random
-  Random.setSeed(123456748299L)
-  def rnd:Int = Math.abs(Random.nextInt)%253+1
-
-  def genMats(n:Int) = {
-    val s = Seq.fill(n)(rnd)
-    (Seq(rnd) ++ s).zip(s).map{case(x,y)=>(x,y)/*unbox ints!!*/}.toArray
-  }
-
-  val sz=List(128,256,512,1024,2048,4096,8192)
-
-  println("====( CUDA warm-up )==============================================")
-  for (i<-0 until 2) backtrack(genMats(1024))
-  println("====( CUDA )======================================================")
-  for (s<-sz) {
-    println("---- Size = "+s+" ----------------")
-    for (i<-0 until (if (i>2048) 10 else 20)) backtrack(genMats(s))
-  }
-  println("====( Scala warm-up )=============================================")
-  backtrack(genMats(512),true)
-  println("====( Scala )=====================================================")
-  for (s<-sz) {
-    println("---- Size = "+s+" ----------------")
-    for (i<-0 until (if (i>2048) 5 else 20)) backtrack(genMats(s),true)
-  }
+  Utils.runBenchmark(
+    (n:Int)=>backtrack(Utils.genMats(n)),
+    (n:Int)=>backtrack(Utils.genMats(n),true)
+  )
 }

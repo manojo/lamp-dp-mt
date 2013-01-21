@@ -87,5 +87,5 @@ object Nussinov extends App {
     val (score2,bt2) = nu.backtrack(s,true).head
     println("CPU: "+pretty.build(s,bt2)+" ("+score2+")\n")
   }
-  for (k<-0 until 30) testSeq(RNAUtils.genSeq(180))
+  for (k<-0 until 30) testSeq(Utils.genSeq(180))
 }

@@ -50,11 +50,6 @@ trait ADPParsers extends BaseParsers { this:Signature =>
 
 trait LexicalParsers extends ADPParsers { this:Signature =>
   override type Alphabet = Char
-  def in(k:Int):Char
-  private def esc(s:String) = s.replace("\\","\\\\").replace("\"","\\\"").replace("'","\\'").replace("\n","\\n").replace("\r","\\r").
-                                replace("\t","\\t").replace("\0","\\0").replace("\b","\\b").replace("\f","\\f")
-  private def cf(f:Char=>Boolean,cc:String) = cfun1((i:Int,j:Int) => (i+1==j) && f(in(i)),"i,j","if (i+1!=j) return false; c=_in1[i]; "+cc)
-
   // Additional terminals
   val char = el
   val chari = eli
@@ -65,6 +60,9 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
 
   import scala.language.implicitConversions
   implicit def toCharArray(s:String):Array[Char] = s.toArray
+  private def esc(s:String) = (s /: List(('\\','\\'),('"','"'),('\'','\''),('\n','n'),('\r','r'),('\t','t'),('\0','0'),('\b','b'),('\f','f'))) {case (s,(a,b))=>s.replace(""+a,"\\"+b)}
+  private def cf(f:Char=>Boolean,cc:String) = cfun1((i:Int,j:Int) => (i+1==j) && f(in(i)),"i,j","if (i+1!=j) return false; c=_in1[i]; "+cc)
+  def in(k:Int):Char
 }
 
 trait RNASignature extends Signature {
@@ -93,28 +91,4 @@ trait RNASignature extends Signature {
     val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(_in1[i],_in1[j-1])!=NO_BP && bp_index(_in1[i+1],_in1[j-2])!=NO_BP;","Boolean")
   }
   def convert(in:String):Array[Alphabet] = in.toArray.map { case 'A'|'a'=>'\1' case 'C'|'c'=>'\2' case 'G'|'g'=>'\3' case 'U'|'u'=>'\4' case _ => sys.error("Invalid sequence") }
-}
-
-object RNAUtils {
-  // Debugging helper, program must be Vienna/RNAfold-compatible
-  def refFold(seq:String,prog:String="./RNAfold"):String = {
-    import java.io._
-    val p = Runtime.getRuntime.exec(prog+" --noPS --noLP -d2");
-    val in = new PrintStream(p.getOutputStream());
-    def gobble(in:InputStream) = new Runnable {
-      var out = new StringBuilder
-      var thr = new Thread(this); thr.start
-      override def toString = { thr.join; out.toString.trim }
-      override def run { val r = new BufferedReader(new InputStreamReader(in))
-        var l = r.readLine; while(l != null) { out.append(l+"\n"); l = r.readLine }; r.close
-      }
-    }
-    val out=gobble(p.getInputStream);
-    in.println(seq); in.close
-    p.waitFor; out.toString.split("\n")(1)
-  }
-  // Generate a reproducible random sequence
-  import scala.util.Random
-  Random.setSeed(123456748299L)
-  def genSeq(n:Int) = Seq.fill(n)(Math.abs(Random.nextInt)%4).map {case 0=>'a' case 1=>'c' case 2=>'g' case 3=>'u'}.mkString
 }
