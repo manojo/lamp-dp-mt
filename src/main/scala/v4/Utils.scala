@@ -74,5 +74,4 @@ object Utils {
     in.println(seq); in.close
     p.waitFor; out.toString.split("\n")(1)
   }
-
 }

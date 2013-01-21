@@ -12,6 +12,7 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   def backtrack(in:Input,forceScala:Boolean=false):List[(Answer,Trace)] = this match {
     case c:CodeGen if (!forceScala) => List(c.backtrackCU(in.asInstanceOf[c.Input]).asInstanceOf[(Answer,Trace)])
     case _ => run(in,()=>if (window>0) aggr(((0 to size-window).flatMap{x=>axiom.backtrack(x,window+x)}).toList, h) else axiom.backtrack(0,size))
+    //{ val rs=rulesOrder map {n=>rules(n)}; while (d<-0 to size) { for (r<-rs) for (i<-0 to size-d) r((d+i,d+i)) d=d+1; axiom.backtrack((0,size)) } // Bottom up version
   }
   def build(in:Input,bt:Trace):Answer = run(in,()=>axiom.build(bt))
   private def run[T](in:Input, f:()=>T) = {

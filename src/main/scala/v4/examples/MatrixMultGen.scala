@@ -8,26 +8,10 @@ import v4._
 trait MatrixAlgebraGen extends MatrixSig {
   type Answer = (Int,Int,Int) // rows, cost, columns
 
-  val hf = new (Answer=>Int) with CFun {
-    def apply(a:Answer) = a._2
-    val args=List(("a","(Int,Int,Int)"))
-    val body="return a._2;"
-    val tpe ="Int"
-  }
-  override val h = minBy(hf)
-
-  val single = new (Alphabet=>Answer) with CFun {
-    def apply(i: Alphabet) = (i._1, 0, i._2)
-    val args=List(("i","(Int,Int)"))
-    val body="return (T3iii){i._1,0,i._2};"
-    val tpe ="(Int,Int,Int)"
-  }
-  val mult = new ((Answer,Answer)=>Answer) with CFun {
-    def apply(l:Answer,r:Answer) = { val ((r1,m1,c1),(r2,m2,c2))=(l,r); (r1, m1 + m2 + r1 * c1 * c2, c2) }
-    val args=List(("l","(Int,Int,Int)"),("r","(Int,Int,Int)"))
-    val body = "return (T3iii){l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3};"
-    val tpe ="(Int,Int,Int)"
-  }
+  override val h = minBy(cfun1((a:Answer)=>a._2,"a","return a._2;"))
+  val single = cfun1((m:Alphabet)=>(m._1,0,m._2),"m","return (T3iii){m._1,0,m._2};")
+  val mult = cfun2((l:Answer,r:Answer) => (l._1, l._2+r._2 + l._1*l._3*r._3, r._3),
+                   "l,r", "return (T3iii){l._1, l._2+r._2 + l._1*l._3*r._3, r._3};")
 }
 
 // Code generator only
@@ -43,6 +27,10 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   override val tps=(manifest[Alphabet],manifest[Answer])
   // ------- Extra codegen initialization
   //println(gen)
+
+  backtrack(input,true)
+  backtrack(input,true)
+  backtrack(input,true)
   /*
   println("------ SCALA -------------------")
   val (res1,bt1) = backtrack(input,true).head
@@ -53,8 +41,10 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   println("--> "+res2)
   println("--> "+build(input,bt2))
   */
+  /*
   Utils.runBenchmark(
     (n:Int)=>backtrack(Utils.genMats(n)),
     (n:Int)=>backtrack(Utils.genMats(n),true)
   )
+  */
 }

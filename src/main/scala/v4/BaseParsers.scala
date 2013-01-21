@@ -158,9 +158,10 @@ trait BaseParsers { this:Signature =>
     rules += ((name,this))
 
     var id:Int = -1 // subrules base index
-    @inline private def idx(sw:Subword):Int = if (twotracks) sw._1*mW+sw._2 else { val (i,j)=sw; val d=mH+1+i-j; ( mH*(mH+1) - d*(d-1) ) /2 + i }
+    @inline private def idx(sw:Subword):Int = if (twotracks) sw._1*mW+sw._2 else { val d=mH+1+sw._1-sw._2; ( mH*(mH+1) - d*(d-1) ) /2 + sw._1 }
     private def get(sw:Subword) = { val i=idx(sw); val v1=data(i); if (v1!=null) v1 else { val v=inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}; data(i)=v; v } }
     private def put(sw:Subword,v:List[(Answer,Backtrack)]) { data(idx(sw))=v; }
+    
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
     def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
     def reapply(sw:Subword,bt:Backtrack) = { val v=data(idx(sw)); if (v!=null) v.head._1 else sys.error("Failed reapply"+sw) }
@@ -267,11 +268,23 @@ trait BaseParsers { this:Signature =>
       if (track==0) {
         val min_k = if (rU==maxN || i+lL > j-rU) i+lL else j-rU
         val max_k = if (lU==maxN || j-rL < i+lU) j-rL else i+lU
-        for(
-          k <- (min_k to max_k).toList;
-          (x,xb) <- left((i,k));
-          (y,yb) <- right((k,j))
-        ) yield(((x,y),bt(xb,yb,k)))
+        var k=min_k;
+        //for(
+        //  k <- (min_k to max_k).toList;
+        //  (x,xb) <- left((i,k));
+        //  (y,yb) <- right((k,j))
+        //) yield(((x,y),bt(xb,yb,k)))
+        //
+        // Optimization: 16.675 -> 11.370 (mm1_512)
+        var l=List[((T,U),Backtrack)]()
+        while (k<=max_k) { var ll = left((i,k)); val r = right((k,j))
+          if (r.size>0) while (ll.size>0) { var rr = r
+            while (rr.size>0) { val lh=ll.head; val rh=rr.head
+              l=((lh._1,rh._1),bt(lh._2,rh._2,k))::l; rr=rr.tail
+            }; ll=ll.tail
+          }; k=k+1;
+        }; l
+        // Optimization end
       } else if (track==1) {
         val i0 = if (lU==maxN || i-lU < 0) 0 else i-lU
         for(
