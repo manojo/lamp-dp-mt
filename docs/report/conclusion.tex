@@ -19,6 +19,12 @@ Matrix of different dimensions must be stored in their own array (versus being i
 \section{Conclusion}
 {\color{red} XXX}
 
+This Master project is focused on how to solve efficiently dynamic programming. By restricting to the class of problem involving sequences as input, we were able to extract generic patterns and expose them to parallel architectures like CUDA. To do that, we first depicted the dynamic programming landscape and defined a set of problems we would like to solve (\S\ref{problems}). Then we discussed the requested functionalities to provide the user with a convenient embedded DSL that is based on the ADP formalization (\S\ref{architecture}). These architectural decisions lead us to consider two different implementations: one in Scala that allows the same expressivity as ADP (in term of multiple solutions search), and one in CUDA that focuses on efficiently obtain a single optimal result. We then provide some technical details explaining how these ideas are put in practice in \textit{DynaProg} (\S\ref{implementation}). Finally, we compare our implementation with existing implementations (\S\ref{benchmarks}).
+
+{\color{red} What's the conclusion on experimental results?}
+
+% http://www.eecs.berkeley.edu/Pubs/TechRpts/2006/EECS-2006-183.html
+
 \begin{verbatim}
 Recap of the report:
 - Goal: generalize solving dynamic programming on sequences for GPUs
