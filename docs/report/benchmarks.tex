@@ -2,7 +2,7 @@
 
 \section{Benchmarks} \label{benchmarks}
 In an attempt to provide realistic benchmarks, we tried to gather related implementations. The authors of \cite{gpu_atlp} did not respond to our multiple solicitations. The authors of \cite{swat_mega} were very friendly and provided us their source code. Unfortunately, since they address a different category of problem (they focus on huge serial problems whereas we focus on smaller non-serial problems) their implementation might be biased towards large sequences that our implementation cannot address. Finally, we asked lately the authors of \cite{gpu_rnafold} who did not respond either to our solicitations.
-	
+
 We organize the benchmarks as follow: if we have at our disposal a working implementation that could be run on our evaluation platform, we use it, otherwise, we refer to the related paper and rescale the result according to the memory throughput and computation throughput of the related device so that we can have a good approximation of how they could compare.
 
 \subsection{Metrics} \label{metrics}
@@ -36,7 +36,7 @@ Since we have seen that this problem is not input sensitive in (\S\ref{metrics})
 & \normalsize\bf Matrix dimension & \normalsize\bf 128 & \normalsize\bf 256 & \normalsize\bf 512 & \normalsize\bf 1024 & \normalsize\bf 2048 & \normalsize\bf 4096 & \normalsize\bf 8192 \\
 \midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\qquad$}}
 & \hdr{DynaProg}{Scala version}
-	& 0.247		& 2.048		& 16.657		& 134.207	& 1101.134	&  			& 		 \\
+	& 0.167		& 1.377		& 10.760		& 86.966		& 712.688	&  			& 		 \\
 & \hdr{Optimized}{C, single thread}
 	& 0.001		& 0.008		& 0.078		& 1.179		& 19.811		& 206.556	& 2010.485 \\
 & \hdr{GAPC}{\cite{gapc_thesis}, C, single thread}
@@ -82,7 +82,7 @@ To maintain a fair comparison with other implementation, we use affine gap penal
 & \normalsize\bf Matrix dimension & \normalsize\bf 128 & \normalsize\bf 256 & \normalsize\bf 512 & \normalsize\bf 1024 & \normalsize\bf 2048 & \normalsize\bf 4096 & \normalsize\bf 8192 \\
 \midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\qquad$}}
 & \hdr{DynaProg}{Scala version}
-	& 0.115		& 0.438		& 1.743		& 7.864		& 32.788		& 139.309	& $^{(1)}\infty$ \\
+	& 0.098		& 0.364		& 1.421		& 6.527		& 26.798		& 114.377	& $^{(1)}\infty$ \\
 & \hdr{Optimized}{C, single thread}
 	& <0.001		& <0.001		& 0.002		& 0.009		& 0.042		& 0.171		& 0.706 \\
 & \hdr{GAPC}{\cite{gapc_thesis}, C, single thread}
@@ -99,7 +99,7 @@ To maintain a fair comparison with other implementation, we use affine gap penal
 \\[-10pt] \bottomrule\end{tabular}}\end{center}
 \caption{Running time of Smith-Waterman (in seconds)}\end{table}
 
-$^{(1)}$ Extremely little progress due to intensive JVM garbage collection after some delay, even by tuning the JVM parameters ({\tt -Xss512m -Xmx8G -Xms8G -XX:MaxPermSize=8G}) this emphasizes that the top-down parsing approach might not be the best for such simple problems.
+$^{(1)}$ Extremely little progress due to intensive JVM garbage collection after some delay, even by tuning the JVM parameters ({\tt -Xss512m -Xmx8G -Xms8G -XX:MaxPermSize=8G}), independently of whether top-down or bottom-up parsing approaches are taken. After some point, most of the time is spent in the garbage collection. The aggregation function contributes to approximately 30\% of the total running time. From these result, we see that the use of complex parsing techniques are less scalable than ad-hoc methods for simple problems.
 
 $^{(2)}$ Since the memory requirements are larger than the device capacity, the backtrack matrix overflows in the main memory, thereby significantly degrading the performance ($4\times$ slowdown). This extra memory requirement is due to the use of 3 matrices to avoid non-serial dependencies (hence requiring at least $3 \cdot 2$ bytes of memory per matrix element for backtrack).
 

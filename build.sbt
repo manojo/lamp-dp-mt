@@ -30,8 +30,12 @@ compile in Compile <<= (compile in Compile) map { x => ("src/librna/make target/
 
 // custom commands to execute JNI and CUDA targets
 {
+  val yjp="/Applications/Tools/YourKit Java Profiler.app/bin/mac/libyjpagent.jnilib"
   def t(n:String) = { val t=TaskKey[Unit](n); t.dependsOn(compile in Compile); t }
-  def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, cl), fork in t:=true, javaOptions in t++=List("-Xss512m" /*,"-Xmx8G","-Xms8G","-XX:MaxPermSize=8G","-verbose:gc"*/))
+  def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, cl), fork in t:=true,javaOptions in t++=List(
+    "-Xss512m" ,"-Xmx8G","-Xms8G","-XX:MaxPermSize=8G" //,"-verbose:gc"
+    //"-agentpath:"+yjp+"=sampling,onexit=snapshot,builtinprobes=all"
+  ))
   val (mm1,mm2,mm3,align,zuker,rnafold,nu,swat)=(t("mm1"),t("mm2"),t("mm3"),t("align"),t("zuker"),t("rnafold"),t("nu"),t("swat")) // Examples
   val (mml,mmr,rr)=(t("mml"),t("mmr"),t("rr")) // LMS and report
   val ex="v4.examples."

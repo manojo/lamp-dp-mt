@@ -17,10 +17,9 @@ trait MatrixAlgebraGen extends MatrixSig {
 // Code generator only
 object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen with App {
   //val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray // -> 1x3 matrix, 122 multiplications
-  def r(x:Int) = (x*2309 ^ (x+2)*947) % 173 + 3
-  var input=(0 until 512 /*1024*/).map { x=>(r(x),r(x+1)) }.toArray
+  //def r(x:Int) = (x*2309 ^ (x+2)*947) % 173 + 3
+  //var input=(0 until 512 /*1024*/).map { x=>(r(x),r(x+1)) }.toArray
   // input size: 400-420 -> stack overflow with default settings
-  //println(input)
 
   // ------- Extra codegen initialization
   override val benchmark = true
@@ -28,9 +27,6 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   // ------- Extra codegen initialization
   //println(gen)
 
-  backtrack(input,true)
-  backtrack(input,true)
-  backtrack(input,true)
   /*
   println("------ SCALA -------------------")
   val (res1,bt1) = backtrack(input,true).head
@@ -41,10 +37,8 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   println("--> "+res2)
   println("--> "+build(input,bt2))
   */
-  /*
   Utils.runBenchmark(
     (n:Int)=>backtrack(Utils.genMats(n)),
     (n:Int)=>backtrack(Utils.genMats(n),true)
   )
-  */
 }

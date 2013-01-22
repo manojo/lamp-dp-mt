@@ -68,6 +68,7 @@ object SWatAffine extends App {
   object swat extends SWatGrammar with SWatAlgebra with CodeGen {
     override val tps = (manifest[Alphabet],manifest[Answer])
     override val benchmark = true
+    override val bottomUp = true
   }
   object pretty extends SWatGrammar with SWatPretty
 
@@ -82,8 +83,7 @@ object SWatAffine extends App {
   println("- Seq1: "+a1+"\n- Seq2: "+a2+"\n")
   */
   Utils.runBenchmark(
-    (n:Int)=>{}, //swat.backtrack(Utils.genDNA(n),Utils.genDNA(n)),
-    (n:Int)=>swat.backtrack(Utils.genDNA(n),Utils.genDNA(n),true),
-    8192
+    (n:Int)=>swat.backtrack(Utils.genDNA(n),Utils.genDNA(n)),
+    (n:Int)=>swat.backtrack(Utils.genDNA(n),Utils.genDNA(n),true)
   )
 }

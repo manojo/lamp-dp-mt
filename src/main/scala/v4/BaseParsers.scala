@@ -41,6 +41,7 @@ trait BaseParsers { this:Signature =>
 
   val axiom:Tabulate // initial parser to be applied
   val twotracks = false // whether grammar is multi-track
+  val bottomUp = false // bottom-up parsers for Scala
   final val bt0 = (0,Nil) // default initial backtrack
 
   // Benchmarking
@@ -126,8 +127,10 @@ trait BaseParsers { this:Signature =>
 
   // Aggregate on T a (T,U) list, wrt to multiplicity and order
   def aggr[T,U](l:List[(T,U)], h: List[T] => List[T]):List[(T,U)] = {
+    if (l.size==0) return Nil; val hs=h(l.map(_._1))
+    if (hs.size==1) l.find(_._1==hs.head) match { case Some(x) => List(x) case None => List((hs.head,l.head._2)) } // optimization
     val a=l.toArray; var start=0;
-    h(l.map(_._1)).map { b => val i=a.indexWhere({x=>x._1==b},start);
+    hs.map { b => val i=a.indexWhere({x=>x._1==b},start);
       if (i== -1) (b,l.head._2) // aggregators such as count, sum do not have matching backtrack
       else { val r=a(i); a(i)=a(start); start=start+1; r }
     }
@@ -268,17 +271,18 @@ trait BaseParsers { this:Signature =>
       if (track==0) {
         val min_k = if (rU==maxN || i+lL > j-rU) i+lL else j-rU
         val max_k = if (lU==maxN || j-rL < i+lU) j-rL else i+lU
-        var k=min_k;
-        //for(
-        //  k <- (min_k to max_k).toList;
-        //  (x,xb) <- left((i,k));
-        //  (y,yb) <- right((k,j))
-        //) yield(((x,y),bt(xb,yb,k)))
-        //
-        // Optimization: 16.675 -> 11.370 (mm1_512)
+        /*
+        for(
+          k <- (min_k to max_k).toList;
+          (x,xb) <- left((i,k));
+          (y,yb) <- right((k,j))
+        ) yield(((x,y),bt(xb,yb,k)))
+        */
+        // Optimization: 15.5 -> 11.4 (mm1_512)
         var l=List[((T,U),Backtrack)]()
-        while (k<=max_k) { var ll = left((i,k)); val r = right((k,j))
-          if (r.size>0) while (ll.size>0) { var rr = r
+        var k=min_k;
+        while (k<=max_k) { var ll=left((i,k)); val r=right((k,j))
+          if (r.size>0) while (ll.size>0) { var rr=r
             while (rr.size>0) { val lh=ll.head; val rh=rr.head
               l=((lh._1,rh._1),bt(lh._2,rh._2,k))::l; rr=rr.tail
             }; ll=ll.tail
@@ -286,19 +290,43 @@ trait BaseParsers { this:Signature =>
         }; l
         // Optimization end
       } else if (track==1) {
-        val i0 = if (lU==maxN || i-lU < 0) 0 else i-lU
+        val min_k = if (lU==maxN || i-lU < 0) 0 else i-lU
+        val max_k = i-lL
+        /*
         for(
-          k <- (i0 to i-lL).toList;
+          k <- (min_k to max_k).toList;
           (x,xb) <- left((k,i)); // in1[k..i]
           (y,yb) <- right((k,j)) // M[k,j]
         ) yield(((x,y),bt(xb,yb,k)))
+        */
+        var l=List[((T,U),Backtrack)]()
+        var k=min_k;
+        while (k<=max_k) { var ll=left((k,i)); val r=right((k,j))
+          if (r.size>0) while (ll.size>0) { var rr=r
+            while (rr.size>0) { val lh=ll.head; val rh=rr.head
+              l=((lh._1,rh._1),bt(lh._2,rh._2,k))::l; rr=rr.tail
+            }; ll=ll.tail
+          }; k=k+1;
+        }; l
       } else if (track==2) {
-        val j0 = if (rU==maxN || j-rU < 0) 0 else j-rU
+        val min_k = if (rU==maxN || j-rU < 0) 0 else j-rU
+        val max_k = j-rL
+        /*
         for(
-          k <- (j0 to j-rL).toList;
+          k <- (min_k to max_k).toList;
           (x,xb) <- left((i,k)); // M[i,k]
           (y,yb) <- right((k,j)) // in2[k..j]
         ) yield(((x,y),bt(xb,yb,k)))
+        */
+        var l=List[((T,U),Backtrack)]()
+        var k=min_k;
+        while (k<=max_k) { var ll=left((i,k)); val r=right((k,j))
+          if (r.size>0) while (ll.size>0) { var rr=r
+            while (rr.size>0) { val lh=ll.head; val rh=rr.head
+              l=((lh._1,rh._1),bt(lh._2,rh._2,k))::l; rr=rr.tail
+            }; ll=ll.tail
+          }; k=k+1;
+        }; l
       } else Nil
     }
 
