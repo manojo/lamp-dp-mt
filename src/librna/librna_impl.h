@@ -73,7 +73,7 @@ my_dev static int bp_index(char x, char y) {
 
 #define GAPS_DISABLED
 #ifdef GAPS_DISABLED // if gaps are forbidden in original sequence, we can avoid loops here
-my_dev static inline rsize noGaps(rsize i, rsize j) { return 0; }
+#define noGaps(i,j) 0
 my_dev static inline rsize getNext(rsize pos, rsize steps, rsize rightBorder) { int x=pos+steps; return (x>rightBorder) ? rightBorder : x; }
 my_dev static inline rsize getPrev(rsize pos, rsize steps, rsize leftBorder) { int x=pos-steps; return (x<leftBorder) ? leftBorder : x; }
 #else

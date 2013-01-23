@@ -99,9 +99,9 @@ __global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, 
               { int _c=fun3((i),(i+1),cost[idx(i+2,k)].cl,(T2ii){k,j-2},(j-2),(j-1)); if (_c<_cost.cl || _back.cl.rule==-1) { _cost.cl=_c; _back.cl=(bt2){3,{k}}; } }
             }
           }
-          if (i+13<=j) for(int k=i+10,ku=j-3; k<=ku; ++k) {
-            if (j-32<=k) _unroll for(int l=i+3,lu=k-7; l<=lu; ++l) {
-              if (l-32<=i && VALID(l,k,cl)) {
+          if (i+13<=j) for(int k=MAX(i+10,j-32),ku=j-3; k<=ku; ++k) {
+            _unroll for(int l=i+3,lu=MIN(k-7,i+32); l<=lu; ++l) {
+              if (VALID(l,k,cl)) {
                 { int _c=fun4((i),(i+1),(T2ii){i+2,l},cost[idx(l,k)].cl,(T2ii){k,j-2},(j-2),(j-1)); if (_c<_cost.cl || _back.cl.rule==-1) { _cost.cl=_c; _back.cl=(bt2){4,{l,k}}; } }
               }
             }

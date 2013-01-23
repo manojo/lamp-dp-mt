@@ -13,6 +13,7 @@ struct __bt1 { short rule; short pos[1]; };
 typedef struct { int cl; int ml; int ml1; int st; } cost_t;
 typedef struct { bt2 cl; bt1 ml; bt1 ml1; bt1 st; } back_t;
 #define MAX(a,b) ({__typeof__(a) _a=(a); __typeof__(b) _b=(b); _a>_b?_a:_b; })
+#define MIN(a,b) ({__typeof__(a) _a=(a); __typeof__(b) _b=(b); _a<_b?_a:_b; })
 typedef struct { short i,j,rule; short pos[2]; } trace_t;
 const unsigned trace_len[15] = {2,2,2,2,2,2,1,1,1,1,1,1,1,1,1};
 void g_init(input_t* in1, input_t* in2);

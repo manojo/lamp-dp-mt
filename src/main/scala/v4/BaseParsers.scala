@@ -62,7 +62,8 @@ trait BaseParsers { this:Signature =>
   final val maxN = -1 // infinity for Parser.max
 
   sealed abstract class Cond // Constraint on variables
-  case class CFor(v:Char,l:Char,ld:Int,u:Char,ud:Int) extends Cond // for ('l'+ld<='v'<='u'-ud)
+  case class CFor(v:Char,l:Char,ld:Int,u:Char,ud:Int, lD:Int=maxN,uD:Int=maxN) extends Cond
+    // for ('l'+ld<='v'<='u'-ud) / for ('v' = MAX('l'+ld;'u'-uD), up = MIN('u'-ud,'l'+lD); 'v'<=up; ++'v'))
   case class CLeq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta<='b'
   case class CEq(a:Char,b:Char,delta:Int) extends Cond // 'a'+delta=='b'
   case class CUser(cond:String) extends Cond // user condition
@@ -164,7 +165,7 @@ trait BaseParsers { this:Signature =>
     @inline private def idx(sw:Subword):Int = if (twotracks) sw._1*mW+sw._2 else { val d=mH+1+sw._1-sw._2; ( mH*(mH+1) - d*(d-1) ) /2 + sw._1 }
     private def get(sw:Subword) = { val i=idx(sw); val v1=data(i); if (v1!=null) v1 else { val v=inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}; data(i)=v; v } }
     private def put(sw:Subword,v:List[(Answer,Backtrack)]) { data(idx(sw))=v; }
-    
+
     def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
     def unapply(sw:Subword,bt:Backtrack) = get(sw) map { case (c,b) => (c,List((sw,c,b))) }
     def reapply(sw:Subword,bt:Backtrack) = { val v=data(idx(sw)); if (v!=null) v.head._1 else sys.error("Failed reapply"+sw) }

@@ -70,14 +70,19 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // Optimizations and conditions simplifications, voluntarily not comprehensive as C compiler re-optimize them later
   def simplify(conds: List[Cond]):List[Cond] = {
     var cs = conds.distinct.filter { case CEq(a,b,0) if (a==b) => false case _ => true } // 1. filter x+0=x
-    cs = cs.map { case CFor(v,l,ld,u,ud) => var lm=ld; var um=ud; // 2. minimize the range of for loop
-        cs.foreach { case CLeq(a,b,d) => if (a==l && b==v && d>lm) lm=d; if (a==v && b==u && d>um) um=d; case _ => }
-        CFor(v,l,lm,u,um)
+    cs = cs.map { case CFor(v,l,ld,u,ud,lD,uD) => var lm=ld; var um=ud; var lM=lD; var uM=uD // 2. minimize the range of for loop
+        cs.foreach {
+          case CLeq(a,b,d) =>
+            if (a==l && b==v && d>lm) lm=d; if (a==v && b==l && -d>lM) lM= -d;
+            if (a==v && b==u && d>um) um=d; if (a==u && b==v && -d>uM) uM= -d;
+          case _ =>
+        }
+        CFor(v,l,lm,u,um,lM,uM)
       case x => x
     }
     cs.foreach { // 3. drop useless Leq (either contained by a For or superseded by another constraint on the same pair)
       case CLeq(a,b,x) => cs=cs.filter { case CLeq(c,d,y) if (c==a && d==b && y<x) => false case _ => true }
-      case CFor(v,l,_,u,_) => cs=cs.filter { case CLeq(c,d,_) if (c==l && d==v || c==v && d==u) => false case _ => true }
+      case CFor(v,l,_,u,_,_,_) => cs=cs.filter { case CLeq(c,d,_) if (c==l && d==v || c==v && d==u || c==v && d==l || c==u && d==v) => false case _ => true }
       case _ =>
     }; cs
   }
@@ -162,11 +167,12 @@ trait CodeGen extends BaseParsers { this:Signature =>
       } foldRight List[Cond]()) { case (CUser(c1),CUser(c2)::as) => CUser(c1+" && "+c2)::as case (c,acc)=>c::acc }
       var hb=false; var br=false
       val cc=(cs foldRight body){
-        case (CFor(v,l,ld,u,ud),b) => val b2=(if ((hbody+b).contains("_unroll")) "" else "_unroll ")+
-          "for(int "+v+"="+Var(l,ld)+(ud match {
-            case 0 => "; "+v+"<="+u case 1 => "; "+v+"<"+u
-            case _ => ","+v+"u="+u+"-"+ud+"; "+v+"<="+v+"u"
-          })+"; ++"+v+") {\n"+ind((if (!hb&&hbody!="") hbody+"\n" else "")+b)+"}"; hb=true; br=true; b2
+        case (CFor(v,l,ld,u,ud,lD,uD),b) => val b2=(if ((hbody+b).contains("_unroll")) "" else "_unroll ")+
+          "for(int "+v+"="+
+            (if (uD== -1) ""+Var(l,ld) else "MAX("+Var(l,ld)+","+Var(u,-uD)+")")+ // lower bound
+            (if (lD!= -1) ","+v+"u=MIN("+u+"-"+ud+","+l+"+"+lD+"); "+v+"<="+v+"u"
+             else ud match { case 0 => "; "+v+"<="+u case 1 => "; "+v+"<"+u case _ => ","+v+"u="+u+"-"+ud+"; "+v+"<="+v+"u" }
+            )+"; ++"+v+") {\n"+ind((if (!hb&&hbody!="") hbody+"\n" else "")+b)+"}"; hb=true; br=true; b2
         case (CUser(c),b) => val b2="if ("+c+") "+(if (!br) "{\n"+ind(b)+"}" else b); br=true; b2
         case _ => "" // does not happen
       }
@@ -220,7 +226,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
     val altMax=rules.map{case (n,t)=>t.inner.alt}.sum
     def switch(f:Int=>String) = "    switch (rd->rule) {\n"+(0 until altMax).map{x=>"      case "+x+":"+f(x)+" break;"}.mkString("\n")+"\n    }\n"
     val trLen = "const unsigned trace_len["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};" // subrule->#indices
-    head.add("#define MAX(a,b) ({__typeof__(a) _a=(a); __typeof__(b) _b=(b); _a>_b?_a:_b; })") // for concat's MAX()
+    head.add("#define MAX(a,b) ({__typeof__(a) _a=(a); __typeof__(b) _b=(b); _a>_b?_a:_b; })") // for 'for' loops and concat's MAX()
+    head.add("#define MIN(a,b) ({__typeof__(a) _a=(a); __typeof__(b) _b=(b); _a<_b?_a:_b; })") // for 'for' loops
     head.add("typedef struct { short i,j,rule; "+(if(catMax>0)"short pos["+catMax+"]; " else "")+"} trace_t;")
     head.add(trLen)
     "__global__ void gpu_backtrack(trace_t* trace, unsigned* size, back_t* back, int i0, int j0) {\n"+ // start at (i0,j0)
