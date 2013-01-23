@@ -40,17 +40,34 @@ object Benchmarks extends App {
     override val tps = (manifest[Alphabet],manifest[Answer])
     override val cudaSplit = 320
   }
+  object zuker_pp extends ZukerGrammar with ZukerPrettyPrint
 
   // ---------------------------------------------------------------------------
 
-  def time[T](u:()=>T) { val start=System.currentTimeMillis; val r=u()
+  def rna(size:Int) = zuker.convert(Utils.genRNA(size))
+  def time[T](u:()=>T) { val start=System.currentTimeMillis; u()
     val d=System.currentTimeMillis-start; print(" %d.%03d".format(d/1000,d%1000)); System.out.flush; System.gc
   }
-  
+
   // Sizes to benchmark
-  val sizes = List(/*64,96,128,192,256,384,512,768,1024,1536,2048,3072,*/ 4096,6144,8192)
+  val sizes = List(64,96,128,192,256,384,512,768,1024,1536,2048,3072,4096,6144,8192)
   zuker.setParams("src/librna/vienna/rna_turner2004.par")
   fold.setParams("src/librna/vienna/rna_turner2004.par")
+  
+  /*
+  def zukerCmp(seq:String,scala:Boolean=false) {
+    val s = zuker.convert(seq)
+    val start=System.currentTimeMillis
+    val (score,bt)=zuker.backtrack(s,scala).head
+    val d=System.currentTimeMillis-start; println("Running time: %d.%03d".format(d/1000,d%1000));
+
+    val res = zuker_pp.build(s,bt)+" (%6.2f)".format(score/100.0)
+    val ref=Utils.refFold(seq,"src/librna/rfold")
+    if (ref==res) println("Match")
+    else println("\nSeq: "+seq+"\nRef: "+ref+"\nOur: "+res+"\n")
+  }
+  for (size <- sizes) for (i<-0 to 3) zukerCmp(Utils.genRNA(size))
+  */
 
   for (size <- sizes) {
     val numS = (if (size>=2048) 5 else 10)
@@ -58,18 +75,20 @@ object Benchmarks extends App {
     def runScala(n:Int,s:String,f:()=>Unit) = if (size<=4096) { f(); print("sprintf('%.3f',median([ "); for (i<-0 until n) time(f); println(" ])) % Scala "+s+" ("+size+")") }
     def runCuda(n:Int,s:String,f:()=>Unit) = { f(); print("sprintf('%.3f',median([ "); for (i<-0 until n) time(f); println(" ])) % Scala+CUDA "+s+" ("+size+")") }
 
-    //runCuda(numC,"MatrixMult3",()=>mm3.backtrack(Utils.genMats(size)))
-    //runScala(numS,"MatrixMult1",()=>mm1.backtrack(Utils.genMats(size),true))
+    /*
+    runCuda(numC,"MatrixMult3",()=>mm3.backtrack(Utils.genMats(size)))
+    runScala(numS,"MatrixMult1",()=>mm1.backtrack(Utils.genMats(size),true))
 
     runCuda(numC,"Smith-Waterman",()=>swat.backtrack(Utils.genDNA(size),Utils.genDNA(size)))
-    //runScala(numS,"Smith-Waterman",()=>swat.backtrack(Utils.genDNA(size),Utils.genDNA(size),true))
-  
-    //runCuda(numC,"Zuker",()=>zuker.backtrack(Utils.genRNA(size).toArray))
-    //runScala(numS,"Zuker",()=>zuker.backtrack(Utils.genRNA(size).toArray,true))
+    runScala(numS,"Smith-Waterman",()=>swat.backtrack(Utils.genDNA(size),Utils.genDNA(size),true))
+    */
+
+    runCuda(numC,"Zuker",()=>zuker.backtrack(rna(size)))
+    runScala(numS,"Zuker",()=>zuker.backtrack(rna(size),true))
 
     /*
-    runCuda(numC,"RNAfold",()=>fold.backtrack(Utils.genRNA(size).toArray))
-    runScala(numS,"RNAfold",()=>fold.backtrack(Utils.genRNA(size).toArray,true))
+    runCuda(numC,"RNAfold",()=>fold.backtrack(rna(size)))
+    runScala(numS,"RNAfold",()=>fold.backtrack(rna(size),true))
     */
   }
 }
