@@ -186,6 +186,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
     "const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x;\n"+
     "const unsigned tN = blockDim.x * gridDim.x;\n"+
     "const unsigned tB = blockIdx.x;\n"+
+    (if (cudaSharedInput) "for (unsigned i=threadIdx.x; i<M_W-1; i+=blockDim.x) _in1[i]=__in1[i];\n"+
+         (if (twotracks) "for (unsigned i=threadIdx.x; i<M_H-1; i+=blockDim.x) _in2[i]=__in2[i];\n" else "")+"__syncthreads();\n" else "")+
     "unsigned tP=s_start; // block progress\n"+loops+"    if (j<M_W) {\n"+ind(kern,3)+"    }\n  }\n"+
     "  // Sync between blocks, removing __threadfence() here is incorrect but works\n  // __threadfence();\n"+
     "  if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }\n  __syncthreads();\n}")+"}\n"
@@ -268,7 +270,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
       head.addPriv("#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })")
     }
     head.addPriv("static input_t *g_in1 = NULL, *g_in2 = NULL;\nstatic cost_t *g_cost = NULL;\nstatic back_t *g_back = NULL;")
-    head.addPriv("__device__ static __attribute__((unused)) input_t *_in1=NULL, *_in2=NULL;\n__global__ void gpu_input(input_t* in1, input_t* in2) { _in1=in1; _in2=in2; }")
+    val din=if(cudaSharedInput)"__in"else"_in" // book shared memory if necessary
+    head.addPriv("__device__ static __attribute__((unused)) input_t *"+din+"1=NULL, *"+din+"2=NULL;\n__global__ void gpu_input(input_t* in1, input_t* in2) { "+din+"1=in1; "+din+"2=in2; }")
+    if (cudaSharedInput) head.addPriv("__shared__ input_t _in1[M_H]"+(if (twotracks) ", _in2[M_W]" else "")+";")
     head.add("void g_init(input_t* in1, input_t* in2);\nvoid g_free();\nvoid g_solve();\n"+tpAnswer+" g_backtrack(trace_t** trace, unsigned* size);")
 
     // Initialize and free device memory for cost and backtrack matrices
@@ -409,6 +413,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   val cudaSplit = 1024 // threshold for multiple CUDA kernels
   val cudaDevice = -1  // preferred execution CUDA device
   val cudaUnroll = 5 // experimental unrolling optimal
+  val cudaSharedInput = this match { case s:RNASignature => true case _ => false } // store input in shared memory
   val compiler = new CodeCompiler {
     override val outPath = "bin"
     override val cudaPath = "/usr/local/cuda"
