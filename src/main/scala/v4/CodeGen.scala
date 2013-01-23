@@ -353,7 +353,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     val flush = if (benchmark) "  fflush(stdout); fflush(stderr);\n" else ""
     val solve = (if(benchmark)"  struct timeval ts,te; double delta;\n" else"")+ctime("  input_t *in1=NULL; jni_read(env,input1,&in1);\n"+
       (if (twotracks) "  input_t *in2=NULL; jni_read(env,input2,&in2);\n  g_init(in1,in2); free(in2);"
-                 else "  g_init(in1,NULL);"),"- JNI read")+" free(in1);\n"+
+                 else "  g_init(in1,NULL);"),"- JNI read")+"  free(in1);\n"+
     ctime("  g_solve();\n","- CUDA compute")
 
     "#include <jni.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <sys/time.h>\n#include \"{file}.h\"\n#ifdef __cplusplus\n"+

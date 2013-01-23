@@ -10,20 +10,10 @@ trait MatrixSig3 extends Signature {
   type Answer = Int
   override val h = min[Int] _
 
-  val single = new (Alphabet=>Answer) with CFun {
-    def apply(i: Alphabet) = 0
-    val args=List(("i","(Int,Int)"))
-    val body="return 0;"
-    val tpe ="Int"
-  }
-
   def in(n:Int):Alphabet
-  val mult = new ((Int,Answer,Int,Answer,Int)=>Answer) with CFun {
-    def apply(i:Int,l:Answer,k:Int,r:Answer,j:Int) = l + r + in(i)._1 * in(k)._1 * in(j-1)._2
-    val args=List(("i","Int"),("l","Int"),("k","Int"),("r","Int"),("j","Int"))
-    val body = "return l + r + _in1[i]._1 * _in1[k]._1 * _in1[j-1]._2;"
-    val tpe ="Int"
-  }
+  val single = cfun1((i: Alphabet) => 0,"i","return 0;")
+  val mult = cfun5((i:Int,l:Answer,k:Int,r:Answer,j:Int) => l + r + in(i)._1 * in(k)._1 * in(j-1)._2,
+                   "i,l,k,r,j","return l + r + _in1[i]._1 * _in1[k]._1 * _in1[j-1]._2;")
 }
 
 trait MatrixGrammar3 extends ADPParsers with MatrixSig3 {
@@ -38,8 +28,13 @@ trait MatrixGrammar3 extends ADPParsers with MatrixSig3 {
 object MatrixMultGen3 extends MatrixGrammar3 with MatrixSig3 with CodeGen with App {
   override val tps=(manifest[Alphabet],manifest[Answer]) // Extra codegen initialization
   override val benchmark = true
+  /*
+  val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray // -> 1x3 matrix, 122 multiplications
+  println(parse(input))
+
   Utils.runBenchmark(
     (n:Int)=>backtrack(Utils.genMats(n)),
     (n:Int)=>backtrack(Utils.genMats(n),true)
   )
+  */
 }

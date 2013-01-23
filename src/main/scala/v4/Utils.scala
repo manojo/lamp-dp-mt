@@ -16,23 +16,24 @@ object Utils {
   // --------------------------------------------------------------------------
 
   import scala.util.Random
-  Random.setSeed(123456748299L)
+  def reset = Random.setSeed(123456748299L)
+  reset
 
-  def runBenchmark(fc:Int=>Unit,fs:Int=>Unit,from:Int=128) {
-    val sz=List(128,256,512,1024,2048,4096,8192)
+  def runBenchmark(fc:Int=>Unit,fs:Int=>Unit,from:Int=1) {
+    val sz=List(64,96,128,192,256,384,512,768,1024,1536,2048,3072,4096,6144,8192) //List(128,256,512,1024,2048,4096,8192)
     println("====( CUDA warm-up )==============================================")
-    for (i<-0 until 2) fc(1024)
+    for (i<-0 until 2) fc(1024); reset
     println("====( CUDA )======================================================")
     for (s<-sz) if (from<=s) {
       println("---- Size = "+s+" ----------------")
-      for (i<-0 until (if (s>2048) 10 else 20)) fc(s)
+      for (i<-0 until (if (s>2048) 6 else 10)) fc(s)
     }
     println("====( Scala warm-up )=============================================")
-    fs(512)
+    fs(512); reset
     println("====( Scala )=====================================================")
     for (s<-sz) if (from<=s) {
       println("---- Size = "+s+" ----------------")
-      for (i<-0 until (if (s>2048) 5 else 20)) fs(s)
+      for (i<-0 until (if (s>2048) 4 else 10)) fs(s)
     }
   }
 
@@ -51,11 +52,9 @@ object Utils {
   */
 
   // --------------------------------------------------------------------------
-  // RNA folding
+  // Biosequences matching and folding
   def genDNA(n:Int=512) = Seq.fill(n)(Math.abs(Random.nextInt)%4).map {case 0=>'A' case 1=>'C' case 2=>'G' case 3=>'T'}.toArray
-
-  // Generate a reproducible random RNA sequence
-  def genSeq(n:Int=80) = Seq.fill(n)(Math.abs(Random.nextInt)%4).map {case 0=>'a' case 1=>'c' case 2=>'g' case 3=>'u'}.mkString
+  def genRNA(n:Int=80) = Seq.fill(n)(Math.abs(Random.nextInt)%4).map {case 0=>'a' case 1=>'c' case 2=>'g' case 3=>'u'}.mkString
 
   // Debugging helper, program must be Vienna/RNAfold-compatible
   def refFold(seq:String,prog:String="./RNAfold --noPS --noLP -d2"):String = {

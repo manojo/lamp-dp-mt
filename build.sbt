@@ -33,15 +33,15 @@ compile in Compile <<= (compile in Compile) map { x => ("src/librna/make target/
   val yjp="/Applications/Tools/YourKit Java Profiler.app/bin/mac/libyjpagent.jnilib"
   def t(n:String) = { val t=TaskKey[Unit](n); t.dependsOn(compile in Compile); t }
   def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, cl), fork in t:=true,javaOptions in t++=List(
-    "-Xss512m" ,"-Xmx8G","-Xms8G","-XX:MaxPermSize=8G" //,"-verbose:gc"
+    "-Xss512m","-Xmx8G","-Xms8G","-XX:MaxPermSize=8G" //,"-verbose:gc"
     //"-agentpath:"+yjp+"=sampling,onexit=snapshot,builtinprobes=all"
   ))
   val (mm1,mm2,mm3,align,zuker,rnafold,nu,swat)=(t("mm1"),t("mm2"),t("mm3"),t("align"),t("zuker"),t("rnafold"),t("nu"),t("swat")) // Examples
-  val (mml,mmr,rr)=(t("mml"),t("mmr"),t("rr")) // LMS and report
+  val (mml,mmr,rr,bench)=(t("mml"),t("mmr"),t("rr"),t("bench")) // LMS and report
   val ex="v4.examples."
   s(mm1,ex+"MatrixMultGen") ++ s(mm2,ex+"MatrixMultGen2") ++ s(mm3,ex+"MatrixMultGen3") ++ s(align,ex+"SeqAlignGen") ++
   s(zuker,ex+"Zuker") ++ s(rnafold,ex+"RNAFold") ++ s(nu,ex+"Nussinov") ++ s(swat,ex+"SWatAffine") ++
-  s(mml,"lms.LMSMatrixAlgebraGen") ++ s(mmr,"v4.report.MatrixMultLMS") ++ s(rr,"v4.report.RNAFold")
+  s(mml,"lms.LMSMatrixAlgebraGen") ++ s(mmr,"v4.report.MatrixMultLMS") ++ s(rr,"v4.report.RNAFold") ++ s(bench,"v4.report.Benchmarks")
 }
 // TaskKey[Unit]("zuker") := { "scala -cp target/scala-2.10/classes v4.examples.Zuker".run.exitValue }
 // http://stackoverflow.com/questions/6951261/how-to-define-tasks-to-run-with-hprof-from-sbt-0-10

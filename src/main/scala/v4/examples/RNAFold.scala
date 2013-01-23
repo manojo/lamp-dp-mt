@@ -6,82 +6,78 @@ import v4._
 // Using the grammar described in paper "GPU accelerated RNA folding algorithm"
 
 trait RNAFoldSig extends RNASignature {
-  import librna.{LibRNA=>lib}
-  def Eh(i:Int,j:Int) = lib.hl_energy(i,j) // hairpin loop
-  def Ei(i:Int,k:Int,l:Int,j:Int) = lib.il_energy(i,k,l,j) // internal loop
-  def Es(i:Int,j:Int) = lib.sr_energy(i,j) // 2 stacked base pairs
-
-  def hairpin(ij:(Int,Int)):Answer
-  def stack(i:Int,s:Answer,j:Int):Answer
-  def iloop(ik:(Int,Int),s:Answer,lj:(Int,Int)):Answer
-  def mloop(i:Int,s:Answer,j:Int):Answer
-  def left(l:Answer,r:Int):Answer
-  def right(l:Int,r:Answer):Answer
-  def join(l:Answer,r:Answer):Answer
+  val hairpin : ((Int,Int))=>Answer
+  val stack : (Int,Answer,Int)=>Answer
+  val iloop : ((Int,Int),Answer,(Int,Int))=>Answer
+  val mloop : (Int,Answer,Int)=>Answer
+  val left : (Answer,Int)=>Answer
+  val right : (Int,Answer)=>Answer
+  val join : (Answer,Answer)=>Answer
 }
 
 trait RNAFoldAlgebra extends RNAFoldSig {
   type Answer = Int
   override val h = min[Answer] _
-  def hairpin(ij:(Int,Int)) = Eh(ij._1,ij._2-1)
-  def stack(i:Int,s:Int,j:Int) = Es(i,j) + s
-  def iloop(ik:(Int,Int),s:Int,lj:(Int,Int)) = Ei(ik._1,ik._2,lj._1-1,lj._2-1) + s
-  def mloop(i:Int,s:Int,j:Int) = s
-  def left(l:Int,r:Int) = l
-  def right(l:Int,r:Int) = r
-  def join(l:Int,r:Int) = l+r
+
+  import librna.LibRNA._
+  val hairpin = cfun1((ij:(Int,Int)) => hl_energy(ij._1,ij._2-1), "ij", "return hl_energy(ij._1,ij._2-1);")
+  val stack = cfun3((i:Int,s:Int,j:Int) => sr_energy(i,j) + s, "i,s,j", "return sr_energy(i,j) + s;")
+  val iloop = cfun3((ik:(Int,Int),s:Int,lj:(Int,Int)) => il_energy(ik._1,ik._2,lj._1-1,lj._2-1) + s, "ik,s,lj", "return il_energy(ik._1,ik._2,lj._1-1,lj._2-1) + s;")
+  val mloop = cfun3((i:Int,s:Int,j:Int) => s, "i,s,j", "return s;")
+  val left = cfun2((l:Int,r:Int) => l, "l,r", "return l;")
+  val right = cfun2((l:Int,r:Int) => r, "l,r", "return r;")
+  val join = cfun2((l:Int,r:Int) => l+r, "l,r", "return l+r;")
 }
 
 trait RNAFoldPrettyPrint extends RNAFoldSig {
   type Answer = String
   private def dots(n:Int,c:Char='.') = (0 until n).map{_=>c}.mkString
-  def hairpin(ij:(Int,Int)) = "("+dots(ij._2-ij._1-2)+")"
-  def stack(i:Int,s:String,j:Int) = "("+s+")"
-  def iloop(ik:(Int,Int),s:String,lj:(Int,Int)) = "("+dots(ik._2-1-ik._1)+s+dots(lj._2-1-lj._1)+")"
-  def mloop(i:Int,s:String,j:Int) = "("+s+")"
-  def left(l:String,r:Int) = l+"."
-  def right(l:Int,r:String) = "."+r
-  def join(l:String,r:String) = l+r
+  val hairpin = (ij:(Int,Int)) => "("+dots(ij._2-ij._1-2)+")"
+  val stack = (i:Int,s:String,j:Int) => "("+s+")"
+  val iloop = (ik:(Int,Int),s:String,lj:(Int,Int)) => "("+dots(ik._2-1-ik._1)+s+dots(lj._2-1-lj._1)+")"
+  val mloop = (i:Int,s:String,j:Int) => "("+s+")"
+  val left = (l:String,r:Int) => l+"."
+  val right = (l:Int,r:String) => "."+r
+  val join = (l:String,r:String) => l+r
 }
 
 trait RNAFoldGrammar extends ADPParsers with RNAFoldSig {
-  def pair(i:Int, j:Int):Boolean = if (i+2>j) false else (in(i),in(j-1)) match {
-    case ('a','u') | ('u','a') | ('u','g') | ('g','c') | ('g','u') | ('c','g') => true
-    case _ => false
-  }
-
   lazy val Qp:Tabulate = tabulate("Qp",(
     seq(3,maxN)        ^^ hairpin
   | eli   ~ Qp ~ eli   ^^ stack
   | seq() ~ Qp ~ seq() ^^ iloop
   | eli   ~ QM ~ eli   ^^ mloop
-  ) filter pair aggregate h)
+  ) filter basepairing aggregate h)
 
-  lazy val QM:Tabulate = tabulate("QM",(Q ~ Q ^^ join) filter((i:Int,j:Int)=>i<=j+4) aggregate h)
+  lazy val QM:Tabulate = tabulate("QM",(Q ~ Q ^^ join) filter(length(4)) aggregate h)
 
   lazy val Q:Tabulate = tabulate("Q",(
     QM
   | Q ~ eli ^^ left
   | eli ~ Q ^^ right
   | Qp
-  ) filter((i:Int,j:Int)=>i<=j+2) aggregate h)
+  ) filter(length(2)) aggregate h)
 
   override val axiom = Q
 }
 
 object RNAFold extends App {
-  object fold extends RNAFoldGrammar with RNAFoldAlgebra
+  object fold extends RNAFoldGrammar with RNAFoldAlgebra with CodeGen {
+    override val tps=(manifest[Alphabet],manifest[Answer])
+    override val benchmark = true
+    override val cudaSplit = 160
+  }
   object pretty extends RNAFoldGrammar with RNAFoldPrettyPrint
 
-  import librna.{LibRNA=>l}
-  l.setParams("src/librna/vienna/rna_turner2004.par")
-  def parse(s:String) = {
-    l.setSequence(s);
-    val (score,bt) = fold.backtrack(s.toArray).head;
-    val res = pretty.build(s.toArray,bt)
-    l.clear; (score,bt,res)
+  fold.setParams("src/librna/vienna/rna_turner2004.par")
+  def parse(seq:String) = {
+    val s = fold.convert(seq)
+    val (score,bt) = fold.backtrack(s).head;
+    val res = pretty.build(s,bt)
+    (score,bt,res)
   }
 
+  /*
   val seq="aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu"
   val (score,bt,res)=parse(seq)
   //println("Score     : "+score);
@@ -91,4 +87,9 @@ object RNAFold extends App {
   if (seq=="aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
     println("Ref: ((((.(((((...(((.((((((((....)))))))))))...(((((((....))))))).....))))).)))) (-24.5)")
   println("Our: "+res+" (%6.2f)".format(score/100.0))
+  */
+  Utils.runBenchmark(
+    (n:Int)=>fold.backtrack(fold.convert(Utils.genRNA(n))),
+    (n:Int)=>fold.backtrack(fold.convert(Utils.genRNA(n)),true)
+  )
 }

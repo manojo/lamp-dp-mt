@@ -164,6 +164,7 @@ object Zuker extends App {
   object mfe extends ZukerGrammar with ZukerMFE with CodeGen {
     override val benchmark = true
     override val tps = (manifest[Alphabet],manifest[Answer])
+    override val cudaSplit = 320
   }
   object pretty extends ZukerGrammar with ZukerPrettyPrint
   object count extends ZukerGrammar with ZukerCount
@@ -193,6 +194,15 @@ object Zuker extends App {
   //testSeq("acgcaccggcauacgugugcucgaaaagcgu")
   //testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
 
-  val s = Utils.genSeq(80)
-  for (k<-0 until 100) { testSeq(s); println }
+  //val s = Utils.genRNA(320)
+  //for (k<-0 until 100) { testSeq(s); println }
+
+  println(Utils.genRNA(8192))
+  mfe.backtrack(mfe.convert(Utils.genRNA(128)))
+  /*
+  Utils.runBenchmark(
+    (n:Int)=>mfe.backtrack(mfe.convert(Utils.genRNA(n))),
+    (n:Int)=>mfe.backtrack(mfe.convert(Utils.genRNA(n)),true)
+  )
+  */
 }

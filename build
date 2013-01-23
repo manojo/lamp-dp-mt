@@ -1,0 +1,24 @@
+#!/bin/sh
+cd `dirname $0`
+if [ "$OSTYPE" = "darwin" ]; then md5_hash() { md5 -q $@; };
+else md5_hash() { md5sum $@; }; fi
+
+scalac2() {
+	printf "Compiling %s ... " "$1"; shift; f=$1; shift; md5_hash $@ > bin/$f.tmp
+	if diff "bin/$f.md5" "bin/$f.tmp" 1>/dev/null 2>/dev/null; then rm "bin/$f.tmp"; echo 'up to date.'; false
+	else scalac -target:jvm-1.7 -optimise -unchecked -deprecation -classpath bin -d bin $@ || exit; mv "bin/$f.tmp" "bin/$f.md5"; echo 'done.'; true; fi
+}
+
+if [ "$1" = "clean" ]; then printf 'Cleaning ... '; rm -rf bin; echo 'done.'; exit; fi
+if [ "$1" = "help" ]; then echo "Run ./build with one of the following arguments:";
+	cat src/main/scala/v4/examples/* | grep object | grep App | sed 's/object /v4.examples./g' | sed 's/ .*//g'; exit
+fi
+
+printf 'LibRNA JNI: '; src/librna/make bin
+scalac2 'LibRNA' _rna src/librna/*.scala
+if scalac2 'Base parsers' _v4 src/main/scala/v4/*.scala; then rm bin/_ex.md5 2>/dev/null; fi
+scalac2 'Examples' _ex src/main/scala/v4/examples/*.scala
+scalac2 'Benchmarks' _re src/main/scala/v4/report/Benchmarks.scala
+
+echo 'Running Benchmarks'
+scala -J-Xss512m -J-Xmx12G -J-Xms12G -J-XX:MaxPermSize=12G -cp bin v4.report.Benchmarks

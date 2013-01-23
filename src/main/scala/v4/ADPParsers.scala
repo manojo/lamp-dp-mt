@@ -53,13 +53,16 @@ trait ADPParsers extends BaseParsers { this:Signature =>
 
 trait LexicalParsers extends ADPParsers { this:Signature =>
   override type Alphabet = Char
-  // Additional terminals
+  // Predefined terminals
   val char = el
   val chari = eli
   val letter = char filter cf((c:Char)=>(c>='a' && c<='z') || (c>='A' && c<='Z'),"return (c>='a' && c<='z') || (c>='A' && c<='Z');")
   val digit = (char filter cf((c:Char)=>c>='0' && c<='9',"return c>='0' && c<='9';")) ^^ cfun1((c:Char)=>(c-'0').toInt,"c","return c-'0';")
   def charf(s:String) = char filter cf((c:Char)=>s.indexOf(c)!= -1,"const char* s=\""+esc(s)+"\"; for(;*s;++s) { if (*s==c) return true; } return false;")
   def charf(c0:Char) = char filter cf((c:Char)=>c==c0,"return c=='"+esc(""+c0)+"';")
+
+  // Predefined filters
+  def length(min:Int=0,max:Int= -1) = cfun2((i:Int,j:Int)=> (j-i)>=min && (max < 0 || j-i<=max), "i,j","return j-i>="+min+(if(max>=0)" && j-i<="+max else "")+";")
 
   import scala.language.implicitConversions
   implicit def toCharArray(s:String):Array[Char] = s.toArray
@@ -79,19 +82,17 @@ trait RNASignature extends Signature {
     case _ => if (energies) librna.LibRNA.setParams(file)
   }
 
-  // Pairing functions
-  def in(x:Int):Char // expose ADPParsers
-  val basepairing = new ((Int,Int)=>Boolean) with CFun {
-    def apply(i:Int,j:Int):Boolean = if (i+2>j) false else (in(i),in(j-1)) match {
-      //case ('a','u') | ('u','a') | ('u','g') | ('g','u') | ('g','c') | ('c','g') => true
-      case ('\1','\4') | ('\4','\1') | ('\4','\3') | ('\3','\4') | ('\3','\2') | ('\2','\3') => true
-      case _ => false
-    }
-    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(_in1[i],_in1[j-1])!=NO_BP;","Boolean")
-  }
-  val stackpairing = new ((Int,Int)=>Boolean) with CFun {
-    def apply(i:Int,j:Int):Boolean = basepairing(i,j) && basepairing(i+1,j-1)
-    val (args,body,tpe)=(List(("i","Int"),("j","Int")),"return bp_index(_in1[i],_in1[j-1])!=NO_BP && bp_index(_in1[i+1],_in1[j-2])!=NO_BP;","Boolean")
-  }
-  def convert(in:String):Array[Alphabet] = in.toArray.map { case 'A'|'a'=>'\1' case 'C'|'c'=>'\2' case 'G'|'g'=>'\3' case 'U'|'u'=>'\4' case _ => sys.error("Invalid sequence") }
+  // Conversion to internal representation
+  def convert(in:String):Array[Alphabet] = in.toArray.map { case 'A'|'a'=>'\1' case 'C'|'c'=>'\2' case 'G'|'g'=>'\3' case 'T'|'t'|'U'|'u'=>'\4' case _ => '\5' }
+
+  // Predefined filters
+  def length(min:Int=0,max:Int= -1) = cfun2((i:Int,j:Int) => (j-i)>=min && (max < 0 || j-i<=max), "i,j","return j-i>="+min+(if(max>=0)" && j-i<="+max else "")+";")
+  val stackpairing = cfun2((i:Int,j:Int) => basepairing(i,j) && basepairing(i+1,j-1), "i,j","return i+4<=j && bp_index(_in1[i],_in1[j-1])!=NO_BP && bp_index(_in1[i+1],_in1[j-2])!=NO_BP;")
+  val basepairing = cfun2((i:Int,j:Int) => if (i+2>j) false else (in(i),in(j-1)) match {
+    case ('\1','\4') | ('\4','\1') | ('\4','\3') | ('\3','\4') | ('\3','\2') | ('\2','\3') => true // a-u, u-a, u-g, g-u, g-c, c-g
+    case _ => false
+  },"i,j","return i+2<=j && bp_index(_in1[i],_in1[j-1])!=NO_BP;")
+
+  // Expose ADPParsers input
+  def in(x:Int):Char 
 }
