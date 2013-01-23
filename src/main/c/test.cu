@@ -22,34 +22,29 @@ int splits = 1;
 
 int main(int argc, char** argv) {
 	cuTimer t;
+
+	splits = (M_W+M_H)/2048; if (splits<=0) splits=1;
+	splits = splits*splits*splits;
 	dbg_init();
 
-	splits = (M_W+M_H)/2048;
-	if (splits<=0) splits=1;
-	splits = splits*splits*splits;
-	printf("Splits = %d\n",splits);
-
-#if 0
-	// GPU solving
-	printf("- "); fflush(stdout); for (int i=0;i<1;++i) g_solve(); printf("GPU: "); fflush(stdout);
-	for (int i=0;i<7;++i) { t.start(); g_solve(); double dt=t.stop(); printf("  %8.3f",dt/1000.0); fflush(stdout); }
-	printf("\n"); fflush(stdout);
-
-	// CPU solving
-	printf("- "); fflush(stdout); c_solve(); printf("CPU: "); fflush(stdout);
-	for (int i=0;i<3;++i) { t.start(); c_solve(); double dt=t.stop(); printf("  %8.3f",dt/1000.0); fflush(stdout); }
-	printf("\n"); fflush(stdout);
+#if 1
+	#define WARM_GPU 10
+	#define RUNS_GPU 20
+	#define RUNS_CPU 20
 #else
-	// GPU solving
-	printf("- "); fflush(stdout); for (int i=0;i<10;++i) g_solve(); printf("GPU: "); fflush(stdout);
-	for (int i=0;i<20;++i) { t.start(); g_solve(); double dt=t.stop(); printf("  %8.3f",dt/1000.0); fflush(stdout); }
-	printf("\n"); fflush(stdout);
-
-	// CPU solving
-	printf("- "); fflush(stdout); c_solve(); printf("CPU: "); fflush(stdout);
-	for (int i=0;i<20;++i) { t.start(); c_solve(); double dt=t.stop(); printf("  %8.3f",dt/1000.0); fflush(stdout); }
-	printf("\n"); fflush(stdout);
+	#define WARM_GPU 1
+	#define RUNS_GPU 7
+	#define RUNS_CPU 3
 #endif
+	// GPU solving
+	printf("sprintf('%c.3f',",'%'); fflush(stdout); for (int i=0;i<10;++i) g_solve(); printf("median(["); fflush(stdout);
+	for (int i=0;i<20;++i) { t.start(); g_solve(); double dt=t.stop(); printf(" %.3f",dt/1000.0); fflush(stdout); }
+	printf(" ])) %c CUDA (%ld)\n",'%',M_W); fflush(stdout);
+	// CPU solving
+	printf("sprintf('%c.3f',",'%'); fflush(stdout); c_solve(); printf("median(["); fflush(stdout);
+	for (int i=0;i<20;++i) { t.start(); c_solve(); double dt=t.stop(); printf(" %.3f",dt/1000.0); fflush(stdout); }
+	printf(" ])) %c CPU (%ld)\n",'%',M_W); fflush(stdout);
+
 	/*
 	#define FAST
 	#ifndef FAST

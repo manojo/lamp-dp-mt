@@ -1,0 +1,10 @@
+#!/bin/sh
+cd `dirname $0`; BENCH=`pwd`
+cleanup() { cd $BENCH; rm -r bin tmp 2>/dev/null; }
+trap "cleanup; exit 0" 2 3 15
+
+mkdir -p bin tmp
+printf "Compile... "; scalac -d bin bench.scala || exit 1; echo "done."
+cp rnafold/cuda/energies.dat tmp
+cd tmp; scala -cp ../bin Bench "$@" || exit 1
+cleanup

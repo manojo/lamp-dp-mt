@@ -62,7 +62,6 @@ Memory selection     : 1088.30Mb / 1023.69Mb [in=1,tr=10,cost=16,back=18] -> cos
 - CUDA backtrack     : 0.059 sec
 Memory selection     : 1088.30Mb / 1023.69Mb [in=1,tr=10,cost=16,back=18] -> cost:device, backtrack:host
 
-
 sprintf('%.3f',median([0.010 0.010 0.010 0.010 0.010 0.010 0.010 0.010 0.010 0.010 ]))
 sprintf('%.3f',median([0.025 0.025 0.025 0.025 0.025 0.025 0.025 0.025 0.025 0.025 ]))
 sprintf('%.3f',median([0.046 0.046 0.046 0.046 0.046 0.046 0.046 0.046 0.046 0.046 ]))

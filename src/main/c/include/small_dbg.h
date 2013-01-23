@@ -136,7 +136,7 @@ void dbg_init(bool info=false) {
 	#ifdef __CUDACC__
 	if (info) cuInfo();
 	#endif
-	fprintf(stderr,SH_SHAPE " %ldx%ld with block %ldx%ld\n",M_H,M_W,B_H,B_H);
+	fprintf(stderr,SH_SHAPE " %ldx%ld with block %ldx%ld and %d splits\n",M_H,M_W,B_H,B_H,SPLITS);
 	TI* in0=p_input();
 	TI* in1=NULL;
 	#ifdef SH_RECT

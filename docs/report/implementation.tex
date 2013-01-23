@@ -505,6 +505,6 @@ Although the whole program can be defined in a single trait, it is preferable to
 
 The code generator is used by simply mixing in the {\tt CodeGen} trait, using the following idiom
 	\[\text{\tt val tps=(manifest[Alphabet],manifest[Answer])}\]
-anywhere at the intersection of the CodeGen inheritance and definition of these types (usually in the final program). Further configuration of the execution environment can be tuned by overriding the following variables: {\tt compiler} (for system paths and flags), {\tt cudaSplit} and {\tt cudaDevice}. The {\tt benchmark} flag can be set to enable timing measurements.
+anywhere at the intersection of the CodeGen inheritance and definition of these types (usually in the final program). Further configuration of the execution environment can be tuned by overriding the following variables: {\tt compiler} (for system paths and flags), {\tt cudaSplit} and {\tt cudaDevice}. The {\tt benchmark} flag can be set to enable timing measurements. Also it is possible to use bottom-up parsers with Scala to reduce the stack size by enabling the {\tt bottomUp} flag. If special concatenations are needed, it is possible to replace the $\sim$ concatenation by $\sim\.(l_{\rm min},l_{\rm max},r_{\rm min},r_{\rm max})\.\sim$ where $l,r$ design respectively the yield size of left and right operands.
 
 Finally, the user can look in the files {\tt ADPParsers.scala} and {\tt TTParsers.scala} for a list of the available terminals, and possibly create new ones.
