@@ -1,0 +1,12 @@
+#!/bin/sh
+
+for s in 64 96 128 192 256 384 512 768 1024 1536 2048 3072 4096 6144 8192; do
+	# compile
+	echo --------------------- $s ---------------------
+	nvcc -arch=sm_30 -m64 -O2 --linker-options -rpath,/usr/local/cuda/lib comp1.cu -DM_W=$s -DM_H=$s -o comp1 || exit
+
+	# run
+	for i in 1 2 3 4 5 6 7 8 9 10; do
+		./comp1
+	done
+done
