@@ -118,7 +118,7 @@ $^{(2)}$ Since the memory requirements are larger than the device capacity, the 
 & \hgapc	& 0.01	& 0.03	& 0.07	& 0.13	& 0.41	& 0.93	& 2.89	\\[-2pt]
 \midrule \multirow{4}{*}{\vspace{12pt}\rotatebox{90}{\normalsize\bf GPU}}
 & \hdpc	& 0.15	& 0.53	& 0.98	& 1.55	& 3.13	& 5.04	& 9.43	\\
-& \hrna	& 0.09	& 0.14	& 0.20	& 0.44	& 0.80	& 1.89	& 3.52	\\
+& \hrna	& 0.06	& 0.11	& 0.14	& 0.20	& 0.44	& 0.80	& 1.89	\\
 \midrule
 &\hh Matrix dimension &\hh 1024 &\hh 1536 &\hh 2048 &\hh 3072 &\hh 4096 &\hh 6144 &\hh 8192 \\
 \midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\quad$}}
@@ -127,7 +127,7 @@ $^{(2)}$ Since the memory requirements are larger than the device capacity, the 
 & \hgapc	& 6.66	& 22.91	& 56.97	& 208.33	& 		& 		&  		\\[-2pt]
 \midrule \multirow{4}{*}{\vspace{12pt}\rotatebox{90}{\normalsize\bf GPU}}
 & \hdpc	& 15.10	& 33.62	& 61.76	& 166.84	& 393.76	& 		&  		\\
-& \hrna	& 9.08	& 19.59	& 67.32	& 163.14	& 		& 		& 		\\
+& \hrna	& 3.52	& 9.08	& 19.59	& 67.32	& 163.14	& 		& 		\\
 \bottomrule\end{tabular}}\end{center}\caption{Running time of Zuker RNA folding (in seconds)}\end{table}
 
 {\color{red} XXX: comment, explain energy coefficients, complexity, limit search space for bulges, algorithm variants and constraints RNAfold/Zuker}
@@ -138,8 +138,7 @@ $^{(2)}$ Since the memory requirements are larger than the device capacity, the 
 
 {\color{red}\ol
 \item Write some conclusion ideas
-\item Run benchmark and add results in report (automate, generate raw Matlab/TeX output)
-\item Stabilize times, statistics, use CUDA profiler(?)
+\item use CUDA profiler(?)
 \ole}
 
 \subsection{Synthetical results}
