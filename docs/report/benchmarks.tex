@@ -31,6 +31,8 @@ Our benchmarking platform is an Apple notebook with a Core i7-3720QM with 16Gb o
 \def\hl#1#2{\begin{minipage}{3.5cm} {\bf #1} \\[-2pt] \footnotesize #2 \vspace{6pt} \end{minipage}}
 \def\hdps{\hl{DynaProg}{Scala parsers}}
 \def\hdpc{\hl{DynaProg}{CUDA parsers}}
+\def\hdpcz{\hl{DynaProg}{CUDA-Zuker}}
+\def\hdpcr{\hl{DynaProg}{CUDA-RNAfold}}
 \def\hhoc{\hl{Optimized}{C, single thread}}
 \def\hhog{\hl{Optimized}{CUDA, 64-bit}}
 \def\hgapc{\hl{GAPC}{\cite{gapc_thesis}, C, single thread}}
@@ -39,28 +41,27 @@ Our benchmarking platform is an Apple notebook with a Core i7-3720QM with 16Gb o
 \def\hvien{\hl{ViennaRNA}{\cite{vienna_rna}}}
 \def\hrna{\hl{RNAFold}{\cite{gpu_rnafold}}}
 
+\def\hcpu{\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\quad$}}}
+\def\hgpu{\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf GPU $\quad$}}}
+
 \subsection{Matrix chain multiplication}
-Since we have seen that this problem is not input sensitive in (\S\ref{metrics}), we can safely use different random number generators among different implementations without compromising the validity of the results.  Also note that the hand-optimized results are slightly worse than those presented in (\S\ref{baseline_impl}), this is caused by enabling the 64-bit mode. Since external libraries linked with the Java virtual machine must be in 64 bit, we also enabled this mode in hand-optimized version to maintain a fair comparison, thereby slightly reducing the performance of CUDA operations.
 % CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion
 % GPU: GPU: DynaProg(CUDA), hand optimized CUDA, ATLP and GAPC-OpenCL?
+We have seen previously that this problem is not input sensitive in (\S\ref{metrics}), hence we can safely use different random number generators among different implementations without compromising the validity of the results.  Also note that the hand-optimized results are slightly worse than those presented in (\S\ref{baseline_impl}), this is caused by enabling the 64-bit mode. Since external libraries linked with the Java virtual machine must be in 64 bit, we also enabled this mode in hand-optimized version to maintain a fair comparison, thereby slightly reducing the performance of CUDA operations.
 
 \begin{table}[H]\begin{center}{\small\begin{tabular}{llrrrrrrr}\toprule
-&\hh  Matrix dimension &\hh 64 &\hh 128 &\hh 192 &\hh 256 &\hh 384 &\hh 512 &\hh 768 \\
-\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\quad$}}
+&\hh  Matrix dimension &\hh 64 &\hh 128 &\hh 192 &\hh 256 &\hh 384 &\hh 512 &\hh 768 \\ \hcpu
 & \hdps	& 0.05	& 0.20	& 0.80	& 2.03	& 6.65	& 15.10	& 47.40	\\
 & \hhoc	& <0.01	& <0.01	& <0.01	& 0.01	& 0.03	& 0.08	& 0.28	\\
-& \hgapc	& 0.01	& 0.01	& 0.03	& 0.05	& 0.15	& 0.35	& 1.16	\\[-2pt]
-\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf GPU $\quad$}}
+& \hgapc	& 0.01	& 0.01	& 0.03	& 0.05	& 0.15	& 0.35	& 1.16	\\[-2pt] \hgpu
 & \hdpc	& 0.03	& 0.04	& 0.05	& 0.07	& 0.13	& 0.13	& 0.21	\\
 & \hhog	& <0.01	& 0.01	& 0.01	& 0.02	& 0.04	& 0.08	& 0.17	\\
 & \hatlp	& 0.17	&	 	&		& 0.20	& 		& 0.23	& 		\\
 \midrule
-&\hh Matrix dimension &\hh 1024 &\hh 1536 &\hh 2048 &\hh 3072 &\hh 4096 &\hh 6144 &\hh 8192 \\
-\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\quad$}}
+&\hh Matrix dimension &\hh 1024 &\hh 1536 &\hh 2048 &\hh 3072 &\hh 4096 &\hh 6144 &\hh 8192 \\ \hcpu
 & \hdps	& 109.77	& 368.21	& 877.30	& 3059.42 & 		& 		& 		\\
 & \hhoc	& 1.18	& 7.06	& 19.81	& 78.90	& 206.56	& 799.53	& 2010.49 \\
-& \hgapc	& 2.82	& 10.02	& 25.16	& 91.69	& 224.70	& 		&  		\\[-2pt]
-\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf GPU $\quad$}}
+& \hgapc	& 2.82	& 10.02	& 25.16	& 91.69	& 224.70	& 		&  		\\[-2pt] \hgpu
 & \hdpc	& 0.35	& 0.85	& 1.69	& 4.79	& 10.32	& 31.60	& 71.22	\\
 & \hhog	& 0.32	& 0.82	& 1.65	& 4.74	& 10.35	& 31.94	& 72.38	\\
 & \hatlp	& 0.40	& 0.74	& 1.33	& 3.43	& 7.29	& 		& 		\\
@@ -73,28 +74,26 @@ The running time of DynaProg/CUDA includes the overhead of back and forth JNI co
 
 For DynaProg/Scala we use a variant of the problem description: the original version only stores the matrix multiplication score whereas the modified version also stores the matrix dimension. This allows a speedup of $2.9\times$ probably due to the additional lookups overhead. Also with the default JVM parameters, the program cannot address sequences longer than $\sim 420$ elements due to a stack overflow, for these benchmarks, we increased this limit.
 
-\subsection{Smith-Watermann}
+From the results we see that this problem is well suited for GPUs where the computation pattern is very regular across threads. In this case, the generated CUDA code produces performance that is comparable to hand-optimized CUDA code, and comparable to one of the state of the art implementation with less than $1.5\times$ performance degradation. ATLP leverages the regularity of the access pattern optimize the resource utilization and adaptively map subproblems\cite{gpu_atlp}. As we cannot benefit of such problem-specific knowledge, our approach is to compute elements independently and synchronize efficiently.
+
+\subsection{Smith-Waterman (affine gap cost)}
 % CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion
 % GPU: DynaProg(CUDA), hand optimized CUDA, CUDAlign
-To maintain a fair comparison with other implementations, our algorithm needs to have the same complexity. Hence we use a variant of the Smith-Waterman algorithm: we encode our grammar in 3 tabulations as described in \S\ref{swat_affine}, whereas application like CUDAlign can leverage the domain-specific information that information of two of these matrices can be stored in the computation wavefront (see \S\ref{calc_simplifications}).
+Smith-Waterman with affine gap cost is a serial problem, which is not directly the focus of our project but nevertheless can be addressed efficiently. The problem formal description (\S\ref{swat_affine}) uses 3 matrices. However, since two of these matrices only propagate information along line or column, it is possible to encode this information in a wavefront (see \S\ref{calc_simplifications}) instead of maintaining it in a memory-expensive matrix. This knowledge is leveraged by \cite{ATLP}, however, in our case, we cannot describe the wavefront in the grammar and need to maintain explicitly 3 matrices, thereby multiplying by 3 the memory usage\footnote{Actually slightly less than 3 because we replace 2 matrices in $O(n^2)$ by two vectors in $O(n)$}.
 
 \begin{table}[H]\begin{center}{\small\begin{tabular}{llrrrrrrr}\toprule
-&\hh  Matrix dimension &\hh 64 &\hh 128 &\hh 192 &\hh 256 &\hh 384 &\hh 512 &\hh 768 \\
-\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\quad$}}
+&\hh  Matrix dimension &\hh 64 &\hh 128 &\hh 192 &\hh 256 &\hh 384 &\hh 512 &\hh 768 \\ \hcpu
 & \hdps	& 0.04	& 0.13	& 0.27	& 0.48	& 1.07	& 1.92	& 4.33	\\
 & \hhoc	& <0.01	& <0.01	& <0.01	& <0.01	& <0.01	& <0.01	& 0.01	\\
-& \hgapc	& 0.01	& 0.01	& 0.01	& 0.01	& 0.02	& 0.03	& 0.06	\\[-2pt]
-\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf GPU $\quad$}}
+& \hgapc	& 0.01	& 0.01	& 0.01	& 0.01	& 0.02	& 0.03	& 0.06	\\[-2pt] \hgpu
 & \hdpc	& 0.03	& 0.03	& 0.03	& 0.04	& 0.05	& 0.05	& 0.06	\\
 & \hhog	& 0.00	& 0.00	& 0.00	& 0.00	& 0.00	& 0.00	& 0.00	\\
 & \hcua	& 0.11	& 0.12	& 0.07	& 0.07	& 0.07	& 0.07	& 0.13	\\
 \midrule
-&\hh Matrix dimension &\hh 1024 &\hh 1536 &\hh 2048 &\hh 3072 &\hh 4096 &\hh 6144 &\hh 8192 \\
-\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\quad$}}
+&\hh Matrix dimension &\hh 1024 &\hh 1536 &\hh 2048 &\hh 3072 &\hh 4096 &\hh 6144 &\hh 8192 \\ \hcpu
 & \hdps	& 7.84	& 18.95	& 33.63	& 70.86	& 		& 		& $^{(2)}\infty$ \\
 & \hhoc	& 0.01	& 0.02	& 0.04	& 0.10	& 0.17	& 0.40	& 0.71	\\
-& \hgapc	& 0.10	& 0.22	& 0.39	& 0.91	& 1.62	& 4.41	& 11.20 	\\[-2pt]
-\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf GPU $\quad$}}
+& \hgapc	& 0.10	& 0.22	& 0.39	& 0.91	& 1.62	& 4.41	& 11.20 	\\[-2pt] \hgpu
 & \hdpc	& 0.07	& 0.11	& 0.15	& 0.13	& 0.20	& 0.32	& $^{(1)}$3.21 	\\
 & \hhog	& 0.01	& 0.02	& 0.02	& 0.04	& 0.07	& 0.14	& 0.27	\\
 & \hcua	& 0.13	& 0.15	& 0.14	& 0.14	& 0.15	& 0.17	& 0.20 	\\
@@ -104,49 +103,45 @@ $^{(1)}$ Since the memory requirements are larger than the device capacity, the 
 
 $^{(2)}$ Extremely little progress due to intensive JVM garbage collection after some delay, even by tuning the JVM parameters ({\tt -Xss512m -Xmx12G -Xms12G}), and independently of whether top-down or bottom-up parsing approaches are taken. After a minute, most of the time is spent in (full) garbage collections. In this algorithm, the aggregation function application contributes to approximately 30\% of the total running time.
 
+From these result, it is possible to say that although not being the primary focus, the serial problem can be solved efficiently as well in our framework, assuming that the device memory is sufficiently large to store all the matrices. We might attribute the proportional overhead of our implementation (compared to the optimized version) to the additional verifications for result cell emptiness (these are hidden in matrix multiplication by the memory accesses). Removing them requires problem-specific knowledge (for example setting an infinite value), as described in \S\ref{normalization}.
+
 \subsection{Zuker RNA folding}
 % CPU: DynaProg(Scala), GAPC, ADPFusion and ViennaRNA
 % GPU: DynaProg(CUDA), RNAFold?/Lavenier VS ViennaRNA-OpenCL?, GAPC-OpenCL?
+The Zuker RNA folding algorithm significantly differs from the two previous problems because it relies on energy functions involving experimental parameters (constants). These parameters are encoded in lookup tables that need to be accessed usually at multiple places in each energy function. Additionally, energy functions involve conditions and possibly loops hence are more complex than the simple regular patterns of matrix multiplication and Smith-Waterman, thereby introducing possible thread divergence that reduces the performance.
 
-The Zuker RNA folding algorithm significantly differs from the two previous problems by the fact that it relies on energy functions. These function involve problem parameters that are based on actual observation. These constants are encoded in lookup tables that need to be accessed usually at multiple places in each energy function. Since the parameters size is approximately 2Mb, it is impossible to put them in the constant memory (which would improve lookup performance). In \cite{gpu_rnafold}, such optimization is done, hereby avoiding multiple accesses to the main memory.
-
-Additionally, energy functions involve conditions and possibly loops hence are "very complex" compared to simple regular patterns of matrix multiplication and Smith-Waterman, thereby introducing thread divergence that reduce the performance.
+For this problem, we present two grammar variants. The Scala version and CUDA-Zuker share the same grammar as GAPC\cite{gapc_thesis}, which is more complex than the RNAfold grammar, that is shared by the two implementation with the same name. Although not stated explicitly in the paper \cite{gpu_rnafold}, this implementation limits the size of internal loops to 30 (following current practice in the domain \cite{rna_structure}). Limiting the size of the internal loops allows to reduce the running time complexity from $O(n^4)$ to $O(n^3)$, because large loops rarely occur in practice \cite{rna_structure}.
 
 \begin{table}[H]\begin{center}{\small\begin{tabular}{llrrrrrrr}\toprule
-&\hh  Matrix dimension &\hh 64 &\hh 128 &\hh 192 &\hh 256 &\hh 384 &\hh 512 &\hh 768 \\
-\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\quad$}}
+&\hh  Matrix dimension &\hh 64 &\hh 128 &\hh 192 &\hh 256 &\hh 384 &\hh 512 &\hh 768 \\ \hcpu
 & \hdps	& 0.07	& 0.67	& 2.26	& 4.98	& 17.61	& 39.44	& 130.71	\\
 & \hvien	& 0.01	& 0.01	& 0.02	& 0.03	& 0.07	& 0.12	& 0.29	\\
-& \hgapc	& 0.01	& 0.03	& 0.07	& 0.13	& 0.41	& 0.93	& 2.89	\\[-2pt]
-\midrule \multirow{4}{*}{\vspace{12pt}\rotatebox{90}{\normalsize\bf GPU}}
-& \hdpc	& 0.15	& 0.53	& 0.98	& 1.55	& 3.13	& 5.04	& 9.43	\\
+& \hgapc	& 0.01	& 0.03	& 0.07	& 0.13	& 0.41	& 0.93	& 2.89	\\[-2pt] \hgpu
+& \hdpcz	& 0.13	& 0.48	& 0.88	& 1.41	& 2.84	& 4.55	& 8.51	\\
+& \hdpcr	& 0.17	& 0.54	& 0.92	& 1.33	& 2.25	& 3.22	& 5.34	\\
 & \hrna	& 0.06	& 0.11	& 0.14	& 0.20	& 0.44	& 0.80	& 1.89	\\
 \midrule
-&\hh Matrix dimension &\hh 1024 &\hh 1536 &\hh 2048 &\hh 3072 &\hh 4096 &\hh 6144 &\hh 8192 \\
-\midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\quad$}}
+&\hh Matrix dimension &\hh 1024 &\hh 1536 &\hh 2048 &\hh 3072 &\hh 4096 &\hh 6144 &\hh 8192 \\ \hcpu
 & \hdps	& 306.12	& 1036.78 &		& 		& 		& 		& 	 	\\
 & \hvien	& 0.57	& 1.53	& 3.19	& 9.37	& 20.18	& 59.65	& 133.65 	\\
-& \hgapc	& 6.66	& 22.91	& 56.97	& 208.33	& 529.40	& 		&  		\\[-2pt]
-\midrule \multirow{4}{*}{\vspace{12pt}\rotatebox{90}{\normalsize\bf GPU}}
-& \hdpc	& 15.10	& 33.62	& 61.76	& 166.84	& 393.76	& 		&  		\\
+& \hgapc	& 6.66	& 22.91	& 56.97	& 208.33	& 529.40	& 		&  		\\[-2pt] \hgpu
+& \hdpcz	& 13.61	& 30.45	& 56.22	& 152.88	& 		& 		& 		\\
+& \hdpcr	& 7.68	& 15.89	& 26.43	& 66.30	& 153.90 & 		& 		\\
 & \hrna	& 3.52	& 9.08	& 19.59	& 67.32	& 163.14	& 		& 		\\
 \bottomrule\end{tabular}}\end{center}\caption{Running time of Zuker RNA folding (in seconds)}\end{table}
 
-
-XXX: break constants int two structures
- 
-{\color{red} XXX: comment, explain energy coefficients, complexity, limit search space for bulges, algorithm variants and constraints RNAfold/Zuker}
+\subsection{Synthetical results}
 
 % ------------------------------------------------------------------------------------------------
 {\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: CONTINUE HERE :XXX \\}
 % ------------------------------------------------------------------------------------------------
+% 	
 
 {\color{red}\ol
 \item Write some conclusion ideas
 \item use CUDA profiler(?)
 \ole}
 
-\subsection{Synthetical results}
 XXX
 
 {\color{red} We want to see the benefits of moving to CUDA, also compare to how far Scala is from C.}
