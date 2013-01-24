@@ -21,43 +21,31 @@ Matrix of different dimensions must be stored in their own array (versus being i
 \ole
 
 % ------------------------------------------------------------------------------------------------
+\newpage
 \section{Conclusion}
-This Master project is focused on how to solve efficiently dynamic programming. By restricting to the class of problem involving sequences as input, we were able to extract generic patterns and expose them to parallel architectures like CUDA. To do that, we first depicted the dynamic programming landscape and defined a set of problems we would like to solve (\S\ref{problems}). Then we discussed the requested functionalities to provide the user with a convenient embedded DSL that is based on the ADP formalization (\S\ref{architecture}). These architectural decisions lead us to consider two different implementations: one in Scala that allows the same expressivity as ADP (in term of multiple solutions search), and one in CUDA that focuses on efficiently obtain a single optimal result. We then provide some technical details explaining how these ideas are put in practice in DynaProg (\S\ref{implementation}). Finally, we compare our implementation with existing implementations (\S\ref{benchmarks}).
+This Master project is focused on how to solve efficiently dynamic programming. By restricting to the class of problem involving sequences as input, we were able to extract generic patterns and expose them to parallel architectures like CUDA. To do that, we first depicted the dynamic programming landscape and defined a set of problems we would like to solve (\S\ref{problems}). Then we discussed the requested functionalities to provide the user with a convenient embedded DSL that is based on the ADP formalization (\S\ref{architecture}). These architectural decisions lead us to consider two different implementations: one in Scala that allows the same expressivity as ADP (in term of multiple solutions search), and one in CUDA that focuses on efficiently obtain a single optimal result on graphic cards. We then provide some technical details explaining how these ideas are put in practice in DynaProg (\S\ref{implementation}). Finally, we see in our benchmarks that generated code is comparable with existing implementations (\S\ref{benchmarks}).
 
 From the benchmarks, we see that our code generation is able to deal with problems from simple (Smith-Waterman) to complex (Zuker and RNAfold) and provide performance that is comparable to existing work. Since these problem are expressed with a grammar and algebra, their expression is simplified, and the possibility to exploit the dynamic programming results is leveraged through the use of multiple grammars.
 
+From a larger perspective, our work only address the subset of dynamic programming problems on sequences, there exist different dynamic programming problems that iteratively refine an approximation to converge to the solution (for example Bellman-Ford\footnote{\url{http://en.wikipedia.org/wiki/Bellman-Ford_algorithm}}) these algorithm have completely different access patterns but might also be parallelized. From this initial observation emerges a pattern for addressing problems:\ol
+\item Understand the gist of the problem and generalize its specific characteristics (we might call it domain knowledge)
+\item Equipped with that information, it is possible to devise an efficient implementation, possibly parallel\footnote{Because the single core (processor) model has reached its limit and the industry is moving towards multi-core and many-core.}, and encompassing as many problems as possible, given the trade-off between generality and specific information required to maintaing high performance. With the current compiler technology and hardware architectures, it has become easier to express such solution with code generation: a specific problem is optimally addressed, while the generality of the technique is preserved within the code generator.
+\item Finally, once an efficient solver has been implemented, it should be provided to other people trying to solve the problems in the same category. To do that, everybody must agree on a <<standard>>. Instead of creating new languages, it would be best if everybody would speak the same. This is the very purpose of embedded DSL: people knowing how to use the host language will easily understand how to encode their problem.
+\ole
+
+From our perspective it seemed that Scala and LMS represents the ideal candidate as a host language. Our work only provide one small construction brick in the huge space of the problems\footnote{For example \url{http://www.eecs.berkeley.edu/Pubs/TechRpts/2006/EECS-2006-183.pdf}} that remain to be solved...
+
 % ------------------------------------------------------------------------------------------------
-{\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: CONTINUE HERE :XXX \\}
+%{\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: CONTINUE HERE :XXX \\}
 % ------------------------------------------------------------------------------------------------
-{\color{red} XXX: fix the introduction}
-
-{\color{red} Benchmarks: we want to see the benefits of moving to CUDA, also compare to how far Scala is from C.}
-
-{\color{red} XXX: say that Haskell package did not install and also time limited to provide largest result (but that are also less relevant as users do not want to wait)}
-
-{\color{red} What's the conclusion on experimental results?}
-
-
-{\color{red} Use CUDA profiler(?)}
-
+%{\color{red} XXX: fix the introduction}
+%{\color{red} Use CUDA profiler(?)}
 % http://www.eecs.berkeley.edu/Pubs/TechRpts/2006/EECS-2006-183.html
-
-\begin{verbatim}
-Recap of the report:
-- Goal: generalize solving dynamic programming on sequences for GPUs
-- classification of the problems; in terms of recurrences = complicated, grammar = easier
-- general technique to describe backtracking information
-- implemented in Scala+CUDA
-- additional analysis to generate efficient code (1 result, memory alignment, scheduling)
-
-Recap of the results:
-- XXX
-
-explain better approach: LMS write intermediate nodes, we embed nodes in actual objects
-
-Big picture (Larger picture how to go further):
-- Code generation and actual compiler technology
-- Embedded DSL vs external DSL
-- Only a subset of the dynamic programming problems, easy to parallelize (similar memory accesses and scheduling pattern/progress)
-  - others are iterative or sparse, different scheduling => multiple scheduling patterns to be discovered and implemented efficiently, possibly in LMS (if time permits)
-\end{verbatim}
+%
+%\begin{verbatim}
+%Big picture (Larger picture how to go further):
+%- Code generation and actual compiler technology
+%- Embedded DSL vs external DSL
+%- Only a subset of the dynamic programming problems, easy to parallelize (similar memory accesses and scheduling pattern/progress)
+%  - others are iterative or sparse, different scheduling => multiple scheduling patterns to be discovered and implemented efficiently, possibly in LMS (if time permits)
+%\end{verbatim}
