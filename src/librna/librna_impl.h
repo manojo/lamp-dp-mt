@@ -3,6 +3,9 @@
 #if (!defined(my_len) || !defined(my_seq) || !defined(my_P) || !defined(my_dev))
 #error "make sure my_len, my_seq, my_P and my_dev are well defined"
 #endif
+#ifndef my_P0 // we might want to cache these parameters as they are small
+#define my_P0 (my_P->p0)
+#endif
 
 // -----------------------------------------------------------------------------
 // Header
@@ -50,6 +53,8 @@ my_dev double scale(int x);
 
 my_dev bool iupac_match(enum base_t base, unsigned char iupac_base);
 
+#define INLINE inline
+
 // -----------------------------------------------------------------------------
 // Implementation
 //
@@ -61,7 +66,7 @@ my_dev bool iupac_match(enum base_t base, unsigned char iupac_base);
 //   7 = N-N, N might be a gap. Opposite to N_BP=0, NO_BP is set 0, instead of -INF in the Turner1999 energies.
 //
 
-my_dev static int bp_index(char x, char y) {
+my_dev static inline int bp_index(char x, char y) {
   switch (x) {
     case A_BASE: if (y==U_BASE) return AU_BP; break;
     case C_BASE: if (y==G_BASE) return CG_BP; break;
@@ -100,10 +105,10 @@ my_dev static rsize getPrev(rsize pos, rsize steps, rsize leftBorder) { // asser
 #define _bp(i,j) bp_index(my_seq[i],my_seq[j])
 #define _bp2(a,b,c, d,e,f) bp_index(my_seq[getPrev(a,b,c)], my_seq[getNext(d,e,f)])
 
-my_dev static int jacobson_stockmayer(rsize l) { return (int)(my_P->lxc*log((l)/(1.0 * MAXLOOP))); }
-my_dev static int hl_ent(rsize l) { return (l>MAXLOOP) ? my_P->hairpin[MAXLOOP]+jacobson_stockmayer(l) : my_P->hairpin[l]; }
-my_dev static int hl_stack(rsize i, rsize j) { return my_P->mismatchH[_bp(i,j)][_next(i,1,j-1)][_prev(j,1,i+1)]; }
-my_dev int termau_energy(rsize i, rsize j) { return ((my_seq[i]==G_BASE && my_seq[j]==C_BASE) || (my_seq[i]==C_BASE && my_seq[j]==G_BASE)) ? 0 : my_P->TerminalAU; }
+my_dev static inline int jacobson_stockmayer(rsize l) { return (int)(my_P0.lxc*log((l)/(1.0 * MAXLOOP))); }
+my_dev static inline int hl_ent(rsize l) { return (l>MAXLOOP) ? my_P0.hairpin[MAXLOOP]+jacobson_stockmayer(l) : my_P0.hairpin[l]; }
+my_dev static inline int hl_stack(rsize i, rsize j) { return my_P0.mismatchH[_bp(i,j)][_next(i,1,j-1)][_prev(j,1,i+1)]; }
+my_dev INLINE int termau_energy(rsize i, rsize j) { return ((my_seq[i]==G_BASE && my_seq[j]==C_BASE) || (my_seq[i]==C_BASE && my_seq[j]==G_BASE)) ? 0 : my_P0.TerminalAU; }
 
 my_dev static int strMatch(rsize i, rsize j, const char *str, int strlen, int step) {
   int len = j-i+1; // length of the sequence to match
@@ -132,9 +137,9 @@ my_dev int hl_energy(rsize i, rsize j) { // assert(j-i>1);
   if (size < 3) return 600;
   int pos;
   switch (size) {
-    case 3: if ((pos=strMatch(i,j,my_P->Triloops  ,my_P->TriloopsLen  ,6))!=-1) return my_P->Triloop_E[pos]; break; // special triloop cases
-    case 4: if ((pos=strMatch(i,j,my_P->Tetraloops,my_P->TetraloopsLen,7))!=-1) return my_P->Tetraloop_E[pos]; break; // special tetraloop cases
-    case 6: if ((pos=strMatch(i,j,my_P->Hexaloops ,my_P->HexaloopsLen ,9))!=-1) return my_P->Hexaloop_E[pos]; break; //special hexaloop cases
+    case 3: if ((pos=strMatch(i,j,my_P0.Triloops  ,my_P0.TriloopsLen  ,6))!=-1) return my_P0.Triloop_E[pos]; break; // special triloop cases
+    case 4: if ((pos=strMatch(i,j,my_P0.Tetraloops,my_P0.TetraloopsLen,7))!=-1) return my_P0.Tetraloop_E[pos]; break; // special tetraloop cases
+    case 6: if ((pos=strMatch(i,j,my_P0.Hexaloops ,my_P0.HexaloopsLen ,9))!=-1) return my_P0.Hexaloop_E[pos]; break; //special hexaloop cases
   }
   if (size == 3) return entropy + termau_energy(i, j); //normal hairpins of loop size 3
   else return entropy + stack_mismatch; //normal hairpins of loop sizes larger than three
@@ -143,18 +148,17 @@ my_dev int hl_energy(rsize i, rsize j) { // assert(j-i>1);
 my_dev int hl_energy_stem(rsize i, rsize j) { int r=hl_energy(i,j); rsize size = j-i-1 - noGaps(i+1,j-1); return r - (size >= 4 ? hl_stack(i,j) : 0); }
 
 // Note, basepair and stacking bases are reversed to preserver 5'-3' order
-my_dev static int il11_energy(rsize i, rsize k, rsize l, rsize j) { return my_P->int11[_bp(i,j)][_bp2(j,2,l, i,2,k)][_next(i,1,k)][_prev(j,1,l)]; }
-my_dev static int il12_energy(rsize i, rsize k, rsize l, rsize j) { return my_P->int21[_bp(i,j)][_bp2(j,3,l, i,2,k)][_next(i,1,k)][_prev(j,2,l)][_prev(j,1,l)]; }
-my_dev static int il21_energy(rsize i, rsize k, rsize l, rsize j) { return my_P->int21[_bp2(j,2,l, i,3,k)][_bp(i,j)][_prev(j,1,l)][_next(i,1,k)][_next(i,2,k)]; }
-my_dev static int il22_energy(rsize i, rsize k, rsize l, rsize j) { return my_P->int22[_bp(i,j)][_bp2(j,3,l, i,3,k)][_next(i,1,k)][_next(i,2,k)][_prev(j,2,l)][_prev(j,1,l)]; }
+my_dev static inline int il11_energy(rsize i, rsize k, rsize l, rsize j) { return my_P->int11[_bp(i,j)][_bp2(j,2,l, i,2,k)][_next(i,1,k)][_prev(j,1,l)]; }
+my_dev static inline int il12_energy(rsize i, rsize k, rsize l, rsize j) { return my_P->int21[_bp(i,j)][_bp2(j,3,l, i,2,k)][_next(i,1,k)][_prev(j,2,l)][_prev(j,1,l)]; }
+my_dev static inline int il21_energy(rsize i, rsize k, rsize l, rsize j) { return my_P->int21[_bp2(j,2,l, i,3,k)][_bp(i,j)][_prev(j,1,l)][_next(i,1,k)][_next(i,2,k)]; }
+my_dev static inline int il22_energy(rsize i, rsize k, rsize l, rsize j) { return my_P->int22[_bp(i,j)][_bp2(j,3,l, i,3,k)][_next(i,1,k)][_next(i,2,k)][_prev(j,2,l)][_prev(j,1,l)]; }
 
-my_dev static int il_ent(rsize l) { // assert(l>1);
-  if (l > MAXLOOP) return my_P->internal_loop[MAXLOOP] + jacobson_stockmayer(l);
-  else return my_P->internal_loop[l];
+my_dev static inline int il_ent(rsize l) { // assert(l>1);
+  return (l > MAXLOOP) ? my_P0.internal_loop[MAXLOOP] + jacobson_stockmayer(l) : my_P0.internal_loop[l];
 }
 
-my_dev static int il_stack(rsize i, rsize k, rsize l, rsize j) { return my_P->mismatchI[_bp(i,j)][_next(i,1,j-1)][_prev(j,1,i+1)] + my_P->mismatchI[_bp(l,k)][_next(l,1,j-1)][_prev(k,1,i+1)]; }
-my_dev static int il_asym(rsize sl, rsize sr) { int r = abs((int)sl-(int)sr) * my_P->ninio[0]; return (r < my_P->ninio[1]) ? r : my_P->ninio[1]; }
+my_dev static int il_stack(rsize i, rsize k, rsize l, rsize j) { return my_P0.mismatchI[_bp(i,j)][_next(i,1,j-1)][_prev(j,1,i+1)] + my_P0.mismatchI[_bp(l,k)][_next(l,1,j-1)][_prev(k,1,i+1)]; }
+my_dev static int il_asym(rsize sl, rsize sr) { int r = abs((int)sl-(int)sr) * my_P0.ninio[0]; return (r < my_P0.ninio[1]) ? r : my_P0.ninio[1]; }
 
 my_dev int il_energy(rsize i, rsize k, rsize l, rsize j) {
   rsize sl = k-i-1 - noGaps(i+1, k-1);
@@ -173,26 +177,26 @@ my_dev int il_energy(rsize i, rsize k, rsize l, rsize j) {
   if (sl == 1) {
     if (sr == 1) return il11_energy(i, k, l, j);
     else if (sr == 2) return il12_energy(i, k, l, j);
-    else return il_ent(sl+sr) + il_asym(sl,sr) + my_P->mismatch1nI[out_closingBP][out_lbase][out_rbase] + my_P->mismatch1nI[in_closingBP][in_lbase][in_rbase];
+    else return il_ent(sl+sr) + il_asym(sl,sr) + my_P0.mismatch1nI[out_closingBP][out_lbase][out_rbase] + my_P0.mismatch1nI[in_closingBP][in_lbase][in_rbase];
   } else if (sl == 2) {
     if (sr == 1) return il21_energy(i, k, l, j);
     else if (sr == 2) return il22_energy(i, k, l, j);
-    else if (sr == 3) return my_P->internal_loop[5]+my_P->ninio[0] + my_P->mismatch23I[out_closingBP][out_lbase][out_rbase] + my_P->mismatch23I[in_closingBP][in_lbase][in_rbase];
+    else if (sr == 3) return my_P0.internal_loop[5]+my_P0.ninio[0] + my_P0.mismatch23I[out_closingBP][out_lbase][out_rbase] + my_P0.mismatch23I[in_closingBP][in_lbase][in_rbase];
   } else if ((sl == 3) && (sr == 2)) {
-    return my_P->internal_loop[5]+my_P->ninio[0] + my_P->mismatch23I[out_closingBP][out_lbase][out_rbase] + my_P->mismatch23I[in_closingBP][in_lbase][in_rbase];
+    return my_P0.internal_loop[5]+my_P0.ninio[0] + my_P0.mismatch23I[out_closingBP][out_lbase][out_rbase] + my_P0.mismatch23I[in_closingBP][in_lbase][in_rbase];
   } else if (sr == 1) {
-    return il_ent(sl+sr) + il_asym(sl,sr) + my_P->mismatch1nI[out_closingBP][out_lbase][out_rbase] + my_P->mismatch1nI[in_closingBP][in_lbase][in_rbase];
+    return il_ent(sl+sr) + il_asym(sl,sr) + my_P0.mismatch1nI[out_closingBP][out_lbase][out_rbase] + my_P0.mismatch1nI[in_closingBP][in_lbase][in_rbase];
   }
   return il_ent(sl+sr) + il_stack(i, k, l, j) + il_asym(sl, sr);
 }
 
-my_dev static int bl_ent(rsize l) { /*assert(l>0);*/ return (l>MAXLOOP) ? my_P->bulge[MAXLOOP] + jacobson_stockmayer(l) : my_P->bulge[l]; }
+my_dev static inline int bl_ent(rsize l) { /*assert(l>0);*/ return (l>MAXLOOP) ? my_P0.bulge[MAXLOOP] + jacobson_stockmayer(l) : my_P0.bulge[l]; }
 
 my_dev int bl_energy(rsize i, rsize k, rsize l, rsize j, rsize Xright) {
   // assert(j >= 2); // this is of no biological relevance, just to avoid an underflow
   rsize size = l-k+1 - noGaps(k, l);
-  if (size==0) return my_P->stack[_bp(i,j)][_bp(getPrev(j,1,Xright),l+1)];
-  if (size==1) return bl_ent(size) + my_P->stack[_bp(i,j)][_bp(getPrev(j,1,Xright),l+1)];
+  if (size==0) return my_P0.stack[_bp(i,j)][_bp(getPrev(j,1,Xright),l+1)];
+  if (size==1) return bl_ent(size) + my_P0.stack[_bp(i,j)][_bp(getPrev(j,1,Xright),l+1)];
   if (size>1) return bl_ent(size) + termau_energy(i,j) + termau_energy(getPrev(j,1,Xright), l+1);
   return -1000000; // error
 }
@@ -200,47 +204,47 @@ my_dev int bl_energy(rsize i, rsize k, rsize l, rsize j, rsize Xright) {
 my_dev int br_energy(rsize i, rsize k, rsize l, rsize j, rsize Xleft) {
   // assert(j >= 1); // this is of no biological relevance, just to avoid an underflow
   rsize size = l-k+1 - noGaps(k, l);
-  if (size == 0) return my_P->stack[_bp(i,j)][_bp(k-1,getNext(i,1,Xleft))];
-  if (size == 1) return bl_ent(size) + my_P->stack[_bp(i,j)][_bp(k-1,getNext(i,1,Xleft))];
+  if (size == 0) return my_P0.stack[_bp(i,j)][_bp(k-1,getNext(i,1,Xleft))];
+  if (size == 1) return bl_ent(size) + my_P0.stack[_bp(i,j)][_bp(k-1,getNext(i,1,Xleft))];
   if (size > 1) return bl_ent(size) + termau_energy(i, j) + termau_energy(k-1, getNext(i,1,Xleft));
   return -1000000; // error
 }
 
-my_dev int sr_energy(rsize i, rsize j) { return my_P->stack[_bp(i,j)][_bp(j-1,i+1)]; }
-my_dev int sr_pk_energy(char a, char b, char c, char d) { return my_P->stack[bp_index(a,b)][bp_index(d,c)]; }
+my_dev INLINE int sr_energy(rsize i, rsize j) { return my_P0.stack[_bp(i,j)][_bp(j-1,i+1)]; }
+my_dev INLINE int sr_pk_energy(char a, char b, char c, char d) { return my_P0.stack[bp_index(a,b)][bp_index(d,c)]; }
 
-my_dev int dl_energy(rsize i, rsize j) { if (i==0) return 0; int dd = my_P->dangle5[_bp(i,j)][_prev(i,1,0)]; return (dd>0) ? 0 : dd; } // must be <= 0
-my_dev int dr_energy(rsize i, rsize j) { if ((j+1)>=my_len) return 0; int dd = my_P->dangle3[_bp(i,j)][_next(j,1,my_len)]; return (dd>0) ? 0 : dd; } // must be <= 0
-my_dev int dli_energy(rsize i, rsize j) { int dd = my_P->dangle3[_bp(j,i)][_next(i,1,j-1)]; return (dd>0) ? 0 : dd; } // must be <= 0
-my_dev int dri_energy(rsize i, rsize j) { int dd = my_P->dangle5[_bp(j,i)][_prev(j,1,i+1)]; return (dd>0) ? 0 : dd; } // must be <= 0
+my_dev INLINE int dl_energy(rsize i, rsize j) { if (i==0) return 0; int dd = my_P0.dangle5[_bp(i,j)][_prev(i,1,0)]; return (dd>0) ? 0 : dd; } // must be <= 0
+my_dev INLINE int dr_energy(rsize i, rsize j) { if ((j+1)>=my_len) return 0; int dd = my_P0.dangle3[_bp(i,j)][_next(j,1,my_len)]; return (dd>0) ? 0 : dd; } // must be <= 0
+my_dev INLINE int dli_energy(rsize i, rsize j) { int dd = my_P0.dangle3[_bp(j,i)][_next(i,1,j-1)]; return (dd>0) ? 0 : dd; } // must be <= 0
+my_dev INLINE int dri_energy(rsize i, rsize j) { int dd = my_P0.dangle5[_bp(j,i)][_prev(j,1,i+1)]; return (dd>0) ? 0 : dd; } // must be <= 0
 
 my_dev int ext_mismatch_energy(rsize i, rsize j) {
-  if ((i > 0) && ((j+1) < my_len)) return my_P->mismatchExt[_bp(i,j)][_prev(i,1,0)][_next(j,1,my_len)];
+  if ((i > 0) && ((j+1) < my_len)) return my_P0.mismatchExt[_bp(i,j)][_prev(i,1,0)][_next(j,1,my_len)];
   else if (i > 0) return dl_energy(i,j);
   else if ((j+1) < my_len) return dr_energy(i,j);
   else return 0;
 }
 
-my_dev int ml_mismatch_energy(rsize i, rsize j) { return my_P->mismatchM[_bp(j,i)][_prev(j,1,i+1)][_next(i,1,j-1)]; } // Note, basepairs and stacking bases are reversed to preserver 5'-3' order
-my_dev int ml_energy() { return my_P->MLclosing; }
-my_dev int ul_energy() { return my_P->MLintern[0]; }
-my_dev int sbase_energy() { return 0; }
-my_dev int ss_energy(rsize i, rsize j) { return 0; }
+my_dev INLINE int ml_mismatch_energy(rsize i, rsize j) { return my_P0.mismatchM[_bp(j,i)][_prev(j,1,i+1)][_next(i,1,j-1)]; } // Note, basepairs and stacking bases are reversed to preserver 5'-3' order
+my_dev INLINE int ml_energy() { return my_P0.MLclosing; }
+my_dev INLINE int ul_energy() { return my_P0.MLintern[0]; }
+my_dev INLINE int sbase_energy() { return 0; }
+my_dev INLINE int ss_energy(rsize i, rsize j) { return 0; }
 
-my_dev double mk_pf(double x) { return exp((-1.0 * x/100.0) / (GASCONST/1000 * (my_P->temperature + K0))); }
+my_dev INLINE double mk_pf(double x) { return exp((-1.0 * x/100.0) / (GASCONST/1000 * (my_P0.temperature + K0))); }
 
 my_dev double scale(int x) {
   double mean_nrg= -0.1843;  // mean energy for random sequences: 184.3*length cal
-  double mean_scale = exp (-1.0 * mean_nrg / (GASCONST/1000 * (my_P->temperature + K0)));
+  double mean_scale = exp (-1.0 * mean_nrg / (GASCONST/1000 * (my_P0.temperature + K0)));
   return (1.0 / pow(mean_scale, x));
 }
 
-my_dev int dl_dangle_dg(enum base_t dangle, enum base_t i, enum base_t j) {
-  int dd = my_P->dangle5[_bp(i,j)][dangle]; return (dd>0) ? 0 : dd;  // must be <= 0
+my_dev INLINE int dl_dangle_dg(enum base_t dangle, enum base_t i, enum base_t j) {
+  int dd = my_P0.dangle5[_bp(i,j)][dangle]; return (dd>0) ? 0 : dd;  // must be <= 0
 }
 
-my_dev int dr_dangle_dg(enum base_t i, enum base_t j, enum base_t dangle) {
-  int dd = my_P->dangle3[_bp(i,j)][dangle]; return (dd>0) ? 0 : dd;  // must be <= 0
+my_dev INLINE int dr_dangle_dg(enum base_t i, enum base_t j, enum base_t dangle) {
+  int dd = my_P0.dangle3[_bp(i,j)][dangle]; return (dd>0) ? 0 : dd;  // must be <= 0
 }
 
 // added by gsauthof, 2012

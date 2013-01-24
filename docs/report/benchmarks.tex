@@ -1,9 +1,9 @@
 %\documentclass[11pt]{article}\input{inc/style.sty}\begin{document}
 
 \section{Benchmarks} \label{benchmarks}
-In an attempt to provide realistic benchmarks, we tried to gather related implementations. The authors of \cite{gpu_atlp} did not respond to our multiple solicitations. The authors of \cite{swat_mega} were very friendly and provided us their source code. Unfortunately, since they address a different category of problem (they focus on huge serial problems whereas we focus on smaller non-serial problems) their implementation might be biased towards large sequences that our implementation cannot address. Finally, we asked lately the authors of \cite{gpu_rnafold} who did not respond either to our solicitations.
+In an attempt to provide realistic benchmarks, we tried to gather state-of-art implementations. The authors of \cite{gpu_atlp} did not respond to our multiple solicitations. The authors of \cite{swat_mega} were very friendly and provided us their source code. Unfortunately, since they address a different category of problem (Smith-Waterman on huge sequences whereas we focus on smaller non-serial problems) their implementation might be biased towards large sequences, and leverage problem-specific information (wavefront) that our implementation cannot address. Finally, we asked lately the authors of \cite{gpu_rnafold} who did not respond either to our solicitations. The authors of \cite{gapc_thesis} kindly share their implementation on a dedicated website\footnote{\url{http://www.gapc.eu}}.
 
-We organize the benchmarks as follow: if we have at our disposal a working implementation that could be run on our evaluation platform, we use it, otherwise, we refer to the related paper and rescale the result according to the memory throughput and computation throughput of the related device so that we can have a good approximation of how they could compare.
+We organize the benchmarks as follow: if we have at our disposal a working implementation that could be run on our evaluation platform, we use it, otherwise, we refer to the related paper and rescale the part of the result corresponding to memory accesses according to the memory bandwidth of the related device so that we can have a good approximation of how they could compare.
 
 \subsection{Metrics} \label{metrics}
 The main metrics of interest is the running time. In an attempt to reduce the variance, we would like to run multiple consecutive test and take the median running time, since the median is less sensitive to outlier than the average\cite{perfeval}. Unfortunately, several factors hampers these ideal conditions. First the variance in the running time of CUDA kernels might be significant, in particular for short running time. This is due to the fact that the GPU needs to be 'warmed-up' before actual computation can happen. Similarly, the JVM is also subject to running time variance that is mainly due to the garbage collection\footnote{\url{http://www.oracle.com/technetwork/java/javase/gc-tuning-6-140523.html\#cms.overhead}} and JIT optimizations \cite{java_jit}.
@@ -21,6 +21,12 @@ As the device memory is quite limited, it seems interesting to also take into ac
 Our benchmarking platform is an Apple notebook with a Core i7-3720QM with 16Gb of main memory and an NVIDIA GeForce GT 650M running under MacOS X 10.8 and Oracle JDK 1.7.0-10. A workaround (see listing~\ref{cpu_workaround}) allows us to use the CPU to render the user interface while leaving the graphic card available to execute CUDA kernels. Unfortunately, due to impossibility to disable the watchdog timer in MacOS, CUDA kernels are limited to few seconds of running time before they are automatically aborted.
 
 % ----------------------------------------------
+% MatrixMult-512, Mac+JDK7
+% -> Original: 24.658 sec
+% -> Optimized concatenation: 18.924 sec
+% -> Tabulation as arrays+inline: 14.849 sec
+% -> Re-optimized concatenation: 10.76 sec
+% ----------------------------------------------
 \def\hh{\normalsize\bf}
 \def\hl#1#2{\begin{minipage}{3.5cm} {\bf #1} \\[-2pt] \footnotesize #2 \vspace{6pt} \end{minipage}}
 \def\hdps{\hl{DynaProg}{Scala parsers}}
@@ -30,17 +36,9 @@ Our benchmarking platform is an Apple notebook with a Core i7-3720QM with 16Gb o
 \def\hgapc{\hl{GAPC}{\cite{gapc_thesis}, C, single thread}}
 \def\hatlp{\hl{ATLP}{\cite{gpu_atlp}, rescaled results$^{(1)}$}}
 \def\hcua{\hl{CUDAlign}{\cite{swat_linear}, version 2.0}}
-
 \def\hvien{\hl{ViennaRNA}{\cite{vienna_rna}}}
 \def\hrna{\hl{RNAFold}{\cite{gpu_rnafold}}}
 
-% ----------------------------------------------
-% MatrixMult-512, Mac+JDK7
-% -> Original: 24.658 sec
-% -> Optimized concatenation: 18.924 sec
-% -> Tabulation as arrays+inline: 14.849 sec
-% -> Re-optimized concatenation: 10.76 sec
-\newpage
 \subsection{Matrix chain multiplication}
 Since we have seen that this problem is not input sensitive in (\S\ref{metrics}), we can safely use different random number generators among different implementations without compromising the validity of the results.  Also note that the hand-optimized results are slightly worse than those presented in (\S\ref{baseline_impl}), this is caused by enabling the 64-bit mode. Since external libraries linked with the Java virtual machine must be in 64 bit, we also enabled this mode in hand-optimized version to maintain a fair comparison, thereby slightly reducing the performance of CUDA operations.
 % CPU: DynaProg(Scala), hand optimized C, GAPC and ADPFusion
@@ -71,7 +69,7 @@ Since we have seen that this problem is not input sensitive in (\S\ref{metrics})
 $^{(1)}$ Assuming that 72\% of the running time is due to memory accesses, and considering a $3.55\times$ memory throughput slowdown of the original results (see \S\ref{results_discussion}). % 0.06 & 0.07 & 0.08 & 0.14 & 0.47 & 2.57 => f[x_] := (x*(1 - .72)) + (x*0.72)*(102.4/28.8)
 % 0.1704 & 0.1988 & 0.2272 & .3976 & 1.3348 & 7.2988
 
-The running time of DynaProg/CUDA includes the overhead of back and forth JNI conversion (scales linearly between 0.018 and 0.057 seconds) but does not include the overhead due to the code generation which decomposes in 0.068 seconds for analysis and code synthesis (once per algebra/grammar pair) and 0.086 + 1.753 seconds for respectively Scala and CUDA compilation (constant time, once per problem dimension). The results of the following problems are presented similarly.
+The running time of DynaProg/CUDA includes the overhead of back and forth JNI conversion (scales linearly between 0.018 and 0.057 seconds) but does not include the overhead due to the code generation which decomposes in 0.068 seconds for analysis and code synthesis (once per algebra/grammar pair) and 0.086 + 1.753 seconds for respectively Scala and CUDA compilation (constant time, once per problem dimension). These execution time results are presented similarly for the following problems.
 
 For DynaProg/Scala we use a variant of the problem description: the original version only stores the matrix multiplication score whereas the modified version also stores the matrix dimension. This allows a speedup of $2.9\times$ probably due to the additional lookups overhead. Also with the default JVM parameters, the program cannot address sequences longer than $\sim 420$ elements due to a stack overflow, for these benchmarks, we increased this limit.
 
@@ -93,22 +91,26 @@ To maintain a fair comparison with other implementations, our algorithm needs to
 \midrule
 &\hh Matrix dimension &\hh 1024 &\hh 1536 &\hh 2048 &\hh 3072 &\hh 4096 &\hh 6144 &\hh 8192 \\
 \midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\quad$}}
-& \hdps	& 7.84	& 18.95	& 33.63	& 70.86	& 		& 		& $^{(1)}\infty$ \\
+& \hdps	& 7.84	& 18.95	& 33.63	& 70.86	& 		& 		& $^{(2)}\infty$ \\
 & \hhoc	& 0.01	& 0.02	& 0.04	& 0.10	& 0.17	& 0.40	& 0.71	\\
 & \hgapc	& 0.10	& 0.22	& 0.39	& 0.91	& 1.62	& 4.41	& 11.20 	\\[-2pt]
 \midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf GPU $\quad$}}
-& \hdpc	& 0.07	& 0.11	& 0.15	& 0.13	& 0.20	& 0.32	& $^{(2)}$3.21 	\\
+& \hdpc	& 0.07	& 0.11	& 0.15	& 0.13	& 0.20	& 0.32	& $^{(1)}$3.21 	\\
 & \hhog	& 0.01	& 0.02	& 0.02	& 0.04	& 0.07	& 0.14	& 0.27	\\
 & \hcua	& 0.13	& 0.15	& 0.14	& 0.14	& 0.15	& 0.17	& 0.20 	\\
 \bottomrule\end{tabular}}\end{center}\caption{Running time of Smith-Waterman (in seconds)}\end{table}
 
-$^{(1)}$ Extremely little progress due to intensive JVM garbage collection after some delay, even by tuning the JVM parameters ({\tt -Xss512m -Xmx12G -Xms12G}), and independently of whether top-down or bottom-up parsing approaches are taken. After a moment, most of the time is spent in (full) garbage collection. The aggregation function application contributes to approximately 30\% of the total running time.
+$^{(1)}$ Since the memory requirements are larger than the device capacity, the backtrack matrix overflows in the main memory, thereby significantly degrading the performance. This extra memory requirement is due to the use of 3 matrices to avoid the non-serial dependencies (hence requiring at least $3 \cdot 2$ bytes of memory per matrix element for backtrack).
 
-$^{(2)}$ Since the memory requirements are larger than the device capacity, the backtrack matrix overflows in the main memory, thereby significantly degrading the performance. This extra memory requirement is due to the use of 3 matrices to avoid the non-serial dependencies (hence requiring at least $3 \cdot 2$ bytes of memory per matrix element for backtrack).
+$^{(2)}$ Extremely little progress due to intensive JVM garbage collection after some delay, even by tuning the JVM parameters ({\tt -Xss512m -Xmx12G -Xms12G}), and independently of whether top-down or bottom-up parsing approaches are taken. After a minute, most of the time is spent in (full) garbage collections. In this algorithm, the aggregation function application contributes to approximately 30\% of the total running time.
 
 \subsection{Zuker RNA folding}
 % CPU: DynaProg(Scala), GAPC, ADPFusion and ViennaRNA
 % GPU: DynaProg(CUDA), RNAFold?/Lavenier VS ViennaRNA-OpenCL?, GAPC-OpenCL?
+
+The Zuker RNA folding algorithm significantly differs from the two previous problems by the fact that it relies on energy functions. These function involve problem parameters that are based on actual observation. These constants are encoded in lookup tables that need to be accessed usually at multiple places in each energy function. Since the parameters size is approximately 2Mb, it is impossible to put them in the constant memory (which would improve lookup performance). In \cite{gpu_rnafold}, such optimization is done, hereby avoiding multiple accesses to the main memory.
+
+Additionally, energy functions involve conditions and possibly loops hence are "very complex" compared to simple regular patterns of matrix multiplication and Smith-Waterman, thereby introducing thread divergence that reduce the performance.
 
 \begin{table}[H]\begin{center}{\small\begin{tabular}{llrrrrrrr}\toprule
 &\hh  Matrix dimension &\hh 64 &\hh 128 &\hh 192 &\hh 256 &\hh 384 &\hh 512 &\hh 768 \\
@@ -124,12 +126,15 @@ $^{(2)}$ Since the memory requirements are larger than the device capacity, the 
 \midrule \multirow{4}{*}{\rotatebox{90}{\normalsize\bf CPU $\quad$}}
 & \hdps	& 306.12	& 1036.78 &		& 		& 		& 		& 	 	\\
 & \hvien	& 0.57	& 1.53	& 3.19	& 9.37	& 20.18	& 59.65	& 133.65 	\\
-& \hgapc	& 6.66	& 22.91	& 56.97	& 208.33	& 		& 		&  		\\[-2pt]
+& \hgapc	& 6.66	& 22.91	& 56.97	& 208.33	& 529.40	& 		&  		\\[-2pt]
 \midrule \multirow{4}{*}{\vspace{12pt}\rotatebox{90}{\normalsize\bf GPU}}
 & \hdpc	& 15.10	& 33.62	& 61.76	& 166.84	& 393.76	& 		&  		\\
 & \hrna	& 3.52	& 9.08	& 19.59	& 67.32	& 163.14	& 		& 		\\
 \bottomrule\end{tabular}}\end{center}\caption{Running time of Zuker RNA folding (in seconds)}\end{table}
 
+
+XXX: break constants int two structures
+ 
 {\color{red} XXX: comment, explain energy coefficients, complexity, limit search space for bulges, algorithm variants and constraints RNAfold/Zuker}
 
 % ------------------------------------------------------------------------------------------------

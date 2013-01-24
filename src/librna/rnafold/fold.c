@@ -172,7 +172,6 @@ PUBLIC float fold_par(const char *string, char *structure, paramT *parameters) {
 
   if (parameters) init_fold(length, parameters);
   else if (length>init_length) init_fold(length, parameters);
-  else if (fabs(P->temperature - temperature)>1e-6) update_fold_params_par(NULL);
 
   S   = encode_sequence(string, 0);
   S1  = encode_sequence(string, 1);
@@ -194,12 +193,9 @@ PRIVATE int fill_arrays(const char *string) {
 
   int   i, j, k, length, energy, en;
   int   decomp, new_fML, max_separation;
-  int   no_close, type, type_2, tt;
+  int   type, type_2, tt;
   int   bonus=0;
 
-  int   noGUclosure;
-
-  noGUclosure   = P->model_details.noGUclosure;
   length = (int) strlen(string);
   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
 
@@ -220,14 +216,12 @@ PRIVATE int fill_arrays(const char *string) {
       type = ptype[ij];
       energy = INF;
 
-      no_close = (((type==3)||(type==4))&&noGUclosure&&(bonus==0));
-
       if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
 
       if (type) {   /* we have a pair */
         int new_c=0, stackEnergy=INF;
         /* hairpin ----------------------------------------------*/
-        new_c = (no_close) ? FORBIDDEN : E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1, P);
+        new_c = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1, P);
         /* check for elementary structures involving more than one closing pair. */
         for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
           int minq = j-i+p-MAXLOOP-2;
@@ -238,10 +232,6 @@ PRIVATE int fill_arrays(const char *string) {
             if (type_2==0) continue;
             type_2 = rtype[type_2];
 
-            if (noGUclosure)
-              if (no_close||(type_2==3)||(type_2==4))
-                if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
-
             energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
                                 S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 
@@ -251,15 +241,12 @@ PRIVATE int fill_arrays(const char *string) {
           } /* end q-loop */
         } /* end p-loop */
         /* multi-loop decomposition ------------------------*/
-
-        if (!no_close) {
-          int MLenergy;
-          decomp = DMLi1[j-1];
-          tt = rtype[type];
-          decomp += E_MLstem(tt, S1[j-1], S1[i+1], P);
-          MLenergy = decomp + P->MLclosing;
-          new_c = MIN2(new_c, MLenergy);
-        }
+        int MLenergy;
+        decomp = DMLi1[j-1];
+        tt = rtype[type];
+        decomp += E_MLstem(tt, S1[j-1], S1[i+1], P);
+        MLenergy = decomp + P->p0.MLclosing;
+        new_c = MIN2(new_c, MLenergy);
 
         new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
         cc[j] = new_c + bonus;
@@ -282,8 +269,8 @@ PRIVATE int fill_arrays(const char *string) {
       *   dangle_model == 1, this could lead to d5+d3 contributions were
       *   mismatch must be taken!
       */
-      new_fML = MIN2(new_fML, fML[ij+1]+P->MLbase);
-      new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
+      new_fML = MIN2(new_fML, fML[ij+1]+P->p0.MLbase);
+      new_fML = MIN2(fML[indx[j-1]+i]+P->p0.MLbase, new_fML);
 
       /* modular decomposition -------------------------------*/
         for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++)
@@ -369,7 +356,7 @@ PRIVATE void backtrack(const char *string, int s) {
 
     if (j < i+TURN+1) continue; /* no more pairs in this interval */
     fij = (ml == 1)? fML[indx[j]+i] : f5[j];
-    fi  = (ml == 1)?(fML[indx[j-1]+i]+P->MLbase): f5[j-1];
+    fi  = (ml == 1)?(fML[indx[j-1]+i]+P->p0.MLbase): f5[j-1];
 
     if (fij == fi) {  /* 3' end is unpaired */
       sector[++s].i = i;
@@ -402,7 +389,7 @@ PRIVATE void backtrack(const char *string, int s) {
       base_pair2[b].j   = j;
       goto repeat1;
     } else { /* trace back in fML array */
-      if (fML[indx[j]+i+1]+P->MLbase == fij) { /* 5' end is unpaired */
+      if (fML[indx[j]+i+1]+P->p0.MLbase == fij) { /* 5' end is unpaired */
         sector[++s].i = i+1;
         sector[s].j   = j;
         sector[s].ml  = ml;
@@ -447,7 +434,7 @@ PRIVATE void backtrack(const char *string, int s) {
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
         type_2 = ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
-        cij -= P->stack[type][type_2] + bonus;
+        cij -= P->p0.stack[type][type_2] + bonus;
         base_pair2[++b].i = i+1;
         base_pair2[b].j   = j-1;
         i++; j--;
@@ -494,7 +481,7 @@ PRIVATE void backtrack(const char *string, int s) {
     tt = rtype[type];
     i1 = i+1; j1 = j-1;
     sector[s+1].ml  = sector[s+2].ml = 1;
-    en = cij - E_MLstem(tt, S1[j-1], S1[i+1], P) - P->MLclosing - bonus;
+    en = cij - E_MLstem(tt, S1[j-1], S1[i+1], P) - P->p0.MLclosing - bonus;
     for(k = i+2+TURN; k < j-2-TURN; k++){
       if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1]) break;
     }

@@ -45,7 +45,7 @@ trait RNAFoldGrammar extends ADPParsers with RNAFoldSig {
   lazy val Qp:Tabulate = tabulate("Qp",(
     seq(3,maxN)        ^^ hairpin
   | eli   ~ Qp ~ eli   ^^ stack
-  | seq() ~ Qp ~ seq() ^^ iloop
+  | seq(1,30) ~ Qp ~ seq(1,30) ^^ iloop
   | eli   ~ QM ~ eli   ^^ mloop
   ) filter basepairing aggregate h)
 

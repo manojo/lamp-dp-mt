@@ -25,21 +25,7 @@ the authors.
 #define NBASES 8
 #endif
 
-extern double temperature;
-
-/** The data structure that contains the complete model details used throughout the calculations */
-typedef struct{
-  char dangles;      /*  dangle model (0,1,2 or 3) */
-  char special_hp;   /*  include special hairpin contributions for tri, tetra and hexaloops */
-  char noLP;         /*  only consider canonical structures, i.e. no 'lonely' base pairs */
-  char noGU;         /*  do not allow GU pairs */
-  char noGUclosure;  /*  do not allow loops to be closed by GU pair */
-  char logML;        /*  use logarithmic scaling for multi loops */
-} model_detailsT;
-
-/** The datastructure that contains temperature scaled energy parameters. */
 typedef struct {
-  int id;
   short stack[NBPAIRS+1][NBPAIRS+1];
   short hairpin[31];
   short bulge[MAXLOOP+1];
@@ -52,9 +38,6 @@ typedef struct {
   short mismatchM[NBPAIRS+1][5][5];
   short dangle5[NBPAIRS+1][5];
   short dangle3[NBPAIRS+1][5];
-  short int11[NBPAIRS+1][NBPAIRS+1][5][5];
-  short int21[NBPAIRS+1][NBPAIRS+1][5][5][5];
-  short int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
   int ninio[2]; // ViennaRNA(ninio[2], MAX_NINIO) ==> (ninio[0], ninio[1])
   double  lxc;
   short   MLbase;
@@ -75,7 +58,16 @@ typedef struct {
   short   MultipleCA;
   short   MultipleCB;
   double  temperature;  /*  temperature used for loop contribution scaling */
-  model_detailsT model_details;
+} paramT0;
+
+/** The datastructure that contains temperature scaled energy parameters. */
+typedef struct {
+  // We might want to cache some parameters
+  paramT0 p0;
+  // These are too large to fit in cache
+  short int11[NBPAIRS+1][NBPAIRS+1][5][5];
+  short int21[NBPAIRS+1][NBPAIRS+1][5][5][5];
+  short int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
 } paramT;
 
 void read_parameter_file(const char *filename);

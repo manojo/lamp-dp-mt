@@ -6,13 +6,9 @@
 #include "vienna.h"
 #include "energy_par.h"
 
-double temperature = 37.0; /* temperature */
-
 // -----------------------------------------
 
 static void nrerror(const char* msg) { fprintf(stderr,"ERROR: %s.\n",msg); exit(EXIT_FAILURE); }
-
-int id=-1;
 
 paramT *get_scaled_parameters() {
   unsigned int i,j,k,l,m,n;
@@ -20,73 +16,60 @@ paramT *get_scaled_parameters() {
   paramT *params = (paramT*)calloc(1,sizeof(paramT));
   if (params==NULL) nrerror("Out of memory");
 
-  // set_model_details:
-  model_detailsT md;
-  md.dangles     = 2; /* use dangling end energies */
-  md.special_hp  = 1; /* Fold with specially stable 4-loops */
-  md.noLP        = 1; /* avoid helices of length 1 */
-  md.noGU        = 0; /* GU not allowed at all */
-  md.noGUclosure = 0; /* GU allowed only inside stacks */
-  md.logML       = 0; /* use logarithmic scaling for multi loops */
-
   /* store the model details */
-  params->model_details = md;
-  params->temperature   = temperature;
-  tempf                 = ((temperature+K0)/Tmeasure);
+  double temperature = 37.0; /* temperature */
+  params->p0.temperature = temperature;
+  tempf                  = ((temperature+K0)/Tmeasure);
 
   #define RESCALE(X,Y) (X)-((X)-(Y))*tempf
 
-  for (i=0; i<31; i++) params->hairpin[i] = RESCALE(hairpindH[i], hairpin37[i]);
+  for (i=0; i<31; i++) params->p0.hairpin[i] = RESCALE(hairpindH[i], hairpin37[i]);
   #define MIN2(A,B) ((A) < (B) ? (A) : (B))
   for (i=0; i<=MIN2(30,MAXLOOP); i++) {
-    params->bulge[i]          = RESCALE(bulgedH[i], bulge37[i]);
-    params->internal_loop[i]  = RESCALE(internal_loopdH[i], internal_loop37[i]);
+    params->p0.bulge[i]          = RESCALE(bulgedH[i], bulge37[i]);
+    params->p0.internal_loop[i]  = RESCALE(internal_loopdH[i], internal_loop37[i]);
   }
-  params->lxc = lxc37*tempf;
+  params->p0.lxc = lxc37*tempf;
   for (; i<=MAXLOOP; i++) {
-    params->bulge[i] = params->bulge[30]+(int)(params->lxc*log((double)(i)/30.));
-    params->internal_loop[i] = params->internal_loop[30]+(int)(params->lxc*log((double)(i)/30.));
+    params->p0.bulge[i] = params->p0.bulge[30]+(int)(params->p0.lxc*log((double)(i)/30.));
+    params->p0.internal_loop[i] = params->p0.internal_loop[30]+(int)(params->p0.lxc*log((double)(i)/30.));
   }
 
-  params->ninio[0] = RESCALE(niniodH, ninio37);
-  params->ninio[1] = MAX_NINIO;
+  params->p0.ninio[0] = RESCALE(niniodH, ninio37);
+  params->p0.ninio[1] = MAX_NINIO;
 
-  params->TripleC = RESCALE(TripleCdH, TripleC37);
-  params->MultipleCA = RESCALE(MultipleCAdH, MultipleCA37);
-  params->MultipleCB = RESCALE(MultipleCBdH, MultipleCB37);
+  params->p0.TripleC = RESCALE(TripleCdH, TripleC37);
+  params->p0.MultipleCA = RESCALE(MultipleCAdH, MultipleCA37);
+  params->p0.MultipleCB = RESCALE(MultipleCBdH, MultipleCB37);
 
-  params->TetraloopsLen=strlen(Tetraloops);
-  params->TriloopsLen=strlen(Triloops);
-  params->HexaloopsLen=strlen(Hexaloops);
-  for (i=0; (i*7)<params->TetraloopsLen; i++) params->Tetraloop_E[i] = RESCALE(TetraloopdH[i],Tetraloop37[i]);
-  for (i=0; (i*5)<params->TriloopsLen; i++) params->Triloop_E[i] = RESCALE(TriloopdH[i],Triloop37[i]);
-  for (i=0; (i*9)<params->HexaloopsLen; i++) params->Hexaloop_E[i] = RESCALE(HexaloopdH[i],Hexaloop37[i]);
+  params->p0.TetraloopsLen=strlen(Tetraloops);
+  params->p0.TriloopsLen=strlen(Triloops);
+  params->p0.HexaloopsLen=strlen(Hexaloops);
+  for (i=0; (i*7)<params->p0.TetraloopsLen; i++) params->p0.Tetraloop_E[i] = RESCALE(TetraloopdH[i],Tetraloop37[i]);
+  for (i=0; (i*5)<params->p0.TriloopsLen; i++) params->p0.Triloop_E[i] = RESCALE(TriloopdH[i],Triloop37[i]);
+  for (i=0; (i*9)<params->p0.HexaloopsLen; i++) params->p0.Hexaloop_E[i] = RESCALE(HexaloopdH[i],Hexaloop37[i]);
 
-  params->TerminalAU = RESCALE(TerminalAUdH,TerminalAU37);
-  params->DuplexInit = RESCALE(DuplexInitdH,DuplexInit37);
-  params->MLbase = RESCALE(ML_BASEdH,ML_BASE37);
+  params->p0.TerminalAU = RESCALE(TerminalAUdH,TerminalAU37);
+  params->p0.DuplexInit = RESCALE(DuplexInitdH,DuplexInit37);
+  params->p0.MLbase = RESCALE(ML_BASEdH,ML_BASE37);
 
-  for (i=0; i<=NBPAIRS; i++) params->MLintern[i] = RESCALE(ML_interndH,ML_intern37);
-  params->MLclosing = RESCALE(ML_closingdH,ML_closing37);
+  for (i=0; i<=NBPAIRS; i++) params->p0.MLintern[i] = RESCALE(ML_interndH,ML_intern37);
+  params->p0.MLclosing = RESCALE(ML_closingdH,ML_closing37);
 
   /* stacks    G(T) = H - [H - G(T0)]*T/T0 */
-  for (i=0; i<=NBPAIRS; i++) for (j=0; j<=NBPAIRS; j++) params->stack[i][j] = RESCALE(stackdH[i][j], stack37[i][j]);
+  for (i=0; i<=NBPAIRS; i++) for (j=0; j<=NBPAIRS; j++) params->p0.stack[i][j] = RESCALE(stackdH[i][j], stack37[i][j]);
 
   /* mismatches */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<5; j++)
       for (k=0; k<5; k++) {
         int mm;
-        params->mismatchI[i][j][k]   = RESCALE(mismatchIdH[i][j][k], mismatchI37[i][j][k]);
-        params->mismatchH[i][j][k]   = RESCALE(mismatchHdH[i][j][k], mismatchH37[i][j][k]);
-        params->mismatch1nI[i][j][k] = RESCALE(mismatch1nIdH[i][j][k], mismatch1nI37[i][j][k]); /* interior nx1 loops */
-        params->mismatch23I[i][j][k] = RESCALE(mismatch23IdH[i][j][k], mismatch23I37[i][j][k]); /* interior 2x3 loops */
-        if(md.dangles) {
-          mm = RESCALE(mismatchMdH[i][j][k], mismatchM37[i][j][k]); params->mismatchM[i][j][k] = (mm > 0) ? 0 : mm;
-          mm = RESCALE(mismatchExtdH[i][j][k], mismatchExt37[i][j][k]); params->mismatchExt[i][j][k] = (mm > 0) ? 0 : mm;
-        } else {
-          params->mismatchM[i][j][k] = params->mismatchExt[i][j][k] = 0;
-        }
+        params->p0.mismatchI[i][j][k]   = RESCALE(mismatchIdH[i][j][k], mismatchI37[i][j][k]);
+        params->p0.mismatchH[i][j][k]   = RESCALE(mismatchHdH[i][j][k], mismatchH37[i][j][k]);
+        params->p0.mismatch1nI[i][j][k] = RESCALE(mismatch1nIdH[i][j][k], mismatch1nI37[i][j][k]); /* interior nx1 loops */
+        params->p0.mismatch23I[i][j][k] = RESCALE(mismatch23IdH[i][j][k], mismatch23I37[i][j][k]); /* interior 2x3 loops */
+        mm = RESCALE(mismatchMdH[i][j][k], mismatchM37[i][j][k]); params->p0.mismatchM[i][j][k] = (mm > 0) ? 0 : mm;
+        mm = RESCALE(mismatchExtdH[i][j][k], mismatchExt37[i][j][k]); params->p0.mismatchExt[i][j][k] = (mm > 0) ? 0 : mm;
       }
 
   /* dangles */
@@ -94,9 +77,9 @@ paramT *get_scaled_parameters() {
     for (j=0; j<5; j++) {
       int dd;
       dd = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*tempf;
-      params->dangle5[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
+      params->p0.dangle5[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
       dd = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*tempf;
-      params->dangle3[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
+      params->p0.dangle3[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
     }
   for (i=0; i<=NBPAIRS; i++) for (j=0; j<=NBPAIRS; j++) for (k=0; k<5; k++) for (l=0; l<5; l++) {
     /* interior 1x1 loops */
@@ -106,10 +89,9 @@ paramT *get_scaled_parameters() {
     /* interior 2x2 loops */
     for (m=0; m<5; m++) for (n=0; n<5; n++) params->int22[i][j][k][l][m][n] = RESCALE(int22_dH[i][j][k][l][m][n],int22_37[i][j][k][l][m][n]);
   }
-  strncpy(params->Tetraloops, Tetraloops, 281);
-  strncpy(params->Triloops, Triloops, 241);
-  strncpy(params->Hexaloops, Hexaloops, 361);
-  params->id = ++id;
+  strncpy(params->p0.Tetraloops, Tetraloops, 281);
+  strncpy(params->p0.Triloops, Triloops, 241);
+  strncpy(params->p0.Hexaloops, Hexaloops, 361);
   return params;
 }
 

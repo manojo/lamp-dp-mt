@@ -45,26 +45,22 @@
  *  \return The Free energy of the Hairpin-loop in dcal/mol
  */
 INLINE PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P){
-  int energy;
-
-  energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30]+(int)(P->lxc*log((size)/30.));
-  if (P->model_details.special_hp){
-    if (size == 4) { /* check for tetraloop bonus */
-      char tl[7]={0}, *ts;
-      strncpy(tl, string, 6);
-      if ((ts=strstr(P->Tetraloops, tl))) return (P->Tetraloop_E[(ts - P->Tetraloops)/7]);
-    } else if (size == 6) {
-      char tl[9]={0}, *ts;
-      strncpy(tl, string, 8);
-      if ((ts=strstr(P->Hexaloops, tl))) return (energy = P->Hexaloop_E[(ts - P->Hexaloops)/9]);
-    } else if (size == 3) {
-      char tl[6]={0,0,0,0,0,0}, *ts;
-      strncpy(tl, string, 5);
-      if ((ts=strstr(P->Triloops, tl))) return (P->Triloop_E[(ts - P->Triloops)/6]);
-      return (energy + (type>2 ? P->TerminalAU : 0));
-    }
+  int energy = (size <= 30) ? P->p0.hairpin[size] : P->p0.hairpin[30]+(int)(P->p0.lxc*log((size)/30.));
+  if (size == 4) { /* check for tetraloop bonus */
+    char tl[7]={0}, *ts;
+    strncpy(tl, string, 6);
+    if ((ts=strstr(P->p0.Tetraloops, tl))) return (P->p0.Tetraloop_E[(ts - P->p0.Tetraloops)/7]);
+  } else if (size == 6) {
+    char tl[9]={0}, *ts;
+    strncpy(tl, string, 8);
+    if ((ts=strstr(P->p0.Hexaloops, tl))) return (energy = P->p0.Hexaloop_E[(ts - P->p0.Hexaloops)/9]);
+  } else if (size == 3) {
+    char tl[6]={0,0,0,0,0,0}, *ts;
+    strncpy(tl, string, 5);
+    if ((ts=strstr(P->p0.Triloops, tl))) return (P->p0.Triloop_E[(ts - P->p0.Triloops)/6]);
+    return (energy + (type>2 ? P->p0.TerminalAU : 0));
   }
-  energy += P->mismatchH[type][si1][sj1];
+  energy += P->p0.mismatchH[type][si1][sj1];
   return energy;
 }
 
@@ -119,14 +115,14 @@ INLINE PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int 
   if (n1>n2) { nl=n1; ns=n2;}
   else {nl=n2; ns=n1;}
 
-  if (nl == 0) return P->stack[type][type_2];  /* stack */
+  if (nl == 0) return P->p0.stack[type][type_2];  /* stack */
 
   if (ns==0) { /* bulge */
-    energy = (nl<=MAXLOOP)?P->bulge[nl]:(P->bulge[30]+(int)(P->lxc*log(nl/30.)));
-    if (nl==1) energy += P->stack[type][type_2];
+    energy = (nl<=MAXLOOP)?P->p0.bulge[nl]:(P->p0.bulge[30]+(int)(P->p0.lxc*log(nl/30.)));
+    if (nl==1) energy += P->p0.stack[type][type_2];
     else {
-      if (type>2) energy += P->TerminalAU;
-      if (type_2>2) energy += P->TerminalAU;
+      if (type>2) energy += P->p0.TerminalAU;
+      if (type_2>2) energy += P->p0.TerminalAU;
     }
     return energy;
   } else { /* interior loop */
@@ -137,23 +133,23 @@ INLINE PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int 
         else energy = P->int21[type_2][type][sq1][si1][sp1];
         return energy;
       } else {  /* 1xn loop */
-        energy = (nl+1<=MAXLOOP)?(P->internal_loop[nl+1]) : (P->internal_loop[30]+(int)(P->lxc*log((nl+1)/30.)));
-        energy += MIN2(P->ninio[1], (nl-ns)*P->ninio[0]);
-        energy += P->mismatch1nI[type][si1][sj1] + P->mismatch1nI[type_2][sq1][sp1];
+        energy = (nl+1<=MAXLOOP)?(P->p0.internal_loop[nl+1]) : (P->p0.internal_loop[30]+(int)(P->p0.lxc*log((nl+1)/30.)));
+        energy += MIN2(P->p0.ninio[1], (nl-ns)*P->p0.ninio[0]);
+        energy += P->p0.mismatch1nI[type][si1][sj1] + P->p0.mismatch1nI[type_2][sq1][sp1];
         return energy;
       }
     } else if (ns==2) {
       if(nl==2) return P->int22[type][type_2][si1][sp1][sq1][sj1]; /* 2x2 loop */
       else if (nl==3) { /* 2x3 loop */
-        energy = P->internal_loop[5]+P->ninio[0];
-        energy += P->mismatch23I[type][si1][sj1] + P->mismatch23I[type_2][sq1][sp1];
+        energy = P->p0.internal_loop[5]+P->p0.ninio[0];
+        energy += P->p0.mismatch23I[type][si1][sj1] + P->p0.mismatch23I[type_2][sq1][sp1];
         return energy;
       }
     }
     { /* generic interior loop (no else here!)*/
-      energy = (n1+n2<=MAXLOOP)?(P->internal_loop[n1+n2]) : (P->internal_loop[30]+(int)(P->lxc*log((n1+n2)/30.)));
-      energy += MIN2(P->ninio[1], (nl-ns)*P->ninio[0]);
-      energy += P->mismatchI[type][si1][sj1] + P->mismatchI[type_2][sq1][sp1];
+      energy = (n1+n2<=MAXLOOP)?(P->p0.internal_loop[n1+n2]) : (P->p0.internal_loop[30]+(int)(P->p0.lxc*log((n1+n2)/30.)));
+      energy += MIN2(P->p0.ninio[1], (nl-ns)*P->p0.ninio[0]);
+      energy += P->p0.mismatchI[type][si1][sj1] + P->p0.mismatchI[type_2][sq1][sp1];
     }
   }
   return energy;
@@ -180,10 +176,10 @@ INLINE PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int 
  */
 INLINE PRIVATE int E_ExtLoop(int type, int si1, int sj1, paramT *P){
   int energy = 0;
-  if(si1 >= 0 && sj1 >= 0) energy += P->mismatchExt[type][si1][sj1];
-  else if (si1 >= 0) energy += P->dangle5[type][si1];
-  else if (sj1 >= 0) energy += P->dangle3[type][sj1];
-  if(type > 2) energy += P->TerminalAU;
+  if(si1 >= 0 && sj1 >= 0) energy += P->p0.mismatchExt[type][si1][sj1];
+  else if (si1 >= 0) energy += P->p0.dangle5[type][si1];
+  else if (sj1 >= 0) energy += P->p0.dangle3[type][sj1];
+  if(type > 2) energy += P->p0.TerminalAU;
   return energy;
 }
 
@@ -208,11 +204,11 @@ INLINE PRIVATE int E_ExtLoop(int type, int si1, int sj1, paramT *P){
  */
 INLINE PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P){
   int energy = 0;
-  if(si1 >= 0 && sj1 >= 0) energy += P->mismatchM[type][si1][sj1];
-  else if (si1 >= 0) energy += P->dangle5[type][si1];
-  else if (sj1 >= 0) energy += P->dangle3[type][sj1];
-  if(type > 2) energy += P->TerminalAU;
-  energy += P->MLintern[type];
+  if(si1 >= 0 && sj1 >= 0) energy += P->p0.mismatchM[type][si1][sj1];
+  else if (si1 >= 0) energy += P->p0.dangle5[type][si1];
+  else if (sj1 >= 0) energy += P->p0.dangle3[type][sj1];
+  if(type > 2) energy += P->p0.TerminalAU;
+  energy += P->p0.MLintern[type];
   return energy;
 }
 

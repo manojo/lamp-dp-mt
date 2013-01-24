@@ -393,9 +393,11 @@ trait CodeGen extends BaseParsers { this:Signature =>
       def path ="../src/librna/"
       "// --------------------------------\n"+
       "#include \""+path+"vienna/vienna.h\"\n"+
+      "__constant__ paramT0 param0;\n"+
       "#define my_len (M_H-1)\n"+
       "#define my_seq _in1\n"+
       "#define my_P g_P\n"+
+      "#define my_P0 param0\n"+
       "#define my_dev __device__\n"+
       "#include \""+path+"librna_impl.h\"\n"+
       "#include \""+path+"vienna/vienna.c\"\n"+
@@ -405,6 +407,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "static inline void rna_init() {\n"+
       "  read_parameter_file(\""+s.paramsFile+"\");\n"+
       "  paramT* P = get_scaled_parameters();\n"+
+      "  cudaMemcpyToSymbol(param0,&(P->p0),sizeof(paramT0));"+
       "  cuMalloc(cg_P,sizeof(paramT));\n"+
       "  cuPut(P,cg_P,sizeof(paramT),NULL);\n"+
       "  _initP<<<1,1>>>(cg_P); free(P);\n"+

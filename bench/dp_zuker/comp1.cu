@@ -34,9 +34,14 @@ __global__ void gpu_input(input_t* in1, input_t* in2) { _in1=in1; _in2=in2; }
 
 // --------------------------------
 #include "../../src/librna/vienna/vienna.h"
+
+__constant__ paramT0 param0;
+
 #define my_len (M_H-1)
 #define my_seq _in1
 #define my_P g_P
+#define my_P0 param0
+
 #define my_dev __device__
 #include "../../src/librna/librna_impl.h"
 #include "../../src/librna/vienna/vienna.c"
@@ -47,6 +52,8 @@ __global__ static void _initP(paramT* params) { g_P=params; }
 static inline void rna_init() {
   read_parameter_file("../../src/librna/vienna/rna_turner2004.par");
   paramT* P = get_scaled_parameters();
+  cudaMemcpyToSymbol(param0,&(P->p0),sizeof(paramT0));
+
   cuMalloc(cg_P,sizeof(paramT));
   cuPut(P,cg_P,sizeof(paramT),NULL);
   _initP<<<1,1>>>(cg_P); free(P);
