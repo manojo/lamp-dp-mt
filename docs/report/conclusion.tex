@@ -11,17 +11,32 @@ Matrix of different dimensions must be stored in their own array (versus being i
 \item \textbf{Data granularity:} Since the major bottleneck of CUDA architecture is the memory, we focus on data representation; in the current project, data is stored in primary types but we could store them more efficiently. For example, RNA is represented with only 4 letters (g,a,t,c), thus 4 symbols could be encoded in a single byte. Unfortunately, this optimizations seems to only apply for the input data. Another solution in this direction is to operate on multiple cells with one thread, the argument being that they could share a row or a column, thereby dividing the number of memory accesses for non-serial dependencies on the shared axis.
 \item \textbf{Pruning:} described in \cite{swat_mega}, this optimization could lead to a reduction of the computation, provided that the algorithm final score can be bounded. Such optimization would only be relevant with a non-uniform computation strategy where the matrix is tiled, thereby making it possible to prune entire computation tiles.
 \item \textbf{Fusion with LMS:} Although we gained some speedup by optimizing manually the Scala parsers, we cannot benefit from grammar-specific optimization. Passing the whole grammar to LMS could possibly lead to more efficient code, by folding multiple parser function calls into a single function making equivalent calls. The added cost of function lookup, even if minimal, might still account for a non-negligible part of the total running time as parser processing is very simple but run repeatedly a large number of time.
-\item \textbf{Using macros:} macros provide an interesting meta-programming opportunity as they are being run after the typing phase of the Scala compiler and can leverage all the compile-time typing information. We could use them to either simplify the user-functions description (by implicitly bootstrapping LMS code translation) or even completely replace LMS types by either type conversion or by providing ad-hoc conversion from the Scala AST to C code.
+\item \textbf{Using macros:} macros provide an interesting meta-programming opportunity as they are being run after the typing phase of the Scala compiler and can leverage all the compile-time typing information. We could use them to either simplify the user-functions description (by converting types to bootstrap LMS code generation) or even provide ad-hoc conversion from the Scala AST to C code.
 \item \textbf{CUDA $k$-best parsers:} since a $k$-best algorithm has constant memory requirements, an efficient algorithm for CUDA could be devised: instead of comparing with only one value to find the best value, it suffice to compare with $k$ values instead. Hence cost and backtrack matrix would contain $k$ elements per cell. Since the problem of result validity is already addressed, cells with fewer results would simply have fewer cells marked valid.
 \ole
 
 % ------------------------------------------------------------------------------------------------
 \section{Conclusion}
-{\color{red} XXX}
-
 This Master project is focused on how to solve efficiently dynamic programming. By restricting to the class of problem involving sequences as input, we were able to extract generic patterns and expose them to parallel architectures like CUDA. To do that, we first depicted the dynamic programming landscape and defined a set of problems we would like to solve (\S\ref{problems}). Then we discussed the requested functionalities to provide the user with a convenient embedded DSL that is based on the ADP formalization (\S\ref{architecture}). These architectural decisions lead us to consider two different implementations: one in Scala that allows the same expressivity as ADP (in term of multiple solutions search), and one in CUDA that focuses on efficiently obtain a single optimal result. We then provide some technical details explaining how these ideas are put in practice in \textit{DynaProg} (\S\ref{implementation}). Finally, we compare our implementation with existing implementations (\S\ref{benchmarks}).
 
+From the benchmarks, we see that our code generation is able to deal with problems from simple (Smith-Waterman) to complex (Zuker and RNAfold) and provide performance that is comparable to existing work. Since these problem are expressed with a grammar and algebra (following the ADP decomposition), the description of problems is simplified and the possibility to exploit the dynamic programming results is leveraged through the use of multiple grammars.
+
+% ------------------------------------------------------------------------------------------------
+{\center\color{red} \noindent\rule{16cm}{0.4pt} \\ XXX: CONTINUE HERE :XXX \\}
+% ------------------------------------------------------------------------------------------------
+
+{\color{red} XXX: fix the introduction}
+
+{\color{red} Benchmarks: we want to see the benefits of moving to CUDA, also compare to how far Scala is from C.}
+{\color{red} XXX: say that Haskell package did not install and also time limited to provide largest result (but that are also less relevant as users do not want to wait)}
 {\color{red} What's the conclusion on experimental results?}
+
+XXX: future work, resize tables appropriately as in GAPL.
+{\color{red} Size analysis to know what storage size we require: ex: Zucker requires $O(n^2)+O(n)$ storage...}
+
+XXX: future work: infer automatically "always non-empty" property
+
+{\color{red} Use CUDA profiler(?)}
 
 % http://www.eecs.berkeley.edu/Pubs/TechRpts/2006/EECS-2006-183.html
 
@@ -36,7 +51,6 @@ Recap of the report:
 Recap of the results:
 - XXX
 
-
 explain better approach: LMS write intermediate nodes, we embed nodes in actual objects
 
 Big picture (Larger picture how to go further):
@@ -44,5 +58,4 @@ Big picture (Larger picture how to go further):
 - Embedded DSL vs external DSL
 - Only a subset of the dynamic programming problems, easy to parallelize (similar memory accesses and scheduling pattern/progress)
   - others are iterative or sparse, different scheduling => multiple scheduling patterns to be discovered and implemented efficiently, possibly in LMS (if time permits)
-
 \end{verbatim}

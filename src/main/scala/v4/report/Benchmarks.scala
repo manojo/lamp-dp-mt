@@ -69,8 +69,8 @@ object Benchmarks extends App {
   */
 
   for (size <- sizes) {
-    val numS = (if (size>=2048) 5 else 10)
-    val numC = (if (size>=4096) 10 else 10)
+    val numS = (if (size>=2048) 8 else 15)
+    val numC = if (size<=512) 20 else (if (size>=4096) 8 else 12)
     def runScala(n:Int,s:String,f:()=>Unit) = if (size<=4096) { f(); print("sprintf('%.3f',median(["); for (i<-0 until n) time(f); println(" ])) % Scala "+s+" ("+size+")") }
     def runCuda(n:Int,s:String,f:()=>Unit) = { f(); print("sprintf('%.3f',median(["); for (i<-0 until n) time(f); println(" ])) % Scala+CUDA "+s+" ("+size+")") }
 
@@ -83,9 +83,7 @@ object Benchmarks extends App {
     runCuda(numC,"Zuker",()=>zuker.backtrack(rna(size)))
     runScala(numS,"Zuker",()=>zuker.backtrack(rna(size),true))
 
-    /*
     runCuda(numC,"RNAfold",()=>fold.backtrack(rna(size)))
     runScala(numS,"RNAfold",()=>fold.backtrack(rna(size),true))
-    */
   }
 }
