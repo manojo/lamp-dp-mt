@@ -83,17 +83,17 @@ object Bench {
   def main(args: Array[String]) {
     val lr = List(64,96,128,192,256,384,512,768,1024,1536,2048,3072,4096,6144,8192)
     // --- Matrix multiplication
-    //for (l<-lr) gapc_mm(20,l)
+    //for(l<-lr) gapc_mm(20,l)
 
     // --- Smith-Waterman
-    //for (l<-lr) cudalign(20,l)
-    //for (l<-lr) gapc_swat(20,l)
+    //for(l<-lr) cudalign(20,l)
+    //for(l<-lr) gapc_swat(20,l)
 
     // --- RNA folding
-    //for (l<-lr) rnafold_rl(20,l,true)
-    //for (l<-lr) rnafold_rl(20,l,false) // Erratic behavior
-    //for (l<-lr) gapc_adpfold(20,l)
-    //for (l<-lr) vienna_rna(7,l)
+    //for(l<-lr) gapc_adpfold(3,l)
+    //for(l<-lr) rnafold_rl(3,l)
+    //for(l<-lr) rnafold_rl(20,l,false) // Erratic behavior
+    //for(l<-lr) vienna_rna(3,l)
 
   }
 }

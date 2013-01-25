@@ -1,0 +1,117 @@
+Presentation plan
+Duration: 30 minutes
+
+--- COVER (DP+CUDA+Scala+EPFL)
+
+--- INTRO
+- What is Dynamic Programming
+  + Algorithmic technique to solve optimization problems
+  + Bellman's optimality principle (optimal sub-solutions)
+  + Memoization reduces exponential to polynomial complexity
+  + Goal: construct an optimal solution. How? Backtracking.
+  + Example: matrix chain multiplication (cut in two) *** graph
+    + Recurrence formula
+- Problem examples (applied computer science, quick)
+  + Biosequence analysis
+    + Smith-Waterman sequence alignment
+    + Zuker folding
+  + Databases, natural language processing, operational research: expression parenthesisation
+    + It's quite common
+    + Recurrences expression is complicated
+
+- Motivation
+  + Provide user with simple language to express DP => ADP
+  + Execute DP efficiently => GPU
+  + At our disposal: Scala & LMS => embedded DSL
+    + Encode domain specific problem with Scala syntax (concise)
+    + Benefit from Scala and LMS power (typing, code conversion)
+    + Allows to use all resources of Scala (+Java) world
+
+--- THEORY
+- User facing language: ADP
+  - Abstract
+    + Grammar (CFG): produces candidates (generate search space)
+    + Algebra: (candidate -> score) functions
+    + Optimization function: decides which scores are 'best' candidates
+    + Tabulation: memoize best candidates
+    -> Clean separation allows multiple algebra for one grammar
+  - Concrete (parsers)
+    + Signature: interface for algebra
+    + Algebra/optimization function: arbitrary functions
+    + Parsers
+      + Terminal (grammar terminal)
+      + Concatenation (combine two sequential elements)
+      + Map (convert parsed elements into a candidate)
+      + Filter (applied before computing subproblems)
+      + Alternative (or, union of results)
+      + Aggregation (candidate selection)
+      + Tabulation (grammar rule)
+  - Example: matrix chain multiplication (+variant?) *** graph
+
+- Recurrences analysis
+  + Bottom-up construction: construct elements of all matrices at the same position
+  + Dead rules elimination: save useless computation (bottom-up) and space (sparse resource, because we have matrices)
+  + Yield analysis: automatically find the minimum/maximum size of tabulations.
+    + Avoid infinite loops (empty ~ empty)
+    + Matrix dimension => save space (not currently implemented)
+  + Dependency analysis (dependencies at same position => bottom-up correctness)
+
+- Backtracking
+  - Encoding
+    + Explicit = bad (re-introduce indices/ad-hoc for the user)
+    + Grammar rules -> uniquely identify (separate alternatives)
+    + Concatenation indices -> some are fixed (min/max yield), some are moving
+      + Deduce fixed indices with yield size of elements
+      + Memorize moving indices
+    + Tabulate (candidate, (rule_id, List[ moving_indices ]))
+    + Backtrack trace = List[ (rule_id, List[ moving_indices ]) ]
+  - Multiple results (Scala)
+    + We can reconstruct alternative (rule_id) and concatenation indices from tabulation
+    + But multiple traces might share common path and diverge at some point *** graph
+    + Needs to take into account the multiplicity of each paths
+      + unique direction => continue with same multiplicity
+      + r directions, multiplicity = k
+        + if (k>=r) explore all paths with k-r+1 multiplicity (each branch might produce only 1 result)
+        + if (k<r) explore the first k paths with multiplicity=1 (more solutions than needed)
+        -> aggregate to retain only 'best' solutions, then choose k of them
+  - For CUDA
+    + Focus on speed => return only 1 optimal solution
+    + Minimize memory consumption => aggregate as soon as element is produced
+    + Fusion of candidate generation, mapping to score and aggregation
+    + Special care needed for:
+    + Nested aggregation: aggregate inner in fresh temporary (hoisted), then aggregate outer
+    + Failure encoding
+      + "Zero"/"infinite" element ? cumbersome, needs to be provided for each aggregations by the user
+      +
+
+
+
+- Multiple algebra
+
+
+
+--- IMPLEMENTATION
+- Device constraints
+  - Threads: many scheduled similarly (branch divergence) *** graph
+  - Memories: global, shared, constant *** graph
+  - Memory Layout: coalesced accesses *** graph
+- Problem constraints
+  - Scheduling -> no LMS
+  - Runtime engine
+  - LibRNA
+
+--- BENCHMARKS RESULTS
+
+--- DEMO
+- Syntax (ADP)
+- CodeGen
+
+--- CONCLUSION
+- Recap results
+- Future work
+
+--- END: QUESTIONS
+
+
+XXX: instead of maintaining all elements in memory, only maintain 1 table
+XXX: future work: explicit initial value for aggregations 6%
