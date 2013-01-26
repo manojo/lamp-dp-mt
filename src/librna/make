@@ -13,12 +13,15 @@ else
   md5_hash() { md5sum $@; }
 fi
 
+cd "`dirname $0`"; base="`pwd`"
+if [ "$1" = "test" ]; then TEST=1; shift; fi
+
+cd "$base"
+if [ "$1" = "" ]; then out="bin"; rm -r "$out" 2>/dev/null; mkdir -p "$out";
+else mkdir -p "$1"; cd "$1"; out=`pwd`; cd "$base"; fi
+
 # --------------------------------------------------
 # JNI library
-
-if [ "$1" = "" ]; then out="bin"; rm -r "$out" 2>/dev/null; mkdir -p "$out";
-else from=`pwd`; mkdir -p "$1"; cd "$1"; out=`pwd`; cd $from; fi
-cd `dirname $0`;
 
 name="libRNA.jnilib"
 md5_hash *.[ch] vienna/*.[ch] > "$out/$name.tmp"
@@ -32,7 +35,6 @@ else
 	echo 'done.'
 fi
 
-
 # --------------------------------------------------
 # Reference RNAfold (ViennaRNA)
 
@@ -45,4 +47,9 @@ else
 	gcc -Wall -O2 $CCFLAGS -Ivienna rnafold/*.c vienna/*.c -o rfold || exit
 	mv "$out/$name.tmp" "$out/$name.md5"
 	echo 'done.'
+fi
+
+if [ "$TEST" != "" ]; then
+	echo ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug | ./rfold
+	echo ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug | ../../resources/RNAfold_orig_mac
 fi

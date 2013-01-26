@@ -49,7 +49,7 @@ Duration: 30 minutes
   - Example: matrix chain multiplication (+variant?) *** graph
 
 - Recurrences analysis
-  + Bottom-up construction: construct elements of all matrices at the same position
+  + We need bottom-up approach to exploit parallelism: construct elements of all matrices at the same position
   + Dead rules elimination: save useless computation (bottom-up) and space (sparse resource, because we have matrices)
   + Yield analysis: automatically find the minimum/maximum size of tabulations.
     + Avoid infinite loops (empty ~ empty)
@@ -82,25 +82,37 @@ Duration: 30 minutes
     + Nested aggregation: aggregate inner in fresh temporary (hoisted), then aggregate outer
     + Failure encoding
       + "Zero"/"infinite" element ? cumbersome, needs to be provided for each aggregations by the user
-      +
-
-
+      + Better: use a special rule number in the backtrack to indicate "empty result"
 
 - Multiple algebra
-
-
+  + Remember algebra and aggregation function are abstracted in Signature => we can easily change algebra
+  + Why so much effort describing backtracking ? We have normalized it ! (wrt. grammar)
+  + We can exchange grammar between algebra sharing the same grammar
+  + Exploit the generated trace with a computing algebra
+  + Example: solve matrix multiplication DP with algebra 1, do actual multiplication with algebra 2 (load matrices from disk, compute on CUDA)
 
 --- IMPLEMENTATION
 - Device constraints
-  - Threads: many scheduled similarly (branch divergence) *** graph
-  - Memories: global, shared, constant *** graph
-  - Memory Layout: coalesced accesses *** graph
+  - Threads: threads within a warp (32) share the same scheduler => penalty if branch divergence *** graph
+  - Memories: global (large, off-chip), shared (64K on-chip for L1/scratchpad), constant (global read-only) *** graph
+  - Memory layout: coalesced accesses (contiguous wrt. to threads to increase throughput) *** graph for triangle and square matrices, memory chip?
 - Problem constraints
-  - Scheduling -> no LMS
+  + Complex dependencies (line progress depends on previous line)
+    + Complex scheduling primitive not (yet) available in LMS
+    + LMS => closed world hypothesis, but we want to support arbitrary algebrae
+      => trade-off: algebra(LMS)/grammar(hand-optimized)
   - Runtime engine
+    + Partial specialization: input and matrix size, # of splits hardcoded
+    + Similar to Delite: CUDA kernel + JNI interface => compile+load in JVM
   - LibRNA
+    + Energies function for RNA folding, based on coefficients (physical measurements)
+    + Heavily uses input sequence and coefficients (~200K)
+    + Load sequence in shared memory, some coefficients in constant memory
 
 --- BENCHMARKS RESULTS
+- Matrix multiplication: on par with hand-written implementation (slightly worse than ATLP) *** figures + graph
+- Smith-Waterman
+- Zuker/RNAfold
 
 --- DEMO
 - Syntax (ADP)
