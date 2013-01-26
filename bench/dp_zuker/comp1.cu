@@ -25,7 +25,7 @@ __attribute__((unused)) static inline void cuErr_(cudaError_t err, const char *f
 //#define M_W 1024
 //#define M_H 1024
 #define MEM_MATRIX ((M_H*(M_H+1))/2)
-#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })
+#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - ((_d*(_d-1))>>1) +_i; })
 static input_t *g_in1 = NULL, *g_in2 = NULL;
 static cost_t *g_cost = NULL;
 static back_t *g_back = NULL;

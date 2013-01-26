@@ -1,5 +1,5 @@
 #!/bin/sh
-cd `dirname $0`
+cd `dirname $0`; mkdir -p bin
 if [ "$OSTYPE" = "darwin" ]; then md5_hash() { md5 -q $@; };
 else md5_hash() { md5sum $@; }; fi
 

@@ -14,6 +14,7 @@ object LibRNA {
   @native def setParams(file:String):Unit
   @native def setSequence(seq:String):Unit
   @native def clear:Unit
+  @native def getConsts:String // defines for recompilation
 
   // Note that 'Byte' is mapping 'base_t'
   @native def termau_energy(i:Int, j:Int):Int

@@ -24,6 +24,7 @@ object Benchmarks extends App {
                      "i,l,k,r,j","return l + r + _in1[i]._1 * _in1[k]._1 * _in1[j-1]._2;")
     val axiom:Tabulate = tabulate("M",( el ^^ single | (emptyi ~ axiom ~ emptyi ~ axiom ~ emptyi) ^^ mult ) aggregate h,true)
     override val tps=(manifest[Alphabet],manifest[Answer])
+    override val cudaEmpty = "0x7fffffff" // max uint32
   }
   // Smith-Waterman
   object swat extends SWatGrammar with SWatAlgebra with CodeGen {
@@ -34,6 +35,7 @@ object Benchmarks extends App {
   object fold extends v4.examples.RNAFoldGrammar with v4.examples.RNAFoldAlgebra with CodeGen {
     override val tps=(manifest[Alphabet],manifest[Answer])
     override val cudaSplit = 96
+    override val cudaEmpty = "0x7fffffff" // max uint32
   }
   // Zuker MFE
   object zuker extends ZukerGrammar with ZukerMFE with CodeGen {

@@ -117,7 +117,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
             f1 match { case f:CFun => head.getType(f.tpe) case _ => bodyTpe }
           case _ => bodyTpe
         }
-        val (tc,tb) = if(aggr==0) ("_cost."+t.name,"_back."+t.name) else { aggid=aggid+1; ("_c"+aggid, "_b"+aggid) }
+        val (tc,tb) = if(aggr==0) (if (cudaEmpty!=null) "_c0" else "_cost."+t.name,"_b0") else { aggid=aggid+1; ("_c"+aggid, "_b"+aggid) }
         // Generate aggregation body
         val updt = "{ "+tc+"=_c; "+tb+"=("+btTpe(if (aggr==0) t.inner.cat else p.cat)+"){"+rule+(if (p.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
         val cc = "{ "+(h.toString match {
@@ -183,9 +183,12 @@ trait CodeGen extends BaseParsers { this:Signature =>
   }
 
   def genKern = {
-    val kern="back_t _back = {"+rulesOrder.map{n=>val c=rules(n).inner.cat;"{-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"}" }.mkString(",")+"};\n"+
-             "cost_t _cost = {}; // init to 0\n#define VALID(I,J,RULE) (back[idx(I,J)].RULE.rule!=-1)\n"+
-             rulesOrder.map{n=>val r=rules(n); "/* --- "+n+"[i,j] --- */\n"+genTab(r)+"\ncost[idx(i,j)]."+n+" = _cost."+n+";\nback[idx(i,j)]."+n+" = _back."+n+";"}.mkString("\n")
+    val kern= "#define VALID(I,J,RULE) "+(if (cudaEmpty!=null) "(cost[idx(I,J)].RULE!="+cudaEmpty+")\n" else "(back[idx(I,J)].RULE.rule!=-1)\ncost_t _cost = {}; // init to 0\n")+
+      rulesOrder.map{n=>val r=rules(n); val c=r.inner.cat;
+        "// ---- "+n+"[i,j] ----\n{\n"+ind("__bt"+c+" _b0 = {-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"};\n"+
+        (if (cudaEmpty!=null) tpAnswer+" _c0 = "+cudaEmpty+";\n"+genTab(r)+"\ncost[idx(i,j)]."+n+" = _c0;\n" else genTab(r)+"\ncost[idx(i,j)]."+n+" = _cost."+n+";\n")+
+        "back[idx(i,j)]."+n+" = _b0;")+"}"
+      }.mkString("\n")
     val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
       (if (twotracks) "  for (int i=tI; i<M_H; i+=tN) {\n    int j = jj-i; if (j>=0)" else "  for (int ii=tI; ii<M_H; ii+=tN) {\n    int i = M_H-1-ii, j = i+jj;")+"\n"
     "__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {\n"+ind(
@@ -274,7 +277,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       head.addPriv("#define idx(i,j) ({ unsigned _i=(i); (B_H*((j)+(_i%B_H)) + (_i%B_H) + (_i/B_H)*M_W*B_H); })")
     } else { // idx(i,j) = MEM_MATRIX-UP_TRI+i, UP_TRI=d*(d+1)/2, d=M_H+1+_i-_j (smallest triangle including position element)
       head.addPriv("#define MEM_MATRIX ((M_H*(M_H+1))/2)") // upper right triangle, including diagonal
-      head.addPriv("#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - (_d*(_d-1))/2 +_i; })")
+      head.addPriv("#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - ((_d*(_d-1))>>1) +_i; })")
     }
     head.addPriv("static input_t *g_in1 = NULL, *g_in2 = NULL;\nstatic cost_t *g_cost = NULL;\nstatic back_t *g_back = NULL;")
     val din=if(cudaSharedInput)"__in"else"_in" // book shared memory if necessary
@@ -391,9 +394,14 @@ trait CodeGen extends BaseParsers { this:Signature =>
     // XXX: add way to link pre-existing object to spare compilation phase
     case s:RNASignature if (s.energies) =>
       def path ="../src/librna/"
+      import librna.{LibRNA=>l}
+
+      if (s.paramsFile!=null) l.setParams(s.paramsFile)
+      val consts = l.getConsts
       "// --------------------------------\n"+
       "#include \""+path+"vienna/vienna.h\"\n"+
       "__constant__ paramT0 param0;\n"+
+      consts+ // XXX: move this inside CodeGen for correctness, also this is an input parameter like size RNASignature(params) ??
       "#define my_len (M_H-1)\n"+
       "#define my_seq _in1\n"+
       "#define my_P g_P\n"+
@@ -405,7 +413,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "static paramT *cg_P=NULL;\n"+
       "__global__ static void _initP(paramT* params) { g_P=params; }\n"+
       "static inline void rna_init() {\n"+
-      "  read_parameter_file(\""+s.paramsFile+"\");\n"+
+      (if (s.paramsFile!=null) "  read_parameter_file(\""+s.paramsFile+"\");\n" else "")+
       "  paramT* P = get_scaled_parameters();\n"+
       "  cudaMemcpyToSymbol(param0,&(P->p0),sizeof(paramT0));"+
       "  cuMalloc(cg_P,sizeof(paramT));\n"+
@@ -424,10 +432,11 @@ trait CodeGen extends BaseParsers { this:Signature =>
   val cudaDevice = -1  // preferred execution CUDA device
   val cudaUnroll = 5 // experimental unrolling optimal
   val cudaSharedInput = this match { case s:RNASignature => true case _ => false } // store input in shared memory
+  val cudaEmpty:String = null // "empty" Answer value (usually zero or infinite). By setting this value, aggregation must be done _ONLY_ on Answer type
   val compiler = new CodeCompiler {
     override val outPath = "bin"
     override val cudaPath = "/usr/local/cuda"
-    override val cudaFlags = "-m64 -arch=sm_30"
+    override val cudaFlags = "-m64 -arch=sm_30" // --ptxas-options=-v
     override val ccFlags = "-O2 -I/System/Library/Frameworks/JavaVM.framework/Headers"
     override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
   }

@@ -16,6 +16,8 @@ extern "C" {
 _vfun(setParams)(_p0, jstring);
 _vfun(setSequence)(_p0, jstring);
 _vfun(clear)(_p0);
+JNIEXPORT jstring JNICALL _fun(getConsts)(_p0);
+
 _ifun(termau_1energy)(_p0, jint, jint);
 _ifun(hl_1energy)(_p0, jint, jint);
 _ifun(hl_1energy_1stem)(_p0, jint, jint);
@@ -79,6 +81,33 @@ void _fun(setSequence)(_p0, jstring sequence) {
   c_seq[c_len]=0;
   */
   (*env)->ReleaseStringUTFChars(env, sequence, str);
+}
+
+jstring _fun(getConsts)(_p0) {
+  c_P=get_scaled_parameters();
+  char buf[2048];
+  snprintf(buf,2048,
+    "#define my_LXC %d.%d\n"
+    "#define my_HAIRPIN_MAX %d\n"
+    "#define my_TERM_AU %d\n"
+    "#define my_NINIO0 %d\n"
+    "#define my_NINIO1 %d\n"
+    "#define my_INTERNA_LOOP5 %d\n"
+    "#define my_ML_CLOSING %d\n"
+    "#define my_ML_INTERN0 %d\n"
+    "#define my_TEMPERATURE %d.%d\n",
+      (int)c_P->p0.lxc,(int)(c_P->p0.lxc*10000)%10000,
+      c_P->p0.hairpin[MAXLOOP],
+      c_P->p0.TerminalAU,
+      c_P->p0.ninio[0],
+      c_P->p0.ninio[1],
+      c_P->p0.internal_loop[5],
+      c_P->p0.MLclosing,
+      c_P->p0.MLintern[0],
+      (int)c_P->p0.temperature,(int)(c_P->p0.temperature*10000)%10000
+    );
+  free(c_P);
+  return (jstring)(*env)->NewStringUTF(env,buf);
 }
 
 void _fun(clear)(_p0) { if (c_P) { free(c_P); c_P=NULL; } if (c_seq) { free(c_seq); c_seq=NULL; } }
