@@ -1,0 +1,102 @@
+\documentclass[11pt]{article}
+\usepackage{amssymb,amsmath,amsthm,hyperref,verbatim,pict2e,graphicx,marvosym,array,booktabs}
+\usepackage[usenames]{xcolor} % color names ,dvipsnames,svgnames,table
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\pagestyle{empty} % remove page numbers
+\oddsidemargin -2.5cm
+\evensidemargin -2.5cm
+\topmargin -3cm
+\headsep 1cm
+\parskip 0cm
+\parindent 0cm
+\setlength{\paperwidth}{8cm}
+\setlength{\paperheight}{4cm}
+\begin{document}
+
+% \tbox : multiline textbox for pictures; \tbox[0=no frame,l=left_align]{width}{height}{content}
+\makeatletter
+\def\instr#1#2{TT\fi\begingroup\edef\x{\endgroup\noexpand\in@{#1}{#2}}\x\ifin@}
+\newlength{\tbox@len}
+\newcommand\tbox[4][]{\setlength{\tbox@len}{\unitlength}
+	\if\instr{0}{#1}\else \put(0,0){\framebox(#2,#3)[c]{}} \fi
+	\setlength{\unitlength}{.5\tbox@len}\put(0,#3){\setlength{\unitlength}{1pt}%
+		\put(2,-3){\setlength{\unitlength}{#2\tbox@len}\addtolength{\unitlength}{-4pt}%
+			\begin{minipage}{\unitlength}\if\instr{l}{#1} \else \centering \fi #4 \end{minipage}}}
+	\setlength{\unitlength}{\tbox@len}
+}
+\makeatother
+
+%	\[\begin{array}{l}
+%	A_k : (r_k \times c_k) \quad c_k=r_{k+1} \quad A_k \text{ is the chain of matrices} \\[5pt]
+%	M_{(k,k)}=0 \quad\forall 0\le k< n\\[5pt] M_{(i,j)}=\min_{i\le k<j}\left\{\begin{array}{l|l}
+%		M_{(i,k)}+M_{(k+1,j)}+r_i \cdot c_k \cdot c_j & k
+%	\end{array}\right\}=B_{(i,j)}
+%	\end{array}\]
+
+% Construction order: (1,1), (2,2), (1,2), (0,0), (0,2), (3,3), (0,3)
+
+% 4x4 triangular matrix
+\def\matg{
+	\moveto(0,4)\lineto(4,4)\lineto(4,0)\lineto(3,0)\lineto(3,1)\lineto(2,1)\lineto(2,2)
+	\lineto(1,2)\lineto(1,3)\lineto(0,3)\closepath\strokepath
+	\put(1,3){\line(0,1){1}}\put(1,3){\line(1,0){3}}
+	\put(2,2){\line(0,1){2}}\put(2,2){\line(1,0){2}}
+	\put(3,1){\line(0,1){3}}\put(3,1){\line(1,0){1}}
+}
+\def\matc#1#2{\put(#1){\tbox[0]{1}{1}{#2}}}
+
+\setlength{\unitlength}{.6cm}\begin{picture}(4,4)
+% BACKGROUND
+\put(0,0){\circle*{30}}
+
+\color{white}
+\put(3,0){
+% FORWARD
+	\matg % grid
+	\put(-3,3){\tbox[0]{3}{1}{\footnotesize A: $3\times 2$}}
+	\put(-3,2){\tbox[0]{3}{1}{\footnotesize B: $2\times 4$}}
+	\put(-3,1){\tbox[0]{3}{1}{\footnotesize C: $4\times 2$}}
+	\put(-3,0){\tbox[0]{3}{1}{\footnotesize D: $2\times 5$}}
+	\matc{0,4}{\footnotesize A}
+	\matc{1,4}{\footnotesize B}
+	\matc{2,4}{\footnotesize C}
+	\matc{3,4}{\footnotesize D}
+	\matc{0,3}{\footnotesize 0}
+	\matc{1,2}{\footnotesize 0}
+	\matc{2,1}{\footnotesize 0}
+	\matc{3,0}{\footnotesize 0}
+	\matc{1,3}{\footnotesize 24}
+	\matc{2,2}{\footnotesize 16}
+	\matc{3,1}{\footnotesize 40}
+	\matc{2,3}{\footnotesize 28}
+	\matc{3,2}{\footnotesize 36}
+	\matc{3,3}{\footnotesize 58}
+{\linethickness{.75pt}
+	\put(2.5,2.9){\vector(0,1){.3}}
+	\put(2.9,2.5){\vector(1,0){.3}}
+	\put(2.9,3.5){\vector(1,0){.3}}
+}
+}
+% BACKTRACK
+\put(8,0){
+	\matg % grid
+	\matc{0,4}{\footnotesize A}
+	\matc{1,4}{\footnotesize B}
+	\matc{2,4}{\footnotesize C}
+	\matc{3,4}{\footnotesize D}
+	\matc{0,3}{\footnotesize ---}
+	\matc{1,2}{\footnotesize ---}
+	\matc{2,1}{\footnotesize ---}
+	\matc{3,0}{\footnotesize ---}
+	\matc{1,3}{\footnotesize 0}
+	\matc{2,2}{\footnotesize 1}
+	\matc{3,1}{\footnotesize 2}
+	\matc{2,3}{\footnotesize 0}
+	\matc{3,2}{\footnotesize 2}
+	\matc{3,3}{\footnotesize 2}
+}
+\end{picture}
+
+\end{document}

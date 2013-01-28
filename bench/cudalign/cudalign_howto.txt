@@ -1,0 +1,42 @@
+I'm sending you a source package that I made last year for version
+2.0.1. This version do not have the optimizations of the last paper
+(Retrieving Smith-Waterman Alignments with Optimizations for Megabase
+Biological Sequences using GPU. IEEE TPDS, 2012). I will soon release
+the current version on source forge:
+http://sourceforge.net/projects/cudalign/.
+
+So, here is the instructions.
+
+- extract the tar gz
+- enter in directory ./project/src
+- Edit Makefile and Change the paths. Maybe you will need to change
+some flags and also some directories in the library paths in the
+middle of the Makefile. My environments is for 64 bits.
+- Maybe you will not be required to use the --compiler-bindir parameter
+- Install libcairo2-dev in order to compile everything. If you cant
+install cairo, I think you will need to remove libcairo support in the
+source code (there is a #define to suppress the need of libcairo).
+- After you compile the cudalign, enter in the ./newbench directory.
+- You will need to download the sequences with the
+prefetch_comparisons.pl script. The fasta files will be in the
+"sequences" directory.
+- You can run the comparisons using the run_comparison.pl script.
+There is other scripts in the same directory.
+- You can create new comparisons, with specific parameters, using the
+create_comparison.pl script. The comparison files is stored in the
+"comparison" directory.
+- Type ../cudalign --help in order to see instruction for running
+cudalign tool without the help of the scripts.
+- Maybe, you will need to change CUDA parameters in the
+common/cuda_configs.hpp file.
+- If you need to change Smith Waterman parameters, edit common/sw_configs.hpp.
+
+The scripts *.pl run without problem with me, but some problems may
+happen if you try to run cudalign directly without the *.pl scripts.
+There are many codes that are still in develpment, and some other
+features are non functional yet.
+Please, contact me if you have any problem.
+
+
+Regards
+Edans Sandes

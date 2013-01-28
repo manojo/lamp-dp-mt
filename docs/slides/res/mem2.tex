@@ -1,0 +1,56 @@
+\documentclass[11pt]{article}
+\usepackage{amssymb,amsmath,amsthm,hyperref,verbatim,pict2e,graphicx,marvosym,array,booktabs}
+\usepackage[usenames]{xcolor} % color names ,dvipsnames,svgnames,table
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\pagestyle{empty} % remove page numbers
+\oddsidemargin -3cm
+\evensidemargin -3cm
+\topmargin -3.5cm
+\headsep 1cm
+\parskip 0cm
+\parindent 0cm
+\setlength{\paperwidth}{7cm}
+\setlength{\paperheight}{4.5cm}
+\begin{document}
+
+% \tbox : multiline textbox for pictures; \tbox[0=no frame,l=left_align]{width}{height}{content}
+\makeatletter
+\def\instr#1#2{TT\fi\begingroup\edef\x{\endgroup\noexpand\in@{#1}{#2}}\x\ifin@}
+\newlength{\tbox@len}
+\newcommand\tbox[4][]{\setlength{\tbox@len}{\unitlength}
+	\if\instr{0}{#1}\else \put(0,0){\framebox(#2,#3)[c]{}} \fi
+	\setlength{\unitlength}{.5\tbox@len}\put(0,#3){\setlength{\unitlength}{1pt}%
+		\put(2,-3){\setlength{\unitlength}{#2\tbox@len}\addtolength{\unitlength}{-4pt}%
+			\begin{minipage}{\unitlength}\if\instr{l}{#1} \else \centering \fi #4 \end{minipage}}}
+	\setlength{\unitlength}{\tbox@len}
+}
+\makeatother
+
+
+
+\newcommand\Cd[3][0,-1]{\put(#2){\put(.5,.5){\circle*{.3}}\put(.5,.5){\linethickness{1.5pt}\vector(#1){#3}}}} % dependency [dx,dy]{x,y}{len}
+\def\Cg#1{\put(#1){\color{lightgray}\put(0,0){\polygon*(0,0)(0,1)(1,1)(1,0)}}} % grayed cell (not to store
+
+\begin{center}\setlength{\unitlength}{.6cm}\begin{picture}(18,6)
+
+% BACKGROUND
+\put(0,0){\circle*{30}}
+
+\color{white}
+	{\color{orange}\Cd[0,1]{4,1}{2.8}\Cd[0,1]{4,2}{1.8}\Cd[1,0]{1,4}{2.8}\Cd[1,0]{2,4}{1.8}\Cd[1,1]{3,3}{0.8}\Cd[2,1]{2,3}{1.8}\Cd[1,2]{3,2}{.9}}
+	\Cd[0,1]{4,3}{0.8}\Cd[1,0]{3,4}{0.8}
+	\moveto(0,6)\lineto(6,6)\lineto(6,0)\lineto(5,0)\lineto(5,6)\lineto(4,6)\lineto(4,1)\lineto(6,1)\lineto(6,2)\lineto(3,2)
+	\lineto(3,6)\lineto(2,6)\lineto(2,3)\lineto(6,3)\lineto(6,4)\lineto(1,4)\lineto(1,6)\lineto(0,6)\lineto(0,5)\lineto(6,5)
+	\strokepath
+	\put(3.5,5.5){\color{lightgray}\line(1,-1){5}}
+	\multiput(3.7,5.5)(1,-1){6}{\color{red}\linethickness{1.5pt}\vector(1,0){2}}
+	\multiput(3.5,5.5)(1,-1){6}{\linethickness{1.5pt}\circle{.4}}
+	\put(8.6,0.05){\tiny thread 0}
+	\put(3.6,5.75){\tiny thread 5}
+
+\end{picture}\end{center}
+
+
+\end{document}

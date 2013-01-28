@@ -1,0 +1,162 @@
+=begin latex
+
+\documentclass{article}
+
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{1ex}
+
+\begin{document}
+
+\title{RNAfold 1.0 manual}
+\author{peter}
+
+\maketitle
+
+=end latex
+
+=head1 NAME
+
+RNAfold 1.0
+
+=head1 SYNOPSIS
+
+
+
+=head1 INTRODUCTION
+
+
+This is the new program RNAfold.
+
+=head1 OPTIONS
+
+B<-h>            	Display this information
+
+
+Option -h displays a command option overview.
+
+B<-H> C<option>  	Display detailed information on <option>
+
+
+This displays the corresponding section of the RNAfold manual for
+the given command line option.
+
+B<-v>            	Show version
+
+
+This shows the version number of RNAfold.
+
+B<-e> C<value>   	Set energy range (kcal/mol)
+
+
+This sets the energy range for suboptimal results. value is the
+difference to the minimum free energy for the sequence.
+
+B<-c> C<value>   	Set energy range (%%)
+
+
+This sets the energy range as percentage value of the minimum free
+energy. For example, when -c 10 is specified, and the minimum free
+energy is -10.0 kcal/mol, the energy range is set to -9.0 to -10.0
+kcal/mol.
+
+B<-M> C<value>   	Set maximal loop length
+
+
+This option sets the maximum lengths of the considered internal and
+bulge loops. The default value here is 30.  For unrestricted loop
+lengths, use option -M n. This will increase calculation times and
+memory requirements.
+
+B<-w> C<value>   	Set window size
+
+
+Beginning with position 1 of the input sequence, the analysis is
+repeatedly processed on subsequences of the specified size. After each
+calculation, the results are printed out and the window is moved by
+the window position increment (-W), until the end of the input
+sequence is reached.
+
+B<-W> C<value>   	Set window position increment
+
+
+This option specifies the increment for the window analysis mode
+(-w).
+
+B<-B>            	Show best results in window mode
+
+
+This option specifies, that only the best results are shown in window mode.
+
+B<-S> C<value>   	Specify output width for structures
+
+
+This splits the structure strings into parts of the specified
+length. This option is useful when displaying results for long
+sequences that would otherwise not fit onto the screen.
+
+B<-f> C<filename>	Read input from file
+
+
+Let RNAfold load its input data from file. file can contain a
+plain single sequence, or multiple sequences in fasta format. When
+given multiple sequences, each sequence is processed separately in the
+order of input.
+
+Valid characters in an input sequence are "ACGU" and "acgu". "T" and
+"t" will be converted to "U". Other letters are mapped to "N" and will
+not be paired. All other characters are ignored.
+
+B<-z>            	Colored output
+
+
+This option enables colored output. In interactive mode, this is the
+default setting, so use -z to disable colors here.
+
+
+
+
+=head2 Additional interactive mode commands
+
+B<:s>          Show current configuration
+
+This command shows the current settings in an interactive RNAfold
+session.
+
+B<:d>           Reset configuration
+
+This command sets all settings to their default values.
+
+B<:e> C<string> Execute system command
+
+Command B<:e> executes a system command. 
+
+B<:q>           Quit
+
+This command quits an interactive RNAfold session.
+
+=head1 EXAMPLES
+
+
+Start RNAfold in interactive mode:
+
+    RNAfold
+
+Pipe file input.seq into the program:
+
+    cat input.seq | RNAfold
+
+=head1 EXIT STATUS
+
+RNAfold returns a zero exit status if it succeeds. Non zero is
+returned in case of failure.
+
+=head1 AUTHORS
+
+
+
+
+=begin latex
+
+\end{document}
+
+=end latex

@@ -1,0 +1,202 @@
+<?xml version='1.0'?>
+<!DOCTYPE interface SYSTEM "interface.dtd">
+
+<interface name="RNAfold" author="peter" version="1.0" interactive="on" lib="rna" design="color">
+
+<versioninfo>
+</versioninfo>
+
+<messages>
+<interactive_welcome>Interactive mode. Try `./RNAfold -h` for more information.
+</interactive_welcome>
+
+<interactive_commandline>
+Input sequence (upper or lower case); :q to quit, -h for help.
+....,....1....,....2....,....3....,....4....,....5....,....6....,....7....,....8
+</interactive_commandline>
+
+<interactive_help_header>Interactive mode:
+Enter sequence directly or use the following commands to change settings:
+</interactive_help_header>
+
+<synopsis>Usage: RNAfold [options] input</synopsis>
+
+</messages>
+
+<manual>
+<introduction>
+This is the new program RNAfold.
+</introduction>
+
+<examples>
+Start RNAfold in interactive mode:
+
+    RNAfold
+
+Pipe file input.seq into the program:
+
+    cat input.seq | RNAfold
+</examples>
+</manual>
+
+
+<module
+  name="mfe"
+  source="RNAfold.lhs"
+  main_name="main_rnafold_mfe"
+  adpc="-al mfe enum -cs mfe -alpp pp -O -lcf -ta bt -bt so -gc cc  -iuc -cto -tadd 3 -taddc 30  -W  | sed -f RNAfold_mfe.sed  > RNAfold_mfe.c "
+  condition="1"
+  output_optimal="      if (opts->traceback_percent) traceback_diff = abs(result_score * opts->traceback_percent / 100);
+      rna_output_optimal(opts, seq, $mfe$, result_score, result_score, result_score + traceback_diff);"
+  output_subopt_start="      rna_output_subopt_start(opts, seq, $mfe$, result_score, result_score, result_score + traceback_diff);"
+  output_subopt="            rna_output_subopt(opts, seq, $mfe$, score, result_prettyprint);"
+  output_subopt_end="      rna_output_subopt_end(opts, seq, $mfe$, result_score, result_score, result_score + traceback_diff);"
+></module>
+
+
+  
+<option switch="h" text="Display this information">
+  <help />
+<man>
+Option -h displays a command option overview.
+</man>
+</option>
+
+<option switch="H" argtext="option" text="Display detailed information on <option>">
+  <longhelp />
+<man>
+This displays the corresponding section of the RNAfold manual for
+the given command line option.
+</man>
+</option>
+
+<option switch="v" text="Show version">
+  <version />
+<man>
+This shows the version number of RNAfold.
+</man>
+</option>
+
+
+
+<option switch="e" argtext="value" text="Set energy range (kcal/mol)">
+   <set var="traceback_diff" datatype="float" default="0" minval="0" 
+     infotext="Energy range #.2f kcal/mol"
+     settext="Energy range set to #.2f kcal/mol."/>
+<code>
+opt->traceback_percent = 0;
+</code>
+<man>
+This sets the energy range for suboptimal results. value is the
+difference to the minimum free energy for the sequence.
+</man>
+</option>
+
+<option switch="c" argtext="value" text="Set energy range (##)">
+   <set var="traceback_percent" datatype="int" default="10" minval="0" 
+     infotext="Energy range #d## of mfe"
+     settext="Energy range set to #d## of mfe."/>
+<code>
+opt->traceback_diff = 0;
+</code>
+<man>
+This sets the energy range as percentage value of the minimum free
+energy. For example, when -c 10 is specified, and the minimum free
+energy is -10.0 kcal/mol, the energy range is set to -9.0 to -10.0
+kcal/mol.
+</man>
+</option>
+
+<option switch="M" argtext="value" text="Set maximal loop length">
+   <set var="maxloop" datatype="int" default="30" minval="0" 
+     infotext="Maximal loop length: #d"
+     settext="Set maximal loop length to #d."/>
+<man>
+This option sets the maximum lengths of the considered internal and
+bulge loops. The default value here is 30.  For unrestricted loop
+lengths, use option -M n. This will increase calculation times and
+memory requirements.
+</man>
+</option>   
+
+<option switch="w" argtext="value" text="Set window size">
+   <switchset var="window_size" swvar="window_mode" 
+              settext="Set window size to #d. Type -w - to disable."
+              disabletext="Window mode disabled."
+              infotext="Window size: #d"
+              defaultval="0"
+              default="off"
+              datatype="int"  
+              minval="1" />
+<man>
+Beginning with position 1 of the input sequence, the analysis is
+repeatedly processed on subsequences of the specified size. After each
+calculation, the results are printed out and the window is moved by
+the window position increment (-W), until the end of the input
+sequence is reached.
+</man>
+</option> 
+
+<option switch="W" argtext="value" text="Set window position increment">
+   <set var="window_step" datatype="int" default="1" minval="1" 
+     infotext="Window position increment: #d"
+     settext="Set window position increment to #d."/>
+<man>
+This option specifies the increment for the window analysis mode
+(-w).
+</man>
+</option> 
+
+<option switch="B" text="Show best results in window mode">
+  <switch var="window_best" default="off" settext="Show best results in window mode" 
+          infotext="Show best result in window mode"/>
+<man>
+This option specifies, that only the best results are shown in window mode.
+</man>
+</option>
+
+
+<option switch="S" argtext="value" text="Specify output width for structures">
+   <switchset var="split_output_size" swvar="split_output_mode" 
+              settext="Set output size to #d. Type -S - to disable."
+              disabletext="Output splitting disabled."
+              infotext="Output width for structures: #d"
+              defaultval="0"
+              default="off"
+              datatype="int"  
+              minval="1" />
+<man>
+This splits the structure strings into parts of the specified
+length. This option is useful when displaying results for long
+sequences that would otherwise not fit onto the screen.
+</man>
+</option> 
+
+
+<option switch="f" argtext="filename" text="Read input from file">
+  <file var="inputfile" />
+<man>
+Let RNAfold load its input data from file. file can contain a
+plain single sequence, or multiple sequences in fasta format. When
+given multiple sequences, each sequence is processed separately in the
+order of input.
+
+Valid characters in an input sequence are "ACGU" and "acgu". "T" and
+"t" will be converted to "U". Other letters are mapped to "N" and will
+not be paired. All other characters are ignored.
+</man>
+</option>
+
+<option switch="z" text="Colored output">
+  <switch var="colored_output" default="off" settext="Colored output" infotext="Colored output"/>
+  <code>
+     if (opt->interactive && !opt->colored_output) printf(COLOR_DEFAULT);
+  </code>
+<man>
+This option enables colored output. In interactive mode, this is the
+default setting, so use -z to disable colors here.
+</man>
+</option>
+
+</interface>
+

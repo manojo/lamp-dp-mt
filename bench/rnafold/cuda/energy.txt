@@ -1,0 +1,35 @@
+> #extern sr_energy :: (Int, Int) -> Int
+> #extern hl_energy :: (Int, Int) -> Int
+> #extern bl_energy :: (Int, Int, Int, Int) -> Int
+> #extern br_energy :: (Int, Int, Int, Int) -> Int
+> #extern il_energy :: (Int, Int, Int, Int) -> Int
+> #extern il11_energy :: Int -> Int -> Int
+> #extern il21_energy :: Int -> Int -> Int
+> #extern il12_energy :: Int -> Int -> Int
+> #extern il22_energy :: Int -> Int -> Int
+> #extern dli_energy  :: (Int, Int) -> Int
+> #extern dri_energy  :: (Int, Int) -> Int
+> #extern dl_energy  :: (Int, Int) -> Int
+> #extern dr_energy  :: (Int, Int) -> Int
+> #extern ss_energy :: (Int, Int) -> Int
+>       sr  lb       e rb     = e + sr_energy (lb,rb) 
+>       hl  llb lb _   rb rrb =     hl_energy (lb,rb) + sr_energy (llb,rrb) 
+>       bl  llb bl1 (i,j) e br rrb = e + bl_energy (bl1,i,j,br) + sr_energy (llb,rrb)
+>       br  llb bl e (i,j) br1 rrb = e + br_energy (bl,i,j,br1) + sr_energy (llb,rrb)
+>       il llb lb (i,j) e (k,l) rb rrb    = e + sr_energy (llb,rrb) + il_energy (i,j,k,l)
+>       il11  lllb  llb     lb e rb       rrb rrrb = e + il11_energy llb  rrb  + sr_energy (lllb , rrrb)
+>       il21 llllb lllb llb lb e rb       rrb rrrb = e + il21_energy lllb rrb  + sr_energy (llllb, rrrb)
+>       il12  lllb  llb     lb e rb rrb rrrb rrrrb = e + il12_energy llb  rrrb + sr_energy (lllb ,rrrrb)
+>       il22 llllb lllb llb lb e rb rrb rrrb rrrrb = e + il22_energy lllb rrrb + sr_energy (llllb,rrrrb)
+>       ml    llb bl    e    br rrb = 380 + e + sr_energy (llb,rrb) + termaupenalty(bl,br)
+>       mldl  llb bl dl e    br rrb = 380 + e + dli_energy (bl,br) + sr_energy (llb,rrb) + termaupenalty(bl,br)
+>       mldr  llb bl    e dr br rrb = 380 + e + dri_energy (bl,br) + sr_energy (llb,rrb) + termaupenalty(bl,br)
+>       mldlr llb bl dl e dr br rrb = 380 + e + dli_energy (bl,br) + dri_energy (bl,br) + sr_energy (llb,rrb) + termaupenalty(bl,br)
+>       dl    dl1 e rloc = e + dl_energy (dl1+1,rloc)
+>       dr  lloc e dr1   = e + dr_energy (lloc+1,dr1-1)
+>       dlr   dl e dr   = e + dl_energy (dl+1,dr-1) + dr_energy (dl+1,dr-1)
+>       edl   dl e rloc = e + dl_energy (dl+1,rloc) + termaupenalty(dl+1,rloc)
+>       edr lloc e dr   = e + dr_energy (lloc+1,dr-1) + termaupenalty(lloc+1,dr-1)
+>       edlr  dl e dr   = e + dl_energy (dl+1,dr-1) + dr_energy (dl+1,dr-1) + termaupenalty(dl+1,dr-1)
+>       addss    e (i,j) =      e + ss_energy (i,j)
+>       ssadd (i,j)  e   = 40 + e + ss_energy (i,j)

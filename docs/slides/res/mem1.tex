@@ -1,0 +1,63 @@
+\documentclass[11pt]{article}
+\usepackage{amssymb,amsmath,amsthm,hyperref,verbatim,pict2e,graphicx,marvosym,array,booktabs}
+\usepackage[usenames]{xcolor} % color names ,dvipsnames,svgnames,table
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\pagestyle{empty} % remove page numbers
+\oddsidemargin -1.5cm
+\evensidemargin -1.5cm
+\topmargin -3.5cm
+\headsep 1cm
+\parskip 0cm
+\parindent 0cm
+\setlength{\paperwidth}{6cm}
+\setlength{\paperheight}{8cm}
+\begin{document}
+
+% \tbox : multiline textbox for pictures; \tbox[0=no frame,l=left_align]{width}{height}{content}
+\makeatletter
+\def\instr#1#2{TT\fi\begingroup\edef\x{\endgroup\noexpand\in@{#1}{#2}}\x\ifin@}
+\newlength{\tbox@len}
+\newcommand\tbox[4][]{\setlength{\tbox@len}{\unitlength}
+	\if\instr{0}{#1}\else \put(0,0){\framebox(#2,#3)[c]{}} \fi
+	\setlength{\unitlength}{.5\tbox@len}\put(0,#3){\setlength{\unitlength}{1pt}%
+		\put(2,-3){\setlength{\unitlength}{#2\tbox@len}\addtolength{\unitlength}{-4pt}%
+			\begin{minipage}{\unitlength}\if\instr{l}{#1} \else \centering \fi #4 \end{minipage}}}
+	\setlength{\unitlength}{\tbox@len}
+}
+\makeatother
+
+\setlength{\unitlength}{.6cm}\begin{picture}(4,11)
+% BACKGROUND
+\put(0,0){\circle*{30}}
+
+\color{white}
+\put(0,6) {
+	\put(0,0){\color{darkgray}\moveto(4,0)\lineto(4.5,.5)\lineto(4,.5)\closepath\fillpath\moveto(0,4)\lineto(-.5,3.5)\lineto(0,3.5)\closepath\fillpath}
+	\put(1,3){\linethickness{1.5pt}\vector(1,-1){2}}
+	\multiput(0,.5)(0,.5){7}{\line(1,0){4}}
+	\moveto(0,0)\lineto(4,0)\lineto(4.5,.5)\lineto(4,.5)\lineto(4,4)\lineto(0,4)\lineto(-.5,3.5)\lineto(0,3.5)\closepath\strokepath
+	\put(0,4.3){\small $0$}
+	\put(-1.5,3){\small $k-1$}
+	\put(2,-.7){\small $w \cdot \lceil h/k \rceil \cdot k+k^2-1$}
+	\put(0,4){\circle*{.2}}
+	\put(-.5,3.5){\circle*{.2}}
+	\put(4,0){\circle*{.2}}
+}
+\put(0,0){
+	\moveto(0,4)\lineto(4,0)\lineto(4,4)\closepath\strokepath
+	\put(0,4){\circle*{.2}}\put(4,4){\circle*{.2}}\put(4,0){\circle*{.2}}
+	\put(-.2,4.2){\small $0$}
+	\put(4.1,-.3){\small $n-1$}
+	\put(3.1,4.2){\small $n(n+1)/2-1$}
+	\put(2.2,2.2){\linethickness{1.5pt}\vector(1,1){1.5}}
+}
+\end{picture}
+
+\setlength{\unitlength}{.6cm}\begin{picture}(4,6)
+\end{picture}
+
+
+
+\end{document}
