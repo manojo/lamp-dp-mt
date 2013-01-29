@@ -37,6 +37,9 @@
 #ifndef my_TEMPERATURE // mk_pf
 #define my_TEMPERATURE my_P0.temperature
 #endif
+#ifndef my_LOG
+#define my_LOG log
+#endif
 
 // -----------------------------------------------------------------------------
 // Header
@@ -51,7 +54,7 @@
 enum base_t { N_BASE, A_BASE, C_BASE, G_BASE, U_BASE, GAP_BASE };
 enum iupac_t { N_IUPAC = 0, B_IUPAC = 6, D_IUPAC = 7, H_IUPAC = 8, R_IUPAC = 9, V_IUPAC = 10, Y_IUPAC = 11 };
 enum bp_t { N_BP, CG_BP, GC_BP, GU_BP, UG_BP, AU_BP, UA_BP, NO_BP };
-typedef unsigned int rsize;
+typedef /*unsigned*/ int rsize; // denote indices in the sequence
 
 my_dev static paramT *my_P = NULL;
 // my_dev static char* my_seq = NULL;
@@ -93,12 +96,12 @@ my_dev bool iupac_match(enum base_t base, unsigned char iupac_base);
 //
 // Input RNA sequence (my_seq) is encoded in bit encoding: N=0, A=1, C=2, G=3, U=4, GAP=5 (see librna/rnalib.h base_t)
 // Basepairs are encoded as follow (librna/rnalib.h bp_t):
-//   0 = no base pair, 1 = C-G, 2 = G-C, 3 = G-U, 4 = U-G, 5 = A-U, 6 = U-A, 7 = N-N, N might be a gap.
+//   0=no base pair, 1=CG, 2=GC, 3=GU, 4=UG, 5=AU, 6=UA, 7=NN, N might be a gap.
 //   Opposite to N_BP=0, NO_BP is set 0, instead of -INF in the Turner1999 energies.
 //
 
 my_dev static inline int bp_index(char x, char y) {
-  switch (x) {
+  switch (x) { // faster than lookup in __constant__ for CUDA
     case A_BASE: if (y==U_BASE) return AU_BP; break;
     case C_BASE: if (y==G_BASE) return CG_BP; break;
     case G_BASE: switch (y) { case C_BASE: return GC_BP; case U_BASE: return GU_BP; } break;
@@ -136,7 +139,8 @@ my_dev static rsize getPrev(rsize pos, rsize steps, rsize leftBorder) { // asser
 #define _bp(i,j) bp_index(my_seq[i],my_seq[j])
 #define _bp2(a,b,c, d,e,f) bp_index(my_seq[getPrev(a,b,c)], my_seq[getNext(d,e,f)])
 
-my_dev static inline int jacobson_stockmayer(rsize l) { return (int)(my_LXC*log((l)/(1.0 * MAXLOOP))); }
+my_dev static inline int jacobson_stockmayer(rsize l) { return (int)(my_LXC*my_LOG((l)*(1.0 / MAXLOOP))); } // approx 10% total time (RNAfold-768)
+
 my_dev static inline int hl_ent(rsize l) { return (l>MAXLOOP) ? my_HAIRPIN_MAX+jacobson_stockmayer(l) : my_P0.hairpin[l]; }
 my_dev static inline int hl_stack(rsize i, rsize j) { return my_P0.mismatchH[_bp(i,j)][_next(i,1,j-1)][_prev(j,1,i+1)]; }
 my_dev INLINE int termau_energy(rsize i, rsize j) { return ((my_seq[i]==G_BASE && my_seq[j]==C_BASE) || (my_seq[i]==C_BASE && my_seq[j]==G_BASE)) ? 0 : my_TERM_AU; }

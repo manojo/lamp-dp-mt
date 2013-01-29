@@ -27,7 +27,7 @@ the authors.
 
 typedef struct {
   short stack[NBPAIRS+1][NBPAIRS+1];
-  short hairpin[31];
+  short hairpin[MAXLOOP+1];
   short bulge[MAXLOOP+1];
   short internal_loop[MAXLOOP+1];
   short mismatchExt[NBPAIRS+1][5][5];

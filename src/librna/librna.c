@@ -87,7 +87,8 @@ jstring _fun(getConsts)(_p0) {
   c_P=get_scaled_parameters();
   char buf[2048];
   snprintf(buf,2048,
-    "#define my_LXC %d.%d\n"
+    "#define my_LOG logf\n"
+    "#define my_LXC %d.%04d\n"
     "#define my_HAIRPIN_MAX %d\n"
     "#define my_TERM_AU %d\n"
     "#define my_NINIO0 %d\n"

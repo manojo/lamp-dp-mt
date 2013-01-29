@@ -1,0 +1,33 @@
+\documentclass[11pt]{article}
+\usepackage{amssymb,amsmath,amsthm,hyperref,verbatim,pict2e,graphicx,marvosym,array,booktabs}
+\usepackage[usenames]{xcolor} % color names ,dvipsnames,svgnames,table
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\pagestyle{empty} % remove page numbers
+\oddsidemargin -2.5cm
+\evensidemargin -2.5cm
+\topmargin -4cm
+\headsep 1cm
+\parskip 0cm
+\parindent 0cm
+\setlength{\paperwidth}{14cm}
+\setlength{\paperheight}{6cm}
+\begin{document}
+
+%\color{white}
+\[T < \textbf{Aggregate} < \textbf{Or} < \textbf{Filter} < \textbf{Map} < \textbf{Concat} < \text{(Tabulation | Terminal)}\]
+
+\begin{center}
+\begin{tabular}{l|lllll}
+Outer $\diagdown$ inner	& Aggregate	& Or			& Map	& Filter		& Concat \\ \hline
+Aggregate			& merge?		& swap$_R$	& ---		& swap$_P$	& ---\\
+Or					& ---			& simplify?	& ---		& swap$_P$?	& ---\\
+Map					& ---			& swap$_R$	& fuse	& swap$_P$	& ---\\
+Filter					& ---			& ---			& ---		& merge?		& ---\\
+Concat				& ---			& swap$_R$	& ---		& ---			& ---\\
+\end{tabular} \\[10pt]
+\footnotesize{$R=\ $required, $P=\ $performance optimization, $?=\ $if possible}
+\end{center}
+
+\end{document}
