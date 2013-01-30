@@ -7,12 +7,6 @@
 #include <ctype.h>
 #include <string.h>
 
-#ifdef __GNUC__
-# define INLINE inline
-#else
-# define INLINE
-#endif
-
 /**
  *  <H2>Compute the Energy of a hairpin-loop</H2>
  *  To evaluate the free energy of a hairpin-loop, several parameters have to be known.
@@ -44,7 +38,7 @@
  *  \param  P     The datastructure containing scaled energy parameters
  *  \return The Free energy of the Hairpin-loop in dcal/mol
  */
-INLINE PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P){
+inline static int E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P){
   int energy = (size <= 30) ? P->p0.hairpin[size] : P->p0.hairpin[30]+(int)(P->p0.lxc*log((size)/30.));
   if (size == 4) { /* check for tetraloop bonus */
     char tl[7]={0}, *ts;
@@ -108,7 +102,7 @@ INLINE PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *s
  *  \param  P       The datastructure containing scaled energy parameters
  *  \return The Free energy of the Interior-loop in dcal/mol
  */
-INLINE PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P){
+inline static int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P){
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, energy;
 
@@ -174,7 +168,7 @@ INLINE PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int 
  *  \param  D The datastructure containing scaled energy parameters
  *  \return   The energy contribution of the introduced exterior-loop stem
  */
-INLINE PRIVATE int E_ExtLoop(int type, int si1, int sj1, paramT *P){
+inline static int E_ExtLoop(int type, int si1, int sj1, paramT *P){
   int energy = 0;
   if(si1 >= 0 && sj1 >= 0) energy += P->p0.mismatchExt[type][si1][sj1];
   else if (si1 >= 0) energy += P->p0.dangle5[type][si1];
@@ -202,7 +196,7 @@ INLINE PRIVATE int E_ExtLoop(int type, int si1, int sj1, paramT *P){
  *  \param  D The datastructure containing scaled energy parameters
  *  \return   The energy contribution of the introduced multiloop stem
  */
-INLINE PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P){
+inline static int E_MLstem(int type, int si1, int sj1, paramT *P){
   int energy = 0;
   if(si1 >= 0 && sj1 >= 0) energy += P->p0.mismatchM[type][si1][sj1];
   else if (si1 >= 0) energy += P->p0.dangle5[type][si1];

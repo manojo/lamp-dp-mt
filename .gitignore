@@ -3,6 +3,7 @@ bin
 bench
 src/librna/rfold
 src/main/c/test
+src/test/java
 target/
 lib_managed/
 project/boot/

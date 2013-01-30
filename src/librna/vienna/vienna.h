@@ -21,10 +21,6 @@ the authors.
 
 #include "energy_const.h"
 
-#ifndef NBASES
-#define NBASES 8
-#endif
-
 typedef struct {
   short stack[NBPAIRS+1][NBPAIRS+1];
   short hairpin[MAXLOOP+1];

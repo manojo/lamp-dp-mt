@@ -11,8 +11,8 @@ public class MatMult {
         for (int i=1;i<size;++i) {
             in[i]=(i&1)==1 ? r.nextInt() : in[i-1];
         }
-        long time = System.currentTimeMillis();
         mat = new int[size*size];
+        long time = System.currentTimeMillis();
         for (int i=size-1;i>=0;--i) {
             mat[i*size+i]=0;
             for (int j=i+1;j<size;++j) {
@@ -30,7 +30,11 @@ public class MatMult {
 
 
     public static void main(String[] args) {
-        new MatMult(1024); // 1265 ms
-        new MatMult(2048); // 22051 ms >> 1265*8 = 10120 ms
+    	for (int i=0;i<10;++i) {
+			new MatMult(1024); // 840 ms
+    	}
+    	for (int i=0;i<10;++i) {
+			new MatMult(2048); // 14266 ms >> 840*8 = 6720 ms
+    	}
     }
 }
