@@ -1,0 +1,18 @@
+Files to be kept
+
+drwxrwxrwx   2 quinton  5               0 Apr 14  2002 CVS
+
+** Is it up to date???
+-rw-rw-rw-   1 quinton  5            4354 Jul 21  1999 How-to-install
+
+** This file describes how to use CVS for MMAlpha. Could be useful
+-rw-rw-rw-   1 quinton  5            8510 Sep  6  1996 README.cvs
+
+** Is it obsolete?
+-rw-rw-rw-   1 quinton  5             864 Mar 29  1995 changes_from_doran_Makefiles
+
+** Is it obsolete?
+-rw-rw-rw-   1 quinton  5            4405 Mar  8  1996 revision4solaris.txt
+
+
+[back]

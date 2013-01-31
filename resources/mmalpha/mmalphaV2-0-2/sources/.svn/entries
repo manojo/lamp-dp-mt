@@ -1,0 +1,123 @@
+10
+
+dir
+12
+https://scm.gforge.inria.fr/svn/mmalpha/mmalphaV2-0-2/sources
+https://scm.gforge.inria.fr/svn/mmalpha
+
+
+
+2010-05-03T08:37:00.374266Z
+3
+sderrien
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+0743d4e4-8c0e-438f-ad07-3e00971e1bb5
+
+Write_Alpha
+dir
+
+Read_Alpha
+dir
+
+Code_Gen
+dir
+
+MakeIncludes
+dir
+
+Domlib
+dir
+
+Pretty
+dir
+
+Pip
+dir
+
+index.html
+file
+
+
+
+
+2013-01-29T20:22:47.000000Z
+1f4516238fcc72d7632a375ca9ef42aa
+2010-05-03T08:37:00.374266Z
+3
+sderrien
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+668
+
+Sed
+dir
+
+Write_C
+dir
+
+Makefile
+file
+
+
+
+
+2013-01-29T20:22:47.000000Z
+145caf1b468e86c5e191877c61042de6
+2010-05-03T08:37:00.374266Z
+3
+sderrien
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2736
+

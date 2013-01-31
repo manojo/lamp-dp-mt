@@ -1,0 +1,19 @@
+--Alpha system that initialize a N Vector
+--a[i] ~ 2^i+i
+--
+
+system assign_vect1 : {N| N>0} ()
+       returns (v : {i|0 <= i <= N-1} of integer);
+  var
+	vv: {i|0 <= i <= N-1} of integer;
+	vvv: {i|0 <= i <= N-1} of integer;
+	vvvv: {i|0 <= i <= N-1} of integer;
+  let
+	vv[i] = case
+		{|i=0} :  1[];
+		{|i>0} : 2[]*vv[i-1]+vvv[i-1];
+		esac;
+	vvv[i]=0[];
+	vvvv[i]=vv[N-1];
+	v[i]=vv[i];
+  tel;   

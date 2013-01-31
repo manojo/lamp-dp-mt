@@ -1,0 +1,45 @@
+--
+-- This VHDL Pattern allows a modulo address to be generated
+-- The parameters are the name, the period, the period minus one,
+-- the size of the address (it is calculated automatically by the
+-- generator)
+--
+-- $comment$
+--
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_signed.all;
+use IEEE.numeric_std.all;
+
+ENTITY $name$ IS  
+  PORT(
+    clk : IN STD_LOGIC;         -- global clock
+    ceGen : IN STD_LOGIC;       -- general clock enable signal
+    rst : IN STD_LOGIC;         -- reset signal
+    address : OUT INTEGER RANGE 0 TO $periodMun$
+  );
+END $name$;
+ 
+ARCHITECTURE archiOf$name$ OF $name$ IS
+  SIGNAL addr: INTEGER RANGE 0 TO $periodMun$;
+BEGIN
+      
+  PROCESS( clk )
+  BEGIN
+    IF rising_edge(clk) THEN        
+      IF (ceGen='1') THEN   -- when ceGen is 1 modify address
+        IF (rst='0') OR (addr = $periodMun$) THEN
+          addr <= 0;
+        ELSE 
+          addr <= addr + 1;
+        END IF;
+      END IF;
+    END IF;
+  END PROCESS;             
+
+  address <= addr;
+   
+END archiOf$name$;
+ 
+

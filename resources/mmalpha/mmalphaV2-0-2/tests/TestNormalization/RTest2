@@ -1,0 +1,6 @@
+case[{restrict[domain[1, {"i"}, 
+     {pol[2, 1, 1, 0, {{0, 1, 0}, {1, 0, 1}}, {{1, 0, 1}}]}], 
+    affine[var["X"], matrix[1, 2, {"i"}, {{0, 1}}]]], 
+   restrict[domain[1, {"i"}, {pol[2, 2, 0, 0, {{1, 1, -1}, {1, 0, 1}}, 
+       {{1, 1, 0}, {1, 1, 1}}]}], 
+    unop[neg, affine[var["B"], matrix[1, 2, {"i"}, {{0, 1}}]]]]}]

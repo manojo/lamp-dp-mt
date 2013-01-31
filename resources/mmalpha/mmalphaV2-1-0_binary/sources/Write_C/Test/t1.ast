@@ -1,0 +1,29 @@
+(* ALPHA Tree produced by read_alpha v.3.3.4 (Doran) *){
+Alpha`system["pdscal",
+    (* parameter space *)
+    Alpha`domain[0, {}, {
+        Alpha`pol[1, 1, 0, 0, {
+            {1, 1}},{
+            {1, 1}}]}],
+    { (* input variables *)
+    Alpha`decl["V", Alpha`real, 
+        Alpha`domain[2, {"i", "p"}, {
+            Alpha`pol[3, 2, 1, 0, {
+                {0, 1, 0, -1},
+                {1, 0, 1, -1},
+                {1, 0, -1, 3}},{
+                {1, 1, 1, 1},
+                {1, 1, 3, 1}}]}]]},
+    { (* output variables *)
+    Alpha`decl["Vdiv", Alpha`real, 
+        Alpha`domain[2, {"i", "p"}, {
+            Alpha`pol[3, 2, 1, 0, {
+                {0, 1, 0, -1},
+                {1, 0, 1, -1},
+                {1, 0, -1, 3}},{
+                {1, 1, 1, 1},
+                {1, 1, 3, 1}}]}]]},
+    { (* local variables *)},
+    { (* let *)
+    Alpha`equation["Vdiv", Alpha`var["V"]]}]
+}

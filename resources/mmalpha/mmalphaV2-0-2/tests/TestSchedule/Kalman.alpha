@@ -1,0 +1,85 @@
+-- Matrix multiplication
+-- Inputs: a, b: square matrices of size M
+-- Outputs: c: square matrix of size M
+system matmult : {M |M>1}
+  (a,b : {i,j | 1<=i,j<=M} of real)
+returns
+  (c : {i,j | 1<=i,j<=M } of real);
+var
+   C : {i,j,k | 1<=i,j<=M; 0<=k<=M} of real;
+let
+   c[i,j] = C[i,j,M];
+   C[i,j,k] = 
+   case
+    {|k=0} : 0[];
+    {|1<=k<=M} : C[i,j,k-1]+a[i,k]*b[k,j];
+   esac;
+tel;
+
+-- Matrix vector multiplication
+-- Input: a: a square matrix of size M
+--        v: a vector of size M
+-- Output: c: a vector of size M
+system matvect : {M | M>1}
+   (a : {i,j | 1<=i,j<=M} of real;
+    v : {i | 1<=i<=M} of real)
+returns  (c : {i | 1<=i<=M} of real);
+var
+  C : {i,j | 1<=i<=M; 0<=j<=M} of real;
+let
+    C[i,j] = 
+    case
+       {| j=0} : 0[];
+       {| j>=1} : C[i,j-1]+a[i,j]*v[j];
+    esac;
+    c[i] = C[i,M];
+tel;
+
+-- Dot product
+-- Input: v, w: two M vectors
+-- Output: s: a scalar
+system dotprod : {M | M>1}
+ ( v, w : {i | 1<=i<=M} of real)
+returns  (s : real);
+var
+   S : {i | 0<=i<=M} of real;
+let
+   S[i] = 
+    case
+       {| i=0} : 0[];
+       {| i>=1} : S[ i-1 ] + v[i]*w[i];
+    esac;
+   s[] = S[M];
+tel;
+
+system OneStep: {M | 2<=M}
+(
+  yTildekPlusOne:  real;
+  Ip, bBetabT, Phib, PhibT, Pkk: {m,i | 1<= m<= M; 1<= i<= M} of real;
+  hk, hkT, hkPlusOne, hkPlusOneT, xHatkk : {m | 1<= m<= M} of real
+)
+returns (
+     KkPlusOne, 
+     xHatkPlusOnekPlusOne : {m | 1<= m<= M} of real;
+     PkPlusOnekPlusOne : {m,i | 1<= m<= M; 1<= i<= M} of real
+);
+var
+     xHatkPlusOnek, V2, V3 : {m | 1<= m<= M} of real;
+     yHat, yMinushx, Veint, VkPlusOneMinusOne :  real;
+     PkPlusOnek, PP1, V1, Pint : {m,i | 1<= m<= M; 1<= i<= M} of real;
+let
+     use  matvect[M] (Phib, xHatkk) returns (xHatkPlusOnek); -- Equation (3)
+     use  matmult[M] (Pkk, PhibT) returns  (V1); -- Equation (4)
+     use  matmult[M] (Phib, V1) returns (PP1); -- Equation (4)
+     PkPlusOnek = PP1 + bBetabT; -- Equation (4)
+     use  matvect[M] (PkPlusOnek, hkT) returns (V2); -- Equation (5)
+     use  dotprod[M] (hk, V2) returns  (Veint); -- Equation (5)
+     use  matvect[M] (PkPlusOnek, hkPlusOneT) returns (V3); -- Equation (6)
+     VkPlusOneMinusOne[] = 1[] / (Veint+1[]); -- Equation (6)
+     KkPlusOne[m] = V3[m] * VkPlusOneMinusOne[]; -- Equation (6)
+     use  dotprod[M] ( xHatkPlusOnek, hkPlusOne) returns (yHat); -- Equation (7)
+     yMinushx = yTildekPlusOne - yHat; -- Equation (7)
+     xHatkPlusOnekPlusOne[m] = xHatkPlusOnek[m] + KkPlusOne[m] * yMinushx[]; -- Equation (7)
+     Pint[m,i] = Ip[m,i] - KkPlusOne[m] * hkPlusOne[i]; -- Equation (8)
+     use matmult[M] (Pint, PkPlusOnek) returns (PkPlusOnekPlusOne); -- Equation (8)
+tel;

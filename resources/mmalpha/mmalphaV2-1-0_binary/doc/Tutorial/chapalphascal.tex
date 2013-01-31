@@ -1,0 +1,425 @@
+\chapter{Modelling synchronous architectures}
+\label{chapalphascal}
+
+\begin{tobedone}
+\begin{enumerate}
+\item Redraw figures (after reinstalling X11 and xfig)
+\end{enumerate}
+\end{tobedone}
+
+In this chapter, we present the {\alfa} language through the 
+description of very simple -- and seemingly artificial -- examples
+of synchronous circuits\index{synchronous circuits}. Our goal is to show the basic constructors
+of the language: their syntax, their meaning, and how they can be
+used in practice. 
+% 
+%\newpage
+\section{Pointwise operators\index{pointwise operators}}
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+%\colorbox{white}{
+\centerline{\includegraphics{figures/exemple_1}}
+\caption{An adder\label{adder1}}
+\end{figure}
+Consider the architecture\index{architecture} shown in figure~\ref{adder1}: there is a 
+simple adder\index{adder}, 
+which takes to input flows, respectively {\tt x} and 
+{\tt y}, and returns {\tt S}. 
+
+This architecture is described by the {\alfa} program of figure \ref{adder-alpha}.
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/adder.alpha}
+\caption{An adder in {\alfa}}\label{adder-alpha}
+\end{figure}
+A program is called a {\em system}\index{system}. 
+Line 1 is the head of the system, 
+with name {\tt exemple1}. This system has two input arguments
+named
+{\tt x} and {\tt y}. These arguments, called {\em variables}\index{input
+variables}, are
+defined on the set {\tt \{t | 1 <= t\}}. Line 3 defines a local variable\index{local variable}
+{\tt S} (for the moment, this variable is useless, but we shall
+soon find a use for it). 
+Between the {\tt let} and {\tt tel} keywords of lines 4 and
+7, we have two equations\index{equation}: 
+line 5 says that {\tt S} is the pointwise sum of 
+{\tt x} and {\tt y}. In other words, $\forall t, S_t = x_t + y_t$. 
+Line 6 says that {\tt z} and {\tt S} are identical.
+\subsection*{Processing this example in {\mmalfa}}
+Here are the Mathematica expressions that allow one to try
+the previous example under MMAlpha.
+%A more complete introduction to {\mmalfa} is given in 
+%appendix~\ref{mma-introduction}.
+\begin{verbatim}
+load["adder.alpha"]    (* loads the alpha file *)
+ashow[];               (* shows its content *)
+\end{verbatim}
+
+%
+%\newpage
+\section{Delays as dependence fonctions}
+We now modify this example, by adding a delay\index{delay} on the output, as
+shown in figure \ref{adderDelayed}. 
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\centerline{\includegraphics{figures/exemple_2}}
+\caption{Adder delayed}\label{adderDelayed}
+\end{figure}
+The corresponding {\alfa} program is shown in figure \ref{adderDelayed-alpha}.
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/adderDelayed.alpha}
+\caption{Adder plus delay}\label{adderDelayed-alpha}
+\end{figure}
+In this example, the definition domains\index{domain} of {\tt z} and {\tt S} have
+changed: indeed, the output of the adder\index{adder (delayed)} is defined only one
+cycle after the input. Thus, {\tt z} and {\tt S} are declared on 
+domain {\tt \{t|2<=t\}}. Instruction 4 now defines {\tt S} as being the
+sum of variables {\tt x+y}, delayed by 1. 
+
+%
+%\newpage
+\section{Retiming\index{retiming}}
+{\alfa} provides tools for retiming synchronous architectures. 
+In the example of figure~\ref{adderDelayed}, one can shift the 
+delay from the output of the adder to its inputs. 
+This corresponds to replacing line 4 in program~\ref{adderDelayed-alpha}
+by \verb\S[t] = x[t-1] + y[t-1];\. The corresponding architecture is shown 
+in figure~\ref{adderRetimed}.
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\centerline{\includegraphics{figures/exemple_3}}
+\caption{Retiming the adder}\label{adderRetimed}
+\end{figure}
+\subsection*{Retiming in {\mmalfa}}
+Do 
+\begin{verbatim}
+load["adderDelayed.alpha"]; (* load the alpha program *)
+ashow[];                      (* show it *)
+normalize[];                  (* simplify it *)
+ashow[];                      (* show the result *)
+asave["file.alpha"];          (* save program *)
+\end{verbatim}
+
+%
+%\newpage
+\section{Case and restrictions}
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\centerline{\includegraphics{figures/exemple_5}}
+\caption{Adding a multiplexer}\label{adderMultiplexer}
+\end{figure}
+
+Two other constructs of the language are the case\index{case} and the
+restriction.  Consider the example of figure~\ref{adderMultiplexer},
+which shows a new delayed and retimed version of the adder, where the
+output is taken through a multiplexer\index{multiplexer}. In other
+words, depending on the value of index {\tt t}, {\tt S} is either 0 or
+the sum {\tt x[t-1] + y[t-1]}. This is reflected in the definition of
+{\tt S} in figure~\ref{addermultiplexer-alpha} (lines 2--5.) This
+definition uses a case expression. Each branch\index{branch (of a case
+expression)} of the case is an {\alfa} expression. The first one is
+the constant\index{constant} $0$, denoted as {\tt 0[]} in {\alfa}. It is
+considered only when {\tt t} is equal to $1$, which is reflected in the
+condition\index{condition} {\tt \{| t = 1\}}. The second branch
+corresponds to the expression {\tt x[t] + y[t]}, taken when the
+condition {\tt \{|t>1\}} is true. Actually, we call an expression such
+as {\tt \{|t>1\}} a {\em restriction}.\index{restriction}
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/adderMultiplexer.alpha}
+\caption{Adder and multiplexer}\label{addermultiplexer-alpha}
+\end{figure}
+The definition of {\tt z} also uses a restriction. The definition of 
+line 6 says that {\tt z} is defined as {\tt S}, but only for time 
+instants {\tt t} such that {\tt \{|t>=5\}}. 
+\subsection*{Exercices in {\mma}}
+Load and parse program adderMultiplexer.alpha.
+\begin{verbatim}
+load[adderMultiplexer.alpha];
+ashow[adderMultiplexer];
+\end{verbatim}
+
+%
+%\newpage
+\section{Array and full form of {\alfa}}
+\label{arrayform}
+
+In all the above examples, we have used the so called {\em array
+form}\index{array form} of {\alfa}. The full form\index{full form} of
+the language is actually a little bit different, and a little bit more
+difficult to read initially. It is however needed in order to
+understand some of the properties of the language.
+
+Let us consider again the definition of {\tt S} in
+program~\ref{addermultiplexer-alpha}, line 2 -- 5:
+\begin{verbatim}
+ S[t] = case
+     {|t=1}: 0[];
+     {|t>1}: x[t-1] + y[t-1];
+     esac;
+\end{verbatim}
+The full form of this expression is in fact: 
+\begin{verbatim}
+ S = case
+      {t|t=1}: 0.(t->);
+      {t|t>1}: x.(t->t-1) + y.(t->t-1);
+  esac;
+\end{verbatim}
+To explain this, we need to go more deeply in the 
+structure of the language. In {\alfa}, any expression is a function from
+a set of points -- called the {\em domain} of the expression --, 
+to some value set depending on the type of the expression. 
+Expressions are either 
+\begin{itemize}
+\item variables -- e.g. {\tt S},\index{variables} 
+\item scalar constants\index{constants}
+\item pointwise operations on expressions -- e.g. {\tt x + y}\index{pointwise 
+operators}
+\item application of dependence functions to expressions, -- e.g. 
+{\tt exp.f} where {\tt f} is a dependence function explained later,\index{dependence function}
+\item restriction of expressions, -- e.g. {\tt dom: exp}, where 
+{\tt dom} is a domain description\index{restriction},
+\item case expressions -- e.g. {\tt case e1 ; e2; esac}, where {\tt e1}
+and {\tt e2} are expressions.\index{case expression}
+\end{itemize}
+
+Let us examine expressions in more details. 
+\subsection{Domains}
+\index{domain}
+
+Domains of {\alfa} are restricted to {\em polyhedra}, (more precisely,
+unions of finitely may polyhedra).  A polyhedron is a set of integral
+points whose coordinate satisfy linear inequalities.  For example:
+{\tt \{t | 1 <= t <= 10\}} denotes such a set. So also does {\tt \{i,j
+| i>=10; 0 <= j <= i\}} for example. {\texttt \{i | 0 < i < 10\} ||
+\{i | 15 <= i\}} is a union of polyhedra.  \index{polyhedron}
+
+\subsection{Variables}
+\index{variable}
+Variables are functions from a domain to a set of values. For example, 
+in program~\ref{addermultiplexer-alpha}, {\tt S} is a function from 
+the domain {\tt \{t|1<=t\}} to the set of integers. Thus, {\tt S}
+represents a collection of indexed values $S_t$, where {\it t} belongs
+to the domain of {\tt S}. 
+
+{\alfa} is a strongly-typed language, where variables are declared,
+together with their domain. This allows many compile time checks to be
+performed\index{type-checking} (see chapter~\ref{chapanalyze}).
+
+Input variables are defined in the head of the system
+definition. Output variables are defined after the key-word {\tt
+result}. Local variables are defined after the key-word {\texttt var}
+and the keyword {\tt let}.
+
+\subsection{Constants}
+In {\alfa}, constants are considered as functions from the
+singleton set $Z^0$ to a type. For example, $1$ is the function 
+from $Z^0$ to the integer value $1$. 
+\subsection{Pointwise operations}
+\index{pointwise operations}
+
+Pointwise operations generalize classical operations like +, -, * on
+integers, or {\tt and}, {\tt not}, {\tt or} on booleans. So, {\tt x +
+y} represents the pointwise operation on values $x_t$ and $y_t$ for
+all $t$. There is however, an important point to notice: if {\tt op}
+is a pointwise operator and {\tt e1} and {\tt e2} are expressions,
+then the domain of the expression {\tt e1 op e2} is the {intersection}
+of the domains of {\tt e1} and {\tt e2}.\index{domain of a pointwise
+expression}
+
+\subsection{Dependence functions}
+\index{dependence function}
+
+Dependence functions are affine functions on indices.
+They are denoted as
+\begin{center}
+\texttt{(idx, idx, ... -> iexp, iexp, ... )}
+\end{center}
+where \texttt{idx} is an index name and \texttt{iexp} is an affine
+function of indices.  For example: {\tt (i,j -> i+2, j+3i-4)\}}
+denotes such a function.  So does also the function {\tt f=(t ->
+t-1)}. Therefore, {\tt x.(t -> t-1)} is an {\alfa} expression, whose
+meaning is as follows.  Remember that {\tt x} is a function from the
+domain {\tt \{t | 1<=t\}} to the set of integers. The composition of
+functions {\tt x o f} is therefore defined, and this is just what {\tt
+x.(t -> t-1)} represents. It is easy to see that this function is
+defined on the domain {\tt \{t | t>=2\}}.  More generally, the domain
+of any expression {\tt e.f} is ${\tt f}^{-1}(\mbox{dom}({\tt e}))$,
+that is to say, the pre-image of the domain of {\tt e} by function
+{\tt f}.
+
+Note that a function {\tt (->t)} denotes a mapping from the set $Z^0$
+to $Z$. Similarly, {\tt (t ->)} denotes a mapping from the set $Z$ to
+$Z^0$. Such functions are used to extend scalar constants to higher
+dimensional domains.\index{Extension of constants}
+
+\subsection{Restriction expressions}
+
+\index{restriction} As said before, restrictions allows one to
+restrict the definition of an expression to a subdomain. To be
+consistent with the other language constructs, restrictions are
+defined as polyhedra, and therefore are denoted just as domains. For
+example, {\tt \{t | t>=5\}: S} is a restriction of the expression
+\texttt{S} to domain \texttt{\{t | t >= 5\}}. The domain of a
+restricted expression \texttt{dom: e} is the intersection of the
+domain of the expression and the domain defined by the restriction,
+i.e., $\texttt{dom} \cap \texttt{e}$.\index{domain of a restriction}
+
+\subsection{Case expressions}
+
+\index{case expression} As already seen, case expressions allow one to
+define a new function case by case. A case expression is defined on
+the union of the domains of its branch. Let {\tt case exp1; exp2 esac}
+be a case expression, with branches {\tt exp1} and {\tt exp2}. Let
+{\tt d1} and {\tt d2} be respectively the domains of {\tt exp1} and
+{\tt exp2}. Assume that {\tt d1} and {\tt d2} have the same
+dimensionality and are disjoint (these properties are checked during
+static analysis). Assume also that {\tt exp1} and {\tt exp2} have the
+same type, say {\tt T}.  Then {\tt case exp1; exp2 esac} is a function
+from ${\tt d1} \cup {\tt d2}$ to {\tt T}, whose value is that of {\tt
+exp1} on {\tt d1}, and that of {\tt exp2} on domain {\tt d2}. For 
+a detailed desciption of the domain computations and its use for the
+static analysis, see section~\ref{static-analysis}.
+
+\subsection*{Back to our example}
+We are now ready to consider again the example corresponding to figure~\ref{addermultiplexer-alpha}. The definition of {\tt S} is:
+\begin{verbatim}
+ S = case
+      {t|t=1}: 0.(t->);
+      {t|t>1}: x.(t->t-1) + y.(t->t-1);
+  esac;
+\end{verbatim}
+Let us analyze each branch. {\tt 0} is a function from $Z^0$ to 
+the integer value $0$. Composing this function with the function 
+\texttt{(t ->} extends the constant {\tt 0} to the set $Z$. In other 
+words, {\tt 0.(t->)} denotes the function from $Z$ to integers,
+whose value is {\tt 0} everywhere. 
+{\tt \{t | t=1\}: 0.(t->)} denotes the restriction of this function 
+to the single point {\tt t=1} of $Z$. 
+
+We can analyze the second branch in a similar fashion. We would conclude
+that it represents a function from the subset {\tt \{t | t>1\}} of $Z$, 
+whose value at point {\tt t} is $x_{t-1} + y_{t-1}$. 
+
+Finally, the total case expression defines {\tt S} as a function from
+{\tt \{t | t >=1\}} to the integer set, whose value is {\tt 0} 
+when {\tt t = 1}, $x_{t-1}+ y_{t-1}$ otherwise.
+
+\subsection{Array form}
+\index{array form}
+
+The array form is just a convenient way of presenting {\alfa} programs, 
+in a more ``readable'' form. The rule is simple to explain on the 
+definition of {\tt S}:
+\begin{itemize}
+\item Dependence functions of the form {\tt .(indices -> exprs)} are rewritten
+as {\tt [exprs]}, 
+\item Restrictions of the form {\tt \{indices | inequalities\}} are rewritten
+{\tt \{| inequalities\}},
+\item Left-hand side variables are appended with the indices from the
+right hand side.
+\end{itemize}
+Thus, the definition of {\tt S} in array form is
+\begin{verbatim}
+ S[t] = case
+      {|t=1}: 0[];
+      {|t>1}: x[t-1] + y[t-1];
+  esac;
+\end{verbatim}
+This notation can be used safely for any normalized expression, as 
+we shall see in section~\ref{substitution}.
+\subsection*{Exercices in {\mmalfa}}
+Load a program, and see its full form using the {\tt show[]}
+function, or its array form using {\tt ashow[]}.
+%\newpage
+\section{Substitution and normalization}
+\label{substitution}
+One of the properties of {\alfa} is called the referential transparency\,:
+\index{referential transparency}
+it means that the meaning of an expression is independent of the context
+where it appears. 
+For this reason, any symbol can be safely replaced by its definition. 
+For example, by replacing the {\tt S} symbol in the definition of 
+{\tt z} in program~\ref{addermultiplexer-alpha}, we obtain the 
+program shown in figure~\ref{addermultiplexer-alpha}.
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/adderSubstituted.alpha}
+\caption{Program of figure~\ref{addermultiplexer-alpha} after substitution of {\tt S} in 
+definition of {\tt z}}\label{addersubstituted-alpha}
+\end{figure}
+
+
+
+Let us consider the new definition of {\tt z}:
+\begin{verbatim}
+z = {t | 5<=t} : 
+         case
+           {t | t=1} : 0.(t->);
+           {t | 2<=t} : x.(t->t-1) + y.(t->t-1);
+         esac.(t->t);
+\end{verbatim}
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/adderNormalized.alpha}
+\caption{Normalization of program~\ref{addersubstituted-alpha} (in
+array form)}
+\label{addernormalized-alpha}
+\end{figure}
+
+It is rather intuitive that the first restriction {\tt \{t | 5<=t\}}
+can be distributed in the branches of the case expression. Combining
+(i.e., intersecting) this restriction with the {\tt \{t | t=1\}} leads
+obviously to an empty set, and consequently, to an empty
+branch. Similarly, combining {\tt \{t | 5<=t\}} with {\tt \{t | 2<=t\}}
+leads to {\tt \{t | 5<=t\}}. In summary, we can imagine that the full
+definition of {\tt z} can be simplified to something like {\tt z =
+x.(t->t-1) + y.(t->t-1)}.
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\centerline{\includegraphics{figures/exemple_7}}
+\caption{Architecture after substitution and normalization}
+\label{addernormalized}
+\end{figure}
+These intuitive properties are in fact true, and such a simplification
+is done in a systematic way by means of the normalization
+transformation: one can prove that any expression can be simplified
+into a normalized one, with at most one level of outermost case, one
+level of restrictions, and one level of
+dependences.\index{normalization}\index{simplification of expressions}
+
+After normalization, the program becomes that of
+figure~\ref{addernormalized-alpha}.
+
+We can interpret this program as representing the synchronous
+architecture of figure~\ref{addernormalized}.
+We can see -- and this is of course straightforward -- that the 
+multiplexer is indeed useless, since we are interested in the 
+value of {\tt z} only when {\tt t>1}. This normalization 
+property is one of the most important one of {\alfa}. 
+
+\subsection*{Exercices in {\mma}}
+\subsubsection*{Exercice 1}
+Write an {\alfa} program to model the 
+following
+architecture:
+%of figure~\ref{exo1}.
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\centerline{\includegraphics{figures/exo1}}
+\caption{Exercice 1}
+\label{exo1}
+\end{figure}
+\subsubsection*{Exercice 2}
+Write an {\alfa} program to model 
+the circuit of figure~\ref{exo2}.
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\centerline{\includegraphics{figures/exo2}}
+\caption{Exercice 2}\label{exo2}
+\end{figure}

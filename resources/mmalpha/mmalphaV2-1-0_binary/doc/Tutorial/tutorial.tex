@@ -1,0 +1,221 @@
+\documentclass[12pt]{book}
+\usepackage{fullpage,epic,eepic,epsfig,makeidx,color,moreverb,version,boxedminipage,graphicx}
+
+\includeversion{tobedone}
+
+%\usepackage{lucida}
+
+%\usepackage{t1enc}
+
+\newcommand{\gpl}{Gnu Public License}
+\newcommand{\pip}{PiP}
+\newcommand{\lpsolve}{LP-Solve}
+
+
+\newcommand{\sitemmalfa}{\texttt{www.irisa.fr/api/...}}
+\newcommand{\alfa}{{\sc Alpha}}
+\newcommand{\Alpha}{{\sc Alpha}}
+\newcommand{\alfhard}{{\sc AlpHard}}
+\newcommand{\AlpHard}{{\sc AlpHard}}
+\newcommand{\AlphaZ}{{{\Alpha}0}}
+\newcommand{\mma}{{\sc Mathematica}}
+\newcommand{\mmalfa}{{\sc MmAlpha}}
+\newcommand{\mmalpha}{{\sc MmAlpha}}
+\newcommand{\myscale}{1.4}
+\newcommand{\Z}{\bf Z}
+\newcommand{{\alphaz}}{{\alfa}0}
+\newcommand{{\alphard}}{{\alfhard}}
+\newcommand{\api}{{\sc api}}
+\newcommand{\irisa}{ Irisa}
+\newcommand{\vlsi}{{\sc vlsi}}
+\newcommand{\vhdl}{{\sc vhdl}}
+\newcommand{\Opt}[1]{{\rm\sl [} #1 {\rm\sl ]}}
+\newcommand{\Group}[1]{{\rm\sl (} #1 {\rm\sl )}}
+\newcommand{\Alt}{$\mid$}
+\newcommand{\Program}{{\sl Program\ }}
+\newcommand{\PDecl}{{\sl PDecl\ }}
+\newcommand{\PointwiseDecl}{{\sl PointwiseDecl\ }}
+\newcommand{\SystemDecl}{{\sl SystemDecl\ }}
+\newcommand{\Name}{{\sl Name\ }}
+\newcommand{\ScalarInDeclList}{{\sl ScalarInDeclList\ }}
+\newcommand{\ScalarOutDecl}{{\sl ScalarOutDecl\ }}
+\newcommand{\ScalarLocDeclList}{{\sl ScalarLocDeclList\ }}
+\newcommand{\ScalarVarDecl}{{\sl ScalarVarDecl\ }}
+\newcommand{\ScalarDeclList}{{\sl ScalarDeclList\ }}
+\newcommand{\InputDeclList}{{\sl InputDeclList\ }}
+\newcommand{\OutputDeclList}{{\sl OutputDeclList\ }}
+\newcommand{\LocalDeclList}{{\sl LocalDeclList\ }}
+\newcommand{\VarDeclList}{{\sl VarDeclList\ }}
+\newcommand{\EquationBlock}{{\sl Equationblock\ }}
+\newcommand{\ParamDecl}{{\sl ParamDecl\ }}
+\newcommand{\VarDeclaration}{{\sl VarDeclaration\ }}
+\newcommand{\Domain}{{\sl Domain\ }}
+\newcommand{\IdentifierList}{{\sl IdentifierList\ }}
+\newcommand{\Identifier}{{\sl Identifier\ }}
+\newcommand{\ScalarType}{{\sl ScalarType\ }}
+\newcommand{\IndexList}{{\sl IndexList\ }}
+\newcommand{\ConstraintList}{{\sl ConstraintList\ }}
+\newcommand{\AffineFunction}{{\sl AffineFunction\ }}
+\newcommand{\Constraint}{{\sl Constraint\ }}
+\newcommand{\IncreasingSeq}{{\sl IncreasingSeq\ }}
+\newcommand{\DecreasingSeq}{{\sl DecreasingSeq\ }}
+\newcommand{\EqualitySeq}{{\sl EqualitySeq\ }}
+\newcommand{\IndexExpList}{{\sl IndexExpList\ }}
+\newcommand{\EquationList}{{\sl EquationList\ }}
+\newcommand{\Equation}{{\sl Equation\ }}
+\newcommand{\ParamAssignation}{{\sl ParamAssignation\ }}
+\newcommand{\InputList}{{\sl InputList\ }}
+\newcommand{\ExtParamAssgn}{{\sl ExtParamAssgn\ }}
+\newcommand{\ExtensionDomain}{{\sl ExtensionDomain\ }}
+\newcommand{\ExpressionList}{{\sl ExpressionList\ }}
+\newcommand{\Expression}{{\sl Expression\ }}
+\newcommand{\Constant}{{\sl Constant\ }}
+\newcommand{\IntegerConstant}{{\sl IntegerConstant\ }}
+\newcommand{\RealConstant}{{\sl RealConstant\ }}
+\newcommand{\BooleanConstant}{{\sl BooleanConstant\ }}
+\newcommand{\BinaryOp}{{\sl BinaryOp\ }}
+\newcommand{\CommutativeOp}{{\sl CommutativeOp\ }}
+\newcommand{\RelativeOp}{{\sl RelativeOp\ }}
+\newcommand{\UnaryOp}{{\sl UnaryOp\ }}
+\newcommand{\IndexExpression}{{\sl IndexExpression\ }}
+\newcommand{\IndexTerm}{{\sl IndexTerm\ }}
+\newcommand{\Number}{{\sl Number\ }}
+\newcommand{\Digit}{{\sl Digit\ }}
+\newcommand{\Letter}{{\sl Letter\ }}
+
+%\newcommand{\}{{\sl \ }}
+
+
+\newcommand {\setn}   {\hbox{\it I\hskip -2pt N}}     % ensemble N
+\newcommand {\setz}   {\hbox{\it Z\hskip -4pt Z}}     %ensemble Z
+\newcommand {\setq}   {\hbox{\it Q\hskip -6pt {\it l}\hskip 4pt}}     % ensemble Q
+
+
+\newcounter{Nex}
+
+\newenvironment{ex}
+{\vspace{0.5cm} \refstepcounter{Nex} {\bf Example ${\theNex}$:}
+\begin{quotation}}
+{\end{quotation}}
+
+
+
+\newtheorem{definition}{Definition}[section]
+
+
+
+
+
+\makeindex
+\begin{document}
+\title{First Steps in \alfa{}\thanks{Version of \today{}}}
+
+\author{The Alpha team\footnote{Contact: \texttt{alpha@irisa.fr}. See also
+\texttt{http://www.irisa.fr/api/ALPHA/welcome.html.}}}
+
+\date{\today}
+\maketitle
+\tableofcontents
+\listoffigures
+
+
+\input{introduction}
+
+% Guided tour
+
+\input{chapstart}
+
+
+
+% Introduction to Alpha, scalar part
+
+% Based on DEA cours
+
+\input{chapalphascal}
+
+
+
+% Introduction to Alpha, array part
+
+% Based on DEA cours
+
+\input{chapalphaarray}
+
+
+
+% Introduction to Alpha, a la Sanjay! 
+
+\input{chapfunctional}
+
+
+
+% Systolic array design
+
+\input{chapderiving}
+
+
+
+% Subsystems
+
+\input{chapsubsystems}
+
+
+
+% Analyze
+
+\input{chapanalyze}
+
+
+
+% Code generation
+
+\input{chapcodegen}
+
+
+
+% Scheduling
+
+\input{chapscheduling}
+
+
+
+% Alpha0 
+
+\input{chapalpha0}
+
+
+
+% AlphHard and Vhdl
+
+\input{chapalphard}
+
+
+
+\appendix
+
+% Syntaxe d'alpha
+
+\input{appendixalpha}
+
+% Pointeurs sur les démos
+
+\input{appendixdemos}
+
+% Comment installer MMAlpha
+
+\input{appendixtechset}
+
+\printindex
+
+
+
+\bibliographystyle{alpha}
+
+\bibliography{newbib}
+
+
+
+\end{document}
+
+
+

@@ -1,0 +1,16 @@
+system matvect :{N | 2<=N}
+               (a : {i,k | 1<=i<=N; 1<=k<=N} of integer; 
+                b : {j | 1<=j<=N} of integer)
+       returns (c : {i | 1<=i<=N} of integer);
+var
+  A : {i,k | 1<=i<=N; 1<=k<=N} of integer;
+  C : {i,k | 1<=i<=N; 0<=k<=N} of integer;
+let
+  A[i,k] = a;
+  C[i,k] = 
+      case
+        { | k=0} : 0[];
+        { | 1<=k} : C[i,k-1] + A[i,k] * b[k];
+      esac;
+  c[i] = C[i,N];
+tel;

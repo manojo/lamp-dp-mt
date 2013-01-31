@@ -1,0 +1,151 @@
+system callfifo :{N | 3<=N}
+                (busin : {t | 0<=t} of integer; 
+                 op1 : {t | 0<=t} of boolean; 
+                 op2 : {t | 0<=t} of boolean)
+       returns  (full : {t | 0<=t} of boolean; 
+                 empty : {t | 0<=t} of boolean; 
+                 wordout : {t | 0<=t} of integer);
+var
+  op2XMirr2 : {t,p | 0<=t; p=1} of boolean;
+  op2XMirr1 : {t,p | 0<=t; 2<=p<=N} of boolean;
+  op1XMirr8 : {t,p | 0<=t; p=0} of boolean;
+  op1XMirr7 : {t,p | 0<=t; p=N} of boolean;
+  op1XMirr6 : {t,p | 0<=t; 1<=p<=N-1} of boolean;
+  op1XMirr5 : {t,p | 0<=t; p=0} of boolean;
+  op1XMirr4 : {t,p | 0<=t; p=N} of boolean;
+  op1XMirr3 : {t,p | 0<=t; 1<=p<=N-1} of boolean;
+  op1XMirr2 : {t,p | 0<=t; p=1} of boolean;
+  op1XMirr1 : {t,p | 0<=t; 2<=p<=N} of boolean;
+  businXMirr2 : {t,p | 0<=t; p=1} of integer;
+  businXMirr1 : {t,p | 0<=t; 2<=p<=N} of integer;
+  TSep10 : {t,p | 0<=t; p=0} of boolean;
+  TSep9 : {t,p | 0<=t; p=0} of boolean;
+  TSep8 : {t,p | 0<=t; p=N} of boolean;
+  TSep7 : {t,p | 0<=t; p=N} of boolean;
+  TSep6 : {t,p | 0<=t; 1<=p<=N-1} of boolean;
+  TSep5 : {t,p | 0<=t; 1<=p<=N-1} of boolean;
+  TSep4 : {t,p | 0<=t; p=1} of boolean;
+  TSep3 : {t,p | 0<=t; p=1} of integer;
+  TSep2 : {t,p | 0<=t; 2<=p<=N} of boolean;
+  TSep1 : {t,p | 0<=t; 2<=p<=N} of integer;
+  TinReg8 : {t,p | 0<=t; p=0} of boolean;
+  TinReg7 : {t,p | 0<=t; p=N} of boolean;
+  TinReg6 : {t,p | 0<=t; 1<=p<=N-1} of boolean;
+  TinReg5 : {t,p | 0<=t; 1<=p<=N-1} of boolean;
+  ToutXfifo1Reg4 : {t,p | 1<=t; 0<=p<=N-1} of boolean;
+  ToutXfifo1Reg3 : {t,p | 1<=t; p=N} of boolean;
+  RinReg2 : {t,p | 0<=t; 2<=p<=N} of integer;
+  RoutXfifo1Reg1 : {t,p | 1<=t; 1<=p<=N} of integer;
+  TinXctl2XIn : {t,p | 0<=t; 0<=p<=N-1} of boolean;
+  TinXctl1XIn : {t,p | 0<=t; p=N} of boolean;
+  RinXctl1XIn : {t,p | 0<=t; 1<=p<=N} of boolean;
+  Rin : {t,p | 0<=t; 1<=p<=N} of integer;
+  Tin : {t,p | 0<=t; 0<=p<=N} of boolean;
+  RoutXfifo1 : {t,p | 0<=t; 1<=p<=N} of integer;
+  ToutXfifo1 : {t,p | 0<=t; 0<=p<=N} of boolean;
+  RinXctl1 : {t | 0<=t} of boolean;
+  TinXctl1 : {t | 0<=t} of boolean;
+  TinXctl2 : {t | 0<=t} of boolean;
+let
+  op2XMirr2[t,p] = op2[t];
+  op2XMirr1[t,p] = op2[t];
+  op1XMirr8[t,p] = op1[t];
+  op1XMirr7[t,p] = op1[t];
+  op1XMirr6[t,p] = op1[t];
+  op1XMirr5[t,p] = op1[t];
+  op1XMirr4[t,p] = op1[t];
+  op1XMirr3[t,p] = op1[t];
+  op1XMirr2[t,p] = op1[t];
+  op1XMirr1[t,p] = op1[t];
+  businXMirr2[t,p] = busin[t];
+  businXMirr1[t,p] = busin[t];
+  TinReg8[t,p] = Tin[t,p+1];
+  TinReg7[t,p] = Tin[t,p-1];
+  TinReg6[t,p] = Tin[t,p+1];
+  TinReg5[t,p] = Tin[t,p-1];
+  ToutXfifo1Reg4[t,p] = ToutXfifo1[t-1,p];
+  ToutXfifo1Reg3[t,p] = ToutXfifo1[t-1,p];
+  RinReg2[t,p] = Rin[t,p-1];
+  RoutXfifo1Reg1[t,p] = RoutXfifo1[t-1,p];
+  TinXctl2XIn[t,p] = TinXctl2[t];
+  TinXctl1XIn[t,p] = TinXctl1[t];
+  RinXctl1XIn[t,p] = RinXctl1[t];
+  TSep2[t,p] = op2XMirr1 and Tin[t,p];
+  TSep1[t,p] = if (TSep2) then businXMirr1 else Rin[t,p];
+  TSep4[t,p] = op2XMirr2 and Tin[t,p];
+  TSep3[t,p] = if (TSep4) then businXMirr2 else Rin[t,p];
+  RoutXfifo1[t,p] = 
+      case
+        { | 2<=p} : if (op1XMirr1) then RinReg2 else TSep1;
+        { | p=1} : if (op1XMirr2) then Rin[t,p] else TSep3;
+      esac;
+  TSep6[t,p] = op1XMirr3 and Tin[t,p];
+  TSep5[t,p] = if (TSep6) then TinReg6 else Tin[t,p];
+  TSep8[t,p] = op1XMirr4 and Tin[t,p];
+  TSep7[t,p] = if (TSep8) then False[] else Tin[t,p];
+  TSep10[t,p] = op1XMirr5 and Tin[t,p];
+  TSep9[t,p] = if (TSep10) then TinReg8 else Tin[t,p];
+  ToutXfifo1[t,p] = 
+      case
+        { | 1<=p<=N-1} : if (op1XMirr6) then TinReg5 else TSep5;
+        { | p=N} : if (op1XMirr7) then TinReg7 else TSep7;
+        { | p=0} : if (op1XMirr8) then False[] else TSep9;
+      esac;
+  RinXctl1[t] = 
+      case
+        case
+          { | t=0} : True[];
+          { | 1<=t} : False[];
+        esac;
+      esac;
+  Rin[t,p] = 
+      case
+        if (RinXctl1XIn) then 
+            case
+              { | t=0} : 0[];
+              { | 1<=t} : 0[];
+            esac else 
+        case
+          { | t=0} : 0[];
+          { | 1<=t} : RoutXfifo1Reg1;
+        esac;
+      esac;
+  TinXctl1[t] = 
+      case
+        case
+          { | t=0} : True[];
+          { | 1<=t} : False[];
+        esac;
+      esac;
+  TinXctl2[t] = 
+      case
+        case
+          { | t=0} : True[];
+          { | 1<=t} : False[];
+        esac;
+      esac;
+  Tin[t,p] = 
+      case
+        { | p=N} : if (TinXctl1XIn) then 
+               case
+                 { | t=0} : True[];
+                 { | 1<=t} : False[];
+               esac else 
+           case
+             { | t=0} : False[];
+             { | 1<=t} : ToutXfifo1Reg3;
+           esac;
+        { | p<=N-1} : if (TinXctl2XIn) then 
+               case
+                 { | t=0} : False[];
+                 { | 1<=t} : False[];
+               esac else 
+           case
+             { | t=0} : False[];
+             { | 1<=t} : ToutXfifo1Reg4;
+           esac;
+      esac;
+  wordout[t] = RoutXfifo1[t,N];
+  full[t] = ToutXfifo1[t,0];
+  empty[t] = ToutXfifo1[t,N];
+tel;

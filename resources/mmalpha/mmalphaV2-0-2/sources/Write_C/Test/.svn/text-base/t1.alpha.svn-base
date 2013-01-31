@@ -1,0 +1,14 @@
+system pdscal  (V : {i,p | i=1; 1<=p<=3} of real)
+       returns (Vdiv : {i,p | i=1; 1<=p<=3} of real);
+let
+  Vdiv[i,p] = V;
+tel;
+
+--writeC will not create loop for
+--"flat" domains variables (domains with equalities).
+
+--create_loop : infinite domain so no lower bound exists
+
+--create_loop does not seem to
+--take into account domains which are composed of unions
+--of polyhedra.

@@ -1,0 +1,24 @@
+This directory has been created By T.Risset i on 25/01/95
+it is used to test the Write_C program.
+basically the operation to perform is :
+
+Read_Alpha <file.Alpha | Write_C >file.c
+
+This operations are written in the file test.exe
+
+
+Present file:
+cos3.alpha 	A program (SVD) from Sophie robert which uses sqrt
+cosparam.alpha  A program (SVD) from Sophie robert which does not use sqrt
+mat1.alpha	Classical matrix multiplication algorithm
+mat2.alpha	matrix multiplication algorithm without input
+pile.alpha	program with a if in RHS of assignement
+test2.alpha     case with a union and constant 
+test3.alpha*	3 branches case
+test4.alpha*	negative constant
+testsqrt.alpha  simple program with sqrt
+
+********** Updated by Marc Vieillot (12/04/96) *********
+Now the only thing to do is: 
+
+make allTest

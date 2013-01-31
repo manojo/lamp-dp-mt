@@ -1,0 +1,13 @@
+-- not working: to be checked 
+system ZpolParam :{N,M | 2<=N<=M-1}
+               (x : {i | 0<=i<=N} of integer)
+       returns (res : {i | 0<=i<=N} of integer);
+var
+XX : {i,2j | 0<=i<=N; 0<=j<=N} of integer;
+let
+XX= case
+	{i,4j| 0<=i<=N }: x.(i,j->i);
+	{i,4j+2| 0<=i<=N }: 1.(i,j->);   
+	esac;
+res[i]=XX[i,2i];
+tel;

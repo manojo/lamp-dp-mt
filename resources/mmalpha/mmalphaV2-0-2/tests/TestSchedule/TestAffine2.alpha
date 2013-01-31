@@ -1,0 +1,18 @@
+system matvect :{N | 4<=N}
+               (a : {i,k | 1<=i<=N; 1<=k<=N} of integer; 
+                b : {j | 1<=j<=N} of integer)
+       returns (c : {i | 1<=i<=N} of integer);
+var
+  A : {i,k | 1<=i<=N; 1<=k<=N} of integer;
+  B : {i,k | 3<=i<=N+2; 4<=k<=N+3} of integer;
+  C : {k,i | 6<=k<=N+5; 4<=i<=N+3} of integer;
+let
+  A[i,k] = 
+      case
+        { | i=1} : a;
+        { | 2<=i} : A[i-1,k];
+      esac;
+  B[i,k] = A[i-2,k-3];
+  C[k,i] = B[i-1,k-2];
+  c[i] = C[i+5,N];
+tel;

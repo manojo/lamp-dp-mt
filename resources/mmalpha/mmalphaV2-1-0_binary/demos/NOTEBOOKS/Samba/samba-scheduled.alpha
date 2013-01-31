@@ -1,0 +1,17 @@
+system sequence :{X,Y | 3<=X<=Y-1}
+                (QS : {i | 1<=i<=X} of integer; 
+                 DB : {j | 1<=j<=Y} of integer)
+       returns  (res : {j | 1<=j<=Y} of integer);
+var
+  M : {t,p | p<=t<=p+Y; 0<=p<=X} of integer;
+  MatchQ : {t,p | p<=t<=p+Y-1; 1<=p<=X} of integer;
+let
+  M[t,p] = 
+      case
+        { | p=0} : 0[];
+        { | t=p; 1<=p} : 0[];
+        { | p+1<=t; 1<=p} : max(max(0[], (M[t-1,p] - 8[])), max((M[t-1,p-1] - 8[]), (M[t-2,p-1] + MatchQ[t-1,p])));
+      esac;
+  MatchQ[t,p] = if (QS[p] = DB[t-p+1]) then 15[] else -12[];
+  res[j] = M[j+X,X];
+tel;

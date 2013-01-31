@@ -1,0 +1,23 @@
+system FullAdder (A, B, Cin : boolean)
+	returns (X, Cout : boolean);
+let
+  X = A xor B xor Cin;
+  Cout = (A and B) or (A and Cin) or (B and Cin);
+tel;
+system Plus: {W|W>1} (A, B: {b| 0<=b<W} of boolean)
+	returns (S: {b| 0<=b<=W} of boolean);
+var
+  Cin, Cout, X : {b| 0<=b<W} of boolean;
+let
+  Cin[b] =
+  case
+    {| b=0}: False[];
+    {| b>0}: Cout[b-1];
+  esac;
+  use {b| 0<=b<W} FullAdder[] (A,B,Cin) returns (X,Cout);
+  S[b] =
+  case
+    {| b<W}: X;
+    {| b=W}: Cout[W-1];
+  esac;
+tel;

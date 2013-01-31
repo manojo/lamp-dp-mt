@@ -1,0 +1,143 @@
+system QR :    {N,K | K+1<=N; 2<=K}
+               (x : {k,i | 0<=k<=K; 1<=i<=N} of real)
+       returns (r : {j,i | 1<=j<=i; i<=N} of real);
+var
+  X_ctl2P_Init : {t,p1,p2 | p1+1<=t<=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} of boolean;
+  X_ctl2P : {t,p1,p2 | t=p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} of boolean;
+  X_ctl1P_Init : {t,p1,p2 | 2<=t<=3; p1=1; p2=1; K+1<=N; 2<=K} of boolean;
+  X_ctl1P : {t,p1,p2 | t=p2+1; p1=1; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | t=p2+2; p1=1; 1<=p2<=K; K+1<=N; 2<=K} of boolean;
+  Rc1_ctl2P_Init : {t,p1,p2 | p1+2<=t<=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} of boolean;
+  Rc1_ctl2P : {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} of boolean;
+  pipeCT1_ctl2P_Init : {t,p1,p2 | p1+2<=t<=2p1; 3<=p1<=N; p2=1; K+1<=N; 2<=K} of boolean;
+  pipeCT1_ctl2P : {t,p1,p2 | t=2p1+p2-1; 3<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | p1+p2+1<=t<=2p1+p2-2; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} of boolean;
+  pipeCT1 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} of real;
+  R : {t,p1,p2 | p1+p2+1<=t<=2p1+p2; p1<=N; 0<=p2<=K} of real;
+  X : {t,p1,p2 | p1+p2<=t<=2p1+p2; 1<=p1<=N; 1<=p2<=K} of real;
+  T : {t,p1,p2 | 2p2+1<=t<=2p2+K; p1=p2; 1<=p2<=N} of real;
+  Rc1 : {t,p1,p2 | t=p2+2; p1=1; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} of real;
+  Xc1 : {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} of real;
+  pipeCT1_ctl2 : {t,p1,p2 | t=2p1+p2-1; 3<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | p1+p2+1<=t<=2p1+p2-2; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} of boolean;
+  X_ctl1 : {t,p1,p2 | t=p2+1; p1=1; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | t=p2+2; p1=1; 1<=p2<=K; K+1<=N; 2<=K} of boolean;
+  X_ctl2 : {t,p1,p2 | t=p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} of boolean;
+  Rc1_ctl2 : {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} of boolean;
+let
+  X_ctl2P_Init[t,p1,p2] = 
+      case
+        { | t=p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | t=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | p1+2<=t<=2p1; p1<=N; p2=1; K+1<=N; 2<=K} : 
+           { | t=p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | t=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | p1+2<=t<=2p1; p1<=N; p2=1; K+1<=N; 2<=K} : 
+              case
+                { | t=p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} : True[];
+                { | t=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | p1+2<=t<=2p1; p1<=N; p2=1; K+1<=N; 2<=K} : False[];
+              esac;
+      esac;
+  X_ctl1P_Init[t,p1,p2] = 
+      case
+        { | t=2; p1=1; p2=1; K+1<=N; 2<=K} | { | t=3; p1=1; p2=1; K+1<=N; 2<=K} : { | t=2; p1=1; p2=1; K+1<=N; 2<=K} | { | t=3; p1=1; p2=1; K+1<=N; 2<=K} : 
+              case
+                { | t=2; p1=1; p2=1; K+1<=N; 2<=K} : True[];
+                { | t=3; p1=1; p2=1; K+1<=N; 2<=K} : False[];
+              esac;
+      esac;
+  Rc1_ctl2P_Init[t,p1,p2] = 
+      case
+        { | t=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | p1+2<=t<=2p1; p1<=N; p2=1; K+1<=N; 2<=K} : { | t=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | p1+2<=t<=2p1; p1<=N; p2=1; K+1<=N; 2<=K} : 
+              case
+                { | t=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} : True[];
+                { | p1+2<=t<=2p1; p1<=N; p2=1; K+1<=N; 2<=K} : False[];
+              esac;
+      esac;
+  pipeCT1_ctl2P_Init[t,p1,p2] = 
+      case
+        { | t=2p1; 3<=p1<=N; p2=1; K+1<=N; 2<=K} | { | p1+2<=t<=2p1-1; p1<=N; p2=1; K+1<=N; 2<=K} : { | t=2p1; 3<=p1<=N; p2=1; K+1<=N; 2<=K} | { | p1+2<=t<=2p1-1; p1<=N; p2=1; K+1<=N; 2<=K} : 
+              case
+                { | t=2p1; 3<=p1<=N; p2=1; K+1<=N; 2<=K} : True[];
+                { | p1+2<=t<=2p1-1; p1<=N; p2=1; K+1<=N; 2<=K} : False[];
+              esac;
+      esac;
+  T[t,p1,p2] = R[t-1,p1,t-2p1-1] - X[t,p1,t-2p1];
+  pipeCT1_ctl2P[t,p1,p2] = 
+      case
+        { | p1+2<=t<=2p1; 3<=p1<=N; p2=1; K+1<=N; 2<=K} : pipeCT1_ctl2P_Init[t,p1,p2];
+        { | t=2p1+p2-1; 3<=p1<=N; 2<=p2<=K; K+1<=N} | { | p1+p2+1<=t<=2p1+p2-2; p1<=N; 2<=p2<=K; K+1<=N} : pipeCT1_ctl2P[t-1,p1,p2-1];
+      esac;
+  pipeCT1_ctl2[t,p1,p2] = pipeCT1_ctl2P;
+  pipeCT1[t,p1,p2] = 
+      case
+        { | t=p2+3; p1=2; 1<=p2<=K; K+1<=N; 2<=K} : T[2t-2p1-p2,t-p1-p2,t-p1-p2];
+        { | t=2p1+p2-1; 3<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | { | p1+p2+1<=t<=2p1+p2-2; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : 
+           { | t=2p1+p2-1; 3<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | { | p1+p2+1<=t<=2p1+p2-2; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : if (pipeCT1_ctl2) then 
+                  case
+                    { | t=2p1+p2-1; 3<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : T[2t-2p1-p2,t-p1-p2,t-p1-p2];
+                    { | p1+p2+1<=t<=2p1+p2-2; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : 0[];
+                  esac else 
+              case
+                { | t=2p1+p2-1; 3<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : 0[];
+                { | p1+p2+1<=t<=2p1+p2-2; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : pipeCT1[t-1,p1-1,p2];
+              esac;
+      esac;
+  Rc1_ctl2P[t,p1,p2] = 
+      case
+        { | p1+2<=t<=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} : Rc1_ctl2P_Init[t,p1,p2];
+        { | t=2p1+p2; 2<=p1<=N; 2<=p2<=K; K+1<=N} | { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 2<=p2<=K; K+1<=N} : Rc1_ctl2P[t-1,p1,p2-1];
+      esac;
+  Rc1_ctl2[t,p1,p2] = Rc1_ctl2P;
+  Rc1[t,p1,p2] = 
+      case
+        { | t=p2+2; p1=1; 1<=p2<=K; K+1<=N; 2<=K} : R[2t-2p1-p2-1,p1,p2-1] + X[2t-2p1-p2-1,p1,p2];
+        { | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : 
+           { | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : if (Rc1_ctl2) then 
+                  case
+                    { | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : R[2t-2p1-p2-1,p1,p2-1] + X[2t-2p1-p2-1,p1,p2];
+                    { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : 0[];
+                  esac else 
+              case
+                { | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : 0[];
+                { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : R[t-1,p1,p2-1] + X[t-1,p1,p2] + pipeCT1;
+              esac;
+      esac;
+  R[t,p1,p2] = 
+      case
+        { | p1+1<=t<=2p1; p1<=N; p2=0; K+1<=N; 2<=K} : 0[];
+        { | t=p2+2; p1=1; 1<=p2<=K; K+1<=N; 2<=K} | { | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : Rc1;
+      esac;
+  Xc1[t,p1,p2] = 
+      case
+        { | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : R[2t-2p1-p2-1,p1,p2-1] * X[2t-2p1-p2-1,p1,p2];
+        { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : R[t-1,p1,p2-1] + X[t-1,p1,p2];
+      esac;
+  X_ctl1P[t,p1,p2] = 
+      case
+        { | 2<=t<=3; p1=1; p2=1; K+1<=N; 2<=K} : X_ctl1P_Init[t,p1,p2];
+        { | t=p2+1; p1=1; 2<=p2<=K; K+1<=N} | { | t=p2+2; p1=1; 2<=p2<=K; K+1<=N} : X_ctl1P[t-1,p1,p2-1];
+      esac;
+  X_ctl1[t,p1,p2] = X_ctl1P;
+  X_ctl2P[t,p1,p2] = 
+      case
+        { | p1+1<=t<=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} : X_ctl2P_Init[t,p1,p2];
+        { | t=p1+p2; 2<=p1<=N; 2<=p2<=K; K+1<=N} | { | t=2p1+p2; 2<=p1<=N; 2<=p2<=K; K+1<=N} | { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 2<=p2<=K; K+1<=N} : X_ctl2P[t-1,p1,p2-1];
+      esac;
+  X_ctl2[t,p1,p2] = X_ctl2P;
+  X[t,p1,p2] = 
+      case
+        { | t=p2+1; p1=1; 1<=p2<=K; K+1<=N; 2<=K} | { | t=p2+2; p1=1; 1<=p2<=K; K+1<=N; 2<=K} : { | t=p2+1; p1=1; 1<=p2<=K; K+1<=N; 2<=K} | { | t=p2+2; p1=1; 1<=p2<=K; K+1<=N; 2<=K} : if (X_ctl1) then 
+                  case
+                    { | t=p2+1; p1=1; 1<=p2<=K; K+1<=N; 2<=K} : x[t-p1,p1];
+                    { | t=p2+2; p1=1; 1<=p2<=K; K+1<=N; 2<=K} : 0[];
+                  esac else 
+              case
+                { | t=p2+1; p1=1; 1<=p2<=K; K+1<=N; 2<=K} : 0[];
+                { | t=p2+2; p1=1; 1<=p2<=K; K+1<=N; 2<=K} : R[2t-2p1-p2-1,p1,p2-1] * X[2t-2p1-p2-1,p1,p2];
+              esac;
+        { | t=p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | { | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : 
+           { | t=p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | { | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : if (X_ctl2) then 
+                  case
+                    { | t=p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : x[t-p1,p1];
+                    { | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : 0[];
+                  esac else 
+              case
+                { | t=p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : 0[];
+                { | t=2p1+p2; 2<=p1<=N; 1<=p2<=K; K+1<=N; 2<=K} | { | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K; K+1<=N; 2<=K} : Xc1;
+              esac;
+      esac;
+  r[j,i] = R[j+i+K,i,K];
+tel;

@@ -1,0 +1,144 @@
+system mouv :  {N,M,P | 3<=N; 3<=M; 3<=P}
+               (Ix : {i,j | 1<=i<=N; 1<=j<=M} of real; 
+                Iy : {i,j | 1<=i<=N; 1<=j<=M} of real; 
+                It : {i,j | 1<=i<=N; 1<=j<=M} of real; 
+                coef :  real)
+       returns (u : {i,j | 1<=i<=N; 1<=j<=M} of real; 
+                v : {i,j | 1<=i<=N; 1<=j<=M} of real);
+var
+  expr5 : {t,p1,p2 | t=p1+2p2; p2<=p1<=p2+N+1; 1<=p2<=P; 3<=N; 3<=M; 3<=P} of integer;
+  expr4 : {t,p1,p2 | p1+2p2<=t<=p1+2p2+M-1; p2+2<=p1<=p2+N+1; 1<=p2<=P; 3<=N; 3<=M; 3<=P} of boolean;
+  expr3 : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M+1; p2+1<=p1<=p2+N; 2<=p2<=P; 3<=N; 3<=M; 3<=P} of boolean;
+  expr2 : {t,p1,p2 | p1+2p2+1<=t<=(p1+2p2+M+1,2p1+p2+M-1); p2+1<=p1<=p2+N+1; 1<=p2<=P; 3<=N; 3<=M; 3<=P} of real;
+  expr1 : {t,p1,p2 | p1+2p2+1<=t<=(p1+2p2+M+1,2p1+p2+M-1); p2+1<=p1<=p2+N+1; 1<=p2<=P; 3<=N; 3<=M; 3<=P} of real;
+  vt4_WS : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  vt3_WS : {t,p1,p2 | p1+2p2-1<=t<=p1+2p2+M-2; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  vt3_W : {t,p1,p2 | p1+2p2<=t<=p1+2p2+M-1; p2+2<=p1<=p2+N+1; 1<=p2<=P} of real;
+  vt2_S : {t,p1,p2 | p1+2p2<=t<=p1+2p2+M-1; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  vt1_WWS : {t,p1,p2 | p1+2p2<=t<=p1+2p2+M-1; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  vt1_WW : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M; p2+2<=p1<=p2+N+1; 1<=p2<=P} of real;
+  ut4_WS : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  ut3_WS : {t,p1,p2 | p1+2p2-1<=t<=p1+2p2+M-2; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  ut3_W : {t,p1,p2 | p1+2p2<=t<=p1+2p2+M-1; p2+2<=p1<=p2+N+1; 1<=p2<=P} of real;
+  ut2_S : {t,p1,p2 | p1+2p2<=t<=p1+2p2+M-1; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  ut1_WWS : {t,p1,p2 | p1+2p2<=t<=p1+2p2+M-1; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  ut1_WW : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M; p2+2<=p1<=p2+N+1; 1<=p2<=P} of real;
+  PipeIt : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  PipeIy : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  PipeIx : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  ut2 : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M+1; p2<=p1<=p2+N+1; 1<=p2<=P} of real;
+  vt2 : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M+1; p2<=p1<=p2+N+1; 1<=p2<=P} of real;
+  ub : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  vb : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  Ecm : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M; p2+1<=p1<=p2+N; 2<=p2<=P+1} of real;
+  auxcoef : {t,p1,p2 | p1+2p2+1<=t<=p1+2p2+M; p2+1<=p1<=p2+N; 1<=p2<=P} of real;
+let
+  expr5[t,p1,p2] = 
+      case
+        { | t=p1+2; p2=1} : 0[];
+        { | t=3p2+N+1; p1=p2+N+1; 2<=p2} : 0[];
+        { | t=3p2; p1=p2; 2<=p2} : 0[];
+        { | p2+1<=p1<=p2+N; 2<=p2} : 0[];
+      esac;
+  expr4[t,p1,p2] = 
+      case
+        case
+          { | t=p1+2p2} : True[];
+          { | p1+2p2+1<=t} : False[];
+        esac;
+      esac;
+  expr3[t,p1,p2] = 
+      case
+        case
+          { | t=p1+2p2+M+1} : True[];
+          { | t<=p1+2p2+M} : False[];
+        esac;
+      esac;
+  expr2[t,p1,p2] = vt2[t-1,p1-1,p2];
+  expr1[t,p1,p2] = ut2[t-1,p1-1,p2];
+  vt4_WS[t,p1,p2] = expr2[t-1,p1,p2-1];
+  vt3_WS[t,p1,p2] = vt3_W[t-1,p1,p2-1];
+  vt3_W[t,p1,p2] = 
+      case
+        if expr4 then 
+            case
+              { | t=p1+2p2} : expr5[t-1,p1-1,p2];
+              { | p1+2p2+1<=t} : 0[];
+            esac else 
+        case
+          { | t=p1+2p2} : 0[];
+          { | p1+2p2+1<=t} : expr2;
+        esac;
+      esac;
+  vt2_S[t,p1,p2] = vt2[t-1,p1,p2-1];
+  vt1_WWS[t,p1,p2] = vt1_WW[t-1,p1,p2-1];
+  vt1_WW[t,p1,p2] = expr2[t-1,p1-1,p2];
+  ut4_WS[t,p1,p2] = expr1[t-1,p1,p2-1];
+  ut3_WS[t,p1,p2] = ut3_W[t-1,p1,p2-1];
+  ut3_W[t,p1,p2] = 
+      case
+        if (expr4) then 
+            case
+              { | t=p1+2p2} : expr5[t-1,p1-1,p2];
+              { | p1+2p2+1<=t} : 0[];
+            esac else 
+        case
+          { | t=p1+2p2} : 0[];
+          { | p1+2p2+1<=t} : expr1;
+        esac;
+      esac;
+  ut2_S[t,p1,p2] = ut2[t-1,p1,p2-1];
+  ut1_WWS[t,p1,p2] = ut1_WW[t-1,p1,p2-1];
+  ut1_WW[t,p1,p2] = expr1[t-1,p1-1,p2];
+  PipeIt[t,p1,p2] = 
+      case
+        { | p2=2} : It[p1-2,t-p1-4];
+        { | 3<=p2} : PipeIt[t-3,p1-1,p2-1];
+      esac;
+  PipeIy[t,p1,p2] = 
+      case
+        { | p2=2} : Iy[p1-2,t-p1-4];
+        { | 3<=p2} : PipeIy[t-3,p1-1,p2-1];
+      esac;
+  PipeIx[t,p1,p2] = 
+      case
+        { | p2=2} : Ix[p1-2,t-p1-4];
+        { | 3<=p2} : PipeIx[t-3,p1-1,p2-1];
+      esac;
+  auxcoef[t,p1,p2] = coef[];
+  ub[t,p1,p2] = (ut1_WWS[t-1,p1,p2] + ut2_S[t-1,p1,p2] + ut3_WS[t-2,p1,p2] + ut4_WS[t,p1,p2]) / 4[];
+  vb[t,p1,p2] = (vt1_WWS[t-1,p1,p2] + vt2_S[t-1,p1,p2] + vt3_WS[t-2,p1,p2] + vt4_WS[t,p1,p2]) / 4[];
+  Ecm[t,p1,p2] = (PipeIx[t,p1,p2] * ub[t,p1,p2] + PipeIy[t,p1,p2] * vb[t,p1,p2] + PipeIt[t,p1,p2]) / (auxcoef[t-3,p1-1,p2-1] + PipeIx[t,p1,p2] * PipeIx[t,p1,p2] + PipeIy[t,p1,p2] * PipeIy[t,p1,p2]);
+  ut2[t,p1,p2] = 
+      case
+        { | p2=1} : 0[];
+        { | p1=p2+N+1; 2<=p2} : 0[];
+        { | p1=p2; 2<=p2} : 0[];
+        { | p2+1<=p1<=p2+N; 2<=p2} : if expr3 then 
+               case
+                 { | t=p1+2p2+M+1} : 0[];
+                 { | t<=p1+2p2+M} : 0[];
+               esac else 
+           case
+             { | t=p1+2p2+M+1} : 0[];
+             { | t<=p1+2p2+M} : ub[t,p1,p2] - PipeIx[t,p1,p2] * Ecm[t,p1,p2];
+           esac;
+      esac;
+  vt2[t,p1,p2] = 
+      case
+        { | p2=1} : 0[];
+        { | p1=p2+N+1; 2<=p2} : 0[];
+        { | p1=p2; 2<=p2} : 0[];
+        { | p2+1<=p1<=p2+N; 2<=p2} : if expr3 then 
+               case
+                 { | t=p1+2p2+M+1} : 0[];
+                 { | t<=p1+2p2+M} : 0[];
+               esac else 
+           case
+             { | t=p1+2p2+M+1} : 0[];
+             { | t<=p1+2p2+M} : vb[t,p1,p2] - PipeIy[t,p1,p2] * Ecm[t,p1,p2];
+           esac;
+      esac;
+  u[i,j] = ut2[i+j+3P,i+P,P];
+  v[i,j] = vt2[i+j+3P,i+P,P];
+tel;

@@ -1,0 +1,580 @@
+Reporting on system: firr
+  System was in $result  
+23/4/2010 -- 8h 37mn 36.451455s
+
+System:
+system firr :  {N,M,D | 3<=N<=(D-1,M-D-1)}
+               (x : {n | 1<=n<=M} of integer; 
+                d : {n | N<=n<=M} of integer)
+       returns (res : {n | N<=n<=M} of integer);
+var
+  dXMirr1 : {t,p | 2N+1<=t<=N+M+1; p=N-1} of integer;
+  xXMirr2 : {t,p | D-1<=t<=M-2; p=-1} of integer;
+  xXMirr1 : {t,p | -1<=t<=M-2; p=-2} of integer;
+  TSep2 : {t,p | p+N+D<=t<=p+M; 0<=p<=N-1} of integer;
+  TSep1 : {t,p | p+N+D<=t<=p+M; 0<=p<=N-1} of integer;
+  YReg8Xloc : {t,p | p+N+1<=t<=p+M+1; 0<=p<=N} of integer;
+  YReg1Xloc : {t,p | 2N+1<=t<=N+M+1} of integer;
+  WXctl1PReg7Xloc : {t,p | p+N-1<=t<=p+M-1; 1<=p<=N} of boolean;
+  pipeCx37Reg5Xloc : {t,p | 2p+1<=t<=(2p+M,p+M+1); -1<=p<=N} of integer;
+  pipeCx35Reg4Xloc : {t,p | 2p+D-1<=t<=(p+M-1,2p+M-2); 0<=p<=N} of integer;
+  pipeCE17Reg3Xloc : {t,p | p+N+D-1<=t<=p+M-1; 0<=p<=N} of integer;
+  EReg2Xloc : {t,p | 2N+1<=t<=N+M+1} of integer;
+  WReg9 : {t,p | p+N+2<=t<=p+M+2; 0<=p<=N-1} of integer;
+  YReg8 : {t,p | p+N+2<=t<=p+M+2; 0<=p<=N-1} of integer;
+  WXctl1PReg7 : {t,p | p+N<=t<=p+M; 1<=p<=N-1} of boolean;
+  WReg6 : {t,p | p+N+D<=t<=p+M; 0<=p<=N-1} of integer;
+  pipeCx37Reg5 : {t,p | 2p+3<=t<=(p+M+2,2p+M+2); -1<=p<=N-1} of integer;
+  pipeCx35Reg4 : {t,p | 2p+D+1<=t<=p+M; 0<=p<=N-1} of integer;
+  pipeCE17Reg3 : {t,p | p+N+D<=t<=p+M; 0<=p<=N-1} of integer;
+  EReg2 : {t,p | N+D-1<=t<=M-1; p=-1} of integer;
+  YReg1 : {t,p | 2N+1<=t<=N+M+1; p=N-1} of integer;
+  WXctl1PXInitXIn : {t,p | N<=t<=M; p=0} of boolean;
+  WXctl1PXInit : {t | N<=t<=M} of boolean;
+  WXctl1P : {t,p | p+N<=t<=p+M; 0<=p<=N-1} of boolean;
+  pipeCx37 : {t,p | 2p+3<=t<=(2p+M+2,p+M+2); -2<=p<=N-1} of integer;
+  pipeCx35 : {t,p | 2p+D+1<=t<=(p+M,2p+M); -1<=p<=N-1} of integer;
+  pipeCE17 : {t,p | p+N+D<=t<=p+M; -1<=p<=N-1} of integer;
+  W : {t,p | p+N<=t<=p+M; 0<=p<=N-1} of integer;
+  Y : {t,p | p+N+2<=t<=p+M+2; -1<=p<=N-1} of integer;
+  E : {t,p | 2N+1<=t<=N+M+1; p=N-1} of integer;
+  WXctl1 : {t,p | p+N<=t<=p+M; 0<=p<=N-1} of boolean;
+let
+  dXMirr1[t,p] = d[t-N-1];
+  xXMirr2[t,p] = x[t-D+2];
+  xXMirr1[t,p] = x[t+2];
+  EReg2Xloc[t,p] = E[t,N-1];
+  EReg2[t,p] = EReg2Xloc[t+N-D+2,p];
+  pipeCE17Reg3Xloc[t,p] = pipeCE17[t,p-1];
+  pipeCE17Reg3[t,p] = pipeCE17Reg3Xloc[t-1,p];
+  pipeCx35Reg4Xloc[t,p] = pipeCx35[t,p-1];
+  pipeCx35Reg4[t,p] = pipeCx35Reg4Xloc[t-2,p];
+  pipeCx37Reg5Xloc[t,p] = pipeCx37[t,p-1];
+  pipeCx37Reg5[t,p] = pipeCx37Reg5Xloc[t-2,p];
+  WXctl1PReg7Xloc[t,p] = WXctl1P[t,p-1];
+  WXctl1PReg7[t,p] = WXctl1PReg7Xloc[t-1,p];
+  YReg1Xloc[t,p] = Y[t,N-1];
+  YReg1[t,p] = YReg1Xloc[t,p];
+  YReg8Xloc[t,p] = Y[t,p-1];
+  YReg8[t,p] = YReg8Xloc[t-1,p];
+  WReg9[t,p] = W[t-2,p];
+  WReg6[t,p] = W[t-1,p];
+  WXctl1PXInitXIn[t,p] = WXctl1PXInit[t];
+  WXctl1PXInit[t] = 
+      case
+        case
+          { | t<=N+D-1} : True[];
+          { | N+D<=t} : False[];
+        esac;
+      esac;
+  pipeCx37[t,p] = 
+      case
+        { | p=-2} : xXMirr1;
+        { | -1<=p} : pipeCx37Reg5;
+      esac;
+  pipeCx35[t,p] = 
+      case
+        { | p=-1} : xXMirr2;
+        { | 0<=p} : pipeCx35Reg4;
+      esac;
+  pipeCE17[t,p] = 
+      case
+        { | p=-1} : EReg2;
+        { | 0<=p} : pipeCE17Reg3;
+      esac;
+  WXctl1P[t,p] = 
+      case
+        { | p=0} : WXctl1PXInitXIn[t,p];
+        { | 1<=p} : WXctl1PReg7;
+      esac;
+  WXctl1[t,p] = WXctl1P[t,p];
+  TSep1[t,p] = pipeCE17 * pipeCx35;
+  TSep2[t,p] = WReg6 + TSep1;
+  W[t,p] = 
+      case
+        if (WXctl1) then 
+            case
+              { | t<=p+N+D-1} : 0[];
+              { | p+N+D<=t} : 0[];
+            esac else 
+        case
+          { | t<=p+N+D-1} : 0[];
+          { | p+N+D<=t} : TSep2;
+        esac;
+      esac;
+  Y[t,p] = 
+      case
+        { | p=-1} : 0[];
+        { | 0<=p} : YReg8 + WReg9 * pipeCx37;
+      esac;
+  E[t,p] = (dXMirr1 - YReg1) / 32[];
+  res[n] = Y[n+N+1,N-1];
+tel;
+
+-- Equation: 
+    dXMirr1 = d.(t,p,N,M,D->t-N-1,N,M,D);
+  ** Declaration: 
+    dXMirr1 : {t,p,N,M,D | 2N+1<=t<=N+M+1; p=N-1} of integer
+  ** Type is: integer
+  ** Input equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    xXMirr2 = x.(t,p,N,M,D->t-D+2,N,M,D);
+  ** Declaration: 
+    xXMirr2 : {t,p,N,M,D | D-1<=t<=M-2; p=-1} of integer
+  ** Type is: integer
+  ** Input equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    xXMirr1 = x.(t,p,N,M,D->t+2,N,M,D);
+  ** Declaration: 
+    xXMirr1 : {t,p,N,M,D | -1<=t<=M-2; p=-2} of integer
+  ** Type is: integer
+  ** Input equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    EReg2Xloc = E.(t,p,N,M,D->t,N-1,N,M,D);
+  ** Declaration: 
+    EReg2Xloc : {t,p,N,M,D | 2N+1<=t<=N+M+1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: E.(t,p,N,M,D->t,N-1,N,M,D)
+     Occurrence: {6, 4, 2}
+    ** is square
+    ** is not uniform
+     ** can be uniformized
+     -> Execute the command:    mkUniform[ {6, 4, 2} ]
+
+
+-- Equation: 
+    EReg2 = EReg2Xloc.(t,p,N,M,D->t+N-D+2,p,N,M,D);
+  ** Declaration: 
+    EReg2 : {t,p,N,M,D | N+D-1<=t<=M-1; p=-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: EReg2Xloc.(t,p,N,M,D->t+N-D+2,p,N,M,D)
+     Occurrence: {6, 5, 2}
+    ** is square
+    ** is not uniform
+     ** can be uniformized
+     -> Execute the command:    mkUniform[ {6, 5, 2} ]
+
+
+-- Equation: 
+    pipeCE17Reg3Xloc = pipeCE17.(t,p,N,M,D->t,p-1,N,M,D);
+  ** Declaration: 
+    pipeCE17Reg3Xloc : {t,p,N,M,D | p+N+D-1<=t<=p+M-1; 0<=p<=N} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCE17Reg3 = pipeCE17Reg3Xloc.(t,p,N,M,D->t-1,p,N,M,D);
+  ** Declaration: 
+    pipeCE17Reg3 : {t,p,N,M,D | p+N+D<=t<=p+M; 0<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer Register
+  ** Valid from D + N <= t <= -1 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCx35Reg4Xloc = pipeCx35.(t,p,N,M,D->t,p-1,N,M,D);
+  ** Declaration: 
+    pipeCx35Reg4Xloc : {t,p,N,M,D | 2p+D-1<=t<=(p+M-1,2p+M-2); 0<=p<=N} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCx35Reg4 = pipeCx35Reg4Xloc.(t,p,N,M,D->t-2,p,N,M,D);
+  ** Declaration: 
+    pipeCx35Reg4 : {t,p,N,M,D | 2p+D+1<=t<=p+M; 0<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer Register
+  ** Valid from 1 + D <= t <= Min[-1 - D + 2 M, -1 + M + N]
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCx37Reg5Xloc = pipeCx37.(t,p,N,M,D->t,p-1,N,M,D);
+  ** Declaration: 
+    pipeCx37Reg5Xloc : {t,p,N,M,D | 2p+1<=t<=(2p+M,p+M+1); -1<=p<=N} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCx37Reg5 = pipeCx37Reg5Xloc.(t,p,N,M,D->t-2,p,N,M,D);
+  ** Declaration: 
+    pipeCx37Reg5 : {t,p,N,M,D | 2p+3<=t<=(p+M+2,2p+M+2); -1<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer Register
+  ** Valid from 1 <= t <= Min[1 + 2 M, 1 + M + N, M + 2 N]
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    WXctl1PReg7Xloc = WXctl1P.(t,p,N,M,D->t,p-1,N,M,D);
+  ** Declaration: 
+    WXctl1PReg7Xloc : {t,p,N,M,D | p+N-1<=t<=p+M-1; 1<=p<=N} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    WXctl1PReg7 = WXctl1PReg7Xloc.(t,p,N,M,D->t-1,p,N,M,D);
+  ** Declaration: 
+    WXctl1PReg7 : {t,p,N,M,D | p+N<=t<=p+M; 1<=p<=N-1} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** boolean Register
+  ** Valid from 1 + N <= t <= -1 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    YReg1Xloc = Y.(t,p,N,M,D->t,N-1,N,M,D);
+  ** Declaration: 
+    YReg1Xloc : {t,p,N,M,D | 2N+1<=t<=N+M+1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: Y.(t,p,N,M,D->t,N-1,N,M,D)
+     Occurrence: {6, 14, 2}
+    ** is square
+    ** is not uniform
+     ** can be uniformized
+     -> Execute the command:    mkUniform[ {6, 14, 2} ]
+
+
+-- Equation: 
+    YReg1 = YReg1Xloc.(t,p,N,M,D->t,p,N,M,D);
+  ** Declaration: 
+    YReg1 : {t,p,N,M,D | 2N+1<=t<=N+M+1; p=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Identity equation
+  ** Definition of YReg1 could be removed
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    YReg8Xloc = Y.(t,p,N,M,D->t,p-1,N,M,D);
+  ** Declaration: 
+    YReg8Xloc : {t,p,N,M,D | p+N+1<=t<=p+M+1; 0<=p<=N} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    YReg8 = YReg8Xloc.(t,p,N,M,D->t-1,p,N,M,D);
+  ** Declaration: 
+    YReg8 : {t,p,N,M,D | p+N+2<=t<=p+M+2; 0<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer Register
+  ** Valid from 2 + N <= t <= 1 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    WReg9 = W.(t,p,N,M,D->t-2,p,N,M,D);
+  ** Declaration: 
+    WReg9 : {t,p,N,M,D | p+N+2<=t<=p+M+2; 0<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer Register
+  ** Valid from 2 + N <= t <= 1 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    WReg6 = W.(t,p,N,M,D->t-1,p,N,M,D);
+  ** Declaration: 
+    WReg6 : {t,p,N,M,D | p+N+D<=t<=p+M; 0<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer Register
+  ** Valid from D + N <= t <= -1 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    WXctl1PXInitXIn = WXctl1PXInit.(t,p,N,M,D->t,N,M,D);
+  ** Declaration: 
+    WXctl1PXInitXIn : {t,p,N,M,D | N<=t<=M; p=0} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: WXctl1PXInit.(t,p,N,M,D->t,N,M,D)
+     Occurrence: {6, 20, 2}
+    ** is not square
+    ** is not uniform
+    ** No possible pipeline
+
+
+-- Equation: 
+    WXctl1PXInit = 
+    case
+      case
+        {t,N,M,D | t<=N+D-1} : True.(t,N,M,D->);
+        {t,N,M,D | N+D<=t} : False.(t,N,M,D->);
+      esac;
+    esac;
+  ** Declaration: 
+    WXctl1PXInit : {t,N,M,D | N<=t<=M} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t}
+  ** Scheduled, one time dimension
+  ** Control equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCx37 = 
+    case
+      {t,p,N,M,D | p=-2} : xXMirr1;
+      {t,p,N,M,D | -1<=p} : pipeCx37Reg5;
+    esac;
+  ** Declaration: 
+    pipeCx37 : {t,p,N,M,D | 2p+3<=t<=(2p+M+2,p+M+2); -2<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+ spatial case   ** Spatial case equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCx35 = 
+    case
+      {t,p,N,M,D | p=-1} : xXMirr2;
+      {t,p,N,M,D | 0<=p} : pipeCx35Reg4;
+    esac;
+  ** Declaration: 
+    pipeCx35 : {t,p,N,M,D | 2p+D+1<=t<=(p+M,2p+M); -1<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+ spatial case   ** Spatial case equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCE17 = 
+    case
+      {t,p,N,M,D | p=-1} : EReg2;
+      {t,p,N,M,D | 0<=p} : pipeCE17Reg3;
+    esac;
+  ** Declaration: 
+    pipeCE17 : {t,p,N,M,D | p+N+D<=t<=p+M; -1<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+ spatial case   ** Spatial case equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    WXctl1P = 
+    case
+      {t,p,N,M,D | p=0} : WXctl1PXInitXIn.(t,p,N,M,D->t,p,N,M,D);
+      {t,p,N,M,D | 1<=p} : WXctl1PReg7;
+    esac;
+  ** Declaration: 
+    WXctl1P : {t,p,N,M,D | p+N<=t<=p+M; 0<=p<=N-1} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: WXctl1PXInitXIn.(t,p,N,M,D->t,p,N,M,D)
+     Occurrence: {6, 25, 2, 1, 1, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    WXctl1 = WXctl1P.(t,p,N,M,D->t,p,N,M,D);
+  ** Declaration: 
+    WXctl1 : {t,p,N,M,D | p+N<=t<=p+M; 0<=p<=N-1} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Identity equation
+  ** Definition of WXctl1 could be removed
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep1 = pipeCE17 * pipeCx35;
+  ** Declaration: 
+    TSep1 : {t,p,N,M,D | p+N+D<=t<=p+M; 0<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {mul}
+  ** Unops: {}
+  ** Valid from D + N <= t <= -1 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep2 = WReg6 + TSep1;
+  ** Declaration: 
+    TSep2 : {t,p,N,M,D | p+N+D<=t<=p+M; 0<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {add}
+  ** Unops: {}
+  ** Valid from D + N <= t <= -1 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    W = case
+      if (WXctl1) then 
+          case
+            {t,p,N,M,D | t<=p+N+D-1} : 0.(t,p,N,M,D->);
+            {t,p,N,M,D | p+N+D<=t} : 0.(t,p,N,M,D->);
+          esac else 
+      case
+        {t,p,N,M,D | t<=p+N+D-1} : 0.(t,p,N,M,D->);
+        {t,p,N,M,D | p+N+D<=t} : TSep2;
+      esac;
+    esac;
+  ** Declaration: 
+    W : {t,p,N,M,D | p+N<=t<=p+M; 0<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** No dependency
+
+
+-- Equation: 
+    Y = case
+      {t,p,N,M,D | p=-1} : 0.(t,p,N,M,D->);
+      {t,p,N,M,D | 0<=p} : YReg8 + WReg9 * pipeCx37;
+    esac;
+  ** Declaration: 
+    Y : {t,p,N,M,D | p+N+2<=t<=p+M+2; -1<=p<=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {mul, add}
+  ** Unops: {}
+  ** Valid from 1 + N <= t <= 1 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    E = (dXMirr1 - YReg1) / 32.(t,p,N,M,D->);
+  ** Declaration: 
+    E : {t,p,N,M,D | 2N+1<=t<=N+M+1; p=N-1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {sub, div}
+  ** Unops: {}
+  ** Valid from 1 + 2 N <= t <= 1 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    res = Y.(n,N,M,D->n+N+1,N-1,N,M,D);
+  ** Declaration: 
+    res : {n,N,M,D | N<=n<=M} of integer
+  ** Type is: integer
+  ** Output equation
+  ** Indexes: {n}
+  ** Mirror equation
+  ** This equation can be interpreted as hardware
+
+---- These equations cannot be translated to hardware:
+EReg2Xloc = E.(t,p,N,M,D->t,N-1,N,M,D);
+EReg2 = EReg2Xloc.(t,p,N,M,D->t+N-D+2,p,N,M,D);
+YReg1Xloc = Y.(t,p,N,M,D->t,N-1,N,M,D);
+WXctl1PXInitXIn = WXctl1PXInit.(t,p,N,M,D->t,N,M,D);
+WXctl1P = 
+    case
+      {t,p,N,M,D | p=0} : WXctl1PXInitXIn.(t,p,N,M,D->t,p,N,M,D);
+      {t,p,N,M,D | 1<=p} : WXctl1PReg7;
+    esac;
+W = case
+      if (WXctl1) then 
+          case
+            {t,p,N,M,D | t<=p+N+D-1} : 0.(t,p,N,M,D->);
+            {t,p,N,M,D | p+N+D<=t} : 0.(t,p,N,M,D->);
+          esac else 
+      case
+        {t,p,N,M,D | t<=p+N+D-1} : 0.(t,p,N,M,D->);
+        {t,p,N,M,D | p+N+D<=t} : TSep2;
+      esac;
+    esac;
+
+
+---- Use statements:
+
+
+------
+  **** Resources used:
+  9 integer registers
+  0 integer or floating-point mux
+  2 multipliers 
+  3 adders/subtracters 
+  ** Analysis of operators
+  mul from D + N to -1 + M + N
+  add from D + N to -1 + M + N
+  mul from 1 + N to 1 + M + N
+  add from 1 + N to 1 + M + N
+  sub from 1 + 2 N to 1 + M + N
+  div from 1 + 2 N to 1 + M + N

@@ -1,0 +1,15 @@
+digraph computeDistances {
+	node [shape=ellipse color = "blue"]; descriptor; image
+	node [shape=ellipse color = "green"]; distances
+	node [shape=rectangle color = "black"]; equ1; distance2
+	node [shape = ellipse  color = "red" ]
+
+	descriptor -> equ1
+	equ1 -> temp
+	distance2 -> res
+	image -> distance2
+	temp -> distance2
+	res -> distances
+	label = "\n\nRDG of Alpha program\ncomputeDistances\n as produced by MMAlpha"
+	fontsize=15
+}

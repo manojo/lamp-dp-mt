@@ -1,0 +1,682 @@
+\begin{theindex}
+
+  \item \$MMALPHA, 30
+  \item \$coneList, 29
+  \item \$demoDirectory, 29
+  \item \$depCone, 29
+  \item \$dependencyConstraints, 104
+  \item \$library, 30
+  \item \$masterNotebook, 30
+  \item \$myMasterNotebook, 30
+  \item \$myNotebooks, 30
+  \item \$optimalityConstraints, 105
+  \item \$program, 31
+  \item \$result, 31
+  \item \$rootDirectory, 31
+  \item \$runTime, 33
+  \item \$schedule, 31
+  \item \$scheduleDepTable, 105
+  \item \$scheduleLibrary, 32, 105
+  \item \$scheduleMDSol, 105
+  \item \$showGraph, 30
+  \item \$testDirectory, 32
+  \item \$testIdentifier, 32
+  \item \$testReportFile, 32
+  \item \$testResult, 32
+  \item \$tmpDirectory, 32
+  \item \$vhdlCurrent, 133
+  \item \$vhdlOutputFile, 133
+
+  \indexspace
+
+  \item a2v, 134
+  \item accessByPath, 81, 190
+  \item adaptUses, 105
+  \item addAllParameterDomain, 77, 186
+  \item addBufferVars, 102
+  \item addConstraints, 154
+  \item addLinSpace, 69, 142
+  \item addLocal, 92
+  \item addlocal, 92
+  \item addLocalLHS, 93
+  \item addLocalRHS, 93
+  \item addParameterDomain, 78, 186
+  \item addParameterId, 63, 182
+  \item addSchedule, 106
+  \item affExtHom, 64, 183
+  \item affineByVar, 156
+  \item affineDepConsts, 106
+  \item alignInp, 164
+  \item all, 158
+  \item allDomDisjointQ, 173
+  \item allDomEqualQ, 173
+  \item allDomUnion, 173
+  \item allLibrary, 152
+  \item allVariablesAllowed, 165
+  \item Alpha, 28
+  \item Alpha0, 163
+  \item alpha0ToAlphard, 129
+  \item alpha0ToAlphardModule, 129
+  \item alphaFormat, 163
+  \item alphardFirstStep, 129
+  \item alphardTimeLife, 129
+  \item alphaToMmaMatrix, 69, 143
+  \item alreadySchedule, 169
+  \item analyze, 58, 181
+  \item applySchedule, 97
+  \item appSched, 98
+  \item appSchedOptions, 99
+  \item appVarSched, 100
+  \item areAllOutputsRegular, 96
+  \item asave, 33
+  \item asaveLib, 33
+  \item ashow, 33
+  \item ashowLib, 33
+  \item assignParameterValue, 64, 183
+  \item assignParameterValueLib, 64, 183
+  \item astQ, 38
+
+  \indexspace
+
+  \item bbDomain, 54, 191
+  \item benchSched, 103
+  \item bigParPos, 154
+  \item bitTrue, 170
+  \item bitWidth, 134
+  \item bitWidthOfExpr, 134
+  \item booleanToIntegerSyst, 128
+  \item boundedDelay, 166
+  \item buildControler, 130
+  \item buildInterface, 131
+  \item buildLHSIdList, 59, 182
+  \item buildOneCell, 130
+  \item buildPseudoAlpha, 101
+  \item buildRHSIdList, 60, 182
+  \item buildSchedConstraintForUse, 102
+  \item buildSchedConstraints, 101
+  \item busWidth, 172
+
+  \indexspace
+
+  \item callFile, 139
+  \item canonicalProjection, 69, 143
+  \item cell, 168
+  \item cellType, 167
+  \item changeIndexes, 82
+  \item ChangeOfBasis, 82
+  \item changeOfBasis, 83
+  \item changeType, 60, 178
+  \item checkCase, 171
+  \item checkDeclarations, 59, 182
+  \item checkOptions, 103
+  \item checkRestrictions, 87
+  \item checkSched, 159
+  \item checkSchedOptions, 106
+  \item checkUseful, 59, 181
+  \item clockEnable, 167
+  \item columns, 176
+  \item compactCode, 167
+  \item compass, 167
+  \item composeAffines, 69, 143
+  \item const2al, 43
+  \item const2mma, 43
+  \item constantizeMatrix, 123
+  \item constantizeOccur, 123
+  \item constOf, 106
+  \item contextDomain, 152
+  \item Control, 119
+  \item controler, 168
+  \item controlVars, 121
+  \item convertSchedule, 100
+  \item convexize, 70, 143
+  \item convexizeAll, 70, 144
+  \item convHull, 70, 143
+  \item correctAffineFunctions, 90
+  \item correctIdEqs, 128
+  \item correctMat, 90
+  \item current, 163
+  \item Cut, 84
+  \item cut, 84
+
+  \indexspace
+
+  \item dataFlowConstantsNull, 160
+  \item dataFlowPeriod, 160
+  \item dataFlowVariables, 161
+  \item debug, 151
+  \item debugC, 170
+  \item decompose, 84
+  \item decomposeSTdeps, 127
+  \item delay, 157
+  \item deleteColumn, 70, 144
+  \item deleteRow, 70, 144
+  \item delocalizeControl, 125
+  \item demoLink, 39
+  \item dep, 59, 181
+  \item dep1, 59, 181
+  \item depComponents, 106
+  \item depCycles, 107
+  \item depGraph, 107
+  \item depGraphViz, 107
+  \item determinant, 70, 144
+  \item directory, 151
+  \item displaySchedule, 107
+  \item docLink, 39
+  \item doDoc, 138
+  \item dom2al, 43
+  \item dom2mma, 43
+  \item DomAddRays, 44
+  \item domain, 28
+  \item DomBasis, 44
+  \item domCompRays, 44
+  \item DomConstraints, 44
+  \item DomConstraintsOfDom, 52
+  \item DomConvex, 45
+  \item DomCost, 45
+  \item DomDifference, 45
+  \item DomDimension, 109
+  \item DomEmpty, 45
+  \item DomEmptyQ, 45
+  \item DomEqualities, 46
+  \item DomEqualQ, 46
+  \item domExplode, 125
+  \item domExplode1, 125
+  \item DomExtend, 46
+  \item domHalfSpaceQ, 44
+  \item DomImage, 46
+  \item DomIntEmptyQ, 46
+  \item DomIntersection, 46
+  \item DomLeftHermite, 47
+  \item domLexGreater, 141
+  \item domLexLower, 141
+  \item DomLib, 42
+  \item domlib, 43
+  \item DomLines, 52
+  \item DomLTQ, 47
+  \item DomMatrixSimplify, 47
+  \item DomPreimage, 47
+  \item DomProject, 47
+  \item DomRays, 48
+  \item DomRightHermite, 48
+  \item DomSimplify, 48
+  \item DomSingletonQ, 109
+  \item DomSort, 48
+  \item DomTrueDimension, 109
+  \item DomTrueRays, 52
+  \item DomUnion, 48
+  \item DomUniverse, 49
+  \item DomUniverseQ, 49
+  \item DomVertices, 49
+  \item DomVisual, 49
+  \item DomZImage, 49
+  \item DomZPreimage, 50
+  \item dropColumns, 71, 144
+  \item dropParameters, 71, 145
+  \item dropRows, 71, 145
+  \item durationByEq, 155
+  \item durations, 155
+  \item durationsNonZero, 107
+
+  \indexspace
+
+  \item eliminatesDoubles, 162
+  \item eliminateVar, 109
+  \item emptyLinearPartQ, 71, 145
+  \item encodeSchedule, 110
+  \item enTete, 41
+  \item eq2ge, 121
+  \item eq2le, 121
+  \item eqsDomain, 114
+  \item equalitySimpl, 162
+  \item equationOrderQ, 101
+  \item equations, 110
+  \item exceptions, 172
+  \item execute, 122
+  \item expDimension, 60, 178
+  \item expDomain, 61, 179
+  \item exportAlphaFunctions, 40
+  \item expressLatticeWithMat, 53, 194
+  \item expressZpolWithMat, 53, 194
+  \item exprLocalEquivQ, 85
+  \item expType, 61, 179
+  \item extDomainCOB, 84
+  \item extraEdges, 108, 166
+
+  \indexspace
+
+  \item facets, 55, 191
+  \item factor, 108
+  \item farkas, 103, 154
+  \item FarkasSchedule, 115
+  \item farkasSchedule, 115
+  \item fileName, 38
+  \item findAliases, 178
+  \item findPipeControl, 125
+  \item findSepHalfSpace, 124
+  \item fixParameter, 64, 183
+  \item flattenEquation, 177
+  \item flattenSkeleton, 177
+  \item fshow, 33
+  \item fSize, 176
+  \item fullLatex, 138
+
+  \indexspace
+
+  \item getArrayDomains, 129
+  \item getBoundingBox, 55, 191
+  \item getContextDomain, 61, 179
+  \item getDeclaration, 78, 187
+  \item getDeclarationDomain, 78, 187
+  \item getDefinition, 78, 187
+  \item getDimension, 78, 187
+  \item getEquation, 78, 187
+  \item getIndexNames, 79, 188
+  \item getInputVars, 79, 188
+  \item getLinearPart, 71, 145
+  \item getLinPart, 110
+  \item getLocalVars, 79, 188
+  \item getMatOfZpol, 54, 194
+  \item getNewName, 93
+  \item getOccurs, 94
+  \item getOccursInDef, 94
+  \item getOutputVars, 79, 188
+  \item getPart, 34
+  \item getPolOfZpol, 54, 195
+  \item getSystem, 34
+  \item getSystemName, 79, 188
+  \item getSystemParameterDomain, 80, 189
+  \item getSystemParameters, 80, 189
+  \item getTemporaryName, 39
+  \item getTranslationVector, 72, 145
+  \item getUseSchedule, 110
+  \item getVariables, 79, 188
+  \item getVhdlType, 134
+  \item givenSchedVect, 155
+
+  \indexspace
+
+  \item hermite, 72, 145
+  \item hermiteL, 72, 146
+  \item hermiteR, 72, 146
+  \item hypercube, 50
+
+  \indexspace
+
+  \item identityQ, 72, 146
+  \item identitySchedule, 100
+  \item idLinearPartQ, 73, 146
+  \item idMatrix, 73, 147
+  \item indexnorm, 163
+  \item initialize, 168
+  \item initZeroReg, 163
+  \item inlineAll, 64, 183
+  \item inlineSubsystem, 65, 184
+  \item inliningRenameCounter, 65, 184
+  \item iNorm, 140
+  \item inputEquations, 152
+  \item inputOrOutput, 172
+  \item insertFunction, 133
+  \item integerSolution, 154
+  \item integerToBooleanSyst, 128
+  \item interactive, 169
+  \item inverseInContext, 73, 147
+  \item inverseMatrix, 72, 146
+  \item invert, 152
+  \item isConnexionEqQ, 130
+  \item isControlEquQ, 120
+  \item ishow, 110
+  \item isIdentityOnDim, 110
+  \item isIdLinearPart, 73, 147
+  \item isMirrorEqQ, 130
+  \item isModuleQ, 131
+  \item isNullLinearPart, 73, 147
+  \item isolateOneReduction, 91, 175
+  \item isolateOutput, 132
+  \item isolateOutputList, 132
+  \item isolateReductions, 91, 175
+  \item isOutputRegular, 95
+  \item isReducibleQ, 102
+  \item isScheduledQ, 100
+  \item isSpaceDepQ, 130
+  \item iterations, 123
+
+  \indexspace
+
+  \item labelFactor, 109
+  \item labelOffset, 166
+  \item labelSize, 108, 166
+  \item LatticeDifference, 50
+  \item LatticeHermite, 51
+  \item LatticeImage, 50
+  \item LatticeIntersection, 50
+  \item LatticePreimage, 51
+  \item lexGreaterOrEqualQ, 141
+  \item lexGreaterQ, 141
+  \item lexicographic, 159
+  \item lexLowerOrEqualQ, 142
+  \item lexLowerQ, 141
+  \item library, 65, 151, 184
+  \item linearConstraintQ, 51
+  \item linearExpQ, 51
+  \item linHalfSpace, 51
+  \item link, 40
+  \item listOfAdaptedSignals, 106
+  \item listPlanes, 55, 192
+  \item load, 34
+  \item loadScheduleLibrary, 111
+  \item lookUpFor, 80, 189
+  \item lookUpForPos, 80, 189
+  \item lpSolve, 153
+  \item lyrtech, 169
+
+  \indexspace
+
+  \item makeAllMuxControl, 119
+  \item makeBinaryCases, 121
+  \item MakeDoc, 138
+  \item makeDoc, 139
+  \item makeInputMirrorEqus, 127
+  \item makeMuxControl, 120
+  \item makeOneMuxControl, 119
+  \item makeSimpleExpr, 127
+  \item matchTypes, 61, 179
+  \item matlab, 169
+  \item Matrix, 69, 142
+  \item matrix2mma, 114
+  \item matrixTransPart, 111
+  \item maxR, 56, 192
+  \item merge, 85
+  \item mergeCaseBranches, 85
+  \item mergeDomains, 171
+  \item mergeIdCaseBranches, 85
+  \item meta, 151
+  \item minimize, 166
+  \item minR, 56, 192
+  \item minRestrictInCtxt, 87
+  \item mkAllOutputsRegular, 96
+  \item mkOutputRegular, 96
+  \item mkUniform, 124
+  \item mkVhdlLoop, 135
+  \item mkVhdlLowerBound, 135
+  \item mkVhdlUpperBound, 135
+  \item mma, 153
+  \item mmaToAlphaMatrix, 74, 148
+  \item module, 168
+  \item mono, 157
+  \item multi, 157
+  \item multiDimensional, 160
+  \item multiSched, 115
+  \item multiSchedDepth, 158
+  \item mute, 41
+  \item myStart, 34
+
+  \indexspace
+
+  \item needSeparation, 126
+  \item needsMuxQ, 120
+  \item newName, 177
+  \item noOrder, 161
+  \item noPrint, 169
+  \item norm, 152
+  \item Normalization, 87
+  \item normalizationRules, 88
+  \item normalizationRules0, 89
+  \item normalize, 87
+  \item normalize0, 88
+  \item normalize0Q, 90
+  \item normalizeDef, 88
+  \item normalizeDef0, 88
+  \item normalizeIdDep, 131
+  \item normalizeIdDepInEq, 132
+  \item normalizeIdDepLib, 132
+  \item normalizeInCtxt, 89
+  \item normalizeInCtxt0, 89
+  \item normalizeQ, 89
+  \item nullLinearPartQ, 74, 148
+  \item nullSpaceVectors, 74, 147
+
+  \indexspace
+
+  \item objFunction, 159
+  \item occurence, 65, 162, 184
+  \item occursInDefQ, 95
+  \item offsetX, 177
+  \item offsetY, 177
+  \item on, 34
+  \item onlyDep, 158
+  \item onlyIdDep, 166
+  \item onlyLocalVars, 170
+  \item onlyMainSystem, 112
+  \item onlyModules, 171
+  \item onlyUseDep, 113
+  \item onlyVar, 158
+  \item openTemporary, 39
+  \item optimizationType, 156
+  \item orderPolygon, 56, 192
+  \item other, 97
+  \item outputForm, 160
+
+  \indexspace
+
+  \item pal, 113
+  \item parameterConstraints, 159
+  \item parameterRules, 111
+  \item partShown, 175
+  \item periodicFactor, 111
+  \item periods, 112
+  \item pip, 153
+  \item pipeAll, 118
+  \item pipeall, 117
+  \item pipeAllControl, 121
+  \item pipeConstants, 122
+  \item PipeControl, 121
+  \item pipeControl, 122
+  \item pipeInfo, 122
+  \item pipeIO, 118
+  \item Pipeline, 116
+  \item pipeline, 116
+  \item pipeVars, 123
+  \item pol, 29
+  \item polToZpol, 51
+  \item projMatrix, 170
+  \item projVector, 170
+  \item Properties, 173
+  \item putSystem, 35
+
+  \indexspace
+
+  \item rays, 52
+  \item readAlpha, 35
+  \item readDom, 35
+  \item readExp, 35
+  \item readMat, 36
+  \item recurse, 151
+  \item Reduction, 91, 174
+  \item remIdDeps, 172
+  \item remIdEqus, 172
+  \item removeAllUnusedVars, 95
+  \item removeIdEqus, 66, 185
+  \item removeSystem, 131
+  \item removeUnusedVar, 95
+  \item rename, 162
+  \item renameCounter, 162
+  \item renameIndices, 98
+  \item reorderEquations, 101
+  \item replaceByEquivExpr, 62, 180
+  \item replaceDefinition, 94
+  \item report, 124
+  \item reportDep, 124
+  \item resolutionSoft, 153
+  \item reuseCommonExpr, 128
+  \item rewrite, 168
+  \item rnf, 140
+  \item route, 125
+  \item routeOnce, 164
+
+  \indexspace
+
+  \item sameLinearPart, 156
+  \item sameLinearPartExceptParam, 156
+  \item save, 36
+  \item saveLib, 36
+  \item saveSchedule, 112
+  \item saveScheduleLibrary, 111
+  \item scalarTypeCheck, 162
+  \item scd, 112
+  \item schedMethod, 153
+  \item Schedule, 102
+  \item schedule, 103
+  \item scheduleDim, 157
+  \item scheduleType, 156
+  \item Schematics, 175
+  \item schematics, 177
+  \item Semantics, 60, 178
+  \item serializeReduce, 91, 174
+  \item setBitWidth, 62, 180
+  \item setMMADir, 40
+  \item setOutputVar, 133
+  \item show, 36
+  \item showDomain, 55, 191
+  \item showLib, 36
+  \item showMat, 37
+  \item showNonSquareDeps, 165
+  \item showNonUniformDeps, 165
+  \item showNonUniformizableDeps, 165
+  \item showSchedResult, 97
+  \item showSquareDeps, 165
+  \item showUniformDeps, 165
+  \item showUniformizableDeps, 165
+  \item showVhdl, 134
+  \item showViz, 108
+  \item silent, 164
+  \item simplex, 113
+  \item simplifyAffines, 77, 150
+  \item simplifyConnexions, 131
+  \item simplifyInContext, 90
+  \item simplifySystem, 90
+  \item simplifyUseInputs, 66, 185
+  \item skeleton, 177
+  \item skipLines, 167
+  \item slackOf, 113
+  \item slg, 113
+  \item smithNormalForm, 75, 148
+  \item solveDiophantine, 74, 148
+  \item sortEquations, 114
+  \item sortOrder, 161
+  \item sourceDir, 139
+  \item spaceTimeCase, 120
+  \item spaceTimeDecomposition, 120
+  \item spatialCaseQ, 119
+  \item splitCaseUnion, 86
+  \item splitMax, 128
+  \item splitReduction, 92, 175
+  \item sPositions, 176
+  \item spread, 66, 185
+  \item square, 176
+  \item squareMatrixQ, 75, 148
+  \item start, 37
+  \item startTime, 171
+  \item Static, 58, 180
+  \item statScheduleConstraints, 114
+  \item stdLogic, 168
+  \item stepR, 56, 192
+  \item steps, 127
+  \item stim, 135
+  \item stimuli, 169
+  \item structSched, 102
+  \item structSchedType, 157
+  \item structured, 171
+  \item structureFrom, 132
+  \item subMatrices, 75, 149
+  \item substDom, 66, 185
+  \item substituteInDef, 95
+  \item Substitution, 92
+  \item SubSystems, 63, 182
+  \item subSystems, 159
+  \item subSystemSchedule, 160
+  \item subSystemUsedBy, 66, 185
+  \item summaryScheduleConstraints, 114
+  \item suppressRowNum, 75, 149
+  \item symToString, 80, 189
+  \item systemCFiles, 172
+  \item systemNames, 37
+
+  \indexspace
+
+  \item Tables, 77, 186
+  \item targetDir, 139
+  \item tempFile, 167
+  \item temporalCaseQ, 119
+  \item test1, 41
+  \item test2, 41
+  \item test3, 41
+  \item test4, 41
+  \item testFunction, 37
+  \item tests, 37
+  \item testSched, 100
+  \item threeDDomainQ, 56, 193
+  \item time, 157
+  \item timeDimensions, 99
+  \item timeMinSchedConstraints, 112
+  \item tmpFile, 164
+  \item ToAlpha0v2, 126
+  \item toAlpha0v2, 127
+  \item topoSort, 67, 186
+  \item translationMatrix, 75, 149
+  \item translationQ, 75, 149
+  \item twoDDomainQ, 56, 193
+
+  \indexspace
+
+  \item underscore, 65, 163, 184
+  \item undoModif, 81, 190
+  \item uniformizeMatrix, 123
+  \item uniformizeOccur, 124
+  \item uniformQ, 174
+  \item unimodCompl, 77, 150
+  \item unimodularCompletion, 76, 150
+  \item unimodularQ, 76, 149
+  \item unionMerge, 86
+  \item units, 57, 193
+  \item unusedVarQ, 95
+
+  \indexspace
+
+  \item variables, 99, 108
+  \item variablesOf, 114
+  \item varTypes, 37
+  \item verbose, 151
+  \item verifyCone, 164
+  \item vertex, 103, 154
+  \item VertexSchedule, 104
+  \item vertices, 52
+  \item verticesPositives, 161
+  \item Vhdl2, 133
+  \item vhdlLibrary, 167
+  \item VhdlTestBanch, 135
+  \item vhdlTestBenchGen, 135
+  \item Visual, 54, 190
+  \item Visual3D, 55, 191
+  \item vp1, 57, 193
+  \item vp3, 57, 193
+  \item vshow, 57, 193
+
+  \indexspace
+
+  \item wrap, 40
+  \item writeC, 38
+  \item writeTex, 38
+
+  \indexspace
+
+  \item yFactor, 176
+
+  \indexspace
+
+  \item Zpol, 53, 194
+  \item zpol, 29
+  \item zpolDomainQ, 114
+  \item zpolIsPolQ, 52
+  \item zpolToPol, 52
+
+\end{theindex}

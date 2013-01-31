@@ -1,0 +1,1030 @@
+BeginPackage["Alpha`vhdlCont`",{"Alpha`",
+                                "Alpha`Domlib`",
+                                "Alpha`Tables`",
+                                "Alpha`Matrix`", 
+                                "Alpha`Options`", 
+                                "Alpha`Vhdl2`", 
+                                "Alpha`Semantics`", 
+                                "Alpha`Visual`",
+                                "Alpha`Static`",
+				"Alpha`Alphard`"}];
+
+(* Standard head for CVS
+
+	$Author: quinton $
+	$Date: 2008/12/29 17:56:18 $
+	$Source: /local/chroot/cvsroot/irisa/mmalpha/lib/Packages/Alpha/vhdlCont.sem,v $
+*)
+(*
+	Semantics of the CheckController parser
+*)
+
+General::error3 = 
+"call with wrong parameters. This syntactic construct was not recognized";
+
+vhdlCont::usage = 
+"vhdlCont[] generates Vhdl code for a controller. vhdlCont[sys] 
+generates Vhdl code for sys"; 
+
+semFuncCont::usage = "";
+
+
+Begin["`Private`"];
+
+(* 
+  fsmToVhdl takes the description of a finite state 
+  machine, and generates the corresponding Vhdl processes 
+*)
+Clear[ fsmToVhdl ];
+fsmToVhdl[ { signalName:_, states:_, transitions:_}] :=
+Catch[
+  Module[{ genStateEvolution, tf, outf },
+    (* This function generates Vhdl code for a set of
+       transitions starting of the same origin state *)
+    genStateEvolution[{origin:_String,{{c:_Integer, dest1:_String},
+                                       {{}, dest2:_String}}}]:=
+    "      WHEN "<>origin<>" => IF counter = "<>ToString[c]<>" THEN\n"<>
+    "                            nextState"<>signalName<>" <= "<>dest1<>
+    ";\n"<>
+    "                           ELSE nextState"<>signalName<>" <= "<>
+    dest2<>";\n"<>
+    "                        END IF;\n";
+    genStateEvolution[{origin:_String,{{{}, dest:_String}}}]:=
+    "      WHEN "<>origin<>" => nextState"<>signalName<>" <= "<>dest<>
+    ";\n";
+    genStateEvolution[x___]:=(Print[x];Message[genStateEvolution::params]);
+
+    (* Here we generate the state transition function *)
+    tf = 
+    StringJoin[
+      "\n",
+      "  -- Controller for signal "<>signalName<>"\n",
+      "  PROCESS(counter, curState"<>signalName<>")\n",
+      "  BEGIN\n",
+      "    CASE curState"<>signalName<>" IS\n",
+      Map[genStateEvolution, transitions],
+      "      WHEN OTHERS => nextState"<>signalName<>" <= finalState;\n",
+      "    END CASE;\n",
+      "  END PROCESS;\n"
+    ];
+
+    (* Here we generate the output function *)
+    outf = 
+    StringJoin[
+      "\n",
+      "  -- Output function for signal "<>signalName<>"\n",
+      "  PROCESS(curState"<>signalName<>")\n",
+      "  BEGIN\n",
+      "    CASE curState"<>signalName<>" is\n",
+      "      WHEN initState => "<>signalName<>" <= '0';\n",
+      "      WHEN trueState => "<>signalName<>" <= '1';\n",
+      "      WHEN falseState => "<>signalName<>" <= '0';\n",
+      "      WHEN finalState => "<>signalName<>" <= '0';\n",
+      "      WHEN others =>  "<>signalName<>" <= '0';\n",
+      "    END CASE;\n",
+      "  END PROCESS;\n"
+    ];
+
+    tf<>outf
+  ]
+];
+fsmToVhdl[___]:=Message[fsmToVhdl::params];
+
+(*
+  mooreFSM takes a structure describing the evolution of
+  a control signal, and produces a fsm, in the form of a 
+  pair {list of states, transition list}. Each transition has
+  the form {state, {number, nextstate}} where state 
+  is the origin state, nextstate is the destination state,
+  number is the value of the counter (or {} if no condition
+  has to be tested). The output function is not generated, 
+  as it is standard. Note that the times at which the 
+  events occur are shifter by minTime, in order to start
+  the counter at value 0. 
+*)
+Clear[ mooreFSM ];
+mooreFSM[ {lhs:_, rhs:_}, 
+  minTime:_Integer,
+  maxTime:(_Integer|Infinity) , options:___Rules]:=
+Catch[
+  Module[{ states, transitions, trueTime, endTime },
+    dbg = debug/.{options}/.Options[ a2v ];
+
+    (* This is a kludge: Infinity is 999 here! *)
+    endTime = If[ maxTime == Infinity, 999, maxTime];
+(*
+    I think that there was an error here...
+    trueTime = First[First[First[rhs]]]+minTime-1;
+*)
+    trueTime = First[First[First[rhs]]];
+    changeTime=First[First[Last[rhs]]];
+    states = {"initState", "trueState", "falseState", "finalState"};
+    transitions = 
+      {
+        (* In the initial state, if the value of the time is trueTime, 
+           we go in state trueState *)
+        {"initState", {{trueTime, "trueState"},
+        (* otherwise, we stay in the same state *)
+                      {{}, "initState"}}},
+        (* In the trueState, we  transit to the falseState at change Time *)
+        {"trueState", {{changeTime,  "falseState"},
+		       {{}, "trueState"}}},
+        (* In the falseState, we go to finalState at maxTime *)
+(*
+        {"falseState",{{endTime+minTime-1, "finalState"},
+*)
+        {"falseState",{{endTime, "finalState"},
+        (* otherwise, we stay in the same state *)
+                      {{}, "falseState"}}}
+      };
+    { lhs, states, transitions }
+  ]
+];
+mooreFSM[___] := Message[mooreFSM::params];
+
+(*
+   This is the name of the function, as called by MMAlpha
+*)
+Clear[vhdlCont];
+vhdlCont[opts:___Rule] := vhdlCont[$result,opts];
+vhdlCont[sys:_system, opts:___Rule]:=
+Module[{msg, error, dbg},
+
+  dbg = debug/.{opts}/.{debug->False};
+
+  Catch[
+    (* Call the translater *)
+    vhdlContTranslateSYSTEMDECLARATION[sys, opts]
+  ]
+];
+vhdlCont[___]:=Message[vhdlCont::params];
+
+Clear[ semFuncCont ]; 
+
+(* 
+	System 
+*)
+semFuncCont[ "system", 
+         systemName:_String,  (* The name of the system *)
+         indecls:_,  (* The translation of its input declarations *)
+         outdecls:_,  (* The translation of its output declarations *)
+         equations:_,  (* The translation of the equations *)
+         opts:___Rule ]:=
+Module[{ dbg, optTempFile, vrb, head, entity, controlNames, fdeclAux,
+         body, component, lib, lyr },
+Catch[
+  (* Options *)
+  dbg = debug/.{opts}/.Options[ a2v ];
+  vrb = verbose/.{opts}/.Options[ a2v ];
+  clkEn = clockEnable/.{opts}/.Options[ a2v ];
+  lib = vhdlLibrary/.{opts}/.Options[ a2v ];
+  lyr = lyrtech/.{opts}/.Options[ a2v ];
+
+ 
+  (* Generates the header of the Vhdl module *)
+  (* Calls the vhdlHeader function *)
+  head = Check[vhdlHeader[ systemName ],Throw[Null]]; 
+
+  (* Generates the entity part of the Vhdl code*)
+  (* We use outdecls, the list of output declarations *)
+  entity = 
+  StringJoin[ 
+    "\nENTITY ",
+    systemName,
+    " IS\n",
+    "PORT(\n  clk: IN STD_LOGIC;\n",
+    If[ clkEn, "  CE : IN STD_LOGIC;\n", "" ],
+    If[ lyr, "  Rst : IN STD_LOGIC_VECTOR (0 DOWNTO 0)", "  Rst : IN STD_LOGIC" ],
+(*
+    If[ clkEn,
+      "PORT(\n  clk: IN STD_LOGIC;\n  CE : IN STD_LOGIC;\n  Rst : IN STD_LOGIC",
+      "PORT(\n  clk: IN STD_LOGIC;\n  Rst : IN STD_LOGIC"
+    ],
+*)
+    Map[
+      Function[x,";\n  "<>x[[1]]<>" : OUT STD_LOGIC"],
+      outdecls
+    ],
+    "\n);\nEND ",
+    systemName,
+    ";\n"
+  ];
+
+  (* Produce the component description, used later *)
+  component = 
+  StringJoin[ 
+    "\nCOMPONENT ",
+    systemName,
+    "\n",
+    "PORT(\n  clk: IN STD_LOGIC;\n",
+    If[ clkEn, "  CE : IN STD_LOGIC;\n", "" ],
+    If[ lyr, "  Rst : IN STD_LOGIC_VECTOR (0 DOWNTO 0)", "  Rst : IN STD_LOGIC" ],
+(*
+    If[ clkEn, 
+      "PORT(\n  clk: IN STD_LOGIC;\n  CE : IN STD_LOGIC;\n  Rst : IN STD_LOGIC",
+      "PORT(\n  clk: IN STD_LOGIC;\n  Rst : IN STD_LOGIC"
+    ],
+*)
+    Map[
+       Function[x,";\n  "<>x[[1]]<>" : OUT STD_LOGIC"],
+       outdecls
+    ],
+    "\n);\nEND COMPONENT",
+    ";\n"
+  ];
+
+  (* Generate the architecture part of the Vhdl code *)
+  (* Here, we consider only the so-called non unified case *)
+
+  (* We generate a code of the form 
+
+     architecture state_machine of <systemName> is
+       signal cpt: Integer;
+
+     Then, for each control signal, say <ident> we generate 
+     a type declaration 
+
+       type<Ident> States is (initState, trueState, falseState, finalState);
+
+     and two signal declarations
+
+       signal current<ident> State, 
+       next<ident>State :HPipe_ctl1P_InitStates;
+ 
+     The number of states in the list (E0, etc, ) depends
+     on the range of the domain of the signal <ident>
+ 
+     Thus, this code is generated only from the output
+     declarations.
+
+     For the moment, we generate only a skeleton of 
+     the controller
+  *)
+ 
+  (* Declarations *)
+  (* This auxiliary function is used to generate the declaration 
+     of each control signal *)
+  fdeclAux[name:_String]:=
+    "  SIGNAL curState"<>name<>", nextState"<>name<>" : STATE_TYPE;\n";
+
+  If[ dbg, Print[equations]];
+  (* Get the control signal names *)
+  controlNames = Map[ First, equations ];
+
+  (* Generate the declaration part of the architecture *)
+  declarations = 
+  StringJoin[
+    "\nARCHITECTURE BEHAVIOURAL OF ",
+    systemName,
+    " IS\n",
+    "\n  SIGNAL counter: INTEGER; -- Declaration of the counter;\n",
+    "\n  -- Declaration of the states\n",
+    "  TYPE state_type IS (initState, trueState, falseState, finalState);\n",
+    "  ATTRIBUTE ENUM_ENCODING: STRING;\n",
+    "  ATTRIBUTE ENUM_ENCODING OF state_type : TYPE IS \"00 01 10 11\";\n\n",
+    Map[ fdeclAux, controlNames ]
+  ];
+
+
+  (* 
+     Generation of the controller. The idea is to format
+     the equations, and call a Moore Machine generator, 
+     then a Vhdl translator, in order to separate clearly
+     the fsm generation, and the vhdl translation. 
+
+     At this point, the equations are translated as 
+     follows: for each control signal, we have a structure
+     consisting of the name of the control signal, and
+     a list of pairs {domain,value}, where value is 
+     either True or False, and domain is the Alpha
+     domain where the control signal is True.
+       {{c1, {{True,domain1},{False,domain2}}},
+        {c2, {{True,domain3},{False,domain4}}}}
+       }
+     In the simplest case (the only one covered as of
+     today), domains are unidimensional, and represent
+     time. However, provision is made to cover the case
+     where the time is multidimensional.
+  *)
+
+  (*
+    The following covers only the case of unidimensional
+    time. 
+  *)
+
+  Module[ {res, fAux1, fAux2, fAux3, minTime, maxTime},
+    (* This function replaces the domain by an interval *)
+    fAux1[{lhs:_,rhs:_}] := 
+    Module[{f := Function[ r, 
+                  Module[{dom},
+                    dom = r[[1]];
+                    If[ DomEmptyQ[dom], 
+                      Throw[ Message[ vhdlCont::emptyDom ] ] ];
+                    Check[{getBoundingBox[r[[1]]][[1]],r[[2]]},
+                    Print["There was a problem... ", r];Throw[Null]]
+                  ]
+                ],
+            r1, r2, nrhs
+           },
+
+      r1 = getDeclarationDomain[$vhdlCurrent,lhs];
+
+      If[ dbg, Print["Declaration domain: ", r1]];
+
+      If[ dbg, Print["rhs :", rhs] ];
+
+      nrhs = Map[{DomIntersection[r1,#[[1]]],#[[2]]}&, rhs ];
+      If[ dbg, Print["nrhs : ", nrhs] ];
+
+      r2={lhs, Map[ f, nrhs ]};
+      If[ dbg, Print[r2] ];r2
+
+    ];
+
+    (* This function gets the minimum time value for an rhs *)
+    fAux2[{lhs_,rhs:_}] :=
+      Min[Map[First[First[#]]&,rhs]];
+
+    (* This function gets the maximum time value for an rhs *)
+    fAux3[{lhs_,rhs:_}] :=
+      Max[Map[Last[First[#]]&,rhs]];
+
+    (* Generate a list of control signals, together with their
+       intervals of values *)
+    Check[
+      res = Map[ fAux1, equations ],
+      Message[ vhdlCont::errorEquation, {lhs, rhs} ]
+    ];
+
+    If[ dbg, Print["res : ", res]];
+
+    (* Now, we compute the total interval of the signals *)
+    (*     minTime = Min[Map[ fAux2, res]];
+    replace by Tanguy : the min time should be computed 
+    over all the Alphard architecture *) 
+    minTime = alphardFirstStep[];
+    maxTime = Max[Map[ fAux3, res]];
+    If[ dbg, Print["minTime: ", minTime]];
+    If[ dbg, Print["maxTime: ", maxTime]];
+    (* We can now call a function which generates a 
+       finite state machine for each control signal *)
+    fsm = Map[mooreFSM[#, minTime, maxTime ] &,res];
+
+    If[ dbg, 
+      Print["This is the finite state machine for this signal: "];
+      Print[fsm]
+    ];
+    If[ dbg, Print[fsm]];
+
+    (* Then, we call another function which translates the
+       fsms into Vhdl *)
+    body = Map[ fsmToVhdl, fsm ];
+    If[ dbg, Print[FullForm[body]] ];
+
+    (* We now generate the process which resets the
+       counter (we could not earlier, as the minTime
+       was not known before processing the equations *)
+    declarations = 
+    declarations<>
+    StringJoin[
+      "BEGIN\n",
+      "\n  -- Synchronous reset process\n",
+      "  PROCESS (clk, rst)\n",
+      "  BEGIN\n",
+      "    IF clk = '1' AND clk'event THEN\n",
+      "      IF CE = '1' THEN\n",
+      "        IF rst = '0' THEN\n",
+      "          counter <= ",
+      ToString[minTime-1],
+      ";\n",
+      Map[
+        Function[name, "          curState"<>name<>" <= initState;\n"],
+        controlNames
+      ],
+      "        ELSE\n",
+      "          counter <= counter + 1;\n",
+      Map[
+        Function[name, "          curState"<>name<>" <= nextState"<>
+                 name<>";\n"],
+        controlNames
+      ],
+      "        END IF;\n",
+      "      END IF;\n",
+      "    END IF;\n",
+      "  END PROCESS;\n"
+    ];
+
+  ];
+
+  (* Returns the code *)
+  {head<>"\n"<>lib<>entity<>declarations<>body<>"END BEHAVIOURAL;\n",
+   component, {}}
+  
+  ] (* Catch *)
+
+];
+
+(* 
+	Equation
+*)
+semFuncCont[ "equation", lhs:_, rhs:_, opts:___Rule ]:=
+Module[{ dbg, res },
+  Catch[
+    dbg = debug/.{opts}/.Options[ semFuncCont ];
+    res = {lhs, rhs}
+  ] (* End Catch *)
+];
+vhdlCont::emptyDom = 
+"the domain of one equation is empty. A possible cause of this
+error is that the values assigned to the parameters are inconsistent"; 
+vhdlCont::errorEquation = 
+  "error while translating equation:\n `1`";
+
+(* --------------------------------------------------------------- *)
+Clear[ semFuncCont ]; 
+
+(* 
+	System 
+*)
+semFuncCont[ "system", 
+         systemName:_String,  (* The name of the system *)
+         indecls:_,  (* The translation of its input declarations *)
+         outdecls:_,  (* The translation of its output declarations *)
+         equations:_,  (* The translation of the equations *)
+         opts:___Rule ]:=
+Module[{ dbg, optTempFile, vrb, head, entity, controlNames, fdeclAux,
+         body, component, lib, lyr },
+Catch[
+  (* Options *)
+  dbg = debug/.{opts}/.Options[ a2v ];
+  vrb = verbose/.{opts}/.Options[ a2v ];
+  clkEn = clockEnable/.{opts}/.Options[ a2v ];
+  lib = vhdlLibrary/.{opts}/.Options[ a2v ];
+  lyr = lyrtech/.{opts}/.Options[ a2v ];
+
+ 
+  (* Generates the header of the Vhdl module *)
+  (* Calls the vhdlHeader function *)
+  head = Check[vhdlHeader[ systemName ],Throw[Null]]; 
+
+  (* Generates the entity part of the Vhdl code*)
+  (* We use outdecls, the list of output declarations *)
+  entity = 
+  StringJoin[ 
+    "\nENTITY ",
+    systemName,
+    " IS\n",
+    "PORT(\n  clk: IN STD_LOGIC;\n",
+    If[ clkEn, "  CE : IN STD_LOGIC;\n", "" ],
+    If[ lyr, "  Rst : IN STD_LOGIC_VECTOR (0 DOWNTO 0)", "  Rst : IN STD_LOGIC" ],
+(*
+    If[ clkEn,
+      "PORT(\n  clk: IN STD_LOGIC;\n  CE : IN STD_LOGIC;\n  Rst : IN STD_LOGIC",
+      "PORT(\n  clk: IN STD_LOGIC;\n  Rst : IN STD_LOGIC"
+    ],
+*)
+    Map[
+      Function[x,";\n  "<>x[[1]]<>" : OUT STD_LOGIC"],
+      outdecls
+    ],
+    "\n);\nEND ",
+    systemName,
+    ";\n"
+  ];
+
+  (* Produce the component description, used later *)
+  component = 
+  StringJoin[ 
+    "\nCOMPONENT ",
+    systemName,
+    "\n",
+    "PORT(\n  clk: IN STD_LOGIC;\n",
+    If[ clkEn, "  CE : IN STD_LOGIC;\n", "" ],
+    If[ lyr, "  Rst : IN STD_LOGIC_VECTOR (0 DOWNTO 0)", "  Rst : IN STD_LOGIC" ],
+(*
+    If[ clkEn, 
+      "PORT(\n  clk: IN STD_LOGIC;\n  CE : IN STD_LOGIC;\n  Rst : IN STD_LOGIC",
+      "PORT(\n  clk: IN STD_LOGIC;\n  Rst : IN STD_LOGIC"
+    ],
+*)
+    Map[
+       Function[x,";\n  "<>x[[1]]<>" : OUT STD_LOGIC"],
+       outdecls
+    ],
+    "\n);\nEND COMPONENT",
+    ";\n"
+  ];
+
+  (* Generate the architecture part of the Vhdl code *)
+  (* Here, we consider only the so-called non unified case *)
+
+  (* We generate a code of the form 
+
+     architecture state_machine of <systemName> is
+       signal cpt: Integer;
+
+     Then, for each control signal, say <ident> we generate 
+     a type declaration 
+
+       type<Ident> States is (initState, trueState, falseState, finalState);
+
+     and two signal declarations
+
+       signal current<ident> State, 
+       next<ident>State :HPipe_ctl1P_InitStates;
+ 
+     The number of states in the list (E0, etc, ) depends
+     on the range of the domain of the signal <ident>
+ 
+     Thus, this code is generated only from the output
+     declarations.
+
+     For the moment, we generate only a skeleton of 
+     the controller
+  *)
+ 
+  (* Declarations *)
+  (* This auxiliary function is used to generate the declaration 
+     of each control signal *)
+  fdeclAux[name:_String]:=
+    "  SIGNAL curState"<>name<>", nextState"<>name<>" : STATE_TYPE;\n";
+
+  If[ dbg, Print[equations]];
+  (* Get the control signal names *)
+  controlNames = Map[ First, equations ];
+
+  (* Generate the declaration part of the architecture *)
+  declarations = 
+  StringJoin[
+    "\nARCHITECTURE BEHAVIOURAL OF ",
+    systemName,
+    " IS\n",
+    "\n  SIGNAL counter: INTEGER; -- Declaration of the counter;\n",
+    "\n  -- Declaration of the states\n",
+    "  TYPE state_type IS (initState, trueState, falseState, finalState);\n",
+    "  ATTRIBUTE ENUM_ENCODING: STRING;\n",
+    "  ATTRIBUTE ENUM_ENCODING OF state_type : TYPE IS \"00 01 10 11\";\n\n",
+    Map[ fdeclAux, controlNames ]
+  ];
+
+
+  (* 
+     Generation of the controller. The idea is to format
+     the equations, and call a Moore Machine generator, 
+     then a Vhdl translator, in order to separate clearly
+     the fsm generation, and the vhdl translation. 
+
+     At this point, the equations are translated as 
+     follows: for each control signal, we have a structure
+     consisting of the name of the control signal, and
+     a list of pairs {domain,value}, where value is 
+     either True or False, and domain is the Alpha
+     domain where the control signal is True.
+       {{c1, {{True,domain1},{False,domain2}}},
+        {c2, {{True,domain3},{False,domain4}}}}
+       }
+     In the simplest case (the only one covered as of
+     today), domains are unidimensional, and represent
+     time. However, provision is made to cover the case
+     where the time is multidimensional.
+  *)
+
+  (*
+    The following covers only the case of unidimensional
+    time. 
+  *)
+
+  Module[ {res, fAux1, fAux2, fAux3, minTime, maxTime},
+    (* This function replaces the domain by an interval *)
+    fAux1[{lhs:_,rhs:_}] := 
+    Module[{f := Function[ r, 
+                  Module[{dom},
+                    dom = r[[1]];
+                    If[ DomEmptyQ[dom], 
+                      Throw[ Message[ vhdlCont::emptyDom ] ] ];
+                    Check[{getBoundingBox[r[[1]]][[1]],r[[2]]},
+                    Print["There was a problem... ", r];Throw[Null]]
+                  ]
+                ],
+            r1, r2, nrhs
+           },
+
+      r1 = getDeclarationDomain[$vhdlCurrent,lhs];
+
+      If[ dbg, Print["Declaration domain: ", r1]];
+
+      If[ dbg, Print["rhs :", rhs] ];
+
+      nrhs = Map[{DomIntersection[r1,#[[1]]],#[[2]]}&, rhs ];
+      If[ dbg, Print["nrhs : ", nrhs] ];
+
+      r2={lhs, Map[ f, nrhs ]};
+      If[ dbg, Print[r2] ];r2
+
+    ];
+
+    (* This function gets the minimum time value for an rhs *)
+    fAux2[{lhs_,rhs:_}] :=
+      Min[Map[First[First[#]]&,rhs]];
+
+    (* This function gets the maximum time value for an rhs *)
+    fAux3[{lhs_,rhs:_}] :=
+      Max[Map[Last[First[#]]&,rhs]];
+
+    (* Generate a list of control signals, together with their
+       intervals of values *)
+    Check[
+      res = Map[ fAux1, equations ],
+      Message[ vhdlCont::errorEquation, {lhs, rhs} ]
+    ];
+
+    If[ dbg, Print["res : ", res]];
+
+    (* Now, we compute the total interval of the signals *)
+    (*     minTime = Min[Map[ fAux2, res]];
+    replace by Tanguy : the min time should be computed 
+    over all the Alphard architecture *) 
+    minTime = alphardFirstStep[];
+    maxTime = Max[Map[ fAux3, res]];
+    If[ dbg, Print["minTime: ", minTime]];
+    If[ dbg, Print["maxTime: ", maxTime]];
+    (* We can now call a function which generates a 
+       finite state machine for each control signal *)
+    fsm = Map[mooreFSM[#, minTime, maxTime ] &,res];
+
+    If[ dbg, 
+      Print["This is the finite state machine for this signal: "];
+      Print[fsm]
+    ];
+    If[ dbg, Print[fsm]];
+
+    (* Then, we call another function which translates the
+       fsms into Vhdl *)
+    body = Map[ fsmToVhdl, fsm ];
+    If[ dbg, Print[FullForm[body]] ];
+
+    (* We now generate the process which resets the
+       counter (we could not earlier, as the minTime
+       was not known before processing the equations *)
+    declarations = 
+    declarations<>
+    StringJoin[
+      "BEGIN\n",
+      "\n  -- Synchronous reset process\n",
+      "  PROCESS (clk, rst)\n",
+      "  BEGIN\n",
+      "    IF clk = '1' AND clk'event THEN\n",
+      "      IF CE = '1' THEN\n"
+      "        IF rst = '0' THEN\n",
+      "          counter <= ",
+      ToString[minTime-1],
+      ";\n",
+      Map[
+        Function[name, "          curState"<>name<>" <= initState;\n"],
+        controlNames
+      ],
+      "        ELSE\n",
+      "          counter <= counter + 1;\n",
+      Map[
+        Function[name, "          curState"<>name<>" <= nextState"<>
+                 name<>";\n"],
+        controlNames
+      ],
+      "        END IF;\n",
+      "      END IF;\n",
+      "    END IF;\n",
+      "  END PROCESS;\n"
+    ];
+
+  ];
+
+  (* Returns the code *)
+  {head<>"\n"<>lib<>entity<>declarations<>body<>"END BEHAVIOURAL;\n",
+   component, {}}
+  
+  ] (* Catch *)
+
+];
+
+(* 
+	Equation
+*)
+semFuncCont[ "equation", lhs:_, rhs:_, opts:___Rule ]:=
+Module[{ dbg, res },
+  Catch[
+    dbg = debug/.{opts}/.Options[ semFuncCont ];
+    res = {lhs, rhs}
+  ] (* End Catch *)
+];
+vhdlCont::emptyDom = 
+"the domain of one equation is empty. A possible cause of this
+error is that the values assigned to the parameters are inconsistent"; 
+vhdlCont::errorEquation = 
+  "error while translating equation:\n `1`";
+
+(* --------------------------------------------------------------- *)
+Clear[ semFuncCont ]; 
+
+(* 
+	System 
+*)
+semFuncCont[ "system", 
+         systemName:_String,  (* The name of the system *)
+         indecls:_,  (* The translation of its input declarations *)
+         outdecls:_,  (* The translation of its output declarations *)
+         equations:_,  (* The translation of the equations *)
+         opts:___Rule ]:=
+Module[{ dbg, optTempFile, vrb, head, entity, controlNames, fdeclAux,
+         body, component, lib, lyr },
+Catch[
+  (* Options *)
+  dbg = debug/.{opts}/.Options[ a2v ];
+  vrb = verbose/.{opts}/.Options[ a2v ];
+  clkEn = clockEnable/.{opts}/.Options[ a2v ];
+  lib = vhdlLibrary/.{opts}/.Options[ a2v ];
+  lyr = lyrtech/.{opts}/.Options[ a2v ];
+
+ 
+  (* Generates the header of the Vhdl module *)
+  (* Calls the vhdlHeader function *)
+  head = Check[vhdlHeader[ systemName ],Throw[Null]]; 
+
+  (* Generates the entity part of the Vhdl code*)
+  (* We use outdecls, the list of output declarations *)
+  entity = 
+  StringJoin[ 
+    "\nENTITY ",
+    systemName,
+    " IS\n",
+    "PORT(\n  clk: IN STD_LOGIC;\n",
+    If[ clkEn, "  CE : IN STD_LOGIC;\n", "" ],
+    If[ lyr, "  Rst : IN STD_LOGIC_VECTOR (0 DOWNTO 0)", "  Rst : IN STD_LOGIC" ],
+(*
+    If[ clkEn,
+      "PORT(\n  clk: IN STD_LOGIC;\n  CE : IN STD_LOGIC;\n  Rst : IN STD_LOGIC",
+      "PORT(\n  clk: IN STD_LOGIC;\n  Rst : IN STD_LOGIC"
+    ],
+*)
+    Map[
+      Function[x,";\n  "<>x[[1]]<>" : OUT STD_LOGIC"],
+      outdecls
+    ],
+    "\n);\nEND ",
+    systemName,
+    ";\n"
+  ];
+
+  (* Produce the component description, used later *)
+  component = 
+  StringJoin[ 
+    "\nCOMPONENT ",
+    systemName,
+    "\n",
+    "PORT(\n  clk: IN STD_LOGIC;\n",
+    If[ clkEn, "  CE : IN STD_LOGIC;\n", "" ],
+    If[ lyr, "  Rst : IN STD_LOGIC_VECTOR (0 DOWNTO 0)", "  Rst : IN STD_LOGIC" ],
+(*
+    If[ clkEn, 
+      "PORT(\n  clk: IN STD_LOGIC;\n  CE : IN STD_LOGIC;\n  Rst : IN STD_LOGIC",
+      "PORT(\n  clk: IN STD_LOGIC;\n  Rst : IN STD_LOGIC"
+    ],
+*)
+    Map[
+       Function[x,";\n  "<>x[[1]]<>" : OUT STD_LOGIC"],
+       outdecls
+    ],
+    "\n);\nEND COMPONENT",
+    ";\n"
+  ];
+
+  (* Generate the architecture part of the Vhdl code *)
+  (* Here, we consider only the so-called non unified case *)
+
+  (* We generate a code of the form 
+
+     architecture state_machine of <systemName> is
+       signal cpt: Integer;
+
+     Then, for each control signal, say <ident> we generate 
+     a type declaration 
+
+       type<Ident> States is (initState, trueState, falseState, finalState);
+
+     and two signal declarations
+
+       signal current<ident> State, 
+       next<ident>State :HPipe_ctl1P_InitStates;
+ 
+     The number of states in the list (E0, etc, ) depends
+     on the range of the domain of the signal <ident>
+ 
+     Thus, this code is generated only from the output
+     declarations.
+
+     For the moment, we generate only a skeleton of 
+     the controller
+  *)
+ 
+  (* Declarations *)
+  (* This auxiliary function is used to generate the declaration 
+     of each control signal *)
+  fdeclAux[name:_String]:=
+    "  SIGNAL curState"<>name<>", nextState"<>name<>" : STATE_TYPE;\n";
+
+  If[ dbg, Print[equations]];
+  (* Get the control signal names *)
+  controlNames = Map[ First, equations ];
+
+  (* Generate the declaration part of the architecture *)
+  declarations = 
+  StringJoin[
+    "\nARCHITECTURE BEHAVIOURAL OF ",
+    systemName,
+    " IS\n",
+    "\n  SIGNAL counter: INTEGER; -- Declaration of the counter;\n",
+    "\n  -- Declaration of the states\n",
+    "  TYPE state_type IS (initState, trueState, falseState, finalState);\n",
+    "  ATTRIBUTE ENUM_ENCODING: STRING;\n",
+    "  ATTRIBUTE ENUM_ENCODING OF state_type : TYPE IS \"00 01 10 11\";\n\n",
+    Map[ fdeclAux, controlNames ]
+  ];
+
+
+  (* 
+     Generation of the controller. The idea is to format
+     the equations, and call a Moore Machine generator, 
+     then a Vhdl translator, in order to separate clearly
+     the fsm generation, and the vhdl translation. 
+
+     At this point, the equations are translated as 
+     follows: for each control signal, we have a structure
+     consisting of the name of the control signal, and
+     a list of pairs {domain,value}, where value is 
+     either True or False, and domain is the Alpha
+     domain where the control signal is True.
+       {{c1, {{True,domain1},{False,domain2}}},
+        {c2, {{True,domain3},{False,domain4}}}}
+       }
+     In the simplest case (the only one covered as of
+     today), domains are unidimensional, and represent
+     time. However, provision is made to cover the case
+     where the time is multidimensional.
+  *)
+
+  (*
+    The following covers only the case of unidimensional
+    time. 
+  *)
+
+  Module[ {res, fAux1, fAux2, fAux3, minTime, maxTime},
+    (* This function replaces the domain by an interval *)
+    fAux1[{lhs:_,rhs:_}] := 
+    Module[{f := Function[ r, 
+                  Module[{dom},
+                    dom = r[[1]];
+                    If[ DomEmptyQ[dom], 
+                      Throw[ Message[ vhdlCont::emptyDom ] ] ];
+                    Check[{getBoundingBox[r[[1]]][[1]],r[[2]]},
+                    Print["There was a problem... ", r];Throw[Null]]
+                  ]
+                ],
+            r1, r2, nrhs
+           },
+
+      r1 = getDeclarationDomain[$vhdlCurrent,lhs];
+
+      If[ dbg, Print["Declaration domain: ", r1]];
+
+      If[ dbg, Print["rhs :", rhs] ];
+
+      nrhs = Map[{DomIntersection[r1,#[[1]]],#[[2]]}&, rhs ];
+      If[ dbg, Print["nrhs : ", nrhs] ];
+
+      r2={lhs, Map[ f, nrhs ]};
+      If[ dbg, Print[r2] ];r2
+
+    ];
+
+    (* This function gets the minimum time value for an rhs *)
+    fAux2[{lhs_,rhs:_}] :=
+      Min[Map[First[First[#]]&,rhs]];
+
+    (* This function gets the maximum time value for an rhs *)
+    fAux3[{lhs_,rhs:_}] :=
+      Max[Map[Last[First[#]]&,rhs]];
+
+    (* Generate a list of control signals, together with their
+       intervals of values *)
+    Check[
+      res = Map[ fAux1, equations ],
+      Message[ vhdlCont::errorEquation, {lhs, rhs} ]
+    ];
+
+    If[ dbg, Print["res : ", res]];
+
+    (* Now, we compute the total interval of the signals *)
+    (*     minTime = Min[Map[ fAux2, res]];
+    replace by Tanguy : the min time should be computed 
+    over all the Alphard architecture *) 
+    minTime = alphardFirstStep[];
+    maxTime = Max[Map[ fAux3, res]];
+    If[ dbg, Print["minTime: ", minTime]];
+    If[ dbg, Print["maxTime: ", maxTime]];
+    (* We can now call a function which generates a 
+       finite state machine for each control signal *)
+    fsm = Map[mooreFSM[#, minTime, maxTime ] &,res];
+
+    If[ dbg, 
+      Print["This is the finite state machine for this signal: "];
+      Print[fsm]
+    ];
+    If[ dbg, Print[fsm]];
+
+    (* Then, we call another function which translates the
+       fsms into Vhdl *)
+    body = Map[ fsmToVhdl, fsm ];
+    If[ dbg, Print[FullForm[body]] ];
+
+    (* We now generate the process which resets the
+       counter (we could not earlier, as the minTime
+       was not known before processing the equations *)
+    declarations = 
+    declarations<>
+    StringJoin[
+      "BEGIN\n",
+      "\n  -- Synchronous reset process\n",
+      "  PROCESS (clk, rst)\n",
+      "  BEGIN\n",
+      "    IF clk = '1' AND clk'event THEN\n",
+      "      IF CE = '1' THEN\n",
+      "        IF rst = '0' THEN\n",
+      "          counter <= ",
+      ToString[minTime-1],
+      ";\n",
+      Map[
+        Function[name, "          curState"<>name<>" <= initState;\n"],
+        controlNames
+      ],
+      "        ELSE\n",
+      "          counter <= counter + 1;\n",
+      Map[
+        Function[name, "          curState"<>name<>" <= nextState"<>
+                 name<>";\n"],
+        controlNames
+      ],
+      "        END IF;\n",
+      "      END IF;\n",
+      "    END IF;\n",
+      "  END PROCESS;\n"
+    ];
+
+  ];
+
+  (* Returns the code *)
+  {head<>"\n"<>lib<>entity<>declarations<>body<>"END BEHAVIOURAL;\n",
+   component, {}}
+  
+  ] (* Catch *)
+
+];
+
+(* 
+	Equation
+*)
+semFuncCont[ "equation", lhs:_, rhs:_, opts:___Rule ]:=
+Module[{ dbg, res },
+  Catch[
+    dbg = debug/.{opts}/.Options[ semFuncCont ];
+    res = {lhs, rhs}
+  ] (* End Catch *)
+];
+vhdlCont::emptyDom = 
+"the domain of one equation is empty. A possible cause of this
+error is that the values assigned to the parameters are inconsistent"; 
+vhdlCont::errorEquation = 
+  "error while translating equation:\n `1`";
+
+(* --------------------------------------------------------------- *)
+Clear[vhdlHeader];
+vhdlHeader::usage = "vhdlHeader[id] creates the header of the vhd file. "; 
+vhdlHeader[idf_String]:= 
+Module[
+  { date, jj, mm, aa, hh, mn, ss },
+
+  jj=ToString[Date[][[3]]]; 
+  mm=ToString[Date[][[2]]]; 
+  aa=ToString[Date[][[1]]];
+  hh=ToString[Date[][[4]]]; 
+  mn=ToString[Date[][[5]]]; 
+  ss=ToString[Date[][[6]]];
+  date= StringJoin["-- ",jj,"/",mm,"/",aa," ",hh,":",mn,":",ss,"\n"];
+  StringJoin[
+    "-- VHDL Model Created for \"system ",idf,"\" \n",date,
+    "-- Alpha2Vhdl Version 0.9 "
+  ]
+];
+vhdlHeader[___] := Throw[Message[vhdlHeader::params]]
+
+End[];
+EndPackage[];
+

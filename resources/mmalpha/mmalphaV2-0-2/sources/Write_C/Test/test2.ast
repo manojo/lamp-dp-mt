@@ -1,0 +1,53 @@
+(* ALPHA Tree produced by read_alpha v.3 *)
+Alpha`system["foobug2",
+    (* parameter space *)
+    Alpha`domain[0, {}, {
+        Alpha`pol[1, 1, 0, 0, {
+            {1, 1}},{
+            {1, 1}}]}],
+    { (* input variables *)},
+    { (* output variables *)
+    Alpha`decl["a", Alpha`integer, 
+        Alpha`domain[1, {"i"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -1},
+                {1, -1, 4}},{
+                {1, 1, 1},
+                {1, 4, 1}}]}]]},
+    { (* local variables *)
+    Alpha`decl["A", Alpha`integer, 
+        Alpha`domain[1, {"i"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -1},
+                {1, -1, 4}},{
+                {1, 1, 1},
+                {1, 4, 1}}]}]]},
+    { (* let *)
+    Alpha`equation["A", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[1, {"i"}, {
+                    Alpha`pol[2, 2, 0, 0, {
+                        {1, -1, 1},
+                        {1, 0, 1}},{
+                        {1, -1, 0},
+                        {1, 1, 1}}],
+                    Alpha`pol[2, 2, 0, 0, {
+                        {1, 1, -3},
+                        {1, 0, 1}},{
+                        {1, 1, 0},
+                        {1, 3, 1}}]}], 
+                Alpha`affine[Alpha`const[0], 
+                    Alpha`matrix[1, 2, {"i"}, {
+                        {0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[1, {"i"}, {
+                    Alpha`pol[2, 1, 1, 0, {
+                        {0, 1, -2},
+                        {1, 0, 1}},{
+                        {1, 2, 1}}]}], 
+                Alpha`affine[Alpha`const[1], 
+                    Alpha`matrix[1, 2, {"i"}, {
+                        {0, 1}}]]]}]], 
+    Alpha`equation["a", Alpha`var["A"]]}]
+

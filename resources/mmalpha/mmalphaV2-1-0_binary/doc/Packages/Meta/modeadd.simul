@@ -1,0 +1,59 @@
+Begin["Alpha`Simul`modeadd`"];
+Clear[ Alpha`Simul`modeadd`a, Alpha`Simul`modeadd`A, Alpha`Simul`modeadd`b, Alpha`Simul`modeadd`B, Alpha`Simul`modeadd`c, Alpha`Simul`modeadd`C1, Alpha`Simul`modeadd`C2, Alpha`Simul`modeadd`C3, Alpha`Simul`modeadd`C4, Alpha`Simul`modeadd`C5];
+
+    (* Definition of A *)
+    Alpha`Simul`modeadd`A[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := a[i, j, N, M, f];
+    Alpha`Simul`modeadd`A[ ___ ] := Message[Alpha`Simul`modeadd`A::params ];
+
+    (* Definition of B *)
+    Alpha`Simul`modeadd`B[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := b[i, j, N, M, f];
+    Alpha`Simul`modeadd`B[ ___ ] := Message[Alpha`Simul`modeadd`B::params ];
+
+    (* Definition of C1 *)
+    Alpha`Simul`modeadd`C1[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := Alpha`Simul`add`C1[i, j, N, M, f];
+    Alpha`Simul`modeadd`C1[ ___ ] := Message[Alpha`Simul`modeadd`C1::params ];
+
+    (* Definition of A *)
+    Alpha`Simul`add`A[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := Alpha`Simul`modeadd`A[i, j, N, M, f];
+    Alpha`Simul`add`A[ ___ ] := Message[Alpha`Simul`modeadd`A::params ];
+
+    (* Definition of B *)
+    Alpha`Simul`add`B[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := Alpha`Simul`modeadd`B[i, j, N, M, f];
+    Alpha`Simul`add`B[ ___ ] := Message[Alpha`Simul`modeadd`B::params ];
+
+    (* Definition of C2 *)
+    Alpha`Simul`modeadd`C2[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := Plus[ Alpha`Simul`modeadd`C1[ i, j, N, M,f ], 1 ];
+    Alpha`Simul`modeadd`C2[ ___ ] := Message[Alpha`Simul`modeadd`C2::params ];
+
+    (* Definition of C3 *)
+    Alpha`Simul`modeadd`C3[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := Alpha`Simul`add`C3[i, j, N, M, f];
+    Alpha`Simul`modeadd`C3[ ___ ] := Message[Alpha`Simul`modeadd`C3::params ];
+
+    (* Definition of A *)
+    Alpha`Simul`add`A[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := Alpha`Simul`modeadd`A[i, j, N, M, f];
+    Alpha`Simul`add`A[ ___ ] := Message[Alpha`Simul`modeadd`A::params ];
+
+    (* Definition of C2 *)
+    Alpha`Simul`add`C2[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := Alpha`Simul`modeadd`C2[i, j, N, M, f];
+    Alpha`Simul`add`C2[ ___ ] := Message[Alpha`Simul`modeadd`C2::params ];
+
+    (* Definition of C4 *)
+    Alpha`Simul`modeadd`C4[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := Plus[ Times[ Alpha`Simul`modeadd`C2[ i, j, N, M,f ], 2 ], 3 ];
+    Alpha`Simul`modeadd`C4[ ___ ] := Message[Alpha`Simul`modeadd`C4::params ];
+
+    (* Definition of C5 *)
+    Alpha`Simul`modeadd`C5[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := Alpha`Simul`add`C5[i, j, N, M, f];
+    Alpha`Simul`modeadd`C5[ ___ ] := Message[Alpha`Simul`modeadd`C5::params ];
+
+    (* Definition of B *)
+    Alpha`Simul`add`B[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := Alpha`Simul`modeadd`B[i, j, N, M, f];
+    Alpha`Simul`add`B[ ___ ] := Message[Alpha`Simul`modeadd`B::params ];
+
+    (* Definition of C4 *)
+    Alpha`Simul`add`C4[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := Alpha`Simul`modeadd`C4[i, j, N, M, f];
+    Alpha`Simul`add`C4[ ___ ] := Message[Alpha`Simul`modeadd`C4::params ];
+
+    (* Definition of c *)
+    Alpha`Simul`modeadd`c[i_, j_, N_, M_, f:(_Integer|_Symbol)...] := C5[i, j, N, M, f];
+    Alpha`Simul`modeadd`c[ ___ ] := Message[Alpha`Simul`modeadd`c::params ];
+End[];

@@ -1,0 +1,12 @@
+(* ----------
+  Trace file 
+  5/1/2009 -- 21h 53mn 24.635783s
+  List of commands executed
+  ----------  *)
+load[ MV1.alpha mute -> True ];
+analyze[ mute -> True ]
+schedule[  scheduleType -> sameLinearPart, mute ->True ]
+appSched[  ]
+pipeVars[ mute -> True ]
+toAlpha0v2[ mute -> True, verbose -> False ]
+alpha0ToAlphard[ mergeDomains -> True, verbose-> False, mute -> True ]

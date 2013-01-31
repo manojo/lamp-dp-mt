@@ -1,0 +1,321 @@
+BeginPackage["Alpha`alpha2mma`",{"Alpha`",
+"Alpha`Domlib`",
+"Alpha`Tables`",
+"Alpha`Matrix`", 
+"Alpha`Options`", 
+"Alpha`Static`"}];
+
+alpha2mma::usage = 
+"alpha2mma translates an alpha program into a Mathematica function"; 
+
+simul::usage = 
+"simul[a:_String] changes the context into Alpha`alpha2mma`a`
+in order to allow the simulation of the alpha system a. To quit this
+context, type endSimul[]";
+
+endSimul::usage = 
+"endSimul[] leaves the context of simulation"; 
+
+Begin[ "`Private`" ];
+
+Clear[context];
+
+Clear[simul];
+simul[f:_String] := 
+Begin["Alpha`Simul`"<>f<>"`"];
+simul[___] := Message[simul::params];
+
+Clear[endSimul];
+endSimul[] := 
+Module[{}, End[];
+  If[$Context =!= "Global`", Message[ simul::pop ],
+      Print["We are back in the Global context."]]
+];
+endSimul[___] := Message[ endSimul::params ];
+endSimul::pop = 
+"You are not back in the Global context. Re-evaluate endSimul[]";
+
+Clear[ alpha2mma ];
+alpha2mma[] := 
+(context="Alpha`Simul`"<>$result[[1]]<>"`";
+alpha2mmaTranslateSYSTEM[ $result ];)
+alpha2mma[___] := Message[alpha2mma::params];
+alpha2mma::params := "wrong parameters"; 
+
+Clear[ dom2cond ]; 
+dom2cond[ d:_domain]:= 
+Module[ { dm, pol, index, equals, inequals }, 
+  index = d[[2]]; 
+  pol = d[[3]][[1]][[5]]; 
+With[{
+  equals = Map[ Drop[#,1]&, Select[ pol, First[#]==0& ] ],
+  inequals = Map[ Drop[#,1]&, Select[ pol, First[#]==1& ] ]
+  },
+  Function[ x , 
+    ToString[
+      Apply[ And, 
+        Complement[ 
+          Union[
+            Map[ ToString[ #.Append[ x,1 ] ] <>" == 0"&, equals ],
+            Map[ ToString[ #.Append[ x,1 ] ] <>" >= 0"&, inequals ]
+          ],
+         {"1 >= 0"}
+        ] (* Complement *)
+      ] (* Apply *)
+    ] (* ToString *)
+  ] (* Function *)
+] (* With *)
+]; (* Module *)
+dom2cond[ ___ ] := Message[ dom2cond::params ]; 
+
+Clear[ semanticFunction ]; 
+semanticFunction[ system, x:{n:_, p:_, id:_, od:_, ld:_, e:_} ] := 
+Module[{ of, lid, lod, lld, allvars, allvarsC, ww },
+    (* Name of the output file *)
+    of = n<>".simul";
+    (* Get the list of inputs *)
+    lid = Map[ ToString[ First [#] ]&, id ]; 
+    (* Get the list of outputs *)
+    lod = Map[ ToString[ First [#] ]&, od ]; 
+    (* Get the list of locals *)
+    lld = Map[ ToString[ First [#] ]&, ld ]; 
+    (* All variables *)
+    allvars = Union[ lid, lod, lld ];
+    allvars = Map[ context<>#&, allvars ]; 
+ 
+    Print[ "Translated input will be in file ", of ]; 
+    (* Open output file *)
+    OpenWrite[ of ];
+    (* Write context change statement *)
+    WriteString[ of, "Begin[\"Alpha`Simul`"<> n <>"`\"];\n" ];
+    (* Prepare the global Clear *)
+    temp = Table[ allvars[[ i ]] <> ", ", {i, 1, Length[ allvars ]-1 } ];
+    temp = Append[ temp, Last[ allvars ] ];
+    (* Write the Clear *)
+    WriteString[ 
+      of, 
+      "Clear[ " <> 
+      temp <>
+      "];\n" 
+    ];
+
+    Map[ WriteString[ of, # ]&, e ];
+    (* Write the End statement *)
+    WriteString[ of, "End[];\n" ];
+    (* Close output file *)
+    Close[ of ];
+  ];
+
+(* Equation *)
+semanticFunction[ assignment, {c:_, tre:_}] := 
+  Module[{d, indexes, parameters},
+
+    (* Get the declaration of variable c *)
+    d = getDeclaration[ c ]; 
+
+    (* Get the indexes of c in the declaration *)
+    indexes = d[[3]][[2]]; 
+
+    (* Transform the index into parameters for the c function *)
+    parameters = Map[ #<>"_"&, indexes];
+
+    (* Generate the definition of c, followed by the type error case *)
+    "\n    (* Definition of "<>ToString[c]<>" *)\n    "<>
+    ToString[ 
+      Apply[ context<>ToString[c], 
+        Append[ parameters, "f:(_Integer|_Symbol)..." ] ] ] <>
+    " := " <> 
+    ToString[ tre[ indexes ] ]<>
+    ";\n"
+    <>
+    "    "<>context<>c<>"[ ___ ] := Message["<>context<>ToString[ c ]<>"::params ];\n"
+  ];
+
+(* 
+   binop returns a function, which can then be applied to the 
+   index list of the lhs of the equation. 
+*)
+semanticFunction[ binop, {op:_, trop1:_, trop2:_} ] := 
+  Module[{opmma},
+  With[{
+    opmma = 
+    Switch[ op,
+      add, "Plus", 
+      mul, "Times",
+      or, "Or",
+      and, "And",
+      xor, "Xor",
+      _, Print[ op, " is an unknown operator "]; ToString[ op ]
+    ]},
+    Function[x, opmma<>"[ "<> ToString[ trop1[x] ] <>
+              ", " <> ToString[ trop2[x] ] <> " ]" 
+    ]
+  ] (* End With *)
+  ]; (* Module *)
+
+(* 
+   Affine returns a function, which can then be applied to the 
+   index list of the lhs of the equation. This function will return
+   v[ xxx ], where xxx will be filled when the index list is known.
+*)
+semanticFunction[ affine, {var[v1:_String], m:_} ] := 
+  Function[x, 
+    context<>
+    v1<> 
+    "[ "<> 
+    ToString[ 
+      If[ x==={}, "f", 
+          StringDrop[
+            StringDrop[
+              ToString[ Drop[(m. Append[x,1]), -1 ] ], -1 ],
+            1 ]<>",f"
+      ] 
+    ]<>
+    " ]" 
+  ] (* End function *)
+
+(* 
+   Case of a constant in an affine expression 
+*)
+semanticFunction[ affine, {const[c:_], m:_} ] := 
+  Function[x, c];
+
+(* 
+   var returns a function, which can then be applied to the 
+   index list of the lhs of the equation. This function will return
+   v[ xxx ], where xxx will be filled when the index list is known.
+*)
+semanticFunction[ var, v:_ ] := 
+  Function[x, 
+    ToString[ Apply[ ToString[v], Append[ x, "f" ] ] ]
+  ]; (* End function *)
+
+(* 
+   restrict returns a function, which can then be applied to the 
+   index list of the lhs of the equation. 
+*)
+semanticFunction[ restrict, {d:_, tre:_} ] :=
+With[{  f = dom2cond[ d ] },
+  Function[x, 
+    "If[ "<>
+     ToString[ f[ x ] ]<> ", "<>
+     ToString[ tre[ x ] ]<> ", "<>
+     "Message[ semanticFunction::undef ] ]"
+  ] (* End function *)
+] (* With *)
+(* Error case *)
+semanticFunction::undef = "trying to evaluate an undefined variable instance.";
+semanticFunction[x:___] := 
+  (Print["semanticFunction applied to ", x ];Message[ semanticFunction::params ]);
+
+(* *)
+semanticFunction[ case, e:_, tre:_ ] :=
+Module[{d,w}, 
+  Check[ d = Map[ Alpha`Semantics`expDomain, e ], 
+         Throw[ Message[ semanticFunction::caseerr, d ] ] ];
+  With[
+    {d = Flatten[ Transpose[ {Map[ dom2cond [#]&, d ], tre} ] ]},
+    Function[x, 
+      "\n      Which[\n"<>
+      Apply[ StringJoin, Map[ "        "<>#<>"\n      ,\n"&, Map[ #[x]&, d ] ] ]<>
+      "      True, Message[ semanticFunction::undef ]\n      ]"]
+  ]
+]; (* Module *)
+
+(* Use statement *)
+(*
+   A use statement produces two type of definitions: 
+   - for each output of the use, say o, a definition of 
+   the form context`o[ indices, f:___] := formal_parameter[ indices, f ]
+   Here, indices are the names of the indices of the use, and are 
+   determined by appending the extension indices to the indices 
+   of the variable o, as defined in its declaration. The formal parameter
+   is obtained in the library.
+   - for each input of the use statement, say i, a definition of
+   the form use_context`formal_param[ indices, f:___] := 
+              context`i[ indices, f];
+*)
+semanticFunction[ use, {sn:_, dom:_, m:_, iv:_, ov:_} ] := 
+  Module[{useContext, c, d, res, useNumber, uses},
+
+    useContext = "Alpha`Simul`"<>sn<>"`";
+    res = "";
+
+    (* Outputs of equation *)
+    Do[
+      c = ov[[i]];
+
+      (* Get the declaration of variable c *)
+      d = getDeclaration[ c ]; 
+
+      (* Get the indexes of c in the declaration *)
+      indexes = d[[3]][[2]]; 
+
+      (* Transform the index into parameters for the c function *)
+      parameters = Map[ #<>"_"&, indexes];
+
+      (* Generate the definition of c, followed by the type error case *)
+      (* The subtelty here is to add the number of the use at the end of
+        the right-hand side variable, so that if there are several uses of
+        the same subsystem, they will not be called in the same environnemnt
+      *)
+      res = res<>
+      "\n    (* Definition of "<>ToString[c]<>" *)\n"<>
+      "    "<>
+      ToString[ 
+        Apply[ context<>ToString[c], 
+          Append[ parameters, "f:(_Integer|_Symbol)..." ] ] ] <>
+      " := " <> 
+      ToString[
+        Apply[ useContext<>ToString[c],
+          Append[ indexes, "f" ] ] ]<>
+      ";\n"
+      <>
+      "    "<>context<>c<>"[ ___ ] := Message["<>context<>ToString[ c ]<>"::params ];\n"
+    ,
+      { i, 1, Length[ ov ] }
+    ];
+
+    (* Inputs of equation *)
+    Do[
+      c = iv[[i,1]];
+
+      (* Get the declaration of variable c *)
+      d = getDeclaration[ c ]; 
+
+      (* Get the indexes of c in the declaration *)
+      indexes = d[[3]][[2]]; 
+
+      (* Transform the index into parameters for the c function *)
+      parameters = Map[ #<>"_"&, indexes];
+
+      (* Generate the definition of c, followed by the type error case *)
+      res = res<>
+      "\n    (* Definition of "<>ToString[c]<>" *)\n"<>
+      "    "<>
+      ToString[ 
+        Apply[ useContext<>ToString[c], 
+          Append[ parameters, "f:(_Integer|_Symbol)..."] ] ] <>
+      " := " <> 
+        ToString[ 
+          Apply[ context<>ToString[c], 
+            Append[ indexes, "f" ] ] ] <>
+        ";\n"
+      <>
+      "    "<>useContext<>c<>"[ ___ ] := Message["<>context<>ToString[ c ]<>"::params ];\n"
+
+    ,
+      { i, 1, Length[ iv ] }
+    ];
+
+  res
+  ];
+
+
+(* Error case *)
+General::undef = "trying to evaluate an undefined variable instance.";
+semanticFunction[x:___] := 
+  (Print["semanticFunction applied to ", x ];Message[ semanticFunction::params ]);
+
+End[];
+EndPackage[];

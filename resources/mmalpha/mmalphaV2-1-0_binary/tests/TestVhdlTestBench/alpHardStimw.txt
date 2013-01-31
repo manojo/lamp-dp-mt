@@ -1,0 +1,3 @@
+-2	-- Time: -1, read : w[3] 
+2	-- Time: 0, read : w[2] 
+1	-- Time: 1, read : w[1] 

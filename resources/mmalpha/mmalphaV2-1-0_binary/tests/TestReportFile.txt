@@ -1,0 +1,8 @@
+Test report file was cleaned
+Date: Fri 26 Dec 2008 12:04:28
+Entering installation test
+MMALPHA is set to: /Users/quinton/mmalpha
+domlib open in link: LinkObject[domlib, 2, 2]
+PATH environment set
+------------- > Test for Install was passed successfully.
+End of test

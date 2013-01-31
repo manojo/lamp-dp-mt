@@ -1,0 +1,21 @@
+This directory contains documentation for developers.
+
+**About-this-dir		Destroy
+**For-documentation-writers	Destroy
+MultiPrecision			?
+NT9401.pdf			?
+NT9401.ps			The Alpha compiler and pretty-printer
+Scheduler_dev_man.ps		Description of the scheduler
+ast_syntax.txt			Ast of Alpha
+**conventions			Obsolete... (check)
+doc_dev.html			html description
+exemplesTraduction.dvi		?
+index.html			html index
+**insa.txt			Destroy
+list.txt			This file
+**nana.txt
+**unixman.dvi
+writing-a-test-file.tex		Doc about tests. Has to be put in the source
+				directory
+
+

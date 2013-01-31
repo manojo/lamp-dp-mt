@@ -1,0 +1,50 @@
+--
+-- This VHDL Pattern allows a periodic enable to be generated.
+-- The parameters are the name, the period, the period minus one,
+-- the size of the counter (it is calculated automatically by the
+-- generator)
+--
+-- $comment$
+--
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_signed.all;
+use IEEE.numeric_std.all;
+
+ENTITY $name$ IS  
+  PORT(
+    clk : IN STD_LOGIC;         -- global clock
+    ceGen : IN STD_LOGIC;      -- general clock enable signal
+    rst : IN STD_LOGIC;         -- reset signal
+    periodicGe : OUT STD_LOGIC     -- periodic clock enable
+  );
+END $name$;
+ 
+ARCHITECTURE archiOf$name$ OF $name$ IS
+  SIGNAL counter : STD_LOGIC_VECTOR ($size$ DOWNTO 0);
+BEGIN
+      
+  PROCESS( clk )
+  BEGIN
+    IF rising_edge(clk) THEN
+      -- do something only when ceGen is non zero
+      IF ceGen='1' THEN
+        IF rst='0' THEN        -- enable is 0 when rst
+          counter <= $zero$;
+        ELSIF counter /= $zero$ THEN
+          counter <= counter - 1;
+        ELSE
+          -- or set counter to period - 1 when period reached
+          counter <= $periodMun$;  
+        END IF;
+      END IF;
+    END IF;
+  END PROCESS;             
+
+  -- Output true when counter is zero and clock enable general is true
+  periodicGe <= '1' WHEN (counter = $zero$ AND ceGen = '1') ELSE '0';
+   
+END archiOf$name$;
+ 
+

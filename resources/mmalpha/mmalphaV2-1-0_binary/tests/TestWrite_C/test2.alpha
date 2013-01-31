@@ -1,0 +1,10 @@
+-- case with a union
+system foobug2 () returns (a:{i|1<=i<=4} of integer);
+var A:{i|1<=i<=4} of integer;
+let 
+   A[i] = case
+	{|i<=1}|{|i>=3}: 0[];
+	{|i=2}: 1[];
+   esac;
+   a = A;
+tel;

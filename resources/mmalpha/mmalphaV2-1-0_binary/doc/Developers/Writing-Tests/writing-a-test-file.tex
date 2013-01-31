@@ -1,0 +1,146 @@
+\documentclass[12pt]{article}
+\begin{document}
+
+\newcommand{\domlib}{{\sc domlib}}
+\newcommand{\ML}{{\sc Mathlink}}
+\newcommand{\mprep}{{\sc mprep}}
+\newcommand{\polylib}{{\sc polylib}}
+\newcommand{\mma}{{\sc Mathematica}}
+\newcommand{\mkf}{{\texttt Makefile}}
+\newcommand{\gcc}{\texttt{gcc}}
+\newcommand{\doml}{\texttt{domlib.c}}
+\newcommand{\tm}{\texttt{domlibtm.c}}
+\newcommand{\mmAlpha}{\textsc{MMAlpha}}
+\newcommand{\MMAlpha}{\textsc{MMAlpha}}
+\newcommand{\MMA}{\textsc{Mathematica}}
+\newcommand{\true}{\texttt{True}}
+\newcommand{\false}{\texttt{False}}
+
+\title{Writing a test file for \mmAlpha{}}
+\author{Patrice Quinton}
+\date{Version of \today}
+\maketitle
+
+\section{Introduction}
+Testing programs is recommended by everybody... and done only
+by a few people. \mmAlpha{} is no exception...
+
+The purpose of this document is to explain what policy
+is to be followed when one wants to develop a new package for
+\mmAlpha{}.
+
+A companion document, located in \texttt{\$MMALPHA/doc/Tests}
+explains how to test the \mmAlpha{}. 
+
+In a few words, here are the recommendations:
+\begin{enumerate}
+\item All packages must be provided with a \MMA{} test file. 
+Let \texttt{myPack.m} by a brand new \MMAlpha{} package (the
+same policy applies to C program). Then, a \MMAlpha{} program, 
+\texttt{TestmyPack.m} must be written, and placed in the 
+directory \texttt{\$MMAlpha/tests} in a 
+new directory \texttt{TestmyPack}. If you follow these
+recommendations, your test program will be called when evaluating
+the \MMAlpha{} expression \texttt{tests["myPack"]}. 
+\item Your test program, \texttt{TextmyPack.m} must 
+return a value \true{} if all tests
+have been passed, \false{} otherwise. 
+\item Test your test program! A good policy is to incorporate
+all examples you have used when developing your code. 
+Remember that your tests are going to be run among 
+several thousands, so make sure that your tests are 
+correct.
+\end{enumerate}
+In what follows, we present quickly facilities provided
+for testing by \MMAlpha{}, and we give an example. 
+
+\section{Functions for testing}
+Two functions are used: \texttt{tests}, and \texttt{testFunction}. These
+functions were improved in the V2 version of \MMAlpha{}. 
+
+\subsection{The \texttt{tests} function}
+This function is part of the \texttt{Alpha.m} package. 
+Evaluating \texttt{tests[]} runs {\em all test files which
+are in the test directory}. This may take a few hours... We
+use it only to check a new version\footnote{This may change...}.
+
+Evaluating \texttt{tests["myPack"]} runs the test program
+for package \texttt{myPack}. You can therefore run tests 
+for various \MMAlpha{} packages, for example, \texttt{tests["Alpha"]}
+(try it!). 
+Notice that \MMA{} error messages may happen during the test; this
+does not mean that the test has failed. Indeed, some test programs
+test that \MMAlpha{} detects abnormal situations. 
+
+\subsection{The \texttt{testFunction}}
+A function, called, \texttt{testFunction}, is provided in 
+the \texttt{Alpha.m} package, as a means to organize tests
+in a systematic way. Using this function is recommended. Its operation
+is as follows. 
+\begin{verbatim}
+testFunction[exp, result, testID]
+\end{verbatim}
+compares the evaluation of \texttt{exp} to \texttt{result}.
+It returns 
+\texttt{True} if they are equal, 
+\texttt{False} and emits a message if they are different.
+\texttt{testID} is a string which identifies the test.
+
+This function can be used in many different ways. For example, 
+here is a test of the \texttt{Alpha.m} package, which checks 
+the \MMAlpha{} parser: 
+\begin{verbatim}
+testFunction[load["Test1.alpha"];$result,<<"RTest1","Alpha 1"]
+\end{verbatim}
+The evaluation of this expression loads the file \texttt{Test1.alpha}
+which is supposed to be in the test directory, and compares the 
+value of \texttt{\$result}, the \MMAlpha{} variable which contains
+the current AST, with the content of the file \texttt{RTest1}, 
+in the same directory. This test is identified as \texttt{"Alpha 1"}.
+
+\section{An example}
+Fig.~\ref{ex} gives an example of test file. 
+\begin{figure}[htbp]
+\begin{verbatim}
+Module[{dir, res1, testresult},
+
+  dir = Directory[];  (* Save current directory *)
+
+  (* Go in test directory *)
+  SetDirectory[Environment["MMALPHA"]<>"/tests/TestAlpha/"];
+  Print["Test for Alpha.m"];
+
+  (* Build a list of boolean values *)
+  res1= 
+  {
+    testFunction[load["Test1.alpha"];$result,<<"RTest1","Alpha 1"],
+    testFunction[load[22],Null,"Alpha 2"],
+    testFunction[Check[show[],$Failed],Null,"Alpha 3"],
+    testFunction[show[22],Null,"Alpha 4"],
+    (* ... *)
+    ReadList["MV1.c",Record,RecordSeparators->{}]===
+      ReadList["MV1.c",Record,RecordSeparators->{}],True,"writeC 1"],
+    DeleteFile["MV1.c"];True
+  }
+
+  (* And the list *)
+  testResult = Apply[And,res1];
+
+  (* Back to initial dir *)
+  SetDirectory[dir];
+
+  (* Diagnostic *)
+  If[ testResult,
+    Print["**** Test OK for Alpha.m "],
+    Print["**** Something was wrong for Alpha.m"]];
+
+  (* Do not forget to return the result *)
+  testResult
+] (* End module *)
+\end{verbatim}
+\caption{Example of test, adapted from the file 
+\texttt{Alpha.m}}\label{ex}
+\end{figure}
+
+\end{document}
+

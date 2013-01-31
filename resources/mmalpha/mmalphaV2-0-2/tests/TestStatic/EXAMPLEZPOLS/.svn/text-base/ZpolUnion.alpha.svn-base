@@ -1,0 +1,12 @@
+system Zpol1 :{N,M | 2<=N<=M-1}
+               (x : {i | 0<=i<=N} | {i | 1<=i<=N+1} of integer)
+       returns (res : {i | 0<=i<=N} of integer);
+var
+XX : {i,2j | 0<=i<=N; 0<=j<=N} of integer;
+let
+XX= case
+	{i,4j| 0<=i<=N }: 0.(i,j->);
+	{i,4j+2| 0<=i<=N }: 1.(i,j->);   
+	esac;
+res[i]=XX[i,2i];
+tel;

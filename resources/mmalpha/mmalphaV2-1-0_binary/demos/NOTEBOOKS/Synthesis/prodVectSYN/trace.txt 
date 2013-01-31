@@ -1,0 +1,28 @@
+(* ----------
+  Trace file 
+  25/4/2010 -- 18h 25mn 10.866406s
+  List of commands executed
+  ----------  *)
+(* ++++ Loading... *)
+load[ MV1.alpha mute -> True ];
+(* ++++  Analyzing ... *)
+analyze[ mute -> True ]
+(* ++++  Scheduling ... *)
+scd[  ]
+(* ++++ Applying schedule ... *)
+appSched[  ]
+pipeVars[ mute -> True ]
+(* ++++ Generating Alpha0 ...*) 
+toAlpha0v2[ mute -> True, verbose -> False ]
+(* ++++ Generating AlphHard ... *)
+alpha0ToAlphard[ mergeDomains -> True, verbose-> False, mute -> True ]
+(* ++++ Setting parameter's value ... *)
+fixParameter[ N, 20, mute->True ]
+(* ++++ Generating Vhdl ... *)
+a2v[ vhdlDir->prodVectSYN/VHDL, mute->True, verbose->False, 
+      vhdlPatterns -> False ];
+(*
+----  Vhdl was generated in Directory prodVectSYN/VHDL
+----  Congratulations, you made it ! 
+----  Total time: 1.87247 seconds
+ *)

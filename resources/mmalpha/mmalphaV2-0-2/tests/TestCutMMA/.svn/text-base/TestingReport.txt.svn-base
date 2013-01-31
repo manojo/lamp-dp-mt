@@ -1,0 +1,62 @@
+------> Testing: CutMMA
+Date: Mon 29 Dec 2008 15:22:37
+Calling TestCutMMA.m
+------------- > Test for CutMMA was passed successfully.
+End of test
+------> Testing: PipeControl.m
+Date: Mon 29 Dec 2008 15:23:48------> Testing: PipeControl
+Date: Mon 29 Dec 2008 15:24:04
+Calling TestPipeControl.m
+****** > test dom2mma 1 was wrong
+****** > test dom2al 1 was wrong
+End of test
+------> Testing: PipeControl
+Date: Mon 29 Dec 2008 15:26:12
+Calling TestPipeControl.m
+****** > test dom2mma 1 was wrong
+End of test
+------> Testing: PipeControl
+Date: Mon 29 Dec 2008 15:39:09
+Calling TestPipeControl.m
+****** > test dom2mma 1 was wrong
+End of test
+------> Testing: PipeControl
+Date: Mon 29 Dec 2008 15:40:53
+Calling TestPipeControl.m
+****** > test dom2mma 1 was wrong
+End of test
+------> Testing: PipeControl
+Date: Mon 29 Dec 2008 15:41:51
+Calling TestPipeControl.m
+****** > test dom2mma 1 was wrong
+End of test
+------> Testing: PipeControl
+Date: Mon 29 Dec 2008 15:43:37
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: PipeControl
+Date: Mon 29 Dec 2008 15:45:08
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: PipeControl
+Date: Mon 29 Dec 2008 15:45:13
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: PipeControl
+Date: Mon 29 Dec 2008 15:45:18
+Calling TestPipeControl.m
+****** > test PipeControl 3 was wrong
+End of test
+------> Testing: PipeControl
+Date: Mon 29 Dec 2008 15:51:07
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: PipeControl
+Date: Mon 29 Dec 2008 15:56:31
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test

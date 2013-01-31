@@ -1,0 +1,91 @@
+system sequence :{X,Y | 3<=X<=Y-1}
+                (QS : {i | 1<=i<=X} of integer; 
+                 DB : {j | 1<=j<=Y} of integer)
+       returns  (res : {j | 1<=j<=Y} of integer);
+var
+  DBXMirr1 : {t,p | 1<=t<=Y; p=0} of integer;
+  TSep7 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep6 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep5 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep4 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep3 : {t,p | t=1; 1<=p<=X} of integer;
+  TSep2 : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  TSep1 : {t,p | 1<=t<=Y; 1<=p<=X} of boolean;
+  MReg2Xloc : {t,p | 1<=t<=Y+1; 1<=p<=X+1} of integer;
+  pipeCQS1Reg5 : {t,p | 2<=t<=Y; 1<=p<=X} of integer;
+  pipeCDB1Reg4 : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  MatchQReg3 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  MReg2 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  MReg1 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  MXctl2XIn : {t,p | 1<=t<=Y+1; 1<=p<=X} of boolean;
+  pipeCQS1Xctl1XIn : {t,p | 1<=t<=Y; 1<=p<=X} of boolean;
+  pipeCDB1 : {t,p | 1<=t<=Y; 0<=p<=X} of integer;
+  pipeCQS1 : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  M : {t,p | 1<=t<=Y+1; 0<=p<=X} of integer;
+  MatchQ : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  MXctl2 : {t | 1<=t<=Y+1} of boolean;
+  pipeCQS1Xctl1 : {t | 1<=t<=Y} of boolean;
+let
+  DBXMirr1[t,p] = DB[t];
+  MReg2Xloc[t,p] = M[t,p-1];
+  MReg2[t,p] = MReg2Xloc[t-1,p];
+  pipeCQS1Reg5[t,p] = pipeCQS1[t-1,p];
+  pipeCDB1Reg4[t,p] = pipeCDB1[t,p-1];
+  MatchQReg3[t,p] = MatchQ[t-1,p];
+  MReg1[t,p] = M[t-1,p];
+  MXctl2XIn[t,p] = MXctl2[t];
+  pipeCQS1Xctl1XIn[t,p] = pipeCQS1Xctl1[t];
+  pipeCDB1[t,p] = 
+      case
+        { | p=0} : DBXMirr1;
+        { | 1<=p} : pipeCDB1Reg4;
+      esac;
+  pipeCQS1Xctl1[t] = 
+      case
+        case
+          { | t=1} : True[];
+          { | 2<=t} : False[];
+        esac;
+      esac;
+  TSep3[t,p] = QS[t+p-1];
+  pipeCQS1[t,p] = 
+      case
+        if (pipeCQS1Xctl1XIn) then 
+            case
+              { | t=1} : TSep3;
+              { | 2<=t} : 0[];
+            esac else 
+        case
+          { | t=1} : 0[];
+          { | 2<=t} : pipeCQS1Reg5;
+        esac;
+      esac;
+  MXctl2[t] = 
+      case
+        case
+          { | t=1} : True[];
+          { | 2<=t} : False[];
+        esac;
+      esac;
+  TSep4[t,p] = MReg1 - 8[];
+  TSep5[t,p] = MReg2 + MatchQReg3;
+  TSep6[t,p] = max(TSep4, TSep5);
+  TSep7[t,p] = max(0[], TSep6);
+  M[t,p] = 
+      case
+        { | p=0} : 0[];
+        { | 1<=p} : if (MXctl2XIn) then 
+               case
+                 { | t=1} : 0[];
+                 { | 2<=t} : 0[];
+               esac else 
+           case
+             { | t=1} : 0[];
+             { | 2<=t} : TSep7;
+           esac;
+      esac;
+  TSep1[t,p] = pipeCQS1 = pipeCDB1;
+  TSep2[t,p] = -12[];
+  MatchQ[t,p] = if (TSep1) then 15[] else TSep2;
+  res[j] = M[j+1,X];
+tel;

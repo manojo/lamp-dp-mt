@@ -1,0 +1,30 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: fr.irisa.cairn.model.mathematica.xtext
+Bundle-Vendor: My Company
+Bundle-Version: 1.0.0
+Bundle-SymbolicName: fr.irisa.cairn.model.mathematica.xtext; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.eclipse.xtext,
+ org.eclipse.xtext.generator;resolution:=optional,
+ org.apache.commons.logging;resolution:=optional,
+ org.eclipse.emf.codegen.ecore;resolution:=optional,
+ org.eclipse.emf.mwe.utils;resolution:=optional,
+ org.eclipse.emf.mwe2.launch;resolution:=optional,
+ com.ibm.icu;resolution:=optional,
+ org.eclipse.xtext.xtend;resolution:=optional,
+ org.eclipse.xtext.util,
+ org.eclipse.emf.ecore,
+ org.eclipse.emf.common,
+ org.antlr.runtime
+Import-Package: org.apache.log4j
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Export-Package: fr.irisa.cairn.model,
+ fr.irisa.cairn.model.services,
+ fr.irisa.cairn.model.mathematica,
+ fr.irisa.cairn.model.mathematica.impl,
+ fr.irisa.cairn.model.mathematica.util,
+ fr.irisa.cairn.model.parseTreeConstruction,
+ fr.irisa.cairn.model.parser.antlr,
+ fr.irisa.cairn.model.parser.antlr.internal,
+ fr.irisa.cairn.model.validation

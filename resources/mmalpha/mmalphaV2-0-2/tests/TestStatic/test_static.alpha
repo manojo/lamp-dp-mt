@@ -1,0 +1,64 @@
+-- P. Quinton, February 1995
+-- This example shows the operation of a linear array
+-- for matrix multiplication
+-- 
+system matligne (in: boolean)
+returns ( filea:{t|1 <= t <= 9} of integer;
+fileb:{t,p|1<=p<=3;p<= t <=p+8 } of integer;
+A,B,C:{i,j|1 <= i,j <= 3} of integer);
+var
+--  A,B:{i,j| 1<=i,j<=9} of integer;
+--  filea:{t|1 <= t <= 9} of integer;
+--  fileb:{t,p|1<=p<=3; p<=t<=p+8} of integer;
+  -- registre d'accumulation du processeur
+  regc:{t,p|1 <=p <=3;t>=0} of integer;
+  -- registre pour le signal raz
+  regraz:{t,p|1 <=p <=3;t>=0} of boolean;
+  -- registre pour les coefficients A
+  rega:{t,p|1 <=p <=3;t>=0} of integer;
+let
+  regc[t,p] = case
+               {|1<=t<=9}:if regraz[t,p] then 0[] else regc[t-1,p] + 
+                rega[t,p]*fileb[t,p];
+               {|t=0}|{|t>=10}:-1[];
+  esac;
+  rega[t,p] = case
+	{|p=1;1 <= t <= 9}: filea[t];
+	{|p=1;t>9}:0[];
+        {|p>1}: rega[t-1,p-1];
+        {|t=0}: -1[];
+  esac;
+  C[i,j] = regc[3+i,j];
+  filea[t] = case
+	{|1<=t<=3}:A[1,t];
+        {|4<=t<=6}:A[2,t-3];
+        {|7<=t<=9}:A[3,t-6];
+  esac;
+  fileb[t,p] = case
+        {|p<=t<=p+2}:B[t-p+1,p];
+        {|p+3<=t<=p+5}:B[t-2-p,p];
+        {|p+6<=t<=p+8}:B[t-5-p,p];
+  esac;
+  A[i,j] = case
+	{|i=1;j=1}:1[];
+	{|i=1;j>1}:A[i,j-1]+1[];
+	{|i>1}:A[i-1,j]+3[];
+  esac;
+  B[i,j] = case
+	{|i=1;j=1}:1[];
+	{|i=1;j>1}:B[i,j-1]+1[];
+	{|i>1}:B[i-1,j]+3[];
+  esac;
+  regraz[t,p]= case
+        {|p=1;t=1}: true[];
+        {|p=1;t=4}: true[];
+        {|p=1;t=7}: true[];
+        {|p=1;2<=t<=3}:false[];
+        {|p=1;5<=t<=6}:false[];
+        {|p=1;8<=t<=9}:false[];
+        {|p>1}:regraz[t-1,p-1];
+  esac;
+
+tel;
+  
+

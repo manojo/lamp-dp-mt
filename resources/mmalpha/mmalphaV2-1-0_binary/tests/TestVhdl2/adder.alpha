@@ -1,0 +1,7 @@
+system adder : {Tinit,Duration | 0<=Tinit; 0<=Duration}
+               (x : {t | Tinit<=t<=Tinit+Duration-1} of integer; 
+                y : {t | Tinit<=t<=Tinit+Duration-1} of integer)
+       returns (z : {t | Tinit<=t<=Tinit+Duration-1} of integer);
+let
+  z[t] = x + y;
+tel;

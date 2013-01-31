@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Read_Alpha
+END
+nodetypes.h
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Read_Alpha/nodetypes.h
+END
+read_alpha.c
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Read_Alpha/read_alpha.c
+END
+lex.l
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Read_Alpha/lex.l
+END
+node.c
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Read_Alpha/node.c
+END
+yacc.y
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Read_Alpha/yacc.y
+END
+node.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Read_Alpha/node.h
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Read_Alpha/Makefile
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Read_Alpha/README
+END

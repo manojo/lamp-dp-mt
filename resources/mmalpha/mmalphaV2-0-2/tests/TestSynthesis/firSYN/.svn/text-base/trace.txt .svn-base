@@ -1,0 +1,12 @@
+(* ----------
+  Trace file 
+  5/1/2009 -- 21h 53mn 0.265341s
+  List of commands executed
+  ----------  *)
+load[ fir.alpha mute -> True ];
+analyze[ mute -> True ]
+scd[ addConstraints -> {TxD1>=1} ]
+appSched[  ]
+pipeVars[ mute -> True ]
+toAlpha0v2[ mute -> True, verbose -> False ]
+alpha0ToAlphard[ mergeDomains -> True, verbose-> False, mute -> True ]

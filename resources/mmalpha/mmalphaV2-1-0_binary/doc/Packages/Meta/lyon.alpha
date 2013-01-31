@@ -1,0 +1,20 @@
+system lyon (be, ppe, te, a: {ck | ck>=0} of boolean) 
+returns (bs, pps, ts: {ck | ck>=0} of boolean);
+var
+  br1, and1, addsom, addret, tr1: {ck | ck>=0} of boolean;
+let
+  br1[ck] = be[ck-1];
+  bs[ck] = br1[ck-1];
+  and1[ck] = br1[ck] and a[ck];
+  addsom[ck] = and1[ck-1] xor ppe[ck-1] xor addret[ck-1];
+  addret[ck] = 
+    case 
+      {| ck = 0}: false[];
+      {| ck>=1}:
+        (and1[ck-1] and ppe[ck-1]) or (and1[ck-1] and addret[ck-1]) or
+        (ppe[ck-1] and addret[ck-1]);
+    esac;
+  tr1[ck] = te[ck-1];
+  ts[ck] = tr1[ck-1];
+  pps[ck] = addsom[ck] and tr1[ck];
+tel;

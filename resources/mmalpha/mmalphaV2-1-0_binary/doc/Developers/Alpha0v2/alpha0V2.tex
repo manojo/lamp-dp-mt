@@ -1,0 +1,140 @@
+\documentclass[a4paper,11pt]{article}
+%\usepackage{psfig}
+\usepackage{epic}
+\usepackage{eepic}
+
+
+\newcommand{\mma}{{{\sc mma}lpha}}
+\newcommand{\Alpha}{{{Alpha}}}
+\newcommand{\AlphaZ}{{{\Alpha}0}}
+\newcommand{\Alphard}{{Alphard}}
+\newcommand{\vhdl}{{\sc vhdl} }
+
+\newtheorem{definition}{Definition}[section]
+
+\begin{document}
+\title{Syntax and semantics of the {\AlphaZ} subset of Alpha (Version 2)}
+\author{}
+\date{\today}
+
+ \maketitle
+
+
+\section{Introduction}
+{\AlphaZ} was introduced by C. Dezan in her Phd thesis (\cite{dezan}). It 
+was conceived as the lowest level of {\Alpha} or equivalently as a subset of 
+{\Alpha} with a structural interpretation. The main weakness of 
+this subset came from the fact that {\Alpha} programs were not structured.
+Since then, the structuring of 
+{\Alpha} was provided by F. Dupont~\cite{DupontQuRi95} and the structured 
+version of {\AlphaZ} was studied by P. Le Mo\"enner~\cite{Patricia96}.
+{\Alphard} is now intended to be this subset of {\Alpha} with structural 
+interpretation, from which we can translate {\Alpha} into {\vhdl} or other 
+{\sc rtl} description languages. However, during the 
+transformation path from {\Alpha} to {\Alphard}, the automatic structuring 
+is a complicated process, hence it appear that the {\AlphaZ} format is still 
+necessary as an intermediate format with all the structural information 
+but in an unstructured form\footnote{il faudra unitliser deux mots different 
+pour structural et structuring}. The current document describes the second 
+version of the {\AlphaZ} format, 
+
+\section{Definition of {\AlphaZ}}
+In this section we recall the format {\AlphaZ} 
+introduced in~\cite{dezan}. 
+Then we introduce the additionnal notions of version 2.
+\subsection{Original {\AlphaZ}}
+An {\Alpha} program is in {\AlphaZ} form if it meets the three following conditions:
+\begin{enumerate}
+\item there exits for all declared domains (except for the domains of 
+inputs and outputs variables) an interpretation function for the indices
+(see~\cite{dezan} for precise definition). Each index is either 
+a temporal index or a spatial index.
+
+\item each variable is a {\em signal} that has, for each spatial
+interpretation, the temporal interpretation $\{t ~|~ t>=0\}$
+
+\item The equations of the system define the outputs and local variables.
+Each operator involved in the equations has a structural interpretation. 
+These equations are of two types: data equations and control equations.
+\begin{itemize} 
+\item Data equations define the different signals of the program.
+They are composed of the following operators:  
+\begin{itemize} 
+  \item pointwise operators represent the corresponding combinatorial 
+operators. 
+  \item restriction are used to restrict the spatial interpretation of 
+indices.
+\item  dependencies are temporal dependencies representing registers or
+ spatial dependencies representing connections.
+\item case expressions are spatial case allowing to gather several connections
+\end{itemize}
+\item control equations allow signals to be constructed from input variables
+and the behavior to be controled. 
+Such equations use the following constructions:
+\begin{itemize}
+\item input dependencies correspond to relations between formal 
+input and variables of the programs indicating where and when 
+input are sent.
+\item output dependencies indicate where and when output results are valid.
+\item case control (temporal case?)
+ define control signals from boolean constant
+(in a {\em finite automate} fashion). 
+\end{itemize}
+\end{itemize}
+\end{enumerate}
+
+\subsection{{\AlphaZ} version 2}
+As a platform to {\Alphard}, we need to remove the second point of
+the previous definition, namely the fact that all temporal domains are
+of the form $\{t~|~ t>=\}$. The other basic principles remain the same
+with slight differences. Spatial cases contain no dependencies,
+connections are represented using a simple space dependency (no
+case). Temporal cases are always nested in a spatial case.
+Control initialization equations are called {\em control} equation,
+the {\em Mirror} equations are the equations affecting inputs, output 
+and control signal to local variables (hence, control signal 
+become data signals). All these descriptions are summarized by the following 
+definition:
+
+\begin{enumerate}
+\item There exits for all declared domains (except for the domains of 
+inputs and outputs variables) an interpretation function for the indices
+(see~\cite{dezan} for precise definition). Each index is either 
+a temporal index or a spatial index.
+
+\item The equations of the system define the output and local
+variables.  Each operator involved in the equations has a structural
+interpretation. These equations are of four types: data equations,
+connection equations, control equations and mirror equations.
+\begin{itemize} 
+\item Data equations define the different signals of the program
+which are necessarily local variables.
+They are composed of the following operators:  
+\begin{itemize} 
+\item Pointwise operators represent the corresponding combinatorial 
+operators. 
+\item Restriction are used to restrict the spatial interpretation of 
+indices.
+\item Dependencies are temporal dependencies representing registers 
+or identity dependencies representing connections between two signal inside one cell.
+\item Cases are spatial case allowing several signals to be gathered.
+\item The {\tt if} operator (with nested {\tt case} in each branches)
+is interpreted as a multiplexer.
+\end{itemize}
+\item Connection equations are limited to the following form: a single
+spatial dependency between two signals ({\tt A=B.(t,p->t,p-1)} for
+instance).
+\item Control equations allow control signals to be initialized. 
+They define signals
+which are only temporal (no spatial indices).
+\item Mirror equations: equation between input variables of the system and 
+local variable of the system (only for interface). equation limited to an 
+affine function applied to a variable ({\tt A[t,p]=a[f(t,p)]} for input mirror
+equation and {\tt b[i,j]=B[f(i,j)]} for output mirror equations)..
+\end{itemize}
+\end{enumerate}
+\bibliography{/udd/risset/TEX/ref/newbib}
+\bibliographystyle{unsrt}
+
+\end{document}
+

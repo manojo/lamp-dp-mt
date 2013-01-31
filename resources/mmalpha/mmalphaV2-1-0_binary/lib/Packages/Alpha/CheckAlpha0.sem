@@ -1,0 +1,214 @@
+BeginPackage["Alpha`CheckAlpha0`",{"Alpha`",
+"Alpha`Domlib`",
+"Alpha`Tables`",
+"Alpha`Matrix`", 
+"Alpha`Options`", 
+"Alpha`Static`",
+"Alpha`Alphard`"}];
+
+(* Standard head for CVS
+
+	$Author: trisset $
+	$Date: 2005/03/11 16:38:29 $
+	$Source: /local/chroot/cvsroot/irisa/mmalpha/lib/Packages/Alpha/CheckAlpha0.sem,v $
+	$Revision: 1.1 $
+	$Log: CheckAlpha0.sem,v $
+	Revision 1.1  2005/03/11 16:38:29  trisset
+	added vhdl and Alphard
+	
+	
+*)
+(*
+	Semantics of the CheckAlpha0 parser
+*)
+
+paramNumber::usage = 
+"paramNumber is a global variable of Alpha`CheckAlpha0 which contains the 
+number of parameters of a system being checked";
+procDim::usage = 
+" procDim is a global variable of Alpha`CheckAlpha0 which contains the 
+number dimension of the processor space";
+$current::usage = 
+" $current  is a global variable of Alpha`CheckAlpha0 which contains the 
+current program analyzed ";
+
+checkAlpha0::usage = "checkAlpha0[] checks whether $result is an
+Alpha0 program. The syntax checked is as closed as possible from the
+Alpha0 v2 syntax document ($MMALPHA/doc/user/Alpha0v2.ps).";
+
+semFuncCheckAlpha0::usage = "";
+
+Options[ semFuncCheckAlpha0 ] = { debug -> False, verbose -> False }; 
+
+Begin["`Private`"];
+
+Clear[checkAlpha0];
+checkAlpha0[opts:___Rule]:=checkAlpha0[$result,opts];
+checkAlpha0[sys:_system,opts:___Rule]:=
+Module[{msg, error, dbg},
+  CheckAlpha0Debug = debug/.{opts}/.{debug->False};
+  Catch[
+    $current=sys;
+    procDim=-1;
+    error = CheckAlpha0TranslateSYSTEMDECLARATION[sys];
+    If[ CheckAlpha0Debug, 
+        If[ error, Print["There is a Mistake somewhere..."],
+                   Print["This program seems to be an Alpha 0 program Module..."]
+        ]
+    ];
+  !error
+  ]
+]
+checkAlpha0[___]:=Message[checkAlpha0::params];
+
+Clear[ semFuncCheckAlpha0 ]; 
+
+(* 
+	System 
+*)
+semFuncCheckAlpha0[ system , param:_Integer, input:_, output:_, local:_, eq:_, opts:___Rule] := 
+Module[{ dbg, errorparam, errorinput, erroroutput, errorlocal, erroreq },
+(*  Print[ param, input, output, local, eq]; *)
+  dbg = debug/.{opts}/.Options[ semFuncCheckAlpha0 ];
+  paramNumber=param;			
+  errorinput = Not[ Apply[ And, input ]]; 
+  erroroutput = Not[ Apply[ And, output ]]; 
+  errorlocal = Not[ Apply[ And, local ]]; 
+  erroreq = Not[ Apply[ And, eq ]]; 
+  errorinput || erroroutput || errorlocal || erroreq
+];
+
+
+
+(* 	
+	assignment
+*)
+checkAlpha0::assignment = "Error in equation\n `1`\n(check dimensions
+	of variable or constant)."; 
+
+semFuncCheckAlpha0[ assignment , rhs:_, eq:_, opts:___Rule] := 
+Module[{ dbg,correct },
+  dbg = debug/.{opts}/.{debug->False};
+  (* rhs is supposed to be true of false *)
+  correct=True;
+  Print["Warning, equations not analyzed yet "];
+  If[ !correct && dbg, Message[ checkAlpha0::assignment, show[ eq, silent->True ] ]];
+  correct
+];
+
+(*	Declaration *)
+checkAlpha0::dim = "In :\n `1`\n the dimension is not coherent with
+other declarations...";
+
+semFuncCheckAlpha0[ decl , d:_ , opts:___Rule] := 
+Module[{ dbg, error },
+  dbg = debug/.{opts}/.{debug->False};
+  error = True;
+  If[(procDim===-1) (* No variable met yet, do not kbow processor  space   dimensions *)
+	  || (d[[3]][[1]]-paramNumber === 1 && d[[2]] === boolean) (*	  control signal *)
+	  || ( d[[3]][[1]]-paramNumber-procDim === 1) 
+	  || MemberQ[Join[$current[[3]],$current[[4]]],d],
+	  If [dbg, Print["declaration of var  ",d[[1]] ]];
+	     If [(procDim===-1) && 
+	     !(d[[3]][[1]]-paramNumber === 1 &&  d[[2]] === boolean)
+	     && !MemberQ[Join[$current[[3]],$current[[4]]],d],
+	  procDim=d[[3]][[1]]-paramNumber-1;
+	  If [dbg, Print["processor dimension : ",procDim ]]]; , 
+    If[dbg, Message[checkAlpha0::dim, show[d,silent->True]]]; error = False];
+  error
+];
+
+(*	
+	use statement
+*)
+checkAlpha0::use=" In use `1`, the use is not a pointwise operator
+	(dimension problem with the extension domain) "
+semFuncCheckAlpha0[ use , {id:_, extension:_, paramAssign:_, expList:_,
+              idList:_}, opts:___Rule] :=
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+  If [extension[[1]]===procDim + paraAssign[[1]]-1 , True,
+   Message[checkAlpha0::use id]; False];     
+];
+
+(*
+	case expression 
+*)
+checkAlpha0::case = "In case expression\n`1`\n the number of branches should be 2.";
+semFuncCheckAlpha0[ case , expressionList:_, opts:___Rule ] := 
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+(*
+  If[Length[expressionList]=!=2&&dbg, 
+     Message[checkAlpha0::case,show[case[expressionList],silent->True]]
+  ];
+*)
+  Apply[And,expressionList]
+];
+
+(*
+	restriction expression 
+*)
+semFuncCheckAlpha0[ restrict , trdomain:_, trexpression:_, opts:___Rule ] := 
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+  (* It is useless to check the dimension of the domain, it is done by analyze *)
+  trexpression
+];
+
+(*
+	affine expression 
+*)
+checkAlpha0::affexp1 = "In `1`, the matrix should be a translation matrix";
+checkAlpha0::affexp2 = "I am lost...";
+checkAlpha0::affexp3 = "In `1`, the translation should not be positive";
+semFuncCheckAlpha0[ affexp, v:_, aff:_, opts:___Rule] :=
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+(* 	Two cases: var.[t-k], const[] *)
+(* 
+  Which[
+    Head[v] === const, True,  (* We do not need to check the affine part, as this is done
+			   by analyze *)
+    (* For a var, we need to check that the matrix is a translation, 
+       and also that the translation is positive *)
+    Head[v] === var,
+    Catch[
+      Module[{tr},
+        (* Is it a translation ? *)
+        If[ translationQ[aff], True, 
+          If[dbg, 
+             Throw[
+               (Message[checkAlpha0::affexp1, show[aff,silent->True]];
+               False)
+             ],
+             Throw[False]
+          ]
+        ];
+        (* Get the translation vector *)
+        tr = Last[aff[[4]][[1]]]; 
+        If[ tr<=0, True, 
+          If[ dbg, 
+               (Message[checkAlpha0::affexp3, show[aff,silent->True]];
+               False),
+             False
+          ]
+        ]
+      ]
+    ],
+    True, If[dbg, Message[checkAlpha0::affexp, aff], False]
+  ]
+*)
+  True
+];
+
+semFuncCheckAlpha0::params = "parameter error while calling a semantic function. Parameters
+were \n `1`";
+(* Error case *)
+semFuncCheckAlpha0[x:___] := 
+Module[{ dbg },	
+  Throw[Message[ semFuncCheckAlpha0::params, {x} ]]; 
+];
+
+End[];
+EndPackage[];

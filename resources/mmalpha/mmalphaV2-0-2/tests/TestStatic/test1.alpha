@@ -1,0 +1,37 @@
+
+system ZeroColumn : {N,K | 1<=K<=N}  
+                    (A: {i,j | 1<=i,j<=N} of real)
+            returns (Ar: {i,j | 1<=i,j<=N} of real);
+let
+  Ar[i,j] = 
+   case
+     {| i<=K; 1<=j<=N} : A[i,j];
+     {| i>K; j<=K}     : 0[];
+     {| i>K; j>K}      : A[i,j] - A[K,j]*A[i,K]/A[K,K];
+  esac;
+tel;
+
+
+
+system Gauss : {N | N>0}  (A,A0: {i,j | 2<=i,j<=N} of real)
+                  returns (T,T2: {i,j | 1<=i,j<=N} of real);
+var  AK: {i,j,k | 1<=i,j<=N; 1<=k<=N} of real;
+     AT: {i,j,k | 1<=i,j<=N; 1<=k<=N} of real;
+     A1: {i,j,k | 1<=i,j<=N; 1<=k<=N} of real;
+     A2: {i,j,k | 1<=i,j<=N; 1<=k<=N} of real;
+     A3: {i,j,k | 1<=i,j<=N; 1<=k<=N} of real;
+let
+  use {k | 1<=k<=N} ZeroColumn[N,k+1] (AK)
+		            returns (AT);
+   use {k | 1<=k<=N} ZeroColumn[N,k] (AK)
+		            returns (A1);
+ use {k | 1<=k<=N} truc[N,k] (AK,A0)
+		            returns (A1);
+  AK[i,j,k] =
+    case
+      {| k=2}: A[i,j];
+      {| k>1}: AT[i,j,k-1];
+    esac;
+  T[i,j] = AK[i,j+70,N]; 
+tel;
+

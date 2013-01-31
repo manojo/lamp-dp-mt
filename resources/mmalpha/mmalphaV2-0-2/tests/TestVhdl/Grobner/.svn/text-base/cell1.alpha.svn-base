@@ -1,0 +1,153 @@
+--include mux.alpha
+--include add.alpha
+--include PPCM.alpha
+
+
+-- Alphard programm  for the cell1 of 
+--  the spolisation circuit.
+-- lr veritable fontionnement du circuit doit 
+-- commencer a tinit+1
+-- Duration represente le double du nombre de lambda significatif,
+-- le premier lambda present etant significatif.
+system cell1b:{Tinit,Duration| Tinit>=0; Duration > 3}
+  (Ilam1,Ilam2,Ix1,Ix2,Iy1,Iy2 :
+	{t|Tinit<=t<=Tinit+Duration-1} of integer;
+	ck2: {t|Tinit+2<=t<=Tinit+Duration-1} of boolean;
+	Redu: {t|Tinit<=t<=Tinit+Duration-1} of boolean;
+	Iinit,Iend: {t|Tinit<=t<=Tinit+Duration-1} of boolean )
+  returns (Olam1,Olam2,Ox,Oy: {t|Tinit+2<=t<=Tinit+Duration-1} of integer;
+		Os: {t|Tinit+2<=t<=Tinit+Duration-1} of boolean;
+	   Oinit,Oend,endsort: {t|Tinit+1<=t<=Tinit+Duration} of boolean );
+var 
+llam1,llam2,lx1,lx2,ly1,ly2, muxllam1,muxllam2,muxlx1,muxlx2,muxly1,muxly2
+: {t|Tinit<=t<=Tinit+Duration-1} of integer;
+lllam1,lllam2,Ux1,Ux2,Uy1,Uy2 :{t|Tinit+1<=t<=Tinit+Duration-1} of integer;
+Rlam1,Rlam2,Rx1,Rx2,Ry1,Ry2 :{t|Tinit+2<=t<=Tinit+Duration-1} of integer;
+Tend: {t|Tinit+1<=t<=Tinit+Duration} of boolean;
+RRlam2,RRx2,RRy2:{t|Tinit+3<=t<=Tinit+Duration} of integer; 
+OOOlam1: {t|Tinit+2<=t<=Tinit+Duration-1} of integer;
+
+let
+
+
+-- calcul de U1 et U2 et Lambda
+use coefcomp[Tinit,Duration] (Ilam1,Ilam2,Ix1,Iy1,Ix2,Iy2,Redu)
+	returns (llam1,llam2,lx1,lx2,ly1,ly2);
+
+Oinit[t]=Iinit[t-1];
+Tend[t]=Iend[t-1];
+Oend[t]=Tend[t];
+endsort[t]=Tend[t];
+Olam1[t]=OOOlam1[t];
+Os[t]=  if (OOOlam1[t]=0[]) then   
+	case   
+	{| t >=Tinit }: False[];
+	esac
+	else
+	case
+	{| t >=Tinit }: True[];
+	esac;
+	
+-- registres initialises par debut et lu a chaque top apres (U1,U2 et Lc)
+lllam1[t] = muxllam1[t-1];
+muxllam1[t] = if (Iinit[t]) then 
+	case
+	{| t=Tinit} :llam1[t];
+	{| t>Tinit} : False[];
+	esac 
+	else
+	case
+	{| t=Tinit} :False[];
+	{| t>Tinit} : lllam1[t];
+	esac; 
+
+
+
+lllam2[t] = muxllam2[t-1];
+muxllam2[t] =
+ if (Iinit[t]) then 
+	case
+	{| t=Tinit} :llam2[t];
+	{| t>Tinit} : False[];
+	esac 
+	else
+	case
+	{| t=Tinit} :False[];
+	{| t>Tinit} : lllam2[t];
+	esac; 
+
+Ux1[t] = muxlx1[t-1];
+muxlx1[t] = 
+ if (Iinit[t]) then 
+	case
+	{| t=Tinit} :lx1[t];
+	{| t>Tinit} : False[];
+	esac 
+	else
+	case
+	{| t=Tinit} :False[];
+	{| t>Tinit} : Ux1[t];
+	esac; 
+
+Ux2[t] = muxlx2[t-1];
+muxlx2[t] = 
+ if (Iinit[t]) then 
+	case
+	{| t=Tinit} :lx2[t];
+	{| t>Tinit} : False[];
+	esac 
+	else
+	case
+	{| t=Tinit} :False[];
+	{| t>Tinit} : Ux2[t];
+	esac; 
+
+
+Uy1[t] = muxly1[t-1];
+muxly1[t] =
+ if (Iinit[t]) then 
+	case
+	{| t=Tinit} :ly1[t];
+	{| t>Tinit} : False[];
+	esac 
+	else
+	case
+	{| t=Tinit} :False[];
+	{| t>Tinit} : Uy1[t];
+	esac; 
+
+Uy2[t] = muxly2[t-1];
+muxly2[t] =
+ if (Iinit[t]) then 
+	case
+	{| t=Tinit} :ly2[t];
+	{| t>Tinit} : False[];
+	esac 
+	else
+	case
+	{| t=Tinit} :False[];
+	{| t>Tinit} : Uy2[t];
+	esac; 
+
+-- utilisation de bigAdd
+-- bigadd commence a travailler un top apres cell1
+use addition[Tinit+2,Duration-2] (Ilam1,Ilam2,lllam1,lllam2,Ix1,Ix2,Iy1,Iy2,
+				Ux1,Ux2,Uy1,Uy2)
+    returns (Rlam1,Rx1,Ry1,Rlam2,Rx2,Ry2);
+
+-- registres (latch) 
+
+RRlam2[t]=Rlam2[t-1];
+RRx2[t]=Rx2[t-1];
+RRy2[t]=Ry2[t-1];
+
+
+-- and finaly big mux
+	 
+
+use multiplex[Tinit+2,Duration-2]
+	(Rlam1,Rx1,Ry1,RRlam2,RRx2,RRy2,ck2)
+	returns(OOOlam1,Olam2,Ox,Oy);
+
+tel;
+

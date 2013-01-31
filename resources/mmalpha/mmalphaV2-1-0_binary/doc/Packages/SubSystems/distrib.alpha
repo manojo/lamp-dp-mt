@@ -1,0 +1,47 @@
+--
+--  This subsystem translates a binary value 
+--  represented as a boolean array of size N, into
+--  its integer value. Uses Horner's rule.
+--
+system binaryToInt: {N|N>0} 
+  (binNum:  {i|0<=i<=N-1} of boolean)
+returns
+  (int: integer);
+var
+  value: {i|0<=i<=N} of integer;
+let
+  value[i] =
+  case
+    {|i=N}:0[];
+    {|i<N}:2[]*(value[i+1]+binNum[i]);
+  esac;
+  int[]=value[0];
+tel;
+--
+--  N is the width of the address, initialValue is 
+--  the initial value of the memory. S is the size of 
+--  the memory. Should be 2^N.
+--
+system lut: {N,S|N>0;S>N} 
+  (address: {i|0<=i<=N-1} of boolean;
+   initialValue: {i|0<=i<=S-1} of integer)
+returns (value: integer);
+var
+  intAddress: integer;
+  indexI: {i|0<=i<=S-1} of integer;
+  indexedValue: {i|-1<=i<=S-1} of integer;
+let
+  indexI[i] =
+  case
+    {|i=0}:0[];
+    {|i>0}:indexI[i-1]+1[];
+  esac;
+  use binaryToInt[N] (address) returns (intAddress);
+  indexedValue[i] = 
+  case
+    {|i=-1}:0[];
+    {|i>=0}: if indexI[i]=intAddress[] then initialValue[i] 
+                else indexedValue[i-1];
+  esac; 
+  value[] = indexedValue[N-1];
+tel;

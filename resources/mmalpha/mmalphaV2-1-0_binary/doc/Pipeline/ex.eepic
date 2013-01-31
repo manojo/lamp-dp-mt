@@ -1,0 +1,27 @@
+\setlength{\unitlength}{0.00087489in}
+%
+\begingroup\makeatletter\ifx\SetFigFont\undefined%
+\gdef\SetFigFont#1#2#3#4#5{%
+  \reset@font\fontsize{#1}{#2pt}%
+  \fontfamily{#3}\fontseries{#4}\fontshape{#5}%
+  \selectfont}%
+\fi\endgroup%
+{\renewcommand{\dashlinestretch}{30}
+\begin{picture}(4534,6799)(0,-10)
+\path(22,2272)(4522,2272)
+\path(4402.000,2242.000)(4522.000,2272.000)(4402.000,2302.000)
+\path(22,2272)(22,5647)
+\path(52.000,5527.000)(22.000,5647.000)(-8.000,5527.000)
+\path(22,4522)(2272,4522)(2272,2272)
+	(22,2272)(22,4522)
+\path(22,2272)(22,22)
+\path(22,2272)(22,22)(2272,2272)(22,2272)
+\path(22,472)(1597,2047)
+\path(1533.360,1940.934)(1597.000,2047.000)(1490.934,1983.360)
+\path(22,4522)(2272,6772)
+\path(22,4522)(2272,4522)(2272,6772)
+	(2272,6772)(2272,6772)(2272,6772)
+\put(4297,2272){\makebox(0,0)[b]{\smash{{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}$i$}}}}}
+\put(247,5647){\makebox(0,0)[b]{\smash{{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}$j$}}}}}
+\end{picture}
+}

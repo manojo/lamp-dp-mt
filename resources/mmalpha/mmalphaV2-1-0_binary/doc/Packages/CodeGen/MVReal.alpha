@@ -1,0 +1,14 @@
+system prodVect :{N | 3<=N}
+                (a : {i,j | 1<=i<=N; 1<=j<=N} of real; 
+                 b : {i | 1<=i<=N} of real)
+       returns  (c : {i | 1<=i<=N} of real);
+var
+  C : {i,j | 1<=i<=N; 0<=j<=N} of real;
+let
+  C[i,j] = 
+      case
+        { | j=0} : 0[];
+        { | 1<=j} : C[i,j-1] + a[i,j] * b[j];
+      esac;
+  c[i] = C[i,N];
+tel;

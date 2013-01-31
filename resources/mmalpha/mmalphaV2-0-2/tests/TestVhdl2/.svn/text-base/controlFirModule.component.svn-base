@@ -1,0 +1,11 @@
+
+COMPONENT controlFirModule
+PORT(
+  Ck: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  HPipe_ctl1P_Init : OUT STD_LOGIC;
+  xPipe_ctl2P_Init : OUT STD_LOGIC
+);
+END COMPONENT;
+

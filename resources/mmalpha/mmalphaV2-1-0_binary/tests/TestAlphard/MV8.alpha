@@ -1,0 +1,50 @@
+system prodVect (a : {i,j | 1<=i<=4; 1<=j<=4} of boolean; 
+                 b : {i | 1<=i<=4} of boolean)
+       returns  (c : {i | 1<=i<=4} of boolean);
+var
+  TSep5 : {t,j | j+1<=t<=j+4; 1<=j<=4} of boolean;
+  TSep4 : {t,j | j+1<=t<=j+4; 1<=j<=4} of boolean;
+  TSep3 : {t,j | j+1<=t<=j+4; 1<=j<=4} of boolean;
+  TSep2 : {t,j | j+1<=t<=j+4; 1<=j<=4} of boolean;
+  TSep1 : {t,j | j+1<=t<=j+4; 1<=j<=4} of boolean;
+  loadCPipe : {t,j | t=j; 1<=j<=4} | {t,j | j+1<=t<=j+4; 1<=j<=4} of boolean;
+  B1 : {t,j | j<=t<=j+3; 1<=j<=4} of boolean;
+  A : {t,j | j<=t<=j+3; 1<=j<=4} of boolean;
+  C : {t,j | j<=t<=j+4; 1<=j<=4} of boolean;
+  loadC : {t,j | j<=t<=j+4; 1<=j<=4} of boolean;
+  B1reg1 : {t,j | j-1<=t<=j+2; 2<=j<=4} of boolean;
+  loadCPipereg1 : {i1,i2 | i1=i2-1; 2<=i2<=4} | {i1,i2 | i2<=i1<=i2+3; 2<=i2<=4} of boolean;
+let
+  B1reg1[t,j] = B1[t,j-1];
+  B1[t,j] = 
+      case
+        { | 1<=t<=4; j=1} : b[t-j+1];
+        { | j<=t<=j+3; 2<=j<=4} : B1reg1[t-1,j];
+      esac;
+  A[t,j] = a[j,t-j+1];
+  TSep1[t,j] = A[t-1,j];
+  TSep2[t,j] = B1[t-1,j];
+  TSep3[t,j] = C[t-1,j];
+  TSep4[t,j] = TSep1 * TSep2;
+  TSep5[t,j] = TSep3 + TSep4;
+  C[t,j] = 
+      case
+        { | j<=t<=j+4; 1<=j<=4} : 
+           case
+             { | t=j; 1<=j<=4} : if (loadCPipe) then False[] else True[];
+             { | j+1<=t<=j+4; 1<=j<=4} : if (not loadCPipe) then TSep5 else False[];
+           esac;
+      esac;
+  loadCPipereg1[i1,i2] = loadCPipe[i1,i2-1];
+  loadCPipe[t,j] = 
+      case
+        { | t=1; j=1} | { | 2<=t<=5; j=1} : 
+           case
+             { | t=j; 1<=j<=4} : True[];
+             { | j+1<=t<=j+4; 1<=j<=4} : False[];
+           esac;
+        { | t=j; 2<=j<=4} | { | j+1<=t<=j+4; 2<=j<=4} : loadCPipereg1[t-1,j];
+      esac;
+  loadC[t,j] = loadCPipe;
+  c[i] = C[i+4,i];
+tel;

@@ -1,0 +1,25 @@
+%
+% File created on {2007, 11, 15, 17, 10, 20.522230} by makeDoc.
+%
+% Section header
+\section{The Alpha`Reduction` package } 
+\label{label:Alpha`Reduction`}
+\alphanote{Reduction}{Documentation revised on August 8, 2004} 
+ 
+\alphausage{Reduction}{The Alpha`Reduction` package contains transformations to deal with  reduction operators.}{Alpha/Reduction.m}{Alpha`Reduction`}
+\index{Reduction}
+
+\alphanote{Reduction}{This package is not completed. In particular, it contains two functions splitReduction and splitReduce which do no work.} 
+ 
+\alphausage{serializeReduce}{serializeRecuce[pos] serializes the reduction at position pos in \$result. serializeReduce[pos, spec] serializes the reduction at position  pos in \$result using serialization specifier spec (spec is a string). Parameter pos may be either a position in the AST, or the name (string) of a variable whose definition has the form "pos = reduction". serializeReduce[sys, pos, spec] does the same to program sys. Parameter spec is a string containing the new variable name composed with the new serialized dependence (parameters need not be given  explicitly). For example: "Z.(i,k$ \rightarrow $i,k-1)" means that the serialized  variable will be "Z" and the serialize direction will be the vector  (0,-1). If no spec is given, the function guesses the direction of serialization, and the option (invert $ \rightarrow $ False$|$True) allows this direction to be changed. The guess is based on the null space of the reduction function, and it works only if this null space has exactly one vector.}{Alpha/Reduction.m}{Alpha`Reduction`}
+\index{serializeReduce}
+
+\alphausage{isolateReductions}{isolateReductions[] locates all the reductions in a system and isolates these reductions in new equations}{Alpha/Reduction.m}{Alpha`Reduction`}
+\index{isolateReductions}
+
+\alphausage{isolateOneReduction}{isolates one reduction}{Alpha/Reduction.m}{Alpha`Reduction`}
+\index{isolateOneReduction}
+
+\alphausage{splitReduction}{splitReduction[y] tries to rewrite the reduction at rhs of symbol y as a sequence of reduction. This function does not work currently.}{Alpha/Reduction.m}{Alpha`Reduction`}
+\index{splitReduction}
+

@@ -1,0 +1,39 @@
+digraph prodVect {
+
+	node [shape=ellipse color = "blue"];
+	 a;
+	 b
+	node [shape=ellipse color = "yellow"];
+	 bXMirr1;
+	 TSep2;
+	 TSep1;
+	 pipeCb1Reg3;
+	 aReg2;
+	 CReg1;
+	 CXctl1XIn;
+	 pipeCb1;
+	 C;
+	 CXctl1
+	node [shape=ellipse color = "green"];
+	 c
+	node [ color = "red" ]
+
+	b -> bXMirr1 [label="in"]
+	pipeCb1 -> pipeCb1Reg3 [label="cxt"]
+	a -> aReg2 [label="in"]
+	node [shape=box,label="reg"] Register1
+	C -> Register1 -> CReg1
+	node [shape=invtriangle,label="tf"] Binop1;
+	Binop1 -> CXctl1
+	node [shape=box,label="bop"] binop2
+	aReg2 -> binop2
+	binop2 -> TSep1
+	pipeCb1 -> binop2
+	node [shape=box,label="bop"] binop3
+	CReg1 -> binop3
+	binop3 -> TSep2
+	TSep1 -> binop3
+	C -> c [label="mir"]
+	label = "\n\nHardware of Alpha program\nprodVect\n as produced by MMAlpha"
+	fontsize=15
+}

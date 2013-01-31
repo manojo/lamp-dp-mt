@@ -1,0 +1,20 @@
+#-----------------------------------------------
+#  This defines where MATHLINK is for version 4.2 for cygwin 
+#-----------------------------------------------
+#MATHLINK     = "C:/Program\ Files/Wolfram\ Research/Mathematica/4.2/AddOns/MathLink/DeveloperKit/Windows/CompilerAddition"
+
+#-----------------------------------------------
+#  In this version, the Mathlink stuff was copied in the MMALPHA directory
+MATHLINK     = $(MMALPHA)/sources/MathLink
+
+#-----------------------------------------------
+MATHPREP	= $(MATHLINK)/mldev32/bin/mprep
+MATHPREPCOR	= $(MATHLINK)/mprepcor.3.0.1
+MATHINCLUDE	= -I$(MATHLINK)/mldev32/include
+MATHLIB		= -L$(MATHLINK)/mldev32/lib
+# -L C:/Program\ Files/Wolfram\ Research/Mathematica/4.2/AddOns/MathLink/DeveloperKit/Windows/SystemAdditions
+#MATHLOADLIB	=  -lml32i1m -lml32i2m -lml32i1c -lml32i2c -lml32i1w -lml32i2w  -lm
+MATHLOADLIB	=  $(MATHLINK)/lib/ml32i1m.lib
+MATHEXTRALIBS = 
+MATHEXTRAOBJS =
+

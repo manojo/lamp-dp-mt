@@ -1,0 +1,13 @@
+system test6 : {N | 1<=N}
+               (a : {k | 0<=k<=N} of integer)
+       returns (b : {j | 0<=j<=N} of integer);
+var
+  A1 : {i | 0<=i<=N} of integer;
+let
+  A1[i] = 
+      case
+        { | i=0} : a;
+        { | 1<=i} : A1[i-1];
+      esac;
+  b[j] = A1;
+tel;

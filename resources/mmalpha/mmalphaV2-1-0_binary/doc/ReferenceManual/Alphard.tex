@@ -1,0 +1,72 @@
+%
+% File created on {2007, 11, 15, 17, 10, 19.124067} by makeDoc.
+%
+% Section header
+\section{The Alpha`Alphard` package } 
+\label{label:Alpha`Alphard`}
+\alphausage{alpha0ToAlphard}{alpha0ToAlphard[sys,controlSigList]  translate the Alpha0  system `sys' into an Alphard library, `controlSigList' is the list of names of the control signals.    alpha0ToAlphard[controlSigList] happens on   \$result and modify \$result and \$library}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{alpha0ToAlphard}
+
+\alphausage{alpha0ToAlphardModule}{alpha0ToAlphardModule[sys,listRegion,controlSigList] translate the Alpha0   Module `sys' into an Alphard library. `listRegion' is the structural   information resulting from the function getArrayDomains[sys],  `controlSigList' is the list of names of the control signals. }{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{alpha0ToAlphardModule}
+
+\alphausage{alphardFirstStep}{alphardFirstStep[] returns an integer which is the first logical steps of the  alphard architecture. The reset signal should be sent at this step.}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{alphardFirstStep}
+
+\alphausage{alphardTimeLife}{alphardTimeLife[sys:\_Alpha`system] returns the time domain spanned by the hardware. This function should be called on the module of an Alphard program after the parameter have been assigned (your can call it before the assignement, but the result will be more difficult to interpret), alphardTimeLife[] applies on \$library (except the last program)  and take the union}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{alphardTimeLife}
+
+\alphausage{getArrayDomains}{getArrayDomains[sys] computes all the spatial region with a  different behaviour determined by the system sys (on each  spatial region, cells are idential). The system sys must be in Alpha0 form. getArrayDomains[] applies to \$result.}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{getArrayDomains}
+
+\alphausage{buildControler}{buildControler[sys,signalList] builds the subsystem which initializes all the control signals of `sys' indicated   by `signalList'. The system `sys' must be in Alpha0 form. buildControler[signalList] takes \$result as default   value for `sys'}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{buildControler}
+
+\alphausage{isSpaceDepQ}{isSpaceDepQ[dep] checks whether the Alpha dependance `dep' is a space dependance  (in Alpha0). `dep' is an AST}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{isSpaceDepQ}
+
+\alphausage{isConnexionEqQ}{isConnexionEqQ[eq] checks whether the Alpha equation `eq' is a connexion equation (in Alpha0). `eq' is an AST}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{isConnexionEqQ}
+
+\alphausage{buildOneCell}{buildOneCell[sys,dom1,posList] return the Alphard cell (extracted form system `sys'), occuring on the  spatial region indicated by `dom1' and which  computes expressions indicated by the list of poisiton `posList' in AST `sys'. `dom' and `posList' can be obtained by the function  getArrayDomains[sys]. buildOneCell[sys,dom1,posList,controlSignals] do the same with the additionnal information of the list of control signals in `controlSignals'. }{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{buildOneCell}
+
+\alphausage{isMirrorEqQ}{isMirrorEqQ[eq] checks whether the Alpha equation `eq' is a Mirror equation (in Alpha0). `eq' is an AST}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{isMirrorEqQ}
+
+\alphausage{buildInterface}{buildInterface[sys] returns two Alphard systems: the interface  and the module which correspond to system sys. The interface has  the same inputs and outputs as sys and simply calls the module  with scheduled input and output (Mirror variables for i/o).  buildInterface[] applies on \$result and modifies \$result and \$library.}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{buildInterface}
+
+\alphausage{isModuleQ}{isModuleQ[sys] checks whether the Alpha system `sys' is a module or not}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{isModuleQ}
+
+\alphausage{removeSystem}{removeSystem[id\_String]  Remove the system named `id' from the library \$library  (changes \$program and \$result if system `id' is also \$result). }{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{removeSystem}
+
+\alphausage{simplifyConnexions}{simplifyConnexions[sys] translate connexion syntax of connexion from Alpha0 mode to Alphard mode in system `sys', return the modified system. simplifyConnexions[] simplify connexion of \$result}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{simplifyConnexions}
+
+\alphausage{normalizeIdDep}{normalizeIdDep[sys], normalize identity dependencies: replace in system `sys' all occurences of Alpha`var[a\_\_\_] which is not surrounded by an Alpha`affine by Alpha`affine[Alpha`var,identity] and return the modified system. normalizeIdDep[] apply the function to \$result and assigns the result to \$result. e.g A[t,p]=B is replaced by A[t,p]=B[t,p]. Warning, the transformation is not applied to the input arguments of Alpha`use }{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{normalizeIdDep}
+
+\alphausage{normalizeIdDepInEq}{normalizeIdDep[sys,eq] normalize identity dependencies: replace in equation `eq' of system `sys' all occurences of Alpha`var[a\_\_\_] which is not surrounded by an Alpha`affine by Alpha`affine[Alpha`var,identity] and return the modified equation}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{normalizeIdDepInEq}
+
+\alphausage{normalizeIdDepLib}{normalizeIdDepLib[] applies normalizeIdDep[] to all subsystems of the library, assigns it to \$library and  return the resulting Library (change also \$result)}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{normalizeIdDepLib}
+
+\alphausage{isolateOutputList}{isolates outputs of a system in the library, so that an output is never used inside its generating system  (necessary for VHDL)}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{isolateOutputList}
+
+\alphausage{isolateOutput}{isolates outputs of a system in the library, so that an output is never used inside its generating system  (necessary for VHDL)}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{isolateOutput}
+
+\alphausage{structureFrom}{structureFrom[indices\_List[\_\_String],listAllVars\_List[\_\_String]] build a subsystem from \$result which defines all the variables in `listAllVars', and for which the indices in `indices' will be the extension indices of the use set in \$result. All variables must give   the same domain when projecting then on the indices `indices'.  Can also be called in the forllowing form : structureFrom[indices], structureFrom[sys,indices], structureFrom[sys,indices,listStructVar],   structureFrom[sys,indices,listStructVar,newName]. Warning, not tested}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{structureFrom}
+
+\alphausage{setOutputVar}{setOutputVar[sys1\_systel,var1\_String] returns sys1 in which var1 in moved from local vars to output vars (added as last output var). setOutputVar[var1] operates on \$result. WARNING this function changes the semantics of the program (the use calling this program are not valid anymore)}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{setOutputVar}
+
+\alphausage{insertFunction}{inserFunction[var1\_String, func1\_String] insert the function func1 in the definition of var var1: if the definition of var1 was var1=expr1, the new definition is var1=func1(var1). This is mainly used for the introduction of functions like truncateLSB for bit level description of the operations.}{Alpha/Alphard.m}{Alpha`Alphard`}
+\index{insertFunction}
+

@@ -1,0 +1,14 @@
+system exemple9(x : {t,p | 1<=t; 1<=p<=4} of integer; 
+                 y : {t,p | 1<=t; 1<=p<=4} of integer)
+       returns  (z : {t | 1<=t} of integer);
+var
+  Z : {t,p | 1<=t; 0<=p<=4} of integer;
+  S : {t,p | 1<=t; 1<=p<=4} of integer;
+let
+  S = x.(t,p->t,p) + y.(t,p->t,p);
+  Z = case
+        {t,p | p=0} : 0.(t,p->);
+        {t,p | 1<=p} : Z.(t,p->t,p-1) + S.(t,p->t,p);
+      esac;
+  z = Z.(t->t,4);
+tel;

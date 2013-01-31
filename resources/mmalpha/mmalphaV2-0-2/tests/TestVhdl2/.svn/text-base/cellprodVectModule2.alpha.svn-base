@@ -1,0 +1,39 @@
+system cellprodVectModule2 :{p,N | 2<=p<=N; 3<=N}
+                           (B1_reg2loc : {t | p-1<=t<=p+N-2; 2<=p<=N; 3<=N} of integer
+                            ; 
+                            C_ctl1P_reg1loc : {t | p-1<=t<=p+N-1; 2<=p<=N; 3<=N} of boolean
+                            ; 
+                            A : {t | p<=t<=p+N-1; 2<=p<=N; 3<=N} of integer)
+       returns             (B1 : {t | p<=t<=p+N-1; 2<=p<=N; 3<=N} of integer; 
+                            C_ctl1P : {t | p<=t<=p+N; 2<=p<=N; 3<=N} of boolean
+                            ; 
+                            C : {t | p<=t<=p+N; 2<=p<=N; 3<=N} of integer);
+var
+  Cloc3 : {t | p<=t<=p+N; 2<=p<=N; 3<=N} of integer;
+  C_ctl1Ploc2 : {t | p<=t<=p+N; 2<=p<=N; 3<=N} of boolean;
+  B1loc1 : {t | p<=t<=p+N-1; 2<=p<=N; 3<=N} of integer;
+  A_reg4 : {t | p+1<=t<=p+N; 2<=p<=N; 3<=N} of integer;
+  B1_reg2 : {t | p<=t<=p+N-1; 2<=p<=N; 3<=N} of integer;
+  B1_reg5 : {t | p+1<=t<=p+N; 2<=p<=N; 3<=N} of integer;
+  C_ctl1 : {t | p<=t<=p+N; 2<=p<=N; 3<=N} of boolean;
+  C_ctl1P_reg1 : {t | p<=t<=p+N; 2<=p<=N; 3<=N} of boolean;
+  C_reg3 : {t | p+1<=t<=p+N; 2<=p<=N; 3<=N} of integer;
+let
+  C[t] = Cloc3[t];
+  C_ctl1P[t] = C_ctl1Ploc2[t];
+  B1[t] = B1loc1[t];
+  B1_reg2[t] = B1_reg2loc[t-1];
+  C_ctl1P_reg1[t] = C_ctl1P_reg1loc[t-1];
+  B1_reg5[t] = B1loc1[t-1];
+  A_reg4[t] = A[t-1];
+  C_reg3[t] = Cloc3[t-1];
+  B1loc1[t] = B1_reg2[t];
+  C_ctl1Ploc2[t] = C_ctl1P_reg1[t];
+  C_ctl1[t] = C_ctl1Ploc2[t];
+  Cloc3[t] = 
+      case
+        {| t=p; 2<=p<=N; 3<=N} : if (C_ctl1[t]) then 0[] else 0[];
+        {| p+1<=t; 2<=p<=N; 3<=N} : if (C_ctl1[t]) then 0[] else C_reg3[t] + A_reg4[t] * B1_reg5[t]
+        ;
+      esac;
+tel;

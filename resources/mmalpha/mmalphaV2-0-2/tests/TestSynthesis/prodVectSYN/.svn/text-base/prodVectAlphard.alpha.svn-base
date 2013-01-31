@@ -1,0 +1,66 @@
+system ControlprodVectModule :{N | 3<=N}
+                             ( )
+       returns               (CXctl1 : {t | t=0} | {t | 1<=t<=N} of boolean);
+let
+  CXctl1[t] = 
+      case
+        { | t=0} : True[];
+        { | 1<=t} : False[];
+      esac;
+tel;
+
+system cellprodVectModule1 :{p,N | 1<=p<=N; 3<=N}
+                           (bXMirr1 : {t | 1<=t<=N} of integer; 
+                            aReg2 : {t | 1<=t<=N} of integer; 
+                            CXctl1XIn : {t | 0<=t<=N} of boolean)
+       returns             (C : {t | 0<=t<=N} of integer);
+var
+  Cloc1 : {t | 0<=t<=N} of integer;
+  CReg1 : {t | 1<=t<=N} of integer;
+  TSep1 : {t | 1<=t<=N} of integer;
+  TSep2 : {t | 1<=t<=N} of integer;
+let
+  C[t] = Cloc1[t];
+  CReg1[t] = Cloc1[t-1];
+  TSep1[t] = aReg2[t] * bXMirr1[t];
+  TSep2[t] = CReg1[t] + TSep1[t];
+  Cloc1[t] = 
+      case
+        { | t=0} : if (CXctl1XIn[t]) then 0[] else 0[];
+        { | 1<=t} : if (CXctl1XIn[t]) then 0[] else TSep2[t];
+      esac;
+tel;
+
+system prodVectModule :{N | 3<=N}
+                      (aReg2In : {t,p | 1<=t<=N; 1<=p<=N} of integer; 
+                       bXMirr1In : {t,p | 1<=t<=N; 1<=p<=N} of integer)
+       returns        (COut : {t,p | 0<=t<=N; 1<=p<=N} of integer);
+var
+  CXctl1 : {t | 0<=t<=N} of boolean;
+  bXMirr1 : {t,p | 1<=t<=N; 1<=p<=N} of integer;
+  aReg2 : {t,p | 1<=t<=N; 1<=p<=N} of integer;
+  CXctl1XIn : {t,p | 0<=t<=N; 1<=p<=N} of boolean;
+  C1 : {t,p | 0<=t<=N; 1<=p<=N} of integer;
+let
+  aReg2[t,p] = aReg2In[t,p];
+  bXMirr1[t,p] = bXMirr1In[t,p];
+  COut[t,p] = C1[t,p];
+  CXctl1XIn[t,p] = CXctl1[t];
+  use  ControlprodVectModule[N] () returns  (CXctl1) ;
+  use {p | 1<=p<=N} cellprodVectModule1[p,N] (bXMirr1, aReg2, CXctl1XIn) returns  (C1) ;
+tel;
+
+system prodVect :{N | 3<=N}
+                (a : {i,j | 1<=i<=N; 1<=j<=N} of integer; 
+                 b : {i | 1<=i<=N} of integer)
+       returns  (c : {i | 1<=i<=N} of integer);
+var
+  aReg2 : {t,p | 1<=t<=N; 1<=p<=N} of integer;
+  bXMirr1 : {t,p | 1<=t<=N; 1<=p<=N} of integer;
+  C : {t,p | 0<=t<=N; 1<=p<=N} of integer;
+let
+  bXMirr1[t,p] = b[t];
+  aReg2[t,p] = a[p,t];
+  c[i] = C[N,i];
+  use  prodVectModule[N] (aReg2, bXMirr1) returns  (C) ;
+tel;

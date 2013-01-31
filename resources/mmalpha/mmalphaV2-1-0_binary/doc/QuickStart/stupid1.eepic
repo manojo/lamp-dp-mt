@@ -1,0 +1,53 @@
+\setlength{\unitlength}{0.00087489in}
+%
+\begingroup\makeatletter\ifx\SetFigFont\undefined%
+\gdef\SetFigFont#1#2#3#4#5{%
+  \reset@font\fontsize{#1}{#2pt}%
+  \fontfamily{#3}\fontseries{#4}\fontshape{#5}%
+  \selectfont}%
+\fi\endgroup%
+{\renewcommand{\dashlinestretch}{30}
+\begin{picture}(7713,1792)(0,-10)
+\path(3869.000,1015.000)(3989.000,1045.000)(3869.000,1075.000)
+\path(3989,1045)(3314,1045)(3269,1045)
+\put(4619,910){\makebox(0,0)[lb]{\smash{{{\SetFigFont{8}{9.6}{\familydefault}{\mddefault}{\updefault}B[t,1]}}}}}
+\put(7544,1090){\makebox(0,0)[lb]{\smash{{{\SetFigFont{8}{9.6}{\familydefault}{\mddefault}{\updefault}b[t]}}}}}
+\put(3179,1090){\makebox(0,0)[lb]{\smash{{{\SetFigFont{8}{9.6}{\familydefault}{\mddefault}{\updefault}a[t]}}}}}
+\put(7049,1090){\makebox(0,0)[lb]{\smash{{{\SetFigFont{8}{9.6}{\familydefault}{\mddefault}{\updefault}B[t,3]}}}}}
+\put(3629,1090){\makebox(0,0)[lb]{\smash{{{\SetFigFont{8}{9.6}{\familydefault}{\mddefault}{\updefault}A[t,1]}}}}}
+\put(4844,1090){\makebox(0,0)[lb]{\smash{{{\SetFigFont{8}{9.6}{\familydefault}{\mddefault}{\updefault}A[t,2]}}}}}
+\put(2623.085,1942.256){\arc{3867.249}{0.9105}{2.4337}}
+\path(3809,415)(4169,685)
+\path(4091.000,589.000)(4169.000,685.000)(4055.000,637.000)
+\path(7049,1045)(7634,1045)
+\path(7514.000,1015.000)(7634.000,1045.000)(7514.000,1075.000)
+\path(4619,1045)(5204,1045)
+\path(5084.000,1015.000)(5204.000,1045.000)(5084.000,1075.000)
+\path(5834,1045)(6419,1045)
+\path(6299.000,1015.000)(6419.000,1045.000)(6299.000,1075.000)
+\put(1398,1093){\makebox(0,0)[lb]{\smash{{{\SetFigFont{9}{10.8}{\rmdefault}{\mddefault}{\updefault}B1[t]=not A1[t-1]}}}}}
+\put(0,1119){\makebox(0,0)[lb]{\smash{{{\SetFigFont{9}{10.8}{\rmdefault}{\mddefault}{\updefault}A1[t]}}}}}
+\path(7544,524)(7544,1765)(3496,1765)
+	(3496,524)(7544,524)
+\path(5834,775)(5834,1241)(5226,1241)
+	(5226,775)(5834,775)
+\path(3430,1045)(3793,1045)
+\path(4619,775)(4619,1241)(4011,1241)
+	(4011,775)(4619,775)
+\path(7028,775)(7028,1241)(6419,1241)
+	(6419,775)(7028,775)
+\put(181,1469){\makebox(0,0)[lb]{\smash{{{\SetFigFont{9}{10.8}{\rmdefault}{\mddefault}{\updefault}RegInvCell}}}}}
+\put(3613,1559){\makebox(0,0)[lb]{\smash{{{\SetFigFont{9}{10.8}{\rmdefault}{\mddefault}{\updefault}RegInvModule}}}}}
+\put(5384,955){\makebox(0,0)[lb]{\smash{{{\SetFigFont{9}{10.8}{\rmdefault}{\mddefault}{\updefault}p=2}}}}}
+\put(4169,1000){\makebox(0,0)[lb]{\smash{{{\SetFigFont{9}{10.8}{\rmdefault}{\mddefault}{\updefault}p=1}}}}}
+\put(6599,1000){\makebox(0,0)[lb]{\smash{{{\SetFigFont{9}{10.8}{\rmdefault}{\mddefault}{\updefault}p=3}}}}}
+\path(91,1029)(569,1029)
+\path(737,887)(737,1223)(569,1223)
+	(569,887)(737,887)
+\path(893,1197)(1049,1042)(893,887)(893,1197)
+\path(1049,1029)(1553,1029)
+\path(725,1029)(880,1029)
+\path(1204,718)(1204,1352)(401,1352)
+	(401,718)(1204,718)
+\end{picture}
+}

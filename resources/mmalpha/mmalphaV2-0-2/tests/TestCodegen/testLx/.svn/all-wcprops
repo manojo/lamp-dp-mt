@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx
+END
+resSc
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/resSc
+END
+lx
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/lx
+END
+lx.c
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/lx.c
+END
+errMake
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/errMake
+END
+resGcc
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/resGcc
+END
+resMake
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/resMake
+END
+compile
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/compile
+END
+inLx
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/inLx
+END
+outLx
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/outLx
+END
+check.c
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/check.c
+END
+errSc
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/errSc
+END
+result
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLx/result
+END

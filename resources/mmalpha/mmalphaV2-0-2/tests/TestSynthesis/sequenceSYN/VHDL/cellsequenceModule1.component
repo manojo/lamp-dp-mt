@@ -1,0 +1,10 @@
+
+COMPONENT cellsequenceModule1
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  M : OUT  SIGNED (15 DOWNTO 0)
+);
+END COMPONENT;
+

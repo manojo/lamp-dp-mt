@@ -1,0 +1,97 @@
+system firr :  {N,M,D | 3<=N<=(M-D-1,D-1)}
+               (x : {n | 1<=n<=M} of integer[S,16]; 
+                d : {n | N<=n<=M} of integer[S,16])
+       returns (res : {n | N<=n<=M} of integer[S,16]);
+var
+  Y1 : {t,p | N<=t<=M; p=N-1} of integer[S,16];
+  expr1 : {t,p | p+1<=t<=p-N+M+1; 0<=p<=N-1} of integer[S,16];
+  res_mirr1 : {t,p | D<=t<=-N+M; p=0} of integer[S,16];
+  d_mirr1 : {t,p | D<=t<=-N+M; p=0} of integer[S,16];
+  x_mirr2 : {t,p | -N+2<=t<=-N+M+1; p=0} of integer[S,16];
+  x_mirr1 : {t,p | -N+D+1<=t<=-N+M; p=0} of integer[S,16];
+  TSep3 : {t,p | p+D<=t<=p-N+M; 0<=p<=N-1} of integer;
+  TSep2 : {t,p | p+D<=t<=p-N+M; 0<=p<=N-1} of integer;
+  W_ctl1P_reg1loc : {t,p | p-1<=t<=p-N+M-1; 1<=p<=N} of boolean;
+  ED_reg2loc : {t,p | p+D-1<=t<=p-N+M-1; 1<=p<=N} of integer[S,16];
+  XDN_reg3loc : {t,p | 2p-N+D-1<=t<=p-N+M-1; 1<=p<=N} of integer[S,16];
+  XN_reg4loc : {t,p | 2p-N<=t<=p-N+M; 1<=p<=N} of integer[S,16];
+  Y_reg6loc : {t,p | p<=t<=p-N+M; 0<=p<=N} of integer[S,16];
+  Y_reg6 : {t,p | p+1<=t<=p-N+M+1; 0<=p<=N-1} of integer[S,16];
+  XN_reg4 : {t,p | 2p-N+2<=t<=p-N+M+1; 1<=p<=N-1} of integer[S,16];
+  XDN_reg3 : {t,p | 2p-N+D+1<=t<=p-N+M; 1<=p<=N-1} of integer[S,16];
+  ED_reg2 : {t,p | p+D<=t<=p-N+M; 1<=p<=N-1} of integer[S,16];
+  W_ctl1P_reg1 : {t,p | p<=t<=p-N+M; 1<=p<=N-1} of boolean;
+  W_ctl1P_Init_In : {t,p | 0<=t<=-N+M; p=0} of boolean;
+  W_ctl1P_Init : {t | 0<=t<=-N+M} of boolean;
+  W_ctl1P : {t,p | p<=t<=p-N+M; 0<=p<=N-1} of boolean;
+  ED : {t,p | p+D<=t<=p-N+M; 0<=p<=N-1} of integer[S,16];
+  XDN : {t,p | 2p-N+D+1<=t<=p-N+M; 0<=p<=N-1} of integer[S,16];
+  XN : {t,p | 2p-N+2<=t<=p-N+M+1; 0<=p<=N-1} of integer[S,16];
+  W : {t,p | p<=t<=p-N+M; 0<=p<=N-1} of integer[S,16];
+  Y : {t,p | p+1<=t<=p-N+M+1; -1<=p<=N-1} of integer[S,16];
+let
+  Y1[t,p] = Y[t,p];
+  expr1[t,p] = W[t-1,p];
+  res_mirr1[t,p] = res[t+N-D];
+  d_mirr1[t,p] = d[t+N-D];
+  x_mirr2[t,p] = x[t+N-1];
+  x_mirr1[t,p] = x[t+N-D];
+  Y_reg6loc[t,p] = Y[t,p-1];
+  Y_reg6[t,p] = Y_reg6loc[t-1,p];
+  XN_reg4loc[t,p] = XN[t,p-1];
+  XN_reg4[t,p] = XN_reg4loc[t-2,p];
+  XDN_reg3loc[t,p] = XDN[t,p-1];
+  XDN_reg3[t,p] = XDN_reg3loc[t-2,p];
+  ED_reg2loc[t,p] = ED[t,p-1];
+  ED_reg2[t,p] = ED_reg2loc[t-1,p];
+  W_ctl1P_reg1loc[t,p] = W_ctl1P[t,p-1];
+  W_ctl1P_reg1[t,p] = W_ctl1P_reg1loc[t-1,p];
+  W_ctl1P_Init_In[t,p] = W_ctl1P_Init[t];
+  W_ctl1P_Init[t] = 
+      case
+        case
+          { | t<=D-1} : True[];
+          { | D<=t} : False[];
+        esac;
+      esac;
+  ED[t,p] = 
+      case
+        { | p=0} : (d_mirr1 - res_mirr1) / 32[];
+        { | 1<=p} : ED_reg2;
+      esac;
+  XDN[t,p] = 
+      case
+        { | 1<=p} : XDN_reg3;
+        { | p=0} : x_mirr1;
+      esac;
+  XN[t,p] = 
+      case
+        { | p=0} : x_mirr2;
+        { | 1<=p} : XN_reg4;
+      esac;
+  W_ctl1P[t,p] = 
+      case
+        { | p=0} : W_ctl1P_Init_In[t,p];
+        { | 1<=p} : W_ctl1P_reg1;
+      esac;
+  TSep2[t,p] = ED[t,p] * XDN[t,p] / 32768[];
+  TSep3[t,p] = expr1 + TSep2;
+  W[t,p] = 
+      case
+        if (W_ctl1P[t,p]) then 
+            case
+              { | t<=p+D-1} : 0[];
+              { | p+D<=t} : 0[];
+            esac else 
+        case
+          { | t<=p+D-1} : 0[];
+          { | p+D<=t} : TSep3;
+        esac;
+      esac;
+  Y[t,p] = 
+      case
+        { | p=-1} : 0[];
+        { | 0<=p} : Y_reg6 + expr1 * XN[t,p] / 32768[];
+      esac;
+  res[n] = Y1[n,N-1];
+tel;

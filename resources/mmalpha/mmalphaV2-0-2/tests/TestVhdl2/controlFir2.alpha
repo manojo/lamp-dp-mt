@@ -1,0 +1,21 @@
+system controlFir2:{Tinit,Duration | Duration >= 2} 
+	( )
+       returns          
+	(loadHPipeInit : {t | Tinit<=t} of boolean; 
+	 meaningResultInit : {t | Tinit<=t} of boolean);
+let
+  loadHPipeInit[t] = 
+      case
+        {|Tinit<=t<=Tinit+Duration-1} : False[];
+        {|t=Tinit+Duration} : True[];
+        {|Tinit+Duration+1<=t<=Tinit+2Duration-1} : False[];
+        {|Tinit+2Duration<=t} : False[];
+      esac;
+  meaningResultInit[t] = 
+      case
+        {|Tinit<=t<=Tinit+Duration-1} : False[];
+        {|t=Tinit+Duration} : False[];
+        {|Tinit+Duration+1<=t<=Tinit+2Duration-1} : False[];
+        {|Tinit+2Duration<=t} : True[];
+      esac;
+tel;

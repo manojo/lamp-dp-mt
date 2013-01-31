@@ -1,0 +1,19 @@
+#-----------------------------------------------
+#   This is the special config Makefile for Solaris. Changed Sept. 23, 2007
+DEFINES      = -DUNIX
+
+#-----------------------------------------------
+LD = gcc
+PRECISIONFLAG=-DLINEAR_VALUE_IS_LONGLONG
+LDFLAGS		= -L$(LIBDIR) 
+
+#-----------------------------------------------
+MMAVERSION=3.0.1
+
+#-----------------------------------------------
+#OMEGADIR      = /udd/quillere/Lib/Omega
+
+#-----------------------------------------------
+#   Include special definitions for Mathlink depending on the version.
+#   Note that we are not in this directory...
+include ../Makeincludes/Makefile.solaris.$(MMAVERSION)

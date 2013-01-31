@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/C
+END
+lx.c
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/C/lx.c
+END
+compile
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/C/compile
+END
+.bidon
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/C/.bidon
+END
+simple0.c
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/C/simple0.c
+END
+simple1.c
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/C/simple1.c
+END
+FichesKerlann.c
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/C/FichesKerlann.c
+END
+check.c
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/C/check.c
+END

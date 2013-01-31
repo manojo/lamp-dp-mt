@@ -1,0 +1,1 @@
+G$number$ : $name$ PORT MAP (clk, CE, $enableIn$, $enableOut$);

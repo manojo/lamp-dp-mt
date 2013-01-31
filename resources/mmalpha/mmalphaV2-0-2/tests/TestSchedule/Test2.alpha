@@ -1,0 +1,15 @@
+system matvect (a : {i,k | 1<=i<=4; 1<=k<=4} of integer; 
+                b : {j | 1<=j<=4} of integer)
+       returns (c : {i | 1<=i<=4} of integer);
+var
+  A : {i,k | 1<=i<=4; 1<=k<=4} of integer;
+  C : {i,k | 1<=i<=4; 0<=k<=4} of integer;
+let
+  A[i,k] = a;
+  C[i,k] = 
+      case
+        { | k=0} : 0[];
+        { | 1<=k} : C[i,k-1] + A[i,k] * b[k];
+      esac;
+  c[i] = C[i,4];
+tel;

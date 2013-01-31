@@ -1,0 +1,36 @@
+system prodmat1 (a : {i,j | 0<=i<=3; 0<=j<=3} of boolean; 
+                 b : {i | 0<=i<=3} of boolean)
+       returns  (c : {i | 0<=i<=3} of boolean);
+var
+  loadCP : {t,p | t=p-1; 0<=p<=3} | {t,p | p<=t<=p+3; 0<=p<=3} of boolean;
+  B1 : {t,p | p<=t<=p+3; 0<=p<=3} of boolean;
+  A : {t,p | p<=t<=p+3; 0<=p<=3} of boolean;
+  C : {t,p | p-1<=t<=p+3; 0<=p<=3} of boolean;
+  loadC : {t,p | p-1<=t<=p+3; 0<=p<=3} of boolean;
+let
+  B1[t,p] = 
+      case
+        { | 0<=t<=3; p=0} : b[t-p];
+        { | p<=t<=p+3; 1<=p<=3} : B1[t-1,p-1];
+      esac;
+  A[t,p] = a[p,t-p];
+  C[t,p] = 
+      case
+        { | p-1<=t<=p+3; 0<=p<=3} : 
+           case
+             { | t=p-1; 0<=p<=3} : if (loadC) then False[] else True[];
+             { | p<=t<=p+3; 0<=p<=3} : if (not loadC) then C[t-1,p] + A * B1 else False[];
+           esac;
+      esac;
+  loadCP[t,p] = 
+      case
+        { | t=-1; p=0} | { | 0<=t; p=0} : 
+           case
+             { | t=-1; p=0} : True[];
+             { | 0<=t; p=0} : False[];
+           esac;
+        { | t=p-1; 1<=p} | { | p<=t; 1<=p} : loadCP[t-1,p-1];
+      esac;
+  loadC[t,p] = loadCP;
+  c[i] = C[i+3,i];
+tel;

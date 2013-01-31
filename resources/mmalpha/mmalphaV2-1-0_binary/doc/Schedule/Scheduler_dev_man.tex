@@ -1,0 +1,312 @@
+\documentstyle[fullpage]{article}
+
+\newcommand{\aalpha}{{\sc Alpha}}
+\newcommand{\ammalpha}{{\sc MmAlpha}}
+\newcommand{\err}{\top}
+\newcommand{\indef}{\bot}
+\newtheorem{theorem}{theorem} 
+
+\title{reference manual for the Alpha {\bf Scheduler}}
+\author{Tanguy Risset}
+\date{\today}
+
+\begin{document}
+%\bibliographystyle{plain}
+
+\maketitle
+
+This documentation provides help for the user of the {\aalpha} 
+scheduler developer. It is available in the file 
+{\tt \$MMALPHA/doc/developper/Scheduler\_dev\_man.ps}
+
+\section{Introduction}
+
+ The basic goal of the scheduler 
+is to find a valid execution order that is {\em good} with respect to 
+a particular criterion. The theoretical basis for the scheduling process 
+is inherited from the systolic array synthesis researches and from the 
+automatic parallization researches. Our  implementation makes use of the 
+procedure defined in~\cite{Feautrier92aa}. Rouglhy speaking, 
+the time is considered as a discrete  
+single clock. the idea of the scheduling process is to 
+gather all the constraints that must verify the schedule in a 
+ linear programming problem (LP) and to solve it with a particular 
+software.
+
+This document is not intended to be a comprehensive explanation of the
+implementation, it is an introduction to the overall architecture of
+the package {\tt NewSchedule.m} which is quite big (about 3000 lignes).
+The developper should carefully read this before getting into the
+code.  The source code of {\tt NewSchedule.m} is commented in such a way
+that the present document document should be enough to understand
+everything.  
+
+
+\section{theoretical basis}
+\label{theoric}
+The schedule is based on the method proposed in~\cite{Feautrier92aa}
+and uses the farkas lemma. We give her the
+form of this lemma that we use for ensuring constraints
+\begin{theorem}[Affine form of Farkas lemma]
+\label{affineFeautrier}
+Let ${\cal D}$ be a polyhedron defined by the inequalities $Ax + b \geq 0 $,
+Then the affine form $\phi$ is non-negative on ${\cal D}$ if and only
+if there exists $\lambda_0,\Lambda \geq 0$ such that $\phi=\Lambda
+\left(\begin{array}{cc} A & b \end{array}\right) +\lambda_0$
+\end{theorem}
+{\bf Proof:} See~\cite{Schrijver86} .
+
+It is easy to see how we will make use of this lemma. To ensure a linear 
+constraint (which can always be written as the fact that a linear function is positive on a domain), we will try to find $\Lambda,\lambda_0$ such that 
+the above equality is verified (we transformed a $\forall x \in ...$ in 
+a $\exists y\geq 0 s.t....$).  The method proposed 
+in~\cite{Feautrier92aa} distinguish
+three type of constraints that a  scheduling function $T$ must ensure. 
+\begin{itemize}
+\item {\bf Positivity constraints}: for each variable $A$ of the program, for any 
+point $(x,N)$ in the domain of $A$, we must have $T_A(x,N) \geq 0$.
+\item {\bf Dependency constraints}: for any 
+dependence $A[x,N] = F(\ldots,B[I(x,N)], \ldots)$, for each point $(x,N)$ 
+where this dependence occurs, we must have: 
+$T_A(x,N) - T_B(I(x,N)) - \delta \geq 0 $ 
+(here $\delta$ is a delai associated to 
+the computation of $A$.
+\item {\bf Objective function constraints}: These constraints depend on the type of 
+objective function choosen. If we chose to minimiz
+e the overall execution time, 
+we introduced a function $f(N)$ depending only upon the parameters of
+ the program, which will be greater than any time scheduled (i.e. for each variable $A$,  for any 
+point $(x,N)$ in the domains of $A$, we must have 
+$f(N) - T_A(x,N) \geq 0$).
+\end{itemize}
+As index functions are affine functions
+ in \aalpha, all these constraints are of 
+the required form: ensure that an affine function is positive on a particular 
+domain, thus we can use  the Farkas lemma. 
+For each  constraints, we will use the formulae of 
+theorem~\ref{affineFeautrier} and 
+ obtain a system of equalities that will be solve with mppip.
+\begin{itemize}
+\item Positivity constraints: if a variable $A$ is defined on the domain
+$D_A=\{x ~|~ Cx + b \geq 0 \}$ ($x$ has $n$ components and $C$ has 
+$k$ rows), the scheduling function 
+$T_A(x) = Tx+ t$ is positive on $D_A$ if and only if the system: \\
+\centerline{
+$\left\{\begin{array}{l} (T\ t) - \Lambda.(C\ b) - \lambda_0 = 0   \\
+\lambda_i \geq 0, 0 \leq i \leq k\end{array}\right.$
+}
+has a solution (where $\Lambda$ is a $k$-vectors whose $i^{th}$ component 
+is $\lambda_i$). Hence we get $n+1$ equation: 
+\begin{itemize}
+\item for each dimension $i$, if $C_{\cdot i}$ is the $i^{th}$ 
+column of C:  $\tau_i   - \Lambda.C_{\cdot i} = 0$
+\item $t -  \Lambda.b - \lambda_0 = 0$
+\end{itemize}
+
+\item dependency constraints: $A[x]$ depends upon $B[I(x)]$ where 
+$I(x) = Dx+d$ on the domain $D_{AB} = \{x ~|~ Cx + b \geq 0 \}$
+($x$ has $n$ components and $C$ has $k$ rows) the scheduling functions 
+$T_A(x) = T_Ax+ t_A$ and  $T_B(x) = T_Bx+ t_B$ respect the dependency 
+if an only if the system:\\
+\centerline{
+$\left\{\begin{array}{l} (T_A\ t_A) - (T_B \ t_B).(D \ d) -  \delta_{BA} - M.(C\ b) - \mu_0 = 0   \\
+\mu_i \geq 0, 0 \leq i \leq k\end{array}\right.$
+}
+has a solution (where $M$ is a $k$-vectors whose $i^{th}$ component 
+is $\mu_i$, $\delta_{BA}$ is the delai necessary between the production of $B$ and the production of $A$). Hence we get $n+1$ equation: 
+\begin{itemize}
+\item  for each dimension $i$,  $\tau_{A,i}   - (T_B \ t_B).D_{\cdot i} - 
+M.C_{\cdot i} = 0$
+\item $t_A -  (T_B \ t_B).d -\delta_{BA}- M.b - \mu_0 = 0$
+\end{itemize}
+
+\item  Objective function constraints: 
+if a variable $A$ is defined on the domain
+$D_A$ with $D_A=\{(x,N) ~|~ A\left(\begin{array}{c} x\\ N \end{array}\right) + b \geq 0 \}$ ($x$ has $n$ components, $N$ is the parameter vectors has $m$ component and $A$ has 
+$k$ rows), the scheduling function 
+$T_A(x) = T_A\left(\begin{array}{c} x\\ N \end{array}\right) + t_A$ 
+lower than the objective function $\Phi.N + \phi_0$ on  $D_A$ 
+if and only if the system: \\
+\centerline{$\left\{\begin{array}{l} (0 \ \Phi \ \phi_0) - (T_A\ t_A) - R.(A\ b) - \rho_0 = 0   \\
+\rho_i \geq 0, 0 \leq i \leq k\end{array}\right.$
+}
+has a solution (where $R$ is a $k$-vectors whose $i^{th}$ component 
+is $\rho_i$).  Hence we get $n+m+1$ equation: 
+\begin{itemize}
+\item for each $i, \ 1 \leq i \leq n$:  $-\tau_{A,i}   - R.A_{\cdot i} = 0$
+\item for each $i, \  n+1 \leq i \leq n+m$: $\phi_{i-n} -  \tau_{A,i}   - R.A_{\cdot i} = 0$
+\item $\phi_0 - t_A - R.b - \rho_0 = 0$
+\end{itemize}
+\end{itemize}
+
+\section{Algorithm of the schedule function}
+
+The basic structure of the fonction schedule is the following:
+\begin{enumerate}
+\item Perform various analysis (get the list of variable, domains for each 
+ variables,  dependencies, duration for each instruction \ldots)
+\item Build the list of constraints of the linear program (three types 
+of constraints: constraints ensuring positivity for timing function,
+constraints  ensuring dependancies, constraints for the objective function).
+\item Write the LP in a unix file in {\tt Pip}. Solve the LP with 
+the software  {\tt mppip}, and get the result.
+\item Print the result and get the final output form.
+\end{enumerate}
+
+\section{Step 1: various analysis}
+\begin{itemize}
+\item {\tt addAllParameterDomain}. The syntax of parameter in Alpha allow 
+some context constraints that are implicit in all domains of the \aalpha 
+program.  
+If we want to apply Farkas lemma, we need all the constraints of the domain, 
+hence, we add {\em by hand} these constraints to all domains of the program.
+
+\item {\tt domains of variables}. We have choosen to distinguish three
+types of variables: input variables, local variables and Output
+variables. For each variable, the domain is convexise, i.e. we take
+the convex hull of the real domain of the variable (this allow to
+simplify the resulting LP, but imply a less powerfull scheduler).
+
+\item {\tt dependencies}. The dependence analysis is first done 
+by the {\tt dep[] } function. Then,  the list of dependancies are 
+classified according to the type of dependancy (6 type of dependency, in this 
+order: Local variable 
+to Output variable, Input to Output, Output to Local,  Input to Local,
+Local to Local, Output to Output).
+
+\item {\tt makeNumInstr}. This function numbers all variable. The number 
+of a variable is its order of declaration in the Alpha program. 
+This function build a list of couple: {\tt  \{name\_String,number\_Integer\}}
+ that will be used 
+in the rest of the program to make the correspondance between
+ the name of a variable and its number. 
+
+\item {\tt makeRefline}. At this point of the program, we are able to
+know exactly how many variables will have the linear program generated
+(how many $\lambda$'s, $\rho$'s, etc...). As we will see below, we
+will first build a constraint matrix in which each row has the same
+structure.  This structure is indicated by the {\tt refline}
+constructed here.  {\tt refline} contains 8 sublist.  The first one
+indicates how many coefficient there are in the objective function
+$\Phi$. The second one indicates, for each variable $A$, the dimension
+of the domain of $A$ (hence the number of $\tau_A$'s). The third one
+indicates how many variables will be dedicated to the constant part of
+the scheduling functions (the $\alpha$'s). The fourth indicates, for
+each dependancy, how many farkas coefficient ($mu$) will be introduced
+by the equation needed to ensure this dependancy. The fifth indicates,
+for each variable, how many farkas coefficient ($\lambda$)
+ will be necessary to 
+ensure the positivity condition for this variable, The sixth indicates, 
+for each variable, how many farkas coefficient ($\rho$)
+ will be necessary for the objective function  constraints. the $7^{th}$ and 
+$8^{th}$ elements are set to {\tt \{1\}} and will be explained later.
+
+As we have classified the variables in three categories and
+the dependancies in 6 categories, elements $2,3,5,6$ of refline are
+divised in three sublist and element $4$ of refline is divised in 6
+sublist.  The precise structure of {\tt refline } is clearly commented
+in the {\tt NewSchedule.m } package.  For the moment, we just  need to 
+know that this variable will be used in the rest of the program for 
+getting information on the program (for instance: how many input variable, 
+how many $\lambda$'s related to variable $A$ etc.).
+
+\end{itemize}
+
+\section{Step 2: building the list of constraint}
+the list of constraints is built by the function {\tt makeTableEq}.
+As we have explained in section~\ref{theoric}, there are three types
+of constraints. The positivity constraints are set for the Input,
+Output and Local variables, but we impose the objective function
+constraint only on the output variables. the dependency constraints
+are built for the six type of dependencies. The constraints are the
+elements of the {\tt structTableEq}. Each constraint is a list which
+have the following structure: \\
+\begin{verbatim}
+{ PhiCoeffs_IntList,
+{ TauLocal_IntListList,TauOutput_IntListList,TauInput_IntListList},
+{ AlphaLocal_IntList,AlphaOutput_IntList,AlphaInput_IntList},
+{ LambdaLocToOut_IntListList,  LambdaInToOut_IntListList,
+  LambdaOutToLoc_IntListList,  LambdaInToLoc_IntListList,
+  LambdaLocToLoc_IntListList,  LambdaOutToOut_IntListList},
+{ MuLoc_IntListList,  MuOut_IntListList,  MuIn_IntListList },
+{ RhoLoc_IntListList,  RhoOut_IntListList,  RhoIn_IntListList },
+{ CstCoeff_Int },
+{ EqOrIneq_Int} }
+\end{verbatim}
+In the above structure, {\tt \_IntList} indicates that the element considered
+is a list of integer (and {\tt \_IntListList}, a list of list of integer). 
+In a constraints {\tt c1} of this type, 
+{\tt PhiCoeffs} is the list of factors of the 
+coefficients of the objective function $\Phi$ in {\tt c1}.
+ One element of {\tt TauLocal} correspond to a local variable (say $A$) 
+and gives the factor (in c1)  of the components 
+of the scheduling vectors of $A$. 
+One element of {\tt LambdaLocToOut} corresponds to a particular 
+dependency from a local variable to
+ an output variable and gives the coefficients (in c1)
+ of the  farkas coefficient $\lambda$ introduced for this dependency,
+ and so on .... 
+
+For instance, if $A$ is the first local 
+variable of the Alpha program which has only one parameter 
+ (the domain of $A$ has dimension 3),
+ and we want to impose the constraint: 
+$\phi_1 - 2\tau_{A,1} = 0 $, this constraint we be stored in one row as:
+\begin{verbatim}
+{ {1,0},{{{-2,0,0},{0.... (* structured list of  0 in the remaining *) ,{0}}
+\end{verbatim}
+and the real constraint can be obtained by 
+$expr1 = (1\ 0).\left(\begin{array}{c} \phi_1 \\ \phi_0 \end{array}\right)+
+ (-2\ 0 \ 0).\left(\begin{array}{c} \tau_{A,1} \\ 
+\tau_{A,2} \\ \tau_{A,3}  \end{array}\right)+ \ldots  = 0 $.
+
+In {\tt NewSchedule.m}  such structured  constraints are always assigned to 
+variables which are called {\tt line0} or {\tt line1} (like the lines of the 
+constraint matrix). Usually, {\tt line0} consists of a structured constraints
+corresponding to 0=0 (build from the informations contained in {\tt refline}),
+ then it is assigned to {\tt line1}, and
+ the  components of {\tt line1} are iteratively modified to obtain a 
+valid constraint as indicated in section~\ref{theoric}.
+ The $7^th$  element of  line1 is a list of one single integer
+which is the constant that appear in the constraint. The $8^th$  
+ element of  {\tt line1} is a list of one single integer which indicates if the constraints is and equality (value 0) or an inequality (value 1: $expr1 \geq 0$)
+ 
+
+\section{Step 3: Solving the LP}
+
+{\tt fichierPip}  writes the constraints of 
+{\tt structTableEq} matrix in the mppip format in a file, 
+then calls {\tt mpppip} to solve the LP and read the solution.
+
+{\tt fichierPip} first calls {\tt matPip} which flatten the output of
+each line of {\tt structTablEq}. At this point, the order of the coefficients 
+of the $\tau$'s is inverted in order to minimize first the coefficients 
+of the parameters. {\tt matPip} outputs the matrix {\tt matrice} 
+ Then, {\tt writefile} writes the matrix in a file (this part is
+quite long for big files). During this phase we add a single parameter
+to the LP which is specific to {\tt Pip } behaviour. As we want to allow some 
+variables to be negative (the $\tau$'s for instance), we have to add a 
+{\em big parameter} $G$ and replace each occurrence of a $\tau$ by $\tau-G$. 
+This manipulation is explained in~\cite{Feautrier88a}, This should be transparent 
+and the coefficient of the big parameter in the solution is not important.
+ 
+After the matrix is written, we perform some unix manipulations on the
+file to obtain the good mppip input format. Then, we run 
+mppip~\cite{Feautrier92aa}  and
+the result is read by {\tt readPipResult}, 
+
+\section{Step 4: final output form}
+{\tt reorderSchedResult} place back the coefficients of the parameters
+at the end of the scheduling vectors.
+ {\tt getFinalOutputForm} pretty prints the result to the screen and 
+set the output format to the following form: \\
+{\tt <schedResult>=Alpha`ScheduleResult[scheduleType\_Integer,<sched3List>]\\
+<sched3>=$\begin{array}{l} \mbox{\{ nameVar\_String,}\\
+          \mbox{ indices\_List,}\\
+           \mbox{ Alpha`sched[tauVector\_List,constCoef\_Integer] \}}
+\end{array}$
+}
+
+ \bibliographystyle{alpha99}
+\bibliography{/udd/risset/TEX/ref/newbib}
+\end{document}

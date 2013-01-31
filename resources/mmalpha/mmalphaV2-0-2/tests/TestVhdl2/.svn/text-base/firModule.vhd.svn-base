@@ -1,0 +1,235 @@
+-- VHDL Model Created for "system firModule" 
+-- 15/7/2003 0:34:41
+-- Alpha2Vhdl Version 0.9 
+LIBRARY IEEE;
+USE IEEE.std_logic_1164.all;
+USE IEEE.std_logic_signed.all;
+use IEEE.numeric_std.all;
+
+PACKAGE TYPES IS
+  TYPE H_mirr1InTYPE IS ARRAY (0 TO 0) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE x_mirr1InTYPE IS ARRAY (0 TO 0) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE YOutTYPE IS ARRAY (0 TO 5) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE H_mirr1TYPE IS ARRAY (0 TO 0) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE x_mirr1TYPE IS ARRAY (0 TO 0) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE YTYPE IS ARRAY (0 TO 5) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE Y1TYPE IS ARRAY (0 TO 0) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE Y_reg7locTYPE IS ARRAY (1 TO 6) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE xPipe1TYPE IS ARRAY (0 TO 0) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE xPipe_reg5locTYPE IS ARRAY (1 TO 6) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE HPipeES1TYPE IS ARRAY (0 TO 0) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE HPipeES_reg4locTYPE IS ARRAY (1 TO 6) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE xPipeES1TYPE IS ARRAY (0 TO 0) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE xPipeES_reg3locTYPE IS ARRAY (1 TO 6) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE Y3TYPE IS ARRAY (2 TO 5) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE xPipe3TYPE IS ARRAY (2 TO 5) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE HPipeES3TYPE IS ARRAY (2 TO 5) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE xPipeES3TYPE IS ARRAY (2 TO 5) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE xPipe_ctl2P3TYPE IS ARRAY (2 TO 5) OF  STD_LOGIC;
+  TYPE xPipe_ctl2P_reg2locTYPE IS ARRAY (2 TO 6) OF  STD_LOGIC;
+  TYPE HPipe_ctl1P3TYPE IS ARRAY (2 TO 5) OF  STD_LOGIC;
+  TYPE HPipe_ctl1P_reg1locTYPE IS ARRAY (2 TO 6) OF  STD_LOGIC;
+  TYPE Y4TYPE IS ARRAY (1 TO 1) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE xPipe4TYPE IS ARRAY (1 TO 1) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE HPipeES4TYPE IS ARRAY (1 TO 1) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE xPipeES4TYPE IS ARRAY (1 TO 1) OF  INTEGER RANGE -32768 TO 32767;
+  TYPE xPipe_ctl2P4TYPE IS ARRAY (1 TO 1) OF  STD_LOGIC;
+  TYPE HPipe_ctl1P4TYPE IS ARRAY (1 TO 1) OF  STD_LOGIC;
+  TYPE HPipe_ctl1P_Init_InTYPE IS ARRAY (1 TO 1) OF  STD_LOGIC;
+  TYPE xPipe_ctl2P_Init_InTYPE IS ARRAY (1 TO 1) OF  STD_LOGIC;
+END TYPES;
+USE work.types.all;
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_signed.all;
+use IEEE.numeric_std.all;
+
+ENTITY firModule IS
+PORT(
+  Ck: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  H_mirr1In : IN H_mirr1InTYPE;
+  x_mirr1In : IN x_mirr1InTYPE;
+  YOut : OUT YOutTYPE
+);
+END firModule;
+
+ARCHITECTURE behavioural OF firModule IS
+    SIGNAL HPipe_ctl1P_Init :  STD_LOGIC;
+    SIGNAL xPipe_ctl2P_Init :  STD_LOGIC;
+    SIGNAL H_mirr1 : H_mirr1TYPE;
+    SIGNAL x_mirr1 : x_mirr1TYPE;
+    SIGNAL Y : YTYPE;
+    SIGNAL Y1 : Y1TYPE;
+    SIGNAL Y_reg7loc : Y_reg7locTYPE;
+    SIGNAL xPipe1 : xPipe1TYPE;
+    SIGNAL xPipe_reg5loc : xPipe_reg5locTYPE;
+    SIGNAL HPipeES1 : HPipeES1TYPE;
+    SIGNAL HPipeES_reg4loc : HPipeES_reg4locTYPE;
+    SIGNAL xPipeES1 : xPipeES1TYPE;
+    SIGNAL xPipeES_reg3loc : xPipeES_reg3locTYPE;
+    SIGNAL Y3 : Y3TYPE;
+    SIGNAL xPipe3 : xPipe3TYPE;
+    SIGNAL HPipeES3 : HPipeES3TYPE;
+    SIGNAL xPipeES3 : xPipeES3TYPE;
+    SIGNAL xPipe_ctl2P3 : xPipe_ctl2P3TYPE;
+    SIGNAL xPipe_ctl2P_reg2loc : xPipe_ctl2P_reg2locTYPE;
+    SIGNAL HPipe_ctl1P3 : HPipe_ctl1P3TYPE;
+    SIGNAL HPipe_ctl1P_reg1loc : HPipe_ctl1P_reg1locTYPE;
+    SIGNAL Y4 : Y4TYPE;
+    SIGNAL xPipe4 : xPipe4TYPE;
+    SIGNAL HPipeES4 : HPipeES4TYPE;
+    SIGNAL xPipeES4 : xPipeES4TYPE;
+    SIGNAL xPipe_ctl2P4 : xPipe_ctl2P4TYPE;
+    SIGNAL HPipe_ctl1P4 : HPipe_ctl1P4TYPE;
+    SIGNAL HPipe_ctl1P_Init_In : HPipe_ctl1P_Init_InTYPE;
+    SIGNAL xPipe_ctl2P_Init_In : xPipe_ctl2P_Init_InTYPE;
+
+
+  -- Insert missing components here!
+COMPONENT controlFirModule
+PORT(
+  Ck: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  HPipe_ctl1P_Init : OUT STD_LOGIC;
+  xPipe_ctl2P_Init : OUT STD_LOGIC
+);
+END COMPONENT;
+
+
+COMPONENT cellFirModule1
+PORT(
+  Ck: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  H_mirr1 : IN  INTEGER RANGE -32768 TO 32767;
+  x_mirr1 : IN  INTEGER RANGE -32768 TO 32767;
+  Y : OUT  INTEGER RANGE -32768 TO 32767;
+  xPipe : OUT  INTEGER RANGE -32768 TO 32767;
+  HPipeES : OUT  INTEGER RANGE -32768 TO 32767;
+  xPipeES : OUT  INTEGER RANGE -32768 TO 32767
+);
+END COMPONENT;
+
+
+COMPONENT cellFirModule3
+PORT(
+  Ck: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  Y_reg7loc : IN  INTEGER RANGE -32768 TO 32767;
+  xPipe_reg5loc : IN  INTEGER RANGE -32768 TO 32767;
+  HPipeES_reg4loc : IN  INTEGER RANGE -32768 TO 32767;
+  xPipeES_reg3loc : IN  INTEGER RANGE -32768 TO 32767;
+  xPipe_ctl2P_reg2loc : IN  STD_LOGIC;
+  HPipe_ctl1P_reg1loc : IN  STD_LOGIC;
+  Y : OUT  INTEGER RANGE -32768 TO 32767;
+  xPipe : OUT  INTEGER RANGE -32768 TO 32767;
+  HPipeES : OUT  INTEGER RANGE -32768 TO 32767;
+  xPipeES : OUT  INTEGER RANGE -32768 TO 32767;
+  xPipe_ctl2P : OUT  STD_LOGIC;
+  HPipe_ctl1P : OUT  STD_LOGIC
+);
+END COMPONENT;
+
+
+COMPONENT cellFirModule4
+PORT(
+  Ck: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  Y_reg7loc : IN  INTEGER RANGE -32768 TO 32767;
+  xPipe_reg5loc : IN  INTEGER RANGE -32768 TO 32767;
+  HPipeES_reg4loc : IN  INTEGER RANGE -32768 TO 32767;
+  xPipeES_reg3loc : IN  INTEGER RANGE -32768 TO 32767;
+  HPipe_ctl1P_Init_In : IN  STD_LOGIC;
+  xPipe_ctl2P_Init_In : IN  STD_LOGIC;
+  Y : OUT  INTEGER RANGE -32768 TO 32767;
+  xPipe : OUT  INTEGER RANGE -32768 TO 32767;
+  HPipeES : OUT  INTEGER RANGE -32768 TO 32767;
+  xPipeES : OUT  INTEGER RANGE -32768 TO 32767;
+  xPipe_ctl2P : OUT  STD_LOGIC;
+  HPipe_ctl1P : OUT  STD_LOGIC
+);
+END COMPONENT;
+
+BEGIN
+
+  H_mirr1( 0) <= H_mirr1In( 0);
+
+  HPipe_ctl1P_Init_In( 1) <= HPipe_ctl1P_Init;
+
+  G1 : FOR p IN 3 TO 6 GENERATE
+    HPipe_ctl1P_reg1loc( p ) <= HPipe_ctl1P3(-1 + p);
+  END GENERATE;
+
+  HPipe_ctl1P_reg1loc( 2) <= HPipe_ctl1P4( 1);
+
+  HPipeES_reg4loc( 1) <= HPipeES1( 0);
+
+  G2 : FOR p IN 3 TO 6 GENERATE
+    HPipeES_reg4loc( p ) <= HPipeES3(-1 + p);
+  END GENERATE;
+
+  HPipeES_reg4loc( 2) <= HPipeES4( 1);
+
+  x_mirr1( 0) <= x_mirr1In( 0);
+
+  xPipe_ctl2P_Init_In( 1) <= xPipe_ctl2P_Init;
+
+  G3 : FOR p IN 3 TO 6 GENERATE
+    xPipe_ctl2P_reg2loc( p ) <= xPipe_ctl2P3(-1 + p);
+  END GENERATE;
+
+  xPipe_ctl2P_reg2loc( 2) <= xPipe_ctl2P4( 1);
+
+  xPipeES_reg3loc( 1) <= xPipeES1( 0);
+
+  G4 : FOR p IN 3 TO 6 GENERATE
+    xPipeES_reg3loc( p ) <= xPipeES3(-1 + p);
+  END GENERATE;
+
+  xPipeES_reg3loc( 2) <= xPipeES4( 1);
+
+  xPipe_reg5loc( 1) <= xPipe1( 0);
+
+  G5 : FOR p IN 3 TO 6 GENERATE
+    xPipe_reg5loc( p ) <= xPipe3(-1 + p);
+  END GENERATE;
+
+  xPipe_reg5loc( 2) <= xPipe4( 1);
+
+  Y( 0) <= Y1( 0);
+
+  G6 : FOR p IN 2 TO 5 GENERATE
+    Y( p ) <= Y3(p);
+  END GENERATE;
+
+  Y( 1) <= Y4( 1);
+
+  G7 : FOR p IN 0 TO 5 GENERATE
+    YOut( p ) <= Y(p);
+  END GENERATE;
+
+  Y_reg7loc( 1) <= Y1( 0);
+
+  G8 : FOR p IN 3 TO 6 GENERATE
+    Y_reg7loc( p ) <= Y3(-1 + p);
+  END GENERATE;
+
+  Y_reg7loc( 2) <= Y4( 1);
+
+  G9 : ControlfirModule PORT MAP (ck, CE, Rst, HPipe_ctl1P_Init, xPipe_ctl2P_Init);
+
+    G10 : cellfirModule1 PORT MAP (ck, CE, Rst, H_mirr1(0), x_mirr1(0), Y1(0), xPipe1(0), HPipeES1(0), xPipeES1(0));
+
+  G11 : FOR p IN 2 TO 5 GENERATE
+    G12 : cellfirModule3 PORT MAP (ck, CE, Rst, Y_reg7loc(p), xPipe_reg5loc(p), HPipeES_reg4loc(p), xPipeES_reg3loc(p), xPipe_ctl2P_reg2loc(p), HPipe_ctl1P_reg1loc(p), Y3(p), xPipe3(p), HPipeES3(p), xPipeES3(p), xPipe_ctl2P3(p), HPipe_ctl1P3(p));
+  END GENERATE;
+
+    G13 : cellfirModule4 PORT MAP (ck, CE, Rst, Y_reg7loc(1), xPipe_reg5loc(1), HPipeES_reg4loc(1), xPipeES_reg3loc(1), HPipe_ctl1P_Init_In(1), xPipe_ctl2P_Init_In(1), Y4(1), xPipe4(1), HPipeES4(1), xPipeES4(1), xPipe_ctl2P4(1), HPipe_ctl1P4(1));
+END BEHAVIOURAL;
+

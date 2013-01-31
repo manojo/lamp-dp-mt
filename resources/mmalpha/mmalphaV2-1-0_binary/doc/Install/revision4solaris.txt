@@ -1,0 +1,131 @@
+
+The new REALEASE is compatible  sunos 4 and solaris
+we modified the alpha reprository, some source files and the Makefiles.
+
+First we have in our environement we have a variable name OSTYPE, difined as : 
+  - "sunos4"  if the system is sunos 4
+  - "solaris" if the system is solaris
+
+Add in the .cshrc (or .cshrc_perso):
+if ( `uname -r | cut -d. -f1` == "4") then
+  setenv OSTYPE 'sunos4'
+else 
+  setenv OSTYPE 'solaris'
+endif
+
+Directory modifications:
+-------------------------
+For each system on, "alpha_beta/Mathematica"
+ a directory "bin.$(OSTYPE)" and "lib.$(OSTYPE)" exist.
+Directory "lib" only contain the directory "Package".
+
+Source file modifications for solaris RELEASE:
+----------------------------------------------
+ - if possible  functions bzero, bcopy and bcmp are replaced by 
+memset, memcpy, memcmp. (in AST/nodepoly.c, Read_Alpha/node.c, 
+Domlib/lattice.c, Domlib/polyhedron.c, Domlib/vector.c, MPPolylib/mmpoly.h,
+MPPolylib/polyhedron.c, Polylib/lattice.c, Polylib/polyhedron.c, 
+Polylib/vector.c)
+
+ - in files "MPpip3.0/smartmemory.c", "MPPolylib/smartmemory.c" 
+and "Mathpip/smartmemory.c" replace the intruction 
+"unit_size= getpagesize()*PAGES_AT_ONCE;" by
+
+#ifndef PageSize
+unit_size= getpagesize()*PAGES_AT_ONCE;
+#else
+unit_size= PageSize*PAGES_AT_ONCE;
+#endif
+
+because the function getpagesize is not defined on solaris.
+On solaris, the option "-DPageSize=4096" is used at the compilation.
+(for the value 4096 see smartmemory.w)
+
+  - in "MathPip/mathpip.c" replace the function "getrusage" (not present on
+solaris) by the function "times".
+
+Source file corrections:
+------------------------
+  - in "Polylib/vector.c" line 433 require (stderr)
+
+		fprintf(stderr,----
+
+  - "Write_Alpha/yacc.y" line 670 (0) required:
+
+			convert_affine(ID_List_Save,$12,G_dim,0)
+
+  - "Write_Tex/yacc.y" line 57 (0) 
+
+			convert_affine(Z,X,n,0)
+
+  - "Write_Tex/yacc.y" line 131,144,167,188  (0) required 
+(at least I think it is a zero): 
+
+			sprint_con(------,0)
+
+  - "Write_Tex/yacc.y" line 542 replace:
+
+		new_list2 --> new_list3
+
+
+
+Makefile modifications:
+-----------------------
+For each unit (AST, Domlib, ...)  the Makefile creates a directory 
+"Obj.$(OSTYPE)". The complilation results (object file or binaries ...) are 
+put  in this directory.
+So it is possible to compile on sunos 4 and solaris simultaneously.
+
+  - in GMP the old makefile is too complex. So it is renamed gnuMakefile. 
+The new make file creates the directory "Obj.$(OSTYPE)", make a dynamic 
+link for each source files in this directory, apply "cd Obj.$(OSTYPE)"
+and call the all makefile with "make -f ../gnuMakefile".
+
+  - in AST the file "lex.c" is not placed on the directory "Obj.$(OSTYPE)" 
+because the file "yacc.y" in "Write_C", "Write_Alpha",... , use obsolute path 
+"../AST/lex.c".
+
+WARNING: the lex result is not the same on sunos 4 and  on solaris.
+So for future developpement, if there are some problems on solaris first 
+re-apply lex. (For the moment there are no problems)
+
+  - for the library MathLink the makefile in Domlib, MathPip, ... use "mcc"
+(MathLink template file compiler).
+mcc hide library options used during the link phase.
+
+But on solaris 2.4 the linker do not find the functions bzero and bcopy.
+Solution: the makefile creat in "Obj.$(OSTYPE)" a file 
+bfunction.c which contain the description of this functions:
+
+void bzero(char* b, int n) 
+{ 
+  memset(b, 0, n);
+}
+
+void bcopy(char* s, char* d, int n)
+{
+  memcpy(s, d, n);
+}
+
+On sunos 4  if the compiler is gcc, the linker do not find a function name
+"__main" (because mcc use cc). 
+Solution: the file which contain the main function is compiled with mcc !!
+We use this solution because we do not have to know where are the library of
+MathLink.
+
+  - For Domlib:
+  a progam named "mprepCorrector" rectifies the file produce by mprep 
+(Version 2.2.2). "mprepCorrector" realizes the transformations that we used to
+do by hand between mlink.c.x to mlink.c . 
+
+     => now with this program, "domlib" is produced automaticly.
+ 
+  - Instsimul
+  (*) only one makefile in Instsimul/Table and Instsimul/Graphic 
+(=> *.mak are removed)
+  (*) the library are put on "Instsimul/Lib.$(OSTYPE)" instead of "
+Instsimul/Lib"
+
+  - Instsimul and Xalpha
+  There are problems with the X11 dynamic library. Not yet resolved !!
+	

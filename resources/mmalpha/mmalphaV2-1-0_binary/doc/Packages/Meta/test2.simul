@@ -1,0 +1,5 @@
+Begin["Alpha`Simul`test2`"];
+Clear[ Alpha`Simul`test2`a, Alpha`Simul`test2`b, Alpha`Simul`test2`c];
+    Alpha`Simul`test2`c[i_, f:(_Integer|_Symbol)...] := Plus[ Alpha`Simul`test2`a[ i,f ], Alpha`Simul`test2`b[ 2 + 3 i,f ] ];
+    Alpha`Simul`test2`c[ ___ ] := Message[Alpha`Simul`test2`c::params ];
+End[];

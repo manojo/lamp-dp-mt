@@ -1,0 +1,130 @@
+system ControlsequenceModule :{X,Y | 3<=X<=Y-1}
+                             ( )
+       returns               (pipeCQS1Xctl1 : {t | t=1} | {t | 2<=t<=Y} of boolean; 
+                              MXctl2 : {t | t=1} | {t | 2<=t<=Y+1} of boolean);
+let
+  pipeCQS1Xctl1[t] = 
+      case
+        { | t=1} : True[];
+        { | 2<=t} : False[];
+      esac;
+  MXctl2[t] = 
+      case
+        { | t=1} : True[];
+        { | 2<=t} : False[];
+      esac;
+tel;
+
+system cellsequenceModule1 :{p,X,Y | p=0; 3<=X<=Y-1}
+                           (DBXMirr1 : {t | 1<=t<=Y} of integer)
+       returns             (M : {t | 1<=t<=Y+1} of integer; 
+                            pipeCDB1 : {t | 1<=t<=Y} of integer);
+let
+  pipeCDB1[t] = DBXMirr1[t];
+  M[t] = 0[];
+tel;
+
+system cellsequenceModule2 :{p,X,Y | 1<=p<=X; 3<=X<=Y-1}
+                           (MReg2Xloc : {t | 1<=t<=Y+1} of integer; 
+                            pipeCDB1Reg4 : {t | 1<=t<=Y} of integer; 
+                            MXctl2XIn : {t | 1<=t<=Y+1} of boolean; 
+                            pipeCQS1Xctl1XIn : {t | 1<=t<=Y} of boolean; 
+                            TSep3 : {t | t=1} of integer)
+       returns             (M : {t | 1<=t<=Y+1} of integer; 
+                            pipeCDB1 : {t | 1<=t<=Y} of integer);
+var
+  Mloc1 : {t | 1<=t<=Y+1} of integer;
+  MatchQ : {t | 1<=t<=Y} of integer;
+  MatchQReg3 : {t | 2<=t<=Y+1} of integer;
+  MReg1 : {t | 2<=t<=Y+1} of integer;
+  MReg2 : {t | 2<=t<=Y+1} of integer;
+  pipeCQS1 : {t | 1<=t<=Y} of integer;
+  pipeCQS1Reg5 : {t | 2<=t<=Y} of integer;
+  TSep1 : {t | 1<=t<=Y} of boolean;
+  TSep2 : {t | 1<=t<=Y} of integer;
+  TSep4 : {t | 2<=t<=Y+1} of integer;
+  TSep5 : {t | 2<=t<=Y+1} of integer;
+  TSep6 : {t | 2<=t<=Y+1} of integer;
+  TSep7 : {t | 2<=t<=Y+1} of integer;
+let
+  pipeCDB1[t] = pipeCDB1Reg4[t];
+  M[t] = Mloc1[t];
+  MReg2[t] = MReg2Xloc[t-1];
+  pipeCQS1Reg5[t] = pipeCQS1[t-1];
+  MatchQReg3[t] = MatchQ[t-1];
+  MReg1[t] = Mloc1[t-1];
+  pipeCQS1[t] = 
+      case
+        { | t=1} : if (pipeCQS1Xctl1XIn[t]) then TSep3[t] else 0[];
+        { | 2<=t} : if (pipeCQS1Xctl1XIn[t]) then 0[] else pipeCQS1Reg5[t];
+      esac;
+  TSep4[t] = MReg1[t] - 8[];
+  TSep5[t] = MReg2[t] + MatchQReg3[t];
+  TSep6[t] = max(TSep4[t], TSep5[t]);
+  TSep7[t] = max(0[], TSep6[t]);
+  Mloc1[t] = 
+      case
+        { | t=1} : if (MXctl2XIn[t]) then 0[] else 0[];
+        { | 2<=t} : if (MXctl2XIn[t]) then 0[] else TSep7[t];
+      esac;
+  TSep1[t] = pipeCQS1[t] = pipeCDB1Reg4[t];
+  TSep2[t] = -12[];
+  MatchQ[t] = if (TSep1[t]) then 15[] else TSep2[t];
+tel;
+
+system sequenceModule :{X,Y | 3<=X<=Y-1}
+                      (DBXMirr1In : {t,p | 1<=t<=Y; p=0} of integer; 
+                       TSep3In : {t,p | t=1; 1<=p<=X} of integer)
+       returns        (MOut : {t,p | 1<=t<=Y+1; 0<=p<=X} of integer);
+var
+  pipeCQS1Xctl1 : {t | 1<=t<=Y} of boolean;
+  MXctl2 : {t | 1<=t<=Y+1} of boolean;
+  DBXMirr1 : {t,p | 1<=t<=Y; p=0} of integer;
+  M1 : {t,p | 1<=t<=Y+1; p=0} of integer;
+  MReg2Xloc : {t,p | 1<=t<=Y+1; 1<=p<=X+1} of integer;
+  pipeCDB11 : {t,p | 1<=t<=Y; p=0} of integer;
+  pipeCDB1Reg4 : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  M2 : {t,p | 1<=t<=Y+1; 1<=p<=X} of integer;
+  pipeCDB12 : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  MXctl2XIn : {t,p | 1<=t<=Y+1; 1<=p<=X} of boolean;
+  pipeCQS1Xctl1XIn : {t,p | 1<=t<=Y; 1<=p<=X} of boolean;
+  TSep3 : {t,p | t=1; 1<=p<=X} of integer;
+let
+  DBXMirr1[t,p] = DBXMirr1In[t,p];
+  MOut[t,p] = 
+      case
+        { | p=0} : M1[t,p];
+        { | 1<=p} : M2[t,p];
+      esac;
+  MReg2Xloc[t,p] = 
+      case
+        { | p=1} : M1[t,p-1];
+        { | 2<=p} : M2[t,p-1];
+      esac;
+  MXctl2XIn[t,p] = MXctl2[t];
+  pipeCDB1Reg4[t,p] = 
+      case
+        { | p=1} : pipeCDB11[t,p-1];
+        { | 2<=p} : pipeCDB12[t,p-1];
+      esac;
+  pipeCQS1Xctl1XIn[t,p] = pipeCQS1Xctl1[t];
+  TSep3[t,p] = TSep3In[t,p];
+  use  ControlsequenceModule[X,Y] () returns  (pipeCQS1Xctl1, MXctl2) ;
+  use {p | p=0} cellsequenceModule1[p,X,Y] (DBXMirr1) returns  (M1, pipeCDB11) ;
+  use {p | 1<=p<=X} cellsequenceModule2[p,X,Y] (MReg2Xloc, pipeCDB1Reg4, MXctl2XIn, pipeCQS1Xctl1XIn, TSep3) returns  (M2, pipeCDB12) ;
+tel;
+
+system sequence :{X,Y | 3<=X<=Y-1}
+                (QS : {i | 1<=i<=X} of integer; 
+                 DB : {j | 1<=j<=Y} of integer)
+       returns  (res : {j | 1<=j<=Y} of integer);
+var
+  DBXMirr1 : {t,p | 1<=t<=Y; p=0} of integer;
+  TSep3 : {t,p | t=1; 1<=p<=X} of integer;
+  M : {t,p | 1<=t<=Y+1; 0<=p<=X} of integer;
+let
+  DBXMirr1[t,p] = DB[t];
+  TSep3[t,p] = QS[t+p-1];
+  res[j] = M[j+1,X];
+  use  sequenceModule[X,Y] (DBXMirr1, TSep3) returns  (M) ;
+tel;

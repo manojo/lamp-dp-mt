@@ -1,0 +1,625 @@
+
+----------------------------------------------------
+Begin general tests
+----------------------------------------------------
+write_c <t1.ast 1>xyz 2>&1
+diff -w  xyz t1.c
+gcc -c t1.c
+write_c <test1.ast 1>xyz 2>&1
+diff -w  xyz test1.c
+write_c <test2.ast 1>xyz 2>&1
+diff -w  xyz test2.c
+gcc -c test2.c
+write_c <test3.ast 1>xyz 2>&1
+diff -w  xyz test3.c
+gcc -c test3.c
+write_c <test4.ast 1>xyz 2>&1
+diff -w  xyz test4.c
+gcc -c test4.c
+write_c <cosparam.ast 1>xyz 2>&1
+diff -w  xyz cosparam.c
+201c201,203
+<           tmp->value = (compute_eps() == 0) ? (1) : ((compute_eps() > 0) ? (1 / (compute_eps() + 1 + compute_eps() * compute_eps())) : (-1 / (-compute_eps() + 1 + compute_eps() * compute_eps())));
+---
+>           tmp->value = (compute_eps() == 0) ? (1) : ((compute_eps() > 0) ? 
+>              (1 / (compute_eps() + 1 + compute_eps() * compute_eps())) : 
+>              (-1 / (-compute_eps() + 1 + compute_eps() * compute_eps())));
+gcc -c cosparam.c
+write_c <pdscal.ast 1>xyz 2>&1
+diff -w  xyz pdscal.c
+18,25d17
+< #define SHR(x,y) ((x)/(double)(1<<(y)))
+< #define SHL(x,y) ((x)*(double)(1<<(y)))
+< #define EXP(x,y) pow((x),(y))
+< #define TRUNCATE(x) ((int)(x))
+< #define CEILING(x) ((int)(ceil(x)))
+< #define FLOOR(x) ((int)(floor(x)))
+< #define ROUND(x) ((int)(rint(x)))
+< #define FLOAT(x) ((double)(x))
+27c19
+< /* parameters not fixed at compile time */
+---
+> /* parameters */
+30,34c22,26
+< char __s_[32];
+< realvar __V[8];
+< #define V(i,p)	__V[(i)+4*(p)-5]
+< realvar __pivot;
+< #define pivot()	__pivot
+---
+> char __s[32];
+> realvar _V[8];
+> #define V(i,p)	_V[(i)+4*(p)-5]
+> realvar _pivot;
+> #define pivot()	_pivot
+37,38c29,30
+< realvar __Vdiv[8];
+< #define Vdiv(i,p)	__Vdiv[(i)+4*(p)-5]
+---
+> realvar _Vdiv[8];
+> #define Vdiv(i,p)	_Vdiv[(i)+4*(p)-5]
+50,51c42,43
+<      gets(__s_);
+<      tmp->value = atof(__s_);
+---
+>      gets(__s);
+>      tmp->value = atof(__s);
+63,64c55,56
+<      gets(__s_);
+<      tmp->value = atof(__s_);
+---
+>      gets(__s);
+>      tmp->value = atof(__s);
+80c72,73
+<          ( p-2==0 )  ? ( ( i-3>=0 && -i+4>=0 )  ? ( compute_V(i,p) / compute_pivot() ) : 
+---
+>          ( p-2==0 )  ? ( ( i-3>=0 && -i+4>=0 )  ? 
+>                      ( compute_V(i,p) / compute_pivot() ) : 
+94c87,88
+<    if ( p-2==0 || p-1==0 )
+---
+>    for (i=1; i<=4; i++)
+>    {  for (p=1; p<=min(2,-i+5); p++)
+96a91
+>    }
+99c94,95
+<    if ( p-2==0 || p-1==0 )
+---
+>    for (i=1; i<=4; i++)
+>    {  for (p=1; p<=min(2,-i+5); p++)
+102a99
+> }
+gcc -c pdscal.c
+write_c -p 16 4 4 2 2 <pdgeru1.ast 1>xyz 2>&1
+diff -w  xyz pdgeru1.c
+86,89c86,95
+<          ( p-k==0 )  ? ( ( i-1>=0 && -i+j+1>=0 && -i+l>=0 && j-1>=0 && -j+JB>=0 )  ? ( compute_Acol(i,j,p) ) : 
+<                   ( i-l-1==0 && j-l==0 && JB-l-1>=0 )  ? ( compute_Acol(i,j,p) ) : 
+<                   ( i-l-1==0 && j-l-1>=0 && -j+JB>=0 )  ? ( compute_Acol(i,j,p) - compute_Vect(i,p) * compute_Acol(l,j,k) ) : 
+<                   ( i-l-2>=0 && -i+j+1>=0 && -i+JB>=0 && -j+JB>=0 )  ? ( compute_Acol(i,j,p) ) : 
+---
+>          ( p-k==0 )  ? ( ( 
+>                        i-1>=0 && -i+j+1>=0 && -i+l>=0 && j-1>=0 && -j+JB>=0 ) 
+>                       ? ( compute_Acol(i,j,p) ) : 
+>                   ( i-l-1==0 && j-l==0 && JB-l-1>=0 )  ? 
+>                      ( compute_Acol(i,j,p) ) : 
+>                   ( i-l-1==0 && j-l-1>=0 && -j+JB>=0 )  ? ( 
+>                        compute_Acol(i,j,p) - 
+>                        compute_Vect(i,p) * compute_Acol(l,j,k) ) : 
+>                   ( i-l-2>=0 && -i+j+1>=0 && -i+JB>=0 && -j+JB>=0 )  ? 
+>                      ( compute_Acol(i,j,p) ) : 
+91,92c97,101
+<          ( p-k-1==0 )  ? ( ( i-1==0 && j-JB==0 && NB-k-1>=0 && JB-1>=0 && -JB+l>=0 )  ? ( compute_Acol(i,j,p) ) : 
+<                   ( i-1==0 && j-JB==0 && NB-k-1>=0 && JB-l-1>=0 )  ? ( compute_Acol(i,j,p) ) : 
+---
+>          ( p-k-1==0 )  ? ( ( 
+>                        i-1==0 && j-JB==0 && NB-k-1>=0 && JB-1>=0 && -JB+l>=0
+>                       )  ? ( compute_Acol(i,j,p) ) : 
+>                   ( i-1==0 && j-JB==0 && NB-k-1>=0 && JB-l-1>=0 )  ? 
+>                      ( compute_Acol(i,j,p) ) : 
+106c115,118
+<       {  for (p=1; p<=min(( (j+5)%3<0 ? (j+5)/3-1 : (j+5)/3 ),( (-i+j+9)%4<0 ? (-i+j+9)/4-1 : (-i+j+9)/4 ),( (-i+10)%3<0 ? (-i+10)/3-1 : (-i+10)/3 ),( (-i+j+5)%2<0 ? (-i+j+5)/2-1 : (-i+j+5)/2 )); p++)
+---
+>       {  for (p=1; p<=min(( (j+5)%3<0 ? (j+5)/3-1 : (j+5)/3 ),
+>          ( (-i+j+9)%4<0 ? (-i+j+9)/4-1 : (-i+j+9)/4 ),
+>          ( (-i+10)%3<0 ? (-i+10)/3-1 : (-i+10)/3 ),
+>          ( (-i+j+5)%2<0 ? (-i+j+5)/2-1 : (-i+j+5)/2 )); p++)
+119c131,134
+<       {  for (p=1; p<=min(( (j+5)%3<0 ? (j+5)/3-1 : (j+5)/3 ),( (-i+j+9)%4<0 ? (-i+j+9)/4-1 : (-i+j+9)/4 ),( (-i+10)%3<0 ? (-i+10)/3-1 : (-i+10)/3 ),( (-i+j+5)%2<0 ? (-i+j+5)/2-1 : (-i+j+5)/2 )); p++)
+---
+>       {  for (p=1; p<=min(( (j+5)%3<0 ? (j+5)/3-1 : (j+5)/3 ),
+>          ( (-i+j+9)%4<0 ? (-i+j+9)/4-1 : (-i+j+9)/4 ),
+>          ( (-i+10)%3<0 ? (-i+10)/3-1 : (-i+10)/3 ),
+>          ( (-i+j+5)%2<0 ? (-i+j+5)/2-1 : (-i+j+5)/2 )); p++)
+write_c <pdgeru2.ast 1>xyz 2>&1
+diff -w  xyz pdgeru2.c
+18,25d17
+< #define SHR(x,y) ((x)/(double)(1<<(y)))
+< #define SHL(x,y) ((x)*(double)(1<<(y)))
+< #define EXP(x,y) pow((x),(y))
+< #define TRUNCATE(x) ((int)(x))
+< #define CEILING(x) ((int)(ceil(x)))
+< #define FLOOR(x) ((int)(floor(x)))
+< #define ROUND(x) ((int)(rint(x)))
+< #define FLOAT(x) ((double)(x))
+27c19
+< /* parameters not fixed at compile time */
+---
+> /* parameters */
+30,34c22,26
+< char __s_[32];
+< realvar __Acol[48];
+< #define Acol(i,j,p)	__Acol[(i)+4*(j)+16*(p)-21]
+< realvar __Vect[8];
+< #define Vect(i,p)	__Vect[(i)+4*(p)-5]
+---
+> char __s[32];
+> realvar _Acol[48];
+> #define Acol(i,j,p)	_Acol[(i)+4*(j)+16*(p)-21]
+> realvar _Vect[8];
+> #define Vect(i,p)	_Vect[(i)+4*(p)-5]
+37,38c29,30
+< realvar __Bcol[48];
+< #define Bcol(i,j,p)	__Bcol[(i)+4*(j)+16*(p)-21]
+---
+> realvar _Bcol[48];
+> #define Bcol(i,j,p)	_Bcol[(i)+4*(j)+16*(p)-21]
+50,51c42,43
+<      gets(__s_);
+<      tmp->value = atof(__s_);
+---
+>      gets(__s);
+>      tmp->value = atof(__s);
+64,65c56,57
+<      gets(__s_);
+<      tmp->value = atof(__s_);
+---
+>      gets(__s);
+>      tmp->value = atof(__s);
+81c73,74
+<          ( p-2==0 )  ? ( ( i-1>=0 && -i+2>=0 && j-1>=0 && -j+4>=0 )  ? ( compute_Acol(i,j,p) ) : 
+---
+>          ( p-2==0 )  ? ( ( i-1>=0 && -i+2>=0 && j-1>=0 && -j+4>=0 )  ? 
+>                      ( compute_Acol(i,j,p) ) : 
+83,84c76,79
+<                   ( i-3==0 && j-3>=0 && -j+4>=0 )  ? ( compute_Acol(i,j,p) - compute_Vect(i,p) * compute_Acol(2,j,2) ) : 
+<                   ( i-4==0 && j-3>=0 && -j+4>=0 )  ? ( compute_Acol(i,j,p) ) : 
+---
+>                   ( i-3==0 && j-3>=0 && -j+4>=0 )  ? ( compute_Acol(i,j,p) - 
+>                        compute_Vect(i,p) * compute_Acol(2,j,2) ) : 
+>                   ( i-4==0 && j-3>=0 && -j+4>=0 )  ? 
+>                      ( compute_Acol(i,j,p) ) : 
+86c81,82
+<          ( p-3==0 )  ? ( ( i==0 && j==0 && p==0 && 1==0 )  ? ( compute_Acol(i,j,p) ) : 
+---
+>          ( p-3==0 )  ? ( ( i==0 && j==0 && p==0 && 1==0 )  ? 
+>                      ( compute_Acol(i,j,p) ) : 
+99c95,100
+<    if ( i-1==0 && j-4==0 || -i+j+1>=0 && -p+2>=0 || p-1==0 )
+---
+>    for (i=1; i<=4; i++)
+>    {  for (j=1; j<=4; j++)
+>       {  for (p=1; p<=min(( (-i+10)%3<0 ? (-i+10)/3-1 : (-i+10)/3 ),
+>          ( (j+5)%3<0 ? (j+5)/3-1 : (j+5)/3 ),
+>          ( (-i+j+9)%4<0 ? (-i+j+9)/4-1 : (-i+j+9)/4 ),
+>          ( (-i+j+5)%2<0 ? (-i+j+5)/2-1 : (-i+j+5)/2 )); p++)
+102c103,106
+<    if ( -i+3>=0 || p-1==0 )
+---
+>       }
+>    }
+>    for (i=1; i<=4; i++)
+>    {  for (p=1; p<=min(2,-i+5); p++)
+104a109
+>    }
+106c111,116
+<    if ( i-1==0 && j-4==0 || -i+j+1>=0 && -p+2>=0 || p-1==0 )
+---
+>    for (i=1; i<=4; i++)
+>    {  for (j=1; j<=4; j++)
+>       {  for (p=1; p<=min(( (-i+10)%3<0 ? (-i+10)/3-1 : (-i+10)/3 ),
+>          ( (j+5)%3<0 ? (j+5)/3-1 : (j+5)/3 ),
+>          ( (-i+j+9)%4<0 ? (-i+j+9)/4-1 : (-i+j+9)/4 ),
+>          ( (-i+j+5)%2<0 ? (-i+j+5)/2-1 : (-i+j+5)/2 )); p++)
+109a120,121
+>    }
+> }
+write_c -p 4 <matmul.ast 1>xyz 2>&1
+diff -w  xyz matmul.c
+86c86,87
+<          ( k-1>=0 )  ? ( compute_AccC(i,j,k-1) + compute_A(i,k) * compute_B(k,j) ) : 
+---
+>          ( k-1>=0 )  ? 
+>             ( compute_AccC(i,j,k-1) + compute_A(i,k) * compute_B(k,j) ) : 
+gcc -c matmul.c
+write_c <useramr.ast 1>xyz 2>&1
+diff -w  xyz useramr.c
+336c336,337
+<           tmp->value = (compute_index(i,t) == compute_a()) ? (compute_d()) : (compute_memavant_ramwrite1(i,t));
+---
+>           tmp->value = (compute_index(i,t) == compute_a()) ? (compute_d()) : 
+>          (compute_memavant_ramwrite1(i,t));
+397c398,399
+<          ( i-1>=0 && t-6>=0 && -t+7>=0 )  ? ( compute_index_ramwrite2(i-1,t) + 1 ) : 
+---
+>          ( i-1>=0 && t-6>=0 && -t+7>=0 )  ? 
+>             ( compute_index_ramwrite2(i-1,t) + 1 ) : 
+410c412,413
+<           tmp->value = (compute_index_ramwrite2(i,t) == compute_a_ramwrite2()) ? (compute_d_ramwrite2()) : (compute_memavant_ramwrite2(i,t));
+---
+>           tmp->value = (compute_index_ramwrite2(i,t) == compute_a_ramwrite2())
+>           ? (compute_d_ramwrite2()) : (compute_memavant_ramwrite2(i,t));
+434c437,439
+<           tmp->value = ( t>=0 && -t+4>=0 )  ? ( compute_memapresext1(i,t) ) : 
+---
+>      
+>           tmp->value = 
+>      ( t>=0 && -t+4>=0 )  ? ( compute_memapresext1(i,t) ) : 
+474c479,480
+<          ( i>=0 && -i+9>=0 && t-3>=0 && -t+4>=0 )  ? ( compute_dprim(i-1,t) + compute_select(i,t) ) : 
+---
+>          ( i>=0 && -i+9>=0 && t-3>=0 && -t+4>=0 )  ? 
+>             ( compute_dprim(i-1,t) + compute_select(i,t) ) : 
+488c494,495
+<          ( i-1>=0 && t-3>=0 && -t+4>=0 )  ? ( compute_index_rom3(i-1,t) + 1 ) : 
+---
+>          ( i-1>=0 && t-3>=0 && -t+4>=0 )  ? 
+>             ( compute_index_rom3(i-1,t) + 1 ) : 
+501c508,510
+<           tmp->value = (compute_index_rom3(i,t) == compute_a_rom3()) ? (compute_mem(i,t)) : (0);
+---
+>      
+>           tmp->value = 
+>      (compute_index_rom3(i,t) == compute_a_rom3()) ? (compute_mem(i,t)) : (0);
+562c571,572
+<          ( i>=0 && -i+9>=0 && t-3>=0 && -t+4>=0 )  ? ( compute_dprim_rom4(i-1,t) + compute_select_rom4(i,t) ) : 
+---
+>          ( i>=0 && -i+9>=0 && t-3>=0 && -t+4>=0 )  ? 
+>             ( compute_dprim_rom4(i-1,t) + compute_select_rom4(i,t) ) : 
+576c586,587
+<          ( i-1>=0 && t-3>=0 && -t+4>=0 )  ? ( compute_index_rom4(i-1,t) + 1 ) : 
+---
+>          ( i-1>=0 && t-3>=0 && -t+4>=0 )  ? 
+>             ( compute_index_rom4(i-1,t) + 1 ) : 
+589c600,601
+<           tmp->value = (compute_index_rom4(i,t) == compute_a_rom4()) ? (compute_mem_rom4(i,t)) : (0);
+---
+>           tmp->value = (compute_index_rom4(i,t) == compute_a_rom4()) ? 
+>          (compute_mem_rom4(i,t)) : (0);
+gcc -c useramr.c
+write_c -p 4 <conv.ast 1>xyz 2>&1
+diff -w  xyz conv.c
+110c110,111
+<     ( k>=0 && -k+N>=0 && i>=0 )  ? ( compute_Y(i,k-1) + compute_W(i-1,k) * compute_X(i-1,k-1) ) : 
+---
+>     ( k>=0 && -k+N>=0 && i>=0 )  ? 
+>        ( compute_Y(i,k-1) + compute_W(i-1,k) * compute_X(i-1,k-1) ) : 
+write_c -p 5 <inline.ast 1>xyz 2>&1
+diff -w  xyz inline.c
+18,25d17
+< #define SHR(x,y) ((x)/(double)(1<<(y)))
+< #define SHL(x,y) ((x)*(double)(1<<(y)))
+< #define EXP(x,y) pow((x),(y))
+< #define TRUNCATE(x) ((int)(x))
+< #define CEILING(x) ((int)(ceil(x)))
+< #define FLOOR(x) ((int)(floor(x)))
+< #define ROUND(x) ((int)(rint(x)))
+< #define FLOAT(x) ((double)(x))
+31,33c23,25
+< char __s_[32];
+< realvar __in[15];
+< #define in(arg,i)	__in[(arg)+3*(i)-4]
+---
+> char __s[32];
+> realvar _in[15];
+> #define in(arg,i)	_in[(arg)+3*(i)-4]
+36,37c28,29
+< realvar __out[1];
+< #define out(arg,i)	__out[(arg)+(i)-7]
+---
+> realvar _out[1];
+> #define out(arg,i)	_out[(arg)+(i)-7]
+40,63c32,55
+< realvar __aux0[15];
+< #define aux0(arg,i)	__aux0[(arg)+3*(i)-4]
+< realvar __aux1[5];
+< #define aux1(arg,i)	__aux1[(arg)+(i)-2]
+< realvar __aux2[5];
+< #define aux2(arg,i)	__aux2[(arg)+(i)-3]
+< realvar __recinter[4];
+< #define recinter(arg,i)	__recinter[(arg)+(i)-3]
+< realvar __in_addmul1[15];
+< #define in_addmul1(arg,i)	__in_addmul1[(arg)+3*(i)-4]
+< realvar __out_addmul1[5];
+< #define out_addmul1(arg,i)	__out_addmul1[(arg)+(i)-2]
+< realvar __aux1_addmul1[5];
+< #define aux1_addmul1(arg,i)	__aux1_addmul1[(arg)+(i)-2]
+< realvar __aux2_addmul1[10];
+< #define aux2_addmul1(arg,i)	__aux2_addmul1[(arg)+2*(i)-3]
+< realvar __in_mul2[10];
+< #define in_mul2(arg,i)	__in_mul2[(arg)+2*(i)-3]
+< realvar __out_mul2[5];
+< #define out_mul2(arg,i)	__out_mul2[(arg)+(i)-2]
+< realvar __in_add3[10];
+< #define in_add3(arg,i)	__in_add3[(arg)+2*(i)-3]
+< realvar __out_add3[5];
+< #define out_add3(arg,i)	__out_add3[(arg)+(i)-2]
+---
+> realvar _aux0[15];
+> #define aux0(arg,i)	_aux0[(arg)+3*(i)-4]
+> realvar _aux1[5];
+> #define aux1(arg,i)	_aux1[(arg)+(i)-2]
+> realvar _aux2[5];
+> #define aux2(arg,i)	_aux2[(arg)+(i)-3]
+> realvar _recinter[4];
+> #define recinter(arg,i)	_recinter[(arg)+(i)-3]
+> realvar _in_addmul1[15];
+> #define in_addmul1(arg,i)	_in_addmul1[(arg)+3*(i)-4]
+> realvar _out_addmul1[5];
+> #define out_addmul1(arg,i)	_out_addmul1[(arg)+(i)-2]
+> realvar _aux1_addmul1[5];
+> #define aux1_addmul1(arg,i)	_aux1_addmul1[(arg)+(i)-2]
+> realvar _aux2_addmul1[10];
+> #define aux2_addmul1(arg,i)	_aux2_addmul1[(arg)+2*(i)-3]
+> realvar _in_mul2[10];
+> #define in_mul2(arg,i)	_in_mul2[(arg)+2*(i)-3]
+> realvar _out_mul2[5];
+> #define out_mul2(arg,i)	_out_mul2[(arg)+(i)-2]
+> realvar _in_add3[10];
+> #define in_add3(arg,i)	_in_add3[(arg)+2*(i)-3]
+> realvar _out_add3[5];
+> #define out_add3(arg,i)	_out_add3[(arg)+(i)-2]
+73,74c65,66
+<      gets(__s_);
+<      tmp->value = atof(__s_);
+---
+>      gets(__s);
+>      tmp->value = atof(__s);
+113c105,107
+<           tmp->value = ( arg-2>=0 && -arg+3>=0 && i-1>=0 && -i+N>=0 || i-1==0 && arg-1>=0 && -arg+3>=0 && N-1>=0 )  ? ( compute_in(arg,i) ) : 
+---
+>           tmp->value = ( arg-2>=0 && -arg+3>=0 && i-1>=0 && -i+N>=0 || 
+>               i-1==0 && arg-1>=0 && -arg+3>=0 && N-1>=0 )  ? 
+>             ( compute_in(arg,i) ) : 
+139c133,134
+<           tmp->value = ( arg-1>=0 && -arg+2>=0 && i-1>=0 && -i+N>=0 )  ? ( compute_in_addmul1(arg+1,i) ) : 
+---
+>           tmp->value = ( arg-1>=0 && -arg+2>=0 && i-1>=0 && -i+N>=0 )  ? 
+>         ( compute_in_addmul1(arg+1,i) ) : 
+176,177c171,175
+<           tmp->value = ( arg-1==0 && i-1>=0 && -i+N>=0 )  ? ( compute_in_addmul1(arg,i) ) : 
+<          ( arg-2==0 && i-1>=0 && -i+N>=0 )  ? ( compute_aux1_addmul1(arg-1,i) ) : 
+---
+>      
+>           tmp->value = 
+>      ( arg-1==0 && i-1>=0 && -i+N>=0 )  ? ( compute_in_addmul1(arg,i) ) : 
+>          ( arg-2==0 && i-1>=0 && -i+N>=0 )  ? 
+>             ( compute_aux1_addmul1(arg-1,i) ) : 
+250c248,250
+<           tmp->value = ( arg-1==0 && i-2>=0 && -i+N>=0 )  ? ( compute_aux2(arg,i) ) : 
+---
+>      
+>           tmp->value = 
+>      ( arg-1==0 && i-2>=0 && -i+N>=0 )  ? ( compute_aux2(arg,i) ) : 
+274c274,275
+<    if ( arg-2>=0 || i-1==0 )
+---
+>    for (arg=1; arg<=3; arg++)
+>    {  for (i=1; i<=min(5,4*arg-3); i++)
+276a278
+>    }
+279,280c281
+<    /* i := 1N + 1 */
+<    printf("out[%d,%d]= %f\n", 1,N+1, compute_out(1,N+1) );
+---
+>    printf("out[%d,%d]= %f\n", 1,i, compute_out(1,i) );
+gcc -c inline.c
+write_c -p 12 <convert.ast >xyz
+diff -w  xyz convert.c
+98c98,102
+<           tmp->value = (compute_Y(k) >= 1.5) ? (2) : ((compute_Y(k) < 1.5 && compute_Y(k) >= 0.5) ? (1) : ((compute_Y(k) < 0.5 && compute_Y(k) >= -0.5) ? (0) : ((compute_Y(k) < -0.5 && compute_Y(k) >= -1.5) ? (-1) : (-2))));
+---
+>           tmp->value = (compute_Y(k) >= 1.5) ? (2) : (
+>              (compute_Y(k) < 1.5 && compute_Y(k) >= 0.5) ? (1) : (
+>                  (compute_Y(k) < 0.5 && compute_Y(k) >= -0.5) ? (0) : (
+>                      (compute_Y(k) < -0.5 && compute_Y(k) >= -1.5) ? (-1) : 
+>                      (-2))));
+gcc -c convert.c
+read_alpha <R4.alpha >R4.ast
+write_c -p 8 <R4.ast >xyz
+diff -w  xyz R4.c
+0a1,121
+> /* system conv_real_R4 */
+> 
+> /* C-Code generated by Alpha Code Generator version 1.2 */
+> 
+> #include <math.h>
+> typedef struct { int value;
+> 		 int computed; } intvar;
+> typedef struct { int value;
+> 		 int computed; } boolvar;
+> typedef struct { double value;
+> 		 int computed; } realvar;
+> double atof();
+> int    atoi();
+> 
+> #define min(x,y) ((x)<(y)?(x):(y))
+> #define max(x,y) ((x)>(y)?(x):(y))
+> #define INFINITY 0x7fffffff
+> #define SHR(x,y) ((x)/(double)(1<<(y)))
+> #define SHL(x,y) ((x)*(double)(1<<(y)))
+> #define EXP(x,y) pow((x),(y))
+> #define TRUNCATE(x) ((int)(x))
+> #define CEILING(x) ((int)(ceil(x)))
+> #define FLOOR(x) ((int)(floor(x)))
+> #define ROUND(x) ((int)(rint(x)))
+> #define FLOAT(x) ((double)(x))
+> 
+> /* parameters */
+> #define W 8
+> 
+> /* input variables */
+> char __s_[32];
+> realvar __Xin;
+> #define Xin()	__Xin
+> 
+> /* output variables */
+> intvar __XT[8];
+> #define XT(k)	__XT[(k)]
+> 
+> /* local variables */
+> intvar __Y[8];
+> #define Y(k)	__Y[(k)]
+> intvar __Z[8];
+> #define Z(k)	__Z[(k)]
+> 
+> static double compute_Xin()
+> {
+>   realvar *tmp;
+> /* printf("Computing: Xin[]\n"); */
+>   tmp = &(Xin());
+>   if (!tmp->computed) {
+>           printf("Input Xin =" );
+>      gets(__s_);
+>      tmp->value = atof(__s_);
+>      tmp->computed = 1;}
+>   return tmp->value;
+> }
+> 
+> static int compute_XT();
+> 
+> static int compute_Y();
+> 
+> static int compute_Z();
+> 
+> /* --let equations */
+> static int compute_Y(k)
+> int k;
+> {
+>   intvar *tmp;
+> /* printf("Computing: Y[%d]\n" ,k); */
+>   tmp = &(Y(k));
+>   if (!tmp->computed) {
+>      
+>           tmp->value = 
+>      ( k==0 )  ? ( TRUNCATE(compute_Xin() * (EXP(2.0,(2*W)))) ) : 
+>          ( k-1>=0 && -k+W-1>=0 )  ? ( 4 * compute_Z(k-1) ) : 
+>          ( printf("? case error\n"), exit(-1));
+>      tmp->computed = 1;}
+>   return tmp->value;
+> }
+> 
+> static int compute_Z(k)
+> int k;
+> {
+>   intvar *tmp;
+> /* printf("Computing: Z[%d]\n" ,k); */
+>   tmp = &(Z(k));
+>   if (!tmp->computed) {
+>           tmp->value = compute_Y(k) - (SHL(compute_XT(k),(2*W)));
+>      tmp->computed = 1;}
+>   return tmp->value;
+> }
+> 
+> static int compute_XT(k)
+> int k;
+> {
+>   intvar *tmp;
+> /* printf("Computing: XT[%d]\n" ,k); */
+>   tmp = &(XT(k));
+>   if (!tmp->computed) {
+>           tmp->value = (compute_Y(k) >= (SHL(3,(2*W-1)))) ? (2) : ((
+>              compute_Y(k) < (SHL(3,(2*W-1))) && 
+>              compute_Y(k) >= (SHL(1,(2*W-1)))) ? (1) : ((
+>                  compute_Y(k) < (SHL(1,(2*W-1))) && 
+>                  compute_Y(k) >= -(SHL(1,(2*W-1)))) ? (0) : ((
+>                      compute_Y(k) < -(SHL(1,(2*W-1))) && 
+>                      compute_Y(k) >= -(SHL(3,(2*W-1)))) ? (-1) : (-2))));
+>      tmp->computed = 1;}
+>   return tmp->value;
+> }
+> 
+> int main()
+> {
+>    int k ;
+>    
+>    /* --inputs */
+>    printf("Xin = %f\n" , compute_Xin() );
+>    /* --outputs */
+>    for (k=0; k<=W-1; k++)
+>    {  printf("XT[%d]= %d\n", k, compute_XT(k) );
+>    }
+> }
+gcc -c R4.c
+read_alpha <R5.alpha >R5.ast
+write_c -p 4 <R5.ast >xyz
+diff -w  xyz R5.c
+0a1,62
+> /* system R5 */
+> 
+> /* C-Code generated by Alpha Code Generator version 1.2 */
+> 
+> #include <math.h>
+> typedef struct { int value;
+> 		 int computed; } intvar;
+> typedef struct { int value;
+> 		 int computed; } boolvar;
+> typedef struct { double value;
+> 		 int computed; } realvar;
+> double atof();
+> int    atoi();
+> 
+> #define min(x,y) ((x)<(y)?(x):(y))
+> #define max(x,y) ((x)>(y)?(x):(y))
+> #define INFINITY 0x7fffffff
+> #define SHR(x,y) ((x)/(double)(1<<(y)))
+> #define SHL(x,y) ((x)*(double)(1<<(y)))
+> #define EXP(x,y) pow((x),(y))
+> #define TRUNCATE(x) ((int)(x))
+> #define CEILING(x) ((int)(ceil(x)))
+> #define FLOOR(x) ((int)(floor(x)))
+> #define ROUND(x) ((int)(rint(x)))
+> #define FLOAT(x) ((double)(x))
+> 
+> /* parameters */
+> #define W 4
+> 
+> /* no input variables */
+> 
+> /* output variables */
+> intvar __XT[4];
+> #define XT(k)	__XT[(k)]
+> 
+> /* no local variables */
+> 
+> static int compute_XT();
+> 
+> /* --let equations */
+> static int compute_XT(k)
+> int k;
+> {
+>   intvar *tmp;
+> /* printf("Computing: XT[%d]\n" ,k); */
+>   tmp = &(XT(k));
+>   if (!tmp->computed) {
+>           tmp->value = (2*k+1);
+>      tmp->computed = 1;}
+>   return tmp->value;
+> }
+> 
+> int main()
+> {
+>    int k ;
+>    
+>    /* --inputs */
+>    /* --outputs */
+>    for (k=0; k<=W-1; k++)
+>    {  printf("XT[%d]= %d\n", k, compute_XT(k) );
+>    }
+> }
+gcc -c R5.c
+general tests successful
+
+----------------------------------------------------
+All tests successful
+----------------------------------------------------

@@ -1,0 +1,27 @@
+system lyon    (be : {ck | 0<=ck} of boolean; 
+                ppe : {ck | 0<=ck} of boolean; 
+                te : {ck | 0<=ck} of boolean; 
+                a : {ck | 0<=ck} of boolean)
+       returns (bs : {ck | 0<=ck} of boolean; 
+                pps : {ck | 0<=ck} of boolean; 
+                ts : {ck | 0<=ck} of boolean);
+var
+  br1 : {ck | 0<=ck} of boolean;
+  and1 : {ck | 0<=ck} of boolean;
+  addsom : {ck | 0<=ck} of boolean;
+  addret : {ck | 0<=ck} of boolean;
+  tr1 : {ck | 0<=ck} of boolean;
+let
+  br1[ck] = be[ck-1];
+  bs[ck] = br1[ck-1];
+  and1[ck] = br1[ck] and a[ck];
+  addsom[ck] = and1[ck-1] xor ppe[ck-1] xor addret[ck-1];
+  addret[ck] = 
+      case
+        { | ck=0} : False[];
+        { | 1<=ck} : and1[ck-1] and ppe[ck-1] or and1[ck-1] and addret[ck-1] or ppe[ck-1] and addret[ck-1];
+      esac;
+  tr1[ck] = te[ck-1];
+  ts[ck] = tr1[ck-1];
+  pps[ck] = addsom[ck] and tr1[ck];
+tel;

@@ -1,0 +1,375 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage,makeidx,fancyvrb,graphicx}
+\usepackage{moreverb}
+
+\begin{document}
+
+\newcommand{\mmalfa}{{\sc MMAlpha}}
+\newcommand{\mma}{{\sc mathematica}}
+\newcommand{\alfa}{{\sc Alpha}}
+\newcommand{\vhdl}{{\sc vhdl}}
+\newcommand{\alfazero}{{\sc alpha0}}
+\title{The \mmalfa{} Test Bench\thanks{Version printed on \today}}
+\author{Patrice Quinton}
+\date{February 24, 2010}
+\maketitle
+\begin{abstract}
+We describe a program to generate test bench automatically for 
+\mmalfa{} programs. We also describe how to generate stimuli files, and
+how to generate a bit true simulator. 
+\end{abstract}
+
+\section{Introduction}
+In Section~\ref{tb}, we present how to generate a test bench.
+In Section~\ref{stimuli}, we present how to generate stimuli files. 
+In Section~\ref{bittrue}, we explain how to simulate a program using 
+a bit true simulation.
+
+\section{Test Bench Generation}
+\label{tb}
+The \texttt{VhdlTestBench} package contains a function that allows a \vhdl{} test bench
+to be automatically generated for an \alfa{} program. This program must be in \textsc{Alpha0}
+format, such that obtained after a successful utilization of the \texttt{a2v} command. This
+means that the current program (contained in the library variable, \texttt{\$library}), has been translated
+into \vhdl{}. 
+
+The function is called \texttt{vhdlTestBenchGen}.
+The test bench is produced in a file called \texttt{fileTB.vhd}, where \texttt{file} is
+the name of the system currently contained in the \texttt{sys} parameter of the
+\texttt{vhdlTestBenchGen} function\footnote{See the usage of this function.}.
+
+The test bench file is written in the current directory of \textsc{Mathematica}. If such
+a file already exists, it is copied in a temporary file named
+\texttt{file\_.TB.vhd} (a previous version of such a file is deleted, if any exists).
+
+The test-bench that is produced must be used with stimuli files for each
+of the input variables of the \alfa{} program; it will produce one output file for
+each output variable of the \alfa{} program. How to produce these stimuli files
+is explained in Section~\ref{stimuli} of this documentation. 
+
+The \texttt{vhdlTestBenchGen} function allows test benches to be generated for each one of the 
+elements of the library. Recall that, after generating an \alfazero{}
+program, all modules produced are contained in an \mmalfa{} 
+variable called \texttt{\$library}. The current program is in
+variable \texttt{\$result}, and it is usually the main program. Say this 
+program is \texttt{fir} (corresponding to an initial \texttt{fir.alpha} \alfa{}
+program), then executing
+\begin{verbatim}
+vhdlTestBenchGen[ ]
+\end{verbatim}
+will produced a test-bench named \texttt{firTB.vhd}. It is essential that 
+the content of \texttt{\$library} be consistent with the program for which the
+test bench is generated. 
+
+The \texttt{vhdlTestBenchGen} function checks various possible errors:
+\begin{itemize}
+\item The given program must be recognized as a cell, a module or a controller
+by \mmalfa{} (using the \texttt{checkCell},  \texttt{checkModule}, or
+ \texttt{checkController} functions.
+ \item The name of the given program must appear in the library contained 
+ in \texttt{\$library}.
+ \item 
+\end{itemize}
+
+More can be found on this topic
+
+
+\section{Technicalities}
+\label{technicalities}
+\begin{itemize}
+\item
+There is a provision for generating a \vhdl{} file with the 1987 \vhdl{}
+syntax (see the \texttt{s87} flag, directly in the code). 
+\item
+The clock rate is 20\,ns, and the clock initialization time is 30\,ns. 
+\item
+If there is already a \texttt{component} file for the program contained
+in \texttt{\$result} (say for example, \texttt{fir.component}) in the directory, 
+this component is used in the test bench, otherwise, a component is built
+on the fly (using the \texttt{buildComponent} function). Therefore, if there 
+exists an inconsistency between the program and its component, an 
+error may happen. 
+\end{itemize}
+
+\section{Meaning of the signals}
+Here is a description of some of the signals in the test bench produced. 
+\begin{itemize}
+\item \texttt{clk\_rate}: 
+\item \texttt{clk\_init}: 
+\item \texttt{sig\_Name}: a signal associated to \alfa{} variable \texttt{Name};
+\item \texttt{comp}: the name of the instanciated component;
+\item \texttt{ce}: clock enable signal;
+\item \texttt{rst\_0}: initial value of the reset signal;
+\item \texttt{temp\_buffer}: 
+\item \texttt{temp\_buffer\_out}: 
+\item \texttt{endstim}: a boolean variable that indicates the end of the stimulus file
+\item \texttt{good}: a boolean variable used to check the reading of a stimulus file
+\item \texttt{temp\_buffer\_Name}: a temporary buffer for \alfa{} variable \texttt{Name};
+\item \texttt{stim\_file\_Name}: the declaration of the stimulus file for variable \texttt{Name}:
+\item \texttt{stim\_line\_Name}: the declaration of the file line for variable \texttt{Name}:
+\item \texttt{timecounter}: time counter for the design;
+\end{itemize}
+
+\section{Producing Stimuli}
+\label{stimuli}
+As already said, there exists a stimuli file for each input variable. 
+If \texttt{inVar} is the name of an input variable of the \alfa{} program, then its
+stimuli file is named \texttt{stimInVar.txt}. This file contains one value for each instant
+of time for which a value is required by the program. 
+
+Recall that, for any \alfa{} variable, its {\em life time} is given by projecting its domain 
+on the \texttt{t} index. Say this life interval is $10 \leq \texttt{t} \leq 20$, then
+values will be required only for time instants between 10 and 20, therefore, the 
+stimuli file contains 11 values. 
+
+Producing automatically stimuli files can be done either manually, or by using 
+the \texttt{cGen} program, as described here.
+
+To better explain this program, assume we want to produce stimuli files for
+the following program \texttt{fir}: 
+
+\VerbatimInput{fir.alpha}
+
+We load this file, and we schedule it:
+\begin{verbatim}
+load[ "file.alpha" ];
+scd[]
+\end{verbatim}
+Then, we run the following program
+
+\begin{verbatim}
+cGen[ "file.c", { "K" -> 3, "N" -> 10 }, stimuli -> True  ]
+\end{verbatim}
+
+This produces in file \texttt{file.c} a \texttt{C} program that simulates the 
+operations of the \alfa{} program. Compiling this program :
+\begin{verbatim}
+gcc file.c -o fir
+\end{verbatim}
+produces a binary file \texttt{fir} that we can run 
+\begin{verbatim}
+./fr
+\end{verbatim}
+The effect of this execution is to ask the values of the input variables and to return, 
+eventually, the values of the output variables. Here is what you see at the 
+console: 
+\begin{verbatim}
+x[0]?0
+x[1]?1
+x[2]?2
+x[3]?3
+x[4]?4
+x[5]?5
+x[6]?6
+x[7]?7
+x[8]?8
+x[9]?9
+x[10]?10
+w[1]?1
+w[2]?0
+w[3]?0
+y[3]=2
+y[4]=3
+y[5]=4
+y[6]=5
+y[7]=6
+y[8]=7
+y[9]=8
+y[10]=9
+\end{verbatim}
+The input chosen are \texttt{x[i] = i}, and \texttt{w[0] = 1}, 
+\texttt{w[1] = w[2] = 0}, which gives the result shown. 
+
+As a side effect, this evaluation produces also 3 files: 
+input files \texttt{stim\_x.txt} and \texttt{stim\_w.txt} where input values for
+x and w are recorded, and an output file \texttt{stim\_y.txt}.
+Here is the \texttt{stim\_x.txt} file: 
+\VerbatimInput{stim_x.txt}
+Here is the \texttt{stim\_w.txt} file: 
+\VerbatimInput{stim_w.txt}
+Here is the \texttt{stim\_y.txt} file: 
+\VerbatimInput{stim_y.txt}
+
+The \texttt{cGen} function has several options. The \texttt{noPrint} option, when set to
+\texttt{True}, does not prints out the name of the inputs and outputs values (for example,
+\texttt{x[1]=00000001}, but only the result. The resulting files may then be used to
+be run with the test bench. 
+
+This example is presented in the \texttt{Fir} notebook in \texttt{mmalpha/demos/NOTEBOOKS/Fir}.
+\section{Bit True Simulation}
+\label{bittrue}
+Documentation to be done.
+\newcommand{\stim}{\texttt{alpHardStim}}
+\section{Generation of test files}
+
+\label{stim}
+The \texttt{VhdlTestBench} package contains now a new function, called \stim{}, which
+allows stimuli files to be generated for the \vhdl{} test bench. For each input \texttt{in}, 
+it produces an input file called \texttt{alpHardStimin.txt}, and similarly for each 
+output. This file contains, in the order given by the time variable, the command to
+be executed to generate...
+
+\section{The \texttt{alpha2mma} Package}
+\label{translator}
+There exists a prototype program that allows an \alfa{} program to be 
+translated into \mma{}. This package is called \texttt{alpha2mma.m}. It is currently
+available in the directory
+\begin{verbatim}
+$MMALPHA/doc/Packages/Meta
+\end{verbatim}
+as it is an example of using the \texttt{Meta} package. 
+
+The \texttt{alpha2mma.m} program is itself produced by the use of
+the \texttt{meta} command, applied to a description of the \alfa{} syntax
+given in the meta file \texttt{alpha2mma.meta}.
+See in the notebook \texttt{meta.nb} located in the same directory how to
+call the translator.
+
+Once the \texttt{alpha2mma.m} file has been produced, one loads it by
+the command 
+\begin{verbatim}
+<<alpha2mma.m
+\end{verbatim}
+
+Then to translate a program, say \texttt{test1.alpha} into a \mma{} program, one
+does:
+\begin{verbatim}
+load[ "test1.alpha" ];
+alpha2mma[]
+\end{verbatim}
+(there exist a \texttt{debug} option, as usual).
+
+This produces in the current directory a file called \texttt{test1.simul}, which contains
+definitions for the input, local and output variables. 
+
+Then, one loads this file:
+\begin{verbatim}
+<<test1.simul
+\end{verbatim}
+and one calls the simul function :
+\begin{verbatim}
+simul["test1"]
+\end{verbatim}
+
+This function has the only effect of entering the context
+\texttt{Alpha`Simul`test1`} in which all definitions of the variables
+are available, as functions. 
+
+To be more explicit, assume that the \texttt{test1.alpha} file looks
+as follows:
+\begin{verbatim}
+system test1   (a :  integer; b :  integer)
+returns (c :  integer);
+let
+  c = a + b;
+tel;
+\end{verbatim}
+
+This program is translated into the following \mma{} program:
+\begin{verbatim}
+Begin["Alpha`Simul`test1`"];
+Clear[ Alpha`Simul`test1`a, Alpha`Simul`test1`b, Alpha`Simul`test1`c];
+
+    (* Definition of c *)
+    Alpha`Simul`test1`c[f:(_Integer|_Symbol)...] := Plus[ a[f], b[f] ];
+    Alpha`Simul`test1`c[ ___ ] := Message[Alpha`Simul`test1`c::params ];
+End[];
+\end{verbatim}
+
+As you can see, this program enters the special context
+\texttt{Alpha`Simul`test1`}, then clears the variables \texttt{a},
+\texttt{b} and \texttt{c} in this context, and defines a \texttt{c} function.
+The form of this function is quite special. It says basically that 
+\texttt{c[ f ] := a[ f ] + b[ f ]}, where \texttt{f} is any sequence of integers or
+symbols. This allows the function to be used for any sequence
+of indices, a property that will be useful later on when one wants to
+evaluate a structured \alfa{} program. 
+
+When one runs \texttt{simul[ "test1" ]}, one enters the (unique) simulation context
+of \texttt{test1}, where the definition of \texttt{c} are available. In this context, 
+if we just evaluate \texttt{c[]}, we get the result \texttt{a[] + b[]}; in the
+same manned, we can evaluate any \texttt{c[ i1, i2, ..., ik ]} expression, 
+where the \texttt{ik} are either integers or symbols of \mma{}, to 
+get the result 
+\texttt{a[ i1, i2, ... , ik ] + b[  i1, i2, ... , ik]}.
+
+Consider now a more involved example, where one wants to 
+build a binary adder in \alfa{}. The program is given in Fig.~\ref{figadder}.
+\begin{figure}[htbp]
+\begin{verbatim}
+system FullAdder (A :  boolean;
+                  B :  boolean;
+                  Cin :  boolean)
+       returns   (X :  boolean;
+                  Cout :  boolean);
+let
+  X[] = A xor B xor Cin;
+  Cout[] = A and B or A and Cin or B and Cin;
+tel;
+
+system Plus :  {W | 2<=W}
+               (A : {b | 0<=b<=W} of boolean;
+                B : {b | 0<=b<=W} of boolean)
+       returns (S : {b | 0<=b<=W} of boolean);
+var
+  Cin : {b | 0<=b<=W-1} of boolean;
+  Cout : {b | 0<=b<=W-1} of boolean;
+  X : {b | 0<=b<=W-1} of boolean;
+let
+  use {b | 0<=b<=W-1} FullAdder[] (A, B, Cin) returns  (X, Cout) ;
+  Cin[b] =
+      case
+        { | b=0} : False[];
+        { | 1<=b} : Cout[b-1];
+      esac;
+  S[b] =
+      case
+        { | b<=W-1} : X[b];
+        { | b=W} : Cout[W-1];
+      esac;
+tel;
+\end{verbatim}
+\caption{The binary Plus program\label{figadder}}
+\end{figure}
+
+It contains two parts: a full adder (\texttt{FullAdder} program), and 
+a \texttt{Plus} program, that allows one to build a binary adder of 
+\texttt{W} bits by instanciating \texttt{W} times the full adder. 
+
+Translating this program into \mma{} involves (currently) two steps. First, 
+one translate the \texttt{FullAdder} program. To this end, assuming
+that the program is in the file \texttt{fulladder.alpha}, one loads this program, 
+one select the \texttt{FullAdder} subsystem, and one translates it :
+
+\begin{verbatim}
+load[ "fulladder.alpha" ];
+getSystem[ "FullAdder" ];
+alpha2mma[];
+\end{verbatim}
+
+One does the same for the main program, \texttt{Plus}
+\begin{verbatim}
+getSystem[ "Plus" ];
+alpha2mma[];
+\end{verbatim}
+
+Then, one loads both programs :
+\begin{verbatim}
+<<"Plus.simul"
+<<"FullAdder.simul"
+\end{verbatim}
+which creates definitions for the variables 
+
+\newpage
+\appendix
+\section{The Test Bench for the Fir Filter}
+\label{tbfile}
+\VerbatimInput{fir_TB.vhd}
+
+\newpage
+\section{The Stimuli Generator for the Fir Filter}
+\label{stimfile}
+This program was generated with the default value of the \texttt{noPrint} option.
+\VerbatimInput{fir.c}
+
+\end{document}

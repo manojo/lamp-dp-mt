@@ -1,0 +1,10 @@
+
+COMPONENT ControlmatmultModule
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  pipeCb5Xctl1PPXInit : OUT STD_LOGIC
+);
+END COMPONENT;
+

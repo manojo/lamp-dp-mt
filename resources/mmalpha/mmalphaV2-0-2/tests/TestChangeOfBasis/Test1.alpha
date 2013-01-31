@@ -1,0 +1,14 @@
+--
+--  Exemple 5
+-- 
+system exemple5 (x,y: {t|t<=t} of integer)  
+returns (z: {t|t>=5} of integer);  
+var    S: {t|t>=5} of integer;  
+let    
+	S[t] = 
+	case
+	  {|t=1}:0[];
+	  {|t>1}:x[t-1]+y[t-1];
+	esac;
+	z[t] = {|t>=5}:S[t];  
+tel;

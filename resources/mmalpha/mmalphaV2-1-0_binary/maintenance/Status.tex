@@ -1,0 +1,539 @@
+\documentclass[12pt]{article}
+\begin{document}
+
+\newcommand{\mmalfa}{{\sc MMAlpha}}
+\newcommand{\mma}{{\sc Mathematica}}
+\title{Current status of \mmalfa\\
+Last change: \today}
+\author{Patrice Quinton}
+\date{}
+\maketitle
+
+\section{Introduction}
+This document is where I put things I have to remember about the current status of 
+\mmalfa{}. The document is available directly in the main directory of the
+distribution.
+
+
+
+
+\section{A day to day memo}
+A * before a date means that the correction was committed. A \texttt{?} means that I
+am not sure that it was committed. A \texttt{-} means that it has to be done. A \texttt{!} 
+says that I should commit the correction. 
+
+
+
+\begin{description}
+\item[18/1/2009:] 
+\item[14/1/2009:] corrections à faire.
+\begin{itemize}
+\item tailles des données: 2 bits en entrée, idem pour les rom, résultats sur 4 bits à la sortie des mult, 
+6 bits pour ovsf, une ligne pour compléter à 16 bits
+\item regarder si on met des signed ou des std vectors
+\item emetteur : ds le composant moduloaddress, erreur sur le type de port (std logic vectors)
+\item taille des compteurts de periodic est à revoir (periodic enable4)
+pour les stdlogic vector, les valeurs son entre ""
+\item enlever size dans la liste de sensibilité de periodicenable
+\item trop de ports dans les rom? est-ce qu'on fait un registre
+\item dans la rom, changer la limite de la decl de addr
+\item enlever size dans moduloaddress de la liste de sensibilité
+\item remplacer values
+\end{itemize}
+\item[24/05/2010:] creating a new version MMALPHA-2-1-0. To be checked:
+\begin{itemize}
+\item In demos, check that there are not identifiers with identical names. Change analyze accordingly.
+\item Check the init.m file in the config file.
+\end{itemize}
+\item[10/1/2009:] change fixParameter, so that the parameters are changed, depending on their
+use... Has to be modified. Actually, it would be better to generate Vhdl using rules
+for the parameters, and to generate on the fly as many elements than there are 
+different calls.
+\item[9/1/2009:] Made a few modifications in the Vertex Scheduler in order to be adapted
+to the new version where coefficients are MMA variables. Made a correction to a bug in 
+Simplex: if a variable of a constraint does not appear in the list of the variables of Minimize, then
+the MMA function never stops.
+\item[*6/1/2009:] New version released and installed. Waiting for an answer of Arpit. 
+\item[4/1/2009:] Modification of the Web site. New version almost ready. Cleaning of some 
+notebooks before installation. Created a test \texttt{TestSynthesis} and added it to the
+distribution.
+\item[2/1/2009:] Trying to check a new version. Tested it on Linux (machine sabre at IRISA). Succeeded
+in compliling Polylib, but not domlib, as the MMA version is too old. Has to recover a previous 
+version of the Domlib to make the test. 
+\item[1/1/2009:] I made again changes in the tests, adding the defiition of a package
+for each one of these, otherwise, global symbols are created when reading the file.
+Has to change the documentation accordingly. In \texttt{TestMatrix.m}, there are
+some tests (by inclusion of files) which were left as they were, and have to be 
+included.
+\item[31/12/2008:] I made major modifications and committed almost everything (except 
+allocate.m and PipeControl-new.m which are not read. See 19/10/2008). I prepared a new version 
+\texttt{mmalphaV2-0-1}. New tests were built (test1, 2, 3 and 4), but they are to 
+be changed in order to introduce symbols in packages, and not in 
+Global. I also made a correction to \texttt{dom2mma} in order to create the 
+symbols that are the translation in \mma{} of those of the domain, in a work space
+called \texttt{Alpha`Work`}. This had an effect on many packages. I also had to 
+replace \texttt{Cut.m} by \texttt{CutMMA.m}, as there is a conflict with a function
+in the \texttt{Combinatorica} package.
+\item[*12/12/2008:] modification to Options.m (vhdlDir option usage was made more
+precise).
+\item[*12/12/2008:] modifications done in Vhdl2.m. Added an option vhdlPatterns to 
+a2v, when true, Rom and a bunch of components are not generated. Instead, 
+patterns are inserted in the file, and they are filled afterwards. Modifications were done
+also to autoload.m, to VhdlCell.sem, and Synthesis.m.
+\item[*4/12/2008:] started to implement the vhdl generator for periodic systems. In Alpha.m, 
+there is a special version of load, which reads templates (suffixes are vhdx). In Vhdl2.m, 
+created a function genVhdl that allows vhdl files to be created from templates. The templates
+are currently in \$MMALPHA/VHDL. There are functions for ROM, for Fsm and for Periodic
+enable signals. A documentation has to be provided. A function synPeriodic was included
+in the \texttt{Synthesis.m} package. 
+\item[*30/11/2008:] controlled a few traces in Alphard.m and ToAlpha0v2.m. Not commited yet.
+\item[*30/11/2008:] made a small modification in vhdlCell.sem and vhdlModule.m, as there
+was an extra message when the mute option was set. Not committed yet.
+\item[*30/11/2008:] In Control.m, there was a lot of uncontrolled traces, set when I wanted
+to make modifications to MakeSTCase. I controlled the traces. 
+\item[*22/10/2008:] remove the definitions and work in the input of the files. Add a 
+return.
+\item[*21/10/2008:] tried the palindrome. Made modifications to ToAlpha0v2, but not sure
+that it is necessary. 
+\item[19/10/2008:] I made modifications to PipeControl in order to add the automatic
+detection of pipeIO in pipeIO. I also rewrote part of the generation of pipeall commands, in 
+pipeInfo. I added a few new functions to get information on polyhedra, regarding space
+and time matter. The modification seems to work (on all 1D examples). Still a couple of 
+extra prints to remove. I did not yet tested the 2D cases (matrix multiplication). I did not 
+commit all this stuff. These modifs are currently in PipeControl-new.m and the previous
+stuff is in PipeControl.m. Has to be checked.
+
+\item[08/10/2008:] it would be good to separate the type declarations (package des types) 
+in order to get the testbench separately.
+\item[*07/10/2008:] there was a mistake in the controller generator, as the initial time
+was shifted by the mintime, but not all instants of time. I made the correction (now, things start at 
+mintime, until truetime, then we change to false time). Has to commit stuff. Added the
+printing of the fsm in a2v when verbose is true. Only package to commit : vhdlCont.sem.
+\item[*04/10/2008:] Tried to recompile \texttt{Write\_Alpha} on my laptop, and did not succeed, 
+as the gcc loader has something wrong... I thought that it 
+was probably related to the new version of MacOS. Was right, 
+updated XCode, and it worked, except for read\_Alpha. Actually, there was 3 problems. First, 
+there are some warnings in the compilation of yacc.y in some directories, because functions
+strcat, strcopy and strlen seem to be used in a wrong way, but I believe that it does nothing more
+than giving a warning message. There was a syntax error in the yacc.y file for Write\_C : a
+semicolon missing. Seems that previously, there was no such problem... There was another
+problem in yacc.y for read\_Alpha. It issues an error message "? bad char: (octal 0)" in a
+systematic way. This message comes from a fprintf at the very end of the file. I just removed
+the error message, and everything works fine. Why??? no idea.
+\item[*04/10/2008:] Made a modification in AlpHard.m, to the function alpha0ToAlphard. Now, 
+at the end, all systems are cleaned (option simplify $\rightarrow$ True added) before saving the library.
+Note that there is an error in the synthesis of the fir, as the allocation in incorrect if one takes
+the simplest schedule. One has to make sure that the first coefficient of the schedule
+is 1. Also, possible to synthesize the fir without pipeing variables. Should add a noPipe 
+option to the function syn, and see what happens. 
+\item[16/09/2008:] started a new package, called Allocate.m, not yet automatically
+downloaded. A corresponding example is in myNotebooks/Allocate. There is a function
+allocTable, that creates an allocation table, with the name of the system,
+its inputs, outputs, its processor space, its operators and their timing space. 
+It is displayed with showAT. Its purpuse is to prepare something to merge
+differente cells into a single one. 
+\item[*13/09/2008:] added a new option to function scd. Option durationsNonZero gives the positions
+of the dependences in the dep table which are non zero (duration assumed to be one). 
+\item[*6/09/2008:] made a new version, seems to be running properly on Linux. 
+Modified the Web site. On my laptop, the new Web site is in directory Copy-MMALPHA-Site/ALPHA.
+It is accessible through 
+\begin{verbatim}
+http://webdav.irisa.fr/www.irisa.fr/htdocs/cosi
+\end{verbatim}. 
+I have to upgrade this... In the new version, called mmalphaV2-0-1.zip, I have
+to modify the diagnose.m file, as it does not work properly for Mathematica version 4.0.
+Also, add the information that unzip works... 
+\item[3/09/2008:] tried to get a running Linux version. I zipped mmalpha, made a 
+copy of it in my directory at irisa. Then I did a make checkvars in sources. It did not
+work. I had to replace the makefile.linux in Domlib by a copy of the makefile.darwin. 
+I also had to create a Makefile.linux.4.2 in MakeIncludes. Then make checkvars
+worked. Then I made make all. Did not work. Seems that I have to provide an old
+version of Domlib... because of the incompatibility of the Mathlink library. 
+I made a copy of Domlib, and now, I put the old version of domlib.c. But I have
+to compile PolyLib... Actually, everything works with the bin.linux version... seems so.
+I forgot to set the \$path variable.
+\item[*28/07/2008:] corrected the inlining in synthesis. In fact, it is needed to remove identical
+equations, normalize, then simplify the system. In the normalization, there is something
+strange: the parameter domain is not projected over the domains... Moreover, in a case
+statement, if a domain is not empty, then the branch is not removed... 
+\item[*26/07/2008:] now using eclipse to manage mmalpha... Wrote a first documentation 
+for synthesis. With eclipse, I had a few problems. 
+\item[*26/07/2008:] cleaned and committed some demos (Fir, Samba, etc.)
+\item[*23/07/2008:] installed in my directory software MinGW, with examples. Contains
+\texttt{gcc} to compile for Windows and Linux architectures. Not tried yet...
+\item[*7/05/2008:] continued to add the mute option in AlphaToAlpha0v2, Alphard. 
+In Subsystem, this is more difficult... since no options in Fixparameters...
+\item[*5/05/2008:] succeeded in compiling Domlib. See Domlib documentation for
+explanations... Should commit it soon. 
+\item[*2/05/2008:] tried to recompile \texttt{writeC}. First, the use of this function is not clear, 
+as if no file is given, we have the same input as if a parameter string was given... Second, 
+there are missing libraries in the Write\_C program, and I added them. Third, the use of 
+strcat seems not to be accepted by gcc. I replaced it by strcopy, and afterwards, I got
+a linkedit error. Actually, I had to put the new libraries in yacc.y (which produces yacc.c), 
+and make sure it was produced in one single text command, otherwise too many arguments
+in Vsep. 
+\item[*25/04/2008:] added \texttt{mute} option to \texttt{schedule.m}, \texttt{farkasSchedule.m},
+\texttt{analyze}, etc. Committed.
+\item[*21/04/2008:] added a \texttt{mute} option to \texttt{Alpha.m} package. \texttt{Alpha.m}, 
+\texttt{Synthesis.m}, \texttt{Options.m} and \texttt{Vhdl2.m} were committed. 
+Also the demo
+directory for \texttt{Synthesis}. Committed.
+\item[*20/04/2008:] created a new demo notebooks called \texttt{Synthesis}. Demo
+of \texttt{Samba} does not work. Add a parameter for
+\texttt{a2v} with the directory where we create \texttt{vhdl} files. Also check all options of
+\texttt{a2v} in \texttt{Options.m} and develop them.
+\item[19/04/2008:] created a Synthesis.m package, containing a \texttt[syn] function. Documentation
+has to be done. Also commit \texttt{Alpha.m} and \texttt{autoload.m}. Next improvements : 
+modify \texttt{syn} to handle structured designs, first by simple inlining, then using
+real structured design. Add the possibility of designing the vhdl and the schedules, by
+reading complex IPs. This could be done by modifying load in such a way that it
+reads files with a different suffix using MMA, and then find out the structure of the 
+program. 
+\item[*18/04/2008:] Committed everything in lib, except \texttt{Normalization.m}. Corrected
+a bug in Domlib (in DomEmptyQ). I removed the call to solveEqualities in noSolutions, 
+and replaced it by a call to \texttt{solveDiophantine} which works. Should add a note in 
+the documentation to explain that \texttt{DomEmptyQ} does not find really if a domain is
+empty. Notice also that one can use the function Reduce to check if a domain is empty.
+\texttt{Reduce[{i>1,i<2},{i,j},Integer]}. 
+\item[*1/04/2008:] Dans Substitution.m, removed a \texttt{;;}. This created pbs in version 6.0. I.
+\item[*1/04/2008:] Change in Alpha.m to include Visual3D. I think that it was committed.
+\item[*1/04/2008:] Tried to clean up tests. Also, in packages, whenever there are accents, 
+there is a problem in version 6.0. Guess it was committed.
+\item[*1/04/2008:] In Domlib, I changed Global`scdc into scdc, which may be a problem?
+\item[*1/04/2008:] TestsDomlib.m was modified and committed.
+\item[?8/01/2008:] Dans pipeVars[], s'il y a un pb lors de l'application d'un pipeline, le
+programme boucle...Voir myNotebook firlspg. 
+\item[5/01/2008:] The test for the Static package does not work. Also, check the Static doc package.
+Check also the doc package of StructuredScheduler. There is an error in the test. 
+In analyze, there is a pb when the output of a system is produced by a subsystem (see
+in doc package for StructuredScheduler). The test for Substitution is wrong. 
+Le package de Uniformization ne marche pas... Il n'était pas installé, il faut tout revoir. 
+\item[*31/12/2007:] I checked the Schedule package. I made corrections to scd so that it
+can work on multidimensional cases... There is a bug in schematics, that you can 
+see in the matmult example (after change of basis). See the nice example of test bench 
+generation in matvect.
+\item[29/12/2007:] the Shedule doc package has to be checked... Was not commited yet. 
+\item[*29/12/2007:] the PipeControl doc package has been copied. Some options of report
+are interesting and have to be documented. Committed.
+\item[29/12/2007:] the Meta documentation (in doc/Meta and in doc/Packages/Meta) was
+checked, updated and committed. The alpha2mma translator still works, but has to 
+be completely debugged... The lyx file was translated and may now be forgotten... 
+(I did not remember this lyx file, and I therefore was not able to find out this
+documentation which I wrote a while ago...)
+\item[*26/12/2007:] checking the repository. Committed various modifications in doc. 
+Adding the Doc/Package directory. In the CheckAlpHard dir, there are some .simul files
+which result, I think, from an attempt to write a simulator of Alpha in MMA. But I do not
+know where the corresponding meta files are. In the Meta package doc, there is a 
+lyx file which gives a precious documentation on the Meta package... Has to be translated...
+\item[15/11/2007:] added functions isOutputRegular, areAllOutputsRegular, mkOutputRegular
+and mkAllOutputsRegular to Substitution.m. Also changed getNewName and newName (in
+schematics.m). Goal is to detect (in analyze) that outputs are not of the form o = v
+where v is a variable and provide a function to change this. Has to commit Analyze, 
+Static.m and Substitution.m. Also added MakeDoc.m in packages, and has to 
+commit this. There are strange bugs, but documentation is OK. Has to commit TestsSubstitione.
+There are bugs in tests of Static.
+Commit change to VertexSchedule.m
+\item[4/11/2007:] trying the Neural Network of Sanjay in myNotebooks, NN-Sanjay
+BackPropNN (main.nb). Everything goes well until the ToAlpha0V2, where I added
+some traces. Could not solve the problem. See notebook. 
+\item[23/10/2007:] trying to install mmalpha at CSU. Did not work, because Polylib
+was not adapted to PPC Mac... Still a problem. I recompiled Polylib (notice that the documentation
+regarding Polylib is not up-to-date). Then, I had the problem that the Mathematica version
+was wrong. Then, I had to recompile Domlib together with the other programs to get
+a new library for Polylib... Eventually, I succeded. Morality : first, get the
+result of compilation... Second, try to adapt the compiler to the PPC case... 
+The right way to do this would be to generate different bin: bin.macosXppc and bin.macosXintel...
+\item[7/9/2007 -- Pip:] found the bug, it was in FarkasSchedule, the calls to 
+sed. A corrected version of this package is in the desktop.
+\item[29/8/2007 -- Pip:] There are problems regarding Pip on Windows, and I cannot 
+find out what these problems are. Actually, there are also some problems with Domlib.
+In the old version of Anne-Marie, Pip works, but tests["Domlib"] leads to a bug...
+In the current version of Anne-Marie, Pip does not work: it returns an error message
+saying that there is no solution (the same version works on the Mac). If I run the old
+version with the new directory of Pip and Domlib, I also get an error in Pip, but
+this time, the error is different as there is a call to DomMatrixSimplify which is
+wrong... So there are some interferences between pip and Domlib. Actually, 
+DomMatrixSimplify is used in Domlib, so I do not know where FarkasSchedule.m
+calls it. Also, if
+I run the new mmalpha with the old binaries, it does not work either... So I
+put some Print statements in the FarkasSchedule.m of my Mac version and I 
+will try to explore this with Anne-Marie... 
+\item[24/7/2007 -- Domlib:] To try to correct the error in Polylib, I worked on 
+Domlib in order to be able to recompile it. See in doc-install-domlib my notes
+regarding Xcode etc. and all I could not fix. 
+
+In the makefiles of Domlib, I made a few changes in order to recompile it. In 
+particular, I set the place of Mathlink to the MacOSX-x86 version. 
+
+Polylib works correctly, but not domlib. readDom works also nicely. So the 
+problem seems to come from Mathlink, or maybe, domlib.c is not uptodate 
+anymore... 
+\item[20/7/2007 -- Polylib:] I again tried to look at Polylib and recompiling all stuff on 
+Intel machine. 
+
+First, I downloaded polylib from strasburg (see the note in doc/PolyLib). 
+This was successful. 
+
+Actually, it seems that to put a new version of PolyLib in MMAlpha, 
+one just download it, then install it following the procedure described in the documentation
+(see again the note), and then one recompile domlib etc. 
+
+I did this in mmalpha-2 (after changing MMALPHA variable). 
+
+Then, I made a copy of mmalpha into mmalpha-2. I changed the setenv of MMALPHA (otherwise
+the makefile in the sources dir may not work). 
+
+I edited the makefile in the sources dir. I changed the DIR variable to only Pretty. 
+Then, I made make clean, which removes Obj.dir in Pretty, and I made a make all.
+There are some errors, but it produces in Obj.darwin in Pretty a pretty binary file.
+
+Then I tried the same for read\_Alpha. This does not work. It compiles properly read\_alpha.c, 
+node.c, matrix.c, and vector.c but not polyhedron.c. 
+
+Then, I replaced the Polylib directory in the sources by the new Polylib, and... it worked !
+
+Then, I tried the same for Write\_Alpha, and it did not work... 
+
+In the meantime, when putting in DIR of makefile Pretty + read\_ALpha + Write\_ALpha, 
+I got a loop... 
+
+Then I tried the same only for writeAlpha, and it worked ! Seems that make clean does not
+work properly.
+
+I tried again clean with all files in Dir and it worked... 
+
+I tried the same for Write\_C and gen.o is missing... I tried to add gen.o from Codegen in 
+Obj.darwin of Write\_C, but it did not work.
+
+OK. I went back to Domlib. I had to modify several things. First, make sure that the new Polylib
+was recompiled, and installed in directory MMALPHA/sources/Poly. (By the way, in mmalpha, 
+I made a copy of bin.darwin renamed bin.darwin-ppc, because I know that this one works
+on any mac. I also made a copy of Poly into Poly-darwin, just in case. With the indroduction
+of intel mac, all this stuff has to made cleaner... 
+
+In case of backup, there is always the solution of the dest-mmalpha-o, and also
+the lip forge repository.
+
+For Domlib to compile, changes have to be made in Makefile.darwin of Domlib (where is Polylib), 
+Makefile of MakeIncludes (where the mprep is ). 
+
+
+
+\item[20/7/2007 -- Domlib.m:] there is a bug (I guess) in \texttt{DomSimplify}. The
+example is shown here:
+\begin{verbatim}
+d1 = readDom[  "{ i | i<=0}" ];
+d2 = readDom[  "{ i | 0<=i}" ];
+domSimplify[ d1, d2 ]
+\end{verbatim}
+will return domain $\{ i | 1>=0 \}$, i.e. the full space. 
+\begin{verbatim}
+d1 = readDom[  "{ i | i=0}" ];
+d2 = readDom[  "{ i | 0<=i}" ];
+domSimplify[ d1, d2 ]
+\end{verbatim}
+will return domain $\{ i | i=0 \}$, which is correct. When looking in Polylib, I discover
+that there is another version of 
+
+\item[*15/4/2007 -- All:] checked committements of lib.cygwin, lib.darwin, bin.cygwin, and
+doc, until Schedule.
+\item[*11/4/2007 -- All:] committed the config directory
+\item[*10/4/2007 -- All:] committed all modifications to the distribution in lib. Added \texttt{Visual3D}
+and \texttt{Schematics} in the distribution. 
+\item[*9/4/2007 -- All:] checked that bin. are OK. 
+\item[*8/4/2007 -- Alpha.m:] corrected to print use dependencies. This was not possible in the
+MacOSX version.
+\item[*7/4/2007 -- VertexSchedule.m:] Edition of some usages in VertexSchedule was done (parameterValues
+for example).
+\item[*6/4/2007 -- VertexSchedule:] was modified in order to comply with old version
+of Mathematica.
+\item[*11/12/2006 -- VertexSchedule:] has been modified for the new version of 
+MMAlpha. Added options. A new function, changeIndexes, was added to 
+changeOfBasis.
+\item[*15/9/2006 -- appSched:] has been modified in order to change easily.
+\item[9/9/2006: ] The 2D filter works, almost. There is a problem with appSched. In this example, 
+when it is applied, it results in an infinite array. The solution is then to apply changes of bases
+individually. I also put a check in Vhdl2 and vhdlModule.sem when a use has an 
+infinite extension domain. This problem has been fixed. 
+\item[5/9/2006:] Tried to work out a 2D filter given by Anne-Marie. See myNotebooks/filter2D. 
+The problem was related to structured schedule. Remember that using schedule (Farkas 
+scheduler) one needs to use structSched (or schedule[ subSystems->True ]. This is explained
+in the schedule documentation. 
+\item[25/5/2006:] Received a notebook of Anne-Marie (see myNotebooks/Chana) where she
+tries to obtain vhdl code from a simple program. This does not work for several reasons, and
+it could be possible to fix these problems. In particular, creating Vhdl code could be possible
+by extension of the method to 0 dimensional variables. 
+\item[*25/3/2006 -- PipeInfo:] Tanguy sent me a notebook, and PipeInfo does not work. Actually, 
+there is a new version corrected in PipeControl-new.m. Removed in it the 
+latex command and also, checked that no pipeline is done on a union of a domain.
+Has to be commited.
+\item[*1/3/2006 -- Schedule, FarkasSchedule, ScheduleTools:] I made a few modifications to \texttt{Schedule.m}, 
+\texttt{FarkasSchedule.m}, and maybe also to \texttt{VertexSchedule.m} and
+\texttt{ScheduleTools.m}. The modification was to unify the way schedules are
+added to \texttt{\$scheduleLibrary}. I added to \texttt{Schedule.m} an internal
+function \texttt{storeSchedule} of \texttt{VertexSchedule.m} which adds a
+schedule to \texttt{\$scheduleLibrary} only by keeping the input and output
+schedules. Thus, one may now schedule a subsystem using both \texttt{scd} or
+\texttt{schedule} and still be able to use one or the other scheduler for the 
+structured scheduline. 
+\item[*15/2/2005 -- Schematics: ] while trying to use \texttt{schematics}, I noticed that the \texttt{Schematic.m}
+package is not in the current distribution. OK, committed.
+\item[2/12/2005 -- Scheduler] corrections done to the scheduler documentation in \verb!/doc/Schedule!
+Added in the doc notebooks the Schedule directory. Not commited yet.
+\item[1/12/2005:] created an example called SignAlpha.nb, for Anne-Marie
+\item[30/11/2005 -- StructuredScheduled:] added StructuredScheduler in the demos. Is not totally checked yet, and
+was not committed.
+\item[30/11/2005 -- Demos: ] added Fifo in the demos, but it does not work completely... Not committed yet.
+\end{description}
+
+\section{The to do list}
+\begin{description}
+\item[10/1/2009:] make the corrections seen by the installation of Anne-Marie
+\item[9/1/2009:] check that the scheduler is adapted to the new version with string additionnal constraints
+and update documentation
+\item[*4/1/2009:] update web site
+\item[4/1/2009:] check that testSynthesis work, create and test new distribution
+\item[2/1/2009:] remove documentation DOMLIB-Install
+\item[2/1/2009:] there is a bus error in readAlpha in test4[]
+\item[2/1/2009:] look in FarkasSchedule.m to see what happens with \$Runtime aso
+\item[* 2/1/2009:] update installation documentation.
+\item[2/1/2009:] filter more carefully the arguments of ashow and show. When called with 22 for example,
+ashow tries show before falling, which causes a message to be issued in the shell
+\item[2/1/2009:] repair \texttt{showLib} (prints out the library directly in the shell)
+\item[* 2/1/2009:] clean \texttt{TestAlpha.m} from parasite shell error messages.
+\item[* 2/1/2009:] remove ugly messages issued in the shell window when trying to remove files from 
+PiP. Probably have to redirect stderr to another file?
+\item poursuivre l'analyse de top\_fir pour enlever la fifo et aussi regarder l'affaire de
+l'initialisation
+\item comprendre pourquoi YOutType n'apparaît nulle part
+\item demander à Steven si le fonctionnement des mémoires est correcte
+\item peut-on mettre un type en généric. Voir tutorial...
+\item If you apply \texttt{toAlpha0v2} to a program that has not been appscheded, it 
+fails...
+\item There is a message in the Write\_Alpha program, "Could not find the declaration..." that should be removed, as it pollutes the main window...
+\item In the config directory, clean red files of the LipForge repository
+\item In the lib directory, look at the files which are not in the distribution and add those
+which are useful. They are shown in red in the \texttt{Description.xls} file in 
+the \texttt{maintenance} directory.
+\item By the way, I noticed that \texttt{structSched} does not
+work for multi-dimensional schedules, and that would be great to have it. 
+\item Add a variable \$pipeInfo that contains the result of the PipeInfo command.
+\item Commit \texttt{Schedule.m} etc. (see above).
+\item Add \texttt{Schematics.m} to the distribution.
+\item Commit new document packages
+\item Complete the description of appendices in this document using the README
+file in this directory
+\item Check demo FIFO
+\item Add bibliography to scheduler documentation and add documentation for the
+scd command
+\item Check the doc package directory for the vertex scheduler
+\item Create a doc package directory for the farkas scheduler
+\item Extend the vhdl generator to the case of non parallel programs (see myNotebooks/Chana)
+\end{description}
+
+\section{The done list}
+\begin{description}
+\item[2/1/2009:] clean \texttt{TestSubstitution.m} which creates parasite symbols.
+\item[-2/1/2009:] Remove \texttt{\$NewName} in Alpha.m. Done.
+\item[-1/1/2009:] SystemProgramming is missing in CopyMMA. Some tests are missing in CopyMMA. Could
+not understand why CopyDirectory does not work uniquely for TestSchedule ! Done anyway.
+\end{description}
+
+\appendix
+\section{How to use LipForge}
+This version of \mmalfa{} comes from the 
+LipForge repository. To use if, the following operations are needed:
+\begin{itemize}
+\item Open a terminal window.
+\item Export the environment variable \verb\CVS\\_RSH\ using
+the \texttt{bash} command:
+\begin{verbatim}
+export CVS_RSH=ssh
+\end{verbatim}
+or the \texttt{csh} command:
+\begin{verbatim}
+setenv CVS_RSH ssh
+\end{verbatim}
+\item Each time you want to apply a \texttt{cvs} command, say 
+\texttt{ccc}, use
+\begin{verbatim}
+cvs -z3 -d:ext:quinton@lipforge.ens-lyon.fr:/local/chroot\
+/cvsroot/irisa ccc
+\end{verbatim}
+Alternatively, save the first part of the command (before \texttt{ccc}) as
+an alias
+\begin{verbatim}
+alias cvs='cvs -z3 -d:ext:quinton@lipforge.ens-lyon.fr:/local\
+/chroot/cvsroot/irisa'
+\end{verbatim}
+and then use the command
+\begin{verbatim}
+cvs ccc
+\end{verbatim}
+\end{itemize}
+\newcommand{\macosx}{{\sc MacOSX}}
+
+\section{How to connect to my files at Irisa}
+In the Finder, select a server. 
+\begin{verbatim}
+smb://nas1a.irisa.fr/quinton
+\end{verbatim}
+
+\section{How to run \mmalfa{} on another server}
+On a Linux server
+\begin{verbatim}
+ssh sabre.irisa.fr
+\end{verbatim}
+
+\section{How to access to the web server of MMAlpha}
+In the Finder, select a server. 
+\begin{verbatim}
+http://webdav.irisa/www.irisa.fr/htdocs/cosi
+\end{verbatim}
+On my laptop, the old site is in
+\begin{verbatim}
+Copy-MMALPHA-Site
+\end{verbatim}
+
+\section{How to run MMA on Mac OS X}
+For unknown reasons, it is not possible to start \mmalfa{} directly
+from the normal interface of \macosx{}. The solution:
+\begin{enumerate}
+\item Open a terminal window.
+\item Make sure that an environment variable \texttt{MMALPHA} is 
+set to the directory where the \mma{} distribution is placed. For example
+\begin{verbatim}
+export MMALPHA=/Users/quinton/MMAlpha
+\end{verbatim}
+or under \texttt{csh}:
+\begin{verbatim}
+setenv MMALPHA /Users/quinton/MMAlpha
+\end{verbatim}
+\item Then run \mma{}. The \mma{} software is placed 
+in directory 
+\begin{verbatim}
+/Applications/Mathematica 5.1.app/Contents/MacOS
+\end{verbatim}
+(this may differ depending on the version number.)
+\item Normally, \mma{} when started should call a
+\texttt{init.m} file, but for unknown reasons, this is not so...
+\end{enumerate}
+Additional comments:
+\begin{itemize}
+\item Add a command to \texttt{.alias} in order to be able
+to call \mma{} directly, such as for example:
+\begin{verbatim}
+alias mma /Applications/Mathematica 5.1.app/Contents/MacOS/Mathematica
+\end{verbatim}
+\item Add a command in the .cshrc file, in order to 
+\end{itemize}
+\begin{verbatim}
+setenv MMALPHA /Users/quinton/mmalpha
+echo 'This is my MMA environment: ' ${MMALPHA}
+#   For Mac OS X
+alias mma '/Applications/Mathematica\ 5.1.app/Contents/MacOS/Mathematica'
+alias cvsmma 'cvs -z3 -d:ext:quinton@lipforge.ens-lyon.fr:/local/chroot/cvsroot/irisa'
+set path=($MMALPHA/bin.$OSTYPE $path)
+set path=(/usr/local/bin $path)
+\end{verbatim}
+\end{document}

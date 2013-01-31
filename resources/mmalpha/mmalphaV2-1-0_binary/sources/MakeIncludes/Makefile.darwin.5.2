@@ -1,0 +1,15 @@
+#-----------------------------------------------
+#  This defines where MATHLINK is for version 5.2 
+MATHLINK = /Applications/Mathematica\ 5.2.app/AddOns/MathLink/DeveloperKit/MacOSX-x86/CompilerAdditions
+
+#-----------------------------------------------
+MATHPREP	= $(MATHLINK)/mprep
+#-----------------------------------------------
+#  This is useless
+#MATHPREPCOR	= $(MMALPHA)/sources/MathLink/mprepcor.3.0.1
+MATHINCLUDE	= -I$(MATHLINK)
+MATHLIB		= -L$(MATHLINK)
+MATHLOADLIB	= -lML -lm
+#  This may be necessary for Solaris.
+MATHEXTRALIBS = # -lnsl -lsocket
+MATHEXTRAOBJS =

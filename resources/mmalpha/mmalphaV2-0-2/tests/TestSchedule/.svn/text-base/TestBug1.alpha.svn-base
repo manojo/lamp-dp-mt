@@ -1,0 +1,12 @@
+system Test9   (x : {i | 0<=i} of integer; 
+                w : {p | 0<=p<=8} of integer)
+       returns (y : {i | 2<=i} of integer);
+var
+  Y : {t,p | 0<=p<=8; 3t-4p-3>=0} of integer;
+let
+  Y[t,p] = 
+      case
+        { | 1<=t; p=0} : x[t-1];
+        { | 1<=p<=8; 3t-4p-3>=0} : Y[t-1,p-1] + w[p];
+      esac;
+tel;

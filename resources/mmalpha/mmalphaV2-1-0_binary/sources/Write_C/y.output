@@ -1,0 +1,3450 @@
+Terminals which are not used
+
+   KW_notype
+   KW_reduce
+   KW_depend
+   KW_dtable
+   KW_loop
+   KW_use
+   KW_abs
+
+
+Grammar
+
+    0 $accept: Top $end
+
+    1 ID_item: ID
+
+    2 Top: '{' System_List '}'
+    3    | System
+    4    | Equation
+    5    | Exp
+
+    6 System_List: System
+    7            | System_List System
+
+    8 System: KW_system '[' ID_item ',' Parameter ',' System_Head ',' Let_Equations ']'
+
+    9 Parameter: Domain
+
+   10 System_Head: Input_Decl ',' Output_Decl ',' Local_Decl
+
+   11 @1: /* empty */
+
+   12 @2: /* empty */
+
+   13 Input_Decl: '{' @1 Decl_List @2 '}'
+
+   14 @3: /* empty */
+
+   15 @4: /* empty */
+
+   16 Output_Decl: '{' @3 Decl_List @4 '}'
+
+   17 Local_Decl: '{' Decl_List '}'
+
+   18 Let_Equations: '{' Equation_List '}'
+   19              | KW_let '[' '{' Equation_List '}' ']'
+   20              | KW_let '[' Equation_List ']'
+
+   21 Decl_List: Decl
+   22          | Decl_List ',' Decl
+   23          | /* empty */
+
+   24 Decl: KW_decl '[' ID ',' Data_Type ',' KW_scalar ']'
+   25     | KW_decl '[' ID ',' Data_Type ',' Domain ']'
+
+   26 Data_Type: KW_integer
+   27          | KW_boolean
+   28          | KW_real
+
+   29 Equation_List: Equation
+   30              | Equation_List ',' Equation
+   31              | /* empty */
+
+   32 @5: /* empty */
+
+   33 Equation: KW_equation '[' ID @5 ',' Exp ']'
+
+   34 Exp_List: Exp
+   35         | Exp_List ',' Exp
+   36         | /* empty */
+
+   37 Push_Clear_Case: /* empty */
+
+   38 Exp: KW_restrict '[' Domain ',' Push_Clear_Case Exp ']'
+
+   39 @6: /* empty */
+
+   40 @7: /* empty */
+
+   41 Exp: KW_case '[' @6 '{' Exp_List '}' @7 ']'
+   42    | KW_var '[' ID ']'
+   43    | KW_affine '[' KW_var '[' ID ']' ',' Matrix ']'
+   44    | Constant
+   45    | KW_affine '[' Constant ',' Matrix ']'
+   46    | KW_binop '[' KW_add ',' Exp ',' Exp ']'
+   47    | KW_binop '[' KW_sub ',' Exp ',' Exp ']'
+   48    | KW_binop '[' KW_mul ',' Exp ',' Exp ']'
+   49    | KW_binop '[' KW_div ',' Exp ',' Exp ']'
+   50    | KW_binop '[' KW_idiv ',' Exp ',' Exp ']'
+   51    | KW_binop '[' KW_mod ',' Exp ',' Exp ']'
+   52    | KW_binop '[' KW_eq ',' Exp ',' Exp ']'
+   53    | KW_binop '[' KW_le ',' Exp ',' Exp ']'
+   54    | KW_binop '[' KW_lt ',' Exp ',' Exp ']'
+   55    | KW_binop '[' KW_gt ',' Exp ',' Exp ']'
+   56    | KW_binop '[' KW_ge ',' Exp ',' Exp ']'
+   57    | KW_binop '[' KW_ne ',' Exp ',' Exp ']'
+   58    | KW_binop '[' KW_or ',' Exp ',' Exp ']'
+   59    | KW_binop '[' KW_xor ',' Exp ',' Exp ']'
+   60    | KW_binop '[' KW_and ',' Exp ',' Exp ']'
+   61    | KW_binop '[' KW_min ',' Exp ',' Exp ']'
+   62    | KW_binop '[' KW_max ',' Exp ',' Exp ']'
+   63    | KW_unop '[' KW_neg ',' Exp ']'
+   64    | KW_unop '[' KW_sqrt ',' Exp ']'
+   65    | KW_unop '[' KW_not ',' Exp ']'
+   66    | KW_call '[' ID ',' '{' Exp_List '}' ']'
+   67    | KW_if '[' Exp ',' Exp ',' Exp ']'
+
+   68 Constant: KW_const '[' NUMBER ']'
+   69         | KW_const '[' KW_pos_infinity ']'
+   70         | KW_const '[' KW_neg_infinity ']'
+   71         | KW_const '[' KW_true ']'
+   72         | KW_const '[' KW_false ']'
+   73         | KW_const '[' REAL ']'
+
+   74 @8: /* empty */
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' ID_List '}' ',' '{' Number_List_List '}' ']' ']'
+
+   76 @9: /* empty */
+
+   77 Domain: KW_domain '[' NUMBER ',' '{' ID_List '}' @9 ',' '{' Pol_List '}' ']'
+
+   78 ID_List: ID
+   79        | ID_List ',' ID
+   80        | /* empty */
+
+   81 Pol_List: Pol
+   82         | Pol_List ',' Pol
+   83         | /* empty */
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+   85 @10: /* empty */
+
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER ',' '{' ID_List '}' @10 ',' '{' Number_List_List '}' ']'
+
+   87 Number_List: NUMBER
+   88            | Number_List ',' NUMBER
+   89            | /* empty */
+
+   90 Number_List_List: '{' Number_List '}'
+   91                 | Number_List_List ',' '{' Number_List '}'
+   92                 | /* empty */
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+',' (44) 8 10 22 24 25 30 33 35 38 43 45 46 47 48 49 50 51 52 53 54
+    55 56 57 58 59 60 61 62 63 64 65 66 67 75 77 79 82 84 86 88 91
+'[' (91) 8 19 20 24 25 33 38 41 42 43 45 46 47 48 49 50 51 52 53 54
+    55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 75 77
+    84 86
+']' (93) 8 19 20 24 25 33 38 41 42 43 45 46 47 48 49 50 51 52 53 54
+    55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 75 77
+    84 86
+'{' (123) 2 13 16 17 18 19 41 66 75 77 84 86 90 91
+'}' (125) 2 13 16 17 18 19 41 66 75 77 84 86 90 91
+error (256)
+KW_system (258) 8
+KW_decl (259) 24 25
+KW_scalar (260) 24
+KW_integer (261) 26
+KW_boolean (262) 27
+KW_real (263) 28
+KW_equation (264) 33
+KW_case (265) 41
+KW_restrict (266) 38
+KW_var (267) 42 43
+KW_affine (268) 43 45
+KW_const (269) 68 69 70 71 72 73 75
+KW_binop (270) 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62
+KW_unop (271) 63 64 65
+KW_if (272) 67
+KW_add (273) 46
+KW_sub (274) 47
+KW_mul (275) 48
+KW_div (276) 49
+KW_idiv (277) 50
+KW_mod (278) 51
+KW_eq (279) 52
+KW_le (280) 53
+KW_lt (281) 54
+KW_gt (282) 55
+KW_ge (283) 56
+KW_ne (284) 57
+KW_or (285) 58
+KW_and (286) 60
+KW_neg (287) 63
+KW_sqrt (288) 64
+KW_not (289) 65
+KW_domain (290) 77
+KW_pol (291) 84
+KW_matrix (292) 75 86
+KW_notype (293)
+KW_xor (294) 59
+KW_max (295) 62
+KW_min (296) 61
+KW_reduce (297)
+KW_depend (298)
+KW_dtable (299)
+KW_let (300) 19 20
+KW_loop (301)
+KW_use (302)
+KW_call (303) 66
+KW_abs (304)
+KW_true (305) 71
+KW_false (306) 72
+KW_pos_infinity (307) 69
+KW_neg_infinity (308) 70
+NUMBER (309) 68 75 77 84 86 87 88
+REAL (310) 73
+ID (311) 1 24 25 33 42 43 66 78 79
+
+
+Nonterminals, with rules where they appear
+
+$accept (62)
+    on left: 0
+ID_item (63)
+    on left: 1, on right: 8
+Top (64)
+    on left: 2 3 4 5, on right: 0
+System_List (65)
+    on left: 6 7, on right: 2 7
+System (66)
+    on left: 8, on right: 3 6 7
+Parameter (67)
+    on left: 9, on right: 8
+System_Head (68)
+    on left: 10, on right: 8
+Input_Decl (69)
+    on left: 13, on right: 10
+@1 (70)
+    on left: 11, on right: 13
+@2 (71)
+    on left: 12, on right: 13
+Output_Decl (72)
+    on left: 16, on right: 10
+@3 (73)
+    on left: 14, on right: 16
+@4 (74)
+    on left: 15, on right: 16
+Local_Decl (75)
+    on left: 17, on right: 10
+Let_Equations (76)
+    on left: 18 19 20, on right: 8
+Decl_List (77)
+    on left: 21 22 23, on right: 13 16 17 22
+Decl (78)
+    on left: 24 25, on right: 21 22
+Data_Type (79)
+    on left: 26 27 28, on right: 24 25
+Equation_List (80)
+    on left: 29 30 31, on right: 18 19 20 30
+Equation (81)
+    on left: 33, on right: 4 29 30
+@5 (82)
+    on left: 32, on right: 33
+Exp_List (83)
+    on left: 34 35 36, on right: 35 41 66
+Push_Clear_Case (84)
+    on left: 37, on right: 38
+Exp (85)
+    on left: 38 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57
+    58 59 60 61 62 63 64 65 66 67, on right: 5 33 34 35 38 46 47 48
+    49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 67
+@6 (86)
+    on left: 39, on right: 41
+@7 (87)
+    on left: 40, on right: 41
+Constant (88)
+    on left: 68 69 70 71 72 73 75, on right: 44 45
+@8 (89)
+    on left: 74, on right: 75
+Domain (90)
+    on left: 77, on right: 9 25 38
+@9 (91)
+    on left: 76, on right: 77
+ID_List (92)
+    on left: 78 79 80, on right: 75 77 79 86
+Pol_List (93)
+    on left: 81 82 83, on right: 77 82
+Pol (94)
+    on left: 84, on right: 81 82
+Matrix (95)
+    on left: 86, on right: 43 45
+@10 (96)
+    on left: 85, on right: 86
+Number_List (97)
+    on left: 87 88 89, on right: 88 90 91
+Number_List_List (98)
+    on left: 90 91 92, on right: 75 84 86 91
+
+
+state 0
+
+    0 $accept: . Top $end
+
+    KW_system    shift, and go to state 1
+    KW_equation  shift, and go to state 2
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+    '{'          shift, and go to state 12
+
+    Top       go to state 13
+    System    go to state 14
+    Equation  go to state 15
+    Exp       go to state 16
+    Constant  go to state 17
+
+
+state 1
+
+    8 System: KW_system . '[' ID_item ',' Parameter ',' System_Head ',' Let_Equations ']'
+
+    '['  shift, and go to state 18
+
+
+state 2
+
+   33 Equation: KW_equation . '[' ID @5 ',' Exp ']'
+
+    '['  shift, and go to state 19
+
+
+state 3
+
+   41 Exp: KW_case . '[' @6 '{' Exp_List '}' @7 ']'
+
+    '['  shift, and go to state 20
+
+
+state 4
+
+   38 Exp: KW_restrict . '[' Domain ',' Push_Clear_Case Exp ']'
+
+    '['  shift, and go to state 21
+
+
+state 5
+
+   42 Exp: KW_var . '[' ID ']'
+
+    '['  shift, and go to state 22
+
+
+state 6
+
+   43 Exp: KW_affine . '[' KW_var '[' ID ']' ',' Matrix ']'
+   45    | KW_affine . '[' Constant ',' Matrix ']'
+
+    '['  shift, and go to state 23
+
+
+state 7
+
+   68 Constant: KW_const . '[' NUMBER ']'
+   69         | KW_const . '[' KW_pos_infinity ']'
+   70         | KW_const . '[' KW_neg_infinity ']'
+   71         | KW_const . '[' KW_true ']'
+   72         | KW_const . '[' KW_false ']'
+   73         | KW_const . '[' REAL ']'
+   75         | KW_const . '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' ID_List '}' ',' '{' Number_List_List '}' ']' ']'
+
+    '['  shift, and go to state 24
+
+
+state 8
+
+   46 Exp: KW_binop . '[' KW_add ',' Exp ',' Exp ']'
+   47    | KW_binop . '[' KW_sub ',' Exp ',' Exp ']'
+   48    | KW_binop . '[' KW_mul ',' Exp ',' Exp ']'
+   49    | KW_binop . '[' KW_div ',' Exp ',' Exp ']'
+   50    | KW_binop . '[' KW_idiv ',' Exp ',' Exp ']'
+   51    | KW_binop . '[' KW_mod ',' Exp ',' Exp ']'
+   52    | KW_binop . '[' KW_eq ',' Exp ',' Exp ']'
+   53    | KW_binop . '[' KW_le ',' Exp ',' Exp ']'
+   54    | KW_binop . '[' KW_lt ',' Exp ',' Exp ']'
+   55    | KW_binop . '[' KW_gt ',' Exp ',' Exp ']'
+   56    | KW_binop . '[' KW_ge ',' Exp ',' Exp ']'
+   57    | KW_binop . '[' KW_ne ',' Exp ',' Exp ']'
+   58    | KW_binop . '[' KW_or ',' Exp ',' Exp ']'
+   59    | KW_binop . '[' KW_xor ',' Exp ',' Exp ']'
+   60    | KW_binop . '[' KW_and ',' Exp ',' Exp ']'
+   61    | KW_binop . '[' KW_min ',' Exp ',' Exp ']'
+   62    | KW_binop . '[' KW_max ',' Exp ',' Exp ']'
+
+    '['  shift, and go to state 25
+
+
+state 9
+
+   63 Exp: KW_unop . '[' KW_neg ',' Exp ']'
+   64    | KW_unop . '[' KW_sqrt ',' Exp ']'
+   65    | KW_unop . '[' KW_not ',' Exp ']'
+
+    '['  shift, and go to state 26
+
+
+state 10
+
+   67 Exp: KW_if . '[' Exp ',' Exp ',' Exp ']'
+
+    '['  shift, and go to state 27
+
+
+state 11
+
+   66 Exp: KW_call . '[' ID ',' '{' Exp_List '}' ']'
+
+    '['  shift, and go to state 28
+
+
+state 12
+
+    2 Top: '{' . System_List '}'
+
+    KW_system  shift, and go to state 1
+
+    System_List  go to state 29
+    System       go to state 30
+
+
+state 13
+
+    0 $accept: Top . $end
+
+    $end  shift, and go to state 31
+
+
+state 14
+
+    3 Top: System .
+
+    $default  reduce using rule 3 (Top)
+
+
+state 15
+
+    4 Top: Equation .
+
+    $default  reduce using rule 4 (Top)
+
+
+state 16
+
+    5 Top: Exp .
+
+    $default  reduce using rule 5 (Top)
+
+
+state 17
+
+   44 Exp: Constant .
+
+    $default  reduce using rule 44 (Exp)
+
+
+state 18
+
+    8 System: KW_system '[' . ID_item ',' Parameter ',' System_Head ',' Let_Equations ']'
+
+    ID  shift, and go to state 32
+
+    ID_item  go to state 33
+
+
+state 19
+
+   33 Equation: KW_equation '[' . ID @5 ',' Exp ']'
+
+    ID  shift, and go to state 34
+
+
+state 20
+
+   41 Exp: KW_case '[' . @6 '{' Exp_List '}' @7 ']'
+
+    $default  reduce using rule 39 (@6)
+
+    @6  go to state 35
+
+
+state 21
+
+   38 Exp: KW_restrict '[' . Domain ',' Push_Clear_Case Exp ']'
+
+    KW_domain  shift, and go to state 36
+
+    Domain  go to state 37
+
+
+state 22
+
+   42 Exp: KW_var '[' . ID ']'
+
+    ID  shift, and go to state 38
+
+
+state 23
+
+   43 Exp: KW_affine '[' . KW_var '[' ID ']' ',' Matrix ']'
+   45    | KW_affine '[' . Constant ',' Matrix ']'
+
+    KW_var    shift, and go to state 39
+    KW_const  shift, and go to state 7
+
+    Constant  go to state 40
+
+
+state 24
+
+   68 Constant: KW_const '[' . NUMBER ']'
+   69         | KW_const '[' . KW_pos_infinity ']'
+   70         | KW_const '[' . KW_neg_infinity ']'
+   71         | KW_const '[' . KW_true ']'
+   72         | KW_const '[' . KW_false ']'
+   73         | KW_const '[' . REAL ']'
+   75         | KW_const '[' . KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' ID_List '}' ',' '{' Number_List_List '}' ']' ']'
+
+    KW_matrix        shift, and go to state 41
+    KW_true          shift, and go to state 42
+    KW_false         shift, and go to state 43
+    KW_pos_infinity  shift, and go to state 44
+    KW_neg_infinity  shift, and go to state 45
+    NUMBER           shift, and go to state 46
+    REAL             shift, and go to state 47
+
+
+state 25
+
+   46 Exp: KW_binop '[' . KW_add ',' Exp ',' Exp ']'
+   47    | KW_binop '[' . KW_sub ',' Exp ',' Exp ']'
+   48    | KW_binop '[' . KW_mul ',' Exp ',' Exp ']'
+   49    | KW_binop '[' . KW_div ',' Exp ',' Exp ']'
+   50    | KW_binop '[' . KW_idiv ',' Exp ',' Exp ']'
+   51    | KW_binop '[' . KW_mod ',' Exp ',' Exp ']'
+   52    | KW_binop '[' . KW_eq ',' Exp ',' Exp ']'
+   53    | KW_binop '[' . KW_le ',' Exp ',' Exp ']'
+   54    | KW_binop '[' . KW_lt ',' Exp ',' Exp ']'
+   55    | KW_binop '[' . KW_gt ',' Exp ',' Exp ']'
+   56    | KW_binop '[' . KW_ge ',' Exp ',' Exp ']'
+   57    | KW_binop '[' . KW_ne ',' Exp ',' Exp ']'
+   58    | KW_binop '[' . KW_or ',' Exp ',' Exp ']'
+   59    | KW_binop '[' . KW_xor ',' Exp ',' Exp ']'
+   60    | KW_binop '[' . KW_and ',' Exp ',' Exp ']'
+   61    | KW_binop '[' . KW_min ',' Exp ',' Exp ']'
+   62    | KW_binop '[' . KW_max ',' Exp ',' Exp ']'
+
+    KW_add   shift, and go to state 48
+    KW_sub   shift, and go to state 49
+    KW_mul   shift, and go to state 50
+    KW_div   shift, and go to state 51
+    KW_idiv  shift, and go to state 52
+    KW_mod   shift, and go to state 53
+    KW_eq    shift, and go to state 54
+    KW_le    shift, and go to state 55
+    KW_lt    shift, and go to state 56
+    KW_gt    shift, and go to state 57
+    KW_ge    shift, and go to state 58
+    KW_ne    shift, and go to state 59
+    KW_or    shift, and go to state 60
+    KW_and   shift, and go to state 61
+    KW_xor   shift, and go to state 62
+    KW_max   shift, and go to state 63
+    KW_min   shift, and go to state 64
+
+
+state 26
+
+   63 Exp: KW_unop '[' . KW_neg ',' Exp ']'
+   64    | KW_unop '[' . KW_sqrt ',' Exp ']'
+   65    | KW_unop '[' . KW_not ',' Exp ']'
+
+    KW_neg   shift, and go to state 65
+    KW_sqrt  shift, and go to state 66
+    KW_not   shift, and go to state 67
+
+
+state 27
+
+   67 Exp: KW_if '[' . Exp ',' Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 68
+    Constant  go to state 17
+
+
+state 28
+
+   66 Exp: KW_call '[' . ID ',' '{' Exp_List '}' ']'
+
+    ID  shift, and go to state 69
+
+
+state 29
+
+    2 Top: '{' System_List . '}'
+    7 System_List: System_List . System
+
+    KW_system  shift, and go to state 1
+    '}'        shift, and go to state 70
+
+    System  go to state 71
+
+
+state 30
+
+    6 System_List: System .
+
+    $default  reduce using rule 6 (System_List)
+
+
+state 31
+
+    0 $accept: Top $end .
+
+    $default  accept
+
+
+state 32
+
+    1 ID_item: ID .
+
+    $default  reduce using rule 1 (ID_item)
+
+
+state 33
+
+    8 System: KW_system '[' ID_item . ',' Parameter ',' System_Head ',' Let_Equations ']'
+
+    ','  shift, and go to state 72
+
+
+state 34
+
+   33 Equation: KW_equation '[' ID . @5 ',' Exp ']'
+
+    $default  reduce using rule 32 (@5)
+
+    @5  go to state 73
+
+
+state 35
+
+   41 Exp: KW_case '[' @6 . '{' Exp_List '}' @7 ']'
+
+    '{'  shift, and go to state 74
+
+
+state 36
+
+   77 Domain: KW_domain . '[' NUMBER ',' '{' ID_List '}' @9 ',' '{' Pol_List '}' ']'
+
+    '['  shift, and go to state 75
+
+
+state 37
+
+   38 Exp: KW_restrict '[' Domain . ',' Push_Clear_Case Exp ']'
+
+    ','  shift, and go to state 76
+
+
+state 38
+
+   42 Exp: KW_var '[' ID . ']'
+
+    ']'  shift, and go to state 77
+
+
+state 39
+
+   43 Exp: KW_affine '[' KW_var . '[' ID ']' ',' Matrix ']'
+
+    '['  shift, and go to state 78
+
+
+state 40
+
+   45 Exp: KW_affine '[' Constant . ',' Matrix ']'
+
+    ','  shift, and go to state 79
+
+
+state 41
+
+   75 Constant: KW_const '[' KW_matrix . '[' NUMBER ',' NUMBER @8 ',' '{' ID_List '}' ',' '{' Number_List_List '}' ']' ']'
+
+    '['  shift, and go to state 80
+
+
+state 42
+
+   71 Constant: KW_const '[' KW_true . ']'
+
+    ']'  shift, and go to state 81
+
+
+state 43
+
+   72 Constant: KW_const '[' KW_false . ']'
+
+    ']'  shift, and go to state 82
+
+
+state 44
+
+   69 Constant: KW_const '[' KW_pos_infinity . ']'
+
+    ']'  shift, and go to state 83
+
+
+state 45
+
+   70 Constant: KW_const '[' KW_neg_infinity . ']'
+
+    ']'  shift, and go to state 84
+
+
+state 46
+
+   68 Constant: KW_const '[' NUMBER . ']'
+
+    ']'  shift, and go to state 85
+
+
+state 47
+
+   73 Constant: KW_const '[' REAL . ']'
+
+    ']'  shift, and go to state 86
+
+
+state 48
+
+   46 Exp: KW_binop '[' KW_add . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 87
+
+
+state 49
+
+   47 Exp: KW_binop '[' KW_sub . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 88
+
+
+state 50
+
+   48 Exp: KW_binop '[' KW_mul . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 89
+
+
+state 51
+
+   49 Exp: KW_binop '[' KW_div . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 90
+
+
+state 52
+
+   50 Exp: KW_binop '[' KW_idiv . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 91
+
+
+state 53
+
+   51 Exp: KW_binop '[' KW_mod . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 92
+
+
+state 54
+
+   52 Exp: KW_binop '[' KW_eq . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 93
+
+
+state 55
+
+   53 Exp: KW_binop '[' KW_le . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 94
+
+
+state 56
+
+   54 Exp: KW_binop '[' KW_lt . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 95
+
+
+state 57
+
+   55 Exp: KW_binop '[' KW_gt . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 96
+
+
+state 58
+
+   56 Exp: KW_binop '[' KW_ge . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 97
+
+
+state 59
+
+   57 Exp: KW_binop '[' KW_ne . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 98
+
+
+state 60
+
+   58 Exp: KW_binop '[' KW_or . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 99
+
+
+state 61
+
+   60 Exp: KW_binop '[' KW_and . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 100
+
+
+state 62
+
+   59 Exp: KW_binop '[' KW_xor . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 101
+
+
+state 63
+
+   62 Exp: KW_binop '[' KW_max . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 102
+
+
+state 64
+
+   61 Exp: KW_binop '[' KW_min . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 103
+
+
+state 65
+
+   63 Exp: KW_unop '[' KW_neg . ',' Exp ']'
+
+    ','  shift, and go to state 104
+
+
+state 66
+
+   64 Exp: KW_unop '[' KW_sqrt . ',' Exp ']'
+
+    ','  shift, and go to state 105
+
+
+state 67
+
+   65 Exp: KW_unop '[' KW_not . ',' Exp ']'
+
+    ','  shift, and go to state 106
+
+
+state 68
+
+   67 Exp: KW_if '[' Exp . ',' Exp ',' Exp ']'
+
+    ','  shift, and go to state 107
+
+
+state 69
+
+   66 Exp: KW_call '[' ID . ',' '{' Exp_List '}' ']'
+
+    ','  shift, and go to state 108
+
+
+state 70
+
+    2 Top: '{' System_List '}' .
+
+    $default  reduce using rule 2 (Top)
+
+
+state 71
+
+    7 System_List: System_List System .
+
+    $default  reduce using rule 7 (System_List)
+
+
+state 72
+
+    8 System: KW_system '[' ID_item ',' . Parameter ',' System_Head ',' Let_Equations ']'
+
+    KW_domain  shift, and go to state 36
+
+    Parameter  go to state 109
+    Domain     go to state 110
+
+
+state 73
+
+   33 Equation: KW_equation '[' ID @5 . ',' Exp ']'
+
+    ','  shift, and go to state 111
+
+
+state 74
+
+   41 Exp: KW_case '[' @6 '{' . Exp_List '}' @7 ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    $default  reduce using rule 36 (Exp_List)
+
+    Exp_List  go to state 112
+    Exp       go to state 113
+    Constant  go to state 17
+
+
+state 75
+
+   77 Domain: KW_domain '[' . NUMBER ',' '{' ID_List '}' @9 ',' '{' Pol_List '}' ']'
+
+    NUMBER  shift, and go to state 114
+
+
+state 76
+
+   38 Exp: KW_restrict '[' Domain ',' . Push_Clear_Case Exp ']'
+
+    $default  reduce using rule 37 (Push_Clear_Case)
+
+    Push_Clear_Case  go to state 115
+
+
+state 77
+
+   42 Exp: KW_var '[' ID ']' .
+
+    $default  reduce using rule 42 (Exp)
+
+
+state 78
+
+   43 Exp: KW_affine '[' KW_var '[' . ID ']' ',' Matrix ']'
+
+    ID  shift, and go to state 116
+
+
+state 79
+
+   45 Exp: KW_affine '[' Constant ',' . Matrix ']'
+
+    KW_matrix  shift, and go to state 117
+
+    Matrix  go to state 118
+
+
+state 80
+
+   75 Constant: KW_const '[' KW_matrix '[' . NUMBER ',' NUMBER @8 ',' '{' ID_List '}' ',' '{' Number_List_List '}' ']' ']'
+
+    NUMBER  shift, and go to state 119
+
+
+state 81
+
+   71 Constant: KW_const '[' KW_true ']' .
+
+    $default  reduce using rule 71 (Constant)
+
+
+state 82
+
+   72 Constant: KW_const '[' KW_false ']' .
+
+    $default  reduce using rule 72 (Constant)
+
+
+state 83
+
+   69 Constant: KW_const '[' KW_pos_infinity ']' .
+
+    $default  reduce using rule 69 (Constant)
+
+
+state 84
+
+   70 Constant: KW_const '[' KW_neg_infinity ']' .
+
+    $default  reduce using rule 70 (Constant)
+
+
+state 85
+
+   68 Constant: KW_const '[' NUMBER ']' .
+
+    $default  reduce using rule 68 (Constant)
+
+
+state 86
+
+   73 Constant: KW_const '[' REAL ']' .
+
+    $default  reduce using rule 73 (Constant)
+
+
+state 87
+
+   46 Exp: KW_binop '[' KW_add ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 120
+    Constant  go to state 17
+
+
+state 88
+
+   47 Exp: KW_binop '[' KW_sub ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 121
+    Constant  go to state 17
+
+
+state 89
+
+   48 Exp: KW_binop '[' KW_mul ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 122
+    Constant  go to state 17
+
+
+state 90
+
+   49 Exp: KW_binop '[' KW_div ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 123
+    Constant  go to state 17
+
+
+state 91
+
+   50 Exp: KW_binop '[' KW_idiv ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 124
+    Constant  go to state 17
+
+
+state 92
+
+   51 Exp: KW_binop '[' KW_mod ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 125
+    Constant  go to state 17
+
+
+state 93
+
+   52 Exp: KW_binop '[' KW_eq ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 126
+    Constant  go to state 17
+
+
+state 94
+
+   53 Exp: KW_binop '[' KW_le ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 127
+    Constant  go to state 17
+
+
+state 95
+
+   54 Exp: KW_binop '[' KW_lt ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 128
+    Constant  go to state 17
+
+
+state 96
+
+   55 Exp: KW_binop '[' KW_gt ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 129
+    Constant  go to state 17
+
+
+state 97
+
+   56 Exp: KW_binop '[' KW_ge ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 130
+    Constant  go to state 17
+
+
+state 98
+
+   57 Exp: KW_binop '[' KW_ne ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 131
+    Constant  go to state 17
+
+
+state 99
+
+   58 Exp: KW_binop '[' KW_or ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 132
+    Constant  go to state 17
+
+
+state 100
+
+   60 Exp: KW_binop '[' KW_and ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 133
+    Constant  go to state 17
+
+
+state 101
+
+   59 Exp: KW_binop '[' KW_xor ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 134
+    Constant  go to state 17
+
+
+state 102
+
+   62 Exp: KW_binop '[' KW_max ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 135
+    Constant  go to state 17
+
+
+state 103
+
+   61 Exp: KW_binop '[' KW_min ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 136
+    Constant  go to state 17
+
+
+state 104
+
+   63 Exp: KW_unop '[' KW_neg ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 137
+    Constant  go to state 17
+
+
+state 105
+
+   64 Exp: KW_unop '[' KW_sqrt ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 138
+    Constant  go to state 17
+
+
+state 106
+
+   65 Exp: KW_unop '[' KW_not ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 139
+    Constant  go to state 17
+
+
+state 107
+
+   67 Exp: KW_if '[' Exp ',' . Exp ',' Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 140
+    Constant  go to state 17
+
+
+state 108
+
+   66 Exp: KW_call '[' ID ',' . '{' Exp_List '}' ']'
+
+    '{'  shift, and go to state 141
+
+
+state 109
+
+    8 System: KW_system '[' ID_item ',' Parameter . ',' System_Head ',' Let_Equations ']'
+
+    ','  shift, and go to state 142
+
+
+state 110
+
+    9 Parameter: Domain .
+
+    $default  reduce using rule 9 (Parameter)
+
+
+state 111
+
+   33 Equation: KW_equation '[' ID @5 ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 143
+    Constant  go to state 17
+
+
+state 112
+
+   35 Exp_List: Exp_List . ',' Exp
+   41 Exp: KW_case '[' @6 '{' Exp_List . '}' @7 ']'
+
+    '}'  shift, and go to state 144
+    ','  shift, and go to state 145
+
+
+state 113
+
+   34 Exp_List: Exp .
+
+    $default  reduce using rule 34 (Exp_List)
+
+
+state 114
+
+   77 Domain: KW_domain '[' NUMBER . ',' '{' ID_List '}' @9 ',' '{' Pol_List '}' ']'
+
+    ','  shift, and go to state 146
+
+
+state 115
+
+   38 Exp: KW_restrict '[' Domain ',' Push_Clear_Case . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 147
+    Constant  go to state 17
+
+
+state 116
+
+   43 Exp: KW_affine '[' KW_var '[' ID . ']' ',' Matrix ']'
+
+    ']'  shift, and go to state 148
+
+
+state 117
+
+   86 Matrix: KW_matrix . '[' NUMBER ',' NUMBER ',' '{' ID_List '}' @10 ',' '{' Number_List_List '}' ']'
+
+    '['  shift, and go to state 149
+
+
+state 118
+
+   45 Exp: KW_affine '[' Constant ',' Matrix . ']'
+
+    ']'  shift, and go to state 150
+
+
+state 119
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER . ',' NUMBER @8 ',' '{' ID_List '}' ',' '{' Number_List_List '}' ']' ']'
+
+    ','  shift, and go to state 151
+
+
+state 120
+
+   46 Exp: KW_binop '[' KW_add ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 152
+
+
+state 121
+
+   47 Exp: KW_binop '[' KW_sub ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 153
+
+
+state 122
+
+   48 Exp: KW_binop '[' KW_mul ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 154
+
+
+state 123
+
+   49 Exp: KW_binop '[' KW_div ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 155
+
+
+state 124
+
+   50 Exp: KW_binop '[' KW_idiv ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 156
+
+
+state 125
+
+   51 Exp: KW_binop '[' KW_mod ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 157
+
+
+state 126
+
+   52 Exp: KW_binop '[' KW_eq ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 158
+
+
+state 127
+
+   53 Exp: KW_binop '[' KW_le ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 159
+
+
+state 128
+
+   54 Exp: KW_binop '[' KW_lt ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 160
+
+
+state 129
+
+   55 Exp: KW_binop '[' KW_gt ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 161
+
+
+state 130
+
+   56 Exp: KW_binop '[' KW_ge ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 162
+
+
+state 131
+
+   57 Exp: KW_binop '[' KW_ne ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 163
+
+
+state 132
+
+   58 Exp: KW_binop '[' KW_or ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 164
+
+
+state 133
+
+   60 Exp: KW_binop '[' KW_and ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 165
+
+
+state 134
+
+   59 Exp: KW_binop '[' KW_xor ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 166
+
+
+state 135
+
+   62 Exp: KW_binop '[' KW_max ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 167
+
+
+state 136
+
+   61 Exp: KW_binop '[' KW_min ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 168
+
+
+state 137
+
+   63 Exp: KW_unop '[' KW_neg ',' Exp . ']'
+
+    ']'  shift, and go to state 169
+
+
+state 138
+
+   64 Exp: KW_unop '[' KW_sqrt ',' Exp . ']'
+
+    ']'  shift, and go to state 170
+
+
+state 139
+
+   65 Exp: KW_unop '[' KW_not ',' Exp . ']'
+
+    ']'  shift, and go to state 171
+
+
+state 140
+
+   67 Exp: KW_if '[' Exp ',' Exp . ',' Exp ']'
+
+    ','  shift, and go to state 172
+
+
+state 141
+
+   66 Exp: KW_call '[' ID ',' '{' . Exp_List '}' ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    $default  reduce using rule 36 (Exp_List)
+
+    Exp_List  go to state 173
+    Exp       go to state 113
+    Constant  go to state 17
+
+
+state 142
+
+    8 System: KW_system '[' ID_item ',' Parameter ',' . System_Head ',' Let_Equations ']'
+
+    '{'  shift, and go to state 174
+
+    System_Head  go to state 175
+    Input_Decl   go to state 176
+
+
+state 143
+
+   33 Equation: KW_equation '[' ID @5 ',' Exp . ']'
+
+    ']'  shift, and go to state 177
+
+
+state 144
+
+   41 Exp: KW_case '[' @6 '{' Exp_List '}' . @7 ']'
+
+    $default  reduce using rule 40 (@7)
+
+    @7  go to state 178
+
+
+state 145
+
+   35 Exp_List: Exp_List ',' . Exp
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 179
+    Constant  go to state 17
+
+
+state 146
+
+   77 Domain: KW_domain '[' NUMBER ',' . '{' ID_List '}' @9 ',' '{' Pol_List '}' ']'
+
+    '{'  shift, and go to state 180
+
+
+state 147
+
+   38 Exp: KW_restrict '[' Domain ',' Push_Clear_Case Exp . ']'
+
+    ']'  shift, and go to state 181
+
+
+state 148
+
+   43 Exp: KW_affine '[' KW_var '[' ID ']' . ',' Matrix ']'
+
+    ','  shift, and go to state 182
+
+
+state 149
+
+   86 Matrix: KW_matrix '[' . NUMBER ',' NUMBER ',' '{' ID_List '}' @10 ',' '{' Number_List_List '}' ']'
+
+    NUMBER  shift, and go to state 183
+
+
+state 150
+
+   45 Exp: KW_affine '[' Constant ',' Matrix ']' .
+
+    $default  reduce using rule 45 (Exp)
+
+
+state 151
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' . NUMBER @8 ',' '{' ID_List '}' ',' '{' Number_List_List '}' ']' ']'
+
+    NUMBER  shift, and go to state 184
+
+
+state 152
+
+   46 Exp: KW_binop '[' KW_add ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 185
+    Constant  go to state 17
+
+
+state 153
+
+   47 Exp: KW_binop '[' KW_sub ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 186
+    Constant  go to state 17
+
+
+state 154
+
+   48 Exp: KW_binop '[' KW_mul ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 187
+    Constant  go to state 17
+
+
+state 155
+
+   49 Exp: KW_binop '[' KW_div ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 188
+    Constant  go to state 17
+
+
+state 156
+
+   50 Exp: KW_binop '[' KW_idiv ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 189
+    Constant  go to state 17
+
+
+state 157
+
+   51 Exp: KW_binop '[' KW_mod ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 190
+    Constant  go to state 17
+
+
+state 158
+
+   52 Exp: KW_binop '[' KW_eq ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 191
+    Constant  go to state 17
+
+
+state 159
+
+   53 Exp: KW_binop '[' KW_le ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 192
+    Constant  go to state 17
+
+
+state 160
+
+   54 Exp: KW_binop '[' KW_lt ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 193
+    Constant  go to state 17
+
+
+state 161
+
+   55 Exp: KW_binop '[' KW_gt ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 194
+    Constant  go to state 17
+
+
+state 162
+
+   56 Exp: KW_binop '[' KW_ge ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 195
+    Constant  go to state 17
+
+
+state 163
+
+   57 Exp: KW_binop '[' KW_ne ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 196
+    Constant  go to state 17
+
+
+state 164
+
+   58 Exp: KW_binop '[' KW_or ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 197
+    Constant  go to state 17
+
+
+state 165
+
+   60 Exp: KW_binop '[' KW_and ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 198
+    Constant  go to state 17
+
+
+state 166
+
+   59 Exp: KW_binop '[' KW_xor ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 199
+    Constant  go to state 17
+
+
+state 167
+
+   62 Exp: KW_binop '[' KW_max ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 200
+    Constant  go to state 17
+
+
+state 168
+
+   61 Exp: KW_binop '[' KW_min ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 201
+    Constant  go to state 17
+
+
+state 169
+
+   63 Exp: KW_unop '[' KW_neg ',' Exp ']' .
+
+    $default  reduce using rule 63 (Exp)
+
+
+state 170
+
+   64 Exp: KW_unop '[' KW_sqrt ',' Exp ']' .
+
+    $default  reduce using rule 64 (Exp)
+
+
+state 171
+
+   65 Exp: KW_unop '[' KW_not ',' Exp ']' .
+
+    $default  reduce using rule 65 (Exp)
+
+
+state 172
+
+   67 Exp: KW_if '[' Exp ',' Exp ',' . Exp ']'
+
+    KW_case      shift, and go to state 3
+    KW_restrict  shift, and go to state 4
+    KW_var       shift, and go to state 5
+    KW_affine    shift, and go to state 6
+    KW_const     shift, and go to state 7
+    KW_binop     shift, and go to state 8
+    KW_unop      shift, and go to state 9
+    KW_if        shift, and go to state 10
+    KW_call      shift, and go to state 11
+
+    Exp       go to state 202
+    Constant  go to state 17
+
+
+state 173
+
+   35 Exp_List: Exp_List . ',' Exp
+   66 Exp: KW_call '[' ID ',' '{' Exp_List . '}' ']'
+
+    '}'  shift, and go to state 203
+    ','  shift, and go to state 145
+
+
+state 174
+
+   13 Input_Decl: '{' . @1 Decl_List @2 '}'
+
+    $default  reduce using rule 11 (@1)
+
+    @1  go to state 204
+
+
+state 175
+
+    8 System: KW_system '[' ID_item ',' Parameter ',' System_Head . ',' Let_Equations ']'
+
+    ','  shift, and go to state 205
+
+
+state 176
+
+   10 System_Head: Input_Decl . ',' Output_Decl ',' Local_Decl
+
+    ','  shift, and go to state 206
+
+
+state 177
+
+   33 Equation: KW_equation '[' ID @5 ',' Exp ']' .
+
+    $default  reduce using rule 33 (Equation)
+
+
+state 178
+
+   41 Exp: KW_case '[' @6 '{' Exp_List '}' @7 . ']'
+
+    ']'  shift, and go to state 207
+
+
+state 179
+
+   35 Exp_List: Exp_List ',' Exp .
+
+    $default  reduce using rule 35 (Exp_List)
+
+
+state 180
+
+   77 Domain: KW_domain '[' NUMBER ',' '{' . ID_List '}' @9 ',' '{' Pol_List '}' ']'
+
+    ID  shift, and go to state 208
+
+    $default  reduce using rule 80 (ID_List)
+
+    ID_List  go to state 209
+
+
+state 181
+
+   38 Exp: KW_restrict '[' Domain ',' Push_Clear_Case Exp ']' .
+
+    $default  reduce using rule 38 (Exp)
+
+
+state 182
+
+   43 Exp: KW_affine '[' KW_var '[' ID ']' ',' . Matrix ']'
+
+    KW_matrix  shift, and go to state 117
+
+    Matrix  go to state 210
+
+
+state 183
+
+   86 Matrix: KW_matrix '[' NUMBER . ',' NUMBER ',' '{' ID_List '}' @10 ',' '{' Number_List_List '}' ']'
+
+    ','  shift, and go to state 211
+
+
+state 184
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER . @8 ',' '{' ID_List '}' ',' '{' Number_List_List '}' ']' ']'
+
+    $default  reduce using rule 74 (@8)
+
+    @8  go to state 212
+
+
+state 185
+
+   46 Exp: KW_binop '[' KW_add ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 213
+
+
+state 186
+
+   47 Exp: KW_binop '[' KW_sub ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 214
+
+
+state 187
+
+   48 Exp: KW_binop '[' KW_mul ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 215
+
+
+state 188
+
+   49 Exp: KW_binop '[' KW_div ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 216
+
+
+state 189
+
+   50 Exp: KW_binop '[' KW_idiv ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 217
+
+
+state 190
+
+   51 Exp: KW_binop '[' KW_mod ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 218
+
+
+state 191
+
+   52 Exp: KW_binop '[' KW_eq ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 219
+
+
+state 192
+
+   53 Exp: KW_binop '[' KW_le ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 220
+
+
+state 193
+
+   54 Exp: KW_binop '[' KW_lt ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 221
+
+
+state 194
+
+   55 Exp: KW_binop '[' KW_gt ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 222
+
+
+state 195
+
+   56 Exp: KW_binop '[' KW_ge ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 223
+
+
+state 196
+
+   57 Exp: KW_binop '[' KW_ne ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 224
+
+
+state 197
+
+   58 Exp: KW_binop '[' KW_or ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 225
+
+
+state 198
+
+   60 Exp: KW_binop '[' KW_and ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 226
+
+
+state 199
+
+   59 Exp: KW_binop '[' KW_xor ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 227
+
+
+state 200
+
+   62 Exp: KW_binop '[' KW_max ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 228
+
+
+state 201
+
+   61 Exp: KW_binop '[' KW_min ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 229
+
+
+state 202
+
+   67 Exp: KW_if '[' Exp ',' Exp ',' Exp . ']'
+
+    ']'  shift, and go to state 230
+
+
+state 203
+
+   66 Exp: KW_call '[' ID ',' '{' Exp_List '}' . ']'
+
+    ']'  shift, and go to state 231
+
+
+state 204
+
+   13 Input_Decl: '{' @1 . Decl_List @2 '}'
+
+    KW_decl  shift, and go to state 232
+
+    $default  reduce using rule 23 (Decl_List)
+
+    Decl_List  go to state 233
+    Decl       go to state 234
+
+
+state 205
+
+    8 System: KW_system '[' ID_item ',' Parameter ',' System_Head ',' . Let_Equations ']'
+
+    KW_let  shift, and go to state 235
+    '{'     shift, and go to state 236
+
+    Let_Equations  go to state 237
+
+
+state 206
+
+   10 System_Head: Input_Decl ',' . Output_Decl ',' Local_Decl
+
+    '{'  shift, and go to state 238
+
+    Output_Decl  go to state 239
+
+
+state 207
+
+   41 Exp: KW_case '[' @6 '{' Exp_List '}' @7 ']' .
+
+    $default  reduce using rule 41 (Exp)
+
+
+state 208
+
+   78 ID_List: ID .
+
+    $default  reduce using rule 78 (ID_List)
+
+
+state 209
+
+   77 Domain: KW_domain '[' NUMBER ',' '{' ID_List . '}' @9 ',' '{' Pol_List '}' ']'
+   79 ID_List: ID_List . ',' ID
+
+    '}'  shift, and go to state 240
+    ','  shift, and go to state 241
+
+
+state 210
+
+   43 Exp: KW_affine '[' KW_var '[' ID ']' ',' Matrix . ']'
+
+    ']'  shift, and go to state 242
+
+
+state 211
+
+   86 Matrix: KW_matrix '[' NUMBER ',' . NUMBER ',' '{' ID_List '}' @10 ',' '{' Number_List_List '}' ']'
+
+    NUMBER  shift, and go to state 243
+
+
+state 212
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 . ',' '{' ID_List '}' ',' '{' Number_List_List '}' ']' ']'
+
+    ','  shift, and go to state 244
+
+
+state 213
+
+   46 Exp: KW_binop '[' KW_add ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 46 (Exp)
+
+
+state 214
+
+   47 Exp: KW_binop '[' KW_sub ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 47 (Exp)
+
+
+state 215
+
+   48 Exp: KW_binop '[' KW_mul ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 48 (Exp)
+
+
+state 216
+
+   49 Exp: KW_binop '[' KW_div ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 49 (Exp)
+
+
+state 217
+
+   50 Exp: KW_binop '[' KW_idiv ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 50 (Exp)
+
+
+state 218
+
+   51 Exp: KW_binop '[' KW_mod ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 51 (Exp)
+
+
+state 219
+
+   52 Exp: KW_binop '[' KW_eq ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 52 (Exp)
+
+
+state 220
+
+   53 Exp: KW_binop '[' KW_le ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 53 (Exp)
+
+
+state 221
+
+   54 Exp: KW_binop '[' KW_lt ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 54 (Exp)
+
+
+state 222
+
+   55 Exp: KW_binop '[' KW_gt ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 55 (Exp)
+
+
+state 223
+
+   56 Exp: KW_binop '[' KW_ge ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 56 (Exp)
+
+
+state 224
+
+   57 Exp: KW_binop '[' KW_ne ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 57 (Exp)
+
+
+state 225
+
+   58 Exp: KW_binop '[' KW_or ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 58 (Exp)
+
+
+state 226
+
+   60 Exp: KW_binop '[' KW_and ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 60 (Exp)
+
+
+state 227
+
+   59 Exp: KW_binop '[' KW_xor ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 59 (Exp)
+
+
+state 228
+
+   62 Exp: KW_binop '[' KW_max ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 62 (Exp)
+
+
+state 229
+
+   61 Exp: KW_binop '[' KW_min ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 61 (Exp)
+
+
+state 230
+
+   67 Exp: KW_if '[' Exp ',' Exp ',' Exp ']' .
+
+    $default  reduce using rule 67 (Exp)
+
+
+state 231
+
+   66 Exp: KW_call '[' ID ',' '{' Exp_List '}' ']' .
+
+    $default  reduce using rule 66 (Exp)
+
+
+state 232
+
+   24 Decl: KW_decl . '[' ID ',' Data_Type ',' KW_scalar ']'
+   25     | KW_decl . '[' ID ',' Data_Type ',' Domain ']'
+
+    '['  shift, and go to state 245
+
+
+state 233
+
+   13 Input_Decl: '{' @1 Decl_List . @2 '}'
+   22 Decl_List: Decl_List . ',' Decl
+
+    ','  shift, and go to state 246
+
+    $default  reduce using rule 12 (@2)
+
+    @2  go to state 247
+
+
+state 234
+
+   21 Decl_List: Decl .
+
+    $default  reduce using rule 21 (Decl_List)
+
+
+state 235
+
+   19 Let_Equations: KW_let . '[' '{' Equation_List '}' ']'
+   20              | KW_let . '[' Equation_List ']'
+
+    '['  shift, and go to state 248
+
+
+state 236
+
+   18 Let_Equations: '{' . Equation_List '}'
+
+    KW_equation  shift, and go to state 2
+
+    $default  reduce using rule 31 (Equation_List)
+
+    Equation_List  go to state 249
+    Equation       go to state 250
+
+
+state 237
+
+    8 System: KW_system '[' ID_item ',' Parameter ',' System_Head ',' Let_Equations . ']'
+
+    ']'  shift, and go to state 251
+
+
+state 238
+
+   16 Output_Decl: '{' . @3 Decl_List @4 '}'
+
+    $default  reduce using rule 14 (@3)
+
+    @3  go to state 252
+
+
+state 239
+
+   10 System_Head: Input_Decl ',' Output_Decl . ',' Local_Decl
+
+    ','  shift, and go to state 253
+
+
+state 240
+
+   77 Domain: KW_domain '[' NUMBER ',' '{' ID_List '}' . @9 ',' '{' Pol_List '}' ']'
+
+    $default  reduce using rule 76 (@9)
+
+    @9  go to state 254
+
+
+state 241
+
+   79 ID_List: ID_List ',' . ID
+
+    ID  shift, and go to state 255
+
+
+state 242
+
+   43 Exp: KW_affine '[' KW_var '[' ID ']' ',' Matrix ']' .
+
+    $default  reduce using rule 43 (Exp)
+
+
+state 243
+
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER . ',' '{' ID_List '}' @10 ',' '{' Number_List_List '}' ']'
+
+    ','  shift, and go to state 256
+
+
+state 244
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' . '{' ID_List '}' ',' '{' Number_List_List '}' ']' ']'
+
+    '{'  shift, and go to state 257
+
+
+state 245
+
+   24 Decl: KW_decl '[' . ID ',' Data_Type ',' KW_scalar ']'
+   25     | KW_decl '[' . ID ',' Data_Type ',' Domain ']'
+
+    ID  shift, and go to state 258
+
+
+state 246
+
+   22 Decl_List: Decl_List ',' . Decl
+
+    KW_decl  shift, and go to state 232
+
+    Decl  go to state 259
+
+
+state 247
+
+   13 Input_Decl: '{' @1 Decl_List @2 . '}'
+
+    '}'  shift, and go to state 260
+
+
+state 248
+
+   19 Let_Equations: KW_let '[' . '{' Equation_List '}' ']'
+   20              | KW_let '[' . Equation_List ']'
+
+    KW_equation  shift, and go to state 2
+    '{'          shift, and go to state 261
+
+    $default  reduce using rule 31 (Equation_List)
+
+    Equation_List  go to state 262
+    Equation       go to state 250
+
+
+state 249
+
+   18 Let_Equations: '{' Equation_List . '}'
+   30 Equation_List: Equation_List . ',' Equation
+
+    '}'  shift, and go to state 263
+    ','  shift, and go to state 264
+
+
+state 250
+
+   29 Equation_List: Equation .
+
+    $default  reduce using rule 29 (Equation_List)
+
+
+state 251
+
+    8 System: KW_system '[' ID_item ',' Parameter ',' System_Head ',' Let_Equations ']' .
+
+    $default  reduce using rule 8 (System)
+
+
+state 252
+
+   16 Output_Decl: '{' @3 . Decl_List @4 '}'
+
+    KW_decl  shift, and go to state 232
+
+    $default  reduce using rule 23 (Decl_List)
+
+    Decl_List  go to state 265
+    Decl       go to state 234
+
+
+state 253
+
+   10 System_Head: Input_Decl ',' Output_Decl ',' . Local_Decl
+
+    '{'  shift, and go to state 266
+
+    Local_Decl  go to state 267
+
+
+state 254
+
+   77 Domain: KW_domain '[' NUMBER ',' '{' ID_List '}' @9 . ',' '{' Pol_List '}' ']'
+
+    ','  shift, and go to state 268
+
+
+state 255
+
+   79 ID_List: ID_List ',' ID .
+
+    $default  reduce using rule 79 (ID_List)
+
+
+state 256
+
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER ',' . '{' ID_List '}' @10 ',' '{' Number_List_List '}' ']'
+
+    '{'  shift, and go to state 269
+
+
+state 257
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' . ID_List '}' ',' '{' Number_List_List '}' ']' ']'
+
+    ID  shift, and go to state 208
+
+    $default  reduce using rule 80 (ID_List)
+
+    ID_List  go to state 270
+
+
+state 258
+
+   24 Decl: KW_decl '[' ID . ',' Data_Type ',' KW_scalar ']'
+   25     | KW_decl '[' ID . ',' Data_Type ',' Domain ']'
+
+    ','  shift, and go to state 271
+
+
+state 259
+
+   22 Decl_List: Decl_List ',' Decl .
+
+    $default  reduce using rule 22 (Decl_List)
+
+
+state 260
+
+   13 Input_Decl: '{' @1 Decl_List @2 '}' .
+
+    $default  reduce using rule 13 (Input_Decl)
+
+
+state 261
+
+   19 Let_Equations: KW_let '[' '{' . Equation_List '}' ']'
+
+    KW_equation  shift, and go to state 2
+
+    $default  reduce using rule 31 (Equation_List)
+
+    Equation_List  go to state 272
+    Equation       go to state 250
+
+
+state 262
+
+   20 Let_Equations: KW_let '[' Equation_List . ']'
+   30 Equation_List: Equation_List . ',' Equation
+
+    ','  shift, and go to state 264
+    ']'  shift, and go to state 273
+
+
+state 263
+
+   18 Let_Equations: '{' Equation_List '}' .
+
+    $default  reduce using rule 18 (Let_Equations)
+
+
+state 264
+
+   30 Equation_List: Equation_List ',' . Equation
+
+    KW_equation  shift, and go to state 2
+
+    Equation  go to state 274
+
+
+state 265
+
+   16 Output_Decl: '{' @3 Decl_List . @4 '}'
+   22 Decl_List: Decl_List . ',' Decl
+
+    ','  shift, and go to state 246
+
+    $default  reduce using rule 15 (@4)
+
+    @4  go to state 275
+
+
+state 266
+
+   17 Local_Decl: '{' . Decl_List '}'
+
+    KW_decl  shift, and go to state 232
+
+    $default  reduce using rule 23 (Decl_List)
+
+    Decl_List  go to state 276
+    Decl       go to state 234
+
+
+state 267
+
+   10 System_Head: Input_Decl ',' Output_Decl ',' Local_Decl .
+
+    $default  reduce using rule 10 (System_Head)
+
+
+state 268
+
+   77 Domain: KW_domain '[' NUMBER ',' '{' ID_List '}' @9 ',' . '{' Pol_List '}' ']'
+
+    '{'  shift, and go to state 277
+
+
+state 269
+
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER ',' '{' . ID_List '}' @10 ',' '{' Number_List_List '}' ']'
+
+    ID  shift, and go to state 208
+
+    $default  reduce using rule 80 (ID_List)
+
+    ID_List  go to state 278
+
+
+state 270
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' ID_List . '}' ',' '{' Number_List_List '}' ']' ']'
+   79 ID_List: ID_List . ',' ID
+
+    '}'  shift, and go to state 279
+    ','  shift, and go to state 241
+
+
+state 271
+
+   24 Decl: KW_decl '[' ID ',' . Data_Type ',' KW_scalar ']'
+   25     | KW_decl '[' ID ',' . Data_Type ',' Domain ']'
+
+    KW_integer  shift, and go to state 280
+    KW_boolean  shift, and go to state 281
+    KW_real     shift, and go to state 282
+
+    Data_Type  go to state 283
+
+
+state 272
+
+   19 Let_Equations: KW_let '[' '{' Equation_List . '}' ']'
+   30 Equation_List: Equation_List . ',' Equation
+
+    '}'  shift, and go to state 284
+    ','  shift, and go to state 264
+
+
+state 273
+
+   20 Let_Equations: KW_let '[' Equation_List ']' .
+
+    $default  reduce using rule 20 (Let_Equations)
+
+
+state 274
+
+   30 Equation_List: Equation_List ',' Equation .
+
+    $default  reduce using rule 30 (Equation_List)
+
+
+state 275
+
+   16 Output_Decl: '{' @3 Decl_List @4 . '}'
+
+    '}'  shift, and go to state 285
+
+
+state 276
+
+   17 Local_Decl: '{' Decl_List . '}'
+   22 Decl_List: Decl_List . ',' Decl
+
+    '}'  shift, and go to state 286
+    ','  shift, and go to state 246
+
+
+state 277
+
+   77 Domain: KW_domain '[' NUMBER ',' '{' ID_List '}' @9 ',' '{' . Pol_List '}' ']'
+
+    KW_pol  shift, and go to state 287
+
+    $default  reduce using rule 83 (Pol_List)
+
+    Pol_List  go to state 288
+    Pol       go to state 289
+
+
+state 278
+
+   79 ID_List: ID_List . ',' ID
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER ',' '{' ID_List . '}' @10 ',' '{' Number_List_List '}' ']'
+
+    '}'  shift, and go to state 290
+    ','  shift, and go to state 241
+
+
+state 279
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' ID_List '}' . ',' '{' Number_List_List '}' ']' ']'
+
+    ','  shift, and go to state 291
+
+
+state 280
+
+   26 Data_Type: KW_integer .
+
+    $default  reduce using rule 26 (Data_Type)
+
+
+state 281
+
+   27 Data_Type: KW_boolean .
+
+    $default  reduce using rule 27 (Data_Type)
+
+
+state 282
+
+   28 Data_Type: KW_real .
+
+    $default  reduce using rule 28 (Data_Type)
+
+
+state 283
+
+   24 Decl: KW_decl '[' ID ',' Data_Type . ',' KW_scalar ']'
+   25     | KW_decl '[' ID ',' Data_Type . ',' Domain ']'
+
+    ','  shift, and go to state 292
+
+
+state 284
+
+   19 Let_Equations: KW_let '[' '{' Equation_List '}' . ']'
+
+    ']'  shift, and go to state 293
+
+
+state 285
+
+   16 Output_Decl: '{' @3 Decl_List @4 '}' .
+
+    $default  reduce using rule 16 (Output_Decl)
+
+
+state 286
+
+   17 Local_Decl: '{' Decl_List '}' .
+
+    $default  reduce using rule 17 (Local_Decl)
+
+
+state 287
+
+   84 Pol: KW_pol . '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+    '['  shift, and go to state 294
+
+
+state 288
+
+   77 Domain: KW_domain '[' NUMBER ',' '{' ID_List '}' @9 ',' '{' Pol_List . '}' ']'
+   82 Pol_List: Pol_List . ',' Pol
+
+    '}'  shift, and go to state 295
+    ','  shift, and go to state 296
+
+
+state 289
+
+   81 Pol_List: Pol .
+
+    $default  reduce using rule 81 (Pol_List)
+
+
+state 290
+
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER ',' '{' ID_List '}' . @10 ',' '{' Number_List_List '}' ']'
+
+    $default  reduce using rule 85 (@10)
+
+    @10  go to state 297
+
+
+state 291
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' ID_List '}' ',' . '{' Number_List_List '}' ']' ']'
+
+    '{'  shift, and go to state 298
+
+
+state 292
+
+   24 Decl: KW_decl '[' ID ',' Data_Type ',' . KW_scalar ']'
+   25     | KW_decl '[' ID ',' Data_Type ',' . Domain ']'
+
+    KW_scalar  shift, and go to state 299
+    KW_domain  shift, and go to state 36
+
+    Domain  go to state 300
+
+
+state 293
+
+   19 Let_Equations: KW_let '[' '{' Equation_List '}' ']' .
+
+    $default  reduce using rule 19 (Let_Equations)
+
+
+state 294
+
+   84 Pol: KW_pol '[' . NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+    NUMBER  shift, and go to state 301
+
+
+state 295
+
+   77 Domain: KW_domain '[' NUMBER ',' '{' ID_List '}' @9 ',' '{' Pol_List '}' . ']'
+
+    ']'  shift, and go to state 302
+
+
+state 296
+
+   82 Pol_List: Pol_List ',' . Pol
+
+    KW_pol  shift, and go to state 287
+
+    Pol  go to state 303
+
+
+state 297
+
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER ',' '{' ID_List '}' @10 . ',' '{' Number_List_List '}' ']'
+
+    ','  shift, and go to state 304
+
+
+state 298
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' ID_List '}' ',' '{' . Number_List_List '}' ']' ']'
+
+    '{'  shift, and go to state 305
+
+    $default  reduce using rule 92 (Number_List_List)
+
+    Number_List_List  go to state 306
+
+
+state 299
+
+   24 Decl: KW_decl '[' ID ',' Data_Type ',' KW_scalar . ']'
+
+    ']'  shift, and go to state 307
+
+
+state 300
+
+   25 Decl: KW_decl '[' ID ',' Data_Type ',' Domain . ']'
+
+    ']'  shift, and go to state 308
+
+
+state 301
+
+   84 Pol: KW_pol '[' NUMBER . ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+    ','  shift, and go to state 309
+
+
+state 302
+
+   77 Domain: KW_domain '[' NUMBER ',' '{' ID_List '}' @9 ',' '{' Pol_List '}' ']' .
+
+    $default  reduce using rule 77 (Domain)
+
+
+state 303
+
+   82 Pol_List: Pol_List ',' Pol .
+
+    $default  reduce using rule 82 (Pol_List)
+
+
+state 304
+
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER ',' '{' ID_List '}' @10 ',' . '{' Number_List_List '}' ']'
+
+    '{'  shift, and go to state 310
+
+
+state 305
+
+   90 Number_List_List: '{' . Number_List '}'
+
+    NUMBER  shift, and go to state 311
+
+    $default  reduce using rule 89 (Number_List)
+
+    Number_List  go to state 312
+
+
+state 306
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' ID_List '}' ',' '{' Number_List_List . '}' ']' ']'
+   91 Number_List_List: Number_List_List . ',' '{' Number_List '}'
+
+    '}'  shift, and go to state 313
+    ','  shift, and go to state 314
+
+
+state 307
+
+   24 Decl: KW_decl '[' ID ',' Data_Type ',' KW_scalar ']' .
+
+    $default  reduce using rule 24 (Decl)
+
+
+state 308
+
+   25 Decl: KW_decl '[' ID ',' Data_Type ',' Domain ']' .
+
+    $default  reduce using rule 25 (Decl)
+
+
+state 309
+
+   84 Pol: KW_pol '[' NUMBER ',' . NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+    NUMBER  shift, and go to state 315
+
+
+state 310
+
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER ',' '{' ID_List '}' @10 ',' '{' . Number_List_List '}' ']'
+
+    '{'  shift, and go to state 305
+
+    $default  reduce using rule 92 (Number_List_List)
+
+    Number_List_List  go to state 316
+
+
+state 311
+
+   87 Number_List: NUMBER .
+
+    $default  reduce using rule 87 (Number_List)
+
+
+state 312
+
+   88 Number_List: Number_List . ',' NUMBER
+   90 Number_List_List: '{' Number_List . '}'
+
+    '}'  shift, and go to state 317
+    ','  shift, and go to state 318
+
+
+state 313
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' ID_List '}' ',' '{' Number_List_List '}' . ']' ']'
+
+    ']'  shift, and go to state 319
+
+
+state 314
+
+   91 Number_List_List: Number_List_List ',' . '{' Number_List '}'
+
+    '{'  shift, and go to state 320
+
+
+state 315
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER . ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+    ','  shift, and go to state 321
+
+
+state 316
+
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER ',' '{' ID_List '}' @10 ',' '{' Number_List_List . '}' ']'
+   91 Number_List_List: Number_List_List . ',' '{' Number_List '}'
+
+    '}'  shift, and go to state 322
+    ','  shift, and go to state 314
+
+
+state 317
+
+   90 Number_List_List: '{' Number_List '}' .
+
+    $default  reduce using rule 90 (Number_List_List)
+
+
+state 318
+
+   88 Number_List: Number_List ',' . NUMBER
+
+    NUMBER  shift, and go to state 323
+
+
+state 319
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' ID_List '}' ',' '{' Number_List_List '}' ']' . ']'
+
+    ']'  shift, and go to state 324
+
+
+state 320
+
+   91 Number_List_List: Number_List_List ',' '{' . Number_List '}'
+
+    NUMBER  shift, and go to state 311
+
+    $default  reduce using rule 89 (Number_List)
+
+    Number_List  go to state 325
+
+
+state 321
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' . NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+    NUMBER  shift, and go to state 326
+
+
+state 322
+
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER ',' '{' ID_List '}' @10 ',' '{' Number_List_List '}' . ']'
+
+    ']'  shift, and go to state 327
+
+
+state 323
+
+   88 Number_List: Number_List ',' NUMBER .
+
+    $default  reduce using rule 88 (Number_List)
+
+
+state 324
+
+   75 Constant: KW_const '[' KW_matrix '[' NUMBER ',' NUMBER @8 ',' '{' ID_List '}' ',' '{' Number_List_List '}' ']' ']' .
+
+    $default  reduce using rule 75 (Constant)
+
+
+state 325
+
+   88 Number_List: Number_List . ',' NUMBER
+   91 Number_List_List: Number_List_List ',' '{' Number_List . '}'
+
+    '}'  shift, and go to state 328
+    ','  shift, and go to state 318
+
+
+state 326
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER . ',' NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+    ','  shift, and go to state 329
+
+
+state 327
+
+   86 Matrix: KW_matrix '[' NUMBER ',' NUMBER ',' '{' ID_List '}' @10 ',' '{' Number_List_List '}' ']' .
+
+    $default  reduce using rule 86 (Matrix)
+
+
+state 328
+
+   91 Number_List_List: Number_List_List ',' '{' Number_List '}' .
+
+    $default  reduce using rule 91 (Number_List_List)
+
+
+state 329
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' . NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+    NUMBER  shift, and go to state 330
+
+
+state 330
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER . ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+    ','  shift, and go to state 331
+
+
+state 331
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' . '{' Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+    '{'  shift, and go to state 332
+
+
+state 332
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' . Number_List_List '}' ',' '{' Number_List_List '}' ']'
+
+    '{'  shift, and go to state 305
+
+    $default  reduce using rule 92 (Number_List_List)
+
+    Number_List_List  go to state 333
+
+
+state 333
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List . '}' ',' '{' Number_List_List '}' ']'
+   91 Number_List_List: Number_List_List . ',' '{' Number_List '}'
+
+    '}'  shift, and go to state 334
+    ','  shift, and go to state 314
+
+
+state 334
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' . ',' '{' Number_List_List '}' ']'
+
+    ','  shift, and go to state 335
+
+
+state 335
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' . '{' Number_List_List '}' ']'
+
+    '{'  shift, and go to state 336
+
+
+state 336
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' '{' . Number_List_List '}' ']'
+
+    '{'  shift, and go to state 305
+
+    $default  reduce using rule 92 (Number_List_List)
+
+    Number_List_List  go to state 337
+
+
+state 337
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List . '}' ']'
+   91 Number_List_List: Number_List_List . ',' '{' Number_List '}'
+
+    '}'  shift, and go to state 338
+    ','  shift, and go to state 314
+
+
+state 338
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' . ']'
+
+    ']'  shift, and go to state 339
+
+
+state 339
+
+   84 Pol: KW_pol '[' NUMBER ',' NUMBER ',' NUMBER ',' NUMBER ',' '{' Number_List_List '}' ',' '{' Number_List_List '}' ']' .
+
+    $default  reduce using rule 84 (Pol)

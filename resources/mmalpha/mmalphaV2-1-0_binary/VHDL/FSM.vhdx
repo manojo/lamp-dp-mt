@@ -1,0 +1,62 @@
+--
+-- Finite state machine
+-- $comment$
+--
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_signed.all;
+use IEEE.numeric_std.all;
+
+ENTITY $name$ IS
+  PORT(
+    clk : IN STD_LOGIC;
+    CE_gen : IN STD_LOGIC;
+    rst : IN STD_LOGIC;
+$outputs$
+  );
+END $name$;
+
+ARCHITECTURE archiOf$name$ OF $name$ IS
+   
+-- Declaration of the states
+TYPE state_type IS ($states$);
+
+ATTRIBUTE ENUM_ENCODING: STRING;
+ATTRIBUTE ENUM_ENCODING OF state_type : TYPE IS $encoding$;
+
+SIGNAL curstate, nextstate : STATE_TYPE;
+SIGNAL count : INTEGER;
+
+BEGIN
+
+---- Synchronous reset process
+PROCESS(rst,clk)
+BEGIN
+  IF clk = '1' AND clk'event THEN
+    IF CE_gen = '1' THEN
+      IF rst='0' THEN
+        curstate <= state0;
+        count <= 0;
+      ELSE 
+        curstate <= nextstate;
+        count <= count+1;
+      END IF;
+    END IF;
+  END IF;
+END PROCESS;
+
+-- Transition function --
+PROCESS( count, curstate )
+BEGIN
+  CASE curstate IS
+$transitions$
+  END CASE;
+END PROCESS;
+
+-- Output function
+$actions$
+                           
+END archiOf$name$;               
+
+

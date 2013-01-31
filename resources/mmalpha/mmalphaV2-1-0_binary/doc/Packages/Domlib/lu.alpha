@@ -1,0 +1,24 @@
+system lu (a : {i,j | i-1>=0;-i+8>=0;j-1>=0;-j+8>=0} of real)
+       returns (l : {i,j | i-j-1>=0;-i+8>=0;j-1>=0} of real; 
+                u : {i,j | i-1>=0;-i+j>=0;-j+8>=0} of real);
+var
+  L : {t,j,k | -t+j+k+8>=0;-j+8>=0;k-1>=0;t-j-2k-1>=0;j-k-1>=0} of real;
+  U : {t,j,k | -t+j+k+8>=0;-j+8>=0;k-1>=0;t-j-2k-1>=0;j-k>=0} of real;
+  F : {t,j,k | -t+j+k+8>=0;j-1>=0;-j+8>=0;k>=0;t-j-2k-1>=0;j-k>=0} of real;
+let
+  L = case
+        {t,j,k | j-k-1=0}: F.(t,j,k->t-1,j-1,k);
+        {t,j,k | j-k-2>=0}: L.(t,j,k->t-1,j-1,k);
+      esac;
+  U = case
+        {t,j,k | t-j-2k-1=0}: F.(t,j,k->t-2,j,k-1);
+        {t,j,k | t-j-2k-2>=0}: U.(t,j,k->t-1,j,k);
+      esac;
+  F = case
+        {t,j,k | k=0}: a.(t,j,k->t-j-k,j);
+        {t,j,k | j-k=0}: F.(t,j,k->t-1,j,k-1) / U;
+        {t,j,k | j-k-1>=0}: F.(t,j,k->t-1,j,k-1) - L * U;
+      esac;
+  l = F.(i,j->i+2j,j,j);
+  u = F.(i,j->2i+j-1,j,i-1);
+tel;

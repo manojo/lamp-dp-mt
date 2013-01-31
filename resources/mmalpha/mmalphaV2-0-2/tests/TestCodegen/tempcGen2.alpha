@@ -1,0 +1,15 @@
+"system SimpleEx :{N,M | 2<=N; 0<=M}\n                (a : {n | 1<=n<=N} of \
+real; \n                 b : {n,i | 1<=n<=N; 0<=i<=M} of real)\n       \
+returns  (c : {n,i | 1<=n<=N; 0<=i<=M} of real);\nvar\n  outc : {t,p | \
+4<=t<=M+4; 1<=p<=N; 2<=N} of real;\n  A : {t,p | (p-N+2,2)<=t<=(p+1,M+2)} of \
+real;\n  Amirr : {t,p1,p2 | t=1; p1=0; 1<=p2<=N} of real;\n  B_mirr : \
+{t,p1,p2 | t=1; (p2-N+1,0)<=p1<=(p2,M)} of real;\n  B_reg : {t,p1,p2 | t=2; \
+(p2-N,0)<=p1<=(p2-1,M)} of real;\n  C : {t,p | (p-N+3,3)<=t<=(p+2,M+3)} of \
+real;\nlet\n  c = outc.(n,i->i+4,n);\n  B_mirr = \
+b.(t,p->t-p+1,p).(t,p1,p2->p2,p1);\n  A = case\n        {t,p | p=0} : \
+Amirr.(t,p->1,p,t).(t,p->t,p);\n        {t,p | 1<=p} : \
+A.(t,p->p+2,t).(t,p->t-1,p-1);\n      esac.(t,p->p,t-2);\n  Amirr = \
+a.(t,p->t).(t,p1,p2->p2,p1);\n  B_reg = \
+B_mirr.(t,p->1,p,t).(t,p->t-1,p).(t,p1,p2->p2,p1);\n  C = \
+(B_reg.(t,p->2,p,t).(t,p->t,p) + A.(t,p->p+2,t).(t,p->t,p)).(t,p->p,t-3);\n  \
+outc = C.(t,p->p+3,t).(n,i->n+i,i).(t,p->p,t-4);\ntel;"

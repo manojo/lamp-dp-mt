@@ -1,0 +1,227 @@
+system QR :    {N,K | K+1<=N; 2<=K}
+               (x : {k,i | 0<=k<=K; 1<=i<=N} of real)
+       returns (r : {j,i | 1<=j<=i; i<=N} of real);
+var
+  TSep6 : {t,p1,p2 | t=p2+2; p1=1; 1<=p2<=K} of real;
+  TSep5 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K} of real;
+  TSep4 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K} of real;
+  TSep3 : {t,p1,p2 | t=p1+p2; 2<=p1<=N; 1<=p2<=K} of real;
+  TSep2 : {t,p1,p2 | t=p2+1; p1=1; 1<=p2<=K} of real;
+  TSep1 : {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K} of real;
+  X_ctl2P_reg1loc : {t,p1,p2 | p1+p2-1<=t<=2p1+p2-1; 2<=p1<=N; 2<=p2<=K+1} of boolean;
+  X_ctl1P_reg2loc : {t,p1,p2 | p2<=t<=p2+1; p1=1; 2<=p2<=K+1} of boolean;
+  Rc1_ctl2P_reg3loc : {t,p1,p2 | p1+p2<=t<=2p1+p2-1; 2<=p1<=N; 2<=p2<=K+1} of boolean;
+  pipeCT1_ctl2P_reg4loc : {t,p1,p2 | p1+p2<=t<=2p1+p2-2; 3<=p1<=N; 2<=p2<=K+1} of boolean;
+  T_reg5loc : {t,p1,p2 | (2p1+2p2-K,p1+p2+1)<=t<=(p1+p2+N,2p1+2p2-1)} of real;
+  T_reg6loc : {t,p1,p2 | (2p1+2p2-K,p1+p2+1)<=t<=(p1+p2+N,2p1+2p2-1)} of real;
+  pipeCT1_reg7loc : {t,p1,p2 | p1+p2<=t<=2p1+p2-3; p1<=N+1; 1<=p2<=K} of real;
+  R_reg8loc : {t,p1,p2 | p1+p2<=t<=2p1+p2-1; p1<=N; 1<=p2<=K+1} of real;
+  X_reg9loc : {t,p1,p2 | p1+p2<=t<=2p1+p2; 1<=p1<=N; 1<=p2<=K} of real;
+  R_reg10loc : {t,p1,p2 | t=0; p1=0; p2=0; N=0; K=0; 1=0} of real;
+  X_reg11loc : {t,p1,p2 | 2p1+1<=t<=2p1+K; 1<=p1<=N} of real;
+  R_reg12loc : {t,p1,p2 | p1+p2<=t<=2p1+p2-1; p1<=N; 1<=p2<=K+1} of real;
+  X_reg13loc : {t,p1,p2 | p1+p2<=t<=2p1+p2; 1<=p1<=N; 1<=p2<=K} of real;
+  R_reg14loc : {t,p1,p2 | p1+p2<=t<=2p1+p2-1; p1<=N; 1<=p2<=K+1} of real;
+  X_reg15loc : {t,p1,p2 | p1+p2<=t<=2p1+p2; 1<=p1<=N; 1<=p2<=K} of real;
+  R_reg16loc : {t,p1,p2 | p1+p2<=t<=2p1+p2-1; p1<=N; 1<=p2<=K+1} of real;
+  R_reg18loc : {t,p1,p2 | p1+p2<=t<=2p1+p2-1; p1<=N; 1<=p2<=K+1} of real;
+  X_reg19loc : {t,p1,p2 | p1+p2<=t<=2p1+p2; 1<=p1<=N; 1<=p2<=K} of real;
+  R_reg20loc : {t,p1,p2 | p1+p2<=t<=2p1+p2-1; p1<=N; 1<=p2<=K+1} of real;
+  X_reg21 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K} of real;
+  R_reg20 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K} of real;
+  X_reg19 : {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K} of real;
+  R_reg18 : {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K} of real;
+  X_reg17 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K} of real;
+  R_reg16 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K} of real;
+  X_reg15 : {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K} of real;
+  R_reg14 : {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K} of real;
+  X_reg13 : {t,p1,p2 | t=p2+2; p1=1; 1<=p2<=K} of real;
+  R_reg12 : {t,p1,p2 | t=p2+2; p1=1; 1<=p2<=K} of real;
+  X_reg11 : {t,p1,p2 | 2p2+1<=t<=2p2+K; p1=p2; 1<=p2<=N} of real;
+  R_reg10 : {t,p1,p2 | 2p2+1<=t<=2p2+K; p1=p2; 1<=p2<=N} of real;
+  X_reg9 : {t,p1,p2 | t=p2+2; p1=1; 1<=p2<=K} of real;
+  R_reg8 : {t,p1,p2 | t=p2+2; p1=1; 1<=p2<=K} of real;
+  pipeCT1_reg7 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-2; p1<=N; 1<=p2<=K} of real;
+  T_reg6 : {t,p1,p2 | t=2p1+p2-1; 3<=p1<=N; 1<=p2<=K} of real;
+  T_reg5 : {t,p1,p2 | t=p2+3; p1=2; 1<=p2<=K} of real;
+  pipeCT1_ctl2P_reg4 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; 3<=p1<=N; 2<=p2<=K} of boolean;
+  Rc1_ctl2P_reg3 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2; 2<=p1<=N; 2<=p2<=K} of boolean;
+  X_ctl1P_reg2 : {t,p1,p2 | p2+1<=t<=p2+2; p1=1; 2<=p2<=K} of boolean;
+  X_ctl2P_reg1 : {t,p1,p2 | p1+p2<=t<=2p1+p2; 2<=p1<=N; 2<=p2<=K} of boolean;
+  X_ctl2P_Init : {t,p1,p2 | p1+1<=t<=2p1+1; 2<=p1<=N; p2=1} of boolean;
+  X_ctl2P : {t,p1,p2 | p1+p2<=t<=2p1+p2; 2<=p1<=N; 1<=p2<=K} of boolean;
+  X_ctl1P_Init : {t,p1,p2 | 2<=t<=3; p1=1; p2=1} of boolean;
+  X_ctl1P : {t,p1,p2 | p2+1<=t<=p2+2; p1=1; 1<=p2<=K} of boolean;
+  Rc1_ctl2P_Init : {t,p1,p2 | p1+2<=t<=2p1+1; 2<=p1<=N; p2=1} of boolean;
+  Rc1_ctl2P : {t,p1,p2 | p1+p2+1<=t<=2p1+p2; 2<=p1<=N; 1<=p2<=K} of boolean;
+  pipeCT1_ctl2P_Init : {t,p1,p2 | p1+2<=t<=2p1; 3<=p1<=N; p2=1} of boolean;
+  pipeCT1_ctl2P : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; 3<=p1<=N; 1<=p2<=K} of boolean;
+  pipeCT1 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K} of real;
+  R : {t,p1,p2 | p1+p2+1<=t<=2p1+p2; p1<=N; 0<=p2<=K} of real;
+  X : {t,p1,p2 | p1+p2<=t<=2p1+p2; 1<=p1<=N; 1<=p2<=K} of real;
+  T : {t,p1,p2 | 2p2+1<=t<=2p2+K; p1=p2; 1<=p2<=N} of real;
+  Rc1 : {t,p1,p2 | t=p2+2; p1=1; 1<=p2<=K} | {t,p1,p2 | t=2p1+p2; 2<=p1<=N; 1<=p2<=K} | {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; p1<=N; 1<=p2<=K} of real;
+  Xc1 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2; 2<=p1<=N; 1<=p2<=K} of real;
+  pipeCT1_ctl2 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2-1; 3<=p1<=N; 1<=p2<=K} of boolean;
+  X_ctl1 : {t,p1,p2 | p2+1<=t<=p2+2; p1=1; 1<=p2<=K} of boolean;
+  X_ctl2 : {t,p1,p2 | p1+p2<=t<=2p1+p2; 2<=p1<=N; 1<=p2<=K} of boolean;
+  Rc1_ctl2 : {t,p1,p2 | p1+p2+1<=t<=2p1+p2; 2<=p1<=N; 1<=p2<=K} of boolean;
+let
+  R_reg20loc[t,p1,p2] = R[t,p1,p2-1];
+  R_reg20[t,p1,p2] = R_reg20loc[t-1,p1,p2];
+  X_reg19loc[t,p1,p2] = X[t,p1,p2];
+  X_reg19[t,p1,p2] = X_reg19loc[2t-2p1-p2-1,p1,p2];
+  R_reg18loc[t,p1,p2] = R[t,p1,p2-1];
+  R_reg18[t,p1,p2] = R_reg18loc[2t-2p1-p2-1,p1,p2];
+  R_reg16loc[t,p1,p2] = R[t,p1,p2-1];
+  R_reg16[t,p1,p2] = R_reg16loc[t-1,p1,p2];
+  X_reg15loc[t,p1,p2] = X[t,p1,p2];
+  X_reg15[t,p1,p2] = X_reg15loc[2t-2p1-p2-1,p1,p2];
+  R_reg14loc[t,p1,p2] = R[t,p1,p2-1];
+  R_reg14[t,p1,p2] = R_reg14loc[2t-2p1-p2-1,p1,p2];
+  X_reg13loc[t,p1,p2] = X[t,p1,p2];
+  X_reg13[t,p1,p2] = X_reg13loc[2t-p2-3,p1,p2];
+  R_reg12loc[t,p1,p2] = R[t,p1,p2-1];
+  R_reg12[t,p1,p2] = R_reg12loc[2t-p2-3,p1,p2];
+  X_reg11loc[t,p1,p2] = X[t,p1,t-2p1];
+  X_reg11[t,p1,p2] = X_reg11loc[t,p1,p2];
+  R_reg10loc[t,p1,p2] = R[t,p1,0];
+  R_reg10[t,p1,p2] = R_reg10loc[t-1,p1,p2];
+  X_reg9loc[t,p1,p2] = X[t,p1,p2];
+  X_reg9[t,p1,p2] = X_reg9loc[2t-p2-3,p1,p2];
+  R_reg8loc[t,p1,p2] = R[t,p1,p2-1];
+  R_reg8[t,p1,p2] = R_reg8loc[2t-p2-3,p1,p2];
+  pipeCT1_reg7loc[t,p1,p2] = pipeCT1[t,p1-1,p2];
+  pipeCT1_reg7[t,p1,p2] = pipeCT1_reg7loc[t-1,p1,p2];
+  T_reg6loc[t,p1,p2] = T[t,t-p1-p2,t-p1-p2];
+  T_reg6[t,p1,p2] = T_reg6loc[2t-2p1-p2,p1,p2];
+  T_reg5loc[t,p1,p2] = T[t,t-p1-p2,t-p1-p2];
+  T_reg5[t,p1,p2] = T_reg5loc[2t-p2-4,p1,p2];
+  pipeCT1_ctl2P_reg4loc[t,p1,p2] = pipeCT1_ctl2P[t,p1,p2-1];
+  pipeCT1_ctl2P_reg4[t,p1,p2] = pipeCT1_ctl2P_reg4loc[t-1,p1,p2];
+  Rc1_ctl2P_reg3loc[t,p1,p2] = Rc1_ctl2P[t,p1,p2-1];
+  Rc1_ctl2P_reg3[t,p1,p2] = Rc1_ctl2P_reg3loc[t-1,p1,p2];
+  X_ctl1P_reg2loc[t,p1,p2] = X_ctl1P[t,p1,p2-1];
+  X_ctl1P_reg2[t,p1,p2] = X_ctl1P_reg2loc[t-1,p1,p2];
+  X_ctl2P_reg1loc[t,p1,p2] = X_ctl2P[t,p1,p2-1];
+  X_ctl2P_reg1[t,p1,p2] = X_ctl2P_reg1loc[t-1,p1,p2];
+  X_reg21[t,p1,p2] = X[t-1,p1,p2];
+  X_reg17[t,p1,p2] = X[t-1,p1,p2];
+  X_ctl2P_Init[t,p1,p2] = 
+      case
+        case
+          { | t=p1+1} : True[];
+          { | t=2p1+1} | { | p1+2<=t<=2p1} : False[];
+        esac;
+      esac;
+  X_ctl1P_Init[t,p1,p2] = 
+      case
+        case
+          { | t=2} : True[];
+          { | t=3} : False[];
+        esac;
+      esac;
+  Rc1_ctl2P_Init[t,p1,p2] = 
+      case
+        case
+          { | t=2p1+1} : True[];
+          { | t<=2p1} : False[];
+        esac;
+      esac;
+  pipeCT1_ctl2P_Init[t,p1,p2] = 
+      case
+        case
+          { | t=2p1} : True[];
+          { | t<=2p1-1} : False[];
+        esac;
+      esac;
+  T[t,p1,p2] = R_reg10 - X_reg11;
+  pipeCT1_ctl2P[t,p1,p2] = 
+      case
+        { | p2=1} : pipeCT1_ctl2P_Init[t,p1,p2];
+        { | t<=2p1+p2-1; 2<=p2} : pipeCT1_ctl2P_reg4;
+      esac;
+  pipeCT1_ctl2[t,p1,p2] = pipeCT1_ctl2P[t,p1,p2];
+  pipeCT1[t,p1,p2] = 
+      case
+        { | t=p2+3; p1=2} : T_reg5;
+        { | t=2p1+p2-1; 3<=p1} | { | t<=2p1+p2-2} : if (pipeCT1_ctl2) then 
+               case
+                 { | t=2p1+p2-1} : T_reg6;
+                 { | t<=2p1+p2-2} : 0[];
+               esac else 
+           case
+             { | t=2p1+p2-1} : 0[];
+             { | t<=2p1+p2-2} : pipeCT1_reg7;
+           esac;
+      esac;
+  Rc1_ctl2P[t,p1,p2] = 
+      case
+        { | p2=1} : Rc1_ctl2P_Init[t,p1,p2];
+        { | t<=2p1+p2; 2<=p2} : Rc1_ctl2P_reg3;
+      esac;
+  Rc1_ctl2[t,p1,p2] = Rc1_ctl2P[t,p1,p2];
+  TSep1[t,p1,p2] = R_reg14 + X_reg15;
+  TSep4[t,p1,p2] = R_reg16 + X_reg17;
+  TSep5[t,p1,p2] = TSep4 + pipeCT1;
+  Rc1[t,p1,p2] = 
+      case
+        { | t=p2+2; p1=1} : R_reg12 + X_reg13;
+        { | t=2p1+p2; 2<=p1} | { | t<=2p1+p2-1} : if (Rc1_ctl2) then 
+               case
+                 { | t=2p1+p2} : TSep1;
+                 { | t<=2p1+p2-1} : 0[];
+               esac else 
+           case
+             { | t=2p1+p2} : 0[];
+             { | t<=2p1+p2-1} : TSep5;
+           esac;
+      esac;
+  R[t,p1,p2] = 
+      case
+        { | p2=0} : 0[];
+        { | t=p2+2; p1=1; 1<=p2} | { | t=2p1+p2; 2<=p1; 1<=p2} | { | t<=2p1+p2-1; 1<=p2} : Rc1;
+      esac;
+  Xc1[t,p1,p2] = 
+      case
+        { | t=2p1+p2} : R_reg18 * X_reg19;
+        { | t<=2p1+p2-1} : R_reg20 + X_reg21;
+      esac;
+  X_ctl1P[t,p1,p2] = 
+      case
+        { | p2=1} : X_ctl1P_Init[t,p1,p2];
+        { | p2+1<=t<=p2+2; 2<=p2} : X_ctl1P_reg2;
+      esac;
+  X_ctl1[t,p1,p2] = X_ctl1P[t,p1,p2];
+  X_ctl2P[t,p1,p2] = 
+      case
+        { | p2=1} : X_ctl2P_Init[t,p1,p2];
+        { | t=p1+p2; 2<=p2} | { | t=2p1+p2; 2<=p2} | { | p1+p2+1<=t<=2p1+p2-1; 2<=p2} : X_ctl2P_reg1;
+      esac;
+  X_ctl2[t,p1,p2] = X_ctl2P[t,p1,p2];
+  TSep2[t,p1,p2] = x[t-1,p1];
+  TSep3[t,p1,p2] = x[t-p1,p1];
+  TSep6[t,p1,p2] = R_reg8 * X_reg9;
+  X[t,p1,p2] = 
+      case
+        { | p2+1<=t<=p2+2; p1=1} : if (X_ctl1) then 
+               case
+                 { | t=p2+1} : TSep2;
+                 { | t=p2+2} : 0[];
+               esac else 
+           case
+             { | t=p2+1} : 0[];
+             { | t=p2+2} : TSep6;
+           esac;
+        { | p1+p2<=t<=2p1+p2; 2<=p1} : if (X_ctl2) then 
+               case
+                 { | t=p1+p2} : TSep3;
+                 { | t=2p1+p2} | { | p1+p2+1<=t<=2p1+p2-1} : 0[];
+               esac else 
+           case
+             { | t=p1+p2} : 0[];
+             { | t=2p1+p2} | { | p1+p2+1<=t<=2p1+p2-1} : Xc1;
+           esac;
+      esac;
+  r[j,i] = R[j+i+K,i,K];
+tel;

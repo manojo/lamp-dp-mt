@@ -1,0 +1,14 @@
+system prodVect: {N | N>=3}
+ 		 (a : {i,j|1 <= i,j <= N} of integer; 
+                b : {i|1 <= i <= N} of integer)
+       returns (c : {i|1 <= i <= N} of integer);
+  var 
+	C :  {i,j|1 <= i <= N; 0<= j <=N} of integer;
+  let
+	C[i,j] = case
+		{|j=0} : 0.(i,j-> );
+		{|j>=1} : C[i,j-1] + a[i,j] * b[j];
+		esac;
+	c[i]=C[i,N];
+  tel;   
+

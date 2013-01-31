@@ -1,0 +1,27 @@
+system ZeroColumn :{N,K | K<=N; 1<=K}
+                  (A : {i,j | 1<=i<=N; 1<=j<=N} of real)
+       returns    (Ar : {i,j | 1<=i<=N; 1<=j<=N} of real);
+let
+  Ar[i,j] = 
+      case
+        { | i<=K; 1<=j<=N} : A[i,j];
+        { | K+1<=i; j<=K} : 0[];
+        { | K+1<=i; K+1<=j} : A[i,j] - A[K,j] * A[i,K] / A[K,K];
+      esac;
+tel;
+
+system Gauss : {N | 1<=N}
+               (A : {i,j | 1<=i<=N; 1<=j<=N} of real)
+       returns (T : {i,j | 1<=i<=N; 1<=j<=N} of real);
+var
+  AK : {i,j,k | 1<=i<=N; 1<=j<=N; 1<=k<=N} of real;
+  AT : {i,j,k | 1<=i<=N; 1<=j<=N; 1<=k<=N} of real;
+let
+  use {k | 1<=k<=N} ZeroColumn[N,k] (AK) returns  (AT) ;
+  AK[i,j,k] = 
+      case
+        { | k=1} : A[i,j];
+        { | 2<=k} : AT[i,j,k-1];
+      esac;
+  T[i,j] = AK[i,j,N];
+tel;

@@ -1,0 +1,13 @@
+system Test9 (x : {i | 0<=i} of integer;
+			  w : {p | 0<=p<=8} of integer)
+       returns (y : {i | 2<=i} of integer);
+var
+ X : {i | 0<=i} of integer;
+let
+  X=case
+	{i|0<=i<=8}:x+w;
+	{i|i>8}:X.(i->i-1);
+    esac;
+y[i]=X[i];
+tel;
+

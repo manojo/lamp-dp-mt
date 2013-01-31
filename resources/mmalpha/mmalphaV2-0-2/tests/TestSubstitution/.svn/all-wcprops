@@ -1,0 +1,101 @@
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution
+END
+test_subs2.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/test_subs2.alpha
+END
+test_subs3.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/test_subs3.alpha
+END
+test_subs4.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/test_subs4.alpha
+END
+TestingReport.txt
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/TestingReport.txt
+END
+test_subs.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/test_subs.alpha
+END
+ZAST1
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/ZAST1
+END
+ZAST2
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/ZAST2
+END
+ZAST3
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/ZAST3
+END
+ZAST4
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/ZAST4
+END
+TestSubstitution.m
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/TestSubstitution.m
+END
+AST1
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/AST1
+END
+AST2
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/AST2
+END
+AST3
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/AST3
+END
+AST4
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/AST4
+END
+AST5
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/AST5
+END
+.cvsignore
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSubstitution/.cvsignore
+END

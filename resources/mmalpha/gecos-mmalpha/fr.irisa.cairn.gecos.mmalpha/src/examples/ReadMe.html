@@ -1,0 +1,45 @@
+<html>
+
+<h1>SampleProgram.java</h1>
+<p>
+Code for the simple J/Link example program presented in section 2.3 of
+the J/Link User Guide.
+<p>
+To compile or run this program, you need to make sure that JLink.jar is in the
+class path. You can do this by setting the CLASSPATH environment variable or
+by specifying the path to JLink.jar using the -classpath option on the command
+line. The examples below use the -classpath option. You can leave this out if
+your CLASSPATH environment variable includes the full path to JLink.jar.
+Consult your Java documentation or the J/Link User Guide for more information.
+<p>
+To run this program, go to a shell or DOS window and change to the directory in
+which SampleProgram.class resides. Then use a line like:
+<p>
+<code>
+(Windows)
+<br>
+java -classpath ".;\path\to\JLink.jar" SampleProgram -linkmode launch -linkname "c:/program files/wolfram research/mathematica/5.1/mathkernel.exe"
+<p>
+(Unix)
+<br>
+java -classpath .:/path/to/JLink.jar SampleProgram -linkmode launch -linkname 'math -mathlink'
+<p>
+(Mac OS X from a terminal window)
+<br>
+java -classpath .:/path/to/JLink.jar SampleProgram -linkmode launch -linkname '"/Applications/Mathematica 5.1.app/Contents/MacOS/MathKernel" -mathlink'
+</code>
+<p>
+<p>
+If you wish to compile this program, use a line like this:
+<p>
+<code>
+(Windows)
+<br>
+javac -classpath ".;\path\to\JLink.jar" SampleProgram.java
+<p>
+(Unix, or Mac OS X from a terminal window)
+<br>
+javac -classpath .:/path/to/JLink.jar SampleProgram.java
+</code>
+
+</html>

@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_C
+END
+yacc.c
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_C/yacc.c
+END
+y.tab.h
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_C/y.tab.h
+END
+yacc.y
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_C/yacc.y
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_C/Makefile
+END

@@ -1,0 +1,80 @@
+include ../MakeIncludes/Makefile.config
+
+CC=cl
+LD=link
+POLYLIB=$(MMALPHA)/sources/Polylib
+
+CFLAGS=/nologo /c /DWIN32 /D_WINDOWS /DWINDOWSNT /ML /O2 /DNDEBUG /DCYGWIN /D__STDC__ /DLINEAR_VALUE_IS_INT /Dcygwin $(MATHINCLUDE) /I$(POLYINCLUDE) 
+LFLAGS=/nologo /SUBSYSTEM:windows /INCREMENTAL:no /PDB:none kernel32.lib user32.lib gdi32.lib $(MATHLINK)/mldev32/lib/ml32i1m.lib
+
+BIN=domlib.exe
+OBJ=$(OBJDIR)/domlib.obj 		\
+	$(OBJDIR)/mlink.obj	
+
+
+DEPOBJ=$(OBJDIR)/matrix.obj		\
+	$(OBJDIR)/vector.obj		\
+	$(OBJDIR)/polyhedron.obj	\
+	$(OBJDIR)/Zpolyhedron.obj	\
+	$(OBJDIR)/Matop.obj		\
+	$(OBJDIR)/Lattice.obj	\
+	$(OBJDIR)/NormalForms.obj	\
+	$(OBJDIR)/SolveDio.obj	\
+	$(OBJDIR)/errors.obj		\
+	$(OBJDIR)/polyparam.obj	\
+	$(OBJDIR)/alpha.obj
+#$(BIN)
+
+all:  	$(NEEDOBJDIR) $(BIN)
+
+$(BIN): $(OBJ) $(DEPOBJ)
+	echo $(OBJ) $(DEPOBJ) $(LFLAGS) /OUT:$@ > lf
+	$(LD) @lf 
+
+
+$(OBJDIR)/%.obj: %.c
+	echo $(CFLAGS)   > cf
+	$(CC) @cf  $<
+	mv `basename $@` $(OBJDIR)/
+
+
+$(OBJDIR)/%.obj: $(POLYLIB)/source/kernel/%.c 
+	echo $(CFLAGS)    > cf
+	$(CC) @cf  $<
+	mv `basename $@` $(OBJDIR)/
+
+$(OBJDIR)/%.obj: $(POLYLIB)/source/arith/%.c 
+	echo $(CFLAGS)    > cf
+	$(CC) @cf   $<
+	mv `basename $@` $(OBJDIR)/
+
+
+$(OBJDIR)/matrix.obj: 	$(POLYLIB)/source/kernel/matrix.c
+$(OBJDIR)/vector.obj: 	$(POLYLIB)/source/kernel/vector.c
+$(OBJDIR)/polyhedron.obj: 	$(POLYLIB)/source/kernel/polyhedron.c
+$(OBJDIR)/Zpolyhedron.obj:	$(POLYLIB)/source/kernel/Zpolyhedron.c
+$(OBJDIR)/Matop.obj: 	$(POLYLIB)/source/kernel/Matop.c
+$(OBJDIR)/Lattice.obj:	$(POLYLIB)/source/kernel/Lattice.c
+$(OBJDIR)/NormalForms.obj:	$(POLYLIB)/source/kernel/NormalForms.c
+$(OBJDIR)/SolveDio.obj: 	$(POLYLIB)/source/kernel/SolveDio.c
+$(OBJDIR)/errors.obj: 	$(POLYLIB)/source/arith/errors.c
+$(OBJDIR)/polyparam.obj: 	$(POLYLIB)/source/kernel/polyparam.c
+$(OBJDIR)/alpha.obj: 	$(POLYLIB)/source/kernel/alpha.c
+
+$(OBJDIR)/mlink.obj: mlink.c
+$(OBJDIR)/domlib.obj: domlib.c
+
+mlink.c: domlib.tm
+	$(MATHPREP) $< >$(OBJDIR)/temp.mprep
+	$(MATHPREPCOR) $(OBJDIR)/temp.mprep > $@
+	rm $(OBJDIR)/temp.mprep
+
+
+clean: 
+	rm -f $(BIN) $(OBJ)  $(DEPOBJ) mlink.c $(OBJDIR)/domlib.obj cf lf
+
+$(NEEDOBJDIR) :
+	@if [ "$(OBJDIR)" = "" ]; then echo "variable OBJDIR is not set"; false; fi
+	@if [ "$(NEEDOBJDIR)" = "" ]; then echo "variable NEEDOBJDIR is not set"; false; fi
+	@if [ ! -d $(OBJDIR) ]; then mkdir $(OBJDIR); fi
+	@touch $@

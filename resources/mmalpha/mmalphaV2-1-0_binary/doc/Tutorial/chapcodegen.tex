@@ -1,0 +1,79 @@
+\chapter{Code generation and simulation of {\alfa} programs}
+\label{chapcodegen}
+In this chapter, we explain how to generate C code from an
+{\alfa} program. As seen in Chapter~\ref{chapfunctional}, 
+{\alfa} programs are functional, and therefore, do not convey any
+execution ordering. However, the validation of {\alfa} programs, 
+or even, the generation of code for a general-purpose or
+dedicated processor, requires the possibility to simulate the 
+evaluation of {\alfa} expressions. 
+
+This can be done using the {\tt writeC} {\mmalfa} command, as seen here.
+
+\section*{An example}
+Consider the following {\alfa} program:
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/adder-WriteC.alpha}
+\caption{A very simple example\label{adderwritec}
+}
+\end{figure}
+To simulate this program, we first load this program, 
+then generate a C program in file ``adder.c'', using 
+\begin{verbatim}
+load["adder-WriteC.alpha"];  (* load file *)
+writeC["adder.c"];
+\end{verbatim}
+Then we can compile this program: 
+\begin{verbatim}
+cc -o adder adder.c
+\end{verbatim}
+The execution of this program is shown here:
+\begin{verbatim}
+adder
+Input x =2
+x = 2
+Input y =3
+y = 3
+z = 5
+\end{verbatim}
+The C code prompts for the value of the input variables {\tt x} and
+{\tt y}.
+\section{Program with parameters}
+Programs with parameters cannot be simulated without giving 
+a value to the parameters. This is obtained through an option of
+{\tt writeC}. 
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/adder-WriteC1.alpha}
+\caption{A very simple example\label{adderwritec1}
+}
+\end{figure}
+\begin{verbatim}
+load["adder-WriteC1.alpha"];  (* load program *)
+writeC["adder1.c","-p 3"];
+cc -o adder1 adder1.c
+adder1Input x[1] =2
+x[1]= 2
+Input x[2] =3
+x[2]= 3
+Input x[3] =4
+x[3]= 4
+Input y[1] =-2
+y[1]= -2
+Input y[2] =-3
+y[2]= -3
+Input y[3] =-4
+y[3]= -4
+z[1]= 0
+z[2]= 0
+z[3]= 0
+\end{verbatim}
+\subsection{Additional examples}
+\begin{verbatim}
+SetDirectory["/home/frodon/d01/api/quinton/alpha/sobel"];
+load["sobel.a"];ashow[];
+analyze[];
+writeC["-p 5 35 3"];
+schedule[{objFunction -> 1,addConstraints -> {"Tpixel[i,N,M,p]=i"},duration -> 2}]
+\end{verbatim}

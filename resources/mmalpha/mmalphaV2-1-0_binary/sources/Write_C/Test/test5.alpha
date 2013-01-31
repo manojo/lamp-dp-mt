@@ -1,0 +1,7 @@
+-- output with union-domains
+system foo : {n,m | n>=2; m>=1}
+             () returns (R : {i,j |   1<=i<= n-1; 1<=j<=m} |
+                             {i,j | n+1<=i<=2n-1; 1<=j<=m} of integer );
+let
+   R[i,j] = -2[]; 
+tel;

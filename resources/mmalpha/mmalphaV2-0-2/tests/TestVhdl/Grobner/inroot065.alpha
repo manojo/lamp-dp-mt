@@ -1,0 +1,957 @@
+system total   (Ilam1 : {t,p | 0<=t<=5; p=1} of integer; 
+                Ilam2 : {t,p | 0<=t<=5; p=1} of integer; 
+                Ix1 : {t,p | 0<=t<=5; p=1} of integer; 
+                Ix2 : {t,p | 0<=t<=5; p=1} of integer; 
+                Iy1 : {t,p | 0<=t<=5; p=1} of integer; 
+                Iy2 : {t,p | 0<=t<=5; p=1} of integer; 
+                ck2 : {t,p | 2<=t<=5; p=1} of boolean; 
+                Redu : {t,p | 0<=t<=5; p=1} of boolean; 
+                Iinit : {t,p | 0<=t<=5; p=1} of boolean; 
+                Iend : {t,p | 0<=t<=5; p=1} of boolean)
+       returns (Sl1 : {t,p | 10<=t<=13; p=5} of integer; 
+                Sl2 : {t,p | 10<=t<=13; p=5} of integer; 
+                Sx : {t,p | 10<=t<=13; p=5} of integer; 
+                Sy : {t,p | 10<=t<=13; p=5} of integer; 
+                Ss : {t,p | 10<=t<=13; p=5} of boolean; 
+                Send : {t,p | 5<=t<=10; p=5} of boolean; 
+                Sendsort : {t,p | 9<=t<=14; p=5} of boolean; 
+                Sinit : {t,p | 9<=t<=14; p=5} of boolean);
+var
+  Ol1 : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Ol2 : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Ox : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Oy : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Os : {t,p | 2p<=t<=2p+3; 2<=p<=5} of boolean;
+  Oend : {t,p | p<=t<=p+5; 2<=p<=5} of boolean;
+  Oendsort : {t,p | 2p-1<=t<=2p+4; 2<=p<=5} of boolean;
+  Oinit : {t,p | 2p-1<=t<=2p+4; 2<=p<=5} of boolean;
+  OOl1 : {t,p | 2<=t<=5; p=1} of integer;
+  OOl2 : {t,p | 2<=t<=5; p=1} of integer;
+  OOx : {t,p | 2<=t<=5; p=1} of integer;
+  OOy : {t,p | 2<=t<=5; p=1} of integer;
+  OOs : {t,p | 2<=t<=5; p=1} of boolean;
+  OOinit : {t,p | 1<=t<=6; p=1} of boolean;
+  OOend : {t,p | 1<=t<=6; p=1} of boolean;
+  OOendsort : {t,p | 1<=t<=6; p=1} of boolean;
+  IIl1 : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  IIl2 : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  IIx : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  IIy : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  IIs : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of boolean;
+  IIend : {t,p | p-1<=t<=p+4; 2<=p<=5} of boolean;
+  IIendsort : {t,p | 2p-3<=t<=2p+2; 2<=p<=5} of boolean;
+  IIinit : {t,p | 2p-3<=t<=2p+2; 2<=p<=5} of boolean;
+  Ilam1_cell1b1 : {t,p | 0<=t<=5; p=1} of integer;
+  Ilam2_cell1b1 : {t,p | 0<=t<=5; p=1} of integer;
+  Ix1_cell1b1 : {t,p | 0<=t<=5; p=1} of integer;
+  Ix2_cell1b1 : {t,p | 0<=t<=5; p=1} of integer;
+  Iy1_cell1b1 : {t,p | 0<=t<=5; p=1} of integer;
+  Iy2_cell1b1 : {t,p | 0<=t<=5; p=1} of integer;
+  ck2_cell1b1 : {t,p | 2<=t<=5; p=1} of boolean;
+  Redu_cell1b1 : {t,p | 0<=t<=5; p=1} of boolean;
+  Iinit_cell1b1 : {t,p | 0<=t<=5; p=1} of boolean;
+  Iend_cell1b1 : {t,p | 0<=t<=5; p=1} of boolean;
+  Olam1 : {t,p | 2<=t<=5; p=1} of integer;
+  Olam2 : {t,p | 2<=t<=5; p=1} of integer;
+  Ox_cell1b1 : {t,p | 2<=t<=5; p=1} of integer;
+  Oy_cell1b1 : {t,p | 2<=t<=5; p=1} of integer;
+  Os_cell1b1 : {t,p | 2<=t<=5; p=1} of boolean;
+  Oinit_cell1b1 : {t,p | 1<=t<=6; p=1} of boolean;
+  Oend_cell1b1 : {t,p | 1<=t<=6; p=1} of boolean;
+  endsort : {t,p | 1<=t<=6; p=1} of boolean;
+  llam1 : {t,p | 0<=t<=5; p=1} of integer;
+  llam2 : {t,p | 0<=t<=5; p=1} of integer;
+  lx1 : {t,p | 0<=t<=5; p=1} of integer;
+  lx2 : {t,p | 0<=t<=5; p=1} of integer;
+  ly1 : {t,p | 0<=t<=5; p=1} of integer;
+  ly2 : {t,p | 0<=t<=5; p=1} of integer;
+  muxllam1 : {t,p | 0<=t<=5; p=1} of integer;
+  muxllam2 : {t,p | 0<=t<=5; p=1} of integer;
+  muxlx1 : {t,p | 0<=t<=5; p=1} of integer;
+  muxlx2 : {t,p | 0<=t<=5; p=1} of integer;
+  muxly1 : {t,p | 0<=t<=5; p=1} of integer;
+  muxly2 : {t,p | 0<=t<=5; p=1} of integer;
+  lllam1 : {t,p | 1<=t<=5; p=1} of integer;
+  lllam2 : {t,p | 1<=t<=5; p=1} of integer;
+  Ux1 : {t,p | 1<=t<=5; p=1} of integer;
+  Ux2 : {t,p | 1<=t<=5; p=1} of integer;
+  Uy1 : {t,p | 1<=t<=5; p=1} of integer;
+  Uy2 : {t,p | 1<=t<=5; p=1} of integer;
+  Rlam1 : {t,p | 2<=t<=5; p=1} of integer;
+  Rlam2 : {t,p | 2<=t<=5; p=1} of integer;
+  Rx1 : {t,p | 2<=t<=5; p=1} of integer;
+  Rx2 : {t,p | 2<=t<=5; p=1} of integer;
+  Ry1 : {t,p | 2<=t<=5; p=1} of integer;
+  Ry2 : {t,p | 2<=t<=5; p=1} of integer;
+  Tend : {t,p | 1<=t<=6; p=1} of boolean;
+  RRlam2 : {t,p | 3<=t<=6; p=1} of integer;
+  RRx2 : {t,p | 3<=t<=6; p=1} of integer;
+  RRy2 : {t,p | 3<=t<=6; p=1} of integer;
+  OOOlam1 : {t,p | 2<=t<=5; p=1} of integer;
+  Ilam1_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  Ilam2_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  Ix1_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  Iy1_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  Ix2_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  Iy2_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  Redu_coefcomp2 : {t,p | 0<=t<=5; p=1} of boolean;
+  llam1_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  llam2_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  lx1_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  lx2_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  ly1_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  ly2_coefcomp2 : {t,p | 0<=t<=5; p=1} of integer;
+  ppcmx : {t,p | 0<=t<=5; p=1} of integer;
+  ppcmy : {t,p | 0<=t<=5; p=1} of integer;
+  ux1 : {t,p | 0<=t<=5; p=1} of integer;
+  ux2 : {t,p | 0<=t<=5; p=1} of integer;
+  uy1 : {t,p | 0<=t<=5; p=1} of integer;
+  uy2 : {t,p | 0<=t<=5; p=1} of integer;
+  sx : {t,p | 0<=t<=5; p=1} of integer;
+  sy : {t,p | 0<=t<=5; p=1} of integer;
+  ssx : {t,p | 0<=t<=5; p=1} of integer;
+  ssy : {t,p | 0<=t<=5; p=1} of integer;
+  infx : {t,p | 0<=t<=5; p=1} of boolean;
+  infy : {t,p | 0<=t<=5; p=1} of boolean;
+  red : {t,p | 0<=t<=5; p=1} of boolean;
+  red2 : {t,p | 0<=t<=5; p=1} of boolean;
+  Ilam1_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Ilam2_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  lllam1_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  lllam2_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Ix1_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Ix2_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Iy1_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Iy2_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Ux1_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Ux2_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Uy1_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Uy2_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Rlam1_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Rx1_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Ry1_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Rlam2_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Rx2_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  Ry2_addition3 : {t,p | 2<=t<=5; p=1} of integer;
+  gal1 : {t,p | 2<=t<=5; p=1} of integer;
+  gal2 : {t,p | 2<=t<=5; p=1} of integer;
+  gal3 : {t,p | 2<=t<=5; p=1} of integer;
+  gal1_galmul5 : {t,p | 2<=t<=5; p=1} of integer;
+  gal2_galmul5 : {t,p | 2<=t<=5; p=1} of integer;
+  gal3_galmul5 : {t,p | 2<=t<=5; p=1} of integer;
+  RRlam1 : {t,p | 2<=t<=5; p=1} of integer;
+  RRx1 : {t,p | 2<=t<=5; p=1} of integer;
+  RRy1 : {t,p | 2<=t<=5; p=1} of integer;
+  RRlam2_multiplex6 : {t,p | 3<=t<=5; p=1} of integer;
+  RRx2_multiplex6 : {t,p | 3<=t<=5; p=1} of integer;
+  RRy2_multiplex6 : {t,p | 3<=t<=5; p=1} of integer;
+  ck2_multiplex6 : {t,p | 2<=t<=5; p=1} of boolean;
+  Olam1_multiplex6 : {t,p | 2<=t<=5; p=1} of integer;
+  Olam2_multiplex6 : {t,p | 2<=t<=5; p=1} of integer;
+  Ox_multiplex6 : {t,p | 2<=t<=5; p=1} of integer;
+  Oy_multiplex6 : {t,p | 2<=t<=5; p=1} of integer;
+  Il1 : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  Il2 : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  Ix : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  Iy : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  Isign : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of boolean;
+  Iend_sortcell7 : {t,p | p-1<=t<=p+4; 2<=p<=5} of boolean;
+  Iendsort : {t,p | 2p-3<=t<=2p+2; 2<=p<=5} of boolean;
+  Iinit_sortcell7 : {t,p | 2p-3<=t<=2p+2; 2<=p<=5} of boolean;
+  Ol1_sortcell7 : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Ol2_sortcell7 : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Ox_sortcell7 : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Oy_sortcell7 : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Os_sortcell7 : {t,p | 2p<=t<=2p+3; 2<=p<=5} of boolean;
+  Oend_sortcell7 : {t,p | p<=t<=p+5; 2<=p<=5} of boolean;
+  Oendsort_sortcell7 : {t,p | 2p-1<=t<=2p+4; 2<=p<=5} of boolean;
+  Oinit_sortcell7 : {t,p | 2p-1<=t<=2p+4; 2<=p<=5} of boolean;
+  Rl1 : {t,p | 2p-1<=t<=2p+2; 2<=p<=5} of integer;
+  Rl1in : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  Rl2 : {t,p | 2p-2<=t<=2p+2; 2<=p<=5} of integer;
+  Rl2in : {t,p | 2p-3<=t<=2p+1; 2<=p<=5} of integer;
+  Rx : {t,p | 2p-1<=t<=2p+2; 2<=p<=5} of integer;
+  Rxin : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  Ry : {t,p | 2p-1<=t<=2p+2; 2<=p<=5} of integer;
+  Ryin : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  Rs : {t,p | 2p-2<=t<=2p+2; 2<=p<=5} of boolean;
+  Rsa : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of boolean;
+  Rsb : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of boolean;
+  Rsin : {t,p | 2p-3<=t<=2p+1; 2<=p<=5} of boolean;
+  Rend : {t,p | 2p-2<=t<=2p+2; 2<=p<=5} of boolean;
+  Rendin : {t,p | 2p-3<=t<=2p+1; 2<=p<=5} of boolean;
+  Renda : {t,p | 2p-2<=t<=2p+2; 2<=p<=5} of boolean;
+  Ol1in : {t,p | 2p-1<=t<=2p+2; 2<=p<=5} of integer;
+  Ol2in : {t,p | 2p-1<=t<=2p+2; 2<=p<=5} of integer;
+  Oxin : {t,p | 2p-1<=t<=2p+2; 2<=p<=5} of integer;
+  Oyin : {t,p | 2p-1<=t<=2p+2; 2<=p<=5} of integer;
+  Osin : {t,p | 2p-1<=t<=2p+2; 2<=p<=5} of boolean;
+  Oendin : {t,p | p-1<=t<=p+4; 2<=p<=5} of boolean;
+  Oendsortin : {t,p | 2p-2<=t<=2p+3; 2<=p<=5} of boolean;
+  Oendsortinin : {t,p | 2p-3<=t<=2p+2; 2<=p<=5} of boolean;
+  Oinitin : {t,p | 2p-2<=t<=2p+3; 2<=p<=5} of boolean;
+  Oinitinin : {t,p | 2p-3<=t<=2p+2; 2<=p<=5} of boolean;
+  Initp : {t,p | 2p-2<=t<=2p+3; 2<=p<=5} of boolean;
+  Ol1a : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Ol1b : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Ol1c : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Ol1d : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Ol2a : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Ol2b : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Ol2c : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Ol2d : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Oxa : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Oxb : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Oxc : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Oxd : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Oya : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Oyb : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Oyc : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Oyd : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Osa : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of boolean;
+  Osb : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of boolean;
+  Osc : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of boolean;
+  Osd : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of boolean;
+  Ose : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of boolean;
+  Rl1a : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  Rl1b : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Rl2s : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  Rl2a : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Rl2b : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Rl2c : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Rxa : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  Rxb : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  Rya : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  Ryb : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of integer;
+  cmpsup : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of boolean;
+  cmpinf : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of boolean;
+  cmpeq : {t,p | 2p-1<=t<=2p+1; 2<=p<=5} of boolean;
+  Iendbis : {t,p | 2p-3<=t<=2p+2; 2<=p<=5} of boolean;
+let
+  Ilam1_cell1b1[t,p] = Ilam1;
+  Ilam2_cell1b1[t,p] = Ilam2;
+  Ix1_cell1b1[t,p] = Ix1;
+  Ix2_cell1b1[t,p] = Ix2;
+  Iy1_cell1b1[t,p] = Iy1;
+  Iy2_cell1b1[t,p] = Iy2;
+  ck2_cell1b1[t,p] = ck2;
+  Redu_cell1b1[t,p] = Redu;
+  Iinit_cell1b1[t,p] = Iinit;
+  Iend_cell1b1[t,p] = Iend;
+  Ilam1_coefcomp2[t,p] = Ilam1_cell1b1;
+  Ilam2_coefcomp2[t,p] = Ilam2_cell1b1;
+  Ix1_coefcomp2[t,p] = Ix1_cell1b1;
+  Iy1_coefcomp2[t,p] = Iy1_cell1b1;
+  Ix2_coefcomp2[t,p] = Ix2_cell1b1;
+  Iy2_coefcomp2[t,p] = Iy2_cell1b1;
+  Redu_coefcomp2[t,p] = Redu_cell1b1;
+  ppcmx[t,p] = max(Ix1_coefcomp2, Ix2_coefcomp2);
+  ppcmy[t,p] = max(Iy1_coefcomp2, Iy2_coefcomp2);
+  ux1[t,p] = ppcmx - Ix1_coefcomp2;
+  ux2[t,p] = ppcmx - Ix2_coefcomp2;
+  uy1[t,p] = ppcmy - Iy1_coefcomp2;
+  uy2[t,p] = ppcmy - Iy2_coefcomp2;
+  infx[t,p] = if (Ix1_coefcomp2 <= Ix2_coefcomp2) then 
+          case
+            {| 0<=t<=6; p=1} : True[];
+          esac else 
+          case
+            {| 0<=t<=6; p=1} : False[];
+          esac;
+  infy[t,p] = if (Iy1_coefcomp2 <= Iy2_coefcomp2) then 
+          case
+            {| 0<=t<=6; p=1} : True[];
+          esac else 
+          case
+            {| 0<=t<=6; p=1} : False[];
+          esac;
+  red[t,p] = infx and infy;
+  red2[t,p] = not (Redu_coefcomp2 and not red);
+  sx[t,p] = Ix2_coefcomp2 - Ix1_coefcomp2;
+  sy[t,p] = Iy2_coefcomp2 - Iy1_coefcomp2;
+  llam1_coefcomp2[t,p] = if (red2) then 
+          case
+            {| 0<=t<=6; p=1} : Ilam2_coefcomp2[t,p];
+          esac else 
+          case
+            {| 0<=t<=6; p=1} : 1[];
+          esac;
+  llam2_coefcomp2[t,p] = if (red2) then 
+          case
+            {| 0<=t<=6; p=1} : Ilam1_coefcomp2[t,p];
+          esac else 
+          case
+            {| 0<=t<=6; p=1} : 0[];
+          esac;
+  ssx[t,p] = if (red2) then 
+          case
+            {| 0<=t<=6; p=1} : sx[t,p];
+          esac else 
+          case
+            {| 0<=t<=6; p=1} : 0[];
+          esac;
+  ssy[t,p] = if (red2) then 
+          case
+            {| 0<=t<=6; p=1} : sy[t,p];
+          esac else 
+          case
+            {| 0<=t<=6; p=1} : 0[];
+          esac;
+  lx1_coefcomp2[t,p] = if (Redu_coefcomp2) then 
+          case
+            {| 0<=t<=6; p=1} : ssx;
+          esac else 
+          case
+            {| 0<=t<=6; p=1} : ux1;
+          esac;
+  lx2_coefcomp2[t,p] = if (Redu_coefcomp2) then 
+          case
+            {| 0<=t<=6; p=1} : 0[];
+          esac else 
+          case
+            {| 0<=t<=6; p=1} : ux2[t,p];
+          esac;
+  ly1_coefcomp2[t,p] = if (Redu_coefcomp2) then 
+          case
+            {| 0<=t<=6; p=1} : ssy;
+          esac else 
+          case
+            {| 0<=t<=6; p=1} : uy1;
+          esac;
+  ly2_coefcomp2[t,p] = if (Redu_coefcomp2) then 
+          case
+            {| 0<=t<=6; p=1} : 0[];
+          esac else 
+          case
+            {| 0<=t<=6; p=1} : uy2[t,p];
+          esac;
+  llam1[t,p] = llam1_coefcomp2;
+  llam2[t,p] = llam2_coefcomp2;
+  lx1[t,p] = lx1_coefcomp2;
+  lx2[t,p] = lx2_coefcomp2;
+  ly1[t,p] = ly1_coefcomp2;
+  ly2[t,p] = ly2_coefcomp2;
+  Oinit_cell1b1[t,p] = Iinit_cell1b1[t-1,p];
+  Tend[t,p] = Iend_cell1b1[t-1,p];
+  Oend_cell1b1[t,p] = Tend[t,p];
+  endsort[t,p] = Tend[t,p];
+  Olam1[t,p] = OOOlam1[t,p];
+  Os_cell1b1[t,p] = if (OOOlam1[t,p] = 0[]) then 
+          case
+            {| 0<=t; p=1} : False[];
+          esac else 
+          case
+            {| 0<=t; p=1} : True[];
+          esac;
+  lllam1[t,p] = muxllam1[t-1,p];
+  muxllam1[t,p] = if (Iinit_cell1b1[t,p]) then 
+          case
+            {| t=0; p=1} : llam1[t,p];
+            {| 1<=t; p=1} : False[];
+          esac else 
+          case
+            {| t=0; p=1} : False[];
+            {| 1<=t; p=1} : lllam1[t,p];
+          esac;
+  lllam2[t,p] = muxllam2[t-1,p];
+  muxllam2[t,p] = if (Iinit_cell1b1[t,p]) then 
+          case
+            {| t=0; p=1} : llam2[t,p];
+            {| 1<=t; p=1} : False[];
+          esac else 
+          case
+            {| t=0; p=1} : False[];
+            {| 1<=t; p=1} : lllam2[t,p];
+          esac;
+  Ux1[t,p] = muxlx1[t-1,p];
+  muxlx1[t,p] = if (Iinit_cell1b1[t,p]) then 
+          case
+            {| t=0; p=1} : lx1[t,p];
+            {| 1<=t; p=1} : False[];
+          esac else 
+          case
+            {| t=0; p=1} : False[];
+            {| 1<=t; p=1} : Ux1[t,p];
+          esac;
+  Ux2[t,p] = muxlx2[t-1,p];
+  muxlx2[t,p] = if (Iinit_cell1b1[t,p]) then 
+          case
+            {| t=0; p=1} : lx2[t,p];
+            {| 1<=t; p=1} : False[];
+          esac else 
+          case
+            {| t=0; p=1} : False[];
+            {| 1<=t; p=1} : Ux2[t,p];
+          esac;
+  Uy1[t,p] = muxly1[t-1,p];
+  muxly1[t,p] = if (Iinit_cell1b1[t,p]) then 
+          case
+            {| t=0; p=1} : ly1[t,p];
+            {| 1<=t; p=1} : False[];
+          esac else 
+          case
+            {| t=0; p=1} : False[];
+            {| 1<=t; p=1} : Uy1[t,p];
+          esac;
+  Uy2[t,p] = muxly2[t-1,p];
+  muxly2[t,p] = if (Iinit_cell1b1[t,p]) then 
+          case
+            {| t=0; p=1} : ly2[t,p];
+            {| 1<=t; p=1} : False[];
+          esac else 
+          case
+            {| t=0; p=1} : False[];
+            {| 1<=t; p=1} : Uy2[t,p];
+          esac;
+  Ilam1_addition3[t,p] = Ilam1_cell1b1;
+  Ilam2_addition3[t,p] = Ilam2_cell1b1;
+  lllam1_addition3[t,p] = lllam1;
+  lllam2_addition3[t,p] = lllam2;
+  Ix1_addition3[t,p] = Ix1_cell1b1;
+  Ix2_addition3[t,p] = Ix2_cell1b1;
+  Iy1_addition3[t,p] = Iy1_cell1b1;
+  Iy2_addition3[t,p] = Iy2_cell1b1;
+  Ux1_addition3[t,p] = Ux1;
+  Ux2_addition3[t,p] = Ux2;
+  Uy1_addition3[t,p] = Uy1;
+  Uy2_addition3[t,p] = Uy2;
+  gal1[t,p] = Ilam1_addition3;
+  gal2[t,p] = lllam1_addition3;
+  gal3[t,p] = if (gal1[t,p] = 0[] or gal2[t,p] = 0[]) then 
+          case
+            {| 2<=t<=6; p=1} : 0[];
+          esac else 
+          case
+            {| 2<=t<=6; p=1} : gal1[t,p] + gal2[t,p] - 1[];
+          esac;
+  Rlam1_addition3[t,p] = gal3;
+  gal1_galmul5[t,p] = Ilam2_addition3;
+  gal2_galmul5[t,p] = lllam2_addition3;
+  gal3_galmul5[t,p] = if (gal1_galmul5[t,p] = 0[] or gal2_galmul5[t,p] = 0[]) then 
+          case
+            {| 2<=t<=6; p=1} : 0[];
+          esac else 
+          case
+            {| 2<=t<=6; p=1} : gal1_galmul5[t,p] + gal2_galmul5[t,p] - 1[];
+          esac;
+  Rlam2_addition3[t,p] = gal3_galmul5;
+  Rx1_addition3[t,p] = Ix1_addition3 + Ux1_addition3;
+  Ry1_addition3[t,p] = Iy1_addition3 + Uy1_addition3;
+  Rx2_addition3[t,p] = Ix2_addition3 + Ux2_addition3;
+  Ry2_addition3[t,p] = Iy2_addition3 + Uy2_addition3;
+  Rlam1[t,p] = Rlam1_addition3;
+  Rx1[t,p] = Rx1_addition3;
+  Ry1[t,p] = Ry1_addition3;
+  Rlam2[t,p] = Rlam2_addition3;
+  Rx2[t,p] = Rx2_addition3;
+  Ry2[t,p] = Ry2_addition3;
+  RRlam2[t,p] = Rlam2[t-1,p];
+  RRx2[t,p] = Rx2[t-1,p];
+  RRy2[t,p] = Ry2[t-1,p];
+  RRlam1[t,p] = Rlam1;
+  RRx1[t,p] = Rx1;
+  RRy1[t,p] = Ry1;
+  RRlam2_multiplex6[t,p] = RRlam2;
+  RRx2_multiplex6[t,p] = RRx2;
+  RRy2_multiplex6[t,p] = RRy2;
+  ck2_multiplex6[t,p] = ck2_cell1b1;
+  Olam1_multiplex6[t,p] = if (ck2_multiplex6[t,p]) then 
+          case
+            {| 2<=t<=6; p=1} : RRlam1[t,p];
+            {| t=7; p=1} : False[];
+          esac else 
+          case
+            {| t=2; p=1} : False[];
+            {| 3<=t<=7; p=1} : RRlam2_multiplex6[t,p];
+          esac;
+  Olam2_multiplex6[t,p] = 0[];
+  Ox_multiplex6[t,p] = if (ck2_multiplex6[t,p]) then 
+          case
+            {| 2<=t<=6; p=1} : RRx1[t,p];
+            {| t=7; p=1} : False[];
+          esac else 
+          case
+            {| t=2; p=1} : False[];
+            {| 3<=t<=7; p=1} : RRx2_multiplex6[t,p];
+          esac;
+  Oy_multiplex6[t,p] = if (ck2_multiplex6[t,p]) then 
+          case
+            {| 2<=t<=6; p=1} : RRy1[t,p];
+            {| t=7; p=1} : False[];
+          esac else 
+          case
+            {| t=2; p=1} : False[];
+            {| 3<=t<=7; p=1} : RRy2_multiplex6[t,p];
+          esac;
+  OOOlam1[t,p] = Olam1_multiplex6;
+  Olam2[t,p] = Olam2_multiplex6;
+  Ox_cell1b1[t,p] = Ox_multiplex6;
+  Oy_cell1b1[t,p] = Oy_multiplex6;
+  OOl1[t,p] = Olam1;
+  OOl2[t,p] = Olam2;
+  OOx[t,p] = Ox_cell1b1;
+  OOy[t,p] = Oy_cell1b1;
+  OOs[t,p] = Os_cell1b1;
+  OOinit[t,p] = Oinit_cell1b1;
+  OOend[t,p] = Oend_cell1b1;
+  OOendsort[t,p] = endsort;
+  IIl1[t,p] = 
+      case
+        {| p=2} : OOl1[t,p-1];
+        {| 3<=p<=5} : Ol1[t,p-1];
+      esac;
+  IIl2[t,p] = 
+      case
+        {| p=2} : OOl2[t,p-1];
+        {| 3<=p<=5} : Ol2[t,p-1];
+      esac;
+  IIx[t,p] = 
+      case
+        {| p=2} : OOx[t,p-1];
+        {| 3<=p<=5} : Ox[t,p-1];
+      esac;
+  IIy[t,p] = 
+      case
+        {| p=2} : OOy[t,p-1];
+        {| 3<=p<=5} : Oy[t,p-1];
+      esac;
+  IIs[t,p] = 
+      case
+        {| p=2} : OOs[t,p-1];
+        {| 3<=p<=5} : Os[t,p-1];
+      esac;
+  IIend[t,p] = 
+      case
+        {| p=2} : OOend[t,p-1];
+        {| 3<=p<=5} : Oend[t,p-1];
+      esac;
+  IIendsort[t,p] = 
+      case
+        {| p=2} : OOendsort[t,p-1];
+        {| 3<=p<=5} : Oendsort[t,p-1];
+      esac;
+  IIinit[t,p] = 
+      case
+        {| p=2} : OOinit[t,p-1];
+        {| 3<=p<=5} : Oinit[t,p-1];
+      esac;
+  Il1[t,p] = IIl1;
+  Il2[t,p] = IIl2;
+  Ix[t,p] = IIx;
+  Iy[t,p] = IIy;
+  Isign[t,p] = IIs;
+  Iend_sortcell7[t,p] = IIend;
+  Iendsort[t,p] = IIendsort;
+  Iinit_sortcell7[t,p] = IIinit;
+  Rl1[t,p] = Rl1in[t-1,p];
+  Rl2[t,p] = Rl2in[t-1,p];
+  Rx[t,p] = Rxin[t-1,p];
+  Ry[t,p] = Ryin[t-1,p];
+  Rs[t,p] = Rsin[t-1,p];
+  Rend[t,p] = Rendin[t-1,p];
+  Ol1_sortcell7[t,p] = Ol1in[t-1,p];
+  Ol2_sortcell7[t,p] = Ol2in[t-1,p];
+  Ox_sortcell7[t,p] = Oxin[t-1,p];
+  Oy_sortcell7[t,p] = Oyin[t-1,p];
+  Os_sortcell7[t,p] = Osin[t-1,p];
+  Oend_sortcell7[t,p] = Oendin[t-1,p];
+  Oendsort_sortcell7[t,p] = Oendsortin[t-1,p];
+  Oendsortin[t,p] = Oendsortinin[t-1,p];
+  Oinit_sortcell7[t,p] = Oinitin[t-1,p];
+  Oinitin[t,p] = Oinitinin[t-1,p];
+  Iendbis[t,p] = if (True[]) then 
+          case
+            {| p+5<=t; 2<=p<=5} : False[];
+            {| t<=p+4; 2<=p<=5} : Iend_sortcell7[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : False[];
+          esac;
+  Ol1in[t,p] = if (Iendsort[t,p]) then 
+          case
+            {| t<=2p+1; 2<=p<=5} : False[];
+            {| t=2p+2; 2<=p<=5} : Rl1[t,p];
+          esac else 
+          case
+            {| t=2p+2; 2<=p<=5} : False[];
+            {| t<=2p+1; 2<=p<=5} : Ol1a[t,p];
+          esac;
+  Ol1a[t,p] = if (Iendbis[t,p] or Rend[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Il1[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Ol1b[t,p];
+          esac;
+  Ol1b[t,p] = if (Isign[t,p] and Rs[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Ol1c[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : 0[];
+          esac;
+  Ol1c[t,p] = if (cmpsup[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Il1[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Ol1d[t,p];
+          esac;
+  Ol1d[t,p] = if (cmpinf[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rl1[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : 0[];
+          esac;
+  Ol2in[t,p] = if (Iendsort[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rl2[t,p];
+          esac else 
+          case
+            {| t=2p+2; 2<=p<=5} : False[];
+            {| t<=2p+1; 2<=p<=5} : Ol2a[t,p];
+          esac;
+  Ol2a[t,p] = if (Iendbis[t,p] or Rend[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Il2[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Ol2b[t,p];
+          esac;
+  Ol2b[t,p] = if (Isign[t,p] and Rs[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Ol2c[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : 0[];
+          esac;
+  Ol2c[t,p] = if (cmpsup[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Il2[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Ol2d[t,p];
+          esac;
+  Ol2d[t,p] = if (cmpinf[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rl2[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : 0[];
+          esac;
+  Oxin[t,p] = if (Iendsort[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rx[t,p];
+          esac else 
+          case
+            {| t=2p+2; 2<=p<=5} : False[];
+            {| t<=2p+1; 2<=p<=5} : Oxa[t,p];
+          esac;
+  Oxa[t,p] = if (Iendbis[t,p] or Rend[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Ix[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Oxb[t,p];
+          esac;
+  Oxb[t,p] = if (Isign[t,p] and Rs[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Oxc[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : 0[];
+          esac;
+  Oxc[t,p] = if (cmpsup[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Ix[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Oxd[t,p];
+          esac;
+  Oxd[t,p] = if (cmpinf[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rx[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : 0[];
+          esac;
+  Oyin[t,p] = if (Iendsort[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Ry[t,p];
+          esac else 
+          case
+            {| t=2p+2; 2<=p<=5} : False[];
+            {| t<=2p+1; 2<=p<=5} : Oya[t,p];
+          esac;
+  Oya[t,p] = if (Iendbis[t,p] or Rend[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Iy[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Oyb[t,p];
+          esac;
+  Oyb[t,p] = if (Isign[t,p] and Rs[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Oyc[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : 0[];
+          esac;
+  Oyc[t,p] = if (cmpsup[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Iy[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Oyd[t,p];
+          esac;
+  Oyd[t,p] = if (cmpinf[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Ry[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : 0[];
+          esac;
+  Osin[t,p] = if (Iendsort[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rs[t,p];
+          esac else 
+          case
+            {| t=2p+2; 2<=p<=5} : False[];
+            {| t<=2p+1; 2<=p<=5} : Osa[t,p];
+          esac;
+  Osa[t,p] = if (Iendbis[t,p] or Rend[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Isign[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Osb[t,p];
+          esac;
+  Osb[t,p] = if (not Isign[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : False[];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Osc[t,p];
+          esac;
+  Osc[t,p] = if (Rs[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Osd[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : False[];
+          esac;
+  Osd[t,p] = if (cmpsup[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Isign[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Ose[t,p];
+          esac;
+  Ose[t,p] = if (cmpinf[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : True[];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : False[];
+          esac;
+  Oendin[t,p] = Iend_sortcell7[t,p];
+  Oendsortinin[t,p] = Iendsort[t,p];
+  Oinitinin[t,p] = Iinit_sortcell7[t,p];
+  Initp[t,p] = Iinit_sortcell7[t-1,p];
+  Rl1in[t,p] = if (Iendbis[t,p] or Rend[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rl1[t,p];
+          esac else 
+          case
+            {| 2p-2<=t; 2<=p<=5} : Rl1a[t,p];
+          esac;
+  Rl1a[t,p] = if (Isign[t,p] and not Rs[t,p]) then 
+          case
+            {| 2p-2<=t; 2<=p<=5} : Il1[t,p];
+          esac else 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rl1b[t,p];
+          esac;
+  Rl1b[t,p] = if (Isign[t,p] and Rs[t,p] and cmpinf[t,p]) then 
+          case
+            {| 2p-3<=t<=2p+1; 2<=p<=5} : Il1[t,p];
+          esac else 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rl1[t,p];
+          esac;
+  Rl2in[t,p] = if (Iinit_sortcell7[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : 0[];
+          esac else 
+          case
+            {| t=2p-3; 2<=p<=5} : False[];
+            {| 2p-2<=t; 2<=p<=5} : Rl2s[t,p];
+          esac;
+  Rl2s[t,p] = if (Initp[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : Rl2[t,p];
+            {| 2p-1<=t; 2<=p<=5} : False[];
+          esac else 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rl2a[t,p];
+          esac;
+  Rl2a[t,p] = if (Iendbis[t,p] or Rend[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Rl2[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Rl2b[t,p];
+          esac;
+  Rl2b[t,p] = if (not Iendbis[t,p] and not Rend[t,p] and not Iendsort[t,p] and Isign[t,p] and Rs[t,p] and cmpeq[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Il1[t,p];
+          esac else 
+          case
+            {| 2p-2<=t; 2<=p<=5} : Rl2c[t,p];
+          esac;
+  Rl2c[t,p] = if (Isign[t,p] and Rs[t,p] and cmpinf[t,p]) then 
+          case
+            {| 2p-3<=t<=2p+1; 2<=p<=5} : Il2[t,p];
+          esac else 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rl2[t,p];
+          esac;
+  Rxin[t,p] = if (Iendbis[t,p] or Rend[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rx[t,p];
+          esac else 
+          case
+            {| 2p-2<=t; 2<=p<=5} : Rxa[t,p];
+          esac;
+  Rxa[t,p] = if (Isign[t,p] and not Rs[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Ix[t,p];
+          esac else 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rxb[t,p];
+          esac;
+  Rxb[t,p] = if (Isign[t,p] and Rs[t,p] and cmpinf[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Ix[t,p];
+          esac else 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Rx[t,p];
+          esac;
+  Ryin[t,p] = if (Iendbis[t,p] or Rend[t,p]) then 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Ry[t,p];
+          esac else 
+          case
+            {| 2p-2<=t; 2<=p<=5} : Rya[t,p];
+          esac;
+  Rya[t,p] = if (Isign[t,p] and not Rs[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Iy[t,p];
+          esac else 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Ryb[t,p];
+          esac;
+  Ryb[t,p] = if (Isign[t,p] and Rs[t,p] and cmpinf[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Iy[t,p];
+          esac else 
+          case
+            {| t=2p-2; 2<=p<=5} : False[];
+            {| 2p-1<=t; 2<=p<=5} : Ry[t,p];
+          esac;
+  Rendin[t,p] = if (Iinit_sortcell7[t,p]) then 
+          case
+            {| t=2p-3; 2<=p<=5} : False[];
+            {| 2p-2<=t; 2<=p<=5} : False[];
+          esac else 
+          case
+            {| t=2p-3; 2<=p<=5} : False[];
+            {| 2p-2<=t; 2<=p<=5} : Renda[t,p];
+          esac;
+  Renda[t,p] = if (Rend[t,p] or Iendbis[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : True[];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : False[];
+          esac;
+  Rsin[t,p] = if (Iinit_sortcell7[t,p]) then 
+          case
+            {| t=2p-3; 2<=p<=5} : False[];
+            {| 2p-2<=t; 2<=p<=5} : False[];
+          esac else 
+          case
+            {| t=2p-3; 2<=p<=5} : False[];
+            {| 2p-2<=t; 2<=p<=5} : Rsa[t,p];
+          esac;
+  Rsa[t,p] = if (Iendbis[t,p] or Rend[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Rs[t,p];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Rsb[t,p];
+          esac;
+  Rsb[t,p] = if (not Iendbis[t,p] and not Rend[t,p] and not Iendsort[t,p] and Isign[t,p] and not Rs[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : True[];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : Rs[t,p];
+          esac;
+  cmpsup[t,p] = if (Rx[t,p] > Ix[t,p] or Ix[t,p] = Rx[t,p] and Ry[t,p] > Iy[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : True[];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : False[];
+          esac;
+  cmpinf[t,p] = if (Rx[t,p] < Ix[t,p] or Ix[t,p] = Rx[t,p] and Ry[t,p] < Iy[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : True[];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : False[];
+          esac;
+  cmpeq[t,p] = if (Ix[t,p] = Rx[t,p] and Ry[t,p] = Iy[t,p]) then 
+          case
+            {| 2p-3<=t; 2<=p<=5} : True[];
+          esac else 
+          case
+            {| 2p-3<=t; 2<=p<=5} : False[];
+          esac;
+  Ol1[t,p] = Ol1_sortcell7;
+  Ol2[t,p] = Ol2_sortcell7;
+  Ox[t,p] = Ox_sortcell7;
+  Oy[t,p] = Oy_sortcell7;
+  Os[t,p] = Os_sortcell7;
+  Oend[t,p] = Oend_sortcell7;
+  Oendsort[t,p] = Oendsort_sortcell7;
+  Oinit[t,p] = Oinit_sortcell7;
+  Sl1[t,p] = Ol1[t,p];
+  Sl2[t,p] = Ol2[t,p];
+  Sx[t,p] = Ox[t,p];
+  Sy[t,p] = Oy[t,p];
+  Ss[t,p] = Os[t,p];
+  Send[t,p] = Oend[t,p];
+  Sendsort[t,p] = Oendsort[t,p];
+  Sinit[t,p] = Oinit[t,p];
+tel;

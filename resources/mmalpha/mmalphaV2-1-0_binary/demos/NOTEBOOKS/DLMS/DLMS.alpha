@@ -1,0 +1,29 @@
+-- Adaptive filter with relaxed look ahead for weigth update recursion
+-- Specif of IEEE 1999, vol 46, Nr 1, p 51 
+-- DLMS
+-- N is the number of taps of the filter, 
+-- Index n represents the sample number, and index 
+--  i represents the tap number.
+-- Note that N>=3, D-1>=N, and M-D-1>=N
+system firr :  {N,M,D | 3<=N<=(D-1,M-D-1)}
+               (x : {n | 1<=n<=M} of integer; 
+                d : {n | N<=n<=M} of integer)
+       returns (res : {n | N<=n<=M} of integer);
+var
+  W : {n,i | N<=n<=M; 0<=i<=N-1} of integer;
+  Y : {n,i | N<=n<=M; -1<=i<=N-1} of integer;
+  E : {n | N<=n<=M} of integer;
+let
+  W[n,i] = 
+      case
+        { | n<=N+D-1} : 0[];
+        { | N+D<=n} : W[n-1,i] +  E[n-D] * x[n-i-D];
+      esac;
+  Y[n,i] = 
+      case
+        { | i=-1} : 0[];
+        { | 0<=i} : Y[n,i-1] + W[n,i] * x[n-i];
+      esac;
+  E[n] = (d[n] - res[n])/32[];
+  res[n] = Y[n,N-1];
+tel;

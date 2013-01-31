@@ -1,0 +1,21 @@
+
+COMPONENT cellFirModule3
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  Y_reg7loc : IN SIGNED (15 DOWNTO 0);
+  xPipe_reg5loc : IN SIGNED (15 DOWNTO 0);
+  HPipeES_reg4loc : IN SIGNED (15 DOWNTO 0);
+  xPipeES_reg3loc : IN SIGNED (15 DOWNTO 0);
+  xPipe_ctl2P_reg2loc : IN STD_LOGIC;
+  HPipe_ctl1P_reg1loc : IN STD_LOGIC;
+  Y : OUT SIGNED (15 DOWNTO 0);
+  xPipe : OUT SIGNED (15 DOWNTO 0);
+  HPipeES : OUT SIGNED (15 DOWNTO 0);
+  xPipeES : OUT SIGNED (15 DOWNTO 0);
+  xPipe_ctl2P : OUT STD_LOGIC;
+  HPipe_ctl1P : OUT STD_LOGIC
+);
+END COMPONENT;
+

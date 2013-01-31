@@ -1,0 +1,29 @@
+(* ----------
+  Trace file 
+  25/4/2010 -- 18h 24mn 47.845834s
+  List of commands executed
+  ----------  *)
+(* ++++ Loading... *)
+load[ Samba.alpha mute -> True ];
+(* ++++  Analyzing ... *)
+analyze[ mute -> True ]
+(* ++++  Scheduling ... *)
+scd[  ]
+(* ++++ Applying schedule ... *)
+appSched[  ]
+pipeVars[ mute -> True ]
+(* ++++ Generating Alpha0 ...*) 
+toAlpha0v2[ mute -> True, verbose -> False ]
+(* ++++ Generating AlphHard ... *)
+alpha0ToAlphard[ mergeDomains -> True, verbose-> False, mute -> True ]
+(* ++++ Setting parameter's value ... *)
+fixParameter[ X, 20, mute->True ]
+fixParameter[ Y, 100, mute->True ]
+(* ++++ Generating Vhdl ... *)
+a2v[ vhdlDir->sequenceSYN/VHDL, mute->True, verbose->False, 
+      vhdlPatterns -> False ];
+(*
+----  Vhdl was generated in Directory sequenceSYN/VHDL
+----  Congratulations, you made it ! 
+----  Total time: 4.19948 seconds
+ *)

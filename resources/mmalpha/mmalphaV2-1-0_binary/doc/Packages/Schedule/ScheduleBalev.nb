@@ -1,0 +1,1308 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     27727,        997]*)
+(*NotebookOutlinePosition[     28473,       1024]*)
+(*  CellTagsIndexPosition[     28429,       1020]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The Schedule package", "Title",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell["The Alpha team", "Subsubtitle"],
+
+Cell["January 1997", "Text"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+quinton@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell["Cr\[EAcute]dits", "SmallText",
+  FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+Zbignew Chamski, Florent de Dinechin, Herv\[EAcute] Le Verge, Doran \
+Wilde, Tanguy Risset, Sanjay Rajopadhye\
+\>", "SmallText"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[" Execute this cell, to load MMAlpha (if needed)", "SmallText",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(SetDirectory[Alpha`$rootDirectory]\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \("Macintosh HD:Users:Patrice:Alpha"\)], "Output"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Which[$OperatingSystem === "\<MacOS\>", << 
+        "\<:config:initMacintosh.m\>", \n
+      \t$OperatingSystem\  === \ "\<Unix\>", << "\</config/init.m\>", \n\t\t
+      True, Print["\<Unsupported OS\>"]]\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(LinkObject["Domlib.PPC", 2, 2]\)], "Print"],
+
+Cell[BoxData[
+    \("Domlib successfully installed."\)], "Print"],
+
+Cell[BoxData[
+    \("writeAlpha successfully installed."\)], "Print"],
+
+Cell[BoxData[
+    \("parseAlpha successfully installed."\)], "Print"],
+
+Cell[BoxData[
+    \("Alpha.m, version 0.9 -- MacOS"\)], "Print"],
+
+Cell[BoxData[
+    \("Alpha"\)], "Print"],
+
+Cell[BoxData[
+    \("Options"\)], "Print"],
+
+Cell[BoxData[
+    \("Formats"\)], "Print"],
+
+Cell[BoxData[
+    \("Goodies"\)], "Print"],
+
+Cell[BoxData[
+    \("Visual3D"\)], "Print"],
+
+Cell[BoxData[
+    \("WA"\)], "Print"],
+
+Cell[BoxData[
+    \("RA"\)], "Print"],
+
+Cell[BoxData[
+    \("Semantics"\)], "Print"],
+
+Cell[BoxData[
+    \("Matrix"\)], "Print"],
+
+Cell[BoxData[
+    \("Tables"\)], "Print"],
+
+Cell[BoxData[
+    \("Substitution"\)], "Print"],
+
+Cell[BoxData[
+    \("Normalization"\)], "Print"],
+
+Cell[BoxData[
+    \("Equivalence"\)], "Print"],
+
+Cell[BoxData[
+    \("Properties"\)], "Print"],
+
+Cell[BoxData[
+    \("Static"\)], "Print"],
+
+Cell[BoxData[
+    \("CoB"\)], "Print"],
+
+Cell[BoxData[
+    \("Pipeline"\)], "Print"],
+
+Cell[BoxData[
+    \("Decomposition"\)], "Print"],
+
+Cell[BoxData[
+    \("Merge"\)], "Print"],
+
+Cell[BoxData[
+    \("Reduction"\)], "Print"],
+
+Cell[BoxData[
+    \("Cut"\)], "Print"],
+
+Cell[BoxData[
+    \("SubSystems"\)], "Print"],
+
+Cell[BoxData[
+    \("Demos"\)], "Print"],
+
+Cell[BoxData[
+    \("ScheduleTools"\)], "Print"],
+
+Cell[BoxData[
+    \("Control"\)], "Print"],
+
+Cell[BoxData[
+    \("PipeControl"\)], "Print"],
+
+Cell[BoxData[
+    \("ToAlpha0v2"\)], "Print"]
+}, Open  ]]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[" Execute this cell, to redefine the current directory", "SmallText",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(\(Which[$OperatingSystem\  === "\<MacOS\>", 
+      SetDirectory[$testDirectory<>"\<:Schedule\>"], $OperatingSystem === 
+        "\<Unix\>", SetDirectory[$testDirectory<>"\</TestSchedule\>"], True, 
+      "\<Unsupported OS\>"]; \)\)], "Input"]
+}, Closed]],
+
+Cell["\<\
+This package describes one set of schedule functions, based on the \
+paper of Balev, Rajopadhye, Risset and Quinton.\
+\>", "Text",
+  TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell["Directory[]", "Input"],
+
+Cell[BoxData[
+    \("/home/frodon/d01/api/quinton/alpha"\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["SetDirectory[\"/udd/quinton/transfer/tests/TestSchedule\"]", "Input"],
+
+Cell[BoxData[
+    \("/udd/quinton/transfer/tests/TestSchedule"\)], "Output"]
+}, Open  ]],
+
+Cell["<<SchedBalev.m", "Input"],
+
+Cell["1. Introduction", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell["2. A simple example", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+  "Consider the following Alpha program. We have an input variable, ",
+  StyleBox["x",
+    FontSlant->"Italic"],
+  ", and one output variable, ",
+  StyleBox["y",
+    FontSlant->"Italic"],
+  ". For all i, ",
+  Cell[BoxData[
+      \(TraditionalForm\`y\_i\)]],
+  " = ",
+  Cell[BoxData[
+      FormBox[
+        RowBox[{
+          StyleBox[\(\[Sum]\+\(j = 1\)\%i\),
+            ScriptLevel->0], 
+          StyleBox[" ",
+            ScriptLevel->0], \(x\_j\)}], TraditionalForm]]],
+  ". To compute this values, we introduce a new variable ",
+  Cell[BoxData[
+      \(TraditionalForm\`Y\_\(i, j\)\)]],
+  ",which is computed iteratively, from ",
+  StyleBox["j = 0",
+    FontSlant->"Italic"],
+  " to ",
+  StyleBox["i",
+    FontSlant->"Italic"],
+  "."
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(load["\<test.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("system testSchedule :{N | 1<=N}\n                    (x : {i | \
+1<=i<=N} of integer)\n       returns      (y : {i | 1<=i<=N} of integer);\n\
+var\n  Y : {i,j | (1,j)<=i<=N; 0<=j} of integer;\nlet\n  Y[i,j] = \n      \
+case\n        {| j=0} : 0[];\n        {| 1<=j} : Y[i,j-1] + x[i];\n      \
+esac;\n  y[i] = Y[i,i];\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+We may analyze this program (it is a good practice to analyze \
+systematically programs, before doing any operation on it: very often, we \
+detect flaws in this way.)\
+\>", "Text",
+  TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(analyze[]\)], "Input"],
+
+Cell[BoxData[
+    \(" "\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("Static Analysis of system "\[InvisibleSpace]"testSchedule"\),
+      SequenceForm[ "Static Analysis of system ", "testSchedule"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking declaration of variables."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking single assignment rule."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking definitions of output/local variables."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking definition of input variables."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking that input/local variables are used."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking type and domain consistency in the equations:"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("----equation defining "\[InvisibleSpace]"Y"\),
+      SequenceForm[ "----equation defining ", "Y"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("----equation defining "\[InvisibleSpace]"y"\),
+      SequenceForm[ "----equation defining ", "y"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("\nAnalysis Successful..."\)], "Print"],
+
+Cell[BoxData[
+    \(True\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[TextData[{
+  "Scheduling this program amounts to finding an order of the variable \
+instances, say, x(i), y(i), Y(i,j), such that the definition of each one can \
+be computed. Here, we see that ",
+  Cell[BoxData[
+      \(TraditionalForm\`Y\_\(i, j\)\)]],
+  " requires ",
+  Cell[BoxData[
+      \(TraditionalForm\`Y\_\(i, j - 1\)\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`x\_i\)]],
+  " to be computed. "
+}], "Text",
+  TextJustification->1],
+
+Cell[TextData[{
+  "To schedule a program, we associate a timing function to each variable. \
+This timing function is constrained to be an affine function of the indexes \
+of the variable. So, the timing function for ",
+  Cell[BoxData[
+      \(TraditionalForm\`Y\_\(i, j\)\)]],
+  " has the form t(Y,i,j) = a i + b j + c. For MMA purposes, we shall write "
+}], "Text",
+  TextJustification->1],
+
+Cell[BoxData[
+    \(TYD1\ i\  + \ TYD2\ j\  + \ AY\)], "Input"],
+
+Cell["this function. ", "Text"],
+
+Cell[CellGroupData[{
+
+Cell["Options[scheduleBalev]", "Input"],
+
+Cell[BoxData[
+    \({debug \[Rule] False, verbose \[Rule] True, resolutionSoft \[Rule] 4, 
+      ratOrInt \[Rule] 0, addConstraints \[Rule] {}, duration \[Rule] 0, 
+      checkSched \[Rule] {}, scheduleType \[Rule] 1, objFunction \[Rule] 0, 
+      onlyVar \[Rule] True, givenSchedVect \[Rule] {}, 
+      Alpha`SchedBalev`Private`onlyDep \[Rule] True, 
+      Alpha`SchedBalev`Private`outputMMALP \[Rule] False}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["scheduleBalev[debug->True,resolutionSoft->3]", "Input"],
+
+Cell[BoxData[
+    \("Checking options..."\)], "Print"],
+
+Cell[BoxData[
+    \("Vertex method"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("Param Domain : "\[InvisibleSpace]{{N \[GreaterEqual] 1}, {N}}\),
+      SequenceForm[ "Param Domain : ", {{
+        GreaterEqual[ N, 1]}, {N}}],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("building vCDG ..."\)], "Print"],
+
+Cell[BoxData[
+    \(" ... vCDG built"\)], "Print"],
+
+Cell[BoxData[
+    \("buiding eCDG ..."\)], "Print"],
+
+Cell[BoxData[
+    \("... eGDG built: "\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Solving dimension "\[InvisibleSpace]1\),
+      SequenceForm[ "Solving dimension ", 1],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Edges to satisfy "\[InvisibleSpace]3\),
+      SequenceForm[ "Edges to satisfy ", 3],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Generating LP model..."\)], "Print"],
+
+Cell[BoxData[
+    \("building causality constraints on variables..."\)], "Print"],
+
+Cell[BoxData[
+    \("... causality constraints on variables built"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("\!\(34\) constraints and \!\(15\) variables (\!\(510\) elements) "\),
+      
+      StringForm[ 
+      "`` constraints and `` variables (`` elements) ``", 34, 15, 510, ""],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Writing data for lp_solve..."\)], "Print"],
+
+Cell[BoxData[
+    \("Running lp_solve..."\)], "Print"],
+
+Cell[BoxData[
+    \("Reading the solution..."\)], "Print"],
+
+Cell[BoxData[
+    \({{"AYMi", 0}, {"AYPl", 0}, {"Ty1Mi", 0}, {"Ty1Pl", 1}, {"Ty2Mi", 0}, {
+        "Ty2Pl", 0}, {"TN", 1}, {"Tx1Mi", 0}, {"Tx1Pl", 0}, {"Apar", 1}, {
+        "Tx2Mi", 0}, {"Tx2Pl", 0}, {"AxMi", 0}, {"AxPl", 0}, {"AyMi", 0}, {
+        "AyPl", 1}, {"TY1Mi", 0}, {"TY1Pl", 0}, {"TY2Mi", 0}, {"TY2Pl", 1}, {
+        "Epsilon1", 1}, {"Epsilon2", 1}, {"Epsilon3", 1}, {"TY3Mi", 0}, {
+        "TY3Pl", 0}}\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"x"\[InvisibleSpace]{"i", "N"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]0\),
+      SequenceForm[ "T_", "x", {"i", "N"}, " = ", 0],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"y"\[InvisibleSpace]{"i", "N"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(1 + "i"\)\),
+      SequenceForm[ "T_", "y", {"i", "N"}, " = ", 
+        Plus[ 1, "i"]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"Y"\[InvisibleSpace]{"i", "j", "N"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]"j"\),
+      SequenceForm[ "T_", "Y", {"i", "j", "N"}, " = ", "j"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(""\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("unsatisfied edges: "\[InvisibleSpace]{}\),
+      SequenceForm[ "unsatisfied edges: ", {}],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("neps = "\[InvisibleSpace]3\),
+      SequenceForm[ "neps = ", 3],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Unsatisfied edges: "\[InvisibleSpace]0\),
+      SequenceForm[ "Unsatisfied edges: ", 0],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("The schedule obtained:"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"x"\[InvisibleSpace]{"i", "N"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]0\),
+      SequenceForm[ "T_", "x", {"i", "N"}, " = ", 0],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"y"\[InvisibleSpace]{"i", "N"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(1 + "i"\)\),
+      SequenceForm[ "T_", "y", {"i", "N"}, " = ", 
+        Plus[ 1, "i"]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"Y"\[InvisibleSpace]{"i", "j", "N"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]"j"\),
+      SequenceForm[ "T_", "Y", {"i", "j", "N"}, " = ", "j"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(""\)], "Print"],
+
+Cell[BoxData[
+    \(scheduleResult[
+      1, {{"x", {"i", "N"}, sched[{0, 0}, 0]}, {"y", {"i", "N"}, 
+          sched[{1, 0}, 1]}, {"Y", {"i", "j", "N"}, sched[{0, 1, 0}, 0]}}, {}]
+      \)], "Output"]
+}, Open  ]],
+
+Cell["<<SchedBalev.m", "Input"],
+
+Cell[CellGroupData[{
+
+Cell["$causalityDepConstraints", "Input"],
+
+Cell[BoxData[
+    \({True, \(-Epsilon1\) + TY2 \[GreaterEqual] 0, 
+      \(-Tx2\) + TY3 \[GreaterEqual] 0, 
+      \(-Tx1\) - Tx2 + TY1 + TY3 \[GreaterEqual] 0, 
+      \(-Tx1\) - Tx2 + TY1 + TY2 + TY3 \[GreaterEqual] 0, 
+      \(-Ax\) + AY - Epsilon2 - Tx1 - Tx2 + TY1 + TY2 + TY3 \[GreaterEqual] 
+        0, Ty2 - TY3 \[GreaterEqual] 0, 
+      Ty1 - TY1 + Ty2 - TY2 - TY3 \[GreaterEqual] 0, 
+      Ay - AY - Epsilon3 + Ty1 - TY1 + Ty2 - TY2 - TY3 \[GreaterEqual] 0}\)], 
+  "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["$causalityVarConstraints", "Input"],
+
+Cell[BoxData[
+    \({Tx2 \[GreaterEqual] 0, Tx1 + Tx2 \[GreaterEqual] 0, 
+      Ax + Tx1 + Tx2 \[GreaterEqual] 0, Ty2 \[GreaterEqual] 0, 
+      Ty1 + Ty2 \[GreaterEqual] 0, Ay + Ty1 + Ty2 \[GreaterEqual] 0, 
+      TY3 \[GreaterEqual] 0, TY1 + TY3 \[GreaterEqual] 0, 
+      AY + TY1 + TY3 \[GreaterEqual] 0, TY1 + TY2 + TY3 \[GreaterEqual] 0, 
+      AY + TY1 + TY2 + TY3 \[GreaterEqual] 0}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["$objectiveFunction", "Input"],
+
+Cell[BoxData[
+    \(\(-Apar\) + 1000\ Epsilon1 + 1000\ Epsilon2 + 1000\ Epsilon3 - 
+      10\ TN\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "The result is put in the variable ",
+  StyleBox["$schedule", "Input"],
+  ". "
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \($schedule\)], "Input"],
+
+Cell[BoxData[
+    \(scheduleResult[
+      1, {{"x", {"i", "N"}, sched[{\(-1\), 1}, 0]}, {"y", {"i", "N"}, 
+          sched[{0, 1}, 1]}, {"Y", {"i", "j", "N"}, 
+          sched[{\(-1\), 1, 1}, 0]}}, {}]\)], "Output"]
+}, Open  ]],
+
+Cell["It can be viewed using the function showSchedResult.", "Text"],
+
+Cell["showSchedResult[]:=showSchedResult[$schedule]", "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(showSchedResult[]\)], "Input"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"x"\[InvisibleSpace]{"i", "N"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(\( - "i"\) + "N"\)\),
+      SequenceForm[ "T_", "x", {"i", "N"}, " = ", 
+        Plus[ 
+          Times[ -1, "i"], "N"]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"y"\[InvisibleSpace]{"i", "N"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(1 + "N"\)\),
+      SequenceForm[ "T_", "y", {"i", "N"}, " = ", 
+        Plus[ 1, "N"]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"Y"\[InvisibleSpace]{"i", "j", "N"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(\( - "i"\) + "j" + "N"\)\),
+      
+      SequenceForm[ "T_", "Y", {"i", "j", "N"}, " = ", 
+        Plus[ 
+          Times[ -1, "i"], "j", "N"]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(""\)], "Print"],
+
+Cell[BoxData[
+    \(scheduleResult[
+      1, {{"x", {"i", "N"}, sched[{\(-1\), 1}, 0]}, {"y", {"i", "N"}, 
+          sched[{0, 1}, 1]}, {"Y", {"i", "j", "N"}, 
+          sched[{\(-1\), 1, 1}, 0]}}, {}]\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+The schedule will be used later on to produce a parallel \
+architecture. \
+\>", "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3. Gathering constraints", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+Several functions allows one to gather and modify the scheduling \
+constraints. \
+\>", "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["4. A more involved example", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(load["\<testschedule2.alpha\>"]; \)\)], "Input"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system testSchedule2 :{N,M | 1<=N; 2<=M}\n                     (x : {i \
+| 1<=i<=M} of integer)\n       returns       (y : {i | 1<=i<=M} of integer);\n\
+var\n  A : {i | 1<=i<=M} of integer;\n  B : {i,j | 1<=i<=M; 1<=j<=N} of \
+integer;\nlet\n  A[i] = \n      case\n        {| i=1} : x[i];\n        {| \
+2<=i} : x[i] + B[i-1,N];\n      esac;\n  B[i,j] = \n      case\n        {| \
+j=1} : A[i];\n        {| 2<=j} : B[i,j-1] + x[i];\n      esac;\n  y[i] = \
+A[i];\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(analyze[]\)], "Input"],
+
+Cell[BoxData[
+    \(" "\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("Static Analysis of system "\[InvisibleSpace]"testSchedule2"\),
+      SequenceForm[ "Static Analysis of system ", "testSchedule2"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking declaration of variables."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking single assignment rule."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking definitions of output/local variables."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking definition of input variables."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking that input/local variables are used."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking type and domain consistency in the equations:"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("----equation defining "\[InvisibleSpace]"A"\),
+      SequenceForm[ "----equation defining ", "A"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("----equation defining "\[InvisibleSpace]"B"\),
+      SequenceForm[ "----equation defining ", "B"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("----equation defining "\[InvisibleSpace]"y"\),
+      SequenceForm[ "----equation defining ", "y"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("\nAnalysis Successful..."\)], "Print"],
+
+Cell[BoxData[
+    \(True\)], "Output"]
+}, Closed]],
+
+Cell["This system of equations has no schedule. ", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(scheduleBalev[verbose -> True]\)], "Input"],
+
+Cell[BoxData[
+    \("Checking options..."\)], "Print"],
+
+Cell[BoxData[
+    \("Farkas method"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Solving dimension "\[InvisibleSpace]1\),
+      SequenceForm[ "Solving dimension ", 1],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Edges to satisfy "\[InvisibleSpace]7\),
+      SequenceForm[ "Edges to satisfy ", 7],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Generating LP model..."\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("\!\(72\) constraints and \!\(106\) variables (\!\(7632\) elements) \
+before reduction"\),
+      StringForm[ 
+      "`` constraints and `` variables (`` elements) ``", 72, 106, 7632, 
+        "before reduction"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(Solve::"svars" \( : \ \) 
+      "Equations may not give solutions for all \"solve\" variables."\)], 
+  "Message"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("\!\(51\) constraints and \!\(41\) variables (\!\(2091\) elements) \
+after reduction"\),
+      StringForm[ 
+      "`` constraints and `` variables (`` elements) after reduction", 51, 41,
+         2091],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Writing data for lp_solve..."\)], "Print"],
+
+Cell[BoxData[
+    \("Running lp_solve..."\)], "Print"],
+
+Cell[BoxData[
+    \("Reading the solution..."\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"A"\[InvisibleSpace]{"i", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(\( - 1\) + 2\ "i"\)\),
+      SequenceForm[ "T_", "A", {"i", "N", "M"}, " = ", 
+        Plus[ -1, 
+          Times[ 2, "i"]]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"B"\[InvisibleSpace]{"i", "j", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(2\ "i"\)\),
+      SequenceForm[ "T_", "B", {"i", "j", "N", "M"}, " = ", 
+        Times[ 2, "i"]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"x"\[InvisibleSpace]{"i", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]0\),
+      SequenceForm[ "T_", "x", {"i", "N", "M"}, " = ", 0],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"y"\[InvisibleSpace]{"i", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(2\ "i"\)\),
+      SequenceForm[ "T_", "y", {"i", "N", "M"}, " = ", 
+        Times[ 2, "i"]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(""\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Solving dimension "\[InvisibleSpace]2\),
+      SequenceForm[ "Solving dimension ", 2],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Edges to satisfy "\[InvisibleSpace]1\),
+      SequenceForm[ "Edges to satisfy ", 1],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Generating LP model..."\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("\!\(16\) constraints and \!\(27\) variables (\!\(432\) elements) \
+before reduction"\),
+      StringForm[ 
+      "`` constraints and `` variables (`` elements) ``", 16, 27, 432, 
+        "before reduction"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(Solve::"svars" \( : \ \) 
+      "Equations may not give solutions for all \"solve\" variables."\)], 
+  "Message"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("\!\(9\) constraints and \!\(12\) variables (\!\(108\) elements) \
+after reduction"\),
+      StringForm[ 
+      "`` constraints and `` variables (`` elements) after reduction", 9, 12, 
+        108],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Writing data for lp_solve..."\)], "Print"],
+
+Cell[BoxData[
+    \("Running lp_solve..."\)], "Print"],
+
+Cell[BoxData[
+    \("Reading the solution..."\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"B"\[InvisibleSpace]{"i", "j", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]"j"\),
+      SequenceForm[ "T_", "B", {"i", "j", "N", "M"}, " = ", "j"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(""\)], "Print"],
+
+Cell[BoxData[
+    \("The schedule obtained:"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"A"\[InvisibleSpace]{"i", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(\( - 1\) + 2\ "i"\)\),
+      SequenceForm[ "T_", "A", {"i", "N", "M"}, " = ", 
+        Plus[ -1, 
+          Times[ 2, "i"]]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"B"\[InvisibleSpace]{"i", "j", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(2\ "i"\)\),
+      SequenceForm[ "T_", "B", {"i", "j", "N", "M"}, " = ", 
+        Times[ 2, "i"]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("                  "\[InvisibleSpace]"j"\),
+      SequenceForm[ "                  ", "j"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"x"\[InvisibleSpace]{"i", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]0\),
+      SequenceForm[ "T_", "x", {"i", "N", "M"}, " = ", 0],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"y"\[InvisibleSpace]{"i", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(2\ "i"\)\),
+      SequenceForm[ "T_", "y", {"i", "N", "M"}, " = ", 
+        Times[ 2, "i"]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(""\)], "Print"],
+
+Cell[BoxData[
+    \(scheduleResult[
+      2, {{"A", {"i", "N", "M"}, sched[{2, 0, 0}, \(-1\)]}, {
+          "B", {"i", "j", "N", "M"}, sched[{2, 0, 0, 0}, 0], 
+          sched[{0, 1, 0, 0}, 0]}, {"x", {"i", "N", "M"}, 
+          sched[{0, 0, 0}, 0]}, {"y", {"i", "N", "M"}, 
+          sched[{2, 0, 0}, 0]}}, {}]\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(showSchedResult[$schedule]\)], "Input"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"A"\[InvisibleSpace]{"i", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(\( - 1\) + 2\ "i"\)\),
+      SequenceForm[ "T_", "A", {"i", "N", "M"}, " = ", 
+        Plus[ -1, 
+          Times[ 2, "i"]]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"B"\[InvisibleSpace]{"i", "j", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(2\ "i"\)\),
+      SequenceForm[ "T_", "B", {"i", "j", "N", "M"}, " = ", 
+        Times[ 2, "i"]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("                  "\[InvisibleSpace]"j"\),
+      SequenceForm[ "                  ", "j"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"x"\[InvisibleSpace]{"i", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]0\),
+      SequenceForm[ "T_", "x", {"i", "N", "M"}, " = ", 0],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("T_"\[InvisibleSpace]"y"\[InvisibleSpace]{"i", "N", "M"}
+          \[InvisibleSpace]" = "\[InvisibleSpace]\(2\ "i"\)\),
+      SequenceForm[ "T_", "y", {"i", "N", "M"}, " = ", 
+        Times[ 2, "i"]],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(""\)], "Print"],
+
+Cell[BoxData[
+    \(scheduleResult[
+      2, {{"A", {"i", "N", "M"}, sched[{2, 0, 0}, \(-1\)]}, {
+          "B", {"i", "j", "N", "M"}, sched[{2, 0, 0, 0}, 0], 
+          sched[{0, 1, 0, 0}, 0]}, {"x", {"i", "N", "M"}, 
+          sched[{0, 0, 0}, 0]}, {"y", {"i", "N", "M"}, 
+          sched[{2, 0, 0}, 0]}}, {}]\)], "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"X 3.0",
+ScreenRectangle->{{0, 1152}, {0, 900}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+CellGrouping->Manual,
+WindowSize->{695, 554},
+WindowMargins->{{95, Automatic}, {99, Automatic}},
+Magnification->1.5
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1731, 51, 69, 1, 159, "Title"],
+Cell[1803, 54, 37, 0, 73, "Subsubtitle"],
+Cell[1843, 56, 28, 0, 44, "Text"],
+Cell[1874, 58, 99, 3, 58, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[1998, 65, 68, 1, 38, "SmallText"],
+Cell[2069, 68, 138, 3, 36, "SmallText"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[2244, 76, 100, 1, 33, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2369, 81, 95, 2, 39, "Input",
+  InitializationCell->True],
+Cell[2467, 85, 68, 1, 38, "Output"],
+
+Cell[CellGroupData[{
+Cell[2560, 90, 264, 5, 108, "Input",
+  InitializationCell->True],
+Cell[2827, 97, 63, 1, 70, "Print"],
+Cell[2893, 100, 65, 1, 70, "Print"],
+Cell[2961, 103, 69, 1, 70, "Print"],
+Cell[3033, 106, 69, 1, 70, "Print"],
+Cell[3105, 109, 64, 1, 70, "Print"],
+Cell[3172, 112, 40, 1, 70, "Print"],
+Cell[3215, 115, 42, 1, 70, "Print"],
+Cell[3260, 118, 42, 1, 70, "Print"],
+Cell[3305, 121, 42, 1, 70, "Print"],
+Cell[3350, 124, 43, 1, 70, "Print"],
+Cell[3396, 127, 37, 1, 70, "Print"],
+Cell[3436, 130, 37, 1, 70, "Print"],
+Cell[3476, 133, 44, 1, 70, "Print"],
+Cell[3523, 136, 41, 1, 70, "Print"],
+Cell[3567, 139, 41, 1, 70, "Print"],
+Cell[3611, 142, 47, 1, 70, "Print"],
+Cell[3661, 145, 48, 1, 70, "Print"],
+Cell[3712, 148, 46, 1, 70, "Print"],
+Cell[3761, 151, 45, 1, 70, "Print"],
+Cell[3809, 154, 41, 1, 70, "Print"],
+Cell[3853, 157, 38, 1, 70, "Print"],
+Cell[3894, 160, 43, 1, 70, "Print"],
+Cell[3940, 163, 48, 1, 70, "Print"],
+Cell[3991, 166, 40, 1, 70, "Print"],
+Cell[4034, 169, 44, 1, 70, "Print"],
+Cell[4081, 172, 38, 1, 70, "Print"],
+Cell[4122, 175, 45, 1, 70, "Print"],
+Cell[4170, 178, 40, 1, 70, "Print"],
+Cell[4213, 181, 48, 1, 70, "Print"],
+Cell[4264, 184, 42, 1, 70, "Print"],
+Cell[4309, 187, 46, 1, 70, "Print"],
+Cell[4358, 190, 45, 1, 70, "Print"]
+}, Open  ]]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4464, 198, 106, 1, 33, "SmallText"],
+Cell[4573, 201, 262, 4, 131, "Input"]
+}, Closed]],
+Cell[4850, 208, 164, 4, 60, "Text"],
+
+Cell[CellGroupData[{
+Cell[5039, 216, 28, 0, 38, "Input"],
+Cell[5070, 218, 70, 1, 38, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5177, 224, 75, 0, 58, "Input"],
+Cell[5255, 226, 76, 1, 38, "Output"]
+}, Open  ]],
+Cell[5346, 230, 31, 0, 38, "Input"],
+Cell[5380, 232, 66, 1, 77, "Section"],
+
+Cell[CellGroupData[{
+Cell[5471, 237, 70, 1, 77, "Section"],
+Cell[5544, 240, 767, 28, 130, "Text"],
+
+Cell[CellGroupData[{
+Cell[6336, 272, 64, 1, 39, "Input"],
+Cell[6403, 275, 50, 1, 32, "Print"],
+Cell[6456, 278, 357, 5, 284, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6850, 288, 214, 5, 67, "Text"],
+
+Cell[CellGroupData[{
+Cell[7089, 297, 42, 1, 39, "Input"],
+Cell[7134, 300, 36, 1, 32, "Print"],
+Cell[7173, 303, 208, 4, 32, "Print"],
+Cell[7384, 309, 71, 1, 32, "Print"],
+Cell[7458, 312, 69, 1, 32, "Print"],
+Cell[7530, 315, 84, 1, 32, "Print"],
+Cell[7617, 318, 76, 1, 32, "Print"],
+Cell[7696, 321, 82, 1, 32, "Print"],
+Cell[7781, 324, 91, 1, 53, "Print"],
+Cell[7875, 327, 171, 3, 32, "Print"],
+Cell[8049, 332, 171, 3, 32, "Print"],
+Cell[8223, 337, 59, 1, 53, "Print"],
+Cell[8285, 340, 38, 1, 38, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[8350, 345, 457, 14, 92, "Text"],
+Cell[8810, 361, 390, 8, 114, "Text"],
+Cell[9203, 371, 63, 1, 39, "Input"],
+Cell[9269, 374, 31, 0, 44, "Text"],
+
+Cell[CellGroupData[{
+Cell[9325, 378, 39, 0, 38, "Input"],
+Cell[9367, 380, 423, 6, 143, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[9827, 391, 61, 0, 38, "Input"],
+Cell[9891, 393, 54, 1, 32, "Print"],
+Cell[9948, 396, 48, 1, 32, "Print"],
+Cell[9999, 399, 223, 5, 32, "Print"],
+Cell[10225, 406, 52, 1, 32, "Print"],
+Cell[10280, 409, 50, 1, 32, "Print"],
+Cell[10333, 412, 51, 1, 32, "Print"],
+Cell[10387, 415, 51, 1, 32, "Print"],
+Cell[10441, 418, 159, 3, 32, "Print"],
+Cell[10603, 423, 157, 3, 32, "Print"],
+Cell[10763, 428, 57, 1, 32, "Print"],
+Cell[10823, 431, 81, 1, 32, "Print"],
+Cell[10907, 434, 79, 1, 32, "Print"],
+Cell[10989, 437, 251, 6, 32, "Print"],
+Cell[11243, 445, 63, 1, 32, "Print"],
+Cell[11309, 448, 54, 1, 32, "Print"],
+Cell[11366, 451, 58, 1, 32, "Print"],
+Cell[11427, 454, 427, 6, 137, "Print"],
+Cell[11857, 462, 238, 5, 32, "Print"],
+Cell[12098, 469, 269, 6, 32, "Print"],
+Cell[12370, 477, 252, 5, 32, "Print"],
+Cell[12625, 484, 35, 1, 32, "Print"],
+Cell[12663, 487, 163, 3, 32, "Print"],
+Cell[12829, 492, 137, 3, 32, "Print"],
+Cell[12969, 497, 161, 3, 32, "Print"],
+Cell[13133, 502, 57, 1, 32, "Print"],
+Cell[13193, 505, 238, 5, 32, "Print"],
+Cell[13434, 512, 269, 6, 32, "Print"],
+Cell[13706, 520, 252, 5, 32, "Print"],
+Cell[13961, 527, 35, 1, 32, "Print"],
+Cell[13999, 530, 201, 4, 101, "Output"]
+}, Open  ]],
+Cell[14215, 537, 31, 0, 38, "Input"],
+
+Cell[CellGroupData[{
+Cell[14271, 541, 41, 0, 38, "Input"],
+Cell[14315, 543, 482, 9, 122, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[14834, 557, 41, 0, 38, "Input"],
+Cell[14878, 559, 402, 6, 101, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[15317, 570, 35, 0, 38, "Input"],
+Cell[15355, 572, 110, 2, 59, "Output"]
+}, Open  ]],
+Cell[15480, 577, 108, 4, 45, "Text"],
+
+Cell[CellGroupData[{
+Cell[15613, 585, 42, 1, 39, "Input"],
+Cell[15658, 588, 215, 4, 101, "Output"]
+}, Open  ]],
+Cell[15888, 595, 68, 0, 44, "Text"],
+Cell[15959, 597, 62, 0, 38, "Input"],
+
+Cell[CellGroupData[{
+Cell[16046, 601, 50, 1, 39, "Input"],
+Cell[16099, 604, 303, 7, 32, "Print"],
+Cell[16405, 613, 269, 6, 32, "Print"],
+Cell[16677, 621, 331, 8, 32, "Print"],
+Cell[17011, 631, 35, 1, 32, "Print"],
+Cell[17049, 634, 215, 4, 101, "Output"]
+}, Open  ]],
+Cell[17279, 641, 97, 3, 44, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[17413, 649, 75, 1, 77, "Section"],
+Cell[17491, 652, 104, 3, 44, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[17632, 660, 77, 1, 77, "Section"],
+
+Cell[CellGroupData[{
+Cell[17734, 665, 70, 1, 39, "Input"],
+Cell[17807, 668, 50, 1, 32, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[17894, 674, 40, 1, 39, "Input"],
+Cell[17937, 677, 501, 7, 410, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[18475, 689, 42, 1, 39, "Input"],
+Cell[18520, 692, 36, 1, 32, "Print"],
+Cell[18559, 695, 210, 4, 32, "Print"],
+Cell[18772, 701, 71, 1, 32, "Print"],
+Cell[18846, 704, 69, 1, 32, "Print"],
+Cell[18918, 707, 84, 1, 32, "Print"],
+Cell[19005, 710, 76, 1, 32, "Print"],
+Cell[19084, 713, 82, 1, 32, "Print"],
+Cell[19169, 716, 91, 1, 53, "Print"],
+Cell[19263, 719, 171, 3, 32, "Print"],
+Cell[19437, 724, 171, 3, 32, "Print"],
+Cell[19611, 729, 171, 3, 32, "Print"],
+Cell[19785, 734, 59, 1, 53, "Print"],
+Cell[19847, 737, 38, 1, 38, "Output"]
+}, Closed]],
+Cell[19900, 741, 58, 0, 37, "Text"],
+
+Cell[CellGroupData[{
+Cell[19983, 745, 63, 1, 39, "Input"],
+Cell[20049, 748, 54, 1, 32, "Print"],
+Cell[20106, 751, 48, 1, 32, "Print"],
+Cell[20157, 754, 159, 3, 32, "Print"],
+Cell[20319, 759, 157, 3, 32, "Print"],
+Cell[20479, 764, 57, 1, 32, "Print"],
+Cell[20539, 767, 291, 7, 53, "Print"],
+Cell[20833, 776, 133, 3, 53, "Message"],
+Cell[20969, 781, 281, 7, 53, "Print"],
+Cell[21253, 790, 63, 1, 32, "Print"],
+Cell[21319, 793, 54, 1, 32, "Print"],
+Cell[21376, 796, 58, 1, 32, "Print"],
+Cell[21437, 799, 312, 7, 32, "Print"],
+Cell[21752, 808, 289, 6, 32, "Print"],
+Cell[22044, 816, 248, 5, 32, "Print"],
+Cell[22295, 823, 279, 6, 32, "Print"],
+Cell[22577, 831, 35, 1, 32, "Print"],
+Cell[22615, 834, 159, 3, 32, "Print"],
+Cell[22777, 839, 157, 3, 32, "Print"],
+Cell[22937, 844, 57, 1, 32, "Print"],
+Cell[22997, 847, 287, 7, 53, "Print"],
+Cell[23287, 856, 133, 3, 53, "Message"],
+Cell[23423, 861, 277, 7, 53, "Print"],
+Cell[23703, 870, 63, 1, 32, "Print"],
+Cell[23769, 873, 54, 1, 32, "Print"],
+Cell[23826, 876, 58, 1, 32, "Print"],
+Cell[23887, 879, 262, 5, 32, "Print"],
+Cell[24152, 886, 35, 1, 32, "Print"],
+Cell[24190, 889, 57, 1, 32, "Print"],
+Cell[24250, 892, 312, 7, 32, "Print"],
+Cell[24565, 901, 289, 6, 32, "Print"],
+Cell[24857, 909, 163, 3, 32, "Print"],
+Cell[25023, 914, 248, 5, 32, "Print"],
+Cell[25274, 921, 279, 6, 32, "Print"],
+Cell[25556, 929, 35, 1, 32, "Print"],
+Cell[25594, 932, 325, 6, 143, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[25956, 943, 59, 1, 39, "Input"],
+Cell[26018, 946, 312, 7, 32, "Print"],
+Cell[26333, 955, 289, 6, 32, "Print"],
+Cell[26625, 963, 163, 3, 32, "Print"],
+Cell[26791, 968, 248, 5, 32, "Print"],
+Cell[27042, 975, 279, 6, 32, "Print"],
+Cell[27324, 983, 35, 1, 32, "Print"],
+Cell[27362, 986, 325, 6, 143, "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

@@ -1,0 +1,1388 @@
+1804,1805c1664,1665
+<       If[ optdebug, Print[ "Linear space of dependency : ", lp ] ];
+<       lp = lp - IdentityMatrix[ dimlhs ]; 
+---
+>     If[ optdebug, Print[ "Linear space of dependency : ", lp ] ];
+>     lp = lp - IdentityMatrix[ dimlhs ]; 
+1807c1667
+<       If[ optdebug, Print[ "Difference matrix: ", lp ] ];
+---
+>     If[ optdebug, Print[ "Difference matrix: ", lp ] ];
+1809,1810c1669,1670
+<       (* Remove possible 0 vector *)
+<       lp = Complement[ Union[ lp ], {Table[ 0, {iter, 1, dimlhs, 1}]}];
+---
+>     (* Remove possible 0 vector *)
+>     lp = Complement[ Union[ lp ], {Table[ 0, {iter, 1, dimlhs, 1}]}];
+1812c1672
+<       If[ optdebug, Print[ "Difference vectors: ", lp ] ];
+---
+>     If[ optdebug, Print[ "Difference vectors: ", lp ] ];
+1814c1674
+<       rs = lp; 
+---
+>     rs = lp; 
+1816,1820c1676,1680
+<       (*
+<         rs = Union[ NullSpace[lp], ceqmat ];
+<         Print[ rs ];
+<         rs = If[ rs === {}, IdentityMatrix[dimlhs], 
+<                  NullSpace[ Union[ lp, ceqmat ] ] ];
+---
+>     (*
+>     rs = Union[ NullSpace[lp], ceqmat ];
+>     Print[ rs ];
+>     rs = If[ rs === {}, IdentityMatrix[dimlhs], 
+>             NullSpace[ Union[ lp, ceqmat ] ] ];
+1822,1831c1682,1701
+<         If[ optdebug||optverbose, 
+<             Print["Nullspace vectors in non lineality space : ", ns] ];
+<        *)
+<   
+<        If[ rs === {}, 
+<           If[ optdebug||optverbose, 
+<             Print["No pipelining, no routing."]
+<           ];
+<           Throw[ { } ]
+<         ];
+---
+>     If[ optdebug||optverbose, 
+>         Print["Nullspace vectors in non lineality space : ", ns] ];
+>     *)
+>  
+>     If[ rs === {}, 
+>       If[ optdebug||optverbose, 
+>         Print["No pipelining, no routing."]
+>       ];
+>       Throw[ { } ]
+>     ];
+> 
+>     (* Now, get the image of the domain by the dependence function *)
+>     If[ optdebug, Print["Initial domain : ", 
+>        ashow[ dom, silent -> True ] ] ];
+>     Check[ imdom = DomImage[ dom, mat ],
+>        If[ optdebug, Message[ pipeInfo::errDomImage ] ] 
+>     ];
+> 
+>     If[ optdebug, Print["Final domain : ", 
+>         ashow[ imdom, silent -> True ] ] ];
+1833,1845c1703,1706
+<         (* Now, get the image of the domain by the dependence function *)
+<         If[ optdebug, Print["Initial domain : ", 
+<           ashow[ dom, silent -> True ] ] ];
+<         Check[ imdom = DomImage[ dom, mat ],
+<           If[ optdebug, Message[ pipeInfo::errDomImage ] ] ];
+< 
+<         If[ optdebug, Print["Final domain : ", 
+<           ashow[ imdom, silent -> True ] ] ];
+< 
+<         indexdom1 = Map["\""<>#<>"\""&, dom[[2]] ];
+<         indexdom2 = Map["\""<>#<>"\""&, imdom[[2]] ];
+<         command = 
+<           StringJoin[
+---
+>     indexdom1 = Map["\""<>#<>"\""&, dom[[2]] ];
+>     indexdom2 = Map["\""<>#<>"\""&, imdom[[2]] ];
+>     command = 
+>       StringJoin[
+1856,1860c1717,1720
+<           ];
+<         If[ optverbose, Print["----> Potential use of the command: \n", command ] ];
+<         If[ optverbose, Print["but route does not work currently..." ] ];
+<         Throw[ {} ];
+<     ]
+---
+>       ];
+>     If[ optverbose, Print["----> Potential use of the command: \n", command ] ];
+>     If[ optverbose, Print["but route does not work currently..." ] ];
+>     Throw[ {} ];
+2099a1960,2002
+> Clear[ tryPipelineIO ];
+> (*
+>     This function is called when the dependency is square, 
+>     refers to an input variable or a constant, and tryPipeline has
+>     has failed
+> *)
+> tryPipeline[ sys:_system, occ:_, varname:_, mat:_, eqmat:_, opts:___Rule ]:=
+> Catch[
+>   Module[ 
+>     {unimodc, dimmat, ceqmat, cl, cn, optverbose, optdebug, lhs, 
+>      indexes, params, declar, quotedindexes, pipeTree, pipeTreeForPrint },
+>     (* 
+>       eqmat is the matrix of equalities of the domain. It gives the
+>       lineality space. First, we must check that the indices are t,p etc.
+>     *)
+> 
+>     optverbose = verbose/.{opts}/.Options[pipeInfo];
+>     optdebug = debug/.{opts}/.Options[pipeInfo];
+> 
+>     If[ optdebug||optverbose, Print[".... Calling tryPipelineIO..."] ];
+> 
+>     (* Find lhs of equation where the expression has been 
+>       found *)
+>     lhs = getPart[ sys, Append[ Take[ occ, 2 ], 1 ] ];
+> 
+>     (* Get param list *)
+>     params = getSystemParameters[ sys ];
+> 
+>     (* Compute list of indexes *)
+>     declar = getDeclaration[ sys, lhs ];
+>     indexes = declar[[3,2]];
+>     If[ indexes[[1]] =!= "t", Return[{}]];
+>     If[ indexes[[2]] =!= "p", Return[{}]];
+> 
+>     (* Find out a possible IO vector *)
+> 
+>     If[ optverbose, Print["----> Execute the command: "]; Print[ command ] ];
+>     command
+>   ] (* Module *)
+> ]; (* Catch *)
+> tryPipelineIO[___] := Message[ tryPipelineIO::args ];
+> 
+> (* --------- *)
+2243,2263c2146,2164
+< Module[{listPol,polDim,polIndices,finalRes,redondantIneq,
+<   curPol,listEqIneq,listMat,listDom},
+< 
+<   listPol=x[[3]];
+<   polDim=x[[1]];
+<   polIndices=x[[2]];
+<   finalRes={};
+<   redondantIneq=Join[{1},Table[0,{j,1,polDim}],{1}];
+< 
+<   (* for each polyhedron *)
+<   Do[curPol=listPol[[i]];
+<     listEqIneq= curPol[[5]];
+<     listEqIneq=DeleteCases[listEqIneq,redondantIneq];
+<     listMat=Map[Alpha`matrix[2,polDim+2, polIndices,
+< 	{#,redondantIneq}]&,listEqIneq];
+<     listDom=Map[DomConstraints,listMat];
+<     finalRes=Join[listDom,finalRes],
+<     {i,1,Length[listPol]}
+<   ];
+<   finalRes
+< ];
+---
+>    Module[{listPol,polDim,polIndices,finalRes,redondantIneq,
+> 	   curPol,listEqIneq,listMat,listDom},
+> 	  listPol=x[[3]];
+> 	  polDim=x[[1]];
+> 	  polIndices=x[[2]];
+> 	  finalRes={};
+> 	  redondantIneq=Join[{1},Table[0,{j,1,polDim}],{1}];
+> 	  (* for each polyhedron *)
+> 	    Do[curPol=listPol[[i]];
+> 	       listEqIneq= curPol[[5]];
+> 	       listEqIneq=DeleteCases[listEqIneq,redondantIneq];
+> 	       listMat=Map[Alpha`matrix[2,polDim+2, polIndices,
+> 					{#,redondantIneq}]
+> 			   &,listEqIneq];
+> 	       listDom=Map[DomConstraints,listMat];
+> 	       finalRes=Join[listDom,finalRes];
+> 	    ,{i,1,Length[listPol]}];
+> 	  finalRes
+> 	];
+2286,2287c2187,2188
+< (* Modification. Option added. *)
+< findPipeControl[ x:_String, opts:___Rule ]:=
+---
+> (* Option added. Patrice *)
+> findPipeControl[ x_String, opts:___Rule ]:=
+2289,2290c2190
+< 
+< findPipeControl[ sys:_system, x:_String, opts:___Rule ]:=
+---
+> findPipeControl[ sys_system, x_String, opts:___Rule ]:=
+2292,2300c2192,2194
+<   Module[ { def, eq1, s, h, dbg, sys1 },
+<     dbg = debug/.{opts}/.Options[pipeAllControl];
+< 
+<     If[ dbg, Print["222222222222222"] ];
+< 
+<     (* Get the definition of symbol x *)
+<     def = getDefinition[sys,x]; (* take the rhs of symbol x *)
+< 
+<     (* Get the full equation of symbol x *)
+---
+>   Module[{def,eq1,s,h,dbg},
+>     dbg = debug/.{opts}/.Options[pipeControl];
+>     def = getDefinition[sys,x]; (* take the lhs of symbol x *)
+2304,2305c2198
+< 
+<     (* Check that def is not empty *)
+---
+>     (* check that not empty *)
+2307d2199
+< 
+2312d2203
+< 
+2316,2329c2207,2208
+<     If[dbg,Print["Trying to separate :\n",show[def,silent->True]]];
+< 
+<     (* Modification. This will have to be removed *)
+<     If[ dbg, 
+<       Print["11111111111111000000"];
+<       ashow[ def ]
+<     ];
+< 
+<     Check[
+<       s = findSepHalfSpace[def,opts],
+<       findPipeControl::fHSpaceErr = "error while calling findHalfSpace";
+<       Throw[Message[findPipeControl::nosep]; {}]
+<     ];
+< 
+---
+>     If[dbg,Print["trying to separate :",show[def,silent->True]]];
+>     s = findSepHalfSpace[def,opts];
+2333,2341c2212,2214
+< 
+<     If[ dbg, 
+<       Print["Separating hyperplanes: ", Map[show[#,silent->True] &,s] ]
+<     ];
+< 
+<     (* Modification *)
+<     (*  This statement was commented, but I do not know why... 
+<     Patrice. FIXIT. Seems that hyperplanes that would not have a +-1 coefficient
+<     on the time would be rejected... 
+---
+>     If[ dbg, Print["Separating hyperplanes: ", Map[show[#,silent->True] &,s] ] ];
+> (*  This statement was commented, but I do not know why... 
+>     Patrice. FIXIT. 
+2359,2360c2232,2233
+<     dbg = debug/.{opts}/.Options[pipeAllControl];
+< 
+---
+>     dbg = debug/.{opts}/.Options[pipeControl];
+>     dbg = False ;  (* remove this line if you want to debug that function *)
+2363d2235
+< 
+2366d2237
+< 
+2369,2370c2240
+<     If [dbg, Print[" branch 1:"]; show[d1]];
+< 
+---
+>      If [dbg,Print[" branch 1:"]; show[d1]];
+2373c2243
+<     If [dbg,Print[" branch 2:"]; show[d2]];
+---
+>      If [dbg,Print[" branch 2:"]; show[d2]];
+2378c2248
+<         "in the above case expression, the branches have overlapping domains";
+---
+>         "in the definition of `1`, the branch of the case expression have overlapping domains";
+2380,2384c2250
+< 
+<       (* Modification. Storing x in global expression, in case of error *)
+<       Global`$$casexp = x;
+<       Print[ "Case expression stored in $$casexp: ", ashow[ x, silent -> True ] ];
+<       Throw[ Message[ findSepHalfSpace::wrgcase ] ] ],
+---
+>         Throw[ Message[ findSepHalfSpace::wrgcase ] ] ],
+2389,2395c2255
+<     (* To find separating hyperplanes, we use a heuristics which may not always
+<      work. A better solution is sought... We get all constraints of the domains of each
+<      branch, and we try to find out one constraint that separates both domains. It 
+<      is easy in practice to build a case when this fails. But in practice, i works
+<      pretty fine. Anyhow, it would be better to find out another solution *)
+< 
+<     (* explode domains of d1, i.e., get all all constraints *)
+---
+>     (* explode domains *)
+2397,2399c2257,2258
+<     If [dbg, Print["exploded domains for branch 1:"]; Map[show, e1]];
+< 
+<     (* explode domains of d2*)
+---
+>     If [dbg,Print["exploded domains for branch 1:"]; Map[show, e1]];
+>     (* explode domains *)
+2404,2407c2263,2264
+<     e1 = Union[Map[eq2ge,e1],Map[eq2le,e1]];
+<     e2 = Union[Map[eq2ge,e2],Map[eq2le,e2]]; 
+< 
+<     s1 = Select[e1, DomEmptyQ[DomIntersection[#1,d2]]&];
+---
+>     e1=Union[Map[eq2ge,e1],Map[eq2le,e1]];
+>     e2=Union[Map[eq2ge,e2],Map[eq2le,e2]]; 
+2408a2266,2270
+>     Global`$$e11 = e1;
+>     Global`$$e22 = e2;
+>     s1 = Select[e1,
+>               DomEmptyQ[DomIntersection[#1,d2]]&];
+>     Global`$$s1 = s1;
+2410,2416c2272,2276
+< 
+<     If[ dbg, 
+<       Print["keep only half space not present in both for branch 1:"]; 
+<       Map[show, s1]
+<     ];
+<     s2 = Select[e2, DomEmptyQ[DomIntersection[#1,d1]]&];
+< 
+---
+>     Global`$$s11 = s1;
+>     If [dbg,Print["keep only half space not present in both for branch 1:"]; Map[show, s1]];
+>     s2 = Select[e2,
+>        DomEmptyQ[DomIntersection[#1,d1]]&];
+>     Global`$$s2 = s2;
+2418,2419c2278,2279
+< 
+<     If[ dbg, Print["keep only half space not present in both for branch 2:"]; Map[show, s2]];
+---
+>     Global`$$s22 = s2;
+>     If [dbg,Print["keep only half space not present in both for branch 2:"]; Map[show, s2]];
+2423c2283,2286
+< findSepHalfSpace[___]:=(Message[findSepHalfSpace::arg];{});
+---
+> findSepHalfSpace[x_]:=(Message[findSepHalfSpace::arg];{});
+> 
+> 
+> 
+2431,2651d2293
+< Clear[tryPipeVector];
+< tryPipeVector[ sys:_system, variable:_, dim:_, pipeV:_, newDomContext:_, 
+< 	       pos:_, newVariableName:_, opts:___Rule ]:=
+< Catch[
+<   Module[ {dbg, vrb, pipe1},
+< 
+<     dbg = debug/.{opts}/.Options[ pipeControl ];
+<     vrb = verbose/.{opts}/.Options[ pipeControl ];
+< 
+<     pipe1 = pipeV;
+<     If[ dbg, Print["Pipe vector tried: ", pipe1 ] ];
+< 
+<     (* If more than one half space, chose the first one, and issue a warning 
+<        ********* Can do better PQ
+<     *)
+<     pipeControl::manyhspace = 
+<     "warning: several supporting hyperplane were found. The first one was chosen";
+<     If[ Length[newDomContext]>1, Print[pipeControl::manyhspace] ];
+< 
+<     (* Extend pipeline vector to parameters *)
+<     pipe1 = Join[ pipe1,Table[0,{i,1,dim-Length[pipe1]}] ];
+< 
+<     (* Compute translation matrix for pipeline *)
+<     tm = Check[translationMatrix[getDeclaration[sys,variable][[3,2]],pipe1],
+< 	     Throw[sys]
+<     ];	     
+< 
+<     (* To avoid a message from pipeline *)
+<     Off[pipeline::noCheck];
+<     If[ dbg,
+<       Print["Pipeline performed: \nnewsys = pipeline[ sys, pos, newVariableName, tm, newDomContext[[1]] ]"];
+<       Print["with pos=",pos,"\n tm=",tm,"\nnewDomContext[[1]]=",newDomContext[[1]]];
+<     ];
+< 
+<     Check[
+<       newsys = pipeline[ sys, pos, newVariableName, tm, newDomContext[[1]] ],
+< 
+<       (* In case of error during pipelining, return *)
+<       Throw[
+<         On[pipeline::noCheck];
+<         Message[pipeControl::errpipe]; {}
+<       ];
+< 
+<     ];
+< 
+<   newsys
+< 
+<   ]
+< ];
+< tryPipeVector[___] := Message[ tryPipeVector::params ];
+< 
+< Clear[choosePipeVector];
+< choosePipeVector[ sys:_system, pipeV:_, nbParam:_, domContext:_, 
+<   projvect:_, opts:___Rule ]:=
+< Catch[
+<   Module[ {dbg, vrb, tempPipe1, pipe1, newDomContext, PipeRes},
+< 
+<     dbg = debug/.{opts}/.Options[ pipeControl ];
+<     vrb = verbose/.{opts}/.Options[ pipeControl ];
+< 
+<     If[ vrb, Print[ "Entering choosePipeVector..." ] ];
+< 
+<     (* Remove the coefficient on the parameter, parameters are constants *)
+<     pipe1 = Drop[pipeV,-nbParam];
+<     pipe1 = Join[pipe1,Table[0,{i,1,nbParam}]];
+< 
+<     If[ dbg, Print["After removing parameters coeffs: ", pipe1 ] ];
+< 
+<     (* This is where we should do something *)
+<     (* ****************** PQ *)
+< 
+<     (* Analysis of the domain. Trying to find out if there are 
+<       dimensions which are "thick" *)
+< 
+<     (* 
+<       Added by tanguy: if the context domain contains some equalities, 
+<       The pipeline should be done within this space, hence we must choose 
+<       a vector into this space. The solution choosen here is probably 
+<       not the best one: 
+<       - use the solve function to try to combine the different vector 
+<       of the kernel so as to obtain a vector which is in the 
+<       lineality space 
+<     *) 
+<      
+<     (* Get the equalities of the domain *)
+<     domEq = Last[DomEqualities[realDomExp]];
+<     If[ dbg, Print["Domain equalities: ", domEq ] ];
+< 
+<     (* If there are equalities, we try to match the vector to the
+<      lineality space *)
+<     If[ 
+<       Length[domEq]>0
+<     ,
+<       Print["Warning: the domain has equalitiés, and I cannot handle it..."];
+<       Return[ {} ];
+< 
+<       If[dbg,
+<         Print["Trying to fit the pipe vect into the lineality space ..."]
+<       ];
+< 
+<       If[ dbg, Print["Initial pipe Vect: ",pipe1]];
+<       numberOfLines = Length[domEq];
+< 
+<       (* Removing parameter because they should be considered as 
+<          constants *) 
+<       (* Linear equalities, removing constant, column vectors are 
+<          equalities *)
+<       domLinEq = Transpose[Map[Drop[#,-1-nbParam] &,domEq]]; 
+<       If[ dbg, Print["Domain equalities without parameters: ", domLinEq] ];
+< 
+<       (* Get null space vectors whose 1st component is 0 *)
+<       nsp = Select[ nullSpace, First[#]===0 &];
+<       nsp = Map[Drop[#,-nbParam] &,nsp]; 
+<       If[ dbg, Print["Null space vectors without parameters: ", nsp] ];
+< 
+<       tempPipe1 = Drop[pipe1,-nbParam];
+< 
+<       (* Symbolic variables names *)
+<       TableVar = Table[ tempVar[ToString[i]], {i, 1, Length[nsp]} ];
+<       If[ dbg, Print["TableVar= ", TableVar] ];
+< 
+<       (* Symbolic expression built for the solve *)
+<       symbolicExpr = tempPipe1+Dot[TableVar,nsp];
+<       If[ dbg,Print["symbolicExpr= ",symbolicExpr] ];
+< 
+<       tab1 = Table[0,{i,1,numberOfLines}];
+< 
+<       If[ dbg, Print["equation= ",Dot[symbolicExpr,domLinEq],"==", tab1]];
+<       Off[Solve::svars];
+< 
+<       solu1 = Solve[Dot[symbolicExpr,domLinEq]==tab1,TableVar];
+<       On[Solve::svars];
+< 
+<       If[ dbg, Print["solution= ",solu1]];
+< 
+<       (* Currently I do not know what to do if there is no solution .... *) 
+<       If[ 
+<         Length[solu1]>0
+<       ,    
+<         Print[ "89898989898989" ];
+<         (* If we are here then there is a solution *) 
+<         newTableVar=TableVar/.solu1[[1]];
+<         freeVar = Select[newTableVar , MatchQ[#, tempVar[_]] &];
+<         If[ dbg,Print["free vars: ",freeVar]];
+<         newRule=Join[Map[Rule[#,0] &,freeVar],solu1[[1]]];
+<         If [dbg,Print["NewRule: ",newRule]];
+<         coefVect=TableVar/.newRule;
+<         If [dbg,Print["Coefficient for modyfiying pipe Vect: ",coefVect]];
+<         finalVect=tempPipe1+Dot[coefVect,nsp];
+<         pipe1 = Join[finalVect,Table[0,{i,1,nbParam}]];
+<         If[dbg,Print["Finally pipe Vect: ",pipe1]];
+<       ,
+<   				 (*else, so solution *) 
+<         If[dbg,Print["fit failed  ..."]]; Return[ {} ]
+<       ]
+<     ];
+< 
+<     (* If the pipe vector has a non null first component, we 
+<       keep it. Otherwise, we return a delocalized control equation. *)
+<     If[ pipe1[[1]]===0,
+<       If[ dbg, Print[pipeControl::nullpipevec,variable] ];
+<       (* That s it for delocalization. We return the key word plus the vector *)
+<       resPipe = {"Delocalize", pipe1}; Return[ resPipe ]
+<     ];
+< 
+<     (* We have a pipeline vector *)
+<     (* Make sure that pipeline vector time projection > 0 *)
+<     If[pipe1[[1]]<0,pipe1=-pipe1];
+< 
+<     (* Another check related to the domain *)
+<     (* Compute the cylinder generated by adding the projection 
+<       direction to context domain *)
+<     newDomContext=
+<       DomAddRays[domContext, matrix[1,domContext[[1]]+2,{},
+<         {Prepend[Append[projvect,0],0]}]
+<       ];
+< 
+<     If[newDomContext===$Failed,
+<        (Message[pipeControl::wrgprojv,projvect]; Throw[{}])
+<     ];
+< 
+<     If[ dbg, Print[ "newDomContext before removing equalities: ", 
+<         ashow[ newDomContext, silent -> True ] ] ];
+< 
+<     (* Remove the equalities of newDomContext. 
+<              THIS SHOULD BE CORRECTED. FIXIT *) 
+<     newDomContext=
+<       ReplacePart[ newDomContext,
+<         Select[newDomContext[[3,1,5]], First[#]=!=0
+<          &],{3,1,5}];
+< 
+<     If[ dbg, Print[ "newDomContext after : \n", 
+<      ashow[ newDomContext, silent -> True ] ] ];
+< 
+<     (* Get all halfplanes of the resulting domain *)
+<     newDomContext = domExplode[newDomContext];
+< 
+<     If[ dbg, Print[ "Half spaces: " ] ];
+<     If[ dbg, Map[ ashow, newDomContext ] ];
+< 
+<     (* Compute linear Half Spaces *)
+<     lhSpaces = Map[ linHalfSpace, newDomContext ];
+<     If[ dbg, Print[ "Linear half spaces: ", lhSpaces ] ]; 
+< 
+<     (* Select those such that pipeline vector points outwards   *)
+<     newDomContext = 
+<       Select[ newDomContext, (linHalfSpace[#1].pipe1)[[1]]>0&];
+< 
+<     If[ dbg, Print[ "Half space selected : ", 
+<       Map[show[#,silent->True] &,newDomContext] ] ]; 
+< 
+<     If[ newDomContext==={}, Return[ {} ] ];
+< 
+<     resPipe = {"Pipeline control", pipe1, newDomContext};
+<     (* Return *)
+<     resPipe
+< 
+<   ]
+< ];
+< choosePipeVector[ ___ ] := Message[ choosePipeVector::params ];
+< 
+2688,2689c2330
+<   Module[
+<     { hyplanes,lin,nn,pos,pp,dom,exp,projvect,dec,dim,tm,
+---
+>   Module[{vec,lin,nn,pos,pp,dom,exp,projvect,dec,dim,tm,
+2691c2332
+<     domTrue,domFalse,newrhs,newVariableName,newVariableName2,posNewEq,domExp,
+---
+>     domTrue,domFalse,newrhs,newVariableName,posNewEq,domExp,
+2693,2694c2334
+<     newsys1, rr, ns, realDim, delocalizeVectors, pipeControlVectors, 
+<     i, success, sys1 },
+---
+>     newsys1},
+2696,2698c2336,2337
+<   (* This version of pipeControl was modified on October 4, 2009 by
+<     Patrice Quinton. Places where modification are subject to questions
+<     are marked with ********  
+---
+>     dbg = debug/.{opts}/.Options[toAlpha0v2];
+>     vrb = verbose/.{opts}/.Options[toAlpha0v2];
+2700c2339,2342
+<      Refer to documentation in MMAlpha/doc/Pipeline/PipeControl.pdf
+---
+>    (* Check that var exists *)    
+>    If[MemberQ[getLocalVars[sys],variable],Null,
+>      Throw[(Message[pipeControl::unknownvar,variable];sys)]
+>    ];
+2702,2704c2344
+<   *)
+<   dbg = debug/.{opts}/.Options[toAlpha0v2];
+<   vrb = verbose/.{opts}/.Options[toAlpha0v2];
+---
+>    If[ dbg, Print["\n\n------------- Entering PipeControl\n\n"] ];
+2706,2709c2346,2348
+<   (* Check that var exists *)    
+<   If[MemberQ[getLocalVars[sys],variable],Null,
+<     Throw[(Message[pipeControl::unknownvar,variable];sys)]
+<   ];
+---
+>    If[ dbg, Print["Pipelining variable: \n", 
+> 	ashow[ getEquation[ sys, variable ], silent ->True ] ] 
+>    ];
+2711c2350,2404
+<   If[ dbg, Print["\n\n------------- Entering PipeControl\n\n"] ];
+---
+>    (* Build default projvect *)
+>    dec = getDeclaration[ sys, variable ];
+>    dim = dec[[3]][[1]]; (* dimension of variable *)
+>    If[dim-sys[[2]][[1]]>4,
+> 	      Throw[(Message[pipeControl::wrngdim];sys)]];
+> 
+>    (* It only works with 1 time dimension...*)
+>    projvect = Prepend[Table[0,{i,1,dim-1}],1];
+> 
+>    (* Get  position of equation *)
+>     def = getDefinition[sys,variable]; (* take the lhs of symbol x *)
+>      (* pos = Position[ sys, equation[variable,___] ]; *)
+>    If[def==={},
+>      Throw[(Message[pipeControl::wrngpos," ? " ,variable];sys)]];
+> 
+>    (* Compute position of  expression, second level case
+>    pos = Join[pos[[1]],{2,1,1}]; 
+>    exp = getPart[sys,pos];   *)	   
+>     exp = def/.{Alpha`case[{Alpha`restrict[_,y:case[___]],___}]:>y,
+> 		       Alpha`case[{y:case[___]}]:>y};
+>      pos = Position[ sys, exp ];
+>      If[pos==={},
+>               Throw[(Message[pipeControl::wrngpos," ? " ,variable];sys)],
+>               pos=First[pos]];
+>       If[dbg,Print["equation is :",show[def,silent->True]]]; 
+>      If[dbg,Print["trying to separate :",show[exp,silent->True]]];
+>    (* Get context domain of the expression to pipeline *)
+>    domContext =  convexize[getContextDomain[sys,pos]];
+>    domExp  = expDomain[sys,pos];
+>    realDomExp = convexize[DomIntersection[domContext,domExp]];
+> 
+>    If[ dbg, Print["the real domain of expr is", 
+> 	ashow[ realDomExp , silent ->True ] ] 
+>    ];   
+>    If[ dbg, Print["the context domain of expr is", 
+> 	ashow[ domContext , silent ->True ] ] 
+>    ];   
+>    nbEqDomExp = 
+>      Length[Part[DomEqualities[
+>        DomConvex[realDomExp]],4]];
+> 
+>    realDimExp = domExp[[1]] - nbEqDomExp;
+> 
+> If [realDimExp - nbParam==2, $$temp=sys];
+> 
+>    nbParam = sys[[2]][[1]];
+> 
+>    If[ dbg, Print["the real dimension of domain of expr is ", 
+> 	realDimExp - nbParam];  
+>    ];   
+>    If[realDimExp-nbParam <=0,
+>      Throw[(Message[pipeControl::wrngdim];sys)],
+>      If[ vrb || dbg, Print["     From dimension ", realDimExp - nbParam ,
+>        " to dimension ", realDimExp - nbParam - 1 ] ];
+>    ];
+2713c2406,2407
+<   If[ vrb, Print["Pipelining variable: ", variable ] ];
+---
+>    projvect = Prepend[Table[0,{i,1,dim-1}],1];
+>    If[ dbg, Print["Projection vector: ", projvect] ];
+2715,2717c2409,2415
+<   If[ dbg, Print["Pipelining variable: \n", 
+<     ashow[ getEquation[ sys, variable ], silent ->True ] ] 
+<   ];
+---
+>    (* Compute separating hyperplanes *)
+>    vec = 
+>      Check[ findPipeControl[ sys, variable, opts ], 
+>        (* Look for separating hyperplanes *)
+>        Print[ vec ];
+>        Throw[sys] 
+>      ];
+2719,2723c2417,2419
+<   (* Check the dimension of the system. System whose dimension is larger than 3
+<     are rejected. *)
+<   dec = getDeclaration[ sys, variable ];
+<   dim = dec[[3]][[1]]; (* dimension of variable *)
+<   If[ dim-sys[[2]][[1]]> 4, Throw[(Message[pipeControl::wrngdim];sys)]];
+---
+>       (* FIXIT. Message *)
+>    (* Return if empty *)
+>    If[ vec==={}, Throw[sys] ];
+2725,2728d2420
+<   (* Build default projection vector *)
+<   (* It only works with 1 time dimension...*)
+<   projvect = Prepend[Table[0,{i,1,dim-1}],1];
+<   If[ dbg, Print["Projection vector: ", projvect] ];
+2730,2733c2422,2424
+<   (* Get definition of equation *)
+<   def = getDefinition[ sys, variable ]; (* take the lhs of symbol x *)
+<   If[def==={},
+<     Throw[(Message[pipeControl::wrngpos," ? " ,variable];sys)]];
+---
+>    If[ dbg, 
+>      Print["I take the First one"];
+>    ];
+2735,2738d2425
+<   (* Build expression that we want to look for. It is the case expression
+<    contained in the definition of variable *)
+<   exp = def/.{Alpha`case[{Alpha`restrict[_,y:case[___]],___}]:>y,
+< 		       Alpha`case[{y:case[___]}]:>y};
+2740,2741c2427,2447
+<   (* Get its position in the system *)
+<   pos = Position[ sys, exp ];
+---
+>    (* Select 1st vector *)
+>    lin = linHalfSpace[vec[[1]]];
+>    If[ dbg, Print["lin half space: "]; Print[ lin ] ];
+> 
+>    (* Compute null space *)
+>    nullSpace = NullSpace[lin];
+>    If[ dbg, Print["Null space vectors: "]; Print[ nullSpace ] ];
+> 
+>    (* Keep the elements of the null space that contains a non
+>       null component along time *)
+>    nn = Select[nullSpace,First[#]=!=0 &];
+> 
+>    If[ dbg, Print["Null space vectors with non null 1 component : ", nn ] ];
+> 
+>    If[Length[nn]===0,
+>      If[ verb, 
+>      Print["       Warning, no pipe vector was found for control signal ", 
+>        variable] ;
+>      Print["       --> assuming broadcasted signal"] ];
+>      Throw[ delocalizeControl[ sys, variable,opts ] ];
+>    ];
+2743,2784c2449
+<   (* Check position. If it is empty, there is an error *)
+<   (* If not, we take the first position (there should not be two position in the pos list) *)
+<   If[ pos==={},
+<     Throw[(Message[pipeControl::wrngpos," ? " ,variable];sys)],
+<     pos = First[pos]
+<   ];
+< 
+<   If[dbg, Print["Trying to separate :\n", show[exp,silent->True]]];
+< 
+<   (* Get context domain of the expression to pipeline *)
+<   (* Actually, domContext is the convex hull of the context domain *)
+<   (* Modification *)
+<   (* ****** What is the exact definition of getContextDomain ? What does 
+<    convexize do ? *)
+<   domContext =  convexize[ getContextDomain[sys,pos] ];
+<   domExp  = expDomain[sys,pos];
+< 
+<   (* Previously, we had convexize, but finding out the rays would 
+<     fail. ********** PQ. 4/9/2009 *)
+<   realDomExp = DomConvex[DomIntersection[domContext,domExp]];
+< 
+<   If[ dbg, Print["The real domain of expr is ", 
+<     ashow[ realDomExp , silent ->True ] ] 
+<   ];   
+< 
+<   If[ dbg, Print["The context domain of expr is", 
+<     ashow[ domContext , silent ->True ] ] 
+<   ];   
+< 
+<   (* We look for the number of equalities in the domain *)
+<   nbEqDomExp = Length[ Part[ DomEqualities[ DomConvex[realDomExp] ],4 ] ];
+<   If[ dbg, Print["Domain has: ", nbEqDomExp, " equalities"] ];
+< 
+<   (* The real dimension of the expression *)
+<   (* This has to be checked. *********** PQ. Indeed, if the domain
+<     is bounded, equalities matter more than rays. *)
+<   realDimExp = domExp[[1]] - nbEqDomExp;
+< 
+<   nbParam = sys[[2]][[1]];
+<   If[ dbg, Print["The real dimension of domain of expr is ", 
+<     realDimExp - nbParam];  
+<   ];   
+---
+>    (* By choosing systematically the first vector, one may fail... *)
+2786,2792c2451,2453
+<   (* 
+<     It may happen that the domain has not exactly the dimension
+<     it looks like, since one of the dimension may be actually bounded.
+<     To check this, we look at the rays. 
+<   *)
+<   rr = rays[ realDomExp ];
+<   If[ dbg, Print["Rays of domain: ", rr] ];
+---
+>    Module[ {i, pipeVectorFound,tempVar},
+>      i = 1; 
+>      pipeVectorFound = False;
+2794,2795c2455
+<   ns = NullSpace[ rr ];
+<   If[ dbg, Print["Null space of rays: ", ns] ];
+---
+>     While[ (!pipeVectorFound) && (i <= Length[ nn ]), 
+2797,2827c2457,2458
+<   (* When null space of rays is not empty, this means that
+<    the domain has not all its true dimension. We have to cut the
+<    definition. The problem is to find out the linear inequality where 
+<    we have to split *)
+< 
+<   realDim = domExp[[1]] - nbParam - Length[ ns ];
+<   If[ dbg, Print[ "Adjusting real dimension to: ", realDim ] ];
+< 
+<   (* Modification. This has to be removede *)
+<   If[ variable === "X1Xctl2PX", Global`$$dom = realDomExp ];
+<   If[ variable === "X1Xctl2PX", Global`$$dom1 = 
+<     getDeclarationDomain[ sys, "X1Xctl2PX"] ];
+< 
+<   If[ readDim != readDimExp-nbParam, 
+<       Print[" ***** Warning. Domain may be contained in a linear space..."] ];
+< 
+<   If[realDimExp-nbParam <=0,
+<     Throw[(Message[pipeControl::wrngdim];sys)],
+<     If[ vrb || dbg, Print["     From dimension ", realDim ,
+<       " to dimension ", realDim - 1 ] ];
+<   ];
+< 
+<   (* Compute separating hyperplanes. To do so, we call findPipeControl, 
+<      that returns a list of hyperplanes given as domains *)
+<   hyplanes = 
+<     Check[ 
+<       findPipeControl[ sys, variable, opts ], 
+<       (* Look for separating hyperplanes *)
+<       pipeControl::findPipeControlErr = "error while calling findPipeControl";
+<       Throw[ Message[ pipeControl::findPipeControlErr ]; sys] 
+<     ];
+---
+>       (* Chose the vector *)
+>       pipe1 = nn[[i]];
+2829,2871c2460,2476
+<   If[ dbg, Print["-------- Leaving findPipeControl"] ];
+< 
+<   (* Return if empty *)
+<   If[ hyplanes==={}, 
+<     pipeControl::findPipeControlEmpty = 
+<       "pipe control vectors are empty";
+<     Throw[ Message[ pipeControl::findPipeControlEmpty ]; sys] 
+<   ];
+<  
+<   (* If the first hyperplane does not work, good idea to try another one... *)
+<   (* But, this is more difficult. *************** PQ *)
+<   If[ dbg, 
+<     Print["List of hyperplanes is: ", Map[ show[#, silent-> True]&, hyplanes ] ];
+<     Print["I take the First one"]
+<   ];
+< 
+<   (* Select 1st hyperplane *)
+<   lin = linHalfSpace[hyplanes[[1]]][[1]];
+<   If[ dbg, Print["lin half space: "]; Print[ lin ] ];
+< 
+<   (* Compute null space of separating hyperplane that was chosen *)
+<   nullSpace = NullSpace[{lin}];
+<   If[ dbg, Print["Null space vectors: "]; Print[ nullSpace ] ];
+< 
+<   (* Keep the elements of the null space that contains a non
+<      null component along time *)
+<   (* This restriction may not be useful... *)
+<   nn = Select[nullSpace, First[#]=!=0 &];
+< 
+<   (* The possible pipe vectors are those with a non null time component *)
+<   If[ dbg, Print["Null space vectors with non null 1 component : ", nn ] ];
+< 
+<   (* If there is no pipe vector, no pipeline, and we only "delocalize"
+<    the equation *)
+<   If[ Length[nn]===0,
+<      If[ vrb, 
+< 	 Print["Warning, no pipe vector was found for control signal: ", 
+< 	       variable,
+<                "  but can broadcast the signal. "];
+<          (* We return the system obtained by delocalizing *)
+<          Throw[ delocalizeControl[ sys, variable, opts ] ];
+<      ];
+<   ];
+---
+>       (* Remove the coefficient on the parameter, parameters are constants *)
+>       pipe1=Drop[pipe1,-nbParam];
+>       pipe1=Join[pipe1,Table[0,{i,1,nbParam}]];
+> 
+>       (* Added by tanguy: if the context domain contains some equalities, 
+>          The pipeline should be done within this space,hence we must choose 
+>          a vector into this space. The solution choosen here is probably 
+>          not the best one: 
+>          - use the solve function to try to combine the different vector 
+>          of the kernel so as to obtain a vector which is in the 
+>          lineality space *) 
+>      
+>       domEq=Last[DomEqualities[realDomExp]];
+>       If[ Length[domEq]>0,
+>         If[dbg,
+>           Print["Trying to fir the pipe vect into the lineality space ..."]
+>         ];
+2873,2874c2478,2479
+<   (* By choosing systematically the first vector, one may fail... Thus, we
+<     try several vectors. *)
+---
+>         If[ dbg,Print["Initial pipe Vect: ",pipe1]];
+>         numberOfLines=Length[domEq];
+2876,2879c2481,2522
+<   (* This function was changed in order to find out all possibilites for 
+<    pipeline vectors *)
+<   delocalizeVectors = {};
+<   pipeControlVectors = {};
+---
+>         (* Removing parameter because they should be considered as 
+>            constants *) 
+>         (* Linear equalities, removing constant, column vectors are 
+>            equalities *)
+>         domLinEq = Transpose[Map[Drop[#,-1-nbParam] &,domEq]]; 
+> 
+>         (* Symbolic variables names *)
+>         nsp = Select[nullSpace,First[#]===0 &];
+>         nsp=Map[Drop[#,-nbParam] &,nsp]; 
+> 
+>         tempPipe1=Drop[pipe1,-nbParam];
+>         TableVar = Table[tempVar[ToString[i]], {i, 1, Length[nsp]}];
+>         If [dbg,Print["TableVar= ",symbolicExpr]];
+>         symbolicExpr= tempPipe1+Dot[TableVar,nsp];
+>         If [dbg,Print["symbolicExpr= ",symbolicExpr]];
+>         tab1 = Table[0,{i,1,numberOfLines}];
+>         If [dbg,Print["equation= ",Dot[symbolicExpr,domLinEq],"==", tab1]];
+>         Off[Solve::svars];
+>         solu1=Solve[Dot[symbolicExpr,domLinEq]==tab1,TableVar];
+>         On[Solve::svars];
+>         If[ dbg,Print["solution= ",solu1]];
+>         (* Currently I do not know what to do if there is no solution .... *) 
+> 
+>         If[ Length[solu1]>0,    
+>           (* if we are here then there is a solution *) 
+>           newTableVar=TableVar/.solu1[[1]];
+>           freeVar = Select[newTableVar , MatchQ[#, tempVar[_]] &];
+>           If[ dbg,Print["free vars: ",freeVar]];
+>           newRule=Join[Map[Rule[#,0] &,freeVar],solu1[[1]]];
+>           If [dbg,Print["NewRule: ",newRule]];
+>           coefVect=TableVar/.newRule;
+>           If [dbg,Print["Coefficient for modyfiying pipe Vect: ",coefVect]];
+>           finalVect=tempPipe1+Dot[coefVect,nsp];
+>           pipe1=Join[finalVect,Table[0,{i,1,nbParam}]],
+>           If [dbg,Print["Finally pipe Vect: ",pipe1]];
+>    				 (*else, so solution *) 
+>           If[dbg,Print["fit failed  ..."]];		    
+>         ]
+>       ];
+>      
+> 	
+>       If[ dbg, Print["Pipe vector chosen at level ",i," :" , pipe1 ] ];
+2881,2884c2524,2537
+<   Module[ {i, tempVar, TableVar, domns, nsp},
+<     i = 1; 
+<  
+<     While[ i <= Length[ nn ], 
+---
+>       (* FIXIT *)
+>       If[pipe1[[1]]===0,
+>         Print[pipeControl::nullpipevec,variable];
+>         delocalizeControl[sys,variable,opts]; pipeVectorFound = True ];
+> 
+>       (* Make sure that pipeline vector time projection > 0 *)
+>       If[pipe1[[1]]<0,pipe1=-pipe1];
+> 
+>       (* Compute the cylinder generated by adding the projection 
+>         direction to context domain *)
+>       newDomContext=
+>         DomAddRays[domContext,
+>           matrix[1,domContext[[1]]+2,{},
+>           {Prepend[Append[projvect,0],0]}]];
+2886,2888c2539,2541
+<       (* Choose the vector *)
+<       pipe1 = nn[[i]];
+<       If[ dbg, Print["Attempt: ", i," Choosing pipe vector: ", pipe1 ] ];  
+---
+>       If[newDomContext===$Failed,
+>         (Message[pipeControl::wrgprojv,projvect]; Throw[sys])
+>       ];
+2890c2543,2544
+<       pipe1 = choosePipeVector[ sys, pipe1, nbParam, domContext, projvect, opts ];
+---
+>       If[ dbg, Print[ "newDomContext before removing equalities: ", 
+>         ashow[ newDomContext, silent -> True ] ] ];
+2892,2899c2546,2577
+<       Which[
+<          MatchQ[ pipe1,{"Delocalize",_}]
+<       ,
+<          delocalizeVectors = Append[ delocalizeVectors, pipe1 ]
+<       ,
+<          MatchQ[ pipe1,{"Pipeline control",_,_}]
+<       ,
+<          pipeControlVectors = Append[ pipeControlVectors, pipe1 ]
+---
+>       (* Remove the equalities of newDomContext. 
+>              THIS SHOULD BE CORRECTED. FIXIT *) 
+>       newDomContext=
+>          ReplacePart[ newDomContext,
+>            Select[newDomContext[[3,1,5]], First[#]=!=0
+>            &],{3,1,5}];
+> 
+>       If[ dbg, Print[ "newDomContext after : \n", 
+>          ashow[ newDomContext, silent -> True ] ] ];
+> 
+>       (* Get all halfplanes of the resulting domain *)
+>       newDomContext = domExplode[newDomContext];
+>       If[ dbg, Print[ "Half spaces: " ] ];
+>       If[ dbg, Map[ ashow, newDomContext ] ];
+> 
+>       (* For debbuging purpose. FIXIT *)
+>       If[ dbg,Global`$$dom = newDomContext];
+> 
+>       (* Compute linear Half Spaces *)
+>       lhSpaces = Map[ linHalfSpace, newDomContext ];
+>       If[ dbg, Print[ "Linear half spaces: ", lhSpaces ] ]; 
+> 
+>       (* Select those such that pipeline vector points outwards   *)
+>       newDomContext = 
+>          Select[ newDomContext, (linHalfSpace[#1].pipe1)[[1]]>0&];
+> 
+>       If[ dbg, Print[ "Half space selected : ", 
+>         Map[show[#,silent->True] &,newDomContext] ] ]; 
+>       (* If none, signal and stop *)
+>       If[ newDomContext==={},
+>         i = i+1,
+>         pipeVectorFound = True
+2900a2579,2581
+>       If[ dbg, Print[ pipeVectorFound ] ];
+> 
+>     ]; (* While *)
+2902c2583
+<       If[ vrb, Print["Returning from choosePipeVector"] ];
+---
+>      (* Print[ i ]; Print[ Length[ nn ] ]; *)
+2904c2585,2589
+<       i = i+1;
+---
+>     If[ i > Length[ nn ], 
+>       (Print[pipeControl::nohspace];
+>        Print["Delocalizing control..."];
+>        newsys = delocalizeControl[sys,variable,opts];
+>        Throw[newsys])
+2905a2591
+> 
+2908,2909c2594,2598
+<   If[ dbg, Print["Delocalize vectors: ", delocalizeVectors ] ];
+<   If[ dbg, Print["Pipeline vectors: ", pipeControlVectors ] ];
+---
+>   (* If more than one half space, chose the first one, and issue a warning *)
+>   pipeControl::manyhspace = 
+>   "warning: several supporting hyperplane were found. The first one was
+>   chosen";
+>   If[ Length[newDomContext]>1, Print[pipeControl::manyhspace] ];
+2911,2912c2600,2601
+<   (* First, we try to use pipeline control vectors *)
+<   success = False; i = 1;
+---
+>   (* Extend pipeline vector to parameters *)
+>   pipe1 = Join[pipe1,Table[0,{i,1,dim-Length[pipe1]}]];
+2916d2604
+<   newVariableName2 = getNewName[sys,variable<>"PX"];
+2918,2946d2605
+<   If[ dbg, Print["Second New var name: ", newVariableName2 ] ];
+< 	 
+<   While[ (!success) && (i <= Length[ pipeControlVectors ]),
+< 
+<     sys1 = tryPipeVector[ sys, variable, dim, 
+<       pipeControlVectors[[i,2]], pipeControlVectors[[i,3]],
+<       pos, newVariableName, 
+<       opts ];
+< 
+<     If[ sys1 === {}, i = i+1, success = True ];
+< 
+<   ]; 
+< 
+<   If[ success, Return[ sys1 ] ];
+< 
+<   (* If we have exhausted all pipeline vectors, we are done, and 
+<     we delocalize the control *)
+<   If[ !success, 
+<     If[ dbg, 
+<       Print[pipeControl::nohspace];
+<       Print["Delocalizing control..."];
+<       Print["1212121212121212121"];
+<       asave["temp.alpha"]
+<     ];
+< 
+<     newsys = delocalizeControl[ sys, variable, opts];
+< 
+<     Throw[ newsys ]
+<   ];
+2947a2607,2610
+>   (* Compute translation matrix for pipeline *)
+>   tm = Check[translationMatrix[getDeclaration[sys,variable][[3,2]],pipe1],
+> 	     Throw[sys]
+>   ];	     
+2949,2957c2612,2621
+<   (* Pipeline returns sys unchanged in some cases, when it cannot
+<      pipeline. Then, we assume that the answer is correct *)
+<   If[ 
+<     newsys === sys, 
+<     (*
+<      Print["2222222222222000000"]; 
+<     *)
+<     Print["Warning: could not pipeline, delocalizing control" ];
+<     Throw[ delocalizeControl[ sys, variable, opts ] ] 
+---
+>   (* To avoid a message from pipeline *)
+>   Off[pipeline::noCheck];
+>   If[ dbg,
+>     Print["pipeline performed: newsys = pipeline[ sys, pos, newVariableName, tm, newDomContext[[1]] ]"];
+>     Print["with pos=",pos,"\n tm=",tm,"newDomContext[[1]]=",newDomContext[[1]]];
+>   ];
+>   Check[newsys = pipeline[ sys, pos, newVariableName, tm, newDomContext[[1]] ],
+>     Throw[On[pipeline::noCheck];
+>     Message[pipeControl::errpipe];
+>     sys]
+2962,2966d2625
+<   (* Get position of new equation *)
+<   If[ dbg, Print["New equation before modifications: \n", 
+<      ashow[ getDefinition[ newsys, newVariableName ], silent -> True ] ] 
+<   ];
+< 
+2968c2627
+<     First[ Position[newsys, equation[newVariableName,_]]];
+---
+>     First[Position[newsys, equation[newVariableName,_]]];
+2970,2973c2629
+<   (* Find out new equation, simplify it, and replace *)
+<   newEq = getPart[ newsys, posNewEq ];
+<   newEq = simplifyInContext[ newsys, newEq ];
+<   newsys = ReplacePart[ newsys, newEq, posNewEq ];
+---
+>   newEq = getPart[newsys,posNewEq];
+2975,2977c2631,2632
+<   If[ dbg, Print["New equation after simplification: \n", 
+<      ashow[ getDefinition[ newsys, newVariableName ], silent -> True ] ] 
+<   ];
+---
+>   newEq=simplifyInContext[newsys,newEq];
+>   newsys=ReplacePart[newsys,newEq,posNewEq];
+2981,2985d2635
+<   newDomInit = getPart[ newsys, Join[posNewEq,{2,1,1,1}]];
+<   If[ dbg, Print[ "newDomInit: \n", show[newDomInit,silent->True] ] ];
+< 
+<   (* Intersect domain of the second branch *)
+<   show[ getPart[ newsys, Join[ posNewEq,{2,1,1,2}] ] ];
+2986a2637,2639
+>   newDomInit = 
+>     getPart[newsys,Join[posNewEq,{2,1,1,1}]];
+> If [dbg,Print["newDomInit",show[newDomInit,silent->True]]];
+2988,2991c2641,2646
+<     getPart[ newsys, Join[ posNewEq,{2,1,1,2}] ] /.
+<      (d1:_Alpha`domain :> DomIntersection[ d1, newDomInit ]); 
+< 
+<   newsys = ReplacePart[newsys, newCaseBranch, Join[posNewEq,{2,1,1,2}] ];
+---
+>     getPart[newsys,Join[posNewEq,{2,1,1,2}]]/.
+> 	       (d1:_Alpha`domain :>   
+> 		DomIntersection[d1,newDomInit]);
+>       newsys=ReplacePart[newsys,newCaseBranch,
+> 			      Join[posNewEq,{2,1,1,2}]
+>   ];
+2999,3001d2653
+<   If[ dbg, Print["New equation: ", 
+<      ashow[ getDefinition[ newsys, newVariableName ], silent -> True ] ] 
+<   ];
+3003,3028d2654
+<   (* ************* Here, separate the control definition and 
+<     the pipeline part 
+<   *)
+< 
+<   Global`$$oldeq = oldeq;
+< 
+<   Module[ { oldeq },
+<     oldeq = getDefinition[ newsys, newVariableName ];
+< 
+<   If[ MatchQ[ oldeq, 
+<     case[ {restrict[_, case[ { restrict[_,affine[const[True],_] ],
+< 		  restrict[_, affine[const[False],_] ] } ] ], _ } ]
+<     ]
+<   ,
+<     ashow[ oldeq ]; 
+< 
+<     newsys = addLocal[ newsys, newVariableName2, oldeq[[1,1]] ];
+< 
+<     newsys = normalizeDef[ newsys, newVariableName2 ];
+< 
+<     ashow[ getEquation[ newsys, newVariableName2 ] ];
+<   ,
+<     Print["23232323232"]; Throw[ Null ]
+<   ];
+<   ];
+< 
+3031,3034d2656
+<   If[ dbg, 
+<     Print["Spatial dimension of the new case branch: ", 
+<     realDimExp - nbParam - 2 ] 
+<   ]; 
+3036,3038c2658
+<   If[
+<     realDimExp - nbParam - 2 >= 1
+<   ,
+---
+>   If[ dbg, Print["Spatial dimension of the new case branch: ", realDimExp - nbParam - 2 ] ]; 
+3040,3041c2660
+<     Check[ 
+<       newsys = pipeControl[ newsys, newVariableName2, opts],
+---
+>   If[realDimExp - nbParam - 2 >= 1,
+3043,3044c2662,2663
+<       (* If there was a problem, just return the system unchanged *)
+<       Print[" Something went wrong during pipeControl.." ];
+---
+>     Check[ 
+>       newsys = pipeControl[newsys,newVariableName,opts],
+3046,3047c2665
+<     ]
+<   ,
+---
+>       ],
+3050,3054c2668,2674
+<       In that case, we
+<       have finished the pipecontrol process, the translator
+<       to AlpHard needs to have the initialization branch
+<       put in a separate variable *)
+< 
+---
+>      In that case, we
+>        have finished the pipecontrol process, the translator
+>        to AlpHard needs to have the initialization branch
+>        put in a separate variable *)
+> (*
+>     nameInit = newVariableName<>"_Init";
+> *)
+3056d2675
+< 
+3059c2678
+<     If[dbg, Print["before addlocal"]; ashow[newsys]];
+---
+>     If[dbg,Print["before addlocal"];ashow[newsys]];
+3063,3064c2682
+<     If[dbg, Print["after addlocal"]; ashow[newsys]];
+< 
+---
+>     If[dbg,Print["after addlocal"];ashow[newsys]];
+3089c2707
+<     (* Also, the definition of varInit is not a space/time case
+---
+>     (* Also, the definition of var_In is not a space/time case
+3092c2710
+<        case statement
+---
+>        case 
+3094d2711
+<     (*
+3097c2714
+<         {equation[newVariableName2, rhs_]->equation[newVariableName2, case[{rhs}]]}
+---
+>         {equation[nameInit, rhs_]->equation[nameInit, case[{rhs}]]}
+3099,3102c2716,2718
+< 	
+<     *)
+< 	 
+<     If[dbg, Print["after je sais pas quoi "]; ashow[newsys] ];
+---
+> 		 
+> 
+>     If[dbg,Print["after je sais pas quoi "];ashow[newsys]];
+3105d2720
+<      (* 
+3107,3108d2721
+<       *)
+<     newsys = delocalizeControl[ newsys, newVariableName2 , opts] 
+3113d2725
+< 
+3115d2726
+< 
+3135c2746
+<    2/  the variable is a full control variable which could not be
+---
+>    2/  the variable is a full control variable which couldn t be
+3151,3152d2761
+<     dbg = debug/.{opts}/.Options[ pipeAllControl ]; 
+<     dbg = True; 
+3156a2766,2768
+> (*
+>     nameIn = variable<>"_In";
+> *)
+3172c2784
+<     (* Find out how many processors *)
+---
+>     (* Find out how many processor *)
+3189d2800
+<     If[ dbg, Print["Projected domain: ", ashow[ newInitDom, silent -> True ] ] ];
+3202d2812
+<     If[ dbg, Print["New dependence: ", ashow[ newDep, silent -> True ] ] ];
+3210,3212c2820
+<     If[ dbg, 
+<       asave[ newsys, "tppp.alpha"];
+<     ];
+---
+>     asave[ newsys, "tppp1.alpha"];
+3214,3217c2822,2823
+<     posTrue = Position[ getPart[ newsys, pos ], True ];
+<     posFalse = Position[ getPart[ newsys, pos ], False ];
+<     If[ dbg, Print["PosTrue ", posTrue ] ];
+<     If[ dbg, Print["PosFalse ", posFalse ] ];
+---
+>     posTrue = Position[getPart[newsys,pos],True];
+>     posFalse = Position[getPart[newsys,pos],False];
+3235d2840
+<     (*
+3239d2843
+<      *)
+3247,3251c2851,2852
+<     (* Modification ******* *)
+<     If[ dbg, 
+<       Global`$$dt1 = domTrue;
+<       Global`$$df1 = domFalse
+<     ];
+---
+>     Global`$$dt1 = domTrue;
+>     Global`$$df1 = domFalse;
+3294,3313c2895,2901
+< 
+<     If[ dbg, 
+<       Print["222222222220000000000"];
+<       ashow[ newsys ]
+<     ];
+< 
+<     If[ vrb || dbg, 
+<       Module[ { decl, dp, iofp },
+<         decl = getDeclarationDomain[ newsys, nameIn ];
+<         iop = Drop[ decl[[2]], 1 ];
+<         dp = DomProject[ decl, iop ];
+<         Print["--- Control generated in cell(s): ", ashow[ dp, silent->True] ]
+<       ]
+<     ];
+< 
+<     If[ dbg, Print["Leaving delocalizeControl"] ];
+< 
+<     newsys
+< 
+<   ]
+---
+>     If[ vrb || dbg, Print["--- Control generated in cell: "<>
+>       ashow[DomProject[getDeclarationDomain[newsys,nameIn],
+>       Drop[getDeclarationDomain[newsys,nameIn][[2]],1]],
+> 		newsys[[2]],
+> 		silent->True]]] ;
+> 	   newsys
+>     ]
+3319,3323d2906
+< (* 
+<   pipeAllControl pipes all control variables present in a program. 
+<   option onlyVariables allows a set of variables to be specified. By default,
+<  it is empty, and then, all variables are considedede
+< *)
+3325c2908
+< Options[pipeAllControl] = {verbose->True, mute -> False, onlyVariables -> {}, debug -> False};
+---
+> Options[pipeAllControl] = {verbose->True, mute -> False};
+3341c2924
+<   Module[{ verb, ctrlist, i, newsys, dbg, muteOpt, lvars },
+---
+>   Module[{ verb, ctrlist, i, newsys, dbg, muteOpt },
+3345,3346d2927
+<     lvars = onlyVariables/.{options}/.Options[pipeAllControl];
+< 
+3350d2930
+<     (* Modification *********** *)
+3352,3356d2931
+<     If[ dbg, Print["List of variables kepts: ", lvars ] ];
+< 
+<     If[ lvars =!= {}, ctrlist = Intersection[ ctrlist, lvars ] ];
+<     (* Modification *********** *)
+<     If[ dbg, Print["Control variables kept: ", ctrlist ] ];
+3360,3361c2935,2941
+<     For[ i=1, i<=Length[ctrlist], i=i+1,
+<       If[verb, Print["---- Pipelining control for: ", ctrlist[[i]] ] ];
+---
+> (*
+>     ctrllist = {"X_ctl2"};
+> *)
+>     ctrllist = {"Xctl2"};
+> 
+>     For[i=1, i<=Length[ctrlist], i=i+1,
+>       If[verb, Print["  Pipelining control for: ",ctrlist[[i]] ] ];
+3364c2944
+<         Print["Processing other variables "]
+---
+>         Throw[ sys ]

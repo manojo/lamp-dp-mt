@@ -1,0 +1,15 @@
+system mux :   {Tinit,Duration | 1<=Tinit; 2<=Duration}
+               (ctl : {t | Tinit<=t<=Tinit+Duration-1} of boolean; 
+                input : {t | Tinit<=t<=Tinit+Duration-1} of integer)
+       returns (output : {t | Tinit<=t<=Tinit+Duration-1} of integer);
+let
+  output[t] = if (ctl[t]) then 
+          case
+            { | t=Tinit} : input[t];
+            { | Tinit+1<=t} : 0[];
+          esac else 
+      case
+        { | t=Tinit} : 0[];
+        { | Tinit+1<=t} : input[t];
+      esac;
+tel;

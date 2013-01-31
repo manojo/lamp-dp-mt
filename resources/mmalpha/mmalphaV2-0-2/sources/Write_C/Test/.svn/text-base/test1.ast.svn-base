@@ -1,0 +1,18 @@
+(* ALPHA Tree produced by read_alpha v.3 *)
+Alpha`system["foobug",
+    (* parameter space *)
+    Alpha`domain[0, {}, {
+        Alpha`pol[1, 1, 0, 0, {
+            {1, 1}},{
+            {1, 1}}]}],
+    { (* input variables *)},
+    { (* output variables *)},
+    { (* local variables *)
+    Alpha`decl["A", Alpha`boolean, 
+        Alpha`domain[0, {}, {
+            Alpha`pol[1, 1, 0, 0, {
+                {1, 1}},{
+                {1, 1}}]}]]},
+    { (* let *)
+    Alpha`equation["A", Alpha`var["a"]]}]
+

@@ -1,0 +1,12 @@
+
+COMPONENT firModule
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  HXMirr1In : IN HXMirr1InTYPE;
+  xXMirr1In : IN xXMirr1InTYPE;
+  ser1Out : OUT ser1OutTYPE
+);
+END COMPONENT;
+

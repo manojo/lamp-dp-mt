@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Mmalpha
+Bundle-SymbolicName: fr.irisa.cairn.gecos.mmalpha
+Bundle-Version: 1.0.0.qualifier
+Bundle-ClassPath: mmalpha.jar,
+ lib/JLink.jar
+Export-Package: com.wolfram.jlink,
+ com.wolfram.jlink.ui,
+ com.wolfram.jlink.util,
+ examples
+Require-Bundle: org.eclipse.emf;bundle-version="2.5.0",
+ org.eclipse.emf.ecore,
+ org.eclipse.xtext,
+ fr.irisa.cairn.model.mathematica.xtext;bundle-version="1.0.0"

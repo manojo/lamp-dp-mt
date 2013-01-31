@@ -1,0 +1,12 @@
+
+COMPONENT cellsequenceModule4
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  DBXMirr1 : IN SIGNED (15 DOWNTO 0);
+  M : OUT SIGNED (15 DOWNTO 0);
+  pipeCDB9 : OUT SIGNED (15 DOWNTO 0)
+);
+END COMPONENT;
+

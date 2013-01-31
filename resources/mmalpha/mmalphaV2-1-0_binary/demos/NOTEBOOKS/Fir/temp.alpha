@@ -1,0 +1,35 @@
+system fir :   {K,N | 3<=K<=N-1}
+               (x : {i | 0<=i<=N} of integer[S,3]; 
+                w : {k | 1<=k<=K} of integer[S,3])
+       returns (y : {i | K<=i<=N} of integer[S,6]);
+var
+  WW : {t,p | 2p+1<=t<=(p+K+1,2p+K); -1<=p} of integer[S,3];
+  pipeCx1 : {t,p | 2p+1<=t<=(2p+N,p+N+1); -1<=p<=K} of integer[S,3];
+  pipeCw1 : {t,p | p+K+1<=t<=p+N+1; 1<=p<=K} of integer[S,3];
+  YLOC : {t,p | p+K+1<=t<=p+N+1; 0<=p<=K} of integer[S,6];
+let
+  WW[t,p] = 
+      case
+        { | -1<=t<=K-2; p=-1; 3<=K<=N-1} : w[-t+K-1];
+        { | 2p+1<=t<=(2p+K,p+K+1); 0<=p; 3<=K<=N-1} : WW[t-2,p-1];
+      esac;
+  pipeCx1[t,p] = 
+      case
+        { | -1<=t<=N-2; p=-1; 3<=K<=N-1} : x[t+1];
+        { | 2p+1<=t<=(2p+N,p+N+1); 0<=p<=K; 3<=K<=N-1} : pipeCx1[t-2,p-1];
+      esac;
+  pipeCw1[t,p] = 
+      case
+        { | p+K+1<=t<=p+N+1; 1<=p<=K; 3<=K<=N-1} : 
+           case
+             { | t=p+K+1; 1<=p<=K; 3<=K<=N-1} : WW;
+             { | p+K+2<=t<=p+N+1; 1<=p<=K; 3<=K} : pipeCw1[t-1,p];
+           esac;
+      esac;
+  YLOC[t,p] = 
+      case
+        { | K+1<=t<=N+1; p=0; 3<=K<=N-1} : 0[];
+        { | p+K+1<=t<=p+N+1; 1<=p<=K; 3<=K<=N-1} : YLOC[t-1,p-1] + pipeCw1 * pipeCx1;
+      esac;
+  y[i] = YLOC[i+K+1,K];
+tel;

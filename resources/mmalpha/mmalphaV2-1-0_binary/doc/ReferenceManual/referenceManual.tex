@@ -1,0 +1,307 @@
+\documentclass[11pt]{report}
+\usepackage{verbatim,version,epic,eepic}
+\usepackage{makeidx}
+\makeindex
+
+\newcommand{\MMAlpha}{{\sc mmalpha}}
+\newcommand{\MMALPHA}{{\sc mmalpha}}
+
+\newcommand{\MMAlfa}{{\sc mmalpha}}
+\newcommand{\Alfa}{{\sc alpha}}
+\newcommand{\mma}{{\sc Mathematica}}
+\newcommand{\alfa}{{\sc alpha}}
+\newcommand{\myquotes}{"} 
+\newcommand{\myitem}{\\} 
+
+\newcommand{\alphausage} [4]
+{\subsection{#1} \noindent
+{\rm #2}\\{\bf Defined in file:} #3\\{\bf Package:} #4} 
+ 
+\newcommand{\alphanote} [2]
+{~\\\noindent{\footnotesize #2}} 
+
+\newcommand{\packageusage} [3]
+{\subsection{#1} 
+{\rm #2}}
+
+\begin{document} 
+\pagestyle{headings}
+\thispagestyle{empty}
+\title{MMAlpha Version 2.0 -- Reference Manual\thanks{Last update of
+\today{}}} 
+\author{Api/Cosi/R2D2/Compsys/Cairn}
+
+\date{March 2008} 
+
+\maketitle 
+
+\tableofcontents 
+
+\newpage 
+\chapter{Introduction}
+This document is the reference Manual of \MMAlpha{}. It concerns
+Version 2.0 of \MMAlpha{}, but is still under construction.
+It has been
+(almost) automatically produced from the usage and note statements
+of the \MMAlpha{} packages. In Chapter~\ref{basicfunctions}, we present
+the main package of \MMAlpha{}. 
+Chapter~\ref{domainfunctions} concerns
+functions on domains. In Chapter~\ref{staticfunctions}, functions 
+related to the static analysis of \alfa{} programs are described.
+etc.
+
+This manual is part of the general documentation of \MMAlpha{}.
+This documentation can be accessed through the html hierarchy 
+that follows the \MMAlpha{} hierarchy. The origin of this 
+hierarchy is
+\begin{verbatim}
+$MMALPHA/doc/index.html
+\end{verbatim}
+%$
+\section*{Some conventions}
+Many functions of \MMAlpha{} operate on the Abstract Syntax Tree (AST) of
+an \alfa{} program and return the new transformed AST. For example, 
+evaluating \texttt{normalize[sys]} returns a normalized version of 
+the \texttt{sys}, which may be any \mma{} expression whose evaluation
+is the AST of an \Alfa{} program. The result of this transformation may
+be stored in another variable, e.g.:
+\begin{verbatim}
+x = normalize[sys];
+\end{verbatim}
+and even manipulated by a \mma{} function. 
+
+However, \MMAlpha{} provides another, implicit way of manipulating
+an \Alfa{} program. When an Alfa{} program is parsed and loaded
+using the \texttt{load} function (see \texttt{?load}), 
+it becomes the {\em current \alfa{} 
+program} and is stored in a variable 
+named \$result. By default, functions operate on \$result and 
+modify \$result, in addition to returning the transformed program.
+For example, 
+\begin{verbatim}
+normalize[];
+\end{verbatim}
+puts in \$result the normalized version of \$result, and 
+returns this value. (This is the reason of the \texttt{;} ending
+this command, otherwise, \mma{} would print out the AST on the notebook.)
+Before modifying \$result, this variable is stored in another variable
+named \$program, so that the value of the current AST before 
+the normalization is kept. The \texttt{undo[]} command allows 
+\$result to be restored to its previous value.
+
+\section{Content of the Reference Manual}
+The reference manual is structured in the following way.
+\begin{enumerate}
+\item The mail \LaTeX{} file, \texttt{referenceManual.tex}, is located in 
+directory:
+\begin{verbatim}
+../doc/RefefenceManual
+\end{verbatim}
+It contains an introduction (that you are currently reading) and calls to 
+the various documentation packages, which are produced using commands
+of the \texttt{Makedoc} package (see~\ref{doc-makedoc} for details.
+\item The reference manual contains 
+the following
+Chapters.
+\begin{itemize}
+\item Chapter~\ref{basicfunctions} presents the functions contained in the \texttt{Alpha} 
+package. 
+\item Chapter~\ref{domainfunctions} presents the functions contained in the \texttt{Domlib},
+\texttt{Zpol},
+\texttt{Visual}, and \texttt{Visual3D}
+packages. 
+\item Chapter~\ref{staticfunctions} presents the functions contained in the \texttt{Static},
+and \texttt{Semantics}
+packages. 
+\item Chapter~\ref{subsystemfunctions} presents the functions contained in the \texttt{SubSystems},
+package. 
+\item Chapter~\ref{manipfunctions} presents the functions contained in the \texttt{Matrix},
+and \texttt{Tables}
+packages. 
+\item Chapter~\ref{elementaryfunctions} presents the functions contained in the \texttt{ChangeOfBasis},
+\texttt{Cut},
+\texttt{Normalization}, 
+\texttt{Reduction}, 
+\texttt{Substitution}, 
+and \texttt{Substitution}
+packages. {\em This chapter has not been proof-read.}
+\item Chapter~\ref{scheduling} presents the functions contained in the \texttt{ScheduleTools}, 
+\texttt{VertexSchedule}, 
+and \texttt{FarkasSchedule}
+packages. {\em This chapter has not been proof-read.}
+\item Chapter~\ref{elementaryfunctions} presents the functions contained in the \texttt{Pipeline},
+\texttt{Control},
+and \texttt{PipeControl}
+packages. {\em This chapter has not been proof-read.}
+\item Chapter~\ref{uniformization} presents the functions contained in the \texttt{Pipeline},
+\texttt{Control},
+and \texttt{PipeControl}
+packages. 
+\item Chapter~\ref{backend} presents the functions contained in the \texttt{ToAlpha0v2},
+\texttt{Alphard},
+\texttt{Vhdl2},
+and \texttt{VhdlTestBench}
+packages. 
+\item Chapter~\ref{utilities} presents the functions contained in the \texttt{MakeDoc},
+package. 
+\end{itemize}
+\item The status of the documentation contained in each package 
+is described in a note at the beginning of the package: when the documentation has been
+revised, it appears in a note following the subsection of the package. A revision
+means that I checked that the content of the usage and note statements of the
+package appear correctly on the reference manual, but does not mean that the
+documentation itself is correct.
+\end{enumerate}
+\newpage
+\section*{Acknowledgments (Patrice Quinton)}
+This version of \MMAlpha{} was developed over the years by the contribution of
+many people. With the risk of forgetting some contributors (sorry for this), 
+here is a list of these contributors:
+\begin{itemize}
+\item Christophe Mauras invented the \Alfa{} language in his PhD thesis
+en 1989, and the actual language is almost its initial version.
+\item The late Herv\'e Le Verge designed with Christophe the first 
+version of \Alfa{} (called \Alfa{} du Centaur, as it was designed 
+using the Centaur system of Inria.) Herv\'e also designed the first
+version of the Polylib which is the engine of \MMAlfa{}.
+\item Doran Wilde designed the first version of \MMAlfa{}, i.e., 
+the initial \mma{} version of our tool. It started in 1989. 
+\item Zbignew Chamski participated to the development of 
+this first version. 
+\item Tanguy Risset was, and still is, the main architect and 
+contributor of \MMAlfa{}. 
+\item Florent Dupont de Dinechin implemented a significant part of 
+\MMAlfa{} (subsystems, semantic analysis, and part of the back end 
+process).
+\item Patricia Le Moenner implemented the first version of the 
+Vhdl translator.
+\item Anne-Claire Guillou contributed to the current Vhdl translater, 
+and designed several circuits.
+\item Sanjay Rajopadhye was a deep inspirator of \MMAlfa{}.
+\item Fabien Quiller\'e implemented mainly the C code generator.
+\item Several indian students contributed to the development of
+\MMAlfa{} during internships.
+\end{itemize}
+
+I was often asked why \MMAlfa{} was developed using \mma{}. The 
+choice was made in 1989, mainly in order to take advantage of the 
+available formal calculations embedded in this tool. There are
+disadvantages to this choice, one being that people have
+to buy this software in order to use \MMAlfa{}. I believe that this
+is not the main point, however, since \mma{} is available in many
+universities, and companies interested in our software could 
+buy it easily. Probably more important is that \mma{} does not fit in 
+the current {\em culture} of developers. 
+
+But from the point of view of a prototype developper, \mma{} is 
+a very nice tool. Our software is available on {\em all platforms}
+thanks to the portability of \mma{}\footnote{By the way, the 
+part of \MMAlfa{} that creates most portability problems is 
+the Domlib library that is written in C.}. I have never experienced 
+any problem of running out of space, and time constraints have 
+never been a significant issue. Moreover, every 2 years or so, 
+\MMAlfa{} accelerates significantly when I change my laptop\footnote{The only
+occasion when this was not true is when I recently changed my Apple MacBook 
+into a MacBook Pro, where I was disappointed to see the performance
+degrade. But it may be only because I did not recompile Domlib...}.
+
+\chapter{Basic Functions}
+\label{basicfunctions}
+
+\section{Introduction}
+Basic functions are mainly in the Alpha package.
+\input{Alpha}
+
+\chapter{Functions on domains}
+\label{domainfunctions}
+\input{Domlib}%Proof-read
+\input{Zpol}%Proof-read
+\input{Visual}%Proof-read
+\input{Visual3D}%Proof-read
+
+\chapter{Static Analysis}
+\label{staticfunctions}
+\input{Static}
+\input{Semantics}
+
+\chapter{Subsystems}
+This package contains functions to handle Alpha subsystems.
+\label{subsystemfunctions}
+\input{SubSystems}
+
+\chapter{Manipulating Alpha Expressions}
+\label{manipfunctions}
+The Matrix and Tables packages contain some functions to manipulate
+Alpha expressions and programs. Other such functions are scattered
+in other packages, as they have been written sometimes on the fly
+by the authors of these packages. A developper has to read this
+chapter carefully in order not to reinvent the wheel.
+\input{Matrix}
+\input{Tables}
+
+\chapter{Elementary Program Transformations}
+\label{elementaryfunctions}
+\input{ChangeOfBasis} %Proof-read
+\input{Cut} %Proof-read
+\input{Normalization} %Proof-read
+\input{Reduction} %Proof-read
+\input{Substitution}
+
+\chapter{Scheduling}
+\label{scheduling}
+\input{ScheduleTools}
+\input{Schedule}
+\input{VertexSchedule}
+\input{FarkasSchedule}
+
+\chapter{Uniformization}
+\label{uniformization}
+\input{Pipeline}
+\input{Control}
+\input{PipeControl}
+
+\chapter{Back end process}
+\label{backend}
+\input{ToAlpha0v2}
+\input{Alphard}
+\input{Vhdl2}
+\input{VhdlTestBench}
+
+\chapter{Utilities}
+\label{utilities}
+\input{MakeDoc}%Proof-read
+
+\chapter{Add-ons}
+\input{BinExpansion}
+\input{BitOperators}
+\input{Decomposition}
+\input{DesignManagement}
+\input{INorm}
+\input{INormalize}
+\input{Lexicographic}
+\input{LinearAlg}
+\input{Matrix}
+\input{Meta}
+\input{ModularSchedule}
+\input{Omega}
+\input{Options}
+\input{Properties}
+\input{Reduction}
+\input{Schematics}
+\input{Semantics}
+\input{Static}
+\input{SubSystems}
+\input{SystemCTestBench}
+\input{SystemCTools}
+\input{Tables}
+\input{Transformation}
+\input{Uniformization}
+\input{UniformizationTools}
+\input{Visual}
+\input{Visual3D}
+\input{Zpol}
+
+\printindex
+
+\end{document}
+

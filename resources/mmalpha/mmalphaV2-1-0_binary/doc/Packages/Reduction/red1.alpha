@@ -1,0 +1,6 @@
+system red1: {N| N>0} 
+  (x: {i| 0<=i<N} of integer) 
+returns (y: integer);
+let
+  y = reduce( +, (i->), x);
+tel;

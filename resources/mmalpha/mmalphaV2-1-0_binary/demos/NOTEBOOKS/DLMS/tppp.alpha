@@ -1,0 +1,66 @@
+system firr :  {N,M,D | 3<=N<=(D-1,M-D-1)}
+               (x : {n | 1<=n<=M} of integer; 
+                d : {n | N<=n<=M} of integer)
+       returns (res : {n | N<=n<=M} of integer);
+var
+  WXctl1PXInitXIn : {t,p | 0<=t<=-N+M; p=0; 3<=N<=(D-1,M-D-1)} of boolean;
+  WXctl1PXInit : {t,p | 0<=t<=-N+M; p=0; 3<=N<=(D-1,M-D-1)} of boolean;
+  WXctl1P : {t,p | p<=t<=p-N+M; 0<=p<=N-1; 3<=N<=(D-1,M-D-1)} of boolean;
+  pipeCx19 : {t,p | 2p-N+1<=t<=(2p-N+M,p-N+M); -2<=p<=N-1; 3<=N<=(D-1,M-D-1)} of integer;
+  pipeCx17 : {t,p | 2p-N+D+1<=t<=(p-N+M,2p-N+M); -1<=p<=N-1; 3<=N<=(M-D-1,D-1)} of integer;
+  pipeCE5 : {t,p | p+D<=t<=p-N+M; -1<=p<=N-1; 3<=N<=(D-1,M-D-1)} of integer;
+  W : {t,p | p<=t<=p-N+M; 0<=p<=N-1} of integer;
+  Y : {t,p | p<=t<=p-N+M; -1<=p<=N-1} of integer;
+  E : {t,p | N-1<=t<=M-1; p=N-1} of integer;
+  WXctl1 : {t,p | p<=t<=p-N+M; 0<=p<=N-1; 3<=N<=(D-1,M-D-1)} of boolean;
+let
+  WXctl1PXInitXIn[t,p] = WXctl1PXInit;
+  WXctl1PXInit[t,p] = 
+      case
+        { | p=0} : 
+           case
+             { | t<=D-1; p=0} : True[];
+             { | D<=t; p=0} : False[];
+           esac;
+      esac;
+  pipeCx19[t,p] = 
+      case
+        { | -N-3<=t<=-N+M-4; p=-2; 3<=N<=(D-1,M-D-1)} : x[t-2p+N];
+        { | 2p-N+1<=t<=(2p-N+M,p-N+M); -1<=p<=N-1; 3<=N<=(D-1,M-D-1)} : pipeCx19[t-2,p-1];
+      esac;
+  pipeCx17[t,p] = 
+      case
+        { | -N+D-1<=t<=-N+M-2; p=-1; 3<=N<=(D-1,M-D-1)} : x[t-2p+N-D];
+        { | 2p-N+D+1<=t<=p-N+M; 0<=p<=N-1; 3<=N<=(M-D-1,D-1)} : pipeCx17[t-2,p-1];
+      esac;
+  pipeCE5[t,p] = 
+      case
+        { | D-1<=t<=-N+M-1; p=-1; 3<=N<=(D-1,M-D-1)} : E[t-p+N-D-1,N-1];
+        { | p+D<=t<=p-N+M; 0<=p<=N-1; 3<=N<=(M-D-1,D-1)} : pipeCE5[t-1,p-1];
+      esac;
+  WXctl1P[t,p] = 
+      case
+        { | 0<=t<=-N+M; p=0; 3<=N<=(D-1,M-D-1)} : WXctl1PXInitXIn[t,p];
+        { | 1<=p} : WXctl1P[t-1,p-1];
+      esac;
+  WXctl1[t,p] = WXctl1P;
+  W[t,p] = 
+      case
+        { | p<=t<=p-N+M; 0<=p<=N-1; 3<=N<=(D-1,M-D-1)} : { | p<=t<=p-N+M; 0<=p<=N-1; 3<=N<=(D-1,M-D-1)} : if (WXctl1) then 
+                  case
+                    { | p<=t<=p+D-1; 0<=p<=N-1; 3<=N<=(D-1,M-D-1)} : 0[];
+                    { | p+D<=t<=p-N+M; 0<=p<=N-1; 3<=N<=(D-1,M-D-1)} : 0[];
+                  esac else 
+              case
+                { | p<=t<=p+D-1; 0<=p<=N-1; 3<=N<=(D-1,M-D-1)} : 0[];
+                { | p+D<=t<=p-N+M; 0<=p<=N-1; 3<=N<=(D-1,M-D-1)} : W[t-1,p] + pipeCE5 * pipeCx17;
+              esac;
+      esac;
+  Y[t,p] = 
+      case
+        { | -1<=t<=-N+M-1; p=-1; 3<=N<=(D-1,M-D-1)} : 0[];
+        { | p<=t<=p-N+M; 0<=p<=N-1; 3<=N<=(D-1,M-D-1)} : Y[t-1,p-1] + W[t,p] * pipeCx19;
+      esac;
+  E[t,p] = (d[t+1] - Y[t,N-1]) / 32[];
+  res[n] = Y[n-1,N-1];
+tel;

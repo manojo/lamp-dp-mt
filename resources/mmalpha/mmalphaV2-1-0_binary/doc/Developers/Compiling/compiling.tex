@@ -1,0 +1,1060 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage,epic,eepic,epsfig,makeidx,color,moreverb,boxedminipage,version}
+
+\sloppy
+
+\excludeversion{tobedone}
+
+\newcommand{\C}{\texttt{C}}
+\newcommand{\gpl}{Gnu Public License}
+\newcommand{\pip}{PiP}
+\newcommand{\lpsolve}{LP-Solve}
+
+\newcommand{\sitemmalfa}
+{\texttt{\htmladdnormallink{http://www.irisa.fr/cosi/ALPHA}{http://www.irisa.fr/api/ALPHA}}}
+\newcommand{\emailmmalfa}{\texttt{alpha@irisa.fr}}
+
+\newcommand{\Alpha}{{\sc Alpha}}
+\newcommand{\AlpHard}{{\sc AlpHard}}
+\newcommand{\MMA}{{\sc MMAlpha}}
+\newcommand{\irisa}{ Irisa}
+\newcommand{\vlsi}{{\sc vlsi}}
+\newcommand{\vhdl}{{\sc vhdl}}
+\newcommand{\alfa}{\Alpha}
+\newcommand{\mmalfa}{\MMA}
+\newcommand{\MMAlfa}{\MMA}
+\newcommand{\mmalpha}{\MMA}
+\newcommand{\mma}{{Mathematica}}
+\newcommand{\polylib}{{\sc polylib}}
+\newcommand{\domlib}{{\sc domlib}}
+\newcommand{\Opt}[1]{{\rm\sl [} #1 {\rm\sl ]}}
+\newcommand{\Group}[1]{{\rm\sl (} #1 {\rm\sl )}}
+\newcommand{\Alt}{$\mid$}
+
+\newcommand {\setn}   {\hbox{\it I\hskip -2pt N}}     % ensemble N
+\newcommand {\setz}   {\hbox{\it Z\hskip -4pt Z}}     %ensemble Z
+\newcommand {\setq}   {\hbox{\it Q\hskip -6pt {\it l}\hskip 4pt}}     % ensemble Q
+
+\newcommand{\ostype}{\texttt{\$OSTYPE}}
+\newcommand{\envmmalpha}{\texttt{\$MMALPHA}}
+\newcommand{\cygwin}{\texttt{cygwin}}
+\newcommand{\cygwintrde}{\texttt{cygwin32}}
+\newcommand{\linux}{\texttt{linux}}
+\newcommand{\unix}{\texttt{unix}}
+\newcommand{\darwin}{\texttt{darwin}}
+\newcommand{\solaris}{\texttt{solaris}}
+\newcommand{\sunqu}{\texttt{sun4}}
+\newcommand{\sunos}{\texttt{sun OS}}
+
+\newcommand{\varcc}{\texttt{CC}}
+\newcommand{\varld}{\texttt{LD}}
+\newcommand{\varpolylib}{\texttt{POLYLIB}}
+\newcommand{\varcflags}{\texttt{CFLAGS}}
+\newcommand{\varlflags}{\texttt{LFLAGS}}
+\newcommand{\varbin}{\texttt{BIN}}
+\newcommand{\varobj}{\texttt{OBJ}}
+\newcommand{\vardepobj}{\texttt{DEPOBJ}}
+\newcommand{\varmathprep}{\texttt{MATHPREP}}
+\newcommand{\varmathprepcor}{\texttt{MATHPREPCOR}}
+\newcommand{\varcppflags}{\texttt{CPPFLAGS}}
+\newcommand{\varldflags}{\texttt{CLDFLAGS}}
+\newcommand{\varloadlibes}{\texttt{LOADLIBS}}
+\newcommand{\vardummy}{\texttt{DUMMY}}
+\newcommand{\varname}{\texttt{NAME}}
+\newcommand{\varobjs}{\texttt{OBJS}}
+\newcommand{\varlibs}{\texttt{LIBS}}
+\newcommand{\varpolydir}{\texttt{POLYDIR}}
+\newcommand{\varmathinclude}{\texttt{MATHINCLUDE}}
+\newcommand{\varlibdir}{\texttt{LIBDIR}}
+
+
+%\newcommand{\domlib}{{Domlib}}
+\newcommand{\zdomlib}{{ZDomlib}}
+%\newcommand{\envmmalpha}{\texttt{\$MMALPHA}}
+%\newcommand{\envostype}{\texttt{\$OSTYPE}}
+
+
+
+\newcounter{Nex}
+
+\newtheorem{ex}{Exemple}[section]
+
+\makeindex
+
+
+\newcommand{\ML}{{\sc Mathlink}}
+\newcommand{\mprep}{{\sc mprep}}
+%\newcommand{\mma}{{\sc Mathematica}}
+\newcommand{\mkf}{{\texttt Makefile}}
+\newcommand{\gcc}{\texttt{gcc}}
+\newcommand{\doml}{\texttt{domlib.c}}
+\newcommand{\tm}{\texttt{domlibtm.c}}
+%\newcommand{\mmalfa}{\textsc{MMAlpha}}
+\begin{document}
+
+\title{Compiling \domlib{} and other C programs}
+\author{Api, then Cosi, then R2D2 and Compsys\thanks{
+Api, Cosi and R2D2 are the names of the 
+research groups that successively hosted
+research related on \alfa{} and \mmalpha{} at Irisa, Rennes, France. 
+Since 2001, Compsys in ENS Lyon also participates in 
+the development of \mmalpha{}}.\\Revision of \today{}}
+\date{January 2009}
+\maketitle
+
+\begin{abstract}
+This document explains how the C files for \domlib{}, \polylib{} etc.
+are organized and compiled in the \mmalfa{} distribution.
+\end{abstract}
+
+%\title{Compiling C programs for \mmalfa{}}
+%\author{Patrice Quinton}
+%\date{September 2007}
+%\maketitle
+
+
+\section*{To do List}
+\begin{description}
+\item[2/1/2009:] seems that POLYLIB-LIB is useless. Check it...
+\item[2008/10/04:] Cannot compile stuff on Linux, on Irisa machine, on \mma{} Version 4.0.1, since
+I cannot run mprep... Why?
+\item[2008/10/04:] Cannot compile Domlib properly for version \texttt{5.2}, but it works for version 6.0.
+\item[X]  Clean the mess in this file
+\item[?]  Add a DBG and a if in Makefile.darwin in domlib
+\item[X]  Add varlist option to check the value of all variables
+\end{description}
+
+\section{Introduction}
+\label{intro}
+This document\footnote{The source of this document is in:\\
+\texttt{\$MMALPHA/Mathematica/doc/sources/Compiling-Domlib/Compiling-Domlib.tex}\\
+and this file should be in\\
+\texttt{\$MMALPHA/Mathematica/doc/developer/Compiling-Domlib.pdf}\\
+} is intended for \mmalfa{} developers who need to recompile or
+modify the \domlib.
+
+\section{About PolyLib}
+Almost all C programs of \mma{} depend on the polyhedral library \polylib{}, that was developped initally
+at IRISA and is now further developped and maintained in Strasburg. For convenience, 
+the \mma{} distribution provides a version of \polylib{}. Before compiling
+any program, you should make sure that it is properly installed. 
+
+To be more explicit, the \texttt{POLYLIB} variable of file \texttt{Makefile.config}
+should contain the path to the directory where the \polylib{} is. 
+
+\section{Where are the executable files?}
+They are located in \envmmalpha{}\verb\/bin.\\ostype{}, where \ostype{}
+is the Operating System type. Currently, this type can be 
+\cygwin{}, \cygwintrde{}, \linux{}.
+
+\newcommand{\domlibexe}{\texttt{domlib}}
+\newcommand{\pipexe}{\texttt{pip}}
+\newcommand{\codegenexe}{\texttt{code\_gen}}
+\newcommand{\readalphaexe}{\texttt{read\_alpha}}
+\newcommand{\writealphaexe}{\texttt{write\_alpha}}
+\newcommand{\writecexe}{\texttt{write\_c}}
+\newcommand{\mathlink}{\texttt{mathlink}}
+
+Typically, one finds the following executables:
+\domlibexe{}, \pipexe{}, \codegenexe{}, \readalphaexe{}, 
+\writealphaexe{} and \writecexe{}.
+
+\footnote{In \texttt{bin.linux}, it seems that these executable files have
+a different name... This information has to be checked.}
+
+
+\section{Environment variables}
+Two environment variables have to be set: 
+\envmmalpha{}, \ostype{}.\footnote{Explain how to set these variables...} 
+
+\envmmalpha{} is the directory where \mmalfa{} is installed. It should have been defined 
+for your installation to run (see the installation procedure).
+
+\ostype{} is the type of your operating system, which should be set when starting 
+a shell. (I do not know what it should be for \cygwin{}.)
+
+\section{Where are the source files?}
+The source files are in \envmmalpha{}\verb\/sources\. There is one directory for each 
+executable.
+
+\section{Compiling C files for MMAlpha}
+
+\subsection{To Compile a New Version}
+Compiling a new version is a somewhat tricky (and risky) operation. Tricky, since you
+have to make sure that every variable, option etc. is set. Risky as you may erase some
+stuff that works pretty well in an old version. 
+
+So first, make sure that you have a copy of the binaries and of the libraries which work...
+
+Then, good luck!
+
+First, a description of the various directories. These depend on several parameters:
+your OS type (\darwin{}, \cygwin{}, \linux{}, \unix{}, \solaris{}, etc.) and the Mathematica version.
+Your OS type should be set in an environment variable called OSTYPE, usually
+defined by the system (this is true on Unix-like systems, not necessarily on 
+Windows...). 
+
+\paragraph*{Compiling all programs}
+The reference directory is \texttt{\$MMALPHA/sources}. It contains \texttt{Makefile} which
+is used to compile whathever program you need. Before you compile run:
+{\begin{verbatim}
+make checkvars >>file
+\end{verbatim}
+This will check a couple of things and report the results in the \texttt{file} file. 
+Examine \texttt{file} for possible errors.
+
+To compile, run
+{\begin{verbatim}
+make all
+\end{verbatim}
+
+\paragraph*{Compiling one program}
+To compile one particular program \texttt{pg}, run
+{\begin{verbatim}
+make pg
+\end{verbatim}
+
+You may even make several programs at once (\texttt{make pg1 pg2}). 
+
+\paragraph*{Cleaning}
+To clean before compiling, run 
+{\begin{verbatim}
+make clean
+\end{verbatim}
+Seems however, not to clean everything.
+
+\paragraph*{Checking variables}
+To check the variables, run
+{\begin{verbatim}
+make checkvars
+\end{verbatim}
+
+\paragraph*{Testing stuff}
+To test (no guarantee about what this tests), run
+{\begin{verbatim}
+make tests
+\end{verbatim}
+
+\subsection{Source directories}
+The second important directory is \texttt?\$MMALPHA/sources/program} where your
+program is (say for example Domlib). There, you will find source files for Domlib,
+a make file (\texttt{Makefile}) that will be called by the main make file, and other 
+special make files depending on your OS type: \texttt{Makefile.darwin} or
+\texttt{Makefile.linux} etc... 
+
+\subsection{Objects directories}
+There is also a directory \texttt{Obj.ostype} for each system type, which should be
+created by \texttt{Makefile} (not sure it is), and where the objects file are put as well as 
+the final binary. 
+
+Finally, the binaries are all copied in the directory \texttt{\$MMALPHA/bin.ostype}.
+
+\section{Versions...}
+The compilation process depends both on your operating system type and of your Mathematica version.
+I try to provide as many versions as possible for \mma{} version 6, 5 and 4\footnote{I may soon give up for version 4, since
+version 7 is already here... PQ. Jan 2009.}. However, prefered operating systems are Mac OSX and Linux.
+
+Currently, the {\em mathematica version} is wired in the file \texttt{Makefile.config} of
+the directory \texttt{\$MMALPHA/sources/MakeIncludes}. 
+A variable called \texttt{MMAVERSION}
+containts its number (for example, \texttt{6.0}, or \texttt{4.0.1}). The value of this variable
+is very important. Indeed, the version number and the OS type define the suffixes of 
+some make files. For example, if you want to compile for \mma{} version 6.0 on Linux,
+then \texttt{Makefile.config} will call \texttt{Makefile.linux}, which in turn will call
+\texttt{Makefile.linux.6.0} in the \texttt{MakeIncludes} directory. This allows some variables
+to be set properly depending on the OS and the \mma{} version. To understand that it
+is tricky, keep in mind that: 
+\begin{itemize}
+\item The location of the preparation program (\texttt{mprep}) and the compiling add-ons
+of \mma{} necessary to prepare and compile \texttt{Domlib} depends strongly on the version.
+\item After version 5, \texttt{Domlib} had to be changed, as the API of the 
+\texttt{Mathlink} library were changed...
+\item Some \texttt{lex} or \texttt{yacc} files had to be changed also for new versions of some OS...
+\end{itemize}
+
+Therefore, I suggest the following procedure.
+
+\begin{enumerate}
+\item Check that \envmmalpha{} and \ostype{} are properly set.
+\item Look for your \mma{} version. To be sure, start \mma{} and evaluate \texttt{\$VersionNumber}.
+\item In file \texttt{\envmmalpha{}/sources/MakeIncludes/Makefile.config}, check that the variable
+\texttt{MMAVERSION} is set to your version number.
+\item Check that there exist a file \texttt{Makefile.\ostype{}} in the directory
+\texttt{\envmmalpha{}/sources/MakeIncludes}. If it does not exist, create it, on the
+model of \texttt{Makefile.darwin} for example. You may have to modify the last line
+of this file:
+\begin{verbatim}
+include ../MakeIncludes/Makefile.darwin.$(MMAVERSION)
+\end{verbatim}
+where you may replace \texttt{darwin} by the name of your operating system\footnote{I could have replaced
+here the \texttt{darwin} name by variable \texttt{\ostype{}}, but... depending on your configuration, this
+environment variable may be defined in various ways.}.
+\item Check that there exist a file \texttt{Makefile.\ostype{}.MMAVERSION} in the directory
+\texttt{\envmmalpha{}/sources/MakeIncludes}. If it does not exist, create it, for example, by
+a modification of \texttt{Makefile.darwin.6.0}. In this file, you have to set the \texttt{MATHLINK}
+variable in the second line (the remaining should be left unchanged.) This variable
+says where the compiler additions of your \mma{} distribution are located. This depends on 
+your configuration and on your \mma{} version. On my own machine, for version 6, they are 
+{\small
+\begin{verbatim}
+MATHLINK = /Applications/Mathematica.app/SystemFiles/Links/MathLink/\
+    DeveloperKit/CompilerAdditions
+\end{verbatim}
+}
+and for version 5.2:
+{\small
+\begin{verbatim}
+MATHLINK = /Applications/Mathematica\ 5.2.app/AddOns/MathLink/\
+     DeveloperKit/MacOSX-x86/CompilerAdditions
+\end{verbatim}
+}
+\end{enumerate}
+
+If you have a problem, run a checkvars, and ... check the values of you variables.
+
+\section{How things are}
+The \texttt{sources} directory contains one directory per C software: \texttt{Code\_Gen}, 
+\texttt{Domlib}, 
+\texttt{Pip}, \texttt{Poly}, \texttt{Poly-darwin}, \texttt{Polylib}, \texttt{Pretty}, 
+\texttt{Read\_Alpha}, \texttt{Write\_Alpha}.
+
+The \texttt{sources} directory contains one directory per C software: \texttt{Code\_Gen}, 
+\texttt{Domlib}, 
+Pip, Poly, Poly-darwin, Polylib, Pretty, Read\_Alpha, Write\_Alpha.
+
+\subsection{The \texttt{sources/Makefile}}
+
+There is one Makefile in this directory. It contains a variable called DIR which contains
+the list of programs to compile.
+There is one \texttt{Makefile} in the source directory. It contains a variable called \texttt{DIR} which contains
+programs to compile. For each program \texttt{pg} to compile, \texttt{Makefile}
+calls 
+\texttt{pg/Makefile}. For example, to compile \texttt{Domlib}, it goes in directory
+\texttt{Domlib} and calls \texttt{make}. 
+
+\subsection{Where the binaries are}
+All binaries produced by compilation are in file \texttt{../bin.OSTYPE}, 
+where \texttt{OSTYPE} is defined as an
+environment variable (this may cause a problem, as the \texttt{OSTYPE} is probably not
+sufficient to decide which binary to use). Another flag, \texttt{MACHTYPE} is probably also needed...
+at least for \texttt{MaCOS}.
+\subsection{Where the libraries are}
+The libraries produced by compilation are in file \texttt{../lib.OSTYPE}.
+
+In each one of these directories, there is a makefile, which starts with an include
+of another file \texttt{../MakeIncludes/Makefile.config}.
+
+\subsection{The directory \texttt{sources/MakeIncludes}}
+In this directory, there are a set of make files that are common to most of the 
+programs to be compiled.
+These files are :
+\begin{itemize}
+\item \texttt{Makefile.config}. A configuration file.
+\item \texttt{Makefile.OSTYPE}, for all OS types. In this file, which are called by \texttt{Makefile.config},
+there are configurations commands which depend on the OS type.
+\item \texttt{Makefile.OSTYPE.MMAVERSION}. These files contain commands that are 
+specific to a \mma{} version, for a particular OS type. They are called by 
+\texttt{Makefile.OSTYPE}.
+\item A file \texttt{Makefile.checkvars} which is called when the option \texttt{checkvars}
+is set. This option does not work totally properly.
+\end{itemize}
+
+
+Thus we have the following chain of makes:
+\begin{enumerate}
+\item \texttt{Makefile} (in \texttt{sources})
+\item Calls a make file \texttt{Makefile} located in some directory of DIR (say \texttt{read\_alpha}).
+\begin{enumerate}
+\item This \texttt{Makefile} includes \texttt{Makefile.config}, which is common to all programs, and
+is in directory \texttt{sources/MakeIncludes}. 
+\item \texttt{Makefile.config} includes itself a special configuration file customized for 
+a system, named \texttt{Makefile.OSTYPE} and located in the
+same directory, which may redefine some variables that were already defined in 
+\texttt{Makefile.config}.
+\item \texttt{Makefile.OSTYPE} includes another file, named
+\begin{verbatim}
+Makefile.OSTYPE.version
+\end{verbatim}
+located in the same directory, where 
+\texttt{version} is the version number of Mathematica you are using (say 5.0, 5.2, 6.0). In this file, 
+the set-up of variables related to Mathlink is done, as these may depend on the version 
+of Mathematica.
+\end{enumerate}
+\item After including, \texttt{Makefile} includes also \texttt{Makefile.rules}
+also located in \texttt{sources/MakeIncludes}, which contains
+rules.  \texttt{Makefile.OSTYPE} in directory \texttt{read\_alpha}
+where there are special rules for compiling this program on operating system \texttt{OSTYPE}. 
+\end{enumerate}
+
+\section{The configuration files, details}
+
+\subsection{\texttt{Makefile.config}}
+\label{config}
+Defines \texttt{SHELL}, 
+\texttt{MMAVERSION},
+\texttt{LDLIB},
+\texttt{CC},
+\texttt{CFLAGS},
+\texttt{CXX},
+\texttt{YACC},
+\texttt{LEX},
+\texttt{LFLAGS},
+\texttt{STRIP},
+\texttt{MAKEFILES},
+\texttt{BINDIR},
+\texttt{LIBDIR},
+\texttt{OBJDIR},
+\texttt{NEEDBINDIR},
+\texttt{NEEDLIBDIR},
+\texttt{NEEDOBJDIR},
+\texttt{SOURCES},
+\texttt{POLYDIR},
+\texttt{POLYINCLUDE},
+\texttt{POLYOBJS},
+\texttt{CODEGENDIR},
+\texttt{CODEGENOBJS},
+\texttt{PRETTYDIR},
+\texttt{PRETTYOBJS},
+\texttt{LPSOLVEDIR},
+\texttt{OMEGALIB},
+\texttt{OMEGABASIC}.
+
+\subsection{The file Makefile.cygwin}
+This is a configuration file where special variables are set. 
+Defines SHELL, MMALPHA, MMAVERSION, SUFFIX, DEFINES, LD, PRECISIONFLAG, LDFLAGS, 
+MATHLINK, OMEGADIR, MATHPREP, MATHPREPCOR, MATHINCLUDE, MATHLIB, 
+MATHLOADLIB, MATHEXTRALIBS and MATHEXTRAOBJS. 
+
+All variables related to Mathlink are set in a file \texttt{Makefile.darwin.mmaversion}
+where \texttt{mmaversion} is the number of the Mathematica version for which you
+compile. There exists only a file for version 4.2 of Mathematica.
+
+\paragraph*{Notes:} the Mathlink stuff is actually copied in the subdirectory
+\$MMALPHA/sources/Mathlink. 
+
+\subsection{The file Makefile.linux}
+Defines DEFINES, LD, PRECISIONFLAG, LDFLAGS, 
+MATHLINK, OMEGADIR, MATHPREP, MATHPREPCOR, MATHINCLUDE, MATHLIB, 
+MATHLOADLIB, MATHEXTRALIBS and MATHEXTRAOBJS. There is a file Makefile.linux-new. I
+do not know the differences.
+
+In the \texttt{linux} file, there is the definition of
+\texttt{DEFINES}, 
+\texttt{LD} (\texttt{gcc},
+\texttt{PRECISIONFLAGS},
+\texttt{LDFLAGS}. 
+\texttt{OMEGADIR}.
+Then this file calls in the same directory
+another configutation file related to \mma{} (see \ref{mmafile}).
+
+All variables related to Mathlink are set in a file \texttt{Makefile.linux.mmaversion}
+where \texttt{mmaversion} is the number of the Mathematica version for which you
+compile. 
+
+MATHLINK, OMEGADIR, MATHPREP, MATHPREPCOR, MATHINCLUDE, MATHLIB, 
+MATHLOADLIB, MATHEXTRALIBS and MATHEXTRAOBJS. 
+
+\paragraph*{Notes:} the MMAVERSION variable is currently wired in the file
+\texttt{makefile.linux} as 4.2, thus making a call to \texttt{makefile.linux.4.2}. 
+There exists another such file, for version 3.0.1, referring to the location 
+of Mathematica at Irisa, but I think that it is obsolete.
+
+
+In the \texttt{cygwin} file, there are special definitions
+(this file is not up-to-date).
+
+In the \texttt{darwin} file, there is the definition of 
+\texttt{DEFINES}, 
+\texttt{LD} (\texttt{gcc},
+\texttt{LDFLAGS}. Then this file calls in the same directory
+another configutation file related to \mma{} (see \ref{mmafile}).
+
+\subsection{The file Makefile.darwin}
+Defines DEFINES, LD, PRECISIONFLAG, LDFLAGS, OMEGADIR.
+
+All variables related to Mathlink are set in a file \texttt{Makefile.darwin.mmaversion}
+where \texttt{mmaversion} is the number of the Mathematica version for which you
+compile. 
+
+MATHLINK, OMEGADIR, MATHPREP, MATHPREPCOR, MATHINCLUDE, MATHLIB, 
+MATHLOADLIB, MATHEXTRALIBS and MATHEXTRAOBJS. 
+
+
+
+\subsection{The Makefile.rules file}
+This file contains general rules to compile programs. These rules are explained in the
+file itself. 
+
+\subsubsection{List of variables, and where they are defined}
+
+In Makefile.config, there is an inclusion of the definitions in MakeIncludes/Makefile.\$(OSTYPE)
+which are peculiar to each OS type.
+
+\begin{description}
+\item[BINDIR]: in Makefile.config. \$(MMALPHA)/bin.\$(OSTYPE). Where the binaries will be
+put. 
+\item[CC]: in Makefile.config. I guess it is the compiler...
+\item[CFLAGS]: in Makefile.config. -O3 -g -I\$(POLYINCLUDE) \$(PRECISIONFLAG). I guess that
+these are the flags of the compiler.
+\item[CODEGENDIR]: in Makefile.config. \$(SOURCES)/Code\_Gen. Where Code\_Gen is
+\item[CODEGENOBJS]: in Makefile.config. \$(OBJDIR)/gen.o and nodeprocs.o. The objects of 
+Code\_gen.
+\item[CXX]: in Makefile.config g++
+\item[DIR]: in Makefile. The list of directories where there are files to be compiled.
+\item[LDLIB]: in Makefile.config. ld -r. It is the command for the linker.
+\item[LEX]: in Makefile.config. flex
+\item[LFLAGS]: in Makegile.config. Flags for flex
+\item[LIBDIR]: in Makefile.config. \$MMALPHA/lib.\$(OSTYPE). Where the libraries are put.
+\item[LPSOLVEDIR]: in Makefile.config. Where LP solve is, unused currently.
+\item[OMEGALIB]: in Makefile.config. Where the OMEGA library is. unused currently.
+\item[MMALPHA]: environment variable. May also be wired by a definition in Makefile.config
+or in a system config file.
+\item[MMAVERSION]: environment variable. May also be wired by a definition in Makefile.config
+or in a Makefile.ostype.version file. Defines the version number of Mathematica. 
+\item[MAKEFILES]: in Makefile.config. Contains the list of makefiles, i.e. Makefile itself (in the 
+sources directory), Makefile.rules, Makefile.config, and Makefile.\$(OSTYPE) located in 
+the directory MakeIncludes.
+\item[NEEBINDIR]: in Makefile.config. \$(BINDIR)/.make. This variable is checked by a rule in
+Makefile.rules. 
+\item[NEEDLIBDIR]: in Makefile.config. \$(LIBDIR)/.make. Use?
+\item[NEEDOBJDIR]: in Makefile.config. \$(OBJDIR)/.make. Use?
+\item[OBJDIR]: in Makefile.config. Obj.\$(OSTYPE). Defines where the object files will be put.
+This is relative to the directory of the application.
+\item[OSTYPE]: environment variable
+\item[POLYDIR]: in Makefile.config. \$(SOURCES)/Polylib. Where the source files of the polylib are.
+\item[POLYOBJS]: in Makefile.config. The list of object files of the polylib. These files are all in 
+\$(OBJDIR). I changed this line in July 2007, I do not know why... Maybe to add object files that were
+needed...
+\item[POLYXOBJ]: in Makefile.config. Another set of object files
+\item[POLYMSG]: in Makefile.config. \$(OBJDIR)/errormsg.o Defines an object file where the 
+error messages are defines for Polylib.
+\item[PRETTYOBJS]
+\item[PRETTYDIR]: in Makefile.config. \$(SOURCES)/Pretty. Where Pretty is.
+\item[PRETTYOBJS]: in Makefile.config. $(PRETTYDIR)/$(OBJDIR)//itemprocs.o and writeitem.o. 
+The objects of Pretty.
+\item[SHELL]: in Makefile.config. /bin/sh
+\item[SOURCES]: in Makefile.config. \$(MMALPHA)/sources. The source files of MMAlpha.
+\item[STRIP]: in Makegile.config. strips. Meaning?
+\item[YACC]: in Makefile.config. bison
+\item[YFLAGS] in Makefile.config. Flags of Yacc
+\end{description}
+
+\subsubsection{ReadAlpha}
+
+\begin{description}
+\item First line includes Makefile.config
+\item[CPPFLAGS] = -I\$(POLYDIR) -g (flags for cc)
+\item[LOADLIBES] = empt
+\item[DUMMY] = list of files to be destroyed when cleaning
+\item[NAME] = the name of the program, read\_alpha
+\item[OBJS] = the list of object files, \$(OBJDIR)/read\_alpha.o, node.o, \$(POLYOBJS)
+\item[LIBS] = libraries to link again
+\end{description}
+
+Then we have a command of the form
+\$(NAME) : \$(BINDIR)/\$(NAME)
+	@\# bla 
+
+Then special rules or dependencies for .o files
+Seems that the object files and the temporary binary are in Obj.darwin.
+
+\subsubsection{WriteAlpha}
+
+\begin{description}
+\item First line includes Makefile.config
+\item[CPPFLAGS] = -I\$(POLYDIR)
+\item[LDFLAGS] = -L\$(LIBDIR) \# -mwindows
+\item[LOADLIBES] = empty
+\item[DUMMY] = list of files to be destroyed when cleaning
+\item[NAME] = the name of the program, read\_alpha
+\item[OBJS] = the list of object files, \$(OBJDIR)/yacc.o, nodeprocs.o, node2item.o, \$(POLYOBJS),
+\$(POLYMSG) \$(PRETTYOBJS)
+\item[LIBS] = libraries to link again, i.e, \$(LIBDIR)/libpoly.a, libpretty.a and libpolymsg.a
+\end{description}
+
+Then we have a command of the form
+\$(NAME) : \$(BINDIR)/\$(NAME)
+	@\# bla 
+
+Then special rules or dependencies for .o files
+Seems that the object files and the temporary binary are in Obj.darwin.
+
+
+\subsection{The files \texttt{sources/MakeIncludes/Makefiles.OSTYPE.Number}}
+\label{mmafile}
+There is one such file for each OS and each version of \mma{} which 
+is supported. Currently: 
+\begin{itemize}
+\item For \texttt{darwin}: versions 5.2 and 6.0
+\item For \texttt{linux}: versions 3.0.1 and 4.2. 
+\end{itemize}
+They define: 
+\texttt{MATHLINK},
+\texttt{MATHPREP},
+\texttt{MATHINCLUDE},
+\texttt{MATHLIB},
+\texttt{MATHLOADLIB},
+\texttt{MATHEXTRALIBS},
+\texttt{MATHEXTRAOBJS}.
+
+The \texttt{linux} version is set for IRISA and should be checked.
+
+\paragraph*{Notes:} the MMAVERSION variable is currently wired in the file
+\texttt{makefile.linux} as 4.2, thus making a call to \texttt{makefile.linux.4.2}. 
+There exists another such file, for version 3.0.1, referring to the location 
+of Mathematica at Irisa, but I think that it is obsolete.
+
+\subsection{The \texttt{MakeIncludes/Makefile.rules} file}
+\label{rules}
+This file is called somewhere (I do not remember where) and sets common
+dependence rules. There are rules for:
+\begin{itemize}
+\item 
+\texttt{BINDIR},
+\texttt{OBJDIR} (binaries, objects), 
+\texttt{NEEDBINDIR} (to create BINDIR, create the directory etc.)
+\texttt{NEEDLIBDIR},
+\texttt{NEEDOBJDIR},
+\texttt{LIBDIR} (for each library).
+\end{itemize}
+
+
+\section{Organization for \texttt{Domlib}}
+The \texttt{Domlib/Makefile} calls another 
+\texttt{Makefile.OSTYPE}, except for cygwin. 
+
+For each OS, there is a \texttt{Makefile.OSTYPE}. 
+This Makefile calls first \texttt{MakeIncludes/Makefile.config} (see \ref{config}).
+
+It calls then \texttt{MakeIncludes/Makefile.OSTYPE.MMAVERSION} (see \ref{mmafile})
+(check that this file is not already called by the config file).
+It defines
+\texttt{POLYLIB-LIB},
+\texttt{DBG},
+\texttt{EXTRA\_CFLAGS}.
+It contains dependence rules for 
+\texttt{BINDIR},
+\texttt{OBJDIR}. Seems that there is no call to Makefile.rules.
+
+\paragraph*{Notes:} the Mathlink stuff is actually copied in the subdirectory
+\$MMALPHA/sources/Mathlink. 
+
+This directory conaints a 
+\texttt{MATHLINK} directory where all the stuff needed for the \mma{} interface
+is put. The 
+\texttt{Obj.OSTYPE} directory is where the object files will be put.
+
+
+\section{\texttt{ReadAlpha}}
+
+\begin{description}
+\item First line includes Makefile.config
+\item[\texttt{CPPFLAGS}] = -I\$(POLYDIR) -g (flags for cc)
+\item[LOADLIBES] = empty
+\item[DUMMY] = list of files to be destroyed when cleaning
+\item[NAME] = the name of the program, read\_alpha
+\item[OBJS] = the list of object files, \$(OBJDIR)/read\_alpha.o, node.o, \$(POLYOBJS)
+\item[LIBS] = libraries to link again
+\end{description}
+
+These definitions are followed by special dependence rules, and 
+also include the general rules in MakeIncludes/Makefile.rules. Finally, 
+there is a file
+\texttt{Makefile.checkvars} which contains the rules for 
+checking variables. All variables are not checked. 
+
+\subsubsection{WriteAlpha}
+
+\begin{description}
+\item First line includes Makefile.config
+\item[\texttt{CPPFLAGS}] = -I\$(POLYDIR)
+\item[\texttt{LDFLAGS}] = -L\$(LIBDIR) \# -mwindows
+\item[\texttt{LOADLIBES}] = empty
+\item[\texttt{DUMMY}] = list of files to be destroyed when cleaning
+\item[\texttt{NAME}] = the name of the program, read\_alpha
+\item[\texttt{OBJS}] = the list of object files, \$(OBJDIR)/yacc.o, nodeprocs.o, node2item.o, \$(POLYOBJS),
+\$(POLYMSG) \$(PRETTYOBJS)
+\item[\texttt{LIBS}] = libraries to link again, i.e, \$(LIBDIR)/libpoly.a, libpretty.a and libpolymsg.a
+\end{description}
+
+These definitions are followed by special dependence rules, and 
+also include the general rules in MakeIncludes/Makefile.rules. Finally, 
+there is a file
+\texttt{Makefile.checkvars} which contains the rules for 
+checking variables. All variables are not checked. 
+
+\subsubsection{WriteC}
+
+\begin{description}
+\item First line includes Makefile.config
+\item[\texttt{CPPFLAGS}] = -I\$(POLYDIR)
+\item[\texttt{LDFLAGS}] = -L\$(LIBDIR) \# -mwindows
+\item[\texttt{LOADLIBES}] = empty
+\item[\texttt{DUMMY}] = list of files to be destroyed when cleaning
+\item[\texttt{NAME}] = the name of the program, read\_alpha
+\item[\texttt{OBJS}] = the list of object files, \$(OBJDIR)/yacc.o, nodeprocs.o, node2item.o, \$(POLYOBJS),
+\$(POLYMSG) \$(PRETTYOBJS)
+\item[\texttt{LIBS}] = libraries to link again, i.e, \$(LIBDIR)/libpoly.a, libpretty.a and libpolymsg.a
+\end{description}
+
+These definitions are followed by special dependence rules, and 
+also include the general rules in MakeIncludes/Makefile.rules. Finally, 
+there is a file
+\texttt{Makefile.checkvars} which contains the rules for 
+checking variables. All variables are not checked. 
+
+
+
+
+\section{List of variables, and where they are defined}
+
+In Makefile.config, there is an inclusion of the definitions in MakeIncludes/Makefile.\$(OSTYPE)
+which are peculiar to each OS type.
+
+\begin{description}
+\item[\texttt{BINDIR}]: in Makefile.config. \$(MMALPHA)/bin.\$(OSTYPE). Where the binaries will be
+put. 
+\item[\texttt{CC}]: in Makefile.config. I guess it is the compiler...
+\item[\texttt{CFLAGS}]: in Makefile.config. -O3 -g -I\$(POLYINCLUDE) \$(PRECISIONFLAG). I guess that
+these are the flags of the compiler.
+\item[\texttt{CODEGENDIR}]: in Makefile.config. \$(SOURCES)/Code\_Gen. Where Code\_Gen is
+\item[\texttt{CODEGENOBJS}]: in Makefile.config. \$(OBJDIR)/gen.o and nodeprocs.o. The objects of 
+Code\_gen.
+\item[\texttt{CXX}]: in Makefile.config g++
+\item[\texttt{DEFINES}]: in Makefile.OSTYPE. 
+\item[\texttt{DIR}]: in Makefile. The list of directories where there are files to be compiled. 
+\item[\texttt{LDLIB}]: in Makefile.config. ld -r. It is the command for the linker.
+\item[\texttt{LEX}]: in Makefile.config. flex
+\item[\texttt{LFLAGS}]: in Makegile.config. Flags for flex
+\item[\texttt{LDFLAGS}]: in Makegile.OSTYPE. Flags for the loader.
+\item[\texttt{LIBDIR}]: in Makefile.config. \$MMALPHA/lib.\$(OSTYPE). Where the libraries are put.
+\item[\texttt{LPSOLVEDIR}]: in Makefile.config. Where LP solve is, unused currently.
+\item[\texttt{OMEGALIB}]: in Makefile.config. Where the OMEGA library is. unused currently.
+\item[\texttt{MMALPHA}]: environment variable. May also be wired by a definition in Makefile.config
+or in a system config file.
+\item[\texttt{MMAVERSION}]: environment variable. May also be wired by a definition in Makefile.config
+or in a Makefile.ostype.version file. Defines the version number of Mathematica. 
+\item[\texttt{MAKEFILES}]: in Makefile.config. Contains the list of makefiles, i.e. Makefile itself (in the 
+sources directory), Makefile.rules, Makefile.config, and Makefile.\$(OSTYPE) located in 
+the directory MakeIncludes.
+\item[\texttt{NEEBINDIR}]: in Makefile.config. \$(BINDIR)/.make. This variable is checked by a rule in
+Makefile.rules. 
+\item[\texttt{NEEDLIBDIR}]: in Makefile.config. \$(LIBDIR)/.make. Use?
+\item[\texttt{NEEDOBJDIR}]: in Makefile.config. \$(OBJDIR)/.make. Use?
+\item[\texttt{OBJDIR}]: in Makefile.config. Obj.\$(OSTYPE). Defines where the object files will be put.
+This is relative to the directory of the application.
+\item[\texttt{OMEGADIR}]: in Makefile.linux. Directory of the OMEGA software, not used
+currently.
+\item[\texttt{OSTYPE}]: environment variable
+\item[\texttt{POLYDIR}]: in Makefile.config. \$(SOURCES)/Polylib. Where the source files of the polylib are.
+\item[\texttt{POLYOBJS}]: in Makefile.config. The list of object files of the polylib. These files are all in 
+\$(OBJDIR). I changed this line in July 2007, I do not know why... Maybe to add object files that were
+needed...
+\item[\texttt{POLYXOBJ}]: in Makefile.config. Another set of object files
+\item[\texttt{POLYMSG}]: in Makefile.config. \$(OBJDIR)/errormsg.o Defines an object file where the 
+error messages are defines for Polylib.
+\item[\texttt{PRECISIONFLAGS}:] in Makefile.linux. Check this. 
+\item[\texttt{PRETTYDIR}]: in Makefile.config. \$(SOURCES)/Pretty. Where Pretty is.
+\item[\texttt{PRETTYOBJS}]: in Makefile.config. $(PRETTYDIR)/$(OBJDIR)//itemprocs.o and writeitem.o. 
+The objects of Pretty.
+\item[\texttt{SHELL}]: in Makefile.config. /bin/sh
+\item[\texttt{SOURCES}]: in Makefile.config. \$(MMALPHA)/sources. The source files of MMAlpha.
+\item[\texttt{STRIP}]: in Makegile.config. strips. Meaning?
+\item[\texttt{YACC}]: in Makefile.config. bison
+\item[\texttt{YFLAGS}]: in Makefile.config. Flags of Yacc
+\item[\texttt{MATHLINK}]: in MakeIncludes/Makefile.OSTYPE.number.
+\item[\texttt{MATHPREP}]: in MakeIncludes/Makefile.OSTYPE.number.
+\item[\texttt{MATHINCLUDE}]: in MakeIncludes/Makefile.OSTYPE.number.
+\item[\texttt{MATHLIB}]: in MakeIncludes/Makefile.OSTYPE.number.
+\item[\texttt{MATHLOADLIB}]: in MakeIncludes/Makefile.OSTYPE.number.
+\item[\texttt{MATHEXTRALIBS}]: in MakeIncludes/Makefile.OSTYPE.number.
+\item[\texttt{MATHEXTRAOBJS}]: in MakeIncludes/Makefile.OSTYPE.number.
+\item[\texttt{EXTRA\_CFLAGS}]: in Domlib/Makefiles.darwin.
+\item[\texttt{CPPFLAGS}]: in ReadAlpha, WriteAlpha, WriteC
+\item[\texttt{LOADLIBES}]: in ReadAlpha, WriteAlpha, WriteC
+\item[\texttt{DUMMY}]: in ReadAlpha, WriteAlpha, WriteC
+\item[\texttt{NAME}]: in ReadAlpha, WriteAlpha, WriteC
+\item[\texttt{OBJS}]: in ReadAlpha, WriteAlpha, WriteC
+\item[\texttt{LIBS}]: in ReadAlpha, WriteAlpha, WriteC
+\end{description}
+
+\appendix
+
+\section{Installing \polylib{}}
+Look in MMALPHA/doc/Polylib/note.pdf for more details. I describe here the full 
+procedure, but in the current distribution, \polylib{} version 5.22.3 is already
+present in the distribution: you may then skip steps 1 and 2. 
+
+\begin{enumerate}
+\item Get polylib from Strasburg site (http://icps.u-strasbg.fr/polylib/)
+\item Copy it in \texttt{\$MMALPHA/sources}
+\item Gunzip it and untar it (double click, or gunzip)
+\item The name of this polylib should be something like \texttt{polylib-5.22.3}. Go in this
+directory (in a shell).
+\item Run the following commands:\label{trois}
+\begin{verbatim}
+./configure --prefix="$MMALPHA/sources/Polylib"
+make
+make install
+\end{verbatim}
+\item Run \texttt{make test} to check that everything is OK
+\end{enumerate}
+
+During step~\ref{trois}, the value of the environment variable
+\texttt{\$MMALPHA} should be the path of your \mma{} installation. 
+
+When \polylib{} is installed, make sure that the value
+of \texttt{POLYDIR} in file \texttt{Makefile.config} is that 
+of the path to the \polylib{} (as the source files of \polylib{} are needed to
+compile the C programs of \mma{}), and that 
+
+\section{Introduction}
+This document explains how the \domlib{} library is installed, in this directory. It was
+written while porting the \domlib{} on Mac OS X. 
+
+\section{To be checked}
+Is your Polylib up-to-date? Look in sources, where you must find both Polylib and
+Poly (where the files produced by the make command of Polylib are).
+
+
+\section{Content of the directory}
+The directory
+contains the source, \texttt{domlib.c}, a make file, \texttt{Makefile}, the \ML{} template file 
+\texttt{domlib.tm}. The make creates an object file \texttt{domlib.o}, a binary 
+file \texttt{domlib}. On the fly, it translates the template file into a source file
+\texttt{domlibtm.c}.
+
+The file \mkf{} calls another make file, located in:
+\begin{verbatim}
+$MMALPHA/sources/MakeIncludes/Makefile.$OSTYPE
+\end{verbatim}
+In this make file, the location of various directories or programs are set. In particular, 
+that of MLINKDIR.
+
+To run properly, the Polylib must have been compiled previously. See documentation
+on Polylib, but in a few words, just go in PolyLib and compile it by specifying
+that the directory is Poly. This location is defined in Makefile.darwin, and it may be
+changed. The commands to be done, once you have copied the gziped filed 
+obtained from strasburg are:
+\begin{verbatim}
+./configure --prefix="$MMALPHA/sources/Poly"
+make all
+make install
+\end{verbatim}
+
+\section{The rational of the installation}
+To be compiled, \domlib{} needs a \ML{} preprocessor called \mprep{}, and the
+\polylib{} library. \ML{} compiler additions are also needed. 
+
+On this machine, \mma{} is located in\footnote{This depends on the current version of \mma{} that you have.}
+\begin{verbatim}
+/Applications/Mathematica 5.2.app/
+\end{verbatim}
+The variable \texttt{MLINKDIR} contains the location
+\begin{verbatim}
+/Applications/Mathematica 5.0.app/AddOns/Mathlink/DeveloperKit/MacOSX-x86
+\end{verbatim}
+On other systems, this location may change. If you do not have an Intel Processor, you
+may have to switch \texttt{MLINKDIR} to either 
+\begin{verbatim}
+/Applications/Mathematica 5.0.app/AddOns/Mathlink/DeveloperKit/Darwin
+\end{verbatim}
+or
+\begin{verbatim}
+/Applications/Mathematica 5.0.app/AddOns/Mathlink/DeveloperKit/Darwin-PowerPC64
+\end{verbatim}
+
+In the \mkf{} , variables contain the system name, the place of the \polylib{} header files, 
+the place of the \polylib{} library. The compiled additions are then located. 
+Variable \texttt{POLYLIB\_INCLUDE} contains the directory where the include
+files of the \polylib{} are. Similarly variable \texttt{POLYLIB\_LIB} 
+contains the directory where the libraries of the \polylib{} are.
+
+Variable \texttt{CADDSDIR} gives the place where the compiler additions of 
+\mma{} are. 
+
+Variable \texttt{EXTRA\_CFLAGS} is set to 
+\begin{verbatim}
+-DLINEAR_VALUE_IS_LONGLONG -DUNIX
+\end{verbatim}
+
+Variable \texttt{INCDIR} is set to {CADDSDIR}.
+Variable \texttt{INCPOLYDIR} is set to {POLYLIB\_INCLUDE}.
+Same for \texttt{LIBDIR} and \texttt{LIBPOLYLIB}.
+
+Variable \texttt{MPREP} is set to where \texttt{mprep} is.
+
+The \texttt{domlibtm.c}
+file is obtained by running \mprep{} (provided by \mma{}) on \texttt{domlib.tm}. 
+
+The \texttt{domlib} binary file is obtained by first running \gcc{} on 
+both \doml{} and \tm{} then 
+linking the object files with the appropriate \polylib{} library. This library is 
+itself installed {\em separately}.\footnote{See companion \polylib{} documentation.} 
+In the current version, we used the 64 bit version, but other versions are 
+available. 
+
+The form of the gcc command is 
+\begin{verbatim}
+gcc -DLINEAR_VALUE_IS_LONGLONG -DUNIX domlibtm.o domlib.o 
+  -L${LIBDIR} -L${CADDSDIR}
+  -L${POLYLIB} -lpolylib64 -lML -o $@ -v
+\end{verbatim}
+
+\section{Running the \domlib{} from \mma{}}
+To run this library from \mma{}, the following conditions must be satisfied.
+\begin{enumerate}
+\item The \domlib{} binary file must be located in a directory whose
+address appears on the \texttt{\$Path} variable of \mma{}. 
+\item To load the library, run 
+\begin{verbatim}
+Install[ "domlib" ]
+\end{verbatim}
+in \mma{}. The list of available functions in the library are obtained by evaluating
+\begin{verbatim}
+?Dom*
+\end{verbatim}
+\end{enumerate}
+In fact, this library is usually run within the \mmalfa{} software, using the 
+\texttt{Domlib} package. 
+\section{Perspectives}
+A better way to organize the library would be to make sure that it is portable
+accross platforms. To do so, we plan to build a version using the \texttt{autoconf}
+and \texttt{automake} software, and more generally, the \texttt{gnu} building tools.
+
+\section{Additional remarks}
+In this directory, the installation is done using a make file. To compile for
+Mac OS X, the UNIX macro should be defined, and it is by means of the 
+EXTRA\_CFLAGS option -DUNIX.
+
+\section{Mathematica at Irisa}
+At Irisa, Mathematica is located in directory
+\begin{verbatim}
+/soft/Mathematica
+\end{verbatim}
+Several versions are available. The most recent one is \verb\V4.0.2\. It is located
+in 
+\begin{verbatim}
+/soft/Mathematica/V4.0.2
+\end{verbatim}
+Three version are available : for \texttt{Linux}, \texttt{SGI} and \texttt{Solaris}. 
+Inside the directory, there are subdirectories \texttt{CompilerAdditions} where one can find
+the \texttt{mprep} pre-processor. 
+
+The transit.irisa.fr machine is a Linux machine. I could not compile on this architecture, 
+for unknown reasons. (mprep does not work). 
+
+The europe machine is a solaris machine. I was able to compile. I had to use in Makefile.solaris the 
+same as in Linux. In particular, the MATHEXTRALIB has to be -lnsl -l socket
+I had to add the \texttt{\$Path} definition, which is not standard (init file?). 
+
+\section{The Make file for the MMAlpha distribution}
+In sources, one find Makefile. 
+This file defines LDLIB as ld -r, CC as gcc, CFLAGS as -03 -g -I\$(POLYINCLUDE) \$(PRECISIONFLAG).
+It defines some variables for Yacc and Lex. 
+
+It includes the makefile.system which is in the same directory MakeIncludes, here
+Makefile.darwin.
+In Makefile.darwin, LD is set to gcc, PRECISIONFLAGS, LDFLAGS, MATHLINK, MATHPREP,
+MATHINCLUDE, MATHLIB, MATHLOADLIB (-lML -lm) and MATHEXTRALIBS is set
+to empty.
+
+It then defines MAKEFILES, 
+BINDIR, LIBDIR, OBJDIR, NEEDBINDIR, NEEDLIBDIR, NEEDOBJDIR, 
+SOURCES, 
+
+
+For all binary files in DIR, goes in directory, then runs make. 
+
+In the Domlib directory, one finds the Makefile.darwin file. It first calls the Makefile.config
+in the directory MakeIncludes. 
+
+
+\section{A new version of \domlib{} (May 6, 2008)}
+It appears that the MathLink functions were modified between \mma{} version 4
+and version 5. I thus had to modify Domlib accordingly. The current version of 
+Domlib, compiled with the tools fo version 6, is correct for version 5 and 6. I did
+not try yet to recompile it for version 5, to see it there are some differences. Actually, 
+I guess that there are such differences. 
+
+The Mathlink documentation of version 6.0 is quite useful. Actually, the main differences
+is in the functions \texttt{MLGetFunction} and \texttt{MLCheckFunction}, which do not
+support the same arguments... Too bad ! 
+
+I added 3 functions to \domlib{}: \texttt{mirrorDomain}, \texttt{mirrorMatrix} 
+and \texttt{mirrorZDomain}. These function may be useful to see if there is something
+wrong. 
+
+The old version of domlib is kept in the directory \texttt{sources/Domlib-Version4}. The source
+files are those which were compiled for Powermac on version 5. 
+
+
+\section{Compiling \domlib{}}
+In the \zdomlib{} file, one finds the \texttt{domlib.c}
+file, which is the source file of \domlib{}, the 
+\texttt{domlib.tm} file which is the patterns of 
+the \domlib{} functions for \mathlink{}, and finally, 
+several make files.
+
+I guess that compiling \domlib{} is done by simply typing
+\texttt{make} in the \zdomlib{} directory. But the best approach
+is to run the make file that is contained in \texttt{\$MMALPHA/sources}.
+
+A \texttt{README} file gives some explanations regarding \domlib{}.
+Beware that only the first few lines seem to be uptodate. 
+
+\subsubsection{The \texttt{Makefile} file}
+The file \texttt{Makefile} contains a switch to make files that 
+depend on the OS type (this one should be, I guess, in the 
+environment variable \ostype{}). For example, for 
+\cygwin{}, the corresponding make file is \texttt{Makefile.Visual}.
+
+\subsubsection{The \texttt{Makefile.Visual} file}
+The first thing that this make file does is to include the 
+configuration make file, the name of which is \texttt{Makefile.config} and
+which is located in the \envmmalpha{}\verb\MakeIncludes\ directory. 
+
+Therefore, you will have to look at the documentation of this
+make file given in~\ref{doc-config-make} if you want to 
+understand everyhing. 
+
+In addition, the configuration make file calls other make files 
+situated in the same directory...
+
+
+Coming back to \texttt{Makefile.Visual}, it defines 
+the following variables:
+\begin{itemize}
+\item \varcc{}: the compiler, here \texttt{cl};
+\item \varld{}: the linker, \texttt{link};
+\item \varpolylib{}: where the \polylib{} is (it seems to me that
+this variable is already set);
+\item \varcflags{}: redefines the compilation flags;
+\item \varlflags{}: refedines the link flags;
+\item \varbin{}: gives the name of the binary file for domlib;
+\item \varobj{}: where are the object codes. Here, they are in 
+a directory \texttt{Obj.cygwin} located in the same directory.
+\item \vardepobj{}: a list of object files which are going to be
+generated by the compiling.
+\end{itemize}
+Then one finds some rules to create \domlib{}. The \texttt{all} rule
+is for creating binary files. I do not understand totally the other 
+rules...
+
+One particular rule allows the \texttt{mlink.c} file to 
+be created using \mmalpha{}'s tools from \texttt{domlib.tm}.
+
+\subsubsection{The \texttt{Makefile.linux} file}
+I am not sure that this file works properly. It defines 
+\varcppflags{}, \varldflags{}, \varloadlibes{}, \vardummy{},
+\varname{}, \varobjs{}, \varlibs{}. It uses \varpolydir{}, 
+\varmathinclude{}, \varlibdir{}
+
+\section{Conclusion}
+
+\printindex
+
+\newpage
+\tableofcontents
+
+\end{document}

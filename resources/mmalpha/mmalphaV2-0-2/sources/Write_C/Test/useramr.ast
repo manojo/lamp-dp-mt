@@ -1,0 +1,694 @@
+(* ALPHA Tree produced by read_alpha v.3.3.4 (Doran) *){
+Alpha`system["useramr2w2",
+    (* parameter space *)
+    Alpha`domain[0, {}, {
+        Alpha`pol[1, 1, 0, 0, {
+            {1, 1}},{
+            {1, 1}}]}],
+    { (* input variables *)
+    Alpha`decl["memavant", Alpha`integer, 
+        Alpha`domain[1, {"i"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, 0},
+                {1, -1, 9}},{
+                {1, 0, 1},
+                {1, 9, 1}}]}]], 
+    Alpha`decl["awrite1", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, 0},
+                {1, -1, 4}},{
+                {1, 0, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["dwrite1", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, 0},
+                {1, -1, 4}},{
+                {1, 0, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["awrite2", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -6},
+                {1, -1, 7}},{
+                {1, 6, 1},
+                {1, 7, 1}}]}]], 
+    Alpha`decl["dwrite2", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -6},
+                {1, -1, 7}},{
+                {1, 6, 1},
+                {1, 7, 1}}]}]], 
+    Alpha`decl["aread1", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -3},
+                {1, -1, 4}},{
+                {1, 3, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["aread2", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -3},
+                {1, -1, 4}},{
+                {1, 3, 1},
+                {1, 4, 1}}]}]]},
+    { (* output variables *)
+    Alpha`decl["memapres", Alpha`integer, 
+        Alpha`domain[1, {"i"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, 0},
+                {1, -1, 9}},{
+                {1, 0, 1},
+                {1, 9, 1}}]}]], 
+    Alpha`decl["dread1", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -3},
+                {1, -1, 4}},{
+                {1, 3, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["dread2", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -3},
+                {1, -1, 4}},{
+                {1, 3, 1},
+                {1, 4, 1}}]}]]},
+    { (* local variables *)
+    Alpha`decl["memavantext", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, 0},
+                {1, 0, -1, 7}},{
+                {1, 9, 0, 1},
+                {1, 0, 0, 1},
+                {1, 0, 7, 1},
+                {1, 9, 7, 1}}]}]], 
+    Alpha`decl["memapresext1", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, 0},
+                {1, 0, -1, 4}},{
+                {1, 9, 0, 1},
+                {1, 0, 0, 1},
+                {1, 0, 4, 1},
+                {1, 9, 4, 1}}]}]], 
+    Alpha`decl["memapresext2", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, -6},
+                {1, 0, -1, 7}},{
+                {1, 9, 6, 1},
+                {1, 0, 6, 1},
+                {1, 0, 7, 1},
+                {1, 9, 7, 1}}]}]], 
+    Alpha`decl["memapresext", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, 0},
+                {1, 0, -1, 7}},{
+                {1, 9, 0, 1},
+                {1, 0, 0, 1},
+                {1, 0, 7, 1},
+                {1, 9, 7, 1}}]}]], 
+    Alpha`decl["memavant_ramwrite1", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, 0},
+                {1, 0, -1, 4}},{
+                {1, 9, 0, 1},
+                {1, 0, 0, 1},
+                {1, 0, 4, 1},
+                {1, 9, 4, 1}}]}]], 
+    Alpha`decl["a", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, 0},
+                {1, -1, 4}},{
+                {1, 0, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["d", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, 0},
+                {1, -1, 4}},{
+                {1, 0, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["memapres_ramwrite1", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, 0},
+                {1, 0, -1, 4}},{
+                {1, 9, 0, 1},
+                {1, 0, 0, 1},
+                {1, 0, 4, 1},
+                {1, 9, 4, 1}}]}]], 
+    Alpha`decl["index", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, 0},
+                {1, 0, -1, 4}},{
+                {1, 9, 0, 1},
+                {1, 0, 0, 1},
+                {1, 0, 4, 1},
+                {1, 9, 4, 1}}]}]], 
+    Alpha`decl["memavant_ramwrite2", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, -6},
+                {1, 0, -1, 7}},{
+                {1, 9, 6, 1},
+                {1, 0, 6, 1},
+                {1, 0, 7, 1},
+                {1, 9, 7, 1}}]}]], 
+    Alpha`decl["a_ramwrite2", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -6},
+                {1, -1, 7}},{
+                {1, 6, 1},
+                {1, 7, 1}}]}]], 
+    Alpha`decl["d_ramwrite2", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -6},
+                {1, -1, 7}},{
+                {1, 6, 1},
+                {1, 7, 1}}]}]], 
+    Alpha`decl["memapres_ramwrite2", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, -6},
+                {1, 0, -1, 7}},{
+                {1, 9, 6, 1},
+                {1, 0, 6, 1},
+                {1, 0, 7, 1},
+                {1, 9, 7, 1}}]}]], 
+    Alpha`decl["index_ramwrite2", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, -6},
+                {1, 0, -1, 7}},{
+                {1, 9, 6, 1},
+                {1, 0, 6, 1},
+                {1, 0, 7, 1},
+                {1, 9, 7, 1}}]}]], 
+    Alpha`decl["mem", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, -3},
+                {1, 0, -1, 4}},{
+                {1, 9, 3, 1},
+                {1, 0, 3, 1},
+                {1, 0, 4, 1},
+                {1, 9, 4, 1}}]}]], 
+    Alpha`decl["a_rom3", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -3},
+                {1, -1, 4}},{
+                {1, 3, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["d_rom3", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -3},
+                {1, -1, 4}},{
+                {1, 3, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["dprim", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 1},
+                {1, -1, 0, 9},
+                {1, 0, 1, -3},
+                {1, 0, -1, 4}},{
+                {1, 9, 3, 1},
+                {1, -1, 3, 1},
+                {1, -1, 4, 1},
+                {1, 9, 4, 1}}]}]], 
+    Alpha`decl["index_rom3", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, -3},
+                {1, 0, -1, 4}},{
+                {1, 9, 3, 1},
+                {1, 0, 3, 1},
+                {1, 0, 4, 1},
+                {1, 9, 4, 1}}]}]], 
+    Alpha`decl["select", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, -3},
+                {1, 0, -1, 4}},{
+                {1, 9, 3, 1},
+                {1, 0, 3, 1},
+                {1, 0, 4, 1},
+                {1, 9, 4, 1}}]}]], 
+    Alpha`decl["mem_rom4", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, -3},
+                {1, 0, -1, 4}},{
+                {1, 9, 3, 1},
+                {1, 0, 3, 1},
+                {1, 0, 4, 1},
+                {1, 9, 4, 1}}]}]], 
+    Alpha`decl["a_rom4", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -3},
+                {1, -1, 4}},{
+                {1, 3, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["d_rom4", Alpha`integer, 
+        Alpha`domain[1, {"t"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -3},
+                {1, -1, 4}},{
+                {1, 3, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["dprim_rom4", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 1},
+                {1, -1, 0, 9},
+                {1, 0, 1, -3},
+                {1, 0, -1, 4}},{
+                {1, 9, 3, 1},
+                {1, -1, 3, 1},
+                {1, -1, 4, 1},
+                {1, 9, 4, 1}}]}]], 
+    Alpha`decl["index_rom4", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, -3},
+                {1, 0, -1, 4}},{
+                {1, 9, 3, 1},
+                {1, 0, 3, 1},
+                {1, 0, 4, 1},
+                {1, 9, 4, 1}}]}]], 
+    Alpha`decl["select_rom4", Alpha`integer, 
+        Alpha`domain[2, {"i", "t"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 0, 9},
+                {1, 0, 1, -3},
+                {1, 0, -1, 4}},{
+                {1, 9, 3, 1},
+                {1, 0, 3, 1},
+                {1, 0, 4, 1},
+                {1, 9, 4, 1}}]}]]},
+    { (* let *)
+    Alpha`equation["memavantext", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[2, 2, 1, 1, {
+                        {0, 0, 1, 0},
+                        {1, 0, 0, 1}},{
+                        {0, 1, 0, 0},
+                        {1, 0, 0, 1}}]}], 
+                Alpha`affine[Alpha`var["memavant"], 
+                    Alpha`matrix[2, 3, {"i", "t"}, {
+                        {1, 0, 0},
+                        {0, 0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[2, 3, 0, 1, {
+                        {1, 0, 1, -1},
+                        {1, 0, 0, 1}},{
+                        {0, 1, 0, 0},
+                        {1, 0, 1, 0},
+                        {1, 0, 1, 1}}]}], 
+                Alpha`affine[Alpha`var["memapresext"], 
+                    Alpha`matrix[3, 3, {"i", "t"}, {
+                        {1, 0, 0},
+                        {0, 1, -1},
+                        {0, 0, 1}}]]]}]], 
+    Alpha`equation["memavant_ramwrite1", Alpha`var["memavantext"]], 
+    Alpha`equation["a", Alpha`var["awrite1"]], 
+    Alpha`equation["d", Alpha`var["dwrite1"]], 
+    Alpha`equation["index", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[3, 2, 1, 0, {
+                        {0, 1, 0, 0},
+                        {1, 0, 1, 0},
+                        {1, 0, -1, 4}},{
+                        {1, 0, 0, 1},
+                        {1, 0, 4, 1}}]}], 
+                Alpha`affine[Alpha`const[0], 
+                    Alpha`matrix[1, 3, {"i", "t"}, {
+                        {0, 0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[3, 3, 0, 0, {
+                        {1, 1, 0, -1},
+                        {1, 0, 1, 0},
+                        {1, 0, -1, 4}},{
+                        {1, 1, 0, 0},
+                        {1, 1, 0, 1},
+                        {1, 1, 4, 1}}]}], 
+                Alpha`binop[Alpha`add, 
+                    Alpha`affine[Alpha`var["index"], 
+                        Alpha`matrix[3, 3, {"i", "t"}, {
+                            {1, 0, -1},
+                            {0, 1, 0},
+                            {0, 0, 1}}]], 
+                    Alpha`affine[Alpha`const[1], 
+                        Alpha`matrix[1, 3, {"i", "t"}, {
+                            {0, 0, 1}}]]]]}]], 
+    Alpha`equation["memapres_ramwrite1", 
+        Alpha`if[
+            Alpha`binop[Alpha`eq, 
+                Alpha`affine[Alpha`var["index"], 
+                    Alpha`matrix[3, 3, {"i", "t"}, {
+                        {1, 0, 0},
+                        {0, 1, 0},
+                        {0, 0, 1}}]], 
+                Alpha`affine[Alpha`var["a"], 
+                    Alpha`matrix[1, 3, {"i", "t"}, {
+                        {0, 0, 1}}]]], 
+            Alpha`affine[Alpha`var["d"], 
+                Alpha`matrix[1, 3, {"i", "t"}, {
+                    {0, 0, 1}}]], 
+            Alpha`affine[Alpha`var["memavant_ramwrite1"], 
+                Alpha`matrix[3, 3, {"i", "t"}, {
+                    {1, 0, 0},
+                    {0, 1, 0},
+                    {0, 0, 1}}]]]], 
+    Alpha`equation["memapresext1", Alpha`var["memapres_ramwrite1"]], 
+    Alpha`equation["memavant_ramwrite2", Alpha`var["memavantext"]], 
+    Alpha`equation["a_ramwrite2", Alpha`var["awrite2"]], 
+    Alpha`equation["d_ramwrite2", Alpha`var["dwrite2"]], 
+    Alpha`equation["index_ramwrite2", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[3, 2, 1, 0, {
+                        {0, 1, 0, 0},
+                        {1, 0, 1, -6},
+                        {1, 0, -1, 7}},{
+                        {1, 0, 6, 1},
+                        {1, 0, 7, 1}}]}], 
+                Alpha`affine[Alpha`const[0], 
+                    Alpha`matrix[1, 3, {"i", "t"}, {
+                        {0, 0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[3, 3, 0, 0, {
+                        {1, 1, 0, -1},
+                        {1, 0, 1, -6},
+                        {1, 0, -1, 7}},{
+                        {1, 1, 0, 0},
+                        {1, 1, 6, 1},
+                        {1, 1, 7, 1}}]}], 
+                Alpha`binop[Alpha`add, 
+                    Alpha`affine[Alpha`var["index_ramwrite2"], 
+                        Alpha`matrix[3, 3, {"i", "t"}, {
+                            {1, 0, -1},
+                            {0, 1, 0},
+                            {0, 0, 1}}]], 
+                    Alpha`affine[Alpha`const[1], 
+                        Alpha`matrix[1, 3, {"i", "t"}, {
+                            {0, 0, 1}}]]]]}]], 
+    Alpha`equation["memapres_ramwrite2", 
+        Alpha`if[
+            Alpha`binop[Alpha`eq, 
+                Alpha`affine[Alpha`var["index_ramwrite2"], 
+                    Alpha`matrix[3, 3, {"i", "t"}, {
+                        {1, 0, 0},
+                        {0, 1, 0},
+                        {0, 0, 1}}]], 
+                Alpha`affine[Alpha`var["a_ramwrite2"], 
+                    Alpha`matrix[1, 3, {"i", "t"}, {
+                        {0, 0, 1}}]]], 
+            Alpha`affine[Alpha`var["d_ramwrite2"], 
+                Alpha`matrix[1, 3, {"i", "t"}, {
+                    {0, 0, 1}}]], 
+            Alpha`affine[Alpha`var["memavant_ramwrite2"], 
+                Alpha`matrix[3, 3, {"i", "t"}, {
+                    {1, 0, 0},
+                    {0, 1, 0},
+                    {0, 0, 1}}]]]], 
+    Alpha`equation["memapresext2", Alpha`var["memapres_ramwrite2"]], 
+    Alpha`equation["memapresext", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[2, 3, 0, 1, {
+                        {1, 0, 1, 0},
+                        {1, 0, -1, 4}},{
+                        {0, 1, 0, 0},
+                        {1, 0, 0, 1},
+                        {1, 0, 4, 1}}]}], 
+                Alpha`affine[Alpha`var["memapresext1"], 
+                    Alpha`matrix[3, 3, {"i", "t"}, {
+                        {1, 0, 0},
+                        {0, 1, 0},
+                        {0, 0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[2, 2, 1, 1, {
+                        {0, 0, 1, -5},
+                        {1, 0, 0, 1}},{
+                        {0, 1, 0, 0},
+                        {1, 0, 5, 1}}]}], 
+                Alpha`affine[Alpha`var["memapresext"], 
+                    Alpha`matrix[3, 3, {"i", "t"}, {
+                        {1, 0, 0},
+                        {0, 1, -1},
+                        {0, 0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[2, 3, 0, 1, {
+                        {1, 0, 1, -6},
+                        {1, 0, -1, 7}},{
+                        {0, 1, 0, 0},
+                        {1, 0, 6, 1},
+                        {1, 0, 7, 1}}]}], 
+                Alpha`affine[Alpha`var["memapresext2"], 
+                    Alpha`matrix[3, 3, {"i", "t"}, {
+                        {1, 0, 0},
+                        {0, 1, 0},
+                        {0, 0, 1}}]]]}]], 
+    Alpha`equation["mem", Alpha`var["memapresext"]], 
+    Alpha`equation["a_rom3", Alpha`var["aread1"]], 
+    Alpha`equation["dprim", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[3, 2, 1, 0, {
+                        {0, 1, 0, 1},
+                        {1, 0, 1, -3},
+                        {1, 0, -1, 4}},{
+                        {1, -1, 3, 1},
+                        {1, -1, 4, 1}}]}], 
+                Alpha`affine[Alpha`const[0], 
+                    Alpha`matrix[1, 3, {"i", "t"}, {
+                        {0, 0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[4, 4, 0, 0, {
+                        {1, 1, 0, 0},
+                        {1, -1, 0, 9},
+                        {1, 0, 1, -3},
+                        {1, 0, -1, 4}},{
+                        {1, 9, 3, 1},
+                        {1, 0, 3, 1},
+                        {1, 0, 4, 1},
+                        {1, 9, 4, 1}}]}], 
+                Alpha`binop[Alpha`add, 
+                    Alpha`affine[Alpha`var["dprim"], 
+                        Alpha`matrix[3, 3, {"i", "t"}, {
+                            {1, 0, -1},
+                            {0, 1, 0},
+                            {0, 0, 1}}]], Alpha`var["select"]]]}]], 
+    Alpha`equation["index_rom3", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[3, 2, 1, 0, {
+                        {0, 1, 0, 0},
+                        {1, 0, 1, -3},
+                        {1, 0, -1, 4}},{
+                        {1, 0, 3, 1},
+                        {1, 0, 4, 1}}]}], 
+                Alpha`affine[Alpha`const[0], 
+                    Alpha`matrix[1, 3, {"i", "t"}, {
+                        {0, 0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[3, 3, 0, 0, {
+                        {1, 1, 0, -1},
+                        {1, 0, 1, -3},
+                        {1, 0, -1, 4}},{
+                        {1, 1, 0, 0},
+                        {1, 1, 3, 1},
+                        {1, 1, 4, 1}}]}], 
+                Alpha`binop[Alpha`add, 
+                    Alpha`affine[Alpha`var["index_rom3"], 
+                        Alpha`matrix[3, 3, {"i", "t"}, {
+                            {1, 0, -1},
+                            {0, 1, 0},
+                            {0, 0, 1}}]], 
+                    Alpha`affine[Alpha`const[1], 
+                        Alpha`matrix[1, 3, {"i", "t"}, {
+                            {0, 0, 1}}]]]]}]], 
+    Alpha`equation["select", 
+        Alpha`if[
+            Alpha`binop[Alpha`eq, 
+                Alpha`affine[Alpha`var["index_rom3"], 
+                    Alpha`matrix[3, 3, {"i", "t"}, {
+                        {1, 0, 0},
+                        {0, 1, 0},
+                        {0, 0, 1}}]], 
+                Alpha`affine[Alpha`var["a_rom3"], 
+                    Alpha`matrix[1, 3, {"i", "t"}, {
+                        {0, 0, 1}}]]], 
+            Alpha`affine[Alpha`var["mem"], 
+                Alpha`matrix[3, 3, {"i", "t"}, {
+                    {1, 0, 0},
+                    {0, 1, 0},
+                    {0, 0, 1}}]], 
+            Alpha`affine[Alpha`const[0], 
+                Alpha`matrix[1, 3, {"i", "t"}, {
+                    {0, 0, 1}}]]]], 
+    Alpha`equation["d_rom3", 
+        Alpha`affine[Alpha`var["dprim"], 
+            Alpha`matrix[3, 2, {"t"}, {
+                {0, 9},
+                {1, 0},
+                {0, 1}}]]], 
+    Alpha`equation["dread1", Alpha`var["d_rom3"]], 
+    Alpha`equation["mem_rom4", Alpha`var["memapresext"]], 
+    Alpha`equation["a_rom4", Alpha`var["aread2"]], 
+    Alpha`equation["dprim_rom4", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[3, 2, 1, 0, {
+                        {0, 1, 0, 1},
+                        {1, 0, 1, -3},
+                        {1, 0, -1, 4}},{
+                        {1, -1, 3, 1},
+                        {1, -1, 4, 1}}]}], 
+                Alpha`affine[Alpha`const[0], 
+                    Alpha`matrix[1, 3, {"i", "t"}, {
+                        {0, 0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[4, 4, 0, 0, {
+                        {1, 1, 0, 0},
+                        {1, -1, 0, 9},
+                        {1, 0, 1, -3},
+                        {1, 0, -1, 4}},{
+                        {1, 9, 3, 1},
+                        {1, 0, 3, 1},
+                        {1, 0, 4, 1},
+                        {1, 9, 4, 1}}]}], 
+                Alpha`binop[Alpha`add, 
+                    Alpha`affine[Alpha`var["dprim_rom4"], 
+                        Alpha`matrix[3, 3, {"i", "t"}, {
+                            {1, 0, -1},
+                            {0, 1, 0},
+                            {0, 0, 1}}]], Alpha`var["select_rom4"]]]}]], 
+    Alpha`equation["index_rom4", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[3, 2, 1, 0, {
+                        {0, 1, 0, 0},
+                        {1, 0, 1, -3},
+                        {1, 0, -1, 4}},{
+                        {1, 0, 3, 1},
+                        {1, 0, 4, 1}}]}], 
+                Alpha`affine[Alpha`const[0], 
+                    Alpha`matrix[1, 3, {"i", "t"}, {
+                        {0, 0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[2, {"i", "t"}, {
+                    Alpha`pol[3, 3, 0, 0, {
+                        {1, 1, 0, -1},
+                        {1, 0, 1, -3},
+                        {1, 0, -1, 4}},{
+                        {1, 1, 0, 0},
+                        {1, 1, 3, 1},
+                        {1, 1, 4, 1}}]}], 
+                Alpha`binop[Alpha`add, 
+                    Alpha`affine[Alpha`var["index_rom4"], 
+                        Alpha`matrix[3, 3, {"i", "t"}, {
+                            {1, 0, -1},
+                            {0, 1, 0},
+                            {0, 0, 1}}]], 
+                    Alpha`affine[Alpha`const[1], 
+                        Alpha`matrix[1, 3, {"i", "t"}, {
+                            {0, 0, 1}}]]]]}]], 
+    Alpha`equation["select_rom4", 
+        Alpha`if[
+            Alpha`binop[Alpha`eq, 
+                Alpha`affine[Alpha`var["index_rom4"], 
+                    Alpha`matrix[3, 3, {"i", "t"}, {
+                        {1, 0, 0},
+                        {0, 1, 0},
+                        {0, 0, 1}}]], 
+                Alpha`affine[Alpha`var["a_rom4"], 
+                    Alpha`matrix[1, 3, {"i", "t"}, {
+                        {0, 0, 1}}]]], 
+            Alpha`affine[Alpha`var["mem_rom4"], 
+                Alpha`matrix[3, 3, {"i", "t"}, {
+                    {1, 0, 0},
+                    {0, 1, 0},
+                    {0, 0, 1}}]], 
+            Alpha`affine[Alpha`const[0], 
+                Alpha`matrix[1, 3, {"i", "t"}, {
+                    {0, 0, 1}}]]]], 
+    Alpha`equation["d_rom4", 
+        Alpha`affine[Alpha`var["dprim_rom4"], 
+            Alpha`matrix[3, 2, {"t"}, {
+                {0, 9},
+                {1, 0},
+                {0, 1}}]]], 
+    Alpha`equation["dread2", Alpha`var["d_rom4"]], 
+    Alpha`equation["memapres", 
+        Alpha`affine[Alpha`var["memapresext"], 
+            Alpha`matrix[3, 2, {"i"}, {
+                {1, 0},
+                {0, 7},
+                {0, 1}}]]]}]
+}

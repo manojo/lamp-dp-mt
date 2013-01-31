@@ -1,0 +1,12 @@
+
+COMPONENT logical
+PORT(
+  Ck: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  x : IN  SIGNED (15 DOWNTO 0);
+  y : IN  SIGNED (15 DOWNTO 0);
+  z : OUT  STD_LOGIC
+);
+END COMPONENT;
+

@@ -1,0 +1,7 @@
+system cosparam (v1 : {i | 1<=i<=4} of real)
+       returns (v2 : {i | 1<=i<=4} of real);
+
+let
+v2 = sqrt(v1.(i->i));
+tel;
+

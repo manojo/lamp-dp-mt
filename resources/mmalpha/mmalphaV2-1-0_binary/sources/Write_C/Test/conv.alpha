@@ -1,0 +1,31 @@
+system convolution :{N | 2<=N}
+                (x : {i| -N<=i} of real; 
+                 w : {i| 0<=i<=N} of real)
+       returns  (y : {i| 0<=i } of real);
+var
+  X : {i,k | -1<=i; -1<=k<=N} of real;
+  W : {i,k | -1<=i; 0<=k<=N} of real;
+  Y : {i,k | 0<=i; -1<=k<=N} of real;
+let
+  X[i,k] = 
+      case
+        {| k=-1; 0 <= i} : x[i-k];
+        {| -1<=k<=N-1; i=-1} : x[i-k];
+        {| k=N; i=-1} : 0[];		-- initialisation oblige mais inutile
+        {| 0<=k<=N; 0<=i} : X[i-1,k-1];
+      esac;
+
+  W[i,k] = 
+      case
+        {| 0<=k<=N; i=-1} : w[k];
+        {| 0<=k<=N; 0<=i} : W[i-1,k];
+      esac;
+  Y[i,k] = 
+      case
+        {| k=-1; i>=0} : 0[];
+        {| 0<=k<=N; 0<=i} : Y[i,k-1]+W[i-1,k]*X[i-1,k-1];
+      esac;
+
+y[i] = Y[i,N];
+tel;
+

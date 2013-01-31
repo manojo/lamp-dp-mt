@@ -1,0 +1,37 @@
+system prodVect :{N | 2<=N}
+                (a : {i,j | 1<=i<=N; 1<=j<=N} of boolean; 
+                 b : {i | 1<=i<=N} of boolean)
+       returns  (c : {i | 1<=i<=N} of boolean);
+var
+  loadCPipe : {t,p | t=p; 1<=p<=N; 2<=N} | {t,p | p+1<=t<=p+N; 1<=p<=N; 2<=N} of boolean;
+  B1 : {t,p | p+1<=t<=p+N; 1<=p<=N; 2<=N} of boolean;
+  A : {t,p | p+1<=t<=p+N; 1<=p<=N; 2<=N} of boolean;
+  C : {t,p | p<=t<=p+N; 1<=p<=N} of boolean;
+  loadC : {t,p | p<=t<=p+N; 1<=p<=N} of boolean;
+let
+  B1[t,p] = 
+      case
+        { | 2<=t<=N+1; p=1; 2<=N} : b[t-p];
+        { | p+1<=t<=p+N; 2<=p<=N} : B1[t-1,p-1];
+      esac;
+  A[t,p] = a[p,t-p];
+  C[t,p] = 
+      case
+        { | p<=t<=p+N; 1<=p<=N} : 
+           case
+             { | t=p; 1<=p<=N} : if (loadCPipe) then False[] else True[];
+             { | p+1<=t<=p+N; 1<=p<=N} : if (not loadCPipe) then C[t-1,p] + A[t,p] * B1[t,p] else False[];
+           esac;
+      esac;
+  loadCPipe[t,p] = 
+      case
+        { | t=1; p=1; 2<=N} | { | 2<=t<=N+1; p=1; 2<=N} : 
+           case
+             { | t=p; 1<=p<=N} : True[];
+             { | p+1<=t<=p+N; 1<=p<=N} : False[];
+           esac;
+        { | t=p; 2<=p<=N} | { | p+1<=t<=p+N; 2<=p<=N} : loadCPipe[t-1,p-1];
+      esac;
+  loadC[t,p] = loadCPipe;
+  c[i] = C[i+N,i];
+tel;

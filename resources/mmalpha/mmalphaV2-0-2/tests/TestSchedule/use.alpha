@@ -1,0 +1,38 @@
+system Plus :  {W | 2<=W}
+               (A : {b | 0<=b<=W-1} of boolean; 
+                B : {b | 0<=b<=W-1} of boolean)
+       returns (S : {b | 0<=b<=W} of boolean);
+var
+  Cin : {b | 0<=b<=W-1} of boolean;
+  Cout : {b | 0<=b<=W-1} of boolean;
+  X : {b | 0<=b<=W-1} of boolean;
+let
+  Cin[b] = 
+      case
+        {| b=0} : False[];
+        {| 1<=b} : Cout[b-1];
+      esac;
+  X[b] = A xor B xor Cin;
+  Cout[b] = A and B or A and Cin or B and Cin;
+  S[b] = 
+      case
+        {| b<=W-1} : X;
+        {| b=W} : Cout[W-1];
+      esac;
+tel;
+
+system Ex1 : { N,W | N,W >= 2} 
+               (a : {i,j | 0<= i <= W-1; 1<=j <= N} of boolean)
+       returns (b : {j | 1<= j <= N} of boolean);
+ var
+Bin1,Bin2,Bout1: {i,j | 0<= i <= W-1; 1<=j <= N} of boolean;
+ let 	
+  Bin1[i,j] = a[i,j];
+  Bin2[i,j] = case
+               {| j=1} : False[];
+               {| j>1} : Bout1[i,j-1];
+             esac;
+  use {j| 1<= j <= N} Plus[W] (Bin1,Bin2) 
+                       returns (Bout1);
+  b[j]=Bout1[W-1,j];
+tel 

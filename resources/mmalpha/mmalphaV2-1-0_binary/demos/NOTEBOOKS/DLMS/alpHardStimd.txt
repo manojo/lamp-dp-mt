@@ -1,0 +1,8 @@
+0	-- Time: 2, read : d[3] 
+55	-- Time: 3, read : d[4] 
+110	-- Time: 4, read : d[5] 
+145	-- Time: 5, read : d[6] 
+195	-- Time: 6, read : d[7] 
+155	-- Time: 7, read : d[8] 
+95	-- Time: 8, read : d[9] 
+45	-- Time: 9, read : d[10] 

@@ -1,0 +1,8 @@
+y[3]	-- Time: 7, read : y[3] 
+y[4]	-- Time: 8, read : y[4] 
+y[5]	-- Time: 9, read : y[5] 
+y[6]	-- Time: 10, read : y[6] 
+y[7]	-- Time: 11, read : y[7] 
+y[8]	-- Time: 12, read : y[8] 
+y[9]	-- Time: 13, read : y[9] 
+y[10]	-- Time: 14, read : y[10] 

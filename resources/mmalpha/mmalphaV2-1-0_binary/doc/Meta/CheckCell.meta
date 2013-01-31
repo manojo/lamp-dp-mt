@@ -1,0 +1,317 @@
+{
+(*
+	This file contains the syntax of AlpHard Cell's Abstract Syntax Tree. Once 
+	processed with the meta function, it produces a file named CheckCell.m which
+	allows one to analyze an AST and check that this AST has the syntax of a 
+	Cell. 
+*)
+
+(*	
+	System declaration
+*)
+  SYSTEMDECLARATION ::= 
+    system[ systemName: _String, 
+            paramDecl: DOMAINPARAM, 
+            inputDeclList: {DECLARATION},
+            outputDeclList: {DECLARATION}, 
+            localDeclList: {DECLARATION}, 
+            equationBlock: {EQUATION}
+          ] 
+          :> semanticFunc[ system, trparamDecl, 
+               trinputDeclList, troutputDeclList, trlocalDeclList,
+               trequationBlock, debug -> CheckCellDebug ]
+,
+
+  DECLARATION ::=
+    decl[ varName: _String, 
+          varType: _Symbol,
+          domain: DOMAIN 
+        ]
+        :> semanticFunc[ decl, decl[ varName, varType, domain ], debug -> CheckCellDebug ]
+(*	
+	The semantics has to check that the dimension of this
+	declaration is 2. Returns True if so, False otherwise.
+*)
+,
+
+  DOMAINPARAM ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> semanticFunc[ domain, dimension , debug -> CheckCellDebug ]
+(*	The semantics of this construct is to set the global variable CheckCellParam *)
+,
+  DOMAIN ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> dimension
+(*	
+	The semantics of this construct is its dimension.
+*)
+,
+
+  POLYHEDRON ::= 
+    pol[ constraintsNum:_Integer,
+         generatorsNum:_Integer,
+         equationsNum:_Integer,
+         linesNum:_Integer,
+         constraintList: {CONSTRAINT},
+         generatorList: {GENERATOR}
+       ]
+       :> Null
+(* 	
+	Null result. We assume that the polyhedron is correct.
+*)
+,
+
+  CONSTRAINT ::= {_List -> List} (* OK *)
+,
+
+  GENERATOR ::= {_List -> List} (* OK *)
+,
+
+(* 	
+	An equation is either an assignment or a use
+*)
+  EQUATION ::= 
+    { _equation -> ASSIGNMENT,
+      _use -> USESTATEMENT  (* Not sure that we can have a use in a cell *)
+    }
+(* 	OK *)
+,
+    
+(* 	
+	An assignment
+*)
+  ASSIGNMENT ::= 
+    equation[ leftHandSide: _String, 
+              rightHandSide: ELEMENTS	
+            ] 
+            :> semanticFunc[ assignment, trrightHandSide, 
+                             equation[ leftHandSide, rightHandSide], debug -> CheckCellDebug ]
+(*	
+	Semantics: returns the result of the rhs evaluation, which should be 
+	a boolean, and the equation itself, in order to issue an error message. 
+*)
+,
+
+(*
+	Here, the syntax differs from a standard Alpha program. Only the following
+	types of assignments are allowed: multiplexers either in form of case statements
+	or if statements, affine expressions (X[t-k], where k is a constant or cons[]), 
+        variables, constants, binary and unary expression.
+*)
+  ELEMENTS ::= 
+    { 
+      _case-> CASEMUX,
+      _if -> IFMUX,
+      _affine -> AFFEXP,
+      _binop -> BINEXP,	
+      _unop -> UNEXP, 
+      _var -> VAREXP, 
+      _const -> CONSTEXP 
+ }
+, 
+
+(*	This represents a rhs of the form V[t] or V[t-1] or 1[] (constant) *)
+  AFFEXP ::= 
+    affine[ 
+      affExpression: VAREXPORCONST,
+      affineFunction: MATRIX 
+          ] 
+          :> semanticFunc[ affexp, traffExpression, 
+                           affineFunction, 
+                           debug -> CheckCellDebug ]
+(*	
+	The semantics checks that the matrix is a translation. It does not
+	check yet that the translation is negative. 
+*)
+,
+
+  MATRIX ::= 
+    matrix[ 
+      d1:_Integer, 
+      d2:_Integer, 
+      indexes:{___String}, 
+      mmaMatrix:MATRIXNUM
+          ]
+          :> Null
+(*	Semantics: Null
+	OK  *)
+,
+
+  MATRIXNUM ::= {_List -> {List}}
+,
+
+  BINEXP ::= 
+    binop[ 
+          binaryOp: ( add | sub |  mul | div | or | and | xor | 
+                      min | max | eg | ne | le | lt | gt | 
+		      minus | div | mod ), 
+    (* "mul" ou "mult"   et les operateurs : + | - | * | / | ...... ???  *)
+          operand1: SUBEXPRESSION, 
+          operand2: SUBEXPRESSION 
+         ] 
+         :> semanticFunc[ binop, troperand1, troperand2, debug -> CheckCellDebug ]
+,
+
+  UNEXP ::= 
+    unop[ 
+          unaryOp: ( neg | not | sqrt ),
+          operand: SUBEXPRESSION
+         ] 
+         :> troperand
+,
+
+  VAREXPORCONST ::= 
+	{ _var -> VAREXPE,
+	  _const -> CONSTEXPE
+	}	(* OK *)
+
+,
+  VAREXPE ::= 
+    var[ 
+         identifier: _String 
+       ] 
+    :> var[ identifier ]
+(*	Semantics: var *)
+,
+
+  CONSTEXPE ::= 
+    const[ 
+         constant: ( _Integer | _Real | True | False ) 
+         ] 
+         :> const[ constant ]
+(*	Semantics: const *)
+
+,
+
+VAREXP ::= 
+    var[ 
+         identifier: _String 
+       ] 
+    :> True
+(*	Semantics: var *)
+,
+
+  CONSTEXP ::= 
+    const[ 
+         constant: ( _Integer | _Real | True | False ) 
+         ] 
+         :> True
+(*	Semantics: const *)
+,
+
+(*  
+	Expression. Used in the binary or unary expressions. 
+*)
+  SUBEXPRESSION ::=
+    {
+      _affine -> AFFEXP,
+      _binop -> BINEXP,
+      _unop -> UNEXP,
+      _var -> VAREXP,
+      _const -> CONSTEXP
+ }
+,
+
+(* 	First type of mux *)
+  CASEMUX ::= 
+    case[ 
+         expressionList: {RESTEXP}	
+        ] 
+        :> semanticFunc[ case , trexpressionList, debug -> CheckCellDebug ] 
+(*	Here, I assume a very restricted case of multiplexer: only two branches *)
+,
+  RESTEXP ::= 
+    restrict[ 
+         domain: DOMAIN, 
+         ifExpression: IFEXP 
+         ] 
+         :> semanticFunc[ restrict, trdomain, trifExpression, debug -> CheckCellDebug ]
+(*	Semantics: the dimension of the domain, plus the ifExpression *)
+, 
+
+  IFEXP ::=
+    if[
+       ifCondition: CONTROLEXPRESSION,	
+       alt1: SUBEXPRESSION,
+       alt2: SUBEXPRESSION
+      ]
+      :> semanticFunc[ if, trifCondition, ifCondition, tralt1, alt1, tralt2, alt2, debug -> CheckCellDebug ]
+(*	The semantics is that alt1 should be a control signal *)
+,
+
+(* 	Control expression *)
+  CONTROLEXPRESSION ::= 
+    affine[ 
+	  expression: VAREXP,
+	  affineFunction: MATRIX
+          ]
+          :> semanticFunc[ controlexpression, expression,
+                           affineFunction, debug -> CheckCellDebug ]
+(* 
+    The semantics 
+*)
+,
+(*	Second type of mux: an If and a case inside. Not checked  *)
+  IFMUX ::=
+    if[
+       ifCondition: AFFEXP,
+       alt1: SUBMUX2,	
+       alt2: SUBMUX2
+      ]
+      :> semanticFunc[ if , { ifCondition, alt1, alt2 }, 
+                       debug -> CheckCellDebug]
+,
+
+  SUBMUX2 ::=
+    {
+      (* A case expression is not mandatory *)
+      _case -> CASEXP,	
+      _affine -> AFFEXP,
+      _binop -> BINEXP,
+      _unop -> UNEXP,
+      _var -> VAREXP,
+      _const -> CONSTEXP
+ }
+, 
+
+(* 
+	This is a case inside a If multiplexer. Only a restricted expression
+	can appear
+*)
+  CASEXP ::= 
+    case[ 
+         expressionList: {RESTEXPMUX2}	
+        ] 
+        :> expressionList
+,
+
+  RESTEXPMUX2 ::= 
+    restrict[ 
+         domain: DOMAIN, 
+         restExpression: SUBEXPRESSION	
+         ] 
+         :> { domain, restExpression }
+
+(* 
+	For the moment, there are no use in cells... I wonder if this is 
+	correct 
+, 
+
+  USESTATEMENT ::= 
+    use[ id: _String, 
+         domainExtension: DOMAIN,
+         paramAssign: MATRIX,
+         inputList: {SOUSEXPRESSION},
+	 idList: {___String}
+       ]
+       :> semanticFunc[ use , {id, domExtension, paramAssign, expList, idList},
+                        debug -> CheckCellDebug ]
+*)
+
+}

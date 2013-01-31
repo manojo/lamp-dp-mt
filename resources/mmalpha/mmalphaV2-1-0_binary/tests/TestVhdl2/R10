@@ -1,0 +1,11 @@
+{"use IEEE.std_logic_1164.all;", "use IEEE.std_logic_signed.all;", 
+ "use IEEE.numeric_std.all;", "ENTITY fullAdder IS", "PORT(", 
+ "  Ck: IN STD_LOGIC;", "  CE : IN STD_LOGIC;", "  Rst : IN STD_LOGIC;", 
+ "  AIn : IN  STD_LOGIC;", "  BIn : IN  STD_LOGIC;", 
+ "  DIn : IN  STD_LOGIC;", "  SOut : OUT  STD_LOGIC;", 
+ "  DOut : OUT  STD_LOGIC", ");", "END fullAdder;", 
+ "ARCHITECTURE behavioural OF fullAdder IS", 
+ "  -- Insert missing components here!---------", "BEGIN", 
+ "    SOut <= ((AIn XOR BIn) XOR DIn);", 
+ "    DOut <= (((AIn AND BIn) OR (AIn AND DIn)) OR (DIn AND BIn));", 
+ "END behavioural;"}

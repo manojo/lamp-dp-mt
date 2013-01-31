@@ -1,0 +1,43 @@
+
+# <copyright>
+# </copyright>
+#
+# $Id$
+
+pluginName = Mathematica Edit Support
+providerName = www.example.org
+
+_UI_CreateChild_text = {0}
+_UI_CreateChild_text2 = {1} {0}
+_UI_CreateChild_text3 = {1}
+_UI_CreateChild_tooltip = Create New {0} Under {1} Feature
+_UI_CreateChild_description = Create a new child of type {0} for the {1} feature of the selected {2}.
+_UI_CreateSibling_description = Create a new sibling of type {0} for the selected {2}, under the {1} feature of their parent.
+
+_UI_PropertyDescriptor_description = The {0} of the {1}
+
+_UI_Node_type = Node
+_UI_ASTNode_type = AST Node
+_UI_BuiltInNode_type = Built In Node
+_UI_ASTLeaf_type = AST Leaf
+_UI_IntLeaf_type = Int Leaf
+_UI_StringLeaf_type = String Leaf
+_UI_SymbolLeaf_type = Symbol Leaf
+_UI_FloatLeaf_type = Float Leaf
+_UI_Unknown_type = Object
+
+_UI_Unknown_datatype= Value
+
+_UI_ASTNode_name_feature = Name
+_UI_ASTNode_children_feature = Children
+_UI_BuiltInNode_keyword_feature = Keyword
+_UI_BuiltInNode_children_feature = Children
+_UI_IntLeaf_signed_feature = Signed
+_UI_IntLeaf_value_feature = Value
+_UI_StringLeaf_value_feature = Value
+_UI_SymbolLeaf_name_feature = Name
+_UI_FloatLeaf_signed_feature = Signed
+_UI_FloatLeaf_a_feature = A
+_UI_FloatLeaf_b_feature = B
+_UI_Unknown_feature = Unspecified
+

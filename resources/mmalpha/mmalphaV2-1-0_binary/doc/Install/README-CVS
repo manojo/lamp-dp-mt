@@ -1,0 +1,223 @@
+The alpha system is now developed under the CVS software (Concurrent
+Version System). This document is intended to give a short overview of
+the CVS system. This overview should be enough to develop on Alpha.
+
+Please read carefully this document. Before any development under cvs,
+your personal version of alpha must be installed in your
+directory. This installation is explained at the end of this document,
+but you should contact me (Tanguy Risset, risset@irisa.fr) before
+performing the operation.
+
+If you want more information on cvs, there is a document in
+ /home/frodon/d01/api/alpha/CVS/cvs-1.3/doc/doc_cvs.ps
+which is precise and easy. Man CVS also exists.
+
+The organization of the document is 
+- A brief overview of the principles of CVS
+- CVS basic commands
+- Some little examples
+- Start working with CVS
+
+*** A brief overview of the principles of CVS
+
+The principle of sccs and rcs are to lock files to forbid
+a simultaneous modification of a file. On the contrary, cvs allow
+to modify simultaneously to "copies" of the same file.
+The two copies are  merge into the single "archive" file. (This merge 
+is done with the help of the unix diff command). If some conflicts 
+appear (i.e the same line modified by two different users), both
+version are kept in the file and the user must solve the conflict
+(the priority is always for the first who save its changes, it means that
+the second will have to solve the conflict on its own version, but 
+it is very easy to get back to an older version.)
+
+More precisely: 
+Each developer (say Albert) has its own copy of the
+alpha hierarchy (named alpha_beta), in his directory and there is a
+single "mother" hierarchy (called archive) in the CVS directory of
+alpha. Albert performs developments on this version (he can run alpha on
+his version). When he thinks that his changes are finished, he
+"commits" his changes, it means that cvs will report the changes he
+made on the archive (he can commit a single file, a directory
+(recursively) or the whole hierarchy). But, if another user has
+commit some changes on the same files in the meantime, Albert
+cannot commit its changes, he must "update" its own version first.
+When albert has solved the conflicts on its own version, he can commit.
+
+Even if every day's operation will be slower (peforming commits ...), 
+this principles allow to develop a common version on several sites
+(developers still need an account at irisa) because the operations
+of commiting and updating can be done automatically. Of course, Albert
+must be very carefull when he commits his changes, he must remenber that
+his changes will be set in every personnal copies of the archive as soon 
+as the other developers update their copy.
+
+****CVS basic commands
+More precise informations can bee obtained by reading 
+ /home/frodon/d01/api/alpha/CVS/cvs-1.3/doc/doc_cvs.ps
+or with "man cvs"
+
+Once you have your own version of alpha (after having performed
+the cvs checkout - see after -), you can
+
+-commit the changes you made in the central archive
+-update your own version with respect to the central archive
+-add a file in the central archive (this need a cvs command)
+-delete a file in the central archive (this need a cvs command)
+-get the satus of  a file 
+
+COMMIT
+synopsis (simplified)
+	cvs commit -m "message for the new version" file
+description
+	This command commit the changes on file of your working directory
+	to the archive. If you forget the -m "string" option,
+	cvs will start an editor to put comments for the version.
+	
+	"file" can be a file or a directory (all the hierarchy in the 
+	directory is commit). commit display information about commiting,
+	often the commit is not possible because it needs an update of
+	your working directory first.
+
+UPDATE
+synopsis(simplified)
+	cvs update [-dP] file
+description
+	This command update your working directory with respect to
+	the current state of the central archive. The information 
+	about the updating are displayed in the format:
+	U file                  for unchanged file
+	M file 			for modified file
+	C file 			for conflicts in file
+	When conflicts appears, edit the corresponding files and
+	solve the conflicts. The option -d creates the new directories
+	that have been added by other user. The option -P delete empty 
+	directories. This is the only way to remove the directories. 
+	update should always be used with these two options
+
+ADD
+The procedure to add a file (or a directory) to the archive is the following:
+create (physically) the file in your working directory
+add the file with "cvs add" (see below)
+commit the add (see before)
+synopsis (simplified)
+	cvs add [-d] file
+description
+	create the CVS directory necessary to cvs. When you want to
+	add a directory with files in it, first create the hierarchy 
+	physically (in your working directory),
+	then create the directory (for cvs, with add) and create the
+	files in this directory (for cvs with add) then commit for the 
+	all directory (this means that the add command is not  
+	recursive).
+
+
+REMOVE
+The procedure to remove a file is the following
+remove (physically) the file in your working directory
+remove the file for cvs with "cvs remove" (see below)
+commit the removal (see before)
+synopsis (simplified)
+	cvs remove file
+description
+	remove the file in the CVS directory, the removal is not really
+	commit to the archive until the commit is done. If you 
+	want to remove a whole hierarchy, you have to remove explicitly 
+	the files in each directory. When a directory is empty, you can remove
+	the directory by the command "cvs update -P directory" but 
+	not with the "cvs remove" command.
+
+STATUS 
+To get info about a file (version, up-to-date or not), use 
+the status command:
+synopsis (simplified)
+	cvs status [-Qn] file
+description 
+	gives the informations needed
+
+***Some little examples
+
+If I want to update my hierarchy (which is base in, say,  ~/alpha_beta)
+because I didn't do for a long time:
+
+cd ~/alpha_beta
+cvs update -dP .
+
+I have now the real current version of alpha_beta
+(You can type "cvs update -dP . >verification_file" if you 
+want to check afterwards that there are no conflicts, This is useful
+if you can't scroll your screen)
+
+
+If I want to update just the file SubSystem.m
+cd $MMALPHA/lib/Packages/Alpha
+cvs update SubSystem.m
+
+
+If you want to put in the archive the modifications that you 
+made to SubSystem.m
+cd $MMALPHA/lib/Packages/Alpha
+cvs commit -m "the modif of MYNAME of DATE" SubSystem.m
+
+
+If you want to create the directory man4 with the file
+ command_useless.4 inside:
+cd $MMALPHA/man/
+mkdir man4
+cvs add man4 			#--> answer y
+cd man4
+#create the file  command_useless.4
+cvs add command_useless.4
+cd ..
+cvs commit -m "added the man4 directory with command_useless.4" man4
+
+
+and if Albert wants to see the new man directory, he can do 
+cd ~Albert/alpha_beta/Mathematica/
+cvs update -P man
+
+
+If you want to suppress the man directory that you have just made:
+cd cd $MMALPHA/man/man5
+rm command_useless.4
+cvs remove command_useless.4
+cd ..
+cvs commit  -m "removing command_useless.4" man4
+cvs update -P man4
+
+And the man4 directory does no longer exist.
+
+IN GENERAL, MODIFYING EXISTING FILES IS EASY BUT 
+BE VERY CAREFUL WHEN YOU ADD OR REMOVE FILES.
+PLEASE BE AWARE THAT YOU CAN DO VERY IMPORTANT CHANGES
+ON THE ALPHA ARCHIVE JUST BY MODIFYING YOUR OWN COPY.
+IT'S CLOSER TO A LINK TO THE ARCHIVE THAN TO A COPY OF
+THE ARCHIVE.
+
+In particular, it seems difficult to add a file that was
+removed before (bug?) thus, examples directory in which files 
+are subject to a lot of delation and creation should not 
+be put in the alpha_beta hierarchy (remember that they will 
+appear in the hierarchy of someone using the alpha_beta version
+of alpha). The example put in the alpha_beta hierarchy 
+Should be well tested and should work!
+
+*** Start working with CVS
+Please contact Tanguy Risset before performing these operations
+First thing to do is to put in the .cshrc
+
+setenv CVSROOT /udd/alpha/CVS
+alias cvs /udd/alpha/bin/cvs
+
+Then go to the directory where you want to install
+the alpha hierarchy and type:
+
+cvs checkout alpha_beta
+
+It's done ! 
+	
+***** Problem appeared:
+
+Sometimes, a file has status up-to-date but is not really up to 
+date, it may have a sticky date attached to it, to remove it,
+you need to update with option -A.

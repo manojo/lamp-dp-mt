@@ -1,0 +1,133 @@
+system fir :   {N,M | 1<=N<=M-1}
+               (x : {i | 0<=i<=M} of real; 
+                H : {n | 0<=n<=N-1} of real)
+       returns (y : {i | N<=i<=M} of real);
+var
+  H_mirr1 : {t,n | 1<=t<=N; n=N; N<=M-1} of real;
+  Y_ctl1_reg1loc : {t,n | t=n-N+2; N+1<=n<=M+1; 1<=N<=M-1} | {t,n | n-N+3<=t<=n+2; N+1<=n<=M+1; N<=M-1} of boolean
+  ;
+  xpipe_ctl2_reg2loc : {t,n | t=n-N+1; N+2<=n<=M+1; 1<=N} | {t,n | n-N+2<=t<=n+1; N+2<=n<=M+1} of boolean
+  ;
+  xpipe_reg6loc : {t,n | n-N+1<=t<=n+1; N+1<=n<=M+1; 1<=N<=M-1} of real;
+  Hpipe_reg7loc : {t,n | n-N<=t<=n-1; N+1<=n<=M+1; N<=M-1} of real;
+  xpipe_reg10 : {t,n | n-N+4<=t<=n+3; N<=n<=M; N<=M-1} of real;
+  Hpipe_reg9 : {t,n | n-N+4<=t<=n+3; N<=n<=M; N<=M-1} of real;
+  Y_reg8 : {t,n | n-N+4<=t<=n+3; N<=n<=M; N<=M-1} of real;
+  Hpipe_reg7 : {t,n | n-N+1<=t<=n; N+1<=n<=M} of real;
+  xpipe_reg6 : {t,n | n-N+3<=t<=n+2; N+1<=n<=M} of real;
+  xin1_reg5 : {t,n | t=n-N+2; N+1<=n<=M; 1<=N} of real;
+  xin2_reg4 : {t,n | 3<=t<=N+2; n=N; N<=M-1} of real;
+  xin1_reg3 : {t,n | t=2; n=N; 1<=N<=M-1} of real;
+  xpipe_ctl2_reg2 : {t,n | n-N+2<=t<=n+2; N+2<=n<=M; 1<=N} of boolean;
+  Y_ctl1_reg1 : {t,n | n-N+3<=t<=n+3; N+1<=n<=M; 1<=N} of boolean;
+  Y_ctl1_In : {t,n | 3<=t<=N+3; n=N; 1<=N<=M-1} of boolean;
+  Y_ctl1_Init : {t | 3<=t<=N+3; 1<=N<=M-1} of boolean;
+  Y_ctl1 : {t,n | t=n-N+3; N<=n<=M; 1<=N<=M-1} | {t,n | n-N+4<=t<=n+3; N<=n<=M; N<=M-1} of boolean
+  ;
+  xpipe_ctl2_In : {t,n | 3<=t<=N+3; n=N+1; 1<=N<=M-1} of boolean;
+  xpipe_ctl2_Init : {t | 3<=t<=N+3; 1<=N<=M-1} of boolean;
+  xpipe_ctl2 : {t,n | t=n-N+2; N+1<=n<=M; 1<=N} | {t,n | n-N+3<=t<=n+2; N+1<=n<=M} of boolean
+  ;
+  xin1 : {t,n | t=n-N+1; N<=n<=M; 1<=N<=M-1} of real;
+  xin2 : {t,n | 1<=t<=N; n=N; N<=M-1} of real;
+  xpipe : {t,n | n-N+2<=t<=n+2; N<=n<=M; 1<=N<=M-1} of real;
+  Hpipe : {t,n | n-N+1<=t<=n; N<=n<=M; N<=M-1} of real;
+  Y : {t,n | n-N+3<=t<=n+3; N<=n<=M} of real;
+  xpipe_ctl1 : {t,n | 2<=t<=N+2; n=N; 1<=N<=M-1} of boolean;
+let
+  H_mirr1[t,n] = H[t-n+N-1];
+  Hpipe_reg7loc[t,n] = Hpipe[t,n-1];
+  Hpipe_reg7[t,n] = Hpipe_reg7loc[t-1,n];
+  xpipe_reg6loc[t,n] = xpipe[t,n-1];
+  xpipe_reg6[t,n] = xpipe_reg6loc[t-2,n];
+  xpipe_ctl2_reg2loc[t,n] = xpipe_ctl2[t,n-1];
+  xpipe_ctl2_reg2[t,n] = xpipe_ctl2_reg2loc[t-1,n];
+  Y_ctl1_reg1loc[t,n] = Y_ctl1[t,n-1];
+  Y_ctl1_reg1[t,n] = Y_ctl1_reg1loc[t-1,n];
+  xpipe_reg10[t,n] = xpipe[t-1,n];
+  Hpipe_reg9[t,n] = Hpipe[t-3,n];
+  Y_reg8[t,n] = Y[t-1,n];
+  xin1_reg5[t,n] = xin1[t-1,n];
+  xin2_reg4[t,n] = xin2[t-2,n];
+  xin1_reg3[t,n] = xin1[t-1,n];
+  Y_ctl1_In[t,n] = Y_ctl1_Init[t];
+  Y_ctl1_Init[t] = 
+      case
+        {| 3<=t<=N+3; 1<=N<=M-1} : 
+           case
+             {| t=3; 1<=N<=M-1} : True[];
+             {| 4<=t<=N+3; N<=M-1} : False[];
+           esac;
+      esac;
+  xpipe_ctl2_In[t,n] = xpipe_ctl2_Init[t];
+  xpipe_ctl2_Init[t] = 
+      case
+        {| 3<=t<=N+3; 1<=N<=M-1} : 
+           case
+             {| t=3; 1<=N<=M-1} : True[];
+             {| 4<=t<=N+3; N<=M-1} : False[];
+           esac;
+      esac;
+  xin1[t,n] = x[n];
+  xin2[t,n] = x[-t+N];
+  xpipe_ctl1[t,n] = 
+      case
+        {| 2<=t<=N+2; n=N; 1<=N<=M-1} : 
+           case
+             {| t=2; n=N; 1<=N<=M-1} : True[];
+             {| 3<=t<=N+2; n=N; N<=M-1} : False[];
+           esac;
+      esac;
+  xpipe_ctl2[t,n] = 
+      case
+        {| 3<=t<=N+3; n=N+1; 1<=N<=M-1} : xpipe_ctl2_In[t,n];
+        {| t=n-N+2; N+2<=n<=M; 1<=N} | {| n-N+3<=t<=n+2; N+2<=n<=M} : xpipe_ctl2_reg2
+        ;
+      esac;
+  xpipe[t,n] = 
+      case
+        {| 2<=t<=N+2; n=N; 1<=N<=M-1} : (if (xpipe_ctl1) then 
+               case
+                 {| t=2; n=N; 1<=N<=M-1} : xin1_reg3;
+                 {| 3<=t<=N+2; n=N; N<=M-1} : 0[];
+               esac else 
+               case
+                 {| t=2; n=N; 1<=N<=M-1} : 0[];
+                 {| 3<=t<=N+2; n=N; N<=M-1} : xin2_reg4;
+               esac);
+        {| n-N+2<=t<=n+2; N+1<=n<=M; 1<=N} : (if (xpipe_ctl2) then 
+               case
+                 {| t=n-N+2; N+1<=n<=M; 1<=N} : xin1_reg5;
+                 {| n-N+3<=t<=n+2; N+1<=n<=M} : 0[];
+               esac else 
+               case
+                 {| t=n-N+2; N+1<=n<=M; 1<=N} : 0[];
+                 {| n-N+3<=t<=n+2; N+1<=n<=M} : xpipe_reg6;
+               esac);
+      esac;
+  Hpipe[t,n] = 
+      case
+        {| 1<=t<=N; n=N; N<=M-1} : H_mirr1;
+        {| n-N+1<=t<=n; N+1<=n<=M} : Hpipe_reg7;
+      esac;
+  Y_ctl1[t,n] = 
+      case
+        {| 3<=t<=N+3; n=N; 1<=N<=M-1} : Y_ctl1_In[t,n];
+        {| t=n-N+3; N+1<=n<=M; 1<=N} | {| n-N+4<=t<=n+3; N+1<=n<=M} : Y_ctl1_reg1
+        ;
+      esac;
+  Y[t,n] = 
+      case
+        {| n-N+3<=t<=n+3; N<=n<=M; 1<=N<=M-1} : (if (Y_ctl1) then 
+               case
+                 {| t=n-N+3; N<=n<=M; 1<=N<=M-1} : 0[];
+                 {| n-N+4<=t<=n+3; N<=n<=M; N<=M-1} : 0[];
+               esac else 
+               case
+                 {| t=n-N+3; N<=n<=M; 1<=N<=M-1} : 0[];
+                 {| n-N+4<=t<=n+3; N<=n<=M; N<=M-1} : Y_reg8 + Hpipe_reg9 * xpipe_reg10
+                 ;
+               esac);
+      esac;
+  y[i] = Y[i+3,i];
+tel;

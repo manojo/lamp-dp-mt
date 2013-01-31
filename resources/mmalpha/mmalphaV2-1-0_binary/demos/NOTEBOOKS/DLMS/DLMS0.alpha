@@ -1,0 +1,107 @@
+system firr :  {N,M,D | 3<=N<=(D-1,M-D-1)}
+               (x : {n | 1<=n<=M} of integer; 
+                d : {n | N<=n<=M} of integer)
+       returns (res : {n | N<=n<=M} of integer);
+var
+  dXMirr1 : {t,p | 2N+1<=t<=N+M+1; p=N-1} of integer;
+  xXMirr2 : {t,p | D-1<=t<=M-2; p=-1} of integer;
+  xXMirr1 : {t,p | -1<=t<=M-2; p=-2} of integer;
+  TSep2 : {t,p | p+N+D<=t<=p+M; 0<=p<=N-1} of integer;
+  TSep1 : {t,p | p+N+D<=t<=p+M; 0<=p<=N-1} of integer;
+  YReg8Xloc : {t,p | p+N+1<=t<=p+M+1; 0<=p<=N} of integer;
+  YReg1Xloc : {t,p | 2N+1<=t<=N+M+1} of integer;
+  WXctl1PReg7Xloc : {t,p | p+N-1<=t<=p+M-1; 1<=p<=N} of boolean;
+  pipeCx37Reg5Xloc : {t,p | 2p+1<=t<=(2p+M,p+M+1); -1<=p<=N} of integer;
+  pipeCx35Reg4Xloc : {t,p | 2p+D-1<=t<=(p+M-1,2p+M-2); 0<=p<=N} of integer;
+  pipeCE17Reg3Xloc : {t,p | p+N+D-1<=t<=p+M-1; 0<=p<=N} of integer;
+  EReg2Xloc : {t,p | 2N+1<=t<=N+M+1} of integer;
+  WReg9 : {t,p | p+N+2<=t<=p+M+2; 0<=p<=N-1} of integer;
+  YReg8 : {t,p | p+N+2<=t<=p+M+2; 0<=p<=N-1} of integer;
+  WXctl1PReg7 : {t,p | p+N<=t<=p+M; 1<=p<=N-1} of boolean;
+  WReg6 : {t,p | p+N+D<=t<=p+M; 0<=p<=N-1} of integer;
+  pipeCx37Reg5 : {t,p | 2p+3<=t<=(p+M+2,2p+M+2); -1<=p<=N-1} of integer;
+  pipeCx35Reg4 : {t,p | 2p+D+1<=t<=p+M; 0<=p<=N-1} of integer;
+  pipeCE17Reg3 : {t,p | p+N+D<=t<=p+M; 0<=p<=N-1} of integer;
+  EReg2 : {t,p | N+D-1<=t<=M-1; p=-1} of integer;
+  YReg1 : {t,p | 2N+1<=t<=N+M+1; p=N-1} of integer;
+  WXctl1PXInitXIn : {t,p | N<=t<=M; p=0} of boolean;
+  WXctl1PXInit : {t | N<=t<=M} of boolean;
+  WXctl1P : {t,p | p+N<=t<=p+M; 0<=p<=N-1} of boolean;
+  pipeCx37 : {t,p | 2p+3<=t<=(2p+M+2,p+M+2); -2<=p<=N-1} of integer;
+  pipeCx35 : {t,p | 2p+D+1<=t<=(p+M,2p+M); -1<=p<=N-1} of integer;
+  pipeCE17 : {t,p | p+N+D<=t<=p+M; -1<=p<=N-1} of integer;
+  W : {t,p | p+N<=t<=p+M; 0<=p<=N-1} of integer;
+  Y : {t,p | p+N+2<=t<=p+M+2; -1<=p<=N-1} of integer;
+  E : {t,p | 2N+1<=t<=N+M+1; p=N-1} of integer;
+  WXctl1 : {t,p | p+N<=t<=p+M; 0<=p<=N-1} of boolean;
+let
+  dXMirr1[t,p] = d[t-N-1];
+  xXMirr2[t,p] = x[t-D+2];
+  xXMirr1[t,p] = x[t+2];
+  EReg2Xloc[t,p] = E[t,N-1];
+  EReg2[t,p] = EReg2Xloc[t+N-D+2,p];
+  pipeCE17Reg3Xloc[t,p] = pipeCE17[t,p-1];
+  pipeCE17Reg3[t,p] = pipeCE17Reg3Xloc[t-1,p];
+  pipeCx35Reg4Xloc[t,p] = pipeCx35[t,p-1];
+  pipeCx35Reg4[t,p] = pipeCx35Reg4Xloc[t-2,p];
+  pipeCx37Reg5Xloc[t,p] = pipeCx37[t,p-1];
+  pipeCx37Reg5[t,p] = pipeCx37Reg5Xloc[t-2,p];
+  WXctl1PReg7Xloc[t,p] = WXctl1P[t,p-1];
+  WXctl1PReg7[t,p] = WXctl1PReg7Xloc[t-1,p];
+  YReg1Xloc[t,p] = Y[t,N-1];
+  YReg1[t,p] = YReg1Xloc[t,p];
+  YReg8Xloc[t,p] = Y[t,p-1];
+  YReg8[t,p] = YReg8Xloc[t-1,p];
+  WReg9[t,p] = W[t-2,p];
+  WReg6[t,p] = W[t-1,p];
+  WXctl1PXInitXIn[t,p] = WXctl1PXInit[t];
+  WXctl1PXInit[t] = 
+      case
+        case
+          { | t<=N+D-1} : True[];
+          { | N+D<=t} : False[];
+        esac;
+      esac;
+  pipeCx37[t,p] = 
+      case
+        { | p=-2} : xXMirr1;
+        { | -1<=p} : pipeCx37Reg5;
+      esac;
+  pipeCx35[t,p] = 
+      case
+        { | p=-1} : xXMirr2;
+        { | 0<=p} : pipeCx35Reg4;
+      esac;
+  pipeCE17[t,p] = 
+      case
+        { | p=-1} : EReg2;
+        { | 0<=p} : pipeCE17Reg3;
+      esac;
+  WXctl1P[t,p] = 
+      case
+        { | p=0} : WXctl1PXInitXIn[t,p];
+        { | 1<=p} : WXctl1PReg7;
+      esac;
+  WXctl1[t,p] = WXctl1P[t,p];
+  TSep1[t,p] = pipeCE17 * pipeCx35;
+  TSep2[t,p] = WReg6 + TSep1;
+  W[t,p] = 
+      case
+        if (WXctl1) then 
+            case
+              { | t<=p+N+D-1} : 0[];
+              { | p+N+D<=t} : 0[];
+            esac else 
+        case
+          { | t<=p+N+D-1} : 0[];
+          { | p+N+D<=t} : TSep2;
+        esac;
+      esac;
+  Y[t,p] = 
+      case
+        { | p=-1} : 0[];
+        { | 0<=p} : YReg8 + WReg9 * pipeCx37;
+      esac;
+  E[t,p] = (dXMirr1 - YReg1) / 32[];
+  res[n] = Y[n+N+1,N-1];
+tel;

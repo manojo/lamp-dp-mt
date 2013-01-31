@@ -1,0 +1,15 @@
+system Test9:{N| N>= 1}
+	 (x : {i | 0<=i} of integer;
+			  w : {p | 0<=p<=N} of integer)
+       returns (y : {i | 2<=i} of integer);
+var
+  Y : {t,p | 0<=p<=N; 3t-4p-3>=0} of integer;
+
+let
+  Y[t,p] = case
+         {|p=0; t>0} : x[t-1];
+	{|1<=p<=N; 4p+3<=3t}: Y[t-1,p-1] + w[p];
+      esac; 
+	y[i]=0[];
+tel;
+

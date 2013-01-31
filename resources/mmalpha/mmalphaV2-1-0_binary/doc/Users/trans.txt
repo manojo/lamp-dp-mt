@@ -1,0 +1,774 @@
+			MATHEMATICA-ALPHA 2-10-93
+===========================================================================
+Alpha Package
+-------------
+	Contains the basic command for the Alpha system.
+
+load[_String]
+  Function:	Returns the AST of the Alpha program in the named file.
+		Uses external parser "read_alpha".  Globals $result and
+                $program are set to the result.
+
+fshow[]
+fshow[_Alpha`system]
+  Function:	Displays the AST as an Alpha program on the screen.
+		Uses the external pretty printer "write_alpha".
+		show[] is a slower procedure to do the same thing.
+
+fsave[_String]
+fsave[Alpha`system, _String]
+  Function:	Writes the Alpha program for the AST to the named file.
+		save[] is a slower procedure to do the same thing.
+
+readExp[_String]
+  Function:	Parses the given string as an expression and returns the
+		corresponding AST.  Uses external parser "read_alpha".
+
+readDom[_String]
+  Function:	Parses the given string as a domain and returns the
+		corresponding AST.  Uses external parser "read_alpha".
+
+help[]
+  Function:	On-line help system.
+
+info[command_String]
+  Function:	Prints detailed info about a command.
+
+Polyhedral Library
+------------------
+DomIntersection[d1_Alpha`domain, d2_Alpha`domain]
+  Function:	returns the domain intersection of domains d1 and d2.
+
+DomUnion[d1_Alpha`domain, d2_Alpha`domain
+  Function:	returns the domain union of domains d1 and d2.
+
+DomDifference[d1_Alpha`domain, d2_Alpha`domain]
+  Function:	returns the domain difference of domain d1 less d2.
+
+DomSimplify[d1_Alpha`domain, d2_Alpha`domain]
+  Function:	returns a domain equal to d1 simplified in the context of d2.
+
+DomImage[d_Alpha`domain, m_Alpha`matrix]
+  Function:	returns the image of domain d under transformation matrix m.
+
+DomPreimage[d_Alpha`domain, m_Alpha`matrix]
+  Function:	returns the preimage of domain d under transformation matrix m.
+
+DomConstraints[m_Alpha`matrix]
+  Function:	returns the minimum convex polyhdron defined by constraints
+                in matrix m.
+
+DomRays[m_Alpha`matrix]
+  Function:	returns the minimum convex polyhdron defined by rays in
+		matrix m.
+
+DomUniverse[n]
+  Function:	returns the universe domain of dimension n.
+
+DomEmpty[n]
+  Function:	returns the empty domain of dimension n.
+
+DomUniverseQ[d_Alpha`domain]
+  Predicate:	returns True if domain d is the universe, False otherwise.
+
+DomEmptyQ[d_Alpha`domain]
+  Predicate:	returns True if domain d is empty, False otherwise.
+
+DomRightHermite[m_Alpha`matrix]
+  Function:	returns {Q, H} where m = QH, Q unimodular, H hermite.
+
+DomLeftHermite[m_Alpha`matrix]
+  Function:	returns {H, Q} where m = HQ, Q unimodular, H hermite.
+
+DomBasis[m_Alpha`matrix]
+  Function:	returns a row basis of m (Gauss Jordan-elimination).
+
+DomMatrixSimplify[m1_Alpha`matrix,m2_Alpha`matrix]
+  Function:	returns m1 simplified in the presence of m2.
+
+Matrix Package
+--------------
+	Contains various utility functions mostly having to do with
+	affine function matrices.
+	N.B. all Alpha functions are represented by a `complete' matrix.
+	For example, the function (i,j->2i+3j+4, 5i+6j+7) is represented by:
+		( 2 3 4 )
+		( 5 6 7 )
+		( 0 0 1 )
+
+composeAffines[_Alpha`matrix, _Alpha`matrix]
+  Function:	Returns the composition of two affine functions by performing
+		a matrix multiply. 
+
+inverseMatrix[_Alpha`matrix]
+  Function:	Computes and returns the inverse of a square affine matrix.
+
+unimodularQ[_Alpha`matrix]
+  Predicate:	Returns true if a square affine matrix is unimodular. 
+
+translationQ[_Alpha`matrix]
+  Predicate:	Returns true if a full rank affine function is a translation.
+
+identityQ[_Alpha`matrix]
+  Predicate:	Returns true if an affine function is an identity function.
+
+convexize[_Alpha`domain]
+  Function:	If the union of convexes is also convex, returns the
+		combined convex, else domain is returned unmodified.
+
+convHull[{___Alpha`domain}]
+  Function:	Returns the convex hull of a (possibly empty) list of domains.
+
+getTranslationVector[_Alpha`matrix]
+   Function:	Extracts the translation vector from an affine function.
+
+canonicalProjection[_Alpha`domain, pos:(_Integer | {_Integer..})]
+   Function:	Returns a projected domain obtained by supressing
+		the indices given by pos.
+
+===========================================================================
+Tables Package
+--------------
+	Contains variable and function definitions relative to the
+	retrieval of contextual information on nodes and programs.
+
+Alpha`inputVars = { name, name, ... }
+  Variable:	List of names of input variables in the most recently
+		parsed program.
+
+Alpha`outputVars
+  Variable:	List of names of output variables in the most recently
+		parsed program.
+
+Alpha`localVars
+  Variable:	List of names of local variables in the most recently
+		parsed program.
+
+Alpha`$program
+Alpha`$result
+  Variables:	Alpha`$result is the result of the last operation (load
+		or transformation.) Its value is copied to 'Alpha`$program'
+		at the _beginning_ of each operation which alters the default
+		program.  Both are initialized by loading a program.
+
+setNameLists[_Alpha`system]
+  Procedure:	Builds the lists inputVars, outputVars, and localVars.
+		Returns no result.
+
+undoModif[] := (Alpha`$result = Alpha`$program)
+  Function:	Undoes the effects of the last transformation.
+		Returns the program as before the last transformation.
+
+getIndexNames[var_String] := getIndexNames[Alpha`$result, var]
+getIndexNames[sys_Alpha`system , var_String]
+  Function:	Returns the list of index names from a variable's declaration.
+
+getDeclaration[var_String] := getDeclaration[Alpha`$result, var]
+getDeclaration[_Alpha`system, var_String]
+  Function:	Returns the complete declaration of a variable
+		or an empty list if the declaration does not exist.
+
+getDefinition[lhs_String] := getDefinition[Alpha`$result, lhs]
+getDefinition[alpha_, lhs_String]
+  Function:	Returns the RHS of the equation defining a variable.
+		or an empty list if the definition does not exist.
+
+getEquation[lhs_String] := getEquation[Alpha`$result, lhs]
+getEquation[_Alpha`system, lhs_String] :=
+  Function:	Returns the equation defining a variable
+		or an empty list if the definition does not exist.
+
+lookUpFor[_Alpha`system, position:{_Integer...}, operator_Symbol]
+  Function:	Returns the smallest tree whose root is the specified
+		operator and which contains the specified position,
+		or an empty list if operator not found.
+
+lookUpForPos[_Alpha`system, position:{_Integer...}, operator_Symbol]
+  Function:	Returns the position of the nearest occurrence of a
+		specific operator surrounding a specified position,
+		or an empty list if operator not found. 
+
+===========================================================================
+Substitution Package
+--------------------
+    Contains low-level substitution functions.
+    The functions contained in this package are intended for
+    extracting and modifying expressions in an Alpha program.
+
+replaceDefinition[var_String, rhs_String]
+replaceDefinition[_Alpha`system, var_String, rhs_String]
+  Transformation: Returns a copy of an Alpha program in which the definition
+		of the variable `var' is replaced with the expression `rhs'.
+		The result of the substitution is not normalized.
+
+substituteInDef[var1_String, var2_String]
+substituteInDef[_Alpha`system, var1_String, var2_String]
+  Transformation: Returns a copy of an Alpha program in which all occurences of
+		a variable `var2' found on the RHS of the equation of variable
+		`var1' are replaced by their definition (the RHS of `var2').
+		The result of the substitution is not normalized.
+
+getOccurs[ast_, pattern_]
+getOccurs[pattern_]
+  Function:	Returns the position(s) where `pattern' appears in the abstract
+		syntax tree `ast'.  (`pattern' can be an ast or String.)
+
+getOccursInDef[var_String, pattern_]
+getOccursInDef[_Alpha`system, var_String, pattern_]
+  Function:	Returns the position(s) of occurrences of `pattern' in the
+		definition of `var'. (`pattern' can be an ast or String.)
+
+occursInDefQ[var_String, pattern_]
+occursInDefQ[_Alpha`system, var_String, pattern_]
+  Predicate:	Returns true if `pattern' appears on the RHS of
+		the definition of variable `var'. (`pattern' can be an ast
+		or String.)
+
+unusedVarQ[var_String]
+unusedVarQ[_Alpha`system, var_String]
+  Predicate:	Returns true if a local of input variable `var' is used
+		on the RHS of any equation.
+
+removeUnusedVar[var_String]
+removeUnusedVar[_Alpha`system, var_String]
+  Transformation: Returns a copy of the program with the declaration and
+		definition of variable `var' removed.  Uses `unusedVarQ'
+		to check if the variable is actually unused.
+
+removeAllUnusedVars[]
+removeAllUnusedVars[_Alpha`system]
+  Transformation: Returns a copy of the program with the declaration and
+                definition of all unused *local* variable removed.
+
+===========================================================================
+Normalization Package
+---------------------
+	Contains the definitions of normalization rules along with
+	basic normalizing functions.
+
+normalize[]
+normalize[exp_]
+  Transformation: Returns a copy of an ALPHA expression which has been
+		normalized using standard rules.
+
+normalize0[]
+normalize0[exp_]
+  Transformation: Returns a copy of an ALPHA expression which has been
+		normalized using Alpha0 rules which allow nested cases.
+
+normalizeDef[var_String]
+normalizeDef[_Alpha`system, var_String]
+  Transformation: Returns a copy of a program in which the definition of
+		variable `var' has been normalized using standard rules.
+
+normalizeDef0[var_String]
+normalizeDef0[_Alpha`system, var_String]
+  Transformation: Returns a copy of a program in which the definition of
+		variable `var' has been normalized using Alpha0 rules.
+
+checkRestrictions[]
+checkRestrictions[_Alpha`system]
+  Transformation: Returns a copy of a program in which redundant restrictions
+		have been removed.  Done at the end of normalization.
+
+simplifyRestrictions[]
+simplifyRestrictions[_Alpha`system]
+simplifyRestrictions[_Alpha`system, var_String]
+  Transformation: Returns a copy of a program in which restrictions have
+		been simplified in the context of the domain of declaration
+		of the LHS variable.
+  N.B. should be incorporated into normalize ?
+
+normalizeInCtxt[exp_, _Alpha`domain]
+normalizeInCtxt0[exp_, _Alpha`domain]
+  Function:	Returns a copy of expression `exp' which has been normalized
+		in the context of the specified domain.
+
+normalizationRules
+  Variable:	List of rewrite rules specifying the normalization of
+    		an ALPHA expression towards the CRD (Case-Restriction-
+		Dependence) normal form.
+
+normalizationRules0
+  Variable:	List of rewrite rules specifying the normalization of
+		an ALPHA expression towards the Alpha0 (NestedCase-
+		Restriction-Dependence) normal form.
+
+===========================================================================
+ChangeOfBasis Package
+---------------------
+
+changeOfBasis[COBspec_String]
+changeOfBasis[_Alpha`system, COBspec_String]
+changeOfBasis[LHSvar_String, fn_Alpha`matrix]
+changeOfBasis[_Alpha`system, LHSvar_String, fn_Alpha`matrix]
+  Transformation: Returns a copy of the program in which the basis of
+		the local variable `LHSvar' is changed by an unimodular
+		affine function `fn'.  If the `COBspec' form is used,
+		the function may be specified like 'B.(i,j,k -> i+1,j,k)'.
+    		The name of the variable to modify and the change of basis
+		matrix are given in the format of a dependence, with ONE
+		DIFFERENCE: the index mapping function is understood as
+		a mapping from INITIAL to NEW position (and not the opposite). 
+  N.B.: This transformation can be used to rename the indices in the
+		declaration and the definition of a variable, by specifying
+		an identity transformation with new index names.
+
+===========================================================================
+Decomposition Package
+---------------------
+
+decompose[exp_String, newVar_String]
+decompose[_Alpha`system, exp_String, newVar_String]
+  Transformation: Returns a copy of the program in which the specified sub-
+		expression `exp' is replaced with a local variable `newVar'.
+		A declaration and definition are created for `newVar'.
+  N.B. Compare to addlocal.m
+
+===========================================================================
+Pipeline Package
+----------------
+
+pipeline[pos:List[_Integer..], pipelineSpec_String]
+pipeline[_Alpha`system, pos:List[_Integer..], pipelineSpec_String]
+pipeline[pos:List[_Integer..], newVar_String, _Alpha`matrix] 
+pipeline[_Alpha`system, pos:List[_Integer..], newVar_String, _Alpha`matrix] 
+  Transformation: Returns a copy of the program in which a particular
+		expression at position `pos' in a normalized program
+		is pipelined by a variable `newVar' in a direction specified
+		by a translation matrix.  Alternately, a `pipelineSpec'
+		may be supplied whose format is that of a dependence where
+		the index mapping function is a translation in the pipeline
+		direction.  For instance, `B.(i,j,k -> i+1,j,k)' specifies
+		`B' as the new pipeline variable and (1,0,0) as the pipeline
+		direction.
+  N.B. Requires using function `getOccursInDef' to find the position of
+	a particular instance of an expression in a definition.
+	Example: `getOccursInDef["C",affine[var["a"],_], 2]' finds the
+	second occurrence of a dependence on 'a' in the equation defining 'C'.
+
+pipeall[var_String, exp_String, pipelineSpec_String]
+pipeall[_Alpha`system, var_String, exp_String, pipelineSpec_String]
+  Transformation: Returns a copy of the program in which all occurences of
+		the expression `exp' on the RHS of the definition of variable
+		`var' are pipelined by the variable and in the direction
+		specified by `pipelineSpec'.
+
+pipeIO[exp_String, pipelineSpec_String, bound_String]
+pipeIO[var_String, exp_String, pipelineSpec_String, bound_String]
+  Transformation: Returns a copy of the program in which all occurences of
+		the expression `exp' found anywhere in the program, (or
+		on the RHS of the definition of variable `var') are
+		pipelined to/from the boundary given in terms of a domain.
+		The direction and pipe variable are specified in `pipelineSpec'.
+		If the direction is toward the boundary, the expression
+		is piped as an output.  If the direction is away from the
+		boundary, the expression is piped as an input.
+
+getContextDomain[sys_Alpha`system, {occur:{_Integer..}...}]
+  Function:	Returns the domain of context surrounding the given
+		positions of expression occurrences.
+
+inverseInContext[M_Alpha`matrix, D_Alpha`domain]
+  Function:	Returns the Matrix M' which is the left inverse of M
+		in the context of domain D such that M'My = y  forall y in D.
+
+===========================================================================
+Cut Package
+-----------
+cut[var_String, _Alpha`domain, var1_String, var2_String]
+cut[_Alpha`system, var_String, _Alpha`domain, var1_String, var2_String]
+  Transformation: Returns a copy of the program in which the variable
+		named `var' is replaced with new variables `var1' and
+		`var2'.  Variable `var' is cut into two parts using the
+		specified domain.  The part inside becomes `var1' and the
+		part outside becomes `var2'.
+
+===========================================================================
+Control Package
+---------------
+	Contains the definition of functions related to control signal
+	generation.
+	N.B. This package needs alot of work.
+
+temporalCaseQ[caseExp_, time_, space_]
+temporalCaseQ[_Alpha`system, caseExp_, time_, space_]
+  Predicate:	Returns true of the specified case expression is a
+		temporal case, i.e. all alternatives are defined over the
+		same spatial domain.  `time' and `space' are lists of the
+		positions of the time and space indicies, respectively.
+
+spatialCaseQ[caseExp_, time_, space_]
+spatialCaseQ[_Alpha`system, caseExp_, time_, space_]
+  Predicate:	Returns true if the specified case expression is a
+		spacial case, i.e. can be rewritten using conditions on
+		spacial indicies only. `time' and `space' are lists of the
+		positions of the time and space indicies, respectively.
+
+buildSpaceTimeCase[_Alpha`domain, _Alpha`restrict, case_, time_, space_]
+buildSpaceTimeCase[_Alpha`system,
+		   _Alpha`domain, _Alpha`restrict, case_, time_, space_]
+  Function:	Returns a copy of the space-time nested case expression
+		contained in the specified domain into which the specified
+		restricted expression has been merged.  The resulting case
+		is a list of restrictions separated by spatial hyperplanes.
+		The space-time nested case is a list of spatial restrictions
+		whose associated expressions are either temporal case
+		expressions or case-free expressions. It is represented in
+		a redundant form: each temporal case is expressed as a
+		restriction whose domain is the spatial domain of the case
+		itself.
+
+buildControledCase[case_, condVar_String, defaultExpression]
+  Function:	Builds a temporal case expression for the control variable
+		using a default expression (usually a constant).
+
+makeSTCase[_Alpha`domain, case_, time_, space_]
+  Function:	Unrolls an arbitrary arity case and builds the corresponding
+		space-time case hierarchy.
+
+needsMuxQ[exp_]
+needsMuxQ[_Alpha`system, exp_]
+  Predicate:	Returns true if the expression contains space-time cases.
+
+makeMuxControl[var_String, ctrlVar_String, time_, space_]
+makeMuxControl[_Alpha`system, ctrlVar_String, time_, space_]
+  Function:	Takes a space-time case and builds the corresponding mux
+		control variables. Restricted to binary cases. Calls
+		buildMuxedSignalDef and buildMuxCtrl.
+
+spaceTimeCase[var_String, time_, space_]
+spaceTimeCase[_Alpha`system, var_String, time_, space_]
+  Function:	Unrolls a normalized case-based definition of a local
+		variable by calling makeSTCase.
+
+spatiallyIndependentPart[_Alpha`domain, exp_, restrList:{_Alpha`restrict..},
+                         time_, space_]
+  Function:	Computes a subrestriction spatially independent from a given
+		restriction list.
+
+buildMuxCtrl[restrList:{_Alpha`restrict..}, ctrlVar_String]
+  Function:	Builds a mux control signal.
+
+buildMuxedSignalDef[restrList:{_Alpha`restrict..}, ctrlVar_String]
+  Function:	Builds a mux-controled variable definition.
+
+===========================================================================
+Equivalence Package
+-------------------
+	 Contains the definition of equivalence checking functions.
+
+exprUnivEquivQ[expr1_, expr2_]
+  Predicate:	True if two expressions in an ALPHA programs are
+		equivalent in any point of an universal domain of appropriate
+		dimension.  Equivalent to the equality of expressions.
+
+exprLocalEquivQ[expr1_, expr2_, dom_Alpha`domain]
+  Predicate:	True if two expressions in an ALPHA programs are
+		equivalent in any point of a given domain.
+
+===========================================================================
+Schedule Package
+----------------
+
+getDepVectorMatrix
+  Function:	Returns the dependence vector matrix of an uniform ALPHA
+		program. (Does not check the program for uniformity.)
+
+minPeriodLinearSingleSched[_Alpha`system, proj_]
+minPeriodLinearSingleSched[proj_]
+  Function:	Returns the minimum period schedule of an uniform ALPHA
+		program given a projection vector `proj'.  Schedule given
+		as a list of the period value and the scheduling vector
+		(given as list of substitutions 'coef -> value').
+
+minPeriodLinearOffsetSched[_Alpha`system, proj_, varList_]
+  Function:	Returns the minimum period linear-with-offset (affine
+		variable-independent) schedule of an uniform ALPHA program.
+		Schedule given as a list of the period value, the
+		scheduling vector and the variable-dependent offsets
+                (given as list of substitutions 'coef -> offset').
+		The projection vector s an integer vector (list of integers):
+		'{1, 0, -1, 2, ...}'. The grouping of variables `varList'
+		specifies the sets of variables that should share the same
+		linear part of the schedule in the format '{group1, group2,
+		..., groupn}'.  E.g., for a program containing local variables
+		A, B, C, D, and E, giving '{{A, B}, C, {D, E}}' as variable
+		grouping makes variables 'A' and 'B' on one hand, and
+		'D' and 'E' on the other share the same linear part of the
+		schedule. If all variables have to share the same schedule,
+		input '{{A, B, C, D, E}}'. The default is to use a distinct
+		schedule for each variable.
+
+minPeriodAffineSched[_Alpha`system, proj_, varList_]
+minPeriodAffineSched[proj_, varList_]
+  Function:	Returns a minimum period, affine-by-statement schedule
+		consisting of a list of the period value
+		and the corresponding scheduling vectors for each group of
+		variables, given as lists of substitutions 'variable -> vector'
+		and 'variable -> offset'. The variable `proj' and `varList'
+		are as described in minPeriodLinearOffsetSched. 
+
+optLinearSingleSched[_Alpha`system]
+optLinearSingleSched[]
+  Function:	Returns the optimal linear schedule of an ALPHA program.
+		Result is a list consisting of the upper bound of the
+		execution time and the corresponding scheduling vector.
+		Doesn't check for domain finiteness.
+
+optLinearOffsetSched[_Alpha`system, varList_]
+optLinearOffsetSched[varList_]
+  Function:	Returns the optimal linear-with-offset (single-statement
+		affine) schedule of an ALPHA program.  Result is a list
+		consisting of the upper bound of the execution time, the
+		corresponding scheduling vector, and a list of variable
+		group-dependent offsets, given as substitutions
+		'variable -> offset'.
+
+optAffineSched[_Alpha`system, varList_]
+optAffineSched[varList_]
+  Function:	Returns the optimal affine-by-statement schedule of an
+		uniform ALPHA program.  The result is a list consisting
+		of the upper bound of the execution time, the corresponding
+		scheduling vectors for each group of variables given as
+		lists of substitutions 'variable -> vector', and a list of
+		variable group-dependent offsets given as lists of
+		substitutions 'variable -> offset'.
+
+==========================================================================i
+Merge Package
+-------------
+
+merge[_Alpha`system, var1_String, var2_String, newVar_String]
+merge[var1_String, var2_String, newVar_String]
+  Transformation: Returns a copy of the program in which two local variables
+		`var1' and `var2' are merged and replaced by variable
+		`newVar'. The declaration domain of the new variable is the
+		union of the domains of the old ones. The definition of the
+		new variable is a 'case' whose branches are definitions of
+		the old variables restricted to their respective domains.
+		RHS occurrences of the old variables are replaced by the
+		proper restrictions of the new variable.
+
+mergeCaseBranches[_Alpha`system, positionCase_, positionBranches]
+mergeCaseBranches[positionCase_, positionBranches]
+  Transformation: Returns a copy of the program in which branches of a
+		case statement will be merged if they contain identical
+		expressions.
+
+unionMerge[_Alpha`system, var1_String, var2_String, newVar_String]
+unionMerge[var1_String, var2_String, newVar_String]
+  Transformation: Returns a copy of the program in which two local variables
+		var1' and `var2' are merged and replaced by variable
+		`newVar'.  Extension of 'merge' that handles overlapping
+		definitions, the difference being that overlapping
+		domains are accepted if both expressions are equivalent
+		over the overlap. By `equivalent' we mean that the structures
+		of the expressions are identical and that the images of the
+		overlap domain through the dependence functions are equal for
+		any dependence.  To illustrate the latter, consider the
+		expressions '{i,j|i=j; 1<=j<=4} : A.(i,j->i,j)' and
+		'{i,j|i=j; 1<=j<=4} : A.(i,j->j,j)'.  Although the dependence
+		functions are not equal, these expressions are equivalent
+		over the domain '{i,j|i=j; 1<=j<=4}'.
+
+unionMergeCaseBranches[_Alpha`system, positionCase_, positionBranches]
+unionMergeCaseBranches[positionCase_, positionBranches]
+  Transformation: Returns a copy of the program in which branches of a
+		case statement will be merged if they contain identical
+		expressions.
+
+===========================================================================
+Pprint Package
+--------------
+	Contains functions for pretty-printing ALPHA programs on the screen
+	and saving their external representation in files.
+
+show[_Alpha`system]
+show[exp_]
+show[]
+  Procedure:	Pretty-prints a chunk of Alpha on the screen.
+
+sketch[_Alpha`system, var_String]
+sketch[var_String]
+  Procedure:	Pretty-prints a chunk of Alpha on the screen. Restricts
+		the display to the declaration and the definition of a
+		specified variable.  Other parts are printed as `...'.
+
+save[_Alpha`system, file_String]
+save[exp_, file_String]
+save[file_String]
+  Procedure:	Pretty-prints a chunk of Alpha to a file.
+
+===========================================================================
+Static Package
+--------------
+	Static analysis of a ALPHA program.
+	N.B. This file is works, but is out of date.  Static and TypeChecker
+	     should be combined into a single file Semantics which implement
+	     all of the semantic procedures.
+
+analyze[_Alpha`system]
+analyze[]
+  Procedure:	Performs static analysis and domain checks for the program.
+		Errors and warning are printed to the screen.
+
+evalDom[expression_String]
+  Function:	Returns the domain (ast) for the given expression.
+
+evalDomAlpha[expression_String]
+  Function:	Returns the domain (alpha) or the given expression.
+
+find[var_String]
+  Function:	Returns the domain (ast) for the given variable.
+  N.B. should be replaced with more general, getDefinition (see Matrix Package).
+
+findalpha[var_String]
+  Function:	Returns the domain (alpha) for the given variable.
+
+===========================================================================
+TypeChecker Package
+-------------------
+	Attempts to check type semantics of an Alpha program.
+	Includes type coersion which was never part of Alpha.
+
+getExpType[_Alpha`system, exp_]
+getExpType[_exp_]
+  Function:	Returns the type of an expression and checks its correctness
+		wrt. type-matching rules.  Result is the type of the
+		expression if it is correctly typed, and 'Alpha`bottom'
+		otherwise, and a message is printed on the screen.
+
+getUseDomain[_Alpha`system, position_]
+getUseDomain[position_]
+  Function:	Returns the domain (ast) on which the expression at `position'
+		is used.
+  N.B.  Use getContextDomain (see Pipeline package) instead.
+
+matchTypes[type1_, type2_]
+  Function:	Returns the smallest supertype of `type1' and `type2'
+		or 'Alpha`bottom' if the types are uncompatible.
+		Types are Alpha`boolean, Alpha`integer, or Alpha`real.
+
+N.B. Packages Static and TypeChecker need to be combined, rethought, and
+     updated.  Some things may want to be included in Normalization.
+     There should be a single Alpha program checker that checks both
+     domains and types.
+
+===========================================================================
+Properties Package
+------------------
+	Contains the definition of various property-checking functions.
+	Should be used as the preferred place for adding new property-
+	checking predicates that might be of large interest.
+
+allDomEqualQ[domainList_]
+  Predicate:	Returns true if all the domains in a list are equal.
+
+allDomDisjointQ[domainList_]
+  Predicate:	Returns true if all the domains in a list are disjoint.
+
+uniformQ[exp_]
+  Predicate:	Returns true if an ALPHA construct (affine function,
+		program) is uniform.  Returns 'False' if the expression
+		contains no affine function.
+
+  N.B:		This function is still fairly uncomplete and under
+		development. It needs extension, and in particular,
+		the 'wiring' of a good definition of the uniformity.
+		By now, it is too restrictive on programs with
+		pseudo-restrictions of the kind {i,j|j=0} : A.(i,j->i,0).
+
+===========================================================================
+Visual Package
+--------------
+showDomain[domain_, title_String]
+showDomain[domain_]
+showDomain[var_String]
+  Procedure:	Displays a graph of 1D or 2D domains.  
+
+bbDomain[domain_]
+  Function:	Returns the bounding box of 1D or 2D domains in form
+		{{xmin,xmax},{ymin,ymax},{xneg,xpos}, {yneg,ypos}}.
+		{xmin,xmax},{ymin,ymax} is the bounding box of the vertices.
+		{xneg,xpos},{yneg,ypos} (where elements are 1's and 0's)
+		are the directions in which there are rays or lines.
+
+===========================================================================
+Unpackaged
+----------
+adddim
+------
+addDimension[spec_String, newid_List]
+  Transformation: Returns a copy of an Alpha program in which one
+		or more redundant dimensions are added to a variable.
+		Specification `spec' is in the form:
+		V.(i,j, ... -> f(i,j,..), g(i,j,..), ... , i, j, ...)
+		where i,j,... are the old indicies, and f(), g(), ...
+		are functions for the new dimensions.  The list newid
+		is a list of new index names, corresponding to f(), g(), etc.
+
+  N.B. should be merged into the ChangeOfBasis package.
+
+addlocal
+--------
+expDomain[sys_Alpha`system, exp_]
+  Function:	Returns the domain for a given expression.  Updated
+		version of evalDom function in Static package.
+
+  N.B.		Needs to be reintegrated back into Static.
+
+addlocal[spec_String]
+addlocal[_Alpha`system, spec_String]
+  Transformation: Returns a copy of an Alpha program in which
+		a new local variable is added.  Specification is in
+		format "var = expression", where var is the new local
+		variable to be added.  `expression' cannot be recursive.
+		All other occurences of `expression' in the program are
+		replaced by `var'.
+  N.B.  Needs to be integrated into decompose package.
+
+project
+-------
+project[dspec_String, spec_String]
+project[sys_Alpha`system, dspec_String, spec_String]
+  Transformation: Returns a copy of an Alpha program in which the domain
+		of a variable is projected, removing redundant dimensions
+		from the variable's domain.  The format of `dspec' is a
+		domain which may specify the dimension to be projected
+		out.  The format of `spec' is a variable.projection showing
+		which variables are being projected out.  For example:
+		project("{i,j,N | N=4}", "A.[i,j,N -> i,j)"] fixes a
+		parameter N to 4 and removes it from the domain.  An error
+		message will be printed if the dimension cannot be
+		projected out (is not redundant).
+
+reduce
+------
+reduce[_Alpha`system]
+reduce[]
+  Transformation: Returns a copy of an Alpha program in which certain
+		simplifications and reductions are performed.
+		- simplifies restriction domains in context of declaration
+		- simplifies affine functions in context of declaration
+		Works on normalized or unnormalized programs.  Desired
+		result was to make programs more readable.
+
+  N.B. Reduction of affine functions is not necessarily the reduction
+       desired.  This reduction attempts to elimate as many variables
+       as possible in the RHS of the function.  Instead, it should
+       try to make the function as close to the identity function as
+       possible.  More work is needed here.
+
+spacetime
+---------
+ApplyChangeOfBasis[schedule_, projection_, varList_]
+  Procedure:	Generates the changeOfBasis and addDimension transformations
+		needed to apply the specified schedule and projection
+		vector to a program.  varList is the list of variable to
+		be scheduled.  By way of example, `schedule' must be in form:
+		{2, {2,-1}, {"B" -> 2, "Q" -> 2, "qq"-> 0, "rr" -> 3}}
+		`projection' in form: {1,0} and varList in form:
+		{"B", "Q", "qq", "rr"}.
+
+  N.B. should be integrated into Schedule package.

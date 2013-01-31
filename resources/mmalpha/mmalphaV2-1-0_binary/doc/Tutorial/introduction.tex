@@ -1,0 +1,301 @@
+\chapter*{Foreword}
+\mmalfa{} is a free software, available under the 
+\gpl{}. It can be downloaded from 
+the site:\\
+\sitemmalfa{}\\
+If you have any problem 
+in understanding this document or trying the \mmalfa{} software, please 
+send an e-mail to the following address:
+{\tt alpha@irisa.fr}. 
+
+Although we cannot guarantee a strong support, we shall try
+our best to help solving your problem. 
+
+Many people contributed to \mmalfa{}. 
+\begin{itemize}
+\item Pierrick Gachet designed an early version of \alfa{}.
+\item Christophe Mauras designed the first real version of \alfa{}, and
+implemented the ancestor of \mmalfa{}, called {\sc Alpha du Centaur}.
+\item Hervé Le Verge continued the work of Christophe Mauras, and 
+worked on reduction operators. He also implemented the first version
+of the polyhedral library.
+\item Doran Wilde designed the first version of the parser, of the
+pretty-printers, of \texttt{WriteC}, and of many early packages
+of \mmalfa{}. He developped a new, more efficient version of the 
+polyhedral library. 
+\item Zbignew Chamsky contributed to the design of the first
+\mmalfa{} packages. 
+\item Florent Dupont de Dinechin implemented the structuration of 
+\alfa{}, and deeply improved the \mmalfa{} environment. 
+\item Tanguy Risset is the conductor of the \mmalfa{} 
+entreprise. He designed the scheduler, and many other packages.
+\item Patrice Quinton was the inspirer of \alfa{}, and implemented
+several minor packages of \alfa{}. He also designed numerous
+notebook. 
+\item Sanjay Rajopadhye insuffled many ideas and designed the 
+reduction expansion package. 
+\item Patricia Le Moenner implemented the Vhdl generator.
+\item Fabien Quilleré is currently implementing a new C generator.
+\end{itemize}
+
+
+
+We also thank the EEC, who sponsored the development of \alfa{}
+through several grants. The late C$^3$ research cooperation 
+network also helped initial research on \alfa{}.
+
+
+
+\chapter{Introduction}
+
+\label{chap1}
+In this document, we introduce the basics of {\alfa} and we explain
+how to use {\mmalfa}.
+
+
+
+%What is Alpha
+\section{What is \Alpha?}
+{\alfa} is a language for the specification and the derivation of
+systolic algorithms and architectures, and more generally, for the
+specification and design of parallel algorithms and architectures based on
+the formalism called the {\em polyhedral model}. 
+
+
+
+\label{Whatis}
+\nocite{Alpha97a,Alpha97b}
+
+% History
+{\Alpha} is a functional data parallel language invented in the {\api}
+research group in the {\irisa} laboratory in Rennes. The project was
+headed by Patrice Quinton and the first definition of the language was
+proposed by Mauras in~\cite{Mauras89} in 1989. The original motivation
+was to provide a language for expressing algorithms in an extended
+version of the formalism of recurrence equations proposed by Karp,
+Miller and Winograd~\cite{KaMiWi67}. The goal of this language was to
+provide a high level tool for the synthesis of parallel regular
+{\vlsi} architectures.
+
+
+
+Although {\Alpha} stands for the language itself, it is often also
+associated with the environment in which it is currently developed:
+{\bf {\mmalfa{}}}. {\mmalfa{}} is an interface based on the {\mma{}}
+software from which one can manipulate {\Alpha} programs.
+
+
+
+%Motivations of {\alfa}
+
+\section{What is {\Alpha} for?}
+\label{whatfor}
+{\Alpha} is currently a research tool which provides research problems
+in different computer science areas fields like: functional language semantics,
+parallelization, code generation, optimization, polyhedral theory,
+{\vlsi} synthesis, systolic arrays, etc.
+
+
+
+One important long term goal is to promote the use of high level
+functional languages for the synthesis of parallel {\vlsi}
+architectures. 
+
+
+
+%What can we do with it?
+
+\section{What can you expect from \alfa{}?}
+From the short term point of view, \alfa{} can be
+useful for:
+\begin{itemize}
+\item Providing a correct recurrence equation specification for a particular 
+algorithm.
+
+\item Simulating such a specification.
+
+\item Transforming and simplifying a recurrence equation specification.
+
+\item Computing on convex polyhedra.
+
+\item Scheduling and detecting parallelism.
+
+\end{itemize}
+
+If you are ready to invest a little more time on {\mmalfa{}}, you will 
+probably be able to 
+\begin{itemize}
+\item Describe a systolic architecture with {\AlpHard} (see
+section~\ref{alphard}).
+\item Generate {\vhdl} from this description.
+\item Provide a path from high level functional specification of
+an algorithm to the layout description of a {\vlsi} algorithm
+realizing it.
+
+\end{itemize}
+
+If you becomed hooked to \alfa{}, you will be able to take advantage
+of a {\em completely open framework} in which you will be 
+able to design your own tools, or interface your own programs: 
+the source code of all functions described in this manual is
+available. 
+
+
+
+% Principles
+
+\section{How does \mmalfa{}{} work?}
+
+{\mmalfa{}} is written in C (for a small part) and in
+\mma{} (for a larger part). 
+
+
+
+The user should only see the \mma{} interface.
+\mma{} provides an interpreted language with high level built-in
+function for symbolic computations:  {\mmalfa{}} uses these facilities for
+transforming {\Alpha} programs. \mma{} has also a nice programming
+language in which one can do general computation as in any other
+programming language.
+
+
+
+The basic principle of the {\mmalfa{}} environment is the following one:
+\mma{} stores an internal representation of an {\Alpha} program
+(called Abstract Syntax Tree or AST) and perform computations on this
+internal representation via user's commands. These commands can be for
+example: viewing the {\Alpha} program, checking its correctness,
+adding a variable, generating C code to simulate it, generate a
+systolic array, generate \vhdl{} code, etc. All the computations
+happen on the internal AST which is stored in the \mma{} environment. 
+
+
+
+Specific modules in C are used for two purposes: various parsers and
+unparsers and computations on polyhedra. All the C functions are
+accessed via \mma{}, but they can also be called from a C program:
+this is particulary useful for the polyhedral library.  The polyhedral
+library, written by H. Le Verge and D. Wilde (see
+appendix~\ref{polylib}) is the computationnal kernel of the
+{\mmalfa{}} environment. Its use provides many transformations that
+cannot be done easily by hand.
+
+
+
+
+
+%Describe the document
+
+\section{What is in this document}
+The organization of this document is as follows. 
+Chapter~\ref{chapstart} is a brief overview of the 
+\mmalfa{} environment. 
+
+
+
+In chapters~\ref{chapalphascal} and \ref{chapalphaarray}, we introduce
+{\alfa} following an architecture-oriented approach. In other words,
+we describe {\alfa} programs whose interpretation is always an
+architecture.
+
+
+
+Chapter~\ref{chapderiving} illustrates the
+derivation of systolic architectures from a high-level description.
+
+
+
+In chapter~\ref{chapfunctional}, we introduce {\alfa} as a functional 
+data parallel programming language. This point of view is complementary
+to that of the first two chapters, in that it show how to use {\alfa}
+as an algorithmic language.
+
+
+
+Chapter~\ref{chapssubsystems} deals with structured and parameterised
+{\alfa}, which gives the full power of the language, both for the 
+description of hardware and the specification of algorithms.
+
+
+
+Chapters~\ref{chapanalyze} and~\ref{chapcodegen} are more ``practical''
+and tool-oriented.  In chapter~\ref{chapanalyze}, we describe the
+static analyzer of {\mmalfa}\,: it is a useful tool to check some
+properties of an {\alfa} program.  Chapter~\ref{chapcodegen} explaines
+how to generate code and simulate {\alfa} programs.
+
+
+
+Chapter~\ref{chapscheduling} is devoted to scheduling {\alfa}
+programs. Scheduling is one of the essential steps of the derivation
+of architectures as well as compiling {\alfa} to sequential and
+parallel machines. 
+
+
+
+Chapter~\ref{chapalfhard} (still under heavy work...) is
+intended to explain how \AlpHard{} is defined
+and how to 
+generate \vhdl{} code frome \alfa{}.
+
+
+
+%A roadmap for the tutorial.
+
+\section{How to read this tutorial?}
+Depending on your interest in \mmalfa{}, you will be interested
+in particular chapters of this tutorial. 
+
+
+
+First, read chapter~\ref{chapstart}: it does not hurt... and 
+does not take too much time. By the way, there is a separate, 
+slightly extended version of this chapter available in document
+~\cite{gettingstarted}.
+
+
+
+Chapter~\ref{chapderiving} will be worth reading, if you are
+interested in systolic array design.
+
+
+
+You may skip chapters~\ref{chapalphascal} and \ref{chapalphaarray}
+if you are not immediately interested in deeply understanding 
+the mechanisms of \alfa{}. 
+
+
+
+If you are interested in writing a "real" \alfa{} program, 
+you will have to read chapters~\ref{chapssubsystems}, 
+\ref{chapanalyze}, \ref{chapcodegen}, and~\ref{chapscheduling}. 
+
+
+
+Finally, if you want to produce "real hardware", read chapter
+~\ref{chapalfhard}.
+
+
+
+\section{Other documents}
+This tutorial is not the only information available on 
+\alfa{} and \mmalfa{}. There are papers, for the academic 
+oriented people. There are also many demonstration notebooks. 
+To access them, start \mma{}, type the command \texttt{start[]}, 
+and enjoy\footnote{or dislike...}.
+
+
+
+\section{What we plan in the (near?) future}
+The current tutorial is not yet complete. Several aspects of 
+{\alfa} and {\mmalfa} (already implemented) need to be described
+in detail. Among them, the generation of {\sc Vhdl}, the subset
+of {\alfa} called {\alfhard}, and the functions in {\mmalfa} 
+which allow one to manipulate convex domains and {\alfa} 
+programs. Knowing how long it takes to write and check a 
+documentation, we have chosen to release a \mmalfa{} version 
+without a complete documentation, for those who are interested
+in working with us. 
+
+
+

@@ -1,0 +1,28 @@
+P. Quinton, April 2, 2005, then September 23, 2007
+
+This directory results from the initial sources directory coming from the
+MMAlpha forge, and modifications I tried to do in order to adapt it to 
+Darwin. It was also modified on Sept. 23, 2007 in order to clean it and
+make a documentation. The documentation is in doc/Developpers/Compiling. 
+
+CONTENT (Sept. 23, 2007)
+
+Not committed yet
+
+*Makefile.config received a few modifications. Previously, the objects files
+   for CODEGEN were named codegen.gen.o instead of gen.o now. Does it matter?
+   Also, the PRETTYDIR was bound to Pretty, and now directly to Write_alpha. 
+   I am not sure that it works... See log. 
+*Makefile.cygwin
+*Makefile.cygwin.4.2 is the configuration file for MMA version 4.2 
+*Makefile.darwin 
+*Makefile.darwin.6.0 is the configuration file for MMA version 6.0
+*Makefile.darwin.5.2 is the configuration file for MMA version 5.2
+*Makefile.linux 
+*Makefile.linux.3.0.1 is the configuration file for MMA version 3.0.1 at Irisa
+*Makefile.linux.4.2 is the configuration file for MMA version 4.2
+*Makefile.rules 
+*Makefile.solaris 
+*Makefile.solaris.3.0.1 is the configuration file for MMA version 3.0.1 at Irisa
+*Makefile.sunos has no differences, and is obsolete.
+

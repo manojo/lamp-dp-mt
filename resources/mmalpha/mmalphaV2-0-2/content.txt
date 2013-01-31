@@ -1,0 +1,1372 @@
+This MMAlpha directory was extracted on 1/5/2009 at 21:50:50.902475
+From directory: /Users/quinton/mmalpha
+On machine: Macintosh-3
+of user: quinton
+
+
+
+****************
+Copying from main directory
+File CopyMMA.m
+File index.html
+File README
+File welcome.html
+
+
+****************
+Copying from /bin.cygwin
+File code_gen.exe
+File cygwin1.dll
+File domlib.exe
+File index.html
+File pip.exe
+File read_alpha.exe
+File write_alpha.exe
+
+
+*******************
+Copying full directory bin.cygwin32 
+File cat.exe
+File code_gen.exe
+File Copie de domlib.exe
+File CVS
+File .cvsignore
+File cygwin1.dll
+File diff.exe
+File domlib.exe
+File domlib.exe.new
+File domlib.exe.old
+File dos2unix.exe
+File index.html
+File newdomlib.exe
+File newdos2unix.exe
+File pip.exe
+File read_alpha.exe
+File rm.exe
+File save_domlib.exe
+File sed.exe
+File unix2dos.exe
+File write_alpha.exe
+File write_c.exe
+
+
+****************
+Copying from /bin.darwin
+File code_gen
+File domlib
+File index.html
+File pip
+File read_alpha
+File README
+File write_alpha
+File write_c
+
+
+*******************
+Copying full directory bin.linux 
+File code_gen
+File CVS
+File domlib
+File .DS_Store
+File index.html
+File pip
+File read_alpha
+File README
+File write_alpha
+
+
+****************
+Copying from /config
+File diagnose.m
+File index.html
+File init.m
+File README
+File tbs.txt
+
+
+****************
+Copying from /demos
+File demos.html
+File index.html
+File README
+
+
+****************
+Copying from /demos/NOTEBOOKS
+File master.nb
+
+
+****************
+Copying from /demos/NOTEBOOKS/Distances
+File distances.alpha
+File Distances.nb
+File README
+
+
+****************
+Copying from /demos/NOTEBOOKS/Domlib
+File Domlib.nb
+File lu.alpha
+
+
+****************
+Copying from /demos/NOTEBOOKS/Fifo
+File Fifo.nb
+File fifo1.alpha
+
+
+****************
+Copying from /demos/NOTEBOOKS/Fir
+File Fir.nb
+File fir.alpha
+
+
+****************
+Copying from /demos/NOTEBOOKS/Getting-started
+File Getting-started.nb
+File prodVect.alpha
+File binaryAdder.alpha
+
+
+****************
+Copying from /demos/NOTEBOOKS/Introduction
+File Introduction.nb
+File exemple2.alpha
+File exemple3wrg.alpha
+File exemple9.alpha
+File MV1.alpha
+
+
+****************
+Copying from /demos/NOTEBOOKS/Matmult
+File matmult.nb
+File matmult.alpha
+
+
+****************
+Copying from /demos/NOTEBOOKS/Matvect
+File matvect.nb
+File MV1.alpha
+
+
+****************
+Copying from /demos/NOTEBOOKS/Samba
+File samba.nb
+File Samba.alpha
+
+
+****************
+Copying from /demos/NOTEBOOKS/Scheduler
+File StructuredScheduler.nb
+File fulladder.alpha
+File matmult.alpha
+File matmults.alpha
+File testscd1.alpha
+File testscd2.alpha
+File testscd3.alpha
+File testscd4.alpha
+
+
+*******************
+Copying full directory demos/NOTEBOOKS/Synthesis 
+File CVS
+File .cvsignore
+File distances.alpha
+File .DS_Store
+File fir.alpha
+File firSYN
+File fir.vhd
+File matmult.alpha
+File MV1.alpha
+File prodVectSYN
+File samba.alpha
+File samba.alpha~
+File script
+File script~
+File Synthesis.nb
+File temp1.alpha
+File temp.alpha
+File TestingReport.txt
+
+
+****************
+Copying from /doc
+File alpha.gif
+File alphaDoc.html
+
+
+*******************
+Copying full directory doc/Alphard 
+File Alphard.aux
+File Alphard.idx
+File Alphard.log
+File Alphard.pdf
+File Alphard.tex
+File CVS
+File .cvsignore
+
+
+*******************
+Copying full directory doc/Developers 
+File Alpha0v2
+File Attic
+File Compiling
+File CVS
+File .cvsignore
+File .DS_Store
+File File Hierarchy
+File index.html
+File Interfacing
+File More
+File README
+File Scheduler
+File Using-CVS
+File Write-Read-Alpha
+File Writing-a-package
+File Writing-Documentation
+File Writing-Tests
+
+
+*******************
+Copying full directory doc/Distribution 
+File CVS
+File .cvsignore
+File Distribution.aux
+File Distribution.log
+File Distribution.pdf
+File Distribution.tex
+File .DS_Store
+
+
+*******************
+Copying full directory doc/Doc-MMA-Darwin 
+File CVS
+File .cvsignore
+File Darwin-note.aux
+File Darwin-note.log
+File Darwin-note.pdf
+File Darwin-note.tex
+File .DS_Store
+File FixedPointArithmeticInMMAlpha.pdf
+
+
+*******************
+Copying full directory doc/Install 
+File changes_from_doran_Makefiles
+File CVS
+File .cvsignore
+File Doc-How-to-install.aux
+File Doc-How-to-install.idx
+File Doc-How-to-install.log
+File Doc-How-to-install.pdf
+File Doc-How-to-install.tex
+File How-to-install.log
+File How-to-install.tex
+File How-to-install.txt
+File How-to-use.txt
+File init.m
+File README
+File README-CVS
+File revision4solaris.txt
+File MMAlphaDoc.html
+
+
+*******************
+Copying full directory doc/Pipeline 
+File CVS
+File .DS_Store
+File ex1.eepic
+File ex1.fig
+File ex2.eepic
+File ex2.fig
+File ex3.eepic
+File ex3.fig
+File ex.eepic
+File ex.fig
+File pipelineDoc.aux
+File pipelineDoc - copie.pdf
+File pipelineDoc.log
+File pipelineDoc.pdf
+File pipelineDoc.tex
+
+
+*******************
+Copying full directory doc/PolyLib 
+File CVS
+File note.aux
+File note.log
+File note.pdf
+File note.tex
+
+
+*******************
+Copying full directory doc/QuickStart 
+File adder.eps
+File adder.pdf
+File AlphaStart.aux
+File AlphaStart.bbl
+File AlphaStart.bib
+File AlphaStart.idx
+File AlphaStart.log
+File AlphaStart.pdf
+File AlphaStart-previous.pdf
+File AlphaStart.tex
+File AlphaStart.toc
+File CVS
+File .cvsignore
+File .DS_Store
+File stupid1.eepic
+File stupid1.fig
+
+
+*******************
+Copying full directory doc/ReferenceManual 
+File Alphard.tex
+File Alpha.tex
+File auto
+File BinExpansion.tex
+File BitOperators.tex
+File ChangeOfBasis.tex
+File Control.tex
+File Cut.tex
+File CVS
+File Decomposition.tex
+File DesignManagement.tex
+File Domlib.tex
+File .DS_Store
+File FarkasSchedule.tex
+File genReferenceManual.m
+File incl-Alpha.tex
+File incl-Alpha.tex~
+File incl-Alpha.tex.~1.1.~
+File incl-MakeDoc.log
+File incl-MakeDoc.tex
+File incl-MakeDoc.tex.~1.1.~
+File incl-VertexSchedule.tex
+File incl-VertexSchedule.tex~
+File index.html
+File index.html~
+File INormalize.tex
+File INorm.tex
+File Lexicographic.tex
+File LinearAlg.tex
+File MakeDoc - copie.tex
+File MakeDoc.tex
+File Matrix.tex
+File Meta.tex
+File ModularSchedule.tex
+File Normalization.tex
+File Omega.tex
+File Options.tex
+File PipeControl.tex
+File Pipeline.tex
+File Properties.tex
+File Reduction.tex
+File referenceManual.aux
+File referenceManual.dvi
+File referenceManual.idx
+File referenceManual.log
+File referenceManual.pdf
+File referenceManual.tex
+File referenceManual.tex~
+File referenceManual.toc
+File Schedule.tex
+File ScheduleTools.tex
+File Schematics.tex
+File Semantics.tex
+File Static.log
+File Static.tex
+File Substitution.tex
+File SubSystems.tex
+File SystemCTestBench.tex
+File SystemCTools.tex
+File SystemProgramming.tex
+File Tables.tex
+File ToAlpha0v2.tex
+File Transformation.tex
+File Uniformization.tex
+File UniformizationTools.tex
+File VertexSchedule.tex
+File Vhdl2.tex
+File VhdlTestBench.tex
+File Visual3D.tex
+File Visual.tex
+File Zpol.tex
+
+
+*******************
+Copying full directory doc/Schedule 
+File biblio.bib
+File CVS
+File Scheduler_dev_man.pdf
+File Scheduler_dev_man.tex
+File Scheduler_user_manual.pdf
+File Scheduler_user_manual.tex
+
+
+*******************
+Copying full directory doc/Technical-Manual 
+File CVS
+File .cvsignore
+File Technical-Manual.aux
+File Technical-Manual.log
+File Technical-Manual.pdf
+File Technical-Manual.tex
+
+
+*******************
+Copying full directory doc/Users 
+File About-this-dir
+File Alpha0v2.ps
+File AlphaToAlpha0.dvi
+File AnaStatASAP96.pdf
+File AnaStatASAP96.ps
+File BitExpASAP97.pdf
+File BitExpASAP97.ps
+File CNF.dvi
+File CVS
+File .cvsignore
+File doc_user.html
+File File_Hierarchy
+File PI827.pdf
+File PI827.ps
+File PI828.pdf
+File PI828.ps
+File PI829.pdf
+File PI829.ps
+File PI830.pdf
+File PI830.ps
+File pipelineDoc.ps
+File polylib.pdf
+File polylib.ps
+File RefManual.dvi
+File Scheduler_user_manual.pdf
+File Scheduler_user_manual.ps
+File simuldoc.ps
+File StructMPPM95.pdf
+File StructMPPM95.ps
+File StructToplas.pdf
+File StructToplas.ps
+File SubSystems.ps
+File Syntax.pdf
+File Syntax.ps
+File traducteur.dvi
+File trans.txt
+File developersDoc.html
+File docMMAlpha.html
+File generalDoc.html
+File index.html
+
+
+*******************
+Copying full directory doc/packages 
+File Alpha
+File ChangeOfBasis
+File CheckAlpHard
+File CodeGen
+File Control
+File Cut
+File CVS
+File Domlib
+File .DS_Store
+File index.html
+File index.html~
+File MakeDoc
+File Matrix
+File Meta
+File Normalization
+File PipeControl
+File Reduction
+File Schedule
+File Semantics
+File Static
+File StructuredScheduler
+File Substitution
+File SubSystems
+File Tests
+File ToAlpha0v2
+File Uniformization
+
+
+*******************
+Copying full directory doc/tutorial 
+File appendixalpha.tex
+File appendixdemos.tex
+File appendixtechset.tex
+File chapalpha0.tex
+File chapalphaarray.tex
+File chapalphard.tex
+File chapalphascal.tex
+File chapanalyze.tex
+File chapcodegen.tex
+File chapderiving.tex
+File chapfunctional.tex
+File chapscheduling.tex
+File chapstart.tex
+File chapsubsystems.tex
+File chapvhdl.tex
+File CVS
+File demos.tex
+File install.tex
+File introduction.tex
+File intro-mma.tex
+File rest-chap1.tex
+File tutorial.pdf
+File tutorial.tex
+File vhdl.tex
+
+
+****************
+Copying from /lib
+File index.html
+
+
+****************
+Copying from /lib/Packages
+File README
+File Alpha.m
+File Fail.m
+File index.html
+File Setup.m
+
+
+****************
+Copying from /lib/Alpha
+File Alphard.m
+File ChangeOfBasis.m
+File CheckAlpha0.m
+File CheckAlpha0.meta
+File CheckAlpha0.sem
+File CheckCell.m
+File CheckCell.meta
+File CheckCell.sem
+File CheckController.m
+File CheckController.meta
+File CheckController.sem
+File CheckModule.m
+File CheckModule.meta
+File CheckModule.sem
+File Control.m
+File CutMMA.m
+File Domlib.m
+File FarkasSchedule.m
+File INorm.m
+File Lexicographic.m
+File Matrix.m
+File Meta.m
+File Normalization.m
+File Options.m
+File PipeControl.m
+File Pipeline.m
+File Properties.m
+File README
+File Reduction.m
+File Schedule.m
+File ScheduleTools.m
+File Schematics.m
+File Semantics.m
+File Static.m
+File SubSystems.m
+File Substitution.m
+File Synthesis.m
+File SystemProgramming.m
+File Tables.m
+File ToAlpha0v2.m
+File VertexSchedule.m
+File Vhdl2.m
+File VhdlTestBench.m
+File Visual.m
+File Visual3D.m
+File Zpol.m
+File autoload.m
+File vhdlCell.m
+File vhdlCell.meta
+File vhdlCell.sem
+File vhdlCont.m
+File vhdlCont.meta
+File vhdlCont.sem
+File vhdlModule.m
+File vhdlModule.meta
+File vhdlModule.sem
+
+
+****************
+Copying from /lib/Packages/Alpha/CodeGen
+File Domains.m
+File init.m
+File Loops.m
+File Output.m
+File Restrict.m
+
+
+****************
+Copying from /sources
+File Makefile
+File index.html
+File README
+File polylib-5.22.3.tar.gz
+
+
+****************
+Copying from /sources/Code_Gen
+File gen.c
+File gen.h
+File lex.c
+File lex.l
+File Makefile
+File node.h
+File nodeprocs.c
+File nodeprocs.h
+File README
+File VERSION
+File y.tab.h
+File yacc.y
+File y.output
+
+
+****************
+Copying from /sources/Code_Gen/Test
+File Makefile
+File README
+
+
+****************
+Copying from /sources/Domlib
+File Makefile
+File Makefile.Visual
+File Makefile.linux
+File Makefile.darwin
+File README
+File domlib.c
+File domlib.tm
+
+
+****************
+Copying from /sources/MakeIncludes
+File Makefile.checkvars
+File Makefile.config
+File Makefile.cygwin
+File Makefile.cygwin.4.2
+File Makefile.darwin
+File Makefile.darwin.5.2
+File Makefile.darwin.6.0
+File Makefile.linux
+File Makefile.linux.3.0.1
+File Makefile.linux.4.2
+File Makefile.linux.6.0
+File Makefile.rules
+File README
+
+
+****************
+Copying from /sources/Pip
+File Makefile
+
+
+****************
+Copying from /sources/Pip/piplib-1.3.3
+File Makefile
+
+
+****************
+Copying from /sources/Pretty
+File item.h
+File itemprocs.c
+File itemprocs.h
+File lex.l
+File Makefile
+File readitem.c
+File writeitem.c
+File writeitem.h
+
+
+****************
+Copying from /sources/Read_Alpha
+File Makefile
+File README
+File lex.l
+File node.c
+File node.h
+File nodetypes.h
+File read_alpha.c
+File yacc.y
+
+
+****************
+Copying from /sources/Sed
+File TransMatForPip.sed
+File sup_antislash_pip.sed
+
+
+****************
+Copying from /sources/Write_Alpha
+File item.h
+File itemprocs.c
+File itemprocs.h
+File lex.l
+File Makefile
+File node.h
+File node2item.c
+File node2item.h
+File nodeprocs.c
+File nodeprocs.h
+File README
+File writeitem.c
+File writeitem.h
+File yacc.y
+
+
+****************
+Copying from /sources/Write_Alpha/Test
+File ast
+File dom1.alpha
+File dom1.ast
+File out
+File red1.alpha
+File red1.ast
+File xref
+File xrf
+
+
+****************
+Copying from /sources/Write_C
+File Makefile
+File yacc.y
+File yacc.c
+File y.tab.h
+
+
+****************
+Copying from /sources/Write_C/Obj.darwin
+File errormsg.o
+File errors.o
+File Lattice.o
+File Matop.o
+File matrix.o
+File NormalForms.o
+File polyhedron.o
+File SolveDio.o
+File vector.o
+File write_c
+File yacc.o
+File Zpolyhedron.o
+
+
+****************
+Copying from /sources/Write_C/Test
+File Makefile
+File R4.alpha
+File R4.ast
+File R4.c
+File R5.alpha
+File R5.ast
+File R5.c
+File conv.alpha
+File conv.ast
+File conv.c
+File convert.ast
+File convert.c
+File cosparam.ast
+File cosparam.c
+File florent.alpha
+File florent.ast
+File inline.alpha
+File inline.ast
+File inline.c
+File matmul.alpha
+File matmul.ast
+File matmul.c
+File pdgeru1.alpha
+File pdgeru1.ast
+File pdgeru1.c
+File pdgeru2.alpha
+File pdgeru2.ast
+File pdgeru2.c
+File pdscal.alpha
+File pdscal.ast
+File pdscal.c
+File resultsbefore
+File t.c
+File t1.alpha
+File t1.ast
+File t1.c
+File test1.alpha
+File test1.ast
+File test1.c
+File test2.alpha
+File test2.ast
+File test2.c
+File test3.alpha
+File test3.ast
+File test3.c
+File test4.alpha
+File test4.ast
+File test4.c
+File test5.alpha
+File test5.ast
+File test5.c
+File useramr.alpha
+File useramr.ast
+File useramr.c
+
+
+****************
+Copying from /tests
+File README
+File index.html
+File testMMA.nb
+
+
+*******************
+Copying full directory tests/TestAlpha 
+File CVS
+File MV1.alpha
+File RTest1
+File RTest2
+File Test1.alpha
+File Test2.alpha
+File TestAlpha.m
+File TestAlpha.m.~1.2.~
+File TT.alpha
+File Zpol1.alpha
+File Zpol1.ast
+File ZpolAffineRationnal.alpha
+File ZpolNoSquarseIntMat.alpha
+File ZpolRestrict.alpha
+File ZpolUse1.alpha
+
+
+*******************
+Copying full directory tests/TestAlphard 
+File bug2.a
+File bug3.a
+File CVS
+File .cvsignore
+File data
+File dataMV
+File exFlo4.alpha
+File fir.alpha0v2
+File mouv2.alpha
+File mult.alpha0v2
+File MV6.alpha
+File MV83.alpha
+File MV84.alpha
+File MV85.alpha
+File MV8.alpha
+File TestAlphard.m
+
+
+*******************
+Copying full directory tests/TestChangeOfBasis 
+File CVS
+File .DS_Store
+File MatMat.alpha
+File MatMatP2.alpha
+File MatMatP3.alpha
+File MatMatP4.alpha
+File MatMatP.alpha
+File RTest1
+File RTest13
+File RTest1.alpha
+File RTest2
+File RTest3
+File RTest4
+File Test1.alpha
+File Test2.alpha
+File Test3.alpha
+File TestChangeOfBasis.m
+File TestChangeOfBasis.m~
+File TestingReport.txt
+File ZAST1
+File ZAST2
+
+
+****************
+Copying from /tests/TestCodegen
+
+
+*******************
+Copying full directory tests/TestCutMMA 
+File AST1
+File CVS
+File .cvsignore
+File MV6.alpha
+File MV6T1.alpha
+File RTest2
+File s1.ast
+File t1.ast
+File t2.ast
+File test1.alpha
+File Test2.alpha
+File TestCutMMA.m
+File TestCutMMA.m.~1.1.~
+File TestingReport.txt
+File ZAST1
+File ZAST2
+File ZAST3
+File ZAST4
+File Zpol1.alpha
+
+
+*******************
+Copying full directory tests/TestDecomposition 
+File CVS
+File .DS_Store
+File RTest1
+File RTest2
+File Test.alpha
+File TestDecomposition.m
+File TestDecomposition.m.~1.1.1.1.~
+
+
+*******************
+Copying full directory tests/TestDomlib 
+File CVS
+File .cvsignore
+File .DS_Store
+File MMunif.alpha
+File TestDomlib - copie.m
+File TestDomlib.m
+File TestDomlib.m.~1.6.~
+File TestDomlib-Short.m
+
+
+*******************
+Copying full directory tests/TestInstall 
+File CVS
+File .cvsignore
+File TestingReport.txt
+File TestInstall.m
+File TestInstall.m~
+File TestInstall.m.~1.1.~
+
+
+*******************
+Copying full directory tests/TestMatrix 
+File CVS
+File .DS_Store
+File hermiteT.m
+File RTest1
+File Test.alpha
+File TestMatrix.m
+File TestMatrix.m~
+File TestMatrix.m.~1.2.~
+File unimodularCompletionTest.m
+
+
+*******************
+Copying full directory tests/TestModularSchedule 
+File CVS
+File .DS_Store
+File fail.pip
+File fail.pipres
+File test1.pipres
+File test2.pipres
+File TestModuleSchedule.m
+File TestPip.m
+File toto.pipres
+
+
+*******************
+Copying full directory tests/TestMultiDim 
+File CVS
+File .DS_Store
+File MMunif.alpha
+File multi1.alpha
+File multi2.alpha
+File TestMultiDim.m
+
+
+*******************
+Copying full directory tests/TestNormalization 
+File AST1
+File AST2
+File AST3
+File AST4
+File AST5
+File CVS
+File decimation.alpha
+File .DS_Store
+File RTest11
+File RTest12
+File RTest13
+File RTest2
+File RTest3
+File Test1.alpha
+File Test2.alpha
+File Test3.alpha
+File TestNormalization.m
+File TestNormalization.m~
+File TestNormalization.m.~1.2.~
+File tn1.alpha
+File tn2.alpha
+File ZAST1
+File ZAST2
+File ZAST3
+
+
+*******************
+Copying full directory tests/TestPip 
+File CVS
+File .DS_Store
+File fail.pip
+File fail.pipres
+File test1.pipres
+File test2.pipres
+File TestPip.m
+File toto.pipres
+
+
+*******************
+Copying full directory tests/TestPipeControl 
+File AST1
+File AST2
+File CVS
+File .DS_Store
+File MV6.alpha
+File MV7.alpha
+File TestPipeControl.m
+File TestPipeControl.m~
+File TestPipeControl.m.~1.3.~
+
+
+*******************
+Copying full directory tests/TestPipeline 
+File 1.ast
+File 2.ast
+File 4.ast
+File 5.ast
+File 6.ast
+File 7.ast
+File 8.ast
+File AST1
+File AST61bis
+File CVS
+File .cvsignore
+File .DS_Store
+File fir4b.alpha
+File MV1.alpha
+File MV1P1.alpha
+File MV1P2.alpha
+File MV1Sched.alpha
+File MV61.ast
+File MV62.ast
+File MV6.alpha
+File MV7.alpha
+File pipeIOfile
+File Test18.ast
+File Test25.ast
+File TestingReport.txt
+File TestPipeline.m
+File TestPipeline.m~
+File TestPipeline.m.~1.2.~
+File TestPipelineMerged.m
+File TestPipelineTang.m
+
+
+****************
+Copying from /tests
+File armaUnif.alpha
+File bug1.alpha
+File bugApply.alpha
+File bugPat.alpha
+File DLMS_Alpha0.alpha
+File durbin1.alpha
+File durbin2.alpha
+File fib2.alpha
+File fib.alpha
+File Kalman.alpha
+File MatMat.alpha
+File MMunif.alpha
+File MMunifSched.alpha
+File PIC3Unif3.alpha
+File PIC4Sched1.alpha
+File PIC-struct-sched.alpha
+File RapidTestSched.m
+File Test1.alpha
+File Test1.m
+File Test2.alpha
+File Test2N.alpha
+File Test3.alpha
+File Test4.alpha
+File Test6.alpha
+File Test7.alpha
+File TestAffine2.alpha
+File TestBug1.alpha
+File TestBug2.alpha
+File TestDivers.m
+File TestDuration2.alpha
+File TestDuration.alpha
+File TestOptions.m
+File TestOrdre2.alpha
+File TestRat.alpha
+File TestSchedType2.alpha
+File TestSchedType.alpha
+File TestSchedule.m
+File TestScheduleTools.m
+File TestscheduleType.alpha
+File TestStructSched.m
+File TestTime.m
+File TestUnbounded2.alpha
+File TestUnbounded.alpha
+File TestUnion.alpha
+File TestUschedule.m
+File TestWrong.alpha
+File use.alpha
+
+
+****************
+Copying from /tests
+File fir.alpha
+File MV1.alpha
+File samba.alpha
+File TestSynthesis.m
+
+
+*******************
+Copying full directory tests/TestSemantics 
+File app98_merge.alpha
+File CVS
+File decimation.alpha
+File .DS_Store
+File RTest1
+File RTest2
+File TestSemantics.m
+File ZAST1
+
+
+*******************
+Copying full directory tests/TestStatic 
+File CVS
+File DEP1
+File DEP3
+File DEP4
+File .DS_Store
+File EXAMPLEZPOLS
+File test0.alpha
+File test1.alpha
+File test2.alpha
+File TestingReport.txt
+File test_static1.alpha
+File test_static.alpha
+File TestStatic.m
+File TestStatic.m~
+File TestStatic.m.~1.2.~
+File ZAST0
+
+
+*******************
+Copying full directory tests/TestSubSystems 
+File add1Hard.alpha
+File CVS
+File .DS_Store
+File TestSubSystems.m
+File TestSubSystems.m~
+File TestSubSystems.m.~1.2.~
+File ZAST1
+File ZpolUse1.alpha
+
+
+*******************
+Copying full directory tests/TestSubstitution 
+File AST1
+File AST2
+File AST3
+File AST4
+File AST5
+File CVS
+File .cvsignore
+File .DS_Store
+File TestingReport.txt
+File test_subs2.alpha
+File test_subs3.alpha
+File test_subs4.alpha
+File test_subs.alpha
+File TestSubstitution.m
+File TestSubstitution.m~
+File TestSubstitution.m.~1.2.~
+File ZAST1
+File ZAST2
+File ZAST3
+File ZAST4
+
+
+*******************
+Copying full directory tests/TestTables 
+File CVS
+File .DS_Store
+File MV6.alpha
+File test1.alpha
+File TestTables.m
+File TestTables.m~
+File TestTables.m.~1.2.~
+
+
+*******************
+Copying full directory tests/TestUniformization 
+File arma.alpha
+File arma.alpha.URE
+File arma.alpha.URE.new
+File CVS
+File dep1
+File .DS_Store
+File gj.alpha
+File multistepgj.alpha
+File parma.alpha
+File TestUniformization.m
+
+
+*******************
+Copying full directory tests/TestUniformizationTools 
+File CVS
+File .DS_Store
+File TestUniformizationTools.m
+
+
+*******************
+Copying full directory tests/TestVhdl 
+File cellpipeLineNF_FilterModule1.vhd
+File cellTimesModule1.vhd
+File cellTimesModule2.vhd
+File ControlTimesModule.vhd
+File CVS
+File definition.vhd
+File .DS_Store
+File Grobner
+File pipeLineNF_FilterModule.vhd
+File TestVhdl.m
+File TimesModule.vhd
+File Times.vhd
+
+
+*******************
+Copying full directory tests/TestVhdl2 
+File adder.alpha
+File adder.component
+File adder.vhd
+File addreg.alpha
+File addreg.component
+File addreg.vhd
+File cellFirModule1.alpha
+File cellFirModule1.component
+File cellFirModule1.vhd
+File cellFirModule3.alpha
+File cellFirModule3.component
+File cellFirModule3.vhd
+File cellFirModule4.alpha
+File cellFirModule4.component
+File cellFirModule4.vhd
+File cellprodVectModule1.alpha
+File cellprodVectModule2.alpha
+File controlFir2.alpha
+File controlFirModule.alpha
+File controlFirModule.component
+File controlFirModule.vhd
+File CVS
+File definition.vhd
+File DLMS_noMUX_16_18_50.alpha
+File .DS_Store
+File firfir.alpha
+File firModule.component
+File firModule.vhd
+File fulladder.alpha
+File loadregister.alpha
+File loadregister.component
+File loadregister.vhd
+File logical.alpha
+File logical.component
+File logical.vhd
+File Lyon.alpha
+File mux.alpha
+File mux.component
+File mux.vhd
+File R1
+File R10
+File R11
+File R12
+File R13
+File R14
+File R15
+File R16
+File R17
+File R18
+File R19
+File R2
+File R3
+File R4
+File R5
+File R6
+File R7
+File R8
+File R9
+File reg.alpha
+File reg.component
+File RegInvCell.component
+File RegInvCell.vhd
+File RegInvModule.component
+File RegInvModule.vhd
+File reg.vhd
+File TestVhdl2.m
+
+
+*******************
+Copying full directory tests/TestVisual 
+File CVS
+File .DS_Store
+File TestVisual2.m
+File TestVisual.m
+File TestVisual.m~
+File TestVisual.m.~1.2.~
+
+
+*******************
+Copying full directory tests/TestWrite_C 
+File boolOperator.alpha
+File boolOperator.in
+File boolOperator.out
+File control.alpha
+File controlbis.alpha
+File cos3.1.in
+File cos3.1.out
+File cos3.alpha
+File cos3.c
+File cos3.in
+File cos3.out
+File cosparam.alpha
+File cosparam.c
+File cosparam.in
+File cosparam.out
+File CVS
+File delay.alpha
+File .DS_Store
+File ex1.alpha
+File free.alpha
+File free.out
+File Makefile
+File mat1.alpha
+File mat1.c
+File mat2.alpha
+File mat2.c
+File merge2stream.alpha
+File MV1.alpha
+File pile.alpha
+File pile.c
+File README
+File strange.alpha
+File test2.alpha
+File test2.c
+File test3.alpha
+File test3.c
+File test4.alpha
+File test4.c
+File testsqrt.alpha
+File testsqrt.c
+
+
+****************
+Copying from /lib.darwin
+File libcodegen.a
+File libpoly.a
+File libpolymsg.a
+File libpolyx.a
+File libpretty.a

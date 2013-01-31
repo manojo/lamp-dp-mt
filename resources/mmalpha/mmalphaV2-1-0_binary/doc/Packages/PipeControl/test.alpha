@@ -1,0 +1,38 @@
+system fir :{N,M | 2<=N<=M-1}
+               (x : {i | 0<=i<=M-1} of integer; 
+                H : {p | 0<=p<=N-1} of integer)
+       returns (res : {i | N<=i<=M} of integer);
+var
+  xPipeES : {t,p | p<=t<=2p-1; p<=N; 2<=N<=M-1} of integer;
+  HPipeES : {t,p | p<=t<=2p-1; p<=N; 2<=N<=M-1} of integer;
+  xPipe : {t,p | (2p-M+1,p)<=t<=p+N; N<=p<=M; 2<=N<=M-1} of integer;
+  HPipe : {t,p | p+1<=t<=p+N; N<=p<=M; 2<=N<=M-1} of integer;
+  Y : {t,p | p+1<=t<=p+N+1; N<=p<=M; 2<=N<=M-1} of integer;
+let
+  xPipeES = 
+      case
+        {t,p | t=p} : x.(t,p->p-1);
+        {t,p | p+1<=t} : xPipeES.(t,p->t-2,p-1);
+      esac;
+  HPipeES = 
+      case
+        {t,p | t=p} : H.(t,p->-p+N);
+        {t,p | p+1<=t} : HPipeES.(t,p->t-2,p-1);
+      esac;
+  xPipe = 
+      case
+        {t,p | p=N} | {t,p | t=p} : xPipeES.(t,p->t-1,p);
+        {t,p | p+1<=t; N+1<=p} : xPipe.(t,p->t-2,p-1);
+      esac;
+  HPipe = 
+      case
+        {t,p | p=N} : HPipeES.(t,p->t-1,p);
+        {t,p | N+1<=p} : HPipe.(t,p->t-1,p-1);
+      esac;
+  Y = case
+        {t,p | t=p+1} : 0.(t,p->);
+        {t,p | p+2<=t} : Y.(t,p->t-1,p) + HPipe.(t,p->t-1,p) * xPipe.(t,p->t-1,p)
+        ;
+      esac;
+  res = Y.(i->i+N+1,i);
+tel;

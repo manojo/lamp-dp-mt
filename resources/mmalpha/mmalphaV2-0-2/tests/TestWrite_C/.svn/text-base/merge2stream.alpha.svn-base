@@ -1,0 +1,5 @@
+system Merge2InfiniteStream (in1, in2 : {t|0<= t} of boolean)
+  returns (out : {t|1<= t} of boolean);
+let
+  out[i] = in1[i-1] xor in2[i-1];
+tel;

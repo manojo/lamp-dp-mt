@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/goodC
+END
+lx.c
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/goodC/lx.c
+END
+simple0.c
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/goodC/simple0.c
+END
+simple1.c
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/goodC/simple1.c
+END
+check.c
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/goodC/check.c
+END

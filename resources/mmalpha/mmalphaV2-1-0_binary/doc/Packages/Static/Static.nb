@@ -1,0 +1,517 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      8361,        334]*)
+(*NotebookOutlinePosition[     10501,        409]*)
+(*  CellTagsIndexPosition[     10160,        393]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The \"Static\" package", "Title",
+  FontColor->RGBColor[1, 0, 0],
+  CellTags->"firstcell"],
+
+Cell["The Alpha team", "Subsubtitle"],
+
+Cell["\<\
+February 1998, Revised Dec. 28, 2002 and Jan. 5, 2008. There are some errors \
+(even in tests Static)\
+\>", "Text"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+quinton@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell[" Execute this cell, to go in the right directory", "Subsubsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(SetDirectory[
+      Environment["\<MMALPHA\>"] <> "\</doc/packages/Static\>"]\)], "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["New!", "Section",
+  FontColor->RGBColor[1, 0, 0],
+  CellTags->"Summary"],
+
+Cell[TextData[{
+  StyleBox["June 25, 1998:",
+    FontColor->RGBColor[1, 0, 0]],
+  " two options have been added to dep, in particular, subsystems allows \
+systems with (very) simple use statements to be handled (see  ",
+  ButtonBox["options of dep",
+    ButtonData:>"Options of dep",
+    ButtonStyle->"Hyperlink"],
+  "). Warning: ",
+  StyleBox["show[dep[]]", "Input"],
+  " does not work properly (yet), when the dep table contains entries for use \
+statements."
+}], "Text",
+  TextAlignment->Left,
+  TextJustification->1]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1. Introduction", "Section",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"Introduction"],
+
+Cell[BoxData[
+    \(\(?Static\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2. Content", "Section",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->{"Content", "content"}],
+
+Cell[TextData[{
+  ButtonBox["analyze",
+    ButtonData:>"analyze",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["checkUseful",
+    ButtonData:>"checkUseful",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["dep",
+    ButtonData:>"dep",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["options of dep",
+    ButtonData:>"Options of dep",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["dep1",
+    ButtonData:>"dep1",
+    ButtonStyle->"Hyperlink"]
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell["analyze", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"analyze"],
+
+Cell[BoxData[
+    \(\(?analyze\)\)], "Input"],
+
+Cell["\<\
+This example shows the analysis of a Gauss elimination program. This program \
+is structured.\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(load["\<test0.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell["The options are: ", "Text"],
+
+Cell[BoxData[
+    \(Options[analyze]\)], "Input"],
+
+Cell[BoxData[
+    \(analyze[{verbose -> True, \ recurse -> True}]\)], "Input"],
+
+Cell["This second program has several errors.", "Text"],
+
+Cell[BoxData[
+    \(\(load["\<test1.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(analyze[{verbose -> True, \ recurse -> True}]\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["checkUseful", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"checkUseful"],
+
+Cell[BoxData[
+    \(\(?checkUseful\)\)], "Input"],
+
+Cell[BoxData[
+    \(load["\<test1.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(checkUseful["\<AK\>"];\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["dep", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"dep"],
+
+Cell["\<\
+The dep function allows one to compute a dependency table for a \
+system of equations. \
+\>", "Text",
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[BoxData[
+    \(\(?dep\)\)], "Input"],
+
+Cell["Here is an example.", "Text"],
+
+Cell[BoxData[{
+    \(\(load["\<test0.alpha\>"];\)\), "\n", 
+    \(getSystem["\<ZeroColumn\>"]; ashow[]\)}], "Input"],
+
+Cell[BoxData[
+    \(show[dep[]]\)], "Input"],
+
+Cell[TextData[{
+  "The dependency table is a list whose elements have the form ",
+  StyleBox["domain: lhsvariable -> rhsvariable",
+    FontColor->RGBColor[1, 0, 0]],
+  ". Such an entry means that ",
+  StyleBox["lhsvariable",
+    FontColor->RGBColor[1, 0, 0]],
+  " depends on ",
+  StyleBox["rhsvariable",
+    FontColor->RGBColor[1, 0, 0]],
+  " on ",
+  StyleBox["domain",
+    FontColor->RGBColor[1, 0, 0]],
+  ". The rhsvariable may be indexed by a linear function. "
+}], "Text",
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[BoxData[
+    \(load["\<test2.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(depT\  = \ dep[];\)\)], "Input"],
+
+Cell["Here is an entry of the dep table: ", "Text"],
+
+Cell[BoxData[
+    \(\(depT[\([1]\)]\)[\([1]\)]\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Options of dep", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"Options of dep"],
+
+Cell[BoxData[
+    \(Options[dep]\)], "Input"],
+
+Cell[TextData[{
+  "The dep function has a ",
+  StyleBox["debug",
+    FontColor->RGBColor[1, 0, 0]],
+  " option, and two more options. ",
+  StyleBox["eliminatesDoubles",
+    FontColor->RGBColor[1, 0, 0]],
+  " removes duplicate entries. ",
+  StyleBox["subsystems",
+    FontColor->RGBColor[1, 0, 0]],
+  " allows a system containing use statements to be accepted, under strong \
+restrictions (for the moment). If the subsystem option is not set, a system \
+with use statements is rejected: "
+}], "Text",
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[BoxData[
+    \(load["\<matmult3.alpha\>"]; ashow[]\)], "Input"],
+
+Cell["Calling dep with subsystems option set to True gives this:", "Text"],
+
+Cell[BoxData[
+    \(dep[subsystems -> True]\)], "Input"],
+
+Cell[TextData[{
+  "The result is a dependency table augmented with a list of so called \"",
+  StyleBox["dependuse",
+    FontColor->RGBColor[1, 0, 0]],
+  "\" entries. Such an entry contains the name of the subsystem called, the \
+list of input parameters, the list of output parameters, and the number of \
+the use within the system."
+}], "Text",
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell["Restrictions: only use statements of the form ", "Text"],
+
+Cell[TextData[{
+  StyleBox["use systemName[identity] (inputs) returns (outputs)", "Output"],
+  StyleBox[" ", "Input"]
+}], "Text",
+  TextAlignment->Center,
+  TextJustification->0],
+
+Cell["\<\
+where the parameter index function is identity, and the inputs and \
+outputs are simple variables, are allowed (for the moment). \
+\>", "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["dep1", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"dep1"],
+
+Cell[BoxData[
+    \(\(?dep1\)\)], "Input"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3. Test program for static", "Section",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"Test"],
+
+Cell[BoxData[
+    \(tests["\<Static\>"]\)], "Input"]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1440}, {0, 834}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+WindowSize->{888, 549},
+WindowMargins->{{72, Automatic}, {122, Automatic}},
+PrintingCopies->1,
+PrintingPageRange->{1, Automatic},
+ShowSelection->True,
+Magnification->1.5,
+StyleDefinitions -> "Default.nb"
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{
+  "firstcell"->{
+    Cell[1776, 53, 96, 2, 132, "Title",
+      CellTags->"firstcell"]},
+  "Summary"->{
+    Cell[2450, 82, 78, 2, 104, "Section",
+      CellTags->"Summary"]},
+  "Introduction"->{
+    Cell[3088, 105, 94, 2, 104, "Section",
+      CellTags->"Introduction"]},
+  "Content"->{
+    Cell[3266, 115, 97, 2, 104, "Section",
+      CellTags->{"Content", "content"}]},
+  "content"->{
+    Cell[3266, 115, 97, 2, 104, "Section",
+      CellTags->{"Content", "content"}]},
+  "analyze"->{
+    Cell[3862, 143, 84, 2, 53, "Subsection",
+      CellTags->"analyze"]},
+  "checkUseful"->{
+    Cell[4673, 183, 92, 2, 53, "Subsection",
+      CellTags->"checkUseful"]},
+  "dep"->{
+    Cell[4984, 199, 76, 2, 53, "Subsection",
+      CellTags->"dep"]},
+  "Options of dep"->{
+    Cell[6273, 254, 98, 2, 53, "Subsection",
+      CellTags->"Options of dep"]},
+  "dep1"->{
+    Cell[8009, 314, 78, 2, 53, "Subsection",
+      CellTags->"dep1"]},
+  "Test"->{
+    Cell[8181, 325, 97, 2, 104, "Section",
+      CellTags->"Test"]}
+  }
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{
+  {"firstcell", 9147, 356},
+  {"Summary", 9233, 359},
+  {"Introduction", 9324, 362},
+  {"Content", 9416, 365},
+  {"content", 9516, 368},
+  {"analyze", 9616, 371},
+  {"checkUseful", 9709, 374},
+  {"dep", 9798, 377},
+  {"Options of dep", 9890, 380},
+  {"dep1", 9983, 383},
+  {"Test", 10066, 386}
+  }
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 96, 2, 132, "Title",
+  CellTags->"firstcell"],
+Cell[1875, 57, 37, 0, 45, "Subsubtitle"],
+Cell[1915, 59, 125, 3, 47, "Text"],
+Cell[2043, 64, 99, 3, 62, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2167, 71, 105, 1, 41, "Subsubsection"],
+Cell[2275, 74, 138, 3, 39, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2450, 82, 78, 2, 104, "Section",
+  CellTags->"Summary"],
+Cell[2531, 86, 520, 14, 99, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3088, 105, 94, 2, 104, "Section",
+  CellTags->"Introduction"],
+Cell[3185, 109, 44, 1, 39, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3266, 115, 97, 2, 104, "Section",
+  CellTags->{"Content", "content"}],
+Cell[3366, 119, 471, 20, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[3862, 143, 84, 2, 53, "Subsection",
+  CellTags->"analyze"],
+Cell[3949, 147, 45, 1, 39, "Input"],
+Cell[3997, 150, 117, 3, 47, "Text"],
+Cell[4117, 155, 61, 1, 39, "Input"],
+Cell[4181, 158, 40, 1, 39, "Input"],
+Cell[4224, 161, 33, 0, 40, "Text"],
+Cell[4260, 163, 49, 1, 39, "Input"],
+Cell[4312, 166, 78, 1, 39, "Input"],
+Cell[4393, 169, 55, 0, 47, "Text"],
+Cell[4451, 171, 61, 1, 39, "Input"],
+Cell[4515, 174, 40, 1, 39, "Input"],
+Cell[4558, 177, 78, 1, 39, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4673, 183, 92, 2, 53, "Subsection",
+  CellTags->"checkUseful"],
+Cell[4768, 187, 49, 1, 39, "Input"],
+Cell[4820, 190, 65, 1, 39, "Input"],
+Cell[4888, 193, 59, 1, 32, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4984, 199, 76, 2, 53, "Subsection",
+  CellTags->"dep"],
+Cell[5063, 203, 158, 5, 47, "Text"],
+Cell[5224, 210, 41, 1, 39, "Input"],
+Cell[5268, 213, 35, 0, 47, "Text"],
+Cell[5306, 215, 116, 2, 62, "Input"],
+Cell[5425, 219, 44, 1, 39, "Input"],
+Cell[5472, 222, 523, 16, 99, "Text"],
+Cell[5998, 240, 65, 1, 39, "Input"],
+Cell[6066, 243, 54, 1, 39, "Input"],
+Cell[6123, 246, 51, 0, 47, "Text"],
+Cell[6177, 248, 59, 1, 39, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6273, 254, 98, 2, 53, "Subsection",
+  CellTags->"Options of dep"],
+Cell[6374, 258, 45, 1, 39, "Input"],
+Cell[6422, 261, 546, 15, 99, "Text"],
+Cell[6971, 278, 68, 1, 39, "Input"],
+Cell[7042, 281, 74, 0, 47, "Text"],
+Cell[7119, 283, 56, 1, 39, "Input"],
+Cell[7178, 286, 392, 9, 99, "Text"],
+Cell[7573, 297, 62, 0, 47, "Text"],
+Cell[7638, 299, 178, 5, 46, "Text"],
+Cell[7819, 306, 153, 3, 73, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[8009, 314, 78, 2, 53, "Subsection",
+  CellTags->"dep1"],
+Cell[8090, 318, 42, 1, 39, "Input"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[8181, 325, 97, 2, 104, "Section",
+  CellTags->"Test"],
+Cell[8281, 329, 52, 1, 39, "Input"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

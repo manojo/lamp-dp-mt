@@ -1,0 +1,196 @@
+Reporting on system: prodVect
+  System was in $result  
+5/1/2009 -- 21h 53mn 42.599719s
+
+System:
+system prodVect :{N | 3<=N}
+                (a : {i,j | 1<=i<=N; 1<=j<=N} of integer; 
+                 b : {i | 1<=i<=N} of integer)
+       returns  (c : {i | 1<=i<=N} of integer);
+var
+  bXMirr1 : {t,p | 1<=t<=N; 1<=p<=N} of integer;
+  TSep2 : {t,p | 1<=t<=N; 1<=p<=N} of integer;
+  TSep1 : {t,p | 1<=t<=N; 1<=p<=N} of integer;
+  aReg2 : {t,p | 1<=t<=N; 1<=p<=N} of integer;
+  CReg1 : {t,p | 1<=t<=N; 1<=p<=N} of integer;
+  CXctl1XIn : {t,p | 0<=t<=N; 1<=p<=N} of boolean;
+  C : {t,p | 0<=t<=N; 1<=p<=N} of integer;
+  CXctl1 : {t | 0<=t<=N} of boolean;
+let
+  bXMirr1[t,p] = b[t];
+  aReg2[t,p] = a[p,t];
+  CReg1[t,p] = C[t-1,p];
+  CXctl1XIn[t,p] = CXctl1[t];
+  CXctl1[t] = 
+      case
+        case
+          { | t=0} : True[];
+          { | 1<=t} : False[];
+        esac;
+      esac;
+  TSep1[t,p] = aReg2 * bXMirr1;
+  TSep2[t,p] = CReg1 + TSep1;
+  C[t,p] = 
+      case
+        if (CXctl1XIn) then 
+            case
+              { | t=0} : 0[];
+              { | 1<=t} : 0[];
+            esac else 
+        case
+          { | t=0} : 0[];
+          { | 1<=t} : TSep2;
+        esac;
+      esac;
+  c[i] = C[N,i];
+tel;
+
+-- Equation: 
+    bXMirr1 = b.(t,p,N->t,N);
+  ** Declaration: 
+    bXMirr1 : {t,p,N | 1<=t<=N; 1<=p<=N} of integer
+  ** Type is: integer
+  ** Input equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    aReg2 = a.(t,p,N->p,t,N);
+  ** Declaration: 
+    aReg2 : {t,p,N | 1<=t<=N; 1<=p<=N} of integer
+  ** Type is: integer
+  ** Input equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    CReg1 = C.(t,p,N->t-1,p,N);
+  ** Declaration: 
+    CReg1 : {t,p,N | 1<=t<=N; 1<=p<=N} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer Register
+  ** Valid from 1 <= t <= N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    CXctl1XIn = CXctl1.(t,p,N->t,N);
+  ** Declaration: 
+    CXctl1XIn : {t,p,N | 0<=t<=N; 1<=p<=N} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: CXctl1.(t,p,N->t,N)
+     Occurrence: {6, 4, 2}
+    ** is not square
+    ** is not uniform
+    ** Possible pipeline: 
+     -> Execute the command: pipeall[ {}, {6, 4, 2}, affine[var["pipeCCXctl11"], matrix[4, 4, {"t", "p", "N"}, {{1, 0, 0, 0}, {0, 1, 0, 1}, {0, 0, 1, 0}, {0, 0, 0, 1}}]],domain[3, {"t", "p", "N"}, {pol[2, 4, 0, 2, {{1, 0, 1, 0, 0}, {1, 0, 0, 0, 1}}, {{0, 1, 0, 0, 0}, {0, 0, 0, 1, 0}, {1, 0, 1, 0, 0}, {1, 0, 0, 0, 1}}]}]]
+
+
+-- Equation: 
+    CXctl1 = 
+    case
+      case
+        {t,N | t=0} : True.(t,N->);
+        {t,N | 1<=t} : False.(t,N->);
+      esac;
+    esac;
+  ** Declaration: 
+    CXctl1 : {t,N | 0<=t<=N} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t}
+  ** Scheduled, one time dimension
+  ** Control equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep1 = aReg2 * bXMirr1;
+  ** Declaration: 
+    TSep1 : {t,p,N | 1<=t<=N; 1<=p<=N} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {mul}
+  ** Unops: {}
+  ** Valid from 1 <= t <= N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep2 = CReg1 + TSep1;
+  ** Declaration: 
+    TSep2 : {t,p,N | 1<=t<=N; 1<=p<=N} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {add}
+  ** Unops: {}
+  ** Valid from 1 <= t <= N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    C = case
+      if (CXctl1XIn) then 
+          case
+            {t,p,N | t=0} : 0.(t,p,N->);
+            {t,p,N | 1<=t} : 0.(t,p,N->);
+          esac else 
+      case
+        {t,p,N | t=0} : 0.(t,p,N->);
+        {t,p,N | 1<=t} : TSep2;
+      esac;
+    esac;
+  ** Declaration: 
+    C : {t,p,N | 0<=t<=N; 1<=p<=N} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** No dependency
+
+
+-- Equation: 
+    c = C.(i,N->N,i,N);
+  ** Declaration: 
+    c : {i,N | 1<=i<=N} of integer
+  ** Type is: integer
+  ** Output equation
+  ** Indexes: {i}
+  ** Mirror equation
+  ** This equation can be interpreted as hardware
+
+---- These equations cannot be translated to hardware:
+CXctl1XIn = CXctl1.(t,p,N->t,N);
+C = case
+      if (CXctl1XIn) then 
+          case
+            {t,p,N | t=0} : 0.(t,p,N->);
+            {t,p,N | 1<=t} : 0.(t,p,N->);
+          esac else 
+      case
+        {t,p,N | t=0} : 0.(t,p,N->);
+        {t,p,N | 1<=t} : TSep2;
+      esac;
+    esac;
+
+
+---- Use statements:
+
+
+------
+  **** Resources used:
+  1 integer registers
+  0 integer or floating-point mux
+  1 multipliers 
+  1 adders/subtracters 
+  ** Analysis of operators
+  mul from 1 to N
+  add from 1 to N

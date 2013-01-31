@@ -1,0 +1,243 @@
+BeginPackage["Alpha`CheckCell`",{"Alpha`",
+"Alpha`Domlib`",
+"Alpha`Tables`",
+"Alpha`Matrix`", 
+"Alpha`Options`", 
+"Alpha`Static`"}];
+
+(*
+	Semantics of the CheckCell parser
+*)
+
+CheckCellParam::usage = 
+"CheckCellParam is a global variable of Alpha`CheckCell which contains the 
+number of parameters of a system being checked";
+
+CheckCellDebug::usage = "CheckCellDebug is the value of the debug option for
+the CheckCell function";
+
+CheckCellDebug = False;
+
+checkCell::usage = "checkCell[] checks whether $result is an AlpHard Cell";
+
+semanticFunc::usage = "";
+
+Options[ semanticFunc ] = { debug -> False, verbose -> False }; 
+
+Begin["`Private`"];
+
+Clear[checkCell];
+checkCell[opts:___Rule]:=
+Module[{msg, error, dbg},
+  CheckCellDebug = debug/.{opts}/.{debug->False};
+  Catch[
+    error = CheckCellTranslateSYSTEMDECLARATION[$result];
+    If[ CheckCellDebug, 
+        If[ error, Print["There is a Mistake somewhere..."],
+                   Print["This program seems to be an AlpHard Cell..."]
+        ]
+    ];
+  !error
+  ]
+]
+checkCell[___]:=Message[checkCell::params];
+
+Clear[ semanticFunc ]; 
+
+(* 
+	System 
+*)
+semanticFunc[ system , param:_, input:_, output:_, local:_, eq:_, opts:___Rule] := 
+Module[{ dbg, errorparam, errorinput, erroroutput, errorlocal, erroreq },
+  errorparam = param;
+  dbg = debug/.{opts}/.Options[ semanticFunc ];
+  errorinput = Not[ Apply[ And, input ]]; 
+  erroroutput = Not[ Apply[ And, output ]]; 
+  errorlocal = Not[ Apply[ And, local ]]; 
+  erroreq = Not[ Apply[ And, eq ]]; 
+  errorinput || erroroutput || errorlocal || erroreq || errorparam
+];
+
+(*
+	domain
+*)
+checkCell::paramerror = 
+"In a cell, the number of parameters should be greater than or equal to 1";
+semanticFunc[ domain, dim:_Integer, opts:___Rule]:=
+Module[{error},
+  If[dim >= 1, error = False, If[dbg,Message[checkCell::paramerror]];error = True];
+(* Store parameter value for future use *)
+  CheckCellParam = dim;
+  error
+];
+
+(* 	
+	assignment
+*)
+checkCell::assignment = "Error in equation\n `1`\n(check dimensions of variable or constant)."; 
+semanticFunc[ assignment , rhs:_, eq:_, opts:___Rule] := 
+Module[{ dbg },
+  dbg = debug/.{opts}/.{debug->False};
+  (* rhs is supposed to be true of false, except if this is a simple 
+     var or const *)
+  Which[
+    Head[rhs] === var || Head[rhs] === const, True,
+    !rhs&&dbg, Message[ checkCell::assignment, show[ eq, silent->True ] ]; False,
+    !rhs, False,
+    True, True
+  ]
+];
+
+(* 	
+	binop
+*)
+semanticFunc[ binop, trop1:_, trop2:_, opts:___Rule] := 
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+(* Return the and of both operands *)
+  trop1 && trop2
+];
+
+(*	Declaration *)
+checkCell::decldim = "In :\n `1`\nthe dimension should be one plus the number of parameters";
+semanticFunc[ decl , d:_ , opts:___Rule] := 
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+  If[ d[[3]][[1]] === CheckCellParam+1, True, 
+    If[dbg, Message[checkCell::decldim, show[d,silent->True]]]; False]
+];
+
+(*	
+	use statement
+*)
+semanticFunc[ use , {id:_, extension:_, paramAssign:_, expList:_,
+              idList:_}, opts:___Rule] :=
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+  If[ dbg, Print["Semantic function called on use statement"]];
+];
+
+(*
+	case expression 
+*)
+checkCell::case = "In a case expression, the number of branches should be 2.";
+semanticFunc[ case , expressionList:_, opts:___Rule ] := 
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+  If[Length[expressionList]=!=2&&dbg, 
+     Message[checkCell::case]
+  ];
+  (Length[expressionList]===2)&&Apply[And,expressionList]
+];
+
+(*
+	restriction expression 
+*)
+semanticFunc[ restrict , trdomain:_, trifExpression:_, opts:___Rule ] := 
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+  (* It is useless to check the dimension of the domain, it is done by analyze *)
+  trifExpression
+];
+
+(*
+	if expression 
+*)
+checkCell::ifcondition = "In expression\n`1`\nthe control signal is wrong";
+checkCell::ifalt1 = "In expression\n`1`\nthe first alternative is wrong";
+checkCell::ifalt2 = "In expression\n`1`\nthe second alternative is wrong";
+semanticFunc[ if , trifCondition:_, condition:_, tralt1:_, alt1:_, 
+              tralt2:_, alt2:_, opts:___Rule] :=
+Module[{ dbg },
+  dbg = debug/.{opts}/.{debug->False};
+  If[ !trifCondition&&dbg, 
+      (Message[checkCell::ifcondition, 
+              show[ if[ condition, alt1, alt2 ], silent->True]
+              ]; False), 
+      False
+  ];
+  If[ !tralt1&&dbg, 
+      (Message[checkCell::ifalt1, 
+               show[ if[ condition, alt1, alt2 ], silent->True]
+              ]; False), 
+      False
+  ];
+  If[ !tralt2&&dbg, 
+      (Message[checkCell::ifalt2, show[ if[ condition, alt1, alt2 ],
+                            silent->True]]; False), 
+      False];
+  trifCondition&&tralt1&&tralt2
+];
+
+(*
+	Control expression
+*)
+checkCell::controlexpression1 = "Control expression\n`1`\nis not boolean";
+checkCell::controlexpression2 = 
+"Control expression\n`1`\nshould have an identity dependence";
+semanticFunc[ controlexpression, expression:_, affineFunction:_, 
+              opts:___Rule] :=
+Module[{ dbg, decl },
+  dbg = debug/.{opts}/.{debug->False};
+  (* The type of this expression must be boolean. We look for this 
+     variable *)
+  decl = getDeclaration[expression[[1]]];
+  If[ decl[[2]]=!=boolean&&dbg, 
+      Message[checkCell::controlexpression1,show[affine[expression,affineFunction],silent->True]]];
+  If[ !identityQ[affineFunction]&&dbg, 
+      Message[checkCell::controlexpression2,show[affine[expression,affineFunction]silent->True]]];
+  (decl[[2]]===boolean)&&(identityQ[affineFunction])
+];
+
+(*
+	affine expression 
+*)
+checkCell::affexp1 = "In `1`, the matrix should be a translation matrix";
+checkCell::affexp2 = "I am lost...";
+checkCell::affexp3 = "In `1`, the translation should not be positive";
+semanticFunc[ affexp, v:_, aff:_, opts:___Rule] :=
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+(* 	Two cases: var.[t-k], const[] *)
+  Which[
+    Head[v] === const, True,  (* We do not need to check the affine part, as this is done
+			   by analyze *)
+    (* For a var, we need to check that the matrix is a translation, 
+       and also that the translation is positive *)
+    Head[v] === var,
+    Catch[
+      Module[{tr},
+        (* Is it a translation ? *)
+        If[ translationQ[aff], True, 
+          If[dbg, 
+             Throw[
+               (Message[checkCell::affexp1, show[aff,silent->True]];
+               False)
+             ],
+             Throw[False]
+          ]
+        ];
+        (* Get the translation vector *)
+        tr = Last[aff[[4]][[1]]]; 
+        If[ tr<=0, Throw[True], 
+          If[ dbg, 
+               Throw[Message[checkCell::affexp3, show[aff,silent->True]];
+               False],
+             Throw[False]
+          ]
+        ]
+      ]
+    ],
+    True, Throw[If[dbg, Message[checkCell::affexp, aff];False, False]]
+  ]
+];
+
+semanticFunc::params = "parameter error while calling a semantic function.";
+(* Error case *)
+semanticFunc[x:___] := 
+Module[{ dbg },	
+  Throw[Message[ semanticFunc::params];Print["Parameters were: ", {x} ]]; 
+];
+
+End[];
+EndPackage[];

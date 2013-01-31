@@ -1,0 +1,143 @@
+system Times   (A : {b | 0<=b<=15} of boolean; 
+                B : {b | 0<=b<=15} of boolean)
+       returns (X : {b | 0<=b<=15} of boolean);
+var
+  BMirror : {t,m | 1<=t<=16; m=0} of boolean;
+  AMirror : {t,m | 1<=t<=16; m=0} of boolean;
+  S_Plus1_ctl1_reg1loc : {t,m | t=2m+15; 1<=m<=16} | {t,m | 2m-1<=t<=2m+14; 1<=m<=16} of boolean;
+  Cin_Plus1_ctl1_reg2loc : {t,m | 2m<=t<=2m+14; 1<=m<=16} | {t,m | t=2m-1; 1<=m<=16} of boolean;
+  BB_ctl1_reg3loc : {t,m | 2m<=t<=2m+14; 1<=m<=16} | {t,m | t=2m-1; 1<=m<=16} of boolean;
+  B_In_reg4loc : {t,m | 2m-1<=t<=m+15; 1<=m} of integer;
+  AA_reg5loc : {t,m | 2m-1<=t<=2m+14; 1<=m<=16} of boolean;
+  S_Plus1_reg7loc : {t,m | 2m-1<=t<=2m+15; 1<=m<=16} of boolean;
+  Cout_FA2_reg9 : {t,m | 2m+2<=t<=2m+16; 0<=m<=15} of boolean;
+  Cout_FA2_reg8 : {t,m | t=2m+17; 0<=m<=15} of boolean;
+  S_Plus1_reg7 : {t,m | 2m+1<=t<=2m+16; 1<=m<=15} of boolean;
+  BB_reg6 : {t,m | 2m+2<=t<=2m+16; 0<=m<=15} of boolean;
+  AA_reg5 : {t,m | 2m+1<=t<=2m+16; 1<=m<=15} of boolean;
+  B_In_reg4 : {t,m | 2m+1<=t<=m+16; 1<=m} of integer;
+  BB_ctl1_reg3 : {t,m | 2m+1<=t<=2m+16; 1<=m<=15} of boolean;
+  Cin_Plus1_ctl1_reg2 : {t,m | 2m+1<=t<=2m+16; 1<=m<=15} of boolean;
+  S_Plus1_ctl1_reg1 : {t,m | 2m+1<=t<=2m+17; 1<=m<=15} of boolean;
+  S_Plus1_ctl1_In : {t,m | 1<=t<=17; m=0} of boolean;
+  S_Plus1_ctl1_Init : {t | 1<=t<=17} of boolean;
+  S_Plus1_ctl1 : {t,m | t=2m+17; 0<=m<=15} | {t,m | 2m+1<=t<=2m+16; 0<=m<=15} of boolean;
+  Cin_Plus1_ctl1_In : {t,m | 1<=t<=16; m=0} of boolean;
+  Cin_Plus1_ctl1_Init : {t | 1<=t<=16} of boolean;
+  Cin_Plus1_ctl1 : {t,m | 2m+2<=t<=2m+16; 0<=m<=15} | {t,m | t=2m+1; 0<=m<=15} of boolean;
+  BB_ctl1_In : {t,m | 1<=t<=16; m=0} of boolean;
+  BB_ctl1_Init : {t | 1<=t<=16} of boolean;
+  BB_ctl1 : {t,m | 2m+2<=t<=2m+16; 0<=m<=15} | {t,m | t=2m+1; 0<=m<=15} of boolean;
+  B_In : {t,m | 2m+1<=t<=m+16; 0<=m} of integer;
+  AA : {t,m | 2m+1<=t<=2m+16; 0<=m<=15} of boolean;
+  BB : {t,m | 2m+1<=t<=2m+16; 0<=m<=15} of boolean;
+  P : {t,m | 2m+1<=t<=2m+16; 0<=m<=15} of boolean;
+  Si : {t,m | 2m+1<=t<=2m+16; 0<=m<=15} of boolean;
+  S_Plus1 : {t,m | 2m+1<=t<=2m+17; 0<=m<=15} of boolean;
+  Cin_Plus1 : {t,m | 2m+1<=t<=2m+16; 0<=m<=15} of boolean;
+  X_FA2 : {t,m | 2m+1<=t<=2m+16; 0<=m<=15} of boolean;
+  Cout_FA2 : {t,m | 2m+1<=t<=2m+16; 0<=m<=15} of boolean;
+let
+  BMirror[t,m] = B[t-m-1];
+  AMirror[t,m] = A[t-2m-1];
+  S_Plus1_reg7loc[t,m] = S_Plus1[t,m-1];
+  S_Plus1_reg7[t,m] = S_Plus1_reg7loc[t-1,m];
+  AA_reg5loc[t,m] = AA[t,m-1];
+  AA_reg5[t,m] = AA_reg5loc[t-2,m];
+  B_In_reg4loc[t,m] = B_In[t,m-1];
+  B_In_reg4[t,m] = B_In_reg4loc[t-1,m];
+  BB_ctl1_reg3loc[t,m] = BB_ctl1[t,m-1];
+  BB_ctl1_reg3[t,m] = BB_ctl1_reg3loc[t-2,m];
+  Cin_Plus1_ctl1_reg2loc[t,m] = Cin_Plus1_ctl1[t,m-1];
+  Cin_Plus1_ctl1_reg2[t,m] = Cin_Plus1_ctl1_reg2loc[t-2,m];
+  S_Plus1_ctl1_reg1loc[t,m] = S_Plus1_ctl1[t,m-1];
+  S_Plus1_ctl1_reg1[t,m] = S_Plus1_ctl1_reg1loc[t-2,m];
+  Cout_FA2_reg9[t,m] = Cout_FA2[t-1,m];
+  Cout_FA2_reg8[t,m] = Cout_FA2[t-1,m];
+  BB_reg6[t,m] = BB[t-1,m];
+  S_Plus1_ctl1_In[t,m] = S_Plus1_ctl1_Init[t];
+  S_Plus1_ctl1_Init[t] = 
+      case
+        { | 1<=t<=17} : 
+           case
+             { | t=17} : True[];
+             { | 1<=t<=16} : False[];
+           esac;
+      esac;
+  Cin_Plus1_ctl1_In[t,m] = Cin_Plus1_ctl1_Init[t];
+  Cin_Plus1_ctl1_Init[t] = 
+      case
+        { | 1<=t<=16} : 
+           case
+             { | 2<=t<=16} : True[];
+             { | t=1} : False[];
+           esac;
+      esac;
+  BB_ctl1_In[t,m] = BB_ctl1_Init[t];
+  BB_ctl1_Init[t] = 
+      case
+        { | 1<=t<=16} : 
+           case
+             { | 2<=t<=16} : True[];
+             { | t=1} : False[];
+           esac;
+      esac;
+  B_In[t,m] = 
+      case
+        { | 2m+1<=t<=m+16; 1<=m} : B_In_reg4;
+        { | 1<=t<=16; m=0} : BMirror;
+      esac;
+  AA[t,m] = 
+      case
+        { | 2m+1<=t<=2m+16; 1<=m<=15} : AA_reg5;
+        { | 1<=t<=16; m=0} : AMirror;
+      esac;
+  BB_ctl1[t,m] = 
+      case
+        { | 1<=t<=16; m=0} : BB_ctl1_In[t,m];
+        { | 2m+2<=t<=2m+16; 1<=m<=15} | { | t=2m+1; 1<=m<=15} : BB_ctl1_reg3;
+      esac;
+  BB[t,m] = 
+      case
+        { | 2m+1<=t<=2m+16; 0<=m<=15} : 
+           case
+             { | 2m+2<=t<=2m+16; 0<=m<=15} : if (BB_ctl1) then BB_reg6 else True[];
+             { | t=2m+1; 0<=m<=15} : if (not BB_ctl1) then B_In else False[];
+           esac;
+      esac;
+  P[t,m] = AA[t,m] and BB[t,m];
+  Cin_Plus1_ctl1[t,m] = 
+      case
+        { | 1<=t<=16; m=0} : Cin_Plus1_ctl1_In[t,m];
+        { | 2m+2<=t<=2m+16; 1<=m<=15} | { | t=2m+1; 1<=m<=15} : Cin_Plus1_ctl1_reg2;
+      esac;
+  Cin_Plus1[t,m] = 
+      case
+        { | 2m+1<=t<=2m+16; 0<=m<=15} : 
+           case
+             { | 2m+2<=t<=2m+16; 0<=m<=15} : if (Cin_Plus1_ctl1) then Cout_FA2_reg9 else True[];
+             { | t=2m+1; 0<=m<=15} : if (not Cin_Plus1_ctl1) then False[] else False[];
+           esac;
+      esac;
+  X_FA2[t,m] = Si[t,m] xor P[t,m] xor Cin_Plus1[t,m];
+  Cout_FA2[t,m] = Si[t,m] and P[t,m] or Si[t,m] and Cin_Plus1[t,m] or P[t,m] and Cin_Plus1[t,m];
+  S_Plus1_ctl1[t,m] = 
+      case
+        { | 1<=t<=17; m=0} : S_Plus1_ctl1_In[t,m];
+        { | t=2m+17; 1<=m<=15} | { | 2m+1<=t<=2m+16; 1<=m<=15} : S_Plus1_ctl1_reg1;
+      esac;
+  S_Plus1[t,m] = 
+      case
+        { | 2m+1<=t<=2m+17; 0<=m<=15} : 
+           case
+             { | t=2m+17; 0<=m<=15} : if (S_Plus1_ctl1) then Cout_FA2_reg8 else True[];
+             { | 2m+1<=t<=2m+16; 0<=m<=15} : if (not S_Plus1_ctl1) then X_FA2[t,m] else False[];
+           esac;
+      esac;
+  Si[t,m] = 
+      case
+        { | 2m+1<=t<=2m+16; 1<=m<=15} : S_Plus1_reg7;
+        { | 1<=t<=16; m=0} : False[];
+      esac;
+  X[b] = S_Plus1[b+32,15];
+tel;

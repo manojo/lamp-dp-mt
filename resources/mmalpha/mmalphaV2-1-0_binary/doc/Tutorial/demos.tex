@@ -1,0 +1,85 @@
+\chapter{The demos of {\mmalfa}}
+\label{demos}
+This chapter presents a few demos of {\mmalfa}.\index{demos,demonstrations}
+There two types of demos, the ones that are to be seen in a bloc note interface and the ones that should be executed in kernel mode. There are also various documentations available with the archive.
+
+\section{Bloc notes demos}
+
+\begin{description}
+ \item [Introduction.] Introduction to {\Alpha}
+\item [Domlib.] Elementary computations on domains with Domlib.
+
+ \item [FIR: Design of a FIR filter.]  The FIR demo shows the typical
+steps for the synthesis of a linear architecture for a Finite Impulse
+Response filter.  The demo comprises the following steps: loading the
+initial program, pipelining, scheduling, assign parameter values,
+control signal generation, {\alphaz} generation, {\alphard} generation.
+
+ \item [MATVECT: architecture for matrix vector
+multiplication.] 
+The MATVECT demo shows the typical steps for the
+synthesis of a linear architecture for a Matrix Vector Multiplication.
+The demo comprises the following steps: loading the initial program,
+pipelining, scheduling, assign parameter values, control signal
+generation,  {\alphaz} generation, {\alphard} generation.
+
+\end{description}
+
+
+
+\section{kernel demos}
+These demos are avaiblable at the following address:
+\htmladdnormallink{file:/udd/alpha/alpha\_beta/Mathematica/demos/demos.html}
+{file:/udd/alpha/alpha\_beta/Mathematica/demos/demos.html}
+
+\begin{description}
+ \item [INIT: An initiation to {\mmalfa}.] The INIT demo shows a few
+  basic functions of MMAlpha. The demo comprises the following steps:
+  loading and showing a program, normalizing, showing domains etc...
+  \index{INIT demo}
+
+ \item [FIR: Design of a FIR filter.]  The FIR demo shows the typical
+steps for the synthesis of a linear architecture for a Finite Impulse
+Response filter.  The demo comprises the following steps: loading the
+initial program, pipelining, scheduling, assign parameter values,
+control signal generation, {\alphaz} generation, {\alphard} generation.\index{FIR demo, Finite impulse
+response filter}
+
+ \item [MATVECT: architecture for matrix vector
+multiplication.] 
+The MATVECT demo shows the typical steps for the
+synthesis of a linear architecture for a Matrix Vector Multiplication.
+The demo comprises the following steps: loading the initial program,
+pipelining, scheduling, assign parameter values, control signal
+generation,  {\alphaz} generation, {\alphard} generation.\index{MATVECT demo,
+Matrix vector architecture}
+
+% \item [VERIF: Verification of the Matrix vector architecture.]
+%The VERIF demo shows the verification of a linear architecture for a
+%Matrix Vector Multiplication. The demo shows the use of subsystems,
+%the inlining of subsystems, the use of libraries, C code generation
+%and execution.\index{VERIF demo}
+
+
+ \item [SVD: analysis of a Singular Value Decomposition
+algorithm.]  The SVD demo shows the analysis of a larger Alpha
+program. It shows the use of subsystems, the nlining subsystems, the
+CNF code generation, the C code generation and execution.
+
+% \item [SVDUPDATE: another demo on Singular Value Decomposition.]
+%The SVD demo shows the analysis of another version of the SVD algorithm. 
+
+ \item [BINMULT: Synthesis of a multiplier.]  This demonstration
+shows the synthesis of a bit-serial multiplier, from an initial
+specification structured into several parameterized subsystems.  The
+demo script contains the following steps: loading and displaying a
+multi-system program, conversion into C code for simulation,
+pipelining of the diffusions in the initial program, flattenning all
+the systems for synthesis, scheduling before space/time
+transformation, space/time transformation, pipelining of the inputs
+(so that all the data enters the first processor in bit-serial
+manner), simulation of the resulting array.
+
+\item [ESTIM: synthesis of motion estimation] a two dimensionnal example, with 
+simulation, on a real image, derivation of {\alphaz} code (warning, long demo).
+\end{description}

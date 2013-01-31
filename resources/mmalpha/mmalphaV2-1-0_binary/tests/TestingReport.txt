@@ -1,0 +1,121 @@
+Test report file was cleaned
+Date: Sun 25 Apr 2010 18:02:15
+Entering installation test
+MMALPHA is set to: /Users/patricequinton/mmalpha
+domlib open in link: LinkObject[domlib, 5, 5]
+PATH environment set
+OS Type: darwin
+Operating system: Mac OS X x86 (64-bit)
+Operating system: MacOSX
+MMA Version: 7.0 for Mac OS X x86 (64-bit) (February 19, 2009)
+MMA Version number: 7.
+Launch directory: /Applications/Mathematica-7.app/Contents/MacOS
+Home directory: /Users/patricequinton
+Path: {/Applications/Mathematica-7.app/SystemFiles/Links, /Users/patricequinton/Library/Mathematica/Kernel, /Users/patricequinton/Library/Mathematica/Autoload, /Users/patricequinton/Library/Mathematica/Applications, /Library/Mathematica/Kernel, /Library/Mathematica/Autoload, /Library/Mathematica/Applications, ., /Users/patricequinton, /Applications/Mathematica-7.app/AddOns/Packages, /Applications/Mathematica-7.app/AddOns/LegacyPackages, /Applications/Mathematica-7.app/SystemFiles/Autoload, /Applications/Mathematica-7.app/AddOns/Autoload, /Applications/Mathematica-7.app/AddOns/Applications, /Applications/Mathematica-7.app/AddOns/ExtraPackages, /Applications/Mathematica-7.app/SystemFiles/Kernel/Packages, /Applications/Mathematica-7.app/Documentation/English/System, /Users/patricequinton/mmalpha/lib/Packages}
+------------- > Test for Install was passed successfully.
+End of test
+------> Testing: Domlib
+Date: Sun 25 Apr 2010 18:02:15
+Calling TestDomlib.m
+------------- > Test for Domlib was passed successfully.
+End of test
+------> Testing: Alpha
+Date: Sun 25 Apr 2010 18:02:24
+Calling TestAlpha.m
+------------- > Test for Alpha was passed successfully.
+End of test
+------> Testing: Tables
+Date: Sun 25 Apr 2010 18:02:25
+Calling TestTables.m
+------------- > Test for Tables was passed successfully.
+End of test
+------> Testing: Matrix
+Date: Sun 25 Apr 2010 18:02:25
+Calling TestMatrix.m
+------------- > Test for Matrix was passed successfully.
+End of test
+------> Testing: CutMMA
+Date: Sun 25 Apr 2010 18:02:26
+Calling TestCutMMA.m
+------------- > Test for CutMMA was passed successfully.
+End of test
+------> Testing: Normalization
+Date: Sun 25 Apr 2010 18:02:35
+Calling TestNormalization.m
+------------- > Test for Normalization was passed successfully.
+End of test
+------> Testing: Static
+Date: Sun 25 Apr 2010 18:02:38
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Sun 25 Apr 2010 18:02:40
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Sun 25 Apr 2010 18:02:50
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Decomposition
+Date: Sun 25 Apr 2010 18:03:01
+Calling TestDecomposition.m
+------------- > Test for Decomposition was passed successfully.
+End of test
+------> Testing: SubSystems
+Date: Sun 25 Apr 2010 18:03:01
+Calling TestSubSystems.m
+------------- > Test for SubSystems was passed successfully.
+End of test
+------> Testing: Pipeline
+Date: Sun 25 Apr 2010 18:03:01
+Calling TestPipeline.m
+------------- > Test for Pipeline was passed successfully.
+End of test
+------> Testing: PipeControl
+Date: Sun 25 Apr 2010 18:03:04
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: Visual
+Date: Sun 25 Apr 2010 18:03:07
+Calling TestVisual.m
+------------- > Test for Visual was passed successfully.
+End of test
+------> Testing: Schedule
+Date: Sun 25 Apr 2010 18:03:07
+Calling TestSchedule.m
+------------- > Test for Schedule was passed successfully.
+End of test
+------> Testing: Decomposition
+Date: Sun 25 Apr 2010 18:23:17
+Calling TestDecomposition.m
+------------- > Test for Decomposition was passed successfully.
+End of test
+------> Testing: SubSystems
+Date: Sun 25 Apr 2010 18:23:18
+Calling TestSubSystems.m
+------------- > Test for SubSystems was passed successfully.
+End of test
+------> Testing: Pipeline
+Date: Sun 25 Apr 2010 18:23:18
+Calling TestPipeline.m
+------------- > Test for Pipeline was passed successfully.
+End of test
+------> Testing: PipeControl
+Date: Sun 25 Apr 2010 18:23:22
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: Visual
+Date: Sun 25 Apr 2010 18:23:24
+Calling TestVisual.m
+------------- > Test for Visual was passed successfully.
+End of test
+------> Testing: Schedule
+Date: Sun 25 Apr 2010 18:23:24
+Calling TestSchedule.m
+------------- > Test for Schedule was passed successfully.
+End of test

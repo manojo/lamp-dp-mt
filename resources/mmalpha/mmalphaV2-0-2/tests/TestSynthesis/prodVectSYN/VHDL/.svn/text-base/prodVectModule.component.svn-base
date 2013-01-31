@@ -1,0 +1,12 @@
+
+COMPONENT prodVectModule
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  aReg2In : IN aReg2InTYPE;
+  bXMirr1In : IN bXMirr1InTYPE;
+  COut : OUT COutTYPE
+);
+END COMPONENT;
+

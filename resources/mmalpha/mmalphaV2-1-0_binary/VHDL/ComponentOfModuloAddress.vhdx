@@ -1,0 +1,14 @@
+--
+-- Component for a modulo address generator
+-- $comment$
+-- 
+
+COMPONENT $name$ IS  
+  PORT(
+    clk : IN STD_LOGIC;
+    ceGen : IN STD_LOGIC;
+    rst : IN STD_LOGIC;
+    address : OUT INTEGER RANGE 0 TO $periodMun$
+  );
+END COMPONENT;
+

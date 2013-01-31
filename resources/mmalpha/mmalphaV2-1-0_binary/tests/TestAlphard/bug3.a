@@ -1,0 +1,128 @@
+system fir :   {N,M | 2<=N<=M-1}
+               (x : {i | 0<=i<=M} of integer; 
+                H : {n | 0<=n<=N-1} of integer)
+       returns (y : {i | N<=i<=M} of integer);
+var
+  H_mirr1 : {t,p | -1<=t<=N-2; p=-1; 2<=N<=M-1} of integer;
+  x_mirr1 : {t,p | -1<=t<=M-1; p=-1; 2<=N<=M-1} of integer;
+  HPipe_ctl1_reg1loc : {t,p | t=p+N-1; 1<=p<=N; 2<=N<=M-1} | {t,p | p+N<=t<=p+M-1; 1<=p<=N; 2<=N} of boolean
+  ;
+  xPipe_ctl2_reg2loc : {t,p | t=p+N-1; 1<=p<=N; 2<=N<=M-1} | {t,p | p+N<=t<=p+M-1; 1<=p<=N; 2<=N} of boolean
+  ;
+  xPipe2_reg3loc : {t,p | N-1<=t<=M-1; p=0; 2<=N<=M-1} | {t,p | 2p-1<=t<=p+N-1; 0<=p; 2<=N<=M-1} of integer
+  ;
+  HPipe2_reg4loc : {t,p | 2p-1<=t<=(p+N-1,2p+N-2); 0<=p; 2<=N<=M-1} of integer
+  ;
+  xPipe_reg5loc : {t,p | p+N-1<=t<=p+M-1; 0<=p<=N; 2<=N<=M-1} of integer;
+  Y_reg7loc : {t,p | p+N-1<=t<=p+M-1; 0<=p<=N; 2<=N<=M-1} of integer;
+  Y_reg7 : {t,p | p+N<=t<=p+M; 0<=p<=N-1; 2<=N<=M-1} of integer;
+  HPipe_reg6 : {t,p | p+N+1<=t<=p+M; 0<=p<=N-1; 2<=N} of integer;
+  xPipe_reg5 : {t,p | p+N+1<=t<=p+M; 0<=p<=N-1; 2<=N} of integer;
+  HPipe2_reg4 : {t,p | 2p+1<=t<=p+N; 0<=p; 2<=N<=M-1} of integer;
+  xPipe2_reg3 : {t,p | 2p+1<=t<=p+N; 0<=p; 2<=N<=M-1} of integer;
+  xPipe_ctl2_reg2 : {t,p | p+N<=t<=p+M; 1<=p<=N-1; N<=M-1} of boolean;
+  HPipe_ctl1_reg1 : {t,p | p+N<=t<=p+M; 1<=p<=N-1; N<=M-1} of boolean;
+  HPipe_ctl1_In : {t,p | N<=t<=M; p=0; 2<=N<=M-1} of boolean;
+  HPipe_ctl1_Init : {t | N<=t<=M; 2<=N<=M-1} of boolean;
+  HPipe_ctl1 : {t,p | t=p+N; 0<=p<=N-1; 2<=N<=M-1} | {t,p | p+N+1<=t<=p+M; 0<=p<=N-1; 2<=N} of boolean
+  ;
+  xPipe_ctl2_In : {t,p | N<=t<=M; p=0; 2<=N<=M-1} of boolean;
+  xPipe_ctl2_Init : {t | N<=t<=M; 2<=N<=M-1} of boolean;
+  xPipe_ctl2 : {t,p | t=p+N; 0<=p<=N-1; 2<=N<=M-1} | {t,p | p+N+1<=t<=p+M; 0<=p<=N-1; 2<=N} of boolean
+  ;
+  xPipe2 : {t,p | N-1<=t<=M-1; p=-1; 2<=N<=M-1} | {t,p | 2p+1<=t<=p+N; -1<=p; 2<=N<=M-1} of integer
+  ;
+  HPipe2 : {t,p | 2p+1<=t<=(p+N,2p+N); -1<=p; 2<=N<=M-1} of integer;
+  xPipe : {t,p | p+N<=t<=p+M; -1<=p<=N-1; 2<=N<=M-1} of integer;
+  HPipe : {t,p | p+N<=t<=p+M; 0<=p<=N-1; 2<=N<=M-1} of integer;
+  Y : {t,p | p+N<=t<=p+M; -1<=p<=N-1; 2<=N<=M-1} of integer;
+let
+  H_mirr1[t,p] = H[-t+2p+N];
+  x_mirr1[t,p] = x[t-2p-1];
+  Y_reg7loc[t,p] = Y[t,p-1];
+  Y_reg7[t,p] = Y_reg7loc[t-1,p];
+  xPipe_reg5loc[t,p] = xPipe[t,p-1];
+  xPipe_reg5[t,p] = xPipe_reg5loc[t-2,p];
+  HPipe2_reg4loc[t,p] = HPipe2[t,p-1];
+  HPipe2_reg4[t,p] = HPipe2_reg4loc[t-2,p];
+  xPipe2_reg3loc[t,p] = xPipe2[t,p-1];
+  xPipe2_reg3[t,p] = xPipe2_reg3loc[t-2,p];
+  xPipe_ctl2_reg2loc[t,p] = xPipe_ctl2[t,p-1];
+  xPipe_ctl2_reg2[t,p] = xPipe_ctl2_reg2loc[t-1,p];
+  HPipe_ctl1_reg1loc[t,p] = HPipe_ctl1[t,p-1];
+  HPipe_ctl1_reg1[t,p] = HPipe_ctl1_reg1loc[t-1,p];
+  HPipe_reg6[t,p] = HPipe[t-1,p];
+  HPipe_ctl1_In[t,p] = HPipe_ctl1_Init[t];
+  HPipe_ctl1_Init[t] = 
+      case
+        {| N<=t<=M; 2<=N<=M-1} : 
+           case
+             {| t=N; 2<=N<=M-1} : True[];
+             {| N+1<=t<=M; 2<=N} : False[];
+           esac;
+      esac;
+  xPipe_ctl2_In[t,p] = xPipe_ctl2_Init[t];
+  xPipe_ctl2_Init[t] = 
+      case
+        {| N<=t<=M; 2<=N<=M-1} : 
+           case
+             {| t=N; 2<=N<=M-1} : True[];
+             {| N+1<=t<=M; 2<=N} : False[];
+           esac;
+      esac;
+  xPipe2[t,p] = 
+      case
+        {| N-1<=t<=M-1; p=-1; 2<=N<=M-1} | {| -1<=t<=N-1; p=-1; 2<=N<=M-1} : x_mirr1
+        ;
+        {| 2p+1<=t<=p+N; 0<=p; 2<=N<=M-1} : xPipe2_reg3;
+      esac;
+  HPipe2[t,p] = 
+      case
+        {| -1<=t<=N-2; p=-1; 2<=N<=M-1} : H_mirr1;
+        {| 2p+1<=t<=p+N; 0<=p; 2<=N<=M-1} : HPipe2_reg4;
+      esac;
+  xPipe_ctl2[t,p] = 
+      case
+        {| N<=t<=M; p=0; 2<=N<=M-1} : xPipe_ctl2_In[t,p];
+        {| t=p+N; 1<=p<=N-1; N<=M-1} | {| p+N+1<=t<=p+M; 1<=p<=N-1} : xPipe_ctl2_reg2
+        ;
+      esac;
+  xPipe[t,p] = 
+      case
+        {| N-1<=t<=M-1; p=-1; 2<=N<=M-1} : xPipe2[t,p];
+        {| p+N<=t<=p+M; 0<=p<=N-1; 2<=N<=M-1} : (if (xPipe_ctl2) then 
+               case
+                 {| t=p+N; 0<=p<=N-1; 2<=N<=M-1} : xPipe2[t,p];
+                 {| p+N+1<=t<=p+M; 0<=p<=N-1; 2<=N} : 0[];
+               esac else 
+               case
+                 {| t=p+N; 0<=p<=N-1; 2<=N<=M-1} : 0[];
+                 {| p+N+1<=t<=p+M; 0<=p<=N-1; 2<=N} : xPipe_reg5;
+               esac);
+      esac;
+  HPipe_ctl1[t,p] = 
+      case
+        {| N<=t<=M; p=0; 2<=N<=M-1} : HPipe_ctl1_In[t,p];
+        {| t=p+N; 1<=p<=N-1; N<=M-1} | {| p+N+1<=t<=p+M; 1<=p<=N-1} : HPipe_ctl1_reg1
+        ;
+      esac;
+  HPipe[t,p] = 
+      case
+        {| p+N<=t<=p+M; 0<=p<=N-1; 2<=N<=M-1} : (if (HPipe_ctl1) then 
+               case
+                 {| t=p+N; 0<=p<=N-1; 2<=N<=M-1} : HPipe2[t,p];
+                 {| p+N+1<=t<=p+M; 0<=p<=N-1; 2<=N} : 0[];
+               esac else 
+               case
+                 {| t=p+N; 0<=p<=N-1; 2<=N<=M-1} : 0[];
+                 {| p+N+1<=t<=p+M; 0<=p<=N-1; 2<=N} : HPipe_reg6;
+               esac);
+      esac;
+  Y[t,p] = 
+      case
+        {| N-1<=t<=M-1; p=-1; 2<=N<=M-1} : 0[];
+        {| p+N<=t<=p+M; 0<=p<=N-1; 2<=N<=M-1} : Y_reg7 + HPipe[t,p] * xPipe[t,p]
+        ;
+      esac;
+  y[i] = {| N<=i<=M; 2<=N<=M-1} : Y[i+N-1,N-1];
+tel;

@@ -1,0 +1,180 @@
+(* ALPHA Tree produced by read_alpha v.3.3.5 (Doran) *){
+Alpha`system["convert",
+    (* parameter space *)
+    Alpha`domain[1, {"N"}, {
+        Alpha`pol[2, 2, 0, 0, {
+            {1, 1, -1},
+            {1, 0, 1}},{
+            {1, 1, 0},
+            {1, 1, 1}}]}],
+    { (* input variables *)
+    Alpha`decl["Xin", Alpha`real, 
+        Alpha`domain[1, {"N"}, {
+            Alpha`pol[1, 2, 0, 1, {
+                {1, 0, 1}},{
+                {0, 1, 0},
+                {1, 0, 1}}]}]]},
+    { (* output variables *)
+    Alpha`decl["X", Alpha`integer, 
+        Alpha`domain[2, {"k", "N"}, {
+            Alpha`pol[3, 3, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 1, 0},
+                {1, 0, 0, 1}},{
+                {1, 0, 1, 0},
+                {1, 1, 1, 0},
+                {1, 0, 0, 1}}]}]]},
+    { (* local variables *)
+    Alpha`decl["Y", Alpha`real, 
+        Alpha`domain[2, {"k", "N"}, {
+            Alpha`pol[3, 3, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 1, 0},
+                {1, 0, 0, 1}},{
+                {1, 0, 1, 0},
+                {1, 1, 1, 0},
+                {1, 0, 0, 1}}]}]], 
+    Alpha`decl["Z", Alpha`real, 
+        Alpha`domain[2, {"k", "N"}, {
+            Alpha`pol[3, 3, 0, 0, {
+                {1, 1, 0, 0},
+                {1, -1, 1, 0},
+                {1, 0, 0, 1}},{
+                {1, 0, 1, 0},
+                {1, 1, 1, 0},
+                {1, 0, 0, 1}}]}]]},
+    { (* let *)
+    Alpha`equation["Y", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[2, {"k", "N"}, {
+                    Alpha`pol[2, 2, 1, 1, {
+                        {0, 1, 0, 0},
+                        {1, 0, 0, 1}},{
+                        {0, 0, 1, 0},
+                        {1, 0, 0, 1}}]}], 
+                Alpha`affine[Alpha`var["Xin"], 
+                    Alpha`matrix[2, 3, {"k", "N"}, {
+                        {0, 1, 0},
+                        {0, 0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[2, {"k", "N"}, {
+                    Alpha`pol[2, 3, 0, 1, {
+                        {1, 1, 0, -1},
+                        {1, 0, 0, 1}},{
+                        {0, 0, 1, 0},
+                        {1, 1, 0, 0},
+                        {1, 1, 0, 1}}]}], 
+                Alpha`binop[Alpha`mul, 
+                    Alpha`affine[Alpha`const[4], 
+                        Alpha`matrix[1, 2, {"N"}, {
+                            {0, 1}}]], 
+                    Alpha`affine[Alpha`var["Z"], 
+                        Alpha`matrix[3, 3, {"k", "N"}, {
+                            {1, 0, -1},
+                            {0, 1, 0},
+                            {0, 0, 1}}]]]]}]], 
+    Alpha`equation["Z", 
+        Alpha`binop[Alpha`sub, 
+            Alpha`affine[Alpha`var["Y"], 
+                Alpha`matrix[3, 3, {"k", "N"}, {
+                    {1, 0, 0},
+                    {0, 1, 0},
+                    {0, 0, 1}}]], 
+            Alpha`affine[Alpha`var["X"], 
+                Alpha`matrix[3, 3, {"k", "N"}, {
+                    {1, 0, 0},
+                    {0, 1, 0},
+                    {0, 0, 1}}]]]], 
+    Alpha`equation["X", 
+        Alpha`if[
+            Alpha`binop[Alpha`ge, 
+                Alpha`affine[Alpha`var["Y"], 
+                    Alpha`matrix[3, 3, {"k", "N"}, {
+                        {1, 0, 0},
+                        {0, 1, 0},
+                        {0, 0, 1}}]], 
+                Alpha`affine[Alpha`const[1.5], 
+                    Alpha`matrix[1, 2, {"N"}, {
+                        {0, 1}}]]], 
+            Alpha`affine[Alpha`const[2], 
+                Alpha`matrix[1, 2, {"N"}, {
+                    {0, 1}}]], 
+            Alpha`if[
+                Alpha`binop[Alpha`and, 
+                    Alpha`binop[Alpha`lt, 
+                        Alpha`affine[Alpha`var["Y"], 
+                            Alpha`matrix[3, 3, {"k", "N"}, {
+                                {1, 0, 0},
+                                {0, 1, 0},
+                                {0, 0, 1}}]], 
+                        Alpha`affine[Alpha`const[1.5], 
+                            Alpha`matrix[1, 2, {"N"}, {
+                                {0, 1}}]]], 
+                    Alpha`binop[Alpha`ge, 
+                        Alpha`affine[Alpha`var["Y"], 
+                            Alpha`matrix[3, 3, {"k", "N"}, {
+                                {1, 0, 0},
+                                {0, 1, 0},
+                                {0, 0, 1}}]], 
+                        Alpha`affine[Alpha`const[0.5], 
+                            Alpha`matrix[1, 2, {"N"}, {
+                                {0, 1}}]]]], 
+                Alpha`affine[Alpha`const[1], 
+                    Alpha`matrix[1, 2, {"N"}, {
+                        {0, 1}}]], 
+                Alpha`if[
+                    Alpha`binop[Alpha`and, 
+                        Alpha`binop[Alpha`lt, 
+                            Alpha`affine[Alpha`var["Y"], 
+                                Alpha`matrix[3, 3, {"k", "N"}, {
+                                    {1, 0, 0},
+                                    {0, 1, 0},
+                                    {0, 0, 1}}]], 
+                            Alpha`affine[Alpha`const[0.5], 
+                                Alpha`matrix[1, 2, {"N"}, {
+                                    {0, 1}}]]], 
+                        Alpha`binop[Alpha`ge, 
+                            Alpha`affine[Alpha`var["Y"], 
+                                Alpha`matrix[3, 3, {"k", "N"}, {
+                                    {1, 0, 0},
+                                    {0, 1, 0},
+                                    {0, 0, 1}}]], 
+                            Alpha`unop[Alpha`neg, 
+                                Alpha`affine[Alpha`const[0.5], 
+                                    Alpha`matrix[1, 2, {"N"}, {
+                                        {0, 1}}]]]]], 
+                    Alpha`affine[Alpha`const[0], 
+                        Alpha`matrix[1, 2, {"N"}, {
+                            {0, 1}}]], 
+                    Alpha`if[
+                        Alpha`binop[Alpha`and, 
+                            Alpha`binop[Alpha`lt, 
+                                Alpha`affine[Alpha`var["Y"], 
+                                    Alpha`matrix[3, 3, {"k", "N"}, {
+                                        {1, 0, 0},
+                                        {0, 1, 0},
+                                        {0, 0, 1}}]], 
+                                Alpha`unop[Alpha`neg, 
+                                    Alpha`affine[Alpha`const[0.5], 
+                                        Alpha`matrix[1, 2, {"N"}, {
+                                            {0, 1}}]]]], 
+                            Alpha`binop[Alpha`ge, 
+                                Alpha`affine[Alpha`var["Y"], 
+                                    Alpha`matrix[3, 3, {"k", "N"}, {
+                                        {1, 0, 0},
+                                        {0, 1, 0},
+                                        {0, 0, 1}}]], 
+                                Alpha`unop[Alpha`neg, 
+                                    Alpha`affine[Alpha`const[1.5], 
+                                        Alpha`matrix[1, 2, {"N"}, {
+                                            {0, 1}}]]]]], 
+                        Alpha`unop[Alpha`neg, 
+                            Alpha`affine[Alpha`const[1], 
+                                Alpha`matrix[1, 2, {"N"}, {
+                                    {0, 1}}]]], 
+                        Alpha`unop[Alpha`neg, 
+                            Alpha`affine[Alpha`const[2], 
+                                Alpha`matrix[1, 2, {"N"}, {
+                                    {0, 1}}]]]]]]]]}]
+}

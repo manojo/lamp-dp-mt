@@ -1,0 +1,43 @@
+10
+
+dir
+12
+https://scm.gforge.inria.fr/svn/mmalpha/gecos-mmalpha
+https://scm.gforge.inria.fr/svn/mmalpha
+
+
+
+2010-07-27T21:33:27.194206Z
+12
+sderrien
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+0743d4e4-8c0e-438f-ad07-3e00971e1bb5
+
+fr.irisa.cairn.model.mathematica.xtext.edit
+dir
+
+fr.irisa.cairn.model.mathematica.xtext.editor
+dir
+
+fr.irisa.cairn.gecos.mmalpha
+dir
+
+fr.irisa.cairn.model.mathematica.xtext.ui
+dir
+
+fr.irisa.cairn.model.mathematica.xtext
+dir
+

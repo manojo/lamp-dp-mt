@@ -1,0 +1,28 @@
+-- from Sophie Roberts
+
+system pdgeru  (Acol : {i,j,p | i=1; j=4; 1<=p<=3} | 
+                {i,j,p | 1<=i<=(4,j+1); 1<=j<=4; 1<=p<=2} | 
+                {i,j,p | 1<=i<=4; 1<=j<=4; p=1} of real; 
+                Vect : {i,p | 1<=i<=3; 1<=p<=2} | {i,p | 1<=i<=4; p=1} of real
+                )
+       returns (Bcol : {i,j,p | i=1; j=4; 1<=p<=3} | 
+                {i,j,p | 1<=i<=(4,j+1); 1<=j<=4; 1<=p<=2} | 
+                {i,j,p | 1<=i<=4; 1<=j<=4; p=1} of real);
+let
+  Bcol[i,j,p] = 
+      case
+        {| p=1} : Acol[i,j,p];
+        {| p=2} : 
+           case
+             {| 1<=i<=2; 1<=j<=4} : Acol[i,j,p];
+             {| i=3; j=2} : Acol[i,j,p];
+             {| i=3; 3<=j<=4} : Acol[i,j,p] - Vect[i,p] * Acol[2,j,2];
+             {| i=4; 3<=j<=4} : Acol[i,j,p];
+           esac;
+        {| p=3} : 
+           case
+             {| i=0; j=0; p=0; 1=0} : Acol[i,j,p];
+             {| i=1; j=4} : Acol[i,j,p];
+           esac;
+      esac;
+tel;

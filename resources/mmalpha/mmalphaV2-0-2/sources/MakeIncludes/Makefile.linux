@@ -1,0 +1,19 @@
+#-----------------------------------------------
+#   This is the special config Makefile for linux. It was changed on sept. 23, 2007
+#   in order to separate the definition of Mathlink related stuff, in separate files
+#   of the form Makefile.linux.version, where version is the number of the 
+#   Mathematica version.
+
+#-----------------------------------------------
+DEFINES      = -DUNIX
+
+#-----------------------------------------------
+#  Define the loader, its precision flags, and its flags
+LD = gcc
+PRECISIONFLAG=-DLINEAR_VALUE_IS_LONGLONG
+LDFLAGS		= -L$(LIBDIR) 
+
+#-----------------------------------------------
+#   Include special definitions for Mathlink depending on the version.
+#   Note that we are not in this directory...
+include ../MakeIncludes/Makefile.linux.$(MMAVERSION)

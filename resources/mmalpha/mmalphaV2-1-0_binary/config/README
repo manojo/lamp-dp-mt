@@ -1,0 +1,8 @@
+CONTENT (As of April 25, 2005)
+
+About-this-dir	OK
+index.html	OK
+init.m		OK
+*init_users.bash	Seems that it is an old version?
+  See init_users.bash-new, that was previously in my alpha_beta version
+*init_users.csh		Different from my version, but seems better

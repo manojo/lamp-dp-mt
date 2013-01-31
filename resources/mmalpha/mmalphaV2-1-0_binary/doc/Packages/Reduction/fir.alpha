@@ -1,0 +1,7 @@
+system fir : {N,M | 3 <= N <= M-1}
+	     (x : {i | 1 <= i <= M} of integer;
+	      H : {n | 0 <= n <= N-1} of integer)
+       returns (res : {i | N <= i <= M} of integer);
+let
+  res[i] = reduce(+,(i,n -> i), H.(i,n -> n) * x.(i,n -> i-n));
+tel;

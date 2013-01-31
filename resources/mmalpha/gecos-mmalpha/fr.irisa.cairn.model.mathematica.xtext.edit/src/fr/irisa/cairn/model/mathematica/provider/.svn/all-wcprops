@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/svn/mmalpha/!svn/ver/11/gecos-mmalpha/fr.irisa.cairn.model.mathematica.xtext.edit/src/fr/irisa/cairn/model/mathematica/provider
+END
+NodeItemProvider.java
+K 25
+svn:wc:ra_dav:version-url
+V 150
+/svn/mmalpha/!svn/ver/11/gecos-mmalpha/fr.irisa.cairn.model.mathematica.xtext.edit/src/fr/irisa/cairn/model/mathematica/provider/NodeItemProvider.java
+END
+MathematicaItemProviderAdapterFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 171
+/svn/mmalpha/!svn/ver/11/gecos-mmalpha/fr.irisa.cairn.model.mathematica.xtext.edit/src/fr/irisa/cairn/model/mathematica/provider/MathematicaItemProviderAdapterFactory.java
+END
+MathematicaEditPlugin.java
+K 25
+svn:wc:ra_dav:version-url
+V 155
+/svn/mmalpha/!svn/ver/11/gecos-mmalpha/fr.irisa.cairn.model.mathematica.xtext.edit/src/fr/irisa/cairn/model/mathematica/provider/MathematicaEditPlugin.java
+END
+BuiltInNodeItemProvider.java
+K 25
+svn:wc:ra_dav:version-url
+V 157
+/svn/mmalpha/!svn/ver/11/gecos-mmalpha/fr.irisa.cairn.model.mathematica.xtext.edit/src/fr/irisa/cairn/model/mathematica/provider/BuiltInNodeItemProvider.java
+END
+ASTNodeItemProvider.java
+K 25
+svn:wc:ra_dav:version-url
+V 153
+/svn/mmalpha/!svn/ver/11/gecos-mmalpha/fr.irisa.cairn.model.mathematica.xtext.edit/src/fr/irisa/cairn/model/mathematica/provider/ASTNodeItemProvider.java
+END
+FloatLeafItemProvider.java
+K 25
+svn:wc:ra_dav:version-url
+V 155
+/svn/mmalpha/!svn/ver/11/gecos-mmalpha/fr.irisa.cairn.model.mathematica.xtext.edit/src/fr/irisa/cairn/model/mathematica/provider/FloatLeafItemProvider.java
+END
+SymbolLeafItemProvider.java
+K 25
+svn:wc:ra_dav:version-url
+V 156
+/svn/mmalpha/!svn/ver/11/gecos-mmalpha/fr.irisa.cairn.model.mathematica.xtext.edit/src/fr/irisa/cairn/model/mathematica/provider/SymbolLeafItemProvider.java
+END
+StringLeafItemProvider.java
+K 25
+svn:wc:ra_dav:version-url
+V 156
+/svn/mmalpha/!svn/ver/11/gecos-mmalpha/fr.irisa.cairn.model.mathematica.xtext.edit/src/fr/irisa/cairn/model/mathematica/provider/StringLeafItemProvider.java
+END
+ASTLeafItemProvider.java
+K 25
+svn:wc:ra_dav:version-url
+V 153
+/svn/mmalpha/!svn/ver/11/gecos-mmalpha/fr.irisa.cairn.model.mathematica.xtext.edit/src/fr/irisa/cairn/model/mathematica/provider/ASTLeafItemProvider.java
+END
+IntLeafItemProvider.java
+K 25
+svn:wc:ra_dav:version-url
+V 153
+/svn/mmalpha/!svn/ver/11/gecos-mmalpha/fr.irisa.cairn.model.mathematica.xtext.edit/src/fr/irisa/cairn/model/mathematica/provider/IntLeafItemProvider.java
+END

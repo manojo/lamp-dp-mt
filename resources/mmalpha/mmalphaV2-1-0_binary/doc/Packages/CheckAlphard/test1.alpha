@@ -1,0 +1,5 @@
+system test1 (a,b: integer)
+returns (c: integer);
+let
+  c = a + b;
+tel;

@@ -1,0 +1,431 @@
+Reporting on system: computeDistances
+  System was in $result  
+23/4/2010 -- 8h 58mn 27.587727s
+
+System:
+system computeDistances :{N,M | 1<=N; 2<=M}
+                        (descriptor : {i | 0<=i<=N-1} of integer[S,15]; 
+                         image : {i,j | 0<=i<=N-1; 0<=j<=M-1} of integer[S,15])
+       returns          (distances : {j | 0<=j<=M-1} of integer[S,15]);
+var
+  descriptorXMirr1 : {t,p | 0<=t<=N-1; p=0} of integer[S,15];
+  TSep3 : {t,p | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15];
+  TSep2 : {t,p | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15];
+  TSep1 : {t,p | M-1<=t<=N+M-2; 0<=p<=M-1} of boolean;
+  pipeCdescriptor9Reg6Xloc : {t,p | p-1<=t<=p+N-2; 1<=p<=M} of integer[S,15];
+  diffReg3Xloc : {t,p | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15];
+  diffReg2Xloc : {t,p | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15];
+  diffReg1Xloc : {t,p | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15];
+  pipeCdescriptor9Reg6 : {t,p | p<=t<=p+N-1; 1<=p<=M-1} of integer[S,15];
+  dlocReg5 : {t,p | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15];
+  imageReg4 : {t,p | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15];
+  diffReg3 : {t,p | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15];
+  diffReg2 : {t,p | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15];
+  diffReg1 : {t,p | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15];
+  dlocXctl1XIn : {t,p | M-2<=t<=N+M-2; 0<=p<=M-1} of boolean;
+  pipeCdescriptor9 : {t,p | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15];
+  temp : {t,p | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15];
+  d : {t,p | t=N+M-2; 0<=p<=M-1} of integer[S,15];
+  dloc : {t,p | M-2<=t<=N+M-2; 0<=p<=M-1} of integer[S,15];
+  diff : {t,p | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15];
+  absValue : {t,p | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15];
+  dlocXctl1 : {t | M-2<=t<=N+M-2} of boolean;
+let
+  descriptorXMirr1[t,p] = descriptor[t];
+  diffReg1Xloc[t,p] = diff[t,p];
+  diffReg1[t,p] = diffReg1Xloc[t+p-M+1,p];
+  diffReg2Xloc[t,p] = diff[t,p];
+  diffReg2[t,p] = diffReg2Xloc[t+p-M+1,p];
+  diffReg3Xloc[t,p] = diff[t,p];
+  diffReg3[t,p] = diffReg3Xloc[t+p-M+1,p];
+  pipeCdescriptor9Reg6Xloc[t,p] = pipeCdescriptor9[t,p-1];
+  pipeCdescriptor9Reg6[t,p] = pipeCdescriptor9Reg6Xloc[t-1,p];
+  dlocReg5[t,p] = dloc[t-1,p];
+  imageReg4[t,p] = image[t-p,p];
+  dlocXctl1XIn[t,p] = dlocXctl1[t];
+  pipeCdescriptor9[t,p] = 
+      case
+        { | p=0} : descriptorXMirr1;
+        { | 1<=p} : pipeCdescriptor9Reg6;
+      esac;
+  temp[t,p] = pipeCdescriptor9[t,p];
+  diff[t,p] = imageReg4 - temp[t,p];
+  TSep1[t,p] = diffReg1>0[];
+  TSep2[t,p] = -diffReg3;
+  absValue[t,p] = if (TSep1) then diffReg2 else TSep2;
+  dlocXctl1[t] = 
+      case
+        case
+          { | t=M-2} : True[];
+          { | M-1<=t} : False[];
+        esac;
+      esac;
+  TSep3[t,p] = dlocReg5 + absValue[t,p];
+  dloc[t,p] = 
+      case
+        if (dlocXctl1XIn) then 
+            case
+              { | t=M-2} : 0[];
+              { | M-1<=t} : 0[];
+            esac else 
+        case
+          { | t=M-2} : 0[];
+          { | M-1<=t} : TSep3;
+        esac;
+      esac;
+  d[t,p] = dloc[t,p];
+  distances[j] = d[N+M-2,j];
+tel;
+
+-- Equation: 
+    descriptorXMirr1 = descriptor.(t,p,N,M->t,N,M);
+  ** Declaration: 
+    descriptorXMirr1 : {t,p,N,M | 0<=t<=N-1; p=0} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Input equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    diffReg1Xloc = diff.(t,p,N,M->t,p,N,M);
+  ** Declaration: 
+    diffReg1Xloc : {t,p,N,M | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Identity equation
+  ** Definition of diffReg1Xloc could be removed
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    diffReg1 = diffReg1Xloc.(t,p,N,M->t+p-M+1,p,N,M);
+  ** Declaration: 
+    diffReg1 : {t,p,N,M | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: diffReg1Xloc.(t,p,N,M->t+p-M+1,p,N,M)
+     Occurrence: {6, 3, 2}
+    ** is square
+    ** is not uniform
+     ** can be uniformized
+     -> Execute the command:    mkUniform[ {6, 3, 2} ]
+
+
+-- Equation: 
+    diffReg2Xloc = diff.(t,p,N,M->t,p,N,M);
+  ** Declaration: 
+    diffReg2Xloc : {t,p,N,M | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Identity equation
+  ** Definition of diffReg2Xloc could be removed
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    diffReg2 = diffReg2Xloc.(t,p,N,M->t+p-M+1,p,N,M);
+  ** Declaration: 
+    diffReg2 : {t,p,N,M | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: diffReg2Xloc.(t,p,N,M->t+p-M+1,p,N,M)
+     Occurrence: {6, 5, 2}
+    ** is square
+    ** is not uniform
+     ** can be uniformized
+     -> Execute the command:    mkUniform[ {6, 5, 2} ]
+
+
+-- Equation: 
+    diffReg3Xloc = diff.(t,p,N,M->t,p,N,M);
+  ** Declaration: 
+    diffReg3Xloc : {t,p,N,M | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Identity equation
+  ** Definition of diffReg3Xloc could be removed
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    diffReg3 = diffReg3Xloc.(t,p,N,M->t+p-M+1,p,N,M);
+  ** Declaration: 
+    diffReg3 : {t,p,N,M | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: diffReg3Xloc.(t,p,N,M->t+p-M+1,p,N,M)
+     Occurrence: {6, 7, 2}
+    ** is square
+    ** is not uniform
+     ** can be uniformized
+     -> Execute the command:    mkUniform[ {6, 7, 2} ]
+
+
+-- Equation: 
+    pipeCdescriptor9Reg6Xloc = pipeCdescriptor9.(t,p,N,M->t,p-1,N,M);
+  ** Declaration: 
+    pipeCdescriptor9Reg6Xloc : {t,p,N,M | p-1<=t<=p+N-2; 1<=p<=M} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCdescriptor9Reg6 = pipeCdescriptor9Reg6Xloc.(t,p,N,M->t-1,p,N,M);
+  ** Declaration: 
+    pipeCdescriptor9Reg6 : {t,p,N,M | p<=t<=p+N-1; 1<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer[S, 15] Register
+  ** Valid from 1 <= t <= -2 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    dlocReg5 = dloc.(t,p,N,M->t-1,p,N,M);
+  ** Declaration: 
+    dlocReg5 : {t,p,N,M | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer[S, 15] Register
+  ** Valid from -1 + M <= t <= -2 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    imageReg4 = image.(t,p,N,M->t-p,p,N,M);
+  ** Declaration: 
+    imageReg4 : {t,p,N,M | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Input equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    dlocXctl1XIn = dlocXctl1.(t,p,N,M->t,N,M);
+  ** Declaration: 
+    dlocXctl1XIn : {t,p,N,M | M-2<=t<=N+M-2; 0<=p<=M-1} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: dlocXctl1.(t,p,N,M->t,N,M)
+     Occurrence: {6, 12, 2}
+    ** is not square
+    ** is not uniform
+    ** Possible pipeline: 
+     -> Execute the command: pipeall[ {}, {6, 12, 2}, affine[var["pipeCdlocXctl15"], matrix[5, 5, {"t", "p", "N", "M"}, {{1, 0, 0, 0, 0}, {0, 1, 0, 0, 1}, {0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]],domain[4, {"t", "p", "N", "M"}, {pol[2, 5, 0, 3, {{1, 0, 1, 0, 0, 1}, {1, 0, 0, 0, 0, 1}}, {{0, 1, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 1, 0}, {1, 0, 1, 0, 0, 0}, {1, 0, -1, 0, 0, 1}}]}]]
+
+
+-- Equation: 
+    pipeCdescriptor9 = 
+    case
+      {t,p,N,M | p=0} : descriptorXMirr1;
+      {t,p,N,M | 1<=p} : pipeCdescriptor9Reg6;
+    esac;
+  ** Declaration: 
+    pipeCdescriptor9 : {t,p,N,M | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+ spatial case   ** Spatial case equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    temp = pipeCdescriptor9.(t,p,N,M->t,p,N,M);
+  ** Declaration: 
+    temp : {t,p,N,M | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Identity equation
+  ** Definition of temp could be removed
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    diff = imageReg4 - temp.(t,p,N,M->t,p,N,M);
+  ** Declaration: 
+    diff : {t,p,N,M | p<=t<=p+N-1; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {sub}
+  ** Unops: {}
+  ** Valid from 0 <= t <= -2 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep1 = diffReg1>0.(t,p,N,M->);
+  ** Declaration: 
+    TSep1 : {t,p,N,M | M-1<=t<=N+M-2; 0<=p<=M-1} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {gt}
+  ** Unops: {}
+  ** Valid from -1 + M <= t <= -2 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep2 = -diffReg3;
+  ** Declaration: 
+    TSep2 : {t,p,N,M | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {}
+  ** Unops: {neg}
+  ** Valid from -1 + M <= t <= -2 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    absValue = if (TSep1) then diffReg2 else TSep2;
+  ** Declaration: 
+    absValue : {t,p,N,M | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Multiplexer
+  ** integer[S, 15] Mux
+  ** Valid from -1 + M <= t <= -2 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    dlocXctl1 = 
+    case
+      case
+        {t,N,M | t=M-2} : True.(t,N,M->);
+        {t,N,M | M-1<=t} : False.(t,N,M->);
+      esac;
+    esac;
+  ** Declaration: 
+    dlocXctl1 : {t,N,M | M-2<=t<=N+M-2} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t}
+  ** Scheduled, one time dimension
+  ** Control equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep3 = dlocReg5 + absValue.(t,p,N,M->t,p,N,M);
+  ** Declaration: 
+    TSep3 : {t,p,N,M | M-1<=t<=N+M-2; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {add}
+  ** Unops: {}
+  ** Valid from -1 + M <= t <= -2 + M + N
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    dloc = 
+    case
+      if (dlocXctl1XIn) then 
+          case
+            {t,p,N,M | t=M-2} : 0.(t,p,N,M->);
+            {t,p,N,M | M-1<=t} : 0.(t,p,N,M->);
+          esac else 
+      case
+        {t,p,N,M | t=M-2} : 0.(t,p,N,M->);
+        {t,p,N,M | M-1<=t} : TSep3;
+      esac;
+    esac;
+  ** Declaration: 
+    dloc : {t,p,N,M | M-2<=t<=N+M-2; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** No dependency
+
+
+-- Equation: 
+    d = dloc.(t,p,N,M->t,p,N,M);
+  ** Declaration: 
+    d : {t,p,N,M | t=N+M-2; 0<=p<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Identity equation
+  ** Definition of d could be removed
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    distances = d.(j,N,M->N+M-2,j,N,M);
+  ** Declaration: 
+    distances : {j,N,M | 0<=j<=M-1} of integer[S,15]
+  ** Type is: integer[S, 15]
+  ** Output equation
+  ** Indexes: {j}
+  ** Mirror equation
+  ** This equation can be interpreted as hardware
+
+---- These equations cannot be translated to hardware:
+diffReg1 = diffReg1Xloc.(t,p,N,M->t+p-M+1,p,N,M);
+diffReg2 = diffReg2Xloc.(t,p,N,M->t+p-M+1,p,N,M);
+diffReg3 = diffReg3Xloc.(t,p,N,M->t+p-M+1,p,N,M);
+dlocXctl1XIn = dlocXctl1.(t,p,N,M->t,N,M);
+dloc = 
+    case
+      if (dlocXctl1XIn) then 
+          case
+            {t,p,N,M | t=M-2} : 0.(t,p,N,M->);
+            {t,p,N,M | M-1<=t} : 0.(t,p,N,M->);
+          esac else 
+      case
+        {t,p,N,M | t=M-2} : 0.(t,p,N,M->);
+        {t,p,N,M | M-1<=t} : TSep3;
+      esac;
+    esac;
+
+
+---- Use statements:
+
+
+------
+  **** Resources used:
+  2 integer registers
+  1 integer or floating-point mux
+  0 multipliers 
+  2 adders/subtracters 
+  ** Analysis of operators
+  sub from 0 to -2 + M + N
+  gt from -1 + M to -2 + M + N
+  neg from -1 + M to -2 + M + N
+  mux from -1 + M to -2 + M + N
+  add from -1 + M to -2 + M + N

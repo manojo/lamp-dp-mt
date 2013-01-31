@@ -1,0 +1,59 @@
+Initial version : June 2004 -- Patrice Quinton
+
+This file may contain errors. Please, sent your remarks to 
+Patrice.Quinton@irisa.fr . 
+
+This file contains indications regarding the use of MMAlpha on 
+Unix machine, provided that MMAlpha has been installed. This is
+valid, for example, for Irisa users. 
+				       
+[user]	1. In the .cshrc file:
+	   set the environment variable  MMALPHA to the MMALPHA directory 
+	   (ask your admin where this directory is), by adding the command:
+           setenv MMALPHA "..."
+	   load the file $MMAlpha/init_user.csh by adding the command:
+           source $MMALPHA/config/init_user.csh
+	   The only files that should be edited by you are the
+	   files of directory $MMALPHA/config/
+
+[user]	2. copy  the  file "$MMALPHA/init.m" in your home directory 
+	   (or append it to your $HOME/init.m file if it already 
+	   exists). For users unfamiliar with Mathematica, recall
+	   that the init.m file is executed whenever Mathematica
+	   is launched.  
+
+[user]	3. It's ready! Run Mathematica by the command:
+           mathematica
+	   and type "start[]" to launch the master notebook.
+	   If you do not use the notebook interface, you will
+	   not be able to visualize the notebook demos, but 
+	   the system will work anyway.
+
+[gnu-emacs user]
+(This may not work...)
+	3. Append the file "$MMALPHA/config/dot.emacs" to
+	   your "$HOME/.emacs" file.
+
+           If Emacs complains that it can't find the library named
+	   "comint", get a copy of it from any emacs FTP site, and add
+	   it to your standard Emacs-lisp directory.
+
+	   Now, "M-x Mathematica" will start an interactive
+	   Mathematica session from inside Emacs, and "M-x math-mode"
+	   will put a buffer into Mathematica source _editing_ mode.
+	   Also, an auto-mode feature is provided: when loading a file
+	   with extension ".m", the buffer is automatically put in
+	   "math-mode".
+
+***   In case of installation problems: mailto:alpha@irisa.fr     *****
+***********************************************************************
+***********************************************************************
+       			Installing MMALPHA on Linux system
+***********************************************************************
+
+The procedure is basically the same as for unix system except that
+Linux often uses bash shell by default, hence replace "csh" by "bash"
+in the above procedure.
+
+***   In case of installation problems: mailto:alpha@irisa.fr     *****
+***********************************************************************

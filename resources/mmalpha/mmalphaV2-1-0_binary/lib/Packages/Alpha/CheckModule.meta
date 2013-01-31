@@ -1,0 +1,182 @@
+{
+(*
+	This file contains the syntax of AlpHard Module's Abstract Syntax Tree. Once 
+	processed with the meta function, it produces a file named CheckModule.m which
+	allows one to analyze an AST and check that this AST has the syntax of a 
+	Module. 
+
+	Modules are subsystems, with only spacial dependencies. Local connexions are
+	realized via so called spacial cases. Non-local connexions are simple 
+	expressions. THIS HAS TO BE CHECKED BY THE SEMANTICS... NOT SURE IT IS.
+*)
+
+(*	
+	System declaration
+*)
+  SYSTEMDECLARATION ::= 
+    system[ name: _String, 
+            paramDecl: DOMAINPARAM, 
+            inputDeclList: {DECLARATION},
+            outputDeclList: {DECLARATION}, 
+            localDeclList: {DECLARATION}, 
+            equationBlock: {EQUATION}
+          ] 
+          :> semFuncCheckModule[ system, trparamDecl, 
+               trinputDeclList, troutputDeclList, trlocalDeclList,
+               trequationBlock, debug -> CheckModuleDebug ]
+,
+
+  DECLARATION ::=
+    decl[ varName: _String, 
+          varType: (integer|boolean|integer[_String,_Integer]),
+          domain: DOMAIN 
+        ]
+        :> semFuncCheckModule[ decl, decl[ varName, varType, domain ], debug -> CheckModuleDebug ]
+(*	The semantics has to check that the dimension of this
+	declaration is <=2. Returns True if so, False otherwise.
+*)
+
+,
+(*
+	Parameter domain
+*)
+  DOMAINPARAM ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> dimension (* should be 0 *)
+,
+
+(*
+	Domains
+*)
+  DOMAIN ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> dimension (* can be anything *)
+,
+
+  POLYHEDRON ::= 
+    pol[ constraintsNum:_Integer,
+         generatorsNum:_Integer,
+         equationsNum:_Integer,
+         linesNum:_Integer,
+         constraintList: {CONSTRAINT},
+         generatorList: {GENERATOR}
+       ]
+       :> Null
+,
+
+  CONSTRAINT ::= {_List -> List}
+,
+
+  GENERATOR ::= {_List -> List} 
+
+(* 	
+	An equation is either an assignment or a use
+*)
+,
+
+  EQUATION ::= 
+    { _equation -> ASSIGNMENT,	
+      _use -> USESTATEMENT	
+    }
+,
+    
+(* 
+	The only possible assignment is a connection
+*)
+  ASSIGNMENT ::= 
+    equation[ leftHandSide: _String, 
+              rightHandSide: CONNECTION
+            ] 
+            :> semFuncCheckModule[ assignment, trrightHandSide, 
+                             equation[ leftHandSide, rightHandSide], debug -> CheckModuleDebug ]
+(*	
+	Semantics: returns the result of the rhs evaluation, which should be 
+	a boolean, and the equation itself, in order to issue an error message. 
+*)
+,
+
+(* 	
+	The syntax of a use statement prohibits expressions as input 
+	parameters. These parameters can only be simple variables 
+*)
+  USESTATEMENT ::= 
+    use[ id: _String, 
+         extension: DOMAIN,
+         paramAssign: MATRIX,
+         inputList: {VAREXP},
+	 idList: {___String}
+       ]
+       :> semFuncCheckModule[ use, {id, extension, paramAssign, inputList, idList}, debug->CheckModuleDebug ]
+,
+
+(*
+	Connection
+*)
+  CONNECTION ::= 
+    { 
+      _case-> CASEXP, 		(* Local connection *)
+      _restrict -> RESTEXP, 	(* Non local connections *)
+      _affine -> AFFEXP 	(* Non local connections *)
+    }
+, 
+(*
+	Local connection
+*)
+  CASEXP ::= 
+    case[ 
+         expressionList: {RESTEXP} 
+        ] 
+        :> semFuncCheckModule[ case , trexpressionList, debug -> CheckModuleDebug ] 
+,
+(*
+	Restriction 
+*)
+  RESTEXP ::= 
+    restrict[ 
+         domain: DOMAIN, 
+         expression: AFFEXP 	
+         ] 			
+         :> semFuncCheckModule[ restrict, trdomain, trexpression, debug -> CheckModuleDebug ]
+, 
+(* 
+	Affine expression
+*)
+  AFFEXP ::= 
+    affine[ 
+      expression: VAREXP,
+      affineFunction: MATRIX 	
+          ] 
+          :> semFuncCheckModule[ affexp, traffExpression, 
+                           affineFunction, 
+                           debug -> CheckModuleDebug ]
+(*	
+	The semantics checks that the matrix is a translation. It does not
+	check yet that the translation is negative. 
+*)
+,
+
+  MATRIX ::= 
+    matrix[ 
+      d1:_Integer, 
+      d2:_Integer, 
+      in:{___String}, 
+      mmaMatrix:MATRIXNUM
+          ]
+          :> Null
+,
+
+  MATRIXNUM ::= {_List -> {List}}
+,
+  VAREXP ::= 
+    var[ 
+         identifier: _String 
+       ] 
+    :> Null
+
+}

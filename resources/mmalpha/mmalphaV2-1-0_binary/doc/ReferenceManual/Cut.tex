@@ -1,0 +1,37 @@
+%
+% File created on {2007, 11, 15, 17, 10, 19.090285} by makeDoc.
+%
+% Section header
+\section{The Alpha`Cut` package } 
+\label{label:Alpha`Cut`}
+\alphanote{Cut}{Documentation revised on August 3, 2004.} 
+ 
+\alphausage{Cut}{Alpha`Cut` is the package which contains the cut, decompose  and merge transformations. }{Alpha/Cut.m}{Alpha`Cut`}
+\index{Cut}
+
+\alphausage{cut}{cut[var\_String, dom\_String, outvar1\_Sting, outvar2\_String] returns the program obtained by cutting the definition of var in program \$result into two definitions outvar1 and outvar2, where outvar1 is restricted to dom, and outvar2 is restricted to the complemtary space of dom. The result of cut is put in symbol \$result. cut[sys, var, dom, outvar1, outvar] does the same to program sys. The parameter dom may be specified either as a string, or as the internal Alpha form of a domain. \\Example: cut["A","\{i,j $|$ i$<$j \}","A1", "A2"].}{Alpha/Cut.m}{Alpha`Cut`}
+\index{cut}
+
+\alphausage{decompose}{decompose[expr,name] returns the program obtained by adding to  \$result a new equation "name = expr" and replacing the first  occurrence of expr by name. The program returned is assigned to \$result.  decompose[sys,expr,name] does the same to program sys, but does not modify \$result. expr and name are either strings or ast's. expr can also be specified using a Mathematica Position.}{Alpha/Cut.m}{Alpha`Cut`}
+\index{decompose}
+
+\alphausage{exprLocalEquivQ}{Predicate. Checks whether or not two expressions in an ALPHA programs are equivalent in any point of a given domain. Obsolete function.}{Alpha/Cut.m}{Alpha`Cut`}
+\index{exprLocalEquivQ}
+
+\alphausage{merge}{merge[var1, var2, newVar] replaces in \$result two local variable  definitions with a single one. The declaration domain of the new  variable is the union of the domains of the old ones. The definition  of the new variable is a case whose branches are definitions of  the old variables restricted to their respective domains. RHS occurrences of the old variables are replaced by the proper restrictions of the new variable.\\ merge[sys, var1, var2, newVar] replaces in system sys two local  variable definitions with a single one and returns the new system.}{Alpha/Cut.m}{Alpha`Cut`}
+\index{merge}
+
+\alphausage{mergeCaseBranches}{mergeCaseBranches[casePosition\_List, branchPosition\_List], merges (in \$result) the specified case branches if they contain identical expressions. mergeCaseBranches[sys, casePosition, branchPosition]  merges the  specified case branches of system sys if they contain  identical expressions and returns the new system. The domain of the  new branch may be non-convex.}{Alpha/Cut.m}{Alpha`Cut`}
+\index{mergeCaseBranches}
+
+\alphausage{mergeIdCaseBranches}{mergeIdCaseBranches[sys] tries to merge case branches that have  identical expressions (i.e. tries to inverse what splitCaseUnion did).  Warning, this function works only on normalized programs.}{Alpha/Cut.m}{Alpha`Cut`}
+\index{mergeIdCaseBranches}
+
+\alphausage{splitCaseUnion}{splitCaseUnion[sys] splits all the case branches that have a  non convex domain as restrict (union of convex) by several branches,  each corresponding to one convex domain. Warning, this function works only on normalized programs.}{Alpha/Cut.m}{Alpha`Cut`}
+\index{splitCaseUnion}
+
+\alphausage{unionMerge}{unionMerge[sys, firstVar, secondVar, resultingVar] is an extension of merge that handles overlapping definitions parameters. Returns the modified program. Warning obsolete function.}{Alpha/Cut.m}{Alpha`Cut`}
+\index{unionMerge}
+
+\alphanote{unionMerge}{unionMerge acts much like merge, the difference being that overlapping domains are accepted if both expressions are equivalent over the overlap. By equivalent we mean that the structures of the expressions are identical and that the images of the overlap domain through the dependence functions are equal for any dependence. To illustrate the latter, consider the expressions \\\\\\ \{i,j$|$i=j; 1$<$=j$<$=4\\\} : A.(i,j$ \rightarrow $i,j) \\\\\\and  \\\\\\\{i,j$|$i=j; 1$<$=j$<$=4\} : A.(i,j$ \rightarrow $j,j).\\\\\\ Although the dependence functions are not equal, these expressions are equivalent over the domain \{i,j$|$i=j; 1$<$=j$<$=4\}.} 
+ 

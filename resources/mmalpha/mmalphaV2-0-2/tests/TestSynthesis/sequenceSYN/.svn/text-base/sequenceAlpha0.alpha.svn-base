@@ -1,0 +1,58 @@
+system sequence :{X,Y | 3<=X<=Y-1}
+                (QS : {i | 1<=i<=X} of integer; 
+                 DB : {j | 1<=j<=Y} of integer)
+       returns  (res : {j | 1<=j<=Y} of integer);
+var
+  DBXMirr1 : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  QSXMirr1 : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  TSep6 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep5 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep4 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep3 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep2 : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  TSep1 : {t,p | 1<=t<=Y; 1<=p<=X} of boolean;
+  MReg2Xloc : {t,p | 1<=t<=Y+1; 1<=p<=X+1} of integer;
+  MatchQReg3 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  MReg2 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  MReg1 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  MXctl2XIn : {t,p | 1<=t<=Y+1; 1<=p<=X} of boolean;
+  M : {t,p | 1<=t<=Y+1; 0<=p<=X} of integer;
+  MatchQ : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  MXctl2 : {t | 1<=t<=Y+1} of boolean;
+let
+  DBXMirr1[t,p] = DB[t];
+  QSXMirr1[t,p] = QS[p];
+  MReg2Xloc[t,p] = M[t,p-1];
+  MReg2[t,p] = MReg2Xloc[t-1,p];
+  MatchQReg3[t,p] = MatchQ[t-1,p];
+  MReg1[t,p] = M[t-1,p];
+  MXctl2XIn[t,p] = MXctl2[t];
+  MXctl2[t] = 
+      case
+        case
+          { | t=1} : True[];
+          { | 2<=t} : False[];
+        esac;
+      esac;
+  TSep3[t,p] = MReg1 - 8[];
+  TSep4[t,p] = MReg2 + MatchQReg3;
+  TSep5[t,p] = max(TSep3, TSep4);
+  TSep6[t,p] = max(0[], TSep5);
+  M[t,p] = 
+      case
+        { | p=0} : 0[];
+        { | 1<=p} : if (MXctl2XIn) then 
+               case
+                 { | t=1} : 0[];
+                 { | 2<=t} : 0[];
+               esac else 
+           case
+             { | t=1} : 0[];
+             { | 2<=t} : TSep6;
+           esac;
+      esac;
+  TSep1[t,p] = QSXMirr1 = DBXMirr1;
+  TSep2[t,p] = -12[];
+  MatchQ[t,p] = if (TSep1) then 15[] else TSep2;
+  res[j] = M[j+1,X];
+tel;

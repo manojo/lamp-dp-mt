@@ -1,0 +1,137 @@
+\indexentry{Simulation}{2}
+\indexentry{polylib@\polylib}{2}
+\indexentry{Mathematica@\mma{}}{3}
+\indexentry{Abstract Syntax Tree}{3}
+\indexentry{AST}{3}
+\indexentry{result@\texttt{\$result}}{3}
+\indexentry{the polyhedral library@\polylib{}}{3}
+\indexentry{Installation@Installing \mmalfa{}}{3}
+\indexentry{notebook interface}{3}
+\indexentry{start@\texttt{start[]}}{3}
+\indexentry{Introduction notebooks}{4}
+\indexentry{Getting-started notebook}{4}
+\indexentry{syntax of alpha@syntax of \alfa{}}{4}
+\indexentry{system}{4}
+\indexentry{domain}{4}
+\indexentry{variable}{4}
+\indexentry{input variable}{5}
+\indexentry{local variable}{5}
+\indexentry{output variable}{5}
+\indexentry{expression}{5}
+\indexentry{equation}{5}
+\indexentry{case expression}{5}
+\indexentry{case expression@\texttt{case}}{5}
+\indexentry{array notation}{5}
+\indexentry{standard notation}{5}
+\indexentry{dependence function}{6}
+\indexentry{constant}{6}
+\indexentry{restriction}{6}
+\indexentry{case expression}{6}
+\indexentry{Directory@\texttt{Directory[]}}{7}
+\indexentry{SetDirectory@\texttt{SetDirectory}}{7}
+\indexentry{load@\texttt{load}}{7}
+\indexentry{;@\texttt{;}}{7}
+\indexentry{result@\texttt{\$result}}{7}
+\indexentry{result@\texttt{\$result}}{8}
+\indexentry{ashow@\texttt{ashow}}{8}
+\indexentry{result@\texttt{\$result}}{8}
+\indexentry{show@\texttt{show}}{8}
+\indexentry{on-line documentation}{8}
+\indexentry{options}{8}
+\indexentry{on-line documentation}{8}
+\indexentry{options}{8}
+\indexentry{asave@\texttt{asave}}{9}
+\indexentry{result@\texttt{\$result}}{9}
+\indexentry{analyze@\texttt{analyze}}{9}
+\indexentry{checking alpha programs@checking \alfa{} programs}{9}
+\indexentry{recurse@\texttt{recurse}}{9}
+\indexentry{signed integers}{10}
+\indexentry{unsigned integers}{10}
+\indexentry{demoLink@\texttt{demoLink}}{10}
+\indexentry{cGen@\texttt{cGen}}{10}
+\indexentry{schedule@\texttt{schedule}}{10}
+\indexentry{cGen@\texttt{cGen}}{10}
+\indexentry{parameter}{10}
+\indexentry{standard input}{10}
+\indexentry{standard output}{10}
+\indexentry{infinite calculation}{10}
+\indexentry{filter}{10}
+\indexentry{optimizationType@\texttt{optimizationType}}{11}
+\indexentry{unidimensional schedule}{11}
+\indexentry{multiDimensional@\texttt{multiDimensional}}{11}
+\indexentry{multi-dimensional schedule}{11}
+\indexentry{dependence cycle}{11}
+\indexentry{CodeGen@\texttt{CodeGen}}{11}
+\indexentry{schedule@\texttt{schedule}}{11}
+\indexentry{Scheduling}{11}
+\indexentry{Pip@\pip{}}{11}
+\indexentry{LPSolve@\lpsolve{}}{11}
+\indexentry{monodimensional}{11}
+\indexentry{affine by variable}{11}
+\indexentry{result@\texttt{\$result}}{11}
+\indexentry{showSchedResult@\texttt{showSchedResult}}{11}
+\indexentry{schedule@\texttt{\$schedule}}{11}
+\indexentry{addConstraints@\texttt{addConstraints}}{12}
+\indexentry{durations@\texttt{durations}}{12}
+\indexentry{optimizationType@\texttt{optimizationType}}{12}
+\indexentry{appSched@\texttt{appSched}}{13}
+\indexentry{result@\texttt{\$result}}{13}
+\indexentry{Alpha0@\alfa0{}}{15}
+\indexentry{toAlpha0v2@\texttt{toAlpha0v2}}{15}
+\indexentry{result@\texttt{\$result}}{15}
+\indexentry{simplifySystem@\texttt{simplifySystem}}{15}
+\indexentry{alphaFormat@\texttt{alphaFormat}}{15}
+\indexentry{Alpha0@\texttt{Alpha0}}{15}
+\indexentry{removeEqus@\texttt{removeEqus}}{15}
+\indexentry{AlpHard@\AlpHard{}}{15}
+\indexentry{alpha0ToAlphard@\texttt{alpha0ToAlphard}}{15}
+\indexentry{result@\texttt{\$result}}{15}
+\indexentry{Library@\texttt{\$library}}{15}
+\indexentry{fixParameter@\texttt{fixParameter}}{15}
+\indexentry{a2v@\texttt{a2v}}{15}
+\indexentry{Vhdl@\vhdl{}}{15}
+\indexentry{getSystem@\texttt{getSystem}}{15}
+\indexentry{result@\texttt{\$result}}{16}
+\indexentry{result@\texttt{\$result}}{16}
+\indexentry{Pipelining}{16}
+\indexentry{pipeAll@\texttt{pipeAll}}{17}
+\indexentry{result@\texttt{\$result}}{17}
+\indexentry{changeOfBasis@\texttt{changeOfBasis}}{18}
+\indexentry{change of Basis}{18}
+\indexentry{extended change of basis}{19}
+\indexentry{substitution}{19}
+\indexentry{substituteInDef@\texttt{substituteInDef}}{19}
+\indexentry{normalization}{19}
+\indexentry{normalize@\texttt{normalize}}{19}
+\indexentry{simplification}{19}
+\indexentry{simplifySystem@\texttt{simplifySystem}}{19}
+\indexentry{genericity}{20}
+\indexentry{structured programming}{20}
+\indexentry{program structures}{20}
+\indexentry{structures of programs}{20}
+\indexentry{adder}{20}
+\indexentry{binary addition}{20}
+\indexentry{full adder}{20}
+\indexentry{full adder}{20}
+\indexentry{use statement}{20}
+\indexentry{use statement@\texttt{use}}{20}
+\indexentry{adder}{20}
+\indexentry{binary addition}{20}
+\indexentry{use statement}{21}
+\indexentry{use statement@\texttt{use}}{21}
+\indexentry{extension domain}{21}
+\indexentry{dimension extension}{21}
+\indexentry{library}{21}
+\indexentry{library@\texttt{\$library}}{21}
+\indexentry{load@\texttt{load}}{21}
+\indexentry{result@\texttt{\$result}}{21}
+\indexentry{putSystem@\texttt{putSystem[]}}{21}
+\indexentry{getSystem@\texttt{getSystem[]}}{21}
+\indexentry{cGen@\texttt{cGen}}{21}
+\indexentry{assignParameterValue@\texttt{assignParameterValue[]}}{22}
+\indexentry{inlineSubSystem@\texttt{inlineSubSystem[]}}{22}
+\indexentry{flattening a structured program}{22}
+\indexentry{inlining a subsystem}{22}
+\indexentry{inlineAll@\texttt{inlineAll[]}}{22}
+\indexentry{getting-started@The \texttt{Getting-started} notebook}{30}
+\indexentry{mma-intro@The \texttt{mma-intro} notebook}{30}

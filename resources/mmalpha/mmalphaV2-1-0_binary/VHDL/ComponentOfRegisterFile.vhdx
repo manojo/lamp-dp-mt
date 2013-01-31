@@ -1,0 +1,14 @@
+--
+-- Component for a register file
+-- $comment$
+-- 
+
+COMPONENT $name$ IS  
+  PORT(
+    clk : IN STD_LOGIC;
+    enable : IN STD_LOGIC;     
+    inReg : IN $type$;
+    outReg : OUT $type$
+  );
+END COMPONENT;
+

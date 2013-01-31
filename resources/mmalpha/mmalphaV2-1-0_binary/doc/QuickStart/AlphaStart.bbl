@@ -1,0 +1,78 @@
+\begin{thebibliography}{BQRR98}
+
+\bibitem[AC97]{Alpha97a}
+Api-Cosi.
+\newblock {\em MMAlpha Reference Manual}, 1997.
+
+\bibitem[BQRR98]{BQRR}
+S.~Balev, P.~Quinton, S.~V. Rajopadhye, and T.~Risset.
+\newblock Linear programming models for scheduling systems of affine recurrence
+  equations -- a comparative study --.
+\newblock In {\em 10th ACM Symposium on Parallel Algorithms and Architectures
+  (SPAA)}, 1998.
+
+\bibitem[DQR95]{DupontQuRi95}
+F.~D. {De Dinechin}, P.~Quinton, and T.~Risset.
+\newblock Structuration of the alpha language.
+\newblock In W.K Giloi, S.~Jahnichen, and B.D. Shriver, editors, {\em Massively
+  Parallel Programming Models}, pages 18--24. IEEE Conmputer Society Press,
+  1995.
+
+\bibitem[dRR97a]{Ris21}
+F.~{de Dinechin}, T.~Risset, and S.~Robert.
+\newblock Hierarchical static analysis for improving the complexity of linear
+  algebra algorithms.
+\newblock In {\em Parallel computing}, 1997.
+
+\bibitem[DRR97b]{DuRiRo97}
+Florent~Dupont {De Dinechin}, Sophie Robert, and Tanguy Risset.
+\newblock Structured scheduling of recurrence equations.
+\newblock Technical Report 1140, IRISA, Rennes, France, 1997.
+
+\bibitem[FT90]{FeautrierTa90}
+Paul Feautrier and Nadia Tawbi.
+\newblock R\'{e}solution de syst\`{e}mes d'in\'{e}quations lin\'{e}aires; mode
+  d'emploi du logiciel pip.
+\newblock Technical Report 90-2, Institut Blaise Pascal, UPMC, Laboratoire
+  MASI, January 1990.
+
+\bibitem[KMW67]{KaMiWi67}
+R.M. Karp, R.E. Miller, and S.~Winograd.
+\newblock The organization of computations for uniform recurrence equations.
+\newblock {\em Journal of the ACM}, 14(3):563--590, July 1967.
+
+\bibitem[Mau89]{Mauras89}
+C.~Mauras.
+\newblock {\em {Alpha\,: un langage \'equationnel pour la conception et la
+  programmation d'architectures parall\`eles synchrones}}.
+\newblock PhD thesis, Universit\'e de Rennes 1, IFSIC, December 1989.
+
+\bibitem[Mol82]{Moldovan82}
+D.I. Moldovan.
+\newblock On the analysis and synthesis of {VLSI} algorithms.
+\newblock {\em IEEE Transactions on Computers}, C-31(11), November 1982.
+
+\bibitem[QRR96]{QuRaRi96a}
+P.~Quinton, S.~V. Rajopadhye, and T.~Risset.
+\newblock Extension of the {\sc alpha} language to recurrences on sparse
+  periodic domains.
+\newblock In {\em Int. Conf. on Application Specific Array Processors}, 1996.
+
+\bibitem[QRR97]{QuRaRi97a}
+P.~Quinton, S.~V. Rajopadhye, and T.~Risset.
+\newblock On manipulating z-polyhedra using a canonical representation.
+\newblock {\em Parallel Processing Letters}, 7(2):181--194, June 1997.
+
+\bibitem[Qui84]{Quinton84c}
+P.~Quinton.
+\newblock Automatic synthesis of systolic arrays from recurrent uniform
+  equations.
+\newblock In {\em 11th Annual Int. Symp. Computer Arch., Ann Arbor}, pages
+  208--214, June 1984.
+
+\bibitem[RF86]{Rajopadhye86}
+S.V. Rajopadhye and R.M. Fujimoto.
+\newblock Systolic array synthesis by static analysis of program dependencies.
+\newblock Technical report, University of Oregon, 1986.
+
+\end{thebibliography}

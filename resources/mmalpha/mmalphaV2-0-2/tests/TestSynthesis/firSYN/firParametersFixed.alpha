@@ -1,0 +1,63 @@
+system ControlfirModule ( )
+       returns          (ser1Xctl1 : {t | t=100} | {t | 101<=t<=104} of boolean);
+let
+  ser1Xctl1[t] = 
+      case
+        { | t=100} : True[];
+        { | 101<=t} : False[];
+      esac;
+tel;
+
+system cellfirModule1 :{p | 4<=p<=100}
+                      (HXMirr1 : {t | 101<=t<=104} of integer; 
+                       xXMirr1 : {t | 101<=t<=104} of integer; 
+                       ser1Xctl1XIn : {t | 100<=t<=104} of boolean)
+       returns        (ser1 : {t | 100<=t<=104} of integer);
+var
+  ser1loc1 : {t | 100<=t<=104} of integer;
+  ser1Reg1 : {t | 101<=t<=104} of integer;
+  TSep1 : {t | 101<=t<=104} of integer;
+  TSep2 : {t | 101<=t<=104} of integer;
+let
+  ser1[t] = ser1loc1[t];
+  ser1Reg1[t] = ser1loc1[t-1];
+  TSep1[t] = HXMirr1[t] * xXMirr1[t];
+  TSep2[t] = ser1Reg1[t] + TSep1[t];
+  ser1loc1[t] = 
+      case
+        { | t=100} : if (ser1Xctl1XIn[t]) then 0[] else 0[];
+        { | 101<=t} : if (ser1Xctl1XIn[t]) then 0[] else TSep2[t];
+      esac;
+tel;
+
+system firModule (HXMirr1In : {t,p | 101<=t<=104; 4<=p<=100} of integer; 
+                  xXMirr1In : {t,p | 101<=t<=104; 4<=p<=100} of integer)
+       returns   (ser1Out : {t,p | 100<=t<=104; 4<=p<=100} of integer);
+var
+  ser1Xctl1 : {t | 100<=t<=104} of boolean;
+  HXMirr1 : {t,p | 101<=t<=104; 4<=p<=100} of integer;
+  xXMirr1 : {t,p | 101<=t<=104; 4<=p<=100} of integer;
+  ser1Xctl1XIn : {t,p | 100<=t<=104; 4<=p<=100} of boolean;
+  ser11 : {t,p | 100<=t<=104; 4<=p<=100} of integer;
+let
+  HXMirr1[t,p] = HXMirr1In[t,p];
+  ser1Out[t,p] = ser11[t,p];
+  ser1Xctl1XIn[t,p] = ser1Xctl1[t];
+  xXMirr1[t,p] = xXMirr1In[t,p];
+  use  ControlfirModule[] () returns  (ser1Xctl1) ;
+  use {p | 4<=p<=100} cellfirModule1[p] (HXMirr1, xXMirr1, ser1Xctl1XIn) returns  (ser11) ;
+tel;
+
+system fir     (x : {i | 1<=i<=100} of integer; 
+                H : {n | 0<=n<=3} of integer)
+       returns (res : {i | 4<=i<=100} of integer);
+var
+  HXMirr1 : {t,p | 101<=t<=104; 4<=p<=100} of integer;
+  xXMirr1 : {t,p | 101<=t<=104; 4<=p<=100} of integer;
+  ser1 : {t,p | 100<=t<=104; 4<=p<=100} of integer;
+let
+  HXMirr1[t,p] = H[t-101];
+  xXMirr1[t,p] = x[-t+p+101];
+  res[i] = ser1[104,i];
+  use  firModule[] (HXMirr1, xXMirr1) returns  (ser1) ;
+tel;

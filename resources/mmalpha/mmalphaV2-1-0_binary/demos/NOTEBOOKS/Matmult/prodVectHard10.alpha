@@ -1,0 +1,63 @@
+system ControlmatmultModule ( )
+       returns              (CXctl1 : {t | t=0} | {t | 1<=t<=10} of boolean);
+let
+  CXctl1[t] = 
+      case
+        { | t=0} : True[];
+        { | 1<=t} : False[];
+      esac;
+tel;
+
+system cellmatmultModule1 :{p1,p2 | 1<=p1<=10; 1<=p2<=10}
+                          (bXMirr1 : {t | 1<=t<=10} of integer; 
+                           aXMirr1 : {t | 1<=t<=10} of integer; 
+                           CXctl1XIn : {t | 0<=t<=10} of boolean)
+       returns            (C : {t | 0<=t<=10} of integer);
+var
+  Cloc1 : {t | 0<=t<=10} of integer;
+  CReg1 : {t | 1<=t<=10} of integer;
+  TSep1 : {t | 1<=t<=10} of integer;
+  TSep2 : {t | 1<=t<=10} of integer;
+let
+  C[t] = Cloc1[t];
+  CReg1[t] = Cloc1[t-1];
+  TSep1[t] = aXMirr1[t] * bXMirr1[t];
+  TSep2[t] = CReg1[t] + TSep1[t];
+  Cloc1[t] = 
+      case
+        { | t=0} : if (CXctl1XIn[t]) then 0[] else 0[];
+        { | 1<=t} : if (CXctl1XIn[t]) then 0[] else TSep2[t];
+      esac;
+tel;
+
+system matmultModule (aXMirr1In : {t,p1,p2 | 1<=t<=10; 1<=p1<=10; 1<=p2<=10} of integer; 
+                      bXMirr1In : {t,p1,p2 | 1<=t<=10; 1<=p1<=10; 1<=p2<=10} of integer)
+       returns       (COut : {t,p1,p2 | 0<=t<=10; 1<=p1<=10; 1<=p2<=10} of integer);
+var
+  CXctl1 : {t | 0<=t<=10} of boolean;
+  bXMirr1 : {t,p1,p2 | 1<=t<=10; 1<=p1<=10; 1<=p2<=10} of integer;
+  aXMirr1 : {t,p1,p2 | 1<=t<=10; 1<=p1<=10; 1<=p2<=10} of integer;
+  CXctl1XIn : {t,p1,p2 | 0<=t<=10; 1<=p1<=10; 1<=p2<=10} of boolean;
+  C1 : {t,p1,p2 | 0<=t<=10; 1<=p1<=10; 1<=p2<=10} of integer;
+let
+  aXMirr1[t,p1,p2] = aXMirr1In[t,p1,p2];
+  bXMirr1[t,p1,p2] = bXMirr1In[t,p1,p2];
+  COut[t,p1,p2] = C1[t,p1,p2];
+  CXctl1XIn[t,p1,p2] = CXctl1[t];
+  use  ControlmatmultModule[] () returns  (CXctl1) ;
+  use {p1,p2 | 1<=p1<=10; 1<=p2<=10} cellmatmultModule1[p1,p2] (bXMirr1, aXMirr1, CXctl1XIn) returns  (C1) ;
+tel;
+
+system matmult (a : {i,j | 1<=i<=10; 1<=j<=10} of integer; 
+                b : {i,j | 1<=i<=10; 1<=j<=10} of integer)
+       returns (c : {i,j | 1<=i<=10; 1<=j<=10} of integer);
+var
+  aXMirr1 : {t,p1,p2 | 1<=t<=10; 1<=p1<=10; 1<=p2<=10} of integer;
+  bXMirr1 : {t,p1,p2 | 1<=t<=10; 1<=p1<=10; 1<=p2<=10} of integer;
+  C : {t,p1,p2 | 0<=t<=10; 1<=p1<=10; 1<=p2<=10} of integer;
+let
+  bXMirr1[t,p1,p2] = b[t,p1];
+  aXMirr1[t,p1,p2] = a[p2,t];
+  c[i,j] = C[10,j,i];
+  use  matmultModule[] (aXMirr1, bXMirr1) returns  (C) ;
+tel;

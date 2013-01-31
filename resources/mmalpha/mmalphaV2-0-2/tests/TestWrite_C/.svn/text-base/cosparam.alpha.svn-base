@@ -1,0 +1,42 @@
+--From: Sophie Robert <Sophie.Robert@irisa.fr>
+
+system cosparam (v1,v2: {i | 1<=i<=4} of real) returns (c,s:real);
+
+	var 	alp: real;
+		beta: real;
+		gama: real;
+		eps: real;
+		t: real;
+            	al: {j | 0<=j<=4} of real;
+		be: {j | 0<=j<=4} of real;
+		ga: {j | 0<=j<=4} of real;
+let
+--calcul de la norme de v1
+	al =	case
+		{j| j=0}: 0.(j->);
+		{j| j>0}: al.(j->j-1) + v1.(j->j)*v1.(j->j);
+		esac;
+	alp = al.(->4);
+--calcul de la norme de v2
+	be =	case
+		{j| j=0}: 0.(j->);
+		{j| j>0}: be.(j->j-1) + v2.(j->j)*v2.(j->j);
+		esac;
+	beta = be.(->4);
+--calcul du produit scalaire v1 et v2
+	ga =	case
+		{j| j=0}: 0.(j->);
+		{j| j>0}: ga.(j->j-1) + v1.(j->j)*v2.(j->j);
+		esac;
+	gama = ga.(->4);
+
+	eps = (beta - alp)/(2*gama);
+
+	t = if eps=0 then 1 else if eps>0 then 1/(eps + (1+eps*eps)) else -1/(-eps + (1 + eps*eps));
+
+	c = 1/(1 + t*t);
+	
+	s = c*t;
+
+tel; 
+

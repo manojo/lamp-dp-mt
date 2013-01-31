@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic
+END
+ZAST0
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/ZAST0
+END
+TestStatic.m
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/TestStatic.m
+END
+test0.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/test0.alpha
+END
+test1.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/test1.alpha
+END
+test2.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/test2.alpha
+END
+TestingReport.txt
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/TestingReport.txt
+END
+DEP1
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/DEP1
+END
+test_static.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/test_static.alpha
+END
+DEP3
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/DEP3
+END
+test_static1.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/test_static1.alpha
+END
+DEP4
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/DEP4
+END

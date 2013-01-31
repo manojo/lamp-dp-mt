@@ -1,0 +1,140 @@
+{
+(*
+	This file contains the syntax of AlpHard Controller's Abstract Syntax Tree. Once 
+	processed with the meta function, it produces a file named CheckController.m which
+	allows one to analyze an AST and check that this AST has the syntax of a 
+	controller. 
+	
+	Controllers are subsystems, with no inputs. The outputs are always boolean. 
+*)
+
+	
+(*	
+	System declaration
+*)
+  SYSTEMDECLARATION ::= 
+    system[ name: _String, 
+            paramDecl: DOMAIN, 
+            inputDeclList: {DECLARATION},
+            outputDeclList: {DECLARATION}, 
+            localDeclList: {DECLARATION}, 
+            equationBlock: {EQUATION}
+          ] 
+          :> semFuncCheckController[ system, trparamDecl, trinputDeclList,
+               troutputDeclList, trlocalDeclList,
+               trequationBlock, debug -> CheckControllerDebug ]
+(* 	
+	The semantics must check that there are no inputs, no parameters, 
+	and the type of the outputs and the locals should be boolean
+*)
+,
+
+  DECLARATION ::=
+    decl[ varName: _String, 
+          varType: boolean,
+          domain: DOMAIN
+        ]
+        :> semFuncCheckController[ decl, decl[ varName, varType, domain ], debug -> CheckControllerDebug ]
+(*	
+	The semantics has to check that the type of the variables are 
+	boolean, and the domain has dimension 1
+*)
+,
+
+  DOMAIN ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> dimension
+(*	
+	The semantics of this construct is its dimension.
+*)
+,
+
+  POLYHEDRON ::= 
+    pol[ constraintsNum:_Integer,
+         generatorsNum:_Integer,
+         equationsNum:_Integer,
+         linesNum:_Integer,
+         constraintList: {CONSTRAINT},
+         generatorList: {GENERATOR}
+       ]
+       :> Null
+(* 	
+	Null result. We assume that the polyhedron is correct.
+*)
+
+,
+
+  CONSTRAINT ::= {_List -> List} 
+,
+
+  GENERATOR ::= {_List -> List} 
+
+,
+
+(*	
+	An equation can only be an assignment 
+*)
+  EQUATION ::= 
+    { _equation -> ASSIGNMENT
+    }
+,
+    
+  ASSIGNMENT ::= 
+    equation[ leftHandSide: _String, 
+              rightHandSide: CASEXP
+            ] 
+            :> trrightHandSide
+(*
+	An assignment is always a case expression 
+*)
+,
+
+  CASEXP ::= 
+    case[ 
+         expressionList: {RESTEXP} 
+        ] 
+        :> semFuncCheckController[case,trexpressionList,debug->CheckControllerDebug]
+,
+
+  RESTEXP ::= 
+    restrict[ 
+         domain: DOMAIN, 
+         expression: AFFEXP
+         ] 
+         :> trexpression
+, 
+
+  AFFEXP ::= 
+    affine[ 
+      expression: CONSTEXP,
+      affineFunction: MATRIX 
+          ] 
+          :> trexpression
+,
+
+  MATRIX ::= 
+    matrix[ 
+      d1:_Integer, 
+      d2:_Integer, 
+      in:{___String}, 
+      mmaMatrix:MATRIXNUM
+          ]
+          :> Null
+,
+
+  MATRIXNUM ::= {_List -> {List}}
+,
+
+  CONSTEXP ::= 
+    const[ 
+         constant: ( True | False )
+         ] 
+         :> True
+(* 
+	A constant expression can only be True or False
+*)
+
+}

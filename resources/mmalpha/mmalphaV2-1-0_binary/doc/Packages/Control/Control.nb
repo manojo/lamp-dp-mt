@@ -1,0 +1,516 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      7396,        316]*)
+(*NotebookOutlinePosition[      9831,        396]*)
+(*  CellTagsIndexPosition[      9407,        379]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The \"Control\" package", "Title",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell["The Alpha team", "Subsubtitle"],
+
+Cell["July 1999", "Text"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+quinton@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell["Cr\[EAcute]dits", "SmallText",
+  FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+Zbignew Chamski, Florent de Dinechin, Herv\[EAcute] Le Verge, Doran \
+Wilde, Tanguy Risset, Sanjay Rajopadhye\
+\>", "SmallText"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[" Execute this cell, to redefine the current directory", "SmallText",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(setMMADir[{"\<doc\>", "\<packages\>", "\<Control\>"}]\)], "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Summary", "Section",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"Summary"],
+
+Cell[TextData[{
+  ButtonBox["Introduction",
+    ButtonData:>"Introduction",
+    ButtonStyle->"Hyperlink"],
+  "\n",
+  ButtonBox["Content",
+    ButtonData:>"Content",
+    ButtonStyle->"Hyperlink"]
+}], "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1. Introduction", "Section",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"Introduction"],
+
+Cell[TextData[ButtonBox["Back to summary",
+  ButtonData:>"Summary",
+  ButtonStyle->"Hyperlink"]], "Text",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(\(?Control\)\)], "Input"],
+
+Cell["\<\
+This package contains the function for the generation of control \
+signals. \
+\>", "Text",
+  TextAlignment->Left,
+  TextJustification->1]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2. Content", "Section",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"Content"],
+
+Cell[TextData[ButtonBox["Back to summary",
+  ButtonData:>"Summary",
+  ButtonStyle->"Hyperlink"]], "Text",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[TextData[{
+  ButtonBox["controlVars",
+    ButtonData:>"controlVars",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["isControlEquQ",
+    ButtonData:>"isControlEquQ",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["makeAllMuxControl",
+    ButtonData:>"maleAllMuxControl",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["makeMuxControl",
+    ButtonData:>"makeMuxControl",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["needsMuxQ",
+    ButtonData:>"needsMuxQ",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["spaceTimeCase",
+    ButtonData:>"spaceTimeCase",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["spaceTimeDecomposition",
+    ButtonData:>"spaceTimeDecomposition",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["spatialCaseQ",
+    ButtonData:>"spatialCaseQ",
+    ButtonStyle->"Hyperlink"],
+  ", ",
+  ButtonBox["temporalCaseQ",
+    ButtonData:>"temporalCaseQ",
+    ButtonStyle->"Hyperlink"]
+}], "Text",
+  TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell["controlVars", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"controlVars"],
+
+Cell[BoxData[
+    \(\(?controlVars\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["isControlEquQ", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"isControlEquQ"],
+
+Cell[BoxData[
+    \(\(?isControlEquQ\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["makeAllMuxControl", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"maleAllMuxControl"],
+
+Cell[BoxData[
+    \(\(?makeAllMuxControl\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["makeMuxControl", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"makeMuxControl"],
+
+Cell[BoxData[
+    \(\(?makeMuxControl\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["needsMuxQ", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"needsMuxQ"],
+
+Cell[BoxData[
+    \(\(?needsMuxQ\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["spaceTimeCase", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"spaceTimeCase"],
+
+Cell[BoxData[
+    \(\(?spaceTimeCase\)\)], "Input"]
+}, Open  ]],
+
+Cell["Here is an example.", "Text"],
+
+Cell[BoxData[
+    \(\(load["\<test.alpha\>"]; \)\)], "Input"],
+
+Cell["\<\
+Here is the definition of variable HPipe (note that this program is \
+parameterized):\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(show[getEquation["\<HPipe\>"]]; \)\)], "Input"],
+
+Cell["We now apply spaceTimeCase to the variable:", "Text"],
+
+Cell[BoxData[
+    \(spaceTimeCase["\<HPipe\>", {1}, {2}]; 
+    simplifySystem[alphaFormat -> Alpha0]; \)], "Input"],
+
+Cell["And here is the result: ", "Text"],
+
+Cell[BoxData[
+    \(\(show[getEquation["\<HPipe\>"]]; \)\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell["spaceTimeDecomposition", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"spaceTimeDecomposition"],
+
+Cell[BoxData[
+    \(\(?spaceTimeDecomposition\)\)], "Input"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(\(load["\<test.alpha\>"]; \)\)], "Input"],
+
+Cell[BoxData[
+    \(spaceTimeDecomposition[{1}, {2}]; 
+    simplifySystem[alphaFormat -> Alpha0]; \)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell["spatialCaseQ", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"spatialCaseQ"],
+
+Cell[BoxData[
+    \(\(?spatialCaseQ\)\)], "Input"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(\(load["\<test.alpha\>"]; \)\)], "Input"],
+
+Cell[BoxData[
+    \(spatialCaseQ[getDefinition["\<HPipe\>"], {1}, {2}]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell["temporalCaseQ", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"temporalCaseQ"],
+
+Cell[BoxData[
+    \(\(?temporalCaseQ\)\)], "Input"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(getVariables[]\)], "Input"],
+
+Cell[BoxData[
+    \(spatialCaseQ[getDefinition["\<Y\>"], {1}, {2}]\)], "Input"]
+},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1440}, {0, 835}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+CellGrouping->Manual,
+WindowSize->{896, 562},
+WindowMargins->{{Automatic, 155}, {-13, Automatic}},
+PrintingCopies->1,
+PrintingPageRange->{1, Automatic},
+ShowCellTags->True,
+Magnification->1.5,
+StyleDefinitions -> "Default.nb"
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{
+  "Summary"->{
+    Cell[2549, 88, 81, 2, 123, "Section",
+      CellTags->"Summary"]},
+  "Introduction"->{
+    Cell[2876, 105, 94, 2, 123, "Section",
+      CellTags->"Introduction"]},
+  "Content"->{
+    Cell[3357, 128, 84, 2, 123, "Section",
+      CellTags->"Content"]},
+  "controlVars"->{
+    Cell[4574, 178, 92, 2, 72, "Subsection",
+      CellTags->"controlVars"]},
+  "isControlEquQ"->{
+    Cell[4755, 188, 96, 2, 72, "Subsection",
+      CellTags->"isControlEquQ"]},
+  "maleAllMuxControl"->{
+    Cell[4942, 198, 104, 2, 76, "Subsection",
+      CellTags->"maleAllMuxControl"]},
+  "makeMuxControl"->{
+    Cell[5141, 208, 98, 2, 76, "Subsection",
+      CellTags->"makeMuxControl"]},
+  "needsMuxQ"->{
+    Cell[5331, 218, 88, 2, 76, "Subsection",
+      CellTags->"needsMuxQ"]},
+  "spaceTimeCase"->{
+    Cell[5506, 228, 96, 2, 76, "Subsection",
+      CellTags->"spaceTimeCase"]},
+  "spaceTimeDecomposition"->{
+    Cell[6274, 262, 114, 2, 76, "Subsection",
+      CellTags->"spaceTimeDecomposition"]},
+  "spatialCaseQ"->{
+    Cell[6709, 282, 94, 2, 76, "Subsection",
+      CellTags->"spatialCaseQ"]},
+  "temporalCaseQ"->{
+    Cell[7043, 298, 96, 2, 76, "Subsection",
+      CellTags->"temporalCaseQ"]}
+  }
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{
+  {"Summary", 8202, 339},
+  {"Introduction", 8293, 342},
+  {"Content", 8385, 345},
+  {"controlVars", 8476, 348},
+  {"isControlEquQ", 8575, 351},
+  {"maleAllMuxControl", 8680, 354},
+  {"makeMuxControl", 8787, 357},
+  {"needsMuxQ", 8885, 360},
+  {"spaceTimeCase", 8982, 363},
+  {"spaceTimeDecomposition", 9092, 366},
+  {"spatialCaseQ", 9202, 369},
+  {"temporalCaseQ", 9302, 372}
+  }
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 72, 1, 132, "Title"],
+Cell[1851, 56, 37, 0, 45, "Subsubtitle"],
+Cell[1891, 58, 25, 0, 47, "Text"],
+Cell[1919, 60, 99, 3, 62, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2043, 67, 68, 1, 40, "SmallText"],
+Cell[2114, 70, 138, 3, 54, "SmallText"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[2289, 78, 106, 1, 35, "SmallText"],
+Cell[2398, 81, 114, 2, 39, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2549, 88, 81, 2, 123, "Section",
+  CellTags->"Summary"],
+Cell[2633, 92, 206, 8, 73, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2876, 105, 94, 2, 123, "Section",
+  CellTags->"Introduction"],
+Cell[2973, 109, 137, 3, 47, "Text"],
+Cell[3113, 114, 45, 1, 39, "Input"],
+Cell[3161, 117, 147, 5, 47, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3357, 128, 84, 2, 123, "Section",
+  CellTags->"Content"],
+Cell[3444, 132, 137, 3, 47, "Text"],
+Cell[3584, 137, 965, 37, 73, "Text"],
+
+Cell[CellGroupData[{
+Cell[4574, 178, 92, 2, 72, "Subsection",
+  CellTags->"controlVars"],
+Cell[4669, 182, 49, 1, 39, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4755, 188, 96, 2, 72, "Subsection",
+  CellTags->"isControlEquQ"],
+Cell[4854, 192, 51, 1, 39, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4942, 198, 104, 2, 76, "Subsection",
+  CellTags->"maleAllMuxControl"],
+Cell[5049, 202, 55, 1, 39, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5141, 208, 98, 2, 76, "Subsection",
+  CellTags->"makeMuxControl"],
+Cell[5242, 212, 52, 1, 39, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5331, 218, 88, 2, 76, "Subsection",
+  CellTags->"needsMuxQ"],
+Cell[5422, 222, 47, 1, 39, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5506, 228, 96, 2, 76, "Subsection",
+  CellTags->"spaceTimeCase"],
+Cell[5605, 232, 51, 1, 39, "Input"]
+}, Open  ]],
+Cell[5671, 236, 35, 0, 46, "Text"],
+Cell[5709, 238, 61, 1, 39, "Input"],
+Cell[5773, 241, 109, 3, 46, "Text"],
+Cell[5885, 246, 69, 1, 39, "Input"],
+Cell[5957, 249, 59, 0, 46, "Text"],
+Cell[6019, 251, 115, 2, 39, "Input"],
+Cell[6137, 255, 40, 0, 46, "Text"],
+Cell[6180, 257, 69, 1, 39, "Input"],
+
+Cell[CellGroupData[{
+Cell[6274, 262, 114, 2, 76, "Subsection",
+  CellTags->"spaceTimeDecomposition"],
+Cell[6391, 266, 60, 1, 39, "Input"]
+}, Open  ]],
+Cell[6466, 270, 61, 1, 39, "Input"],
+Cell[6530, 273, 111, 2, 39, "Input"],
+Cell[6644, 277, 40, 1, 39, "Input"],
+
+Cell[CellGroupData[{
+Cell[6709, 282, 94, 2, 76, "Subsection",
+  CellTags->"spatialCaseQ"],
+Cell[6806, 286, 50, 1, 39, "Input"]
+}, Open  ]],
+Cell[6871, 290, 61, 1, 39, "Input"],
+Cell[6935, 293, 83, 1, 39, "Input"],
+
+Cell[CellGroupData[{
+Cell[7043, 298, 96, 2, 76, "Subsection",
+  CellTags->"temporalCaseQ"],
+Cell[7142, 302, 51, 1, 39, "Input"]
+}, Open  ]]
+}, Open  ]],
+Cell[7220, 307, 40, 1, 39, "Input"],
+Cell[7263, 310, 47, 1, 39, "Input"],
+Cell[7313, 313, 79, 1, 39, "Input"]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

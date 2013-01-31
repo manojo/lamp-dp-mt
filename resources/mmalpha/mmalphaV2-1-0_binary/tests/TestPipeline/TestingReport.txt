@@ -1,0 +1,177 @@
+------> Testing: PipeControl
+Date: Sat 27 Dec 2008 21:25:06
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: Visual
+Date: Sat 27 Dec 2008 21:25:11
+Calling TestVisual.m
+------------- > Test for Visual was passed successfully.
+End of test
+------> Testing: Schedule
+Date: Sat 27 Dec 2008 21:25:11
+Calling TestSchedule.m
+------------- > Test for Schedule was passed successfully.
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:33:02
+Calling TestPipeline.m
+****** > test Pipeline 11 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:33:34
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:35:47
+Calling TestPipeline.m
+****** > test Pipeline 12 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:41:14
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:41:35
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:41:44
+Calling TestPipeline.m
+****** > test Pipeline 12 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:42:08
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:42:15
+Calling TestPipeline.m
+****** > test Pipeline 13 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:43:46
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:44:02
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:44:40
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:44:49
+Calling TestPipeline.m
+****** > test Pipeline 13 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:45:17
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:45:23
+Calling TestPipeline.m
+****** > test Pipeline 14 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:46:08
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:46:15
+Calling TestPipeline.m
+****** > test Pipeline 15 was wrong
+****** > test Pipeline 16 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:46:34
+Calling TestPipeline.m
+****** > test Pipeline 15 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 09:47:58
+Calling TestPipeline.m
+****** > test Pipeline 15 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 18:57:34
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 18:57:48
+Calling TestPipeline.m
+****** > test Pipeline 16 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 18:58:44
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 18:59:34
+Calling TestPipeline.m
+****** > test Pipeline 15.1 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:02:15
+Calling TestPipeline.m
+****** > test Pipeline 15.1 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:03:05
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:03:40
+Calling TestPipeline.m
+****** > test Pipeline 15 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:08:39
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:08:45
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:08:51
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:09:24
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:09:41
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:09:48
+Calling TestPipeline.m
+****** > test Pipeline 16 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:10:18
+Calling TestPipeline.m
+****** > test Pipeline 16 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:11:16
+Calling TestPipeline.m
+****** > test Pipeline 16 was wrong
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:13:18
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:13:24
+Calling TestPipeline.m
+End of test
+------> Testing: Pipeline
+Date: Sun 28 Dec 2008 19:17:52
+Calling TestPipeline.m
+------------- > Test for Pipeline was passed successfully.
+End of test

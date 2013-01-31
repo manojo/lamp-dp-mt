@@ -1,0 +1,18 @@
+system add :   {N | 1<=N}
+               (a : {k | 1<=k<=N} of integer; 
+                b : {k | 1<=k<=N} of integer)
+       returns (c : {k | 1<=k<=N} of integer);
+let
+  c[k] = a + b;
+tel;
+
+system testscd2 :{M | 1<=M}
+                (in : {k | 1<=k<=M} of integer)
+       returns  (out : {k | 1<=k<=M} of integer);
+var
+  A,B : {k | 1<=k<=M} of integer;
+let
+  A[k] = in;
+  use  add[M] (in, A) returns  (B) ;
+  use  add[M] (A, B) returns  (out) ;
+tel;

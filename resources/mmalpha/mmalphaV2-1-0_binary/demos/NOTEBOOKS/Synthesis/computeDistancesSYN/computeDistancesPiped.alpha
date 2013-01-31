@@ -1,0 +1,28 @@
+system computeDistances :{N,M | 1<=N; 2<=M}
+                        (descriptor : {i | 0<=i<=N-1} of integer[S,15]; 
+                         image : {i,j | 0<=i<=N-1; 0<=j<=M-1} of integer[S,15])
+       returns          (distances : {j | 0<=j<=M-1} of integer[S,15]);
+var
+  pipeCdescriptor1 : {t,p | 1<=t<=N; -1<=p<=M-1; 2<=M} of integer[S,15];
+  temp : {t,p | 1<=t<=N; 0<=p<=M-1} of integer[S,15];
+  d : {t,p | t=N+4; 0<=p<=M-1} of integer[S,15];
+  dloc : {t,p | 3<=t<=N+3; 0<=p<=M-1} of integer[S,15];
+  diff : {t,p | 2<=t<=N+1; 0<=p<=M-1} of integer[S,15];
+  absValue : {t,p | 3<=t<=N+2; 0<=p<=M-1} of integer[S,15];
+let
+  pipeCdescriptor1[t,p] = 
+      case
+        { | 1<=t<=N; p=-1; 2<=M} : descriptor[t-1];
+        { | 1<=t<=N; 0<=p<=M-1; 2<=M} : pipeCdescriptor1[t,p-1];
+      esac;
+  temp[t,p] = pipeCdescriptor1;
+  diff[t,p] = image[t-2,p] - temp[t-1,p];
+  absValue[t,p] = if (diff[t-1,p]>0[]) then diff[t-1,p] else -diff[t-1,p];
+  dloc[t,p] = 
+      case
+        { | t=3} : 0[];
+        { | 4<=t} : dloc[t-1,p] + absValue[t-1,p];
+      esac;
+  d[t,p] = dloc[t-1,p];
+  distances[j] = d[N+4,j];
+tel;

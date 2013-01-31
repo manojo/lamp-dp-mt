@@ -1,0 +1,81 @@
+<!DOCTYPE HTML SYSTEM "html.dtd">
+
+<HTML>
+<HEAD>
+   <TITLE>Documenting a package</TITLE>
+   <META NAME="GENERATOR" CONTENT="Mozilla/3.04Gold (X11; I; SunOS 5.5.1 sun4m) [Netscape]">
+</HEAD>
+<BODY>
+<H1>
+
+<H1>
+<a href="http://www.irisa.fr/cosi/ALPHA"><img src="../../alpha.gif" align=ABSCENTER></a><A NAME="begin"></A>Informations for MMAlpha developers</H1>
+
+<hr>
+<A HREF="../../../welcome.html">Back to welcome page</A>
+<br>
+<A HREF="../index.html">Up!</A>
+<hr>
+
+<h2>Documenting a package</h2>
+<P>
+Any MMAlpha package must be provided with a documentation directory
+which has to be put in the
+<b>$MMALPHA/Mathematica/doc/packages</b> 
+<br>
+directory.
+<br>
+The best way to see how this should be done is to examine the
+example of the Matrix package documentation, place 
+<a href="../packages/Matrix">here.</a>
+<br>
+This directory contains four items:
+<ul>
+<li>The first one is the CVS directory which is created when the package
+is added to the CVS repository: just don't care.
+<li>The second idem is a notebook named <b>Matrix.nb</b>. The name
+of this notebook <b>must</b> be the same as the name of the package, as
+well as the name of the documentation directory. If you do so, your
+documentation notebook can be called from anywhere in MMAlpha by
+evaluating the expression <b>docLink["Matrix"]</b> which creates 
+a nice button in your notebook: clicking on this button opens the 
+notebook.
+<li>The other two items are some files needed to prepare tests. For 
+example, the file Test.alpha contains an Alpha program, and the file
+RTest1 contains the result of some test.
+</ul>
+<p>
+The documentation notebook should follow a standard structure
+which is obvious when examining Matrix.nb. Please, try to follow this
+structure, and avoid re-inventing your own presentation: this only
+makes the software messy, or... takes some of our (precious) 
+time to adapt your contribution. You find: 
+<ul>
+<li>The title
+<li>The author(s)
+<li>The date
+<li>Credits
+<li>An executable cell (in red) which contains an initialization
+cell, i.e. a cell that is executed when an expression of the 
+notebook is evaluated for the first time 
+once the notebook has been opened.
+<li>Sections decribing the package and giving examples.
+</ul>
+It is a good practive to start writing your new package 
+using such a documentation notebook: just copy this directory
+in your own work space, and adapt it. While developing your package, 
+you will use tests that you can later incorporate into the test
+program that you must provide with you package.
+<HR>
+<A HREF=".">Content of this directory</A>
+<HR>
+<ADDRESS>
+<hr>
+Last modification: May 26, 2006.<BR>
+To get more info: 
+<A HREF="mailto:Patrice.Quinton@irisa.fr">
+Patrice.Quinton@irisa.fr
+</ADDRESS>
+<hr>
+</BODY>
+</HTML>

@@ -1,0 +1,12 @@
+CONTENT (As of April 25, 2005)
+Everything up to date
+
+Makefile OK
+README OK
+d Test OK (I did not change anything)
+lex.l OK
+node.c OK
+node.h OK
+nodetypes.h OK
+read_alpha.c OK
+yacc.y OK

@@ -1,0 +1,134 @@
+Initial version : Tanguy Risset
+Last Modification : Feb 2004 by Patrice Quinton
+
+This file contains MMAlpha installation instructions for Unix users,
+Windows NT or XP users and Linux users.
+				       
+A more up-to-date (but less complete) version of this procedure can 
+be found in the MMAlpha QuickStart document situated in $MMALPHA/doc/.
+
+WARNING: YOU NEED 25 MBytes of DISK SPACE to run MMAlpha
+
+***********************************************************************
+       			Installing MMALPHA on Unix 
+***********************************************************************
+
+The table below gives the installation procedure. The "--- who ---"
+field indicates who is to perform each operation: 'admin' (Alpha
+account administator) and 'user' (any Alpha user, including
+admins!). Each of them can be further specified when necessary (e.g.,
+'gnu-emacs user').
+
+
+--- who --- 			--- what to do ---
+
+[admin]	0. De-archive the complete distribution in some directory, say
+	"/home/group/name/" (a directory called alpha is created)
+	by executing the install_tar script available at 
+	http://www.irisa.fr/cosi/ALPHA/DOWNLOAD
+
+[user]	1. In the .cshrc file:
+           set the environment variable  MMALPHA
+           to this directory (here /home/group/name/alpha)
+           by the command:
+           setenv MMALPHA "/home/group/name/alpha"
+           load the file $MMAlpha/init_user.csh by the command:
+           source $MMALPHA/config/init_user.csh
+           The only files that should be edited by you are the
+           files of directory $MMALPHA/config/
+
+[user]	2. copy  the  file "$MMALPHA/init.m" to your home directory 
+	   (or append it to your $HOME/init.m file if it already 
+	   exists). For users unfamiliar with Mathematica, recall
+	   that the init.m file is executed whenever Mathematica
+	   is launched.  
+
+[user]	3. It's ready! Run Mathematica by the command:
+           mathematica
+	   and type "start[]" to launch the master notebook.
+	   If you do not use the notebook interface, you will
+	   not be able to visualize the notebook demos, but 
+	   the system will work anyway.
+
+[gnu-emacs user]
+	3. Append the file "$MMALPHA/config/dot.emacs" to
+	   your "$HOME/.emacs" file.
+
+           If Emacs complains that it can't find the library named
+	   "comint", get a copy of it from any emacs FTP site, and add
+	   it to your standard Emacs-lisp directory.
+
+	   Now, "M-x Mathematica" will start an interactive
+	   Mathematica session from inside Emacs, and "M-x math-mode"
+	   will put a buffer into Mathematica source _editing_ mode.
+	   Also, an auto-mode feature is provided: when loading a file
+	   with extension ".m", the buffer is automatically put in
+	   "math-mode".
+
+***   In case of installation problems: mailto:alpha@irisa.fr     *****
+***********************************************************************
+***********************************************************************
+       			Installing MMALPHA on Linux system
+***********************************************************************
+
+The procedure is basically the same as for unix system except that
+Linux often uses bash shell by default, hence replace "csh" by "bash"
+in the above procedure.
+
+***   In case of installation problems: mailto:alpha@irisa.fr     *****
+***********************************************************************
+***********************************************************************
+       			Installing MMALPHA on Windows NT or 
+                                Windows XP
+***********************************************************************
+
+--- who --- 	--- what to do ---
+
+[admin or you]		
+       1  Get the MMAlpha.exe file at url:
+          http://www.irisa.fr/cosi/ALPHA/DOWNLOAD
+          Execute this file and answer the questions (essentially you
+	  have to indicate where you want MMAlpha to be installed).
+
+
+[user]2	  Set the environment variables. (Note: if you have installed 
+	  MMAlpha by yourself - step1 - these may already be set by the 
+	  installation procedure).
+	  - Open the system configuration panel (start->configuration
+	  panel)
+          - Double click on the "System" icons,
+	  - Choose the Advance panel
+	  - Click on Environment variables
+          - Consider the user variable panel (top part)
+          - Create a MMALPHA variable whose value is the directory where
+	  MMAlpha is installed. Typically, it should be C:\...\MMAlpha. 
+	  To create a variable, click on New, and fill 
+	  the name and value. This step allows Mathematica to know
+	  where MMAlpha is located.
+	  - append ;%MMALPHA%\bin.cygwin32 to the user Path environment 
+	  variable. To do so, select the Path variable, click Modify, 
+	  place the cursor at the end of the string and type 
+	  ;%MMALPHA%\bin.cygwin32 . This step allows the Domlib library
+	  to be launched.
+		
+[user] 3  Copy in the $HomeDirectory of Mathematica the file 
+	  init.m which is in directory $MMALPHA/config/
+	  The home directory of Mathematica depends on your system.
+	  To know it, start Mathematica and evaluate the variable
+	  $HomeDirectory. In Windows NT, this is your C: directory,
+	  but in Windows XP it is somewhere in your Document and Setting
+	  directory.
+	  This file is executed by Mathematica whenever it is started.
+	  Its execution calls another init file located in the 
+	  MMAlpha distribution. 
+
+[user] 4  It's ready! Start Mathematica. The first evaluation in 
+	  the initial notebook should start MMAlpha. Normally, the
+	  Messages window of Mathematica opens and contains a few
+	  lines indicating that MMAlpha was started successfully.
+	  Evaluate start[] in any notebook to launch the master 
+	  notebook of MMAlpha.
+
+***   In case of installation problems: mailto:alpha@irisa.fr     *****
+***********************************************************************
+***********************************************************************

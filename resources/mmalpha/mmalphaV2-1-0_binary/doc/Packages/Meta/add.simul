@@ -1,0 +1,19 @@
+Begin["Alpha`Simul`add`"];
+Clear[ Alpha`Simul`add`a, Alpha`Simul`add`A, Alpha`Simul`add`b, Alpha`Simul`add`B, Alpha`Simul`add`c, Alpha`Simul`add`CC];
+
+    (* Definition of A *)
+    Alpha`Simul`add`A[i_, N_, f:(_Integer|_Symbol)...] := a[i, N, f];
+    Alpha`Simul`add`A[ ___ ] := Message[Alpha`Simul`add`A::params ];
+
+    (* Definition of B *)
+    Alpha`Simul`add`B[i_, N_, f:(_Integer|_Symbol)...] := b[i, N, f];
+    Alpha`Simul`add`B[ ___ ] := Message[Alpha`Simul`add`B::params ];
+
+    (* Definition of CC *)
+    Alpha`Simul`add`CC[i_, N_, f:(_Integer|_Symbol)...] := Plus[ A[i, N, f], B[i, N, f] ];
+    Alpha`Simul`add`CC[ ___ ] := Message[Alpha`Simul`add`CC::params ];
+
+    (* Definition of c *)
+    Alpha`Simul`add`c[i_, N_, f:(_Integer|_Symbol)...] := CC[i, N, f];
+    Alpha`Simul`add`c[ ___ ] := Message[Alpha`Simul`add`c::params ];
+End[];

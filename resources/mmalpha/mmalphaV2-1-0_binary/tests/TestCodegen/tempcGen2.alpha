@@ -1,0 +1,5 @@
+"system SimpleEx :{N | 2<=N}\n                (a : {n | 1<=n<=N} of real)\n   \
+    returns  (c : {n | 1<=n<=N} of real);\nvar\n  outc : {t,p | t=2; 1<=p<=N; \
+2<=N} of real;\n  A : {t,p | t=1; 1<=p<=N} of real;\nlet\n  c = \
+outc.(n->2,n);\n  A = (a.(n->n) * a.(n->n)).(t,p->p);\n  outc = \
+A.(n->1,n).(n->n).(t,p->p);\ntel;"

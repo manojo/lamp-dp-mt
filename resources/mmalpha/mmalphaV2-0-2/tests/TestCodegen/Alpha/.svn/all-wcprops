@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/Alpha
+END
+verySimple.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/Alpha/verySimple.alpha
+END
+simple0.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/Alpha/simple0.alpha
+END
+simple1.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/Alpha/simple1.alpha
+END

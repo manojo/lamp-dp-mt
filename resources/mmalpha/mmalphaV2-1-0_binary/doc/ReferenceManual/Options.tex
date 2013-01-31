@@ -1,0 +1,354 @@
+%
+% File created on {2007, 11, 15, 17, 10, 21.060492} by makeDoc.
+%
+% Section header
+\section{The Alpha`Options` package } 
+\label{label:Alpha`Options`}
+\alphausage{debug}{option (Boolean). If True, debug mode. }{Alpha/Options.m}{Alpha`Options`}
+\index{debug}
+
+\alphausage{verbose}{option (Boolean). If True, print intermediate information.}{Alpha/Options.m}{Alpha`Options`}
+\index{verbose}
+
+\alphausage{recurse}{option (Boolean). If True, apply the function recursively to all the subsystem.}{Alpha/Options.m}{Alpha`Options`}
+\index{recurse}
+
+\alphausage{library}{option (List of Alpha`system). Defines the library which must be used by the function.}{Alpha/Options.m}{Alpha`Options`}
+\index{library}
+
+\alphausage{contextDomain}{option of addLocal. If True (default), the new variable is added with the contextual domain of the expression, with the form of addLocal with a position. Otherwise, the expression domain is  used.}{Alpha/Options.m}{Alpha`Options`}
+\index{contextDomain}
+
+\alphausage{invert}{option of serializeReduce. If True (default False),  the nullspace vector is inverted}{Alpha/Options.m}{Alpha`Options`}
+\index{invert}
+
+\alphausage{norm}{option of removeIdEqus. If True, normalization is done}{Alpha/Options.m}{Alpha`Options`}
+\index{norm}
+
+\alphausage{inputEquations}{option of removeIdEqus. If False, an equation of the forme X = in, where in is an input variable, is not removed.}{Alpha/Options.m}{Alpha`Options`}
+\index{inputEquations}
+
+\alphausage{allLibrary}{option of removeIdEqus (default False). If set to  True, all programs of library are treated.}{Alpha/Options.m}{Alpha`Options`}
+\index{allLibrary}
+
+\alphausage{resolutionSoft}{(+) resolutionSoft is an option of schedule. If resolutionSoft $ \rightarrow $ pip, the schedule is computed using Pip, through a file interface (implemented in Farkas resolution only).  None of the following are yet implemented: If resolutionSoft $ \rightarrow $ mma, the schedule is computed using the Mathematica function ConstrainedMin (implemented in Vertex resolution only).  resolutionSoft $ \rightarrow $ lpSolve the schedule is computed using the LpSolve library function ConstrainedMin (not implemented yet).}{Alpha/Options.m}{Alpha`Options`}
+\index{resolutionSoft}
+
+\alphausage{pip}{possible value (default) of the options resolutionSoft of schedule}{Alpha/Options.m}{Alpha`Options`}
+\index{pip}
+
+\alphausage{mma}{possible value  of the options resolutionSoft of schedule}{Alpha/Options.m}{Alpha`Options`}
+\index{mma}
+
+\alphausage{lpSolve}{possible value of the options resolutionSoft of schedule}{Alpha/Options.m}{Alpha`Options`}
+\index{lpSolve}
+
+\alphausage{schedMethod}{ Options of schedule (symbol), select the scheduling method to be used. schedMethod$ \rightarrow $farkas (default) stands for P. Feautrier's method (using PIP with file interface) implemented in the scheduleFarkas function. schedMethod$ \rightarrow $farkas2 stands for the most recent  implementation of this method (ModularSchedule) .schedMethod$ \rightarrow $Vertex stands for P. Quinton's vertex method (using MMA linear resolveur). WARNING: the setting of this options greatly influence the setting of the others options of schedule because they correspond to two completely different implementations}{Alpha/Options.m}{Alpha`Options`}
+\index{schedMethod}
+
+\alphausage{farkas}{value of options schedMethod of schedule, the schedule  will be computed with P. Feautrier's method (using PIP with file interface)}{Alpha/Options.m}{Alpha`Options`}
+\index{farkas}
+
+\alphausage{vertex}{value of options schedMethod of schedule, the schedule  will be computed with P. Quinton's vertex method (using MMA linear resolveur)}{Alpha/Options.m}{Alpha`Options`}
+\index{vertex}
+
+\alphausage{integerSolution}{(+) integerSolution is an option of schedule.  If integerSolution $ \rightarrow $ True (default for farkas resolution)  the schedule has integral coefficients. If integerSolution $ \rightarrow $ False, (default for Vertex resolution) the schedule may have rational coefficients.}{Alpha/Options.m}{Alpha`Options`}
+\index{integerSolution}
+
+\alphausage{bigParPos}{ bigParPos is an option of Pip related functions, Integer type. It indicates the position of the big Paramter. If set to negative integer, there is no big parameter}{Alpha/Options.m}{Alpha`Options`}
+\index{bigParPos}
+
+\alphausage{addConstraints}{option of schedule. The type is : List of  String or List of List of String (in case of MultiDim schedule),  default value : \{\}. Additional constraints for the LP.  add  constrains expressed in the strings to the current scheduling  process.  schedule[addConstraints$ \rightarrow $\{"TA[i,j,N]=i+2j-2","TBD2==2","TBD1+2TBD3$>$=1"\}] Impose that the schedule function of variable A is i+2j-2, Then we  have constraints on the coefficients of the timing function of the  B variable (the  second coefficient  must be 2, etc...). In case of a multi-dimensionnal scheduling, the  ith list is added to the constraints of the ith dimension}{Alpha/Options.m}{Alpha`Options`}
+\index{addConstraints}
+
+\alphausage{durations}{option of schedule (List) default \{\}.  select a mode for counting the duration of instructions.  durations $ \rightarrow $ \{\} : each equation is 1 (whatever complex is the computation) (default). durations $ \rightarrow $ ListOfInteger: The duration of each equation is given by the user the options "durationByEq" indicates whether these values stand for a duration by equation (default in Farkas resolution, not implemented in Vertex resolution) or a duration by dependence (default in Vertex resolution, not implemented in Farkas resolution). durations $ \rightarrow $ ListOfListOfInteger: same as previous one but for multidimensionnal scheduling (one list of integer by dimension).  }{Alpha/Options.m}{Alpha`Options`}
+\index{durations}
+
+\alphausage{durationByEq}{ option of schedule (boolean) indicates whether the duration values given in the "durations" option stand  for a duration by equation (default in Farkas resolution, not implemented in Vertex resolution) or a duration by dependence (default in Vertex resolution, not implemented in Farkas resolution). In the case of a duration by equation, the list must contain as many integer as there are VARIABLES (do not forget the inputs and output), the order is the order of declaration in the Alpha program. In the case of a duration by dependence, the   must contain as many integer as there are dependecies   the order is the order of the dependencies returned by the dep[] function }{Alpha/Options.m}{Alpha`Options`}
+\index{durationByEq}
+
+\alphausage{givenSchedVect}{options of Schedule, List of schedule given   for some variable, the syntaxe for each schedule is the one present   in \$schedule: \{\{a, \{i, j, N\}, sched[\{0, 0, 0\}, 0]\}\} (The list of   indice may be replaced by \{\}) }{Alpha/Options.m}{Alpha`Options`}
+\index{givenSchedVect}
+
+\alphausage{affineByVar}{Value of option scheduleType of schedule, the   resulting schedule will be affine by variable}{Alpha/Options.m}{Alpha`Options`}
+\index{affineByVar}
+
+\alphausage{sameLinearPart}{Value of option scheduleType of schedule, the   resulting schedule will be affine by variable with   the same linear part for all local variables}{Alpha/Options.m}{Alpha`Options`}
+\index{sameLinearPart}
+
+\alphausage{sameLinearPartExceptParam}{Value of option scheduleType of schedule, the   resulting schedule will be affine by variable with   the same linear part for all local variables}{Alpha/Options.m}{Alpha`Options`}
+\index{sameLinearPartExceptParam}
+
+\alphausage{scheduleType}{scheduleType is an option of schedule (symbol) which gives the type of the schedule searched.  scheduleType $ \rightarrow $ affineByVar (default) : affine by variable schedule.  scheduleType $ \rightarrow $ sameLinearPart: affine with constant linear part.  scheduleType $ \rightarrow $ sameLinearPartExceptParam: affine with constant linear part except for the parameters}{Alpha/Options.m}{Alpha`Options`}
+\index{scheduleType}
+
+\alphausage{optimizationType}{ options of schedule (symbol), indicates the objective fonction used by the schedule: minimizing time, delays on dependencies of nothing.  optimizationType$ \rightarrow $time tries to get aminimal time schedule (default).  optimizationType$ \rightarrow $delay tries to minimize the delays on the dependencies (not implemented currently) optimizationType$ \rightarrow $Null no objective function is provided (not implemented in Vertex resolution). In that case the coefficient of the timing function are minimized lexicographically (from output to input).}{Alpha/Options.m}{Alpha`Options`}
+\index{optimizationType}
+
+\alphausage{time}{possible value (default) of option optimizationType of schedule}{Alpha/Options.m}{Alpha`Options`}
+\index{time}
+
+\alphausage{delay}{possible value of option optimizationType of schedule}{Alpha/Options.m}{Alpha`Options`}
+\index{delay}
+
+\alphausage{multi}{possible value  of option optimizationType of schedule or of option structSchedType of buildSchedConstraints}{Alpha/Options.m}{Alpha`Options`}
+\index{multi}
+
+\alphausage{mono}{possible value  of option structSchedType of buildSchedConstraint}{Alpha/Options.m}{Alpha`Options`}
+\index{mono}
+
+\alphausage{scheduleDim}{Option of buildSched Constraint (integer or list of integer), indicates the dimension to which the constraints should be set}{Alpha/Options.m}{Alpha`Options`}
+\index{scheduleDim}
+
+\alphausage{structSchedType}{Option of buildSched Constraint (integer or list of integer), indicates whether the use will be pipelined (no additionnal dimension in the schedule) or considered as an instantaneous call (additionnal dimention in the schedule)}{Alpha/Options.m}{Alpha`Options`}
+\index{structSchedType}
+
+\alphausage{multiSchedDepth}{options of schedule (integer) indicating the depth of the  current schedule taking place in a multi dimensionnal scheduling process (this option should not be set by the user, it is for internal use only)}{Alpha/Options.m}{Alpha`Options`}
+\index{multiSchedDepth}
+
+\alphausage{onlyVar}{ Option of schedule which is a list of string (default value: all)  indicating the only variables that we wish to schedule. Warning, if  some variable are needed for the computation of the one indicated,  the function will try to find their execution dates in \$schedule  (only implemented in the Farkas method)}{Alpha/Options.m}{Alpha`Options`}
+\index{onlyVar}
+
+\alphausage{all}{value of various options (onlyVar, onlyDep,....)}{Alpha/Options.m}{Alpha`Options`}
+\index{all}
+
+\alphausage{onlyDep}{ Option of schedule which is a list of integer (default value: all) indicating the only dependences  that we wish to schedule (used for  multiSched[]) }{Alpha/Options.m}{Alpha`Options`}
+\index{onlyDep}
+
+\alphausage{objFunction}{objFunction is an option of schedule which gives the type of minimization done for minimizing what we try to minimize (i.e. time or delay or whatever). the technique for that is to build a function of the parameters of the system and to minimize the   coefficient of this function with respect to constraints which   ensure that this function is greater than what we want to minimize.  The technique used by default (objFunction$ \rightarrow $lexicographic)  in the Farkas resolution is to minimize   lexicographically the coefficient of this function in the order of   their declaration in the Alpha program. but one can chose to   minimize them in another order:   objFunction$ \rightarrow $lexicographic["N","P","M"] (not implemented anywhere) or to minimize a function of these coefficients example:   objFunction$ \rightarrow $2"N"+"P" (only implemented in the vertex        resolution) }{Alpha/Options.m}{Alpha`Options`}
+\index{objFunction}
+
+\alphausage{lexicographic}{possible value of the objFunction option of the   schedule function}{Alpha/Options.m}{Alpha`Options`}
+\index{lexicographic}
+
+\alphausage{checkSched}{(+) checkSched is an option of schedule which allows a schedule  to be checked for a given Alpha program. This option can be used only for affine by variable schedules. The form of this  option is checkSched $ \rightarrow $ list, where list has the same syntax as  \$schedule (see ?\$schedule for more information).\\ WARNING: this option is not implemented}{Alpha/Options.m}{Alpha`Options`}
+\index{checkSched}
+
+\alphausage{parameterConstraints}{parameterConstraints is an option of dep. If set, constraints on the parameters are included in the domains of the dependencies. Default is False}{Alpha/Options.m}{Alpha`Options`}
+\index{parameterConstraints}
+
+\alphausage{subSystems}{options of schedule (boolean) and dep indicating whether or not the function takes into account the calls to other   systems (default, false)}{Alpha/Options.m}{Alpha`Options`}
+\index{subSystems}
+
+\alphausage{subSystemSchedule}{option of schedule (list), indicates,  if the subSystems option is set to True, the schedules of the   different subsystems called in the system to schedule for performing   a structured scheduling}{Alpha/Options.m}{Alpha`Options`}
+\index{subSystemSchedule}
+
+\alphausage{multiDimensional}{ option of Schedule (boolean), indicates  if we perform a multi dimensional scheduling or mono dimensionnal   scheduming (default)}{Alpha/Options.m}{Alpha`Options`}
+\index{multiDimensional}
+
+\alphausage{outputForm}{options of schedule, gselect the output of the schedule which may be a schedule, a LP, a domain .... The default value is outputForm$ \rightarrow $scheduleResult i.e. the result isx a schedule (see ?\$schedule). other value: outputForm$ \rightarrow $lpSolve (Linear Programming problem (LP) formated for lp\_solve), outputForm$ \rightarrow $lpMMA (LP formated for MMA (to be implemented)), outputForm$ \rightarrow $domain (schedule polytope (Alpha`domain,Warning works for small programs))}{Alpha/Options.m}{Alpha`Options`}
+\index{outputForm}
+
+\alphausage{dataFlowConstantsNull}{dataFlowConstantsNull is an option of scd. Its default value is True, forcing the constant part of the first level of a data-flow schedule to be 0 for all variables.}{Alpha/Options.m}{Alpha`Options`}
+\index{dataFlowConstantsNull}
+
+\alphausage{dataFlowPeriod}{dataFlowPeriod is an option of scd. Its default value is 1. If set to an  integer, forces the period of the data-flow schedule to be this integer. If set to any non integral value, the data-flow period is choosen automatically,  and assumed to be $>$=1. Most often used in combination with dataFlowConstantsNull set to False.}{Alpha/Options.m}{Alpha`Options`}
+\index{dataFlowPeriod}
+
+\alphausage{dataFlowVariables}{dataFlowVariables is an option of scd, which is considered only for data-flow schedules. Its default value is $<$$<$all$>$$>$, meaning that all variables are considered for data-flow scheduling. If it is set to a list of strings, it gives the list of variables which must not be inserted in the dataflow variables. These variables will be considered only for scheduling in the next dimensions of the schedule.}{Alpha/Options.m}{Alpha`Options`}
+\index{dataFlowVariables}
+
+\alphausage{verticesPositives}{verticesPositives is an option of scd, scheduleConstraints, and  timeMinSchedConstraints. Its default value is False. When set, this option forces the scheduler to find timing-functions which are positive at the vertices of the domains of the variables. Usually, only constraints on rays of the domains are taken into account. This option is not used, as it most often results in non-integral (i.e. strictly rational) schedules.}{Alpha/Options.m}{Alpha`Options`}
+\index{verticesPositives}
+
+\alphausage{sortOrder}{sortOrder is an option of showSchedResult, which specifies the order in which the results are given. Default is noOrder. Other possibilities are lexicographic, or an integer which specifies the number of coefficient given backwards}{Alpha/Options.m}{Alpha`Options`}
+\index{sortOrder}
+
+\alphausage{noOrder}{noOrder is a value for the option sortOrder of showSchedResult}{Alpha/Options.m}{Alpha`Options`}
+\index{noOrder}
+
+\alphausage{eliminatesDoubles}{Options of dep[], if set to False  dep[] returns the usual dependence list. If set to True, the dependences   returned does not contain twice the same dependence}{Alpha/Options.m}{Alpha`Options`}
+\index{eliminatesDoubles}
+
+\alphausage{equalitySimpl}{ options of dep[], if set to True, try to   simplify the dep according to the context (default True)}{Alpha/Options.m}{Alpha`Options`}
+\index{equalitySimpl}
+
+\alphausage{scalarTypeCheck}{option to analyze[] (Boolean). If True, perform scalar type checking. For internal use mostly.}{Alpha/Options.m}{Alpha`Options`}
+\index{scalarTypeCheck}
+
+\alphausage{occurence}{option of inlineAll[] and inlineSubsystem[] (Integer).  When a given subsystem is used several times in the same caller system, the value of occurence selects the instance to be inlined.}{Alpha/Options.m}{Alpha`Options`}
+\index{occurence}
+
+\alphausage{rename}{option of inlineAll[] and inlineSubsystem[] (Boolean).  rename $ \rightarrow $ True  forces the renaming of all variables, whereas if rename $ \rightarrow $ False, variables are renamed only in case of conflict.}{Alpha/Options.m}{Alpha`Options`}
+\index{rename}
+
+\alphausage{renameCounter}{option of inlineAll[] and inlineSubsystem[] (Integer, default 1).  Sets the value to be appended to variable names in case when they are renamed to avoid name conflicts. }{Alpha/Options.m}{Alpha`Options`}
+\index{renameCounter}
+
+\alphausage{current}{option of inlineAll[] and inlineSubsystem[] (Boolean). If True, \$result and \$program are updated.}{Alpha/Options.m}{Alpha`Options`}
+\index{current}
+
+\alphausage{underscore}{option of inlineSubsystem and inlineAll (Boolean). When True (default), new identifier separator is \_, whereas it is X otherwise}{Alpha/Options.m}{Alpha`Options`}
+\index{underscore}
+
+\alphausage{indexnorm}{option of normalize[] (Boolean). indexnorm $ \rightarrow $ True   normalizes index expressions also. The default is False.}{Alpha/Options.m}{Alpha`Options`}
+\index{indexnorm}
+
+\alphausage{alphaFormat}{options of simplifySystem: alphaFormat$ \rightarrow $Alpha (default) simplify a system to the standard normalized Alpha form. alphaFormat$ \rightarrow $Alpha0 simplify to Alpha0 format, alphaFormat$ \rightarrow $AlpHard is not implemented}{Alpha/Options.m}{Alpha`Options`}
+\index{alphaFormat}
+
+\alphausage{Alpha0}{value of the alphaFormat options of simplifySystem}{Alpha/Options.m}{Alpha`Options`}
+\index{Alpha0}
+
+\alphausage{initZeroReg}{options of toAlpha0v2: initZeroReg$ \rightarrow $False  do not generate a control signal for the register that are initialized with a zero. These register will be initialized by the Rst signal}{Alpha/Options.m}{Alpha`Options`}
+\index{initZeroReg}
+
+\alphausage{verifyCone}{verifyCone is an option of uniformization which verifies whether the dependence cone is pointed if set to True (default value) or does not if it is False.}{Alpha/Options.m}{Alpha`Options`}
+\index{verifyCone}
+
+\alphausage{alignInp}{alignInp is an option of uniformization. If set to True the uniformize function will try to uniformize a dependence by aligning the input instead of routing the dependence. The default value is False.}{Alpha/Options.m}{Alpha`Options`}
+\index{alignInp}
+
+\alphausage{routeOnce}{routeOnce is an option of uniformization. If set to True the uniformize function  will perform routing for the first vector of the route. The default value is False.}{Alpha/Options.m}{Alpha`Options`}
+\index{routeOnce}
+
+\alphausage{tmpFile}{tmpFile is an option of uniformization. If set to True the uniformize function  will output a file in /tmp directory after each iteration of uniformization. The default value is False.}{Alpha/Options.m}{Alpha`Options`}
+\index{tmpFile}
+
+\alphausage{silent}{option of show (False). If silent is True, show does not print its result, but returns a string.}{Alpha/Options.m}{Alpha`Options`}
+\index{silent}
+
+\alphausage{allVariablesAllowed}{Option of changeOfBasis, default False. If True  the change of basis can be applied to any variable. Not yet operational...}{Alpha/Options.m}{Alpha`Options`}
+\index{allVariablesAllowed}
+
+\alphausage{showSquareDeps}{option of uniformizeInfo}{Alpha/Options.m}{Alpha`Options`}
+\index{showSquareDeps}
+
+\alphausage{showNonSquareDeps}{option of uniformizeInfo}{Alpha/Options.m}{Alpha`Options`}
+\index{showNonSquareDeps}
+
+\alphausage{showUniformDeps}{option of uniformizeInfo}{Alpha/Options.m}{Alpha`Options`}
+\index{showUniformDeps}
+
+\alphausage{showNonUniformDeps}{option of uniformizeInfo}{Alpha/Options.m}{Alpha`Options`}
+\index{showNonUniformDeps}
+
+\alphausage{showUniformizableDeps}{option of uniformizeInfo}{Alpha/Options.m}{Alpha`Options`}
+\index{showUniformizableDeps}
+
+\alphausage{showNonUniformizableDeps}{option of uniformizeInfo}{Alpha/Options.m}{Alpha`Options`}
+\index{showNonUniformizableDeps}
+
+\alphausage{minimize}{option of simplex. Default is True}{Alpha/Options.m}{Alpha`Options`}
+\index{minimize}
+
+\alphausage{boundedDelay}{option of timeMinSchedConstraints. Currently not used.}{Alpha/Options.m}{Alpha`Options`}
+\index{boundedDelay}
+
+\alphausage{extraEdges}{Option of depGraph, allowing edges to be added}{Alpha/Options.m}{Alpha`Options`}
+\index{extraEdges}
+
+\alphausage{labelOffset}{Option of depGraph, allowing the offset of the position of a label  to be modified. Default is 0.025.}{Alpha/Options.m}{Alpha`Options`}
+\index{labelOffset}
+
+\alphausage{labelSize}{Option of depGraph, allowing the size of the labels to be changed. Default value is 0.1 .}{Alpha/Options.m}{Alpha`Options`}
+\index{labelSize}
+
+\alphausage{onlyIdDep}{Option of depGraph (default False), If set to True, build a graph where only  identity dependences are present. (require an aligned program).}{Alpha/Options.m}{Alpha`Options`}
+\index{onlyIdDep}
+
+\alphausage{cellType}{Option of a2v}{Alpha/Options.m}{Alpha`Options`}
+\index{cellType}
+
+\alphausage{tempFile}{Option of a2v}{Alpha/Options.m}{Alpha`Options`}
+\index{tempFile}
+
+\alphausage{vhdlLibrary}{Option of a2v}{Alpha/Options.m}{Alpha`Options`}
+\index{vhdlLibrary}
+
+\alphausage{compass}{Option of a2v}{Alpha/Options.m}{Alpha`Options`}
+\index{compass}
+
+\alphausage{compactCode}{Option of a2v}{Alpha/Options.m}{Alpha`Options`}
+\index{compactCode}
+
+\alphausage{clockEnable}{Option of a2v}{Alpha/Options.m}{Alpha`Options`}
+\index{clockEnable}
+
+\alphausage{skipLines}{Option of a2v}{Alpha/Options.m}{Alpha`Options`}
+\index{skipLines}
+
+\alphausage{stdLogic}{Option of a2v. If set, produces stdlogic types. Default value is True.}{Alpha/Options.m}{Alpha`Options`}
+\index{stdLogic}
+
+\alphausage{initialize}{Option of vhdlType. If set, produces initialized declarations}{Alpha/Options.m}{Alpha`Options`}
+\index{initialize}
+
+\alphausage{controler}{Option value for option cellType of alphaToVHDL}{Alpha/Options.m}{Alpha`Options`}
+\index{controler}
+
+\alphausage{cell}{Option value for option cellType of alphaToVHDL}{Alpha/Options.m}{Alpha`Options`}
+\index{cell}
+
+\alphausage{module}{Option value for option cellType of alphaToVHDL}{Alpha/Options.m}{Alpha`Options`}
+\index{module}
+
+\alphausage{rewrite}{rewite: option (boolean) for cGen. If True, output file is overwritten if it already exists.}{Alpha/Options.m}{Alpha`Options`}
+\index{rewrite}
+
+\alphausage{lyrtech}{Option of a2v. If True, generates strange code for the Lyrtech environment. For example, rst is not a std\_logic but a vector of std\_logic of size 1.}{Alpha/Options.m}{Alpha`Options`}
+\index{lyrtech}
+
+\alphausage{noPrint}{boolean option of cGen. If True, the generated C code does not provide  prompts before the inputs, nor before the outputs, which makes it easier to run a test from an input file}{Alpha/Options.m}{Alpha`Options`}
+\index{noPrint}
+
+\alphausage{alreadySchedule}{option of cGen (boolean, default false), if set to True, cGen does not  perform schedule neither change of Basis: WARNING not Implemented yet }{Alpha/Options.m}{Alpha`Options`}
+\index{alreadySchedule}
+
+\alphausage{stimuli}{option of cGen (boolean, default False), if set to True, cGen  generates one stimuli file by input and output variable}{Alpha/Options.m}{Alpha`Options`}
+\index{stimuli}
+
+\alphausage{interactive}{interactive is a (boolean) option of cGen. If True, cGen also generates  a function main which (i) reads system inputs on stdin (ii) evaluates the  system, (iii) prints the outputs on stdout}{Alpha/Options.m}{Alpha`Options`}
+\index{interactive}
+
+\alphausage{matlab}{matlab is a boolean option of cGen. If True, cGen also generates a  function mexFunction which is used for interface with matlab code}{Alpha/Options.m}{Alpha`Options`}
+\index{matlab}
+
+\alphausage{bitTrue}{bitTrue is a boolean option of cGen. If True, cGen includes the  bitOperators.h file in the C code and produces the compile script to  compile the code}{Alpha/Options.m}{Alpha`Options`}
+\index{bitTrue}
+
+\alphausage{debugC}{debugC: option (boolean) for VirtexGen. If True, Virtexgen generates  a function main which (i) reads system inputs on stdin (ii) evaluate  the system, (iii) prints the outputs on stdout (the output are not  significant in that case)}{Alpha/Options.m}{Alpha`Options`}
+\index{debugC}
+
+\alphausage{onlyLocalVars}{option used  when a function shouyld be applied sometimes nly on local variables }{Alpha/Options.m}{Alpha`Options`}
+\index{onlyLocalVars}
+
+\alphausage{projVector}{options of appSched to indicate what is the projection vector (appSched will try to find a unimodulary completion that is a projection along this vector) should be a Mathematica Vector (integer list) for instance: \{1,0,0\}(dimension is the number of indices plus parameter). Warning, this function does not try very hard to find a projection, the first one found is choosen. If it failed, please use the projMatrix options }{Alpha/Options.m}{Alpha`Options`}
+\index{projVector}
+
+\alphausage{projMatrix}{options of appSched to indicate what is the projection Matrix used for completing the schedule. should be a Mathematica Matrix (list of list of integer) for instance: \{\{1,0,0\},\{0,1,0\}\}. This matrix is a linear Matrix, i.e. it does not contains the affine part information (dimension is the number of indices plus parameter) }{Alpha/Options.m}{Alpha`Options`}
+\index{projMatrix}
+
+\alphausage{checkCase}{checkCase is an option of getContextDomain. If set, the function checks on the fly that the branches of the case expressions do not  overlap. False by default.}{Alpha/Options.m}{Alpha`Options`}
+\index{checkCase}
+
+\alphausage{mergeDomains}{mergeDomains is an option of simplifySpaceDom. If set (True), the domains are merged before the simplification is applied. Default value is False}{Alpha/Options.m}{Alpha`Options`}
+\index{mergeDomains}
+
+\alphausage{structured}{structured is an option of alpha0ToAlphard which specifies that a program may contain subsystems}{Alpha/Options.m}{Alpha`Options`}
+\index{structured}
+
+\alphausage{onlyModules}{onlyModules is an option of alpha2ToAlphard. If set (True), the program does not accept a system which is not a module. Default is False.}{Alpha/Options.m}{Alpha`Options`}
+\index{onlyModules}
+
+\alphausage{startTime}{startTime is an options of systemC generator for controleurs to indicate the  starting time of an Alphard program, i.e. the smallest value taken by the t index upon all the domains of the library, default Infinity}{Alpha/Options.m}{Alpha`Options`}
+\index{startTime}
+
+\alphausage{systemCFiles}{systemCFile is an options of systemC generator that indicates whether the codeis generated in one .h file (option value 1, default value) or in two files (.h and .cpp file, option value 2)}{Alpha/Options.m}{Alpha`Options`}
+\index{systemCFiles}
+
+\alphausage{busWidth}{options of socLibGen (default 32) set the bus Width used during the generation of the systemC  interface to Alphard programs}{Alpha/Options.m}{Alpha`Options`}
+\index{busWidth}
+
+\alphausage{inputOrOutput}{options of  socLibGen for internal use}{Alpha/Options.m}{Alpha`Options`}
+\index{inputOrOutput}
+
+\alphausage{exceptions}{option of several functions. Gives a list of variables or subsystems that has not to be considered for space time decomposition}{Alpha/Options.m}{Alpha`Options`}
+\index{exceptions}
+
+\alphausage{remIdDeps}{option of simplifySystem, false by default. If set, all identity dependences are removed. If it appears that this simplification is safe, It'll become a default option. PQ. July 2004.}{Alpha/Options.m}{Alpha`Options`}
+\index{remIdDeps}
+
+\alphausage{remIdEqus}{option of simplifySystem, false by default. If set, all identity equations are removed, unless the format is alpha0. If it appears  that this simplification is safe, It'll become a default option.  PQ. July 2004.}{Alpha/Options.m}{Alpha`Options`}
+\index{remIdEqus}
+

@@ -1,0 +1,127 @@
+--------------------------------- checkvars Pretty ---
+--------------------------------- checkvars Read_Alpha ---
+make -f ../MakeIncludes/Makefile.checkvars checkvars
+----- DBG = 
+----- MMALPHA = /Users/quinton/mmalpha
+----- CC = gcc
+----- BINDIR = /Users/quinton/mmalpha/bin.darwin
+----- LIBDIR = /Users/quinton/mmalpha/lib.darwin
+----- OBJDIR = Obj.darwin
+----- POLYDIR = /Users/quinton/mmalpha/sources/Polylib
+----- POLYOBJS = Obj.darwin/matrix.o Obj.darwin/vector.o Obj.darwin/polyhedron.o Obj.darwin/Zpolyhedron.o Obj.darwin/Matop.o Obj.darwin/Lattice.o Obj.darwin/NormalForms.o Obj.darwin/SolveDio.o Obj.darwin/errors.o Obj.darwin/alpha.o Obj.darwin/compress_parms.o Obj.darwin/matrix_addon.o Obj.darwin/matrix_permutations.o Obj.darwin/param.o Obj.darwin/polyparam.o
+----- POLYINCLUDE = /Users/quinton/mmalpha/sources/Polylib/include
+----- POLYLIB-LIB = 
+*** Variable POLYLIB-LIB is not set
+----- MATHLINK = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+----- MATHPREP = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions/mprep
+----- MATHLIB = -L/Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+----- MMAVERSION = 6.0
+----- SHELL = /bin/sh
+----- CFLAGS = -O3 -g -I/Users/quinton/mmalpha/sources/Polylib/include -DLINEAR_VALUE_IS_LONGLONG
+----- CODEGENDIR = /Users/quinton/mmalpha/sources/Code_Gen
+----- CODEGENOBJS = Obj.darwin/gen.o Obj.darwin/nodeprocs.o
+----- CPPFLAGS = -I/Users/quinton/mmalpha/sources/Polylib -g
+----- LFFLAGS = -L/Users/quinton/mmalpha/lib.darwin
+----- LOADLIBES = 
+----- CXX = g++
+--------------------------------- checkvars Write_Alpha ---
+make -f Makefile.checkvars checkvars
+----- DBG = 
+----- MMALPHA = /Users/quinton/mmalpha
+----- CC = gcc
+----- BINDIR = /Users/quinton/mmalpha/bin.darwin
+----- LIBDIR = /Users/quinton/mmalpha/lib.darwin
+----- OBJDIR = Obj.darwin
+----- POLYDIR = /Users/quinton/mmalpha/sources/Polylib
+----- POLYOBJS = Obj.darwin/matrix.o Obj.darwin/vector.o Obj.darwin/polyhedron.o Obj.darwin/Zpolyhedron.o Obj.darwin/Matop.o Obj.darwin/Lattice.o Obj.darwin/NormalForms.o Obj.darwin/SolveDio.o Obj.darwin/errors.o Obj.darwin/alpha.o Obj.darwin/compress_parms.o Obj.darwin/matrix_addon.o Obj.darwin/matrix_permutations.o Obj.darwin/param.o Obj.darwin/polyparam.o
+----- POLYINCLUDE = /Users/quinton/mmalpha/sources/Polylib/include
+----- POLYLIB-LIB = 
+*** Variable POLYLIB-LIB is not set
+----- MATHLINK = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+----- MATHPREP = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions/mprep
+----- MATHLIB = -L/Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+----- MMAVERSION = 6.0
+----- SHELL = /bin/sh
+----- CFLAGS = -O3 -g -I/Users/quinton/mmalpha/sources/Polylib/include -DLINEAR_VALUE_IS_LONGLONG
+----- CPPFLAGS = -I/Users/quinton/mmalpha/sources/Polylib
+----- LFFLAGS = -L/Users/quinton/mmalpha/lib.darwin
+----- CODEGENDIR = /Users/quinton/mmalpha/sources/Code_Gen
+----- CODEGENOBJS = Obj.darwin/gen.o Obj.darwin/nodeprocs.o
+----- CXX = g++
+----- END --- 
+make -f ../MakeIncludes/Makefile.checkvars checkvars
+----- DBG = 
+----- MMALPHA = /Users/quinton/mmalpha
+----- CC = gcc
+----- BINDIR = /Users/quinton/mmalpha/bin.darwin
+----- LIBDIR = /Users/quinton/mmalpha/lib.darwin
+----- OBJDIR = Obj.darwin
+----- POLYDIR = /Users/quinton/mmalpha/sources/Polylib
+----- POLYOBJS = Obj.darwin/matrix.o Obj.darwin/vector.o Obj.darwin/polyhedron.o Obj.darwin/Zpolyhedron.o Obj.darwin/Matop.o Obj.darwin/Lattice.o Obj.darwin/NormalForms.o Obj.darwin/SolveDio.o Obj.darwin/errors.o Obj.darwin/alpha.o Obj.darwin/compress_parms.o Obj.darwin/matrix_addon.o Obj.darwin/matrix_permutations.o Obj.darwin/param.o Obj.darwin/polyparam.o
+----- POLYINCLUDE = /Users/quinton/mmalpha/sources/Polylib/include
+----- POLYLIB-LIB = 
+*** Variable POLYLIB-LIB is not set
+----- MATHLINK = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+----- MATHPREP = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions/mprep
+----- MATHLIB = -L/Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+----- MMAVERSION = 6.0
+----- SHELL = /bin/sh
+----- CFLAGS = -O3 -g -I/Users/quinton/mmalpha/sources/Polylib/include -DLINEAR_VALUE_IS_LONGLONG
+----- CODEGENDIR = /Users/quinton/mmalpha/sources/Code_Gen
+----- CODEGENOBJS = Obj.darwin/gen.o Obj.darwin/nodeprocs.o
+----- CPPFLAGS = -I/Users/quinton/mmalpha/sources/Polylib
+----- LFFLAGS = -L/Users/quinton/mmalpha/lib.darwin
+----- LOADLIBES = 
+----- CXX = g++
+--------------------------------- checkvars Code_Gen ---
+--------------------------------- checkvars Write_C ---
+make -f ../MakeIncludes/Makefile.checkvars checkvars
+----- DBG = 
+----- MMALPHA = /Users/quinton/mmalpha
+----- CC = gcc
+----- BINDIR = /Users/quinton/mmalpha/bin.darwin
+----- LIBDIR = /Users/quinton/mmalpha/lib.darwin
+----- OBJDIR = Obj.darwin
+----- POLYDIR = /Users/quinton/mmalpha/sources/Polylib
+----- POLYOBJS = Obj.darwin/matrix.o Obj.darwin/vector.o Obj.darwin/polyhedron.o Obj.darwin/Zpolyhedron.o Obj.darwin/Matop.o Obj.darwin/Lattice.o Obj.darwin/NormalForms.o Obj.darwin/SolveDio.o Obj.darwin/errors.o Obj.darwin/alpha.o Obj.darwin/compress_parms.o Obj.darwin/matrix_addon.o Obj.darwin/matrix_permutations.o Obj.darwin/param.o Obj.darwin/polyparam.o
+----- POLYINCLUDE = /Users/quinton/mmalpha/sources/Polylib/include
+----- POLYLIB-LIB = 
+*** Variable POLYLIB-LIB is not set
+----- MATHLINK = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+----- MATHPREP = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions/mprep
+----- MATHLIB = -L/Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+----- MMAVERSION = 6.0
+----- SHELL = /bin/sh
+----- CFLAGS = -O3 -g -I/Users/quinton/mmalpha/sources/Polylib/include -DLINEAR_VALUE_IS_LONGLONG
+----- CODEGENDIR = /Users/quinton/mmalpha/sources/Code_Gen
+----- CODEGENOBJS = Obj.darwin/gen.o Obj.darwin/nodeprocs.o
+----- CPPFLAGS = -I/Users/quinton/mmalpha/sources/Polylib -I/Users/quinton/mmalpha/sources/Code_Gen
+----- LFFLAGS = -L/Users/quinton/mmalpha/lib.darwin
+----- LOADLIBES = 
+----- CXX = g++
+--------------------------------- checkvars Domlib ---
+if [ "darwin" = "cygwin" ]; then make -f Makefile.Visual checkvars ; else  make -f Makefile.darwin checkvars ; fi
+make -f ../MakeIncludes/Makefile.checkvars checkvars
+----- DBG = 
+----- MMALPHA = /Users/quinton/mmalpha
+----- CC = gcc
+----- BINDIR = /Users/quinton/mmalpha/bin.darwin
+----- LIBDIR = /Users/quinton/mmalpha/lib.darwin
+----- OBJDIR = Obj.darwin
+----- POLYDIR = /Users/quinton/mmalpha/sources/Polylib
+----- POLYOBJS = Obj.darwin/matrix.o Obj.darwin/vector.o Obj.darwin/polyhedron.o Obj.darwin/Zpolyhedron.o Obj.darwin/Matop.o Obj.darwin/Lattice.o Obj.darwin/NormalForms.o Obj.darwin/SolveDio.o Obj.darwin/errors.o Obj.darwin/alpha.o Obj.darwin/compress_parms.o Obj.darwin/matrix_addon.o Obj.darwin/matrix_permutations.o Obj.darwin/param.o Obj.darwin/polyparam.o
+----- POLYINCLUDE = /Users/quinton/mmalpha/sources/Polylib/include
+----- POLYLIB-LIB = 
+*** Variable POLYLIB-LIB is not set
+----- MATHLINK = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+----- MATHPREP = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions/mprep
+----- MATHLIB = -L/Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+----- MMAVERSION = 6.0
+----- SHELL = /bin/sh
+----- CFLAGS = -O3 -g -I/Users/quinton/mmalpha/sources/Polylib/include -DLINEAR_VALUE_IS_LONGLONG
+----- CODEGENDIR = /Users/quinton/mmalpha/sources/Code_Gen
+----- CODEGENOBJS = Obj.darwin/gen.o Obj.darwin/nodeprocs.o
+----- CPPFLAGS = 
+----- LFFLAGS = -L/Users/quinton/mmalpha/lib.darwin
+----- LOADLIBES = 
+----- CXX = g++

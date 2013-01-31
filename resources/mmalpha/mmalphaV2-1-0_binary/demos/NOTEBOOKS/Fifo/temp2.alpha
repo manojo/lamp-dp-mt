@@ -1,0 +1,39 @@
+system callfifo :{N | 3<=N}
+                (busin : {t | 0<=t} of integer; 
+                 op1 : {t | 0<=t} of boolean; 
+                 op2 : {t | 0<=t} of boolean)
+       returns  (full : {t | 0<=t} of boolean; 
+                 empty : {t | 0<=t} of boolean; 
+                 wordout : {t | 0<=t} of integer);
+var
+  Rin : {i,t | 1<=i<=N; 0<=t} of integer;
+  Tin : {i,t | 0<=i<=N; 0<=t} of boolean;
+  RoutXfifo1 : {i,t | 1<=i<=N; 0<=t} of integer;
+  ToutXfifo1 : {i,t | 0<=i<=N; 0<=t} of boolean;
+let
+  RoutXfifo1[i,t] = 
+      case
+        { | 2<=i} : if (op1[t]) then Rin[i-1,t] else if (op2[t] and Tin[i,t]) then busin[t] else Rin[i,t];
+        { | i=1} : if (op1[i+t-1]) then Rin[i,t] else if (op2[i+t-1] and Tin[i,t]) then busin[i+t-1] else Rin[i,t];
+      esac;
+  ToutXfifo1[i,t] = 
+      case
+        { | 1<=i<=N-1} : if (op1[t]) then Tin[i-1,t] else if (op1[t] and Tin[i,t]) then Tin[i+1,t] else Tin[i,t];
+        { | i=N} : if (op1[i+t-N]) then Tin[i-1,t] else if (op1[i+t-N] and Tin[i,t]) then False[] else Tin[i,t];
+        { | i=0} : if (op1[i+t]) then False[] else if (op1[i+t] and Tin[i,t]) then Tin[i+1,t] else Tin[i,t];
+      esac;
+  Rin[i,t] = 
+      case
+        { | t=0} : 0[];
+        { | 1<=t} : RoutXfifo1[i,t-1];
+      esac;
+  Tin[i,t] = 
+      case
+        { | i<=N-1; t=0} : False[];
+        { | i=N; t=0} : True[];
+        { | 1<=t} : ToutXfifo1[i,t-1];
+      esac;
+  wordout[t] = RoutXfifo1[N,t];
+  full[t] = ToutXfifo1[0,t];
+  empty[t] = ToutXfifo1[N,t];
+tel;

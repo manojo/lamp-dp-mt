@@ -1,0 +1,134 @@
+system ControladdModule :{N,M | 2<=N<=M-1}
+                        ( )
+       returns          (PipeH_ctl1P_Init : {t | t=1; 2<=N<=M-1} | {t | 2<=t<=-N+M+1; 2<=N} of boolean);
+let
+  PipeH_ctl1P_Init[t] = 
+      case
+        {| t=1; 2<=N<=M-1} : True[];
+        {| 2<=t<=-N+M+1; 2<=N} : False[];
+      esac;
+tel;
+system celladdModule1 :{p,N,M | p=0; 2<=N<=M-1}
+                      (H_mirr1 : {t | t=1; p=0; 2<=N<=M-1} of integer; 
+                       Y_reg3loc : {t | 1<=t<=-N+M+1; p=0; 2<=N<=M-1} of integer
+                       ; 
+                       PipeH_ctl1P_Init_In : {t | 1<=t<=-N+M+1; p=0; 2<=N<=M-1} of boolean)
+       
+       returns        (Y : {t | 2<=t<=-N+M+2; p=0; 2<=N<=M-1} of integer; 
+                       PipeH_ctl1P : {t | 1<=t<=-N+M+1; p=0; 2<=N<=M-1} of boolean);
+var
+  PipeH_ctl1Ploc2 : {t | 1<=t<=-N+M+1; p=0; 2<=N<=M-1} of boolean;
+  PipeH : {t | 1<=t<=-N+M+1; p=0; 2<=N<=M-1} of integer;
+  PipeH_ctl1 : {t | 1<=t<=-N+M+1; p=0; 2<=N<=M-1} of boolean;
+  PipeH_reg2 : {t | 2<=t<=-N+M+1; p=0; 2<=N} of integer;
+  PipeH_reg4 : {t | 2<=t<=-N+M+2; p=0; 2<=N<=M-1} of integer;
+  Y_reg3 : {t | 2<=t<=-N+M+2; p=0; 2<=N<=M-1} of integer;
+let
+  PipeH_ctl1P[t] = PipeH_ctl1Ploc2[t];
+  Y_reg3[t] = Y_reg3loc[t-1];
+  PipeH_reg4[t] = PipeH[t-1];
+  PipeH_reg2[t] = PipeH[t-1];
+  PipeH_ctl1Ploc2[t] = PipeH_ctl1P_Init_In[t];
+  PipeH_ctl1[t] = PipeH_ctl1Ploc2[t];
+  PipeH[t] = 
+      case
+        {| t=1; p=0; 2<=N<=M-1} : if (PipeH_ctl1[t]) then H_mirr1[t] else 0[];
+        {| 2<=t<=-N+M+1; p=0; 2<=N} : if (PipeH_ctl1[t]) then 0[] else PipeH_reg2[t]
+        ;
+      esac;
+  Y[t] = Y_reg3[t] + PipeH_reg4[t];
+tel;
+system celladdModule2 :{p,N,M | 1<=p<=N-1; N<=M-1}
+                      (H_mirr1 : {t | t=p+1; 1<=p<=N-1; N<=M-1} of integer; 
+                       Y_reg3loc : {t | p+1<=t<=p-N+M+1; 1<=p<=N-1; N<=M-1} of integer
+                       ; 
+                       PipeH_ctl1P_reg1loc : {t | p<=t<=p-N+M; 1<=p<=N-1; N<=M-1} of boolean)
+       
+       returns        (Y : {t | p+2<=t<=p-N+M+2; 1<=p<=N-1; N<=M-1} of integer
+                       ; 
+                       PipeH_ctl1P : {t | p+1<=t<=p-N+M+1; 1<=p<=N-1; N<=M-1} of boolean);
+var
+  PipeH_ctl1Ploc2 : {t | p+1<=t<=p-N+M+1; 1<=p<=N-1; N<=M-1} of boolean;
+  PipeH : {t | p+1<=t<=p-N+M+1; 1<=p<=N-1; N<=M-1} of integer;
+  PipeH_ctl1 : {t | p+1<=t<=p-N+M+1; 1<=p<=N-1; N<=M-1} of boolean;
+  PipeH_ctl1P_reg1 : {t | p+1<=t<=p-N+M+1; 1<=p<=N-1; N<=M-1} of boolean;
+  PipeH_reg2 : {t | p+2<=t<=p-N+M+1; 1<=p<=N-1} of integer;
+  PipeH_reg4 : {t | p+2<=t<=p-N+M+2; 1<=p<=N-1; N<=M-1} of integer;
+  Y_reg3 : {t | p+2<=t<=p-N+M+2; 1<=p<=N-1; N<=M-1} of integer;
+let
+  PipeH_ctl1P[t] = PipeH_ctl1Ploc2[t];
+  Y_reg3[t] = Y_reg3loc[t-1];
+  PipeH_ctl1P_reg1[t] = PipeH_ctl1P_reg1loc[t-1];
+  PipeH_reg4[t] = PipeH[t-1];
+  PipeH_reg2[t] = PipeH[t-1];
+  PipeH_ctl1Ploc2[t] = PipeH_ctl1P_reg1[t];
+  PipeH_ctl1[t] = PipeH_ctl1Ploc2[t];
+  PipeH[t] = 
+      case
+        {| t=p+1; 1<=p<=N-1; N<=M-1} : if (PipeH_ctl1[t]) then H_mirr1[t] else 
+               0[];
+        {| p+2<=t<=p-N+M+1; 1<=p<=N-1} : if (PipeH_ctl1[t]) then 0[] else PipeH_reg2[t]
+        ;
+      esac;
+  Y[t] = Y_reg3[t] + PipeH_reg4[t];
+tel;
+system celladdModule4 :{p,N,M | p=-1; 2<=N<=M-1}
+                      ( )
+       returns        (Y : {t | 1<=t<=-N+M+1; p=-1; 2<=N<=M-1} of integer);
+let
+  Y[t] = 0[];
+tel;
+system addModule :{N,M | 2<=N<=M-1}
+                 (H_mirr1In : {t,p | t=p+1; 0<=p<=N-1; 2<=N<=M-1} of integer)
+       returns   (YOut : {t,p | p+2<=t<=p-N+M+2; -1<=p<=N-1; 2<=N<=M-1} of integer);
+var
+  PipeH_ctl1P_Init : {t | 1<=t<=-N+M+1; 2<=N<=M-1} of boolean;
+  H_mirr1 : {t,p | t=p+1; 0<=p<=N-1; 2<=N<=M-1} of integer;
+  Y : {t,p | p+2<=t<=p-N+M+2; -1<=p<=N-1; 2<=N<=M-1} of integer;
+  Y1 : {t,p | 2<=t<=-N+M+2; p=0; 2<=N<=M-1} of integer;
+  Y_reg3loc : {t,p | p+1<=t<=p-N+M+1; 0<=p<=N; 2<=N<=M-1} of integer;
+  PipeH_ctl1P1 : {t,p | 1<=t<=-N+M+1; p=0; 2<=N<=M-1} of boolean;
+  PipeH_ctl1P_reg1loc : {t,p | p<=t<=p-N+M; 1<=p<=N; 2<=N<=M-1} of boolean;
+  PipeH_ctl1P_Init_In : {t,p | 1<=t<=-N+M+1; p=0; 2<=N<=M-1} of boolean;
+  Y2 : {t,p | p+2<=t<=p-N+M+2; 1<=p<=N-1; N<=M-1} of integer;
+  PipeH_ctl1P2 : {t,p | p+1<=t<=p-N+M+1; 1<=p<=N-1; N<=M-1} of boolean;
+  Y4 : {t,p | 1<=t<=-N+M+1; p=-1; 2<=N<=M-1} of integer;
+let
+  H_mirr1[t,p] = H_mirr1In[t,p];
+  PipeH_ctl1P_Init_In[t,p] = PipeH_ctl1P_Init[t];
+  PipeH_ctl1P_reg1loc[t,p] = 
+      case
+        {| 1<=t<=-N+M+1; p=1; 2<=N<=M-1} : PipeH_ctl1P1[t,p-1];
+        {| p<=t<=p-N+M; 2<=p<=N; N<=M-1} : PipeH_ctl1P2[t,p-1];
+      esac;
+  Y[t,p] = 
+      case
+        {| 2<=t<=-N+M+2; p=0; 2<=N<=M-1} : Y1[t,p];
+        {| p+2<=t<=p-N+M+2; 1<=p<=N-1; N<=M-1} : Y2[t,p];
+        {| 1<=t<=-N+M+1; p=-1; 2<=N<=M-1} : Y4[t,p];
+      esac;
+  YOut[t,p] = Y[t,p];
+  Y_reg3loc[t,p] = 
+      case
+        {| 2<=t<=-N+M+2; p=1; 2<=N<=M-1} : Y1[t,p-1];
+        {| p+1<=t<=p-N+M+1; 2<=p<=N; N<=M-1} : Y2[t,p-1];
+        {| 1<=t<=-N+M+1; p=0; 2<=N<=M-1} : Y4[t,p-1];
+      esac;
+  use  ControladdModule[N,M] () returns  (PipeH_ctl1P_Init) ;
+  use {p | p=0; 2<=N<=M-1} celladdModule1[p,N,M] (H_mirr1, Y_reg3loc, PipeH_ctl1P_Init_In) returns  (Y1, PipeH_ctl1P1) ;
+  
+  use {p | 1<=p<=N-1; N<=M-1} celladdModule2[p,N,M] (H_mirr1, Y_reg3loc, PipeH_ctl1P_reg1loc) returns  (Y2, PipeH_ctl1P2) ;
+  
+  use {p | p=-1; 2<=N<=M-1} celladdModule4[p,N,M] () returns  (Y4) ;
+tel;
+system add :   {N,M | 2<=N<=M-1}
+               (H : {n | 0<=n<=N-1} of integer)
+       returns (res : {i | N<=i<=M} of integer);
+var
+  H_mirr1 : {t,p | t=p+1; 0<=p<=N-1; 2<=N<=M-1} of integer;
+  Y : {t,p | p+2<=t<=p-N+M+2; -1<=p<=N-1; 2<=N<=M-1} of integer;
+let
+  H_mirr1[t,p] = H[p];
+  res[i] = Y[i+1,N-1];
+  use  addModule[N,M] (H_mirr1) returns  (Y) ;
+tel;

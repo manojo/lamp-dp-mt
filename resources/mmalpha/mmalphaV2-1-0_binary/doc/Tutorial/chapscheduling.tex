@@ -1,0 +1,454 @@
+\newcommand{\aalpha}{{\alfa}}
+\newcommand{\lp}{{\sc lp}}
+\chapter{\index{Scheduling}Scheduling {\alfa} programs}
+\label{chapscheduling}
+
+{\sc Version of \today}
+
+This chapter explains how to use the scheduler for finding valid
+execution order of computations of {\alfa} programs.
+ 
+\section{Introduction}
+An {\aalpha} program does not convey any sequential ordering: an
+execution order is semantically valid provided it respects the data
+dependencies of the program.  Consider for instance the program of
+figure~\ref{figSched1} which represents the computation of the product
+of a $M\times N$ matrix \texttt{a} by a $M$ vector \texttt{b}. To execute
+such a program on a sequential machine, we must chose a
+computation
+order which respects data dependencies. Such an
+order is shown in figure~\ref{figSched2}-(a). Another possible
+order would be the demand-driven execution scheme used in the
+simulation, as shown in chapter~\ref{chapcodegen}\,: to evaluate a
+variable, evaluate recursively the expressions that this variable
+depends on.  Parallel executions are also possible. The program of
+figure~\ref{figSched2}-(b) shows a possible parallel order for
+computing the matrix-vector multiplication.  
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/MatVect.alpha}
+\caption{{\aalpha} program for the matrix-vector product, 
+no execution order is specified.}
+\label{figSched1}
+\end{figure}
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\begin{minipage}{8cm}
+\begin{verbatim}
+For i=1 to N
+   C[i,0]=0
+EndFor
+For i=1 to N
+   For j=1 to M
+       C[i,j]=C[i,j-1]+
+                a[i,j] * b[j]
+   EndFor
+EndFor
+For i=1 to N
+   c[i]=C[i,M]
+EndFor
+
+           (a) 
+\end{verbatim}
+\end{minipage}
+\begin{minipage}{8cm}
+\begin{verbatim}
+ForAll i=1 to N
+   C[i,0]=0
+EndFor
+For j=1 to M
+   ForAll i=1 to N
+       C[i,j]=C[i,j-1]+
+                 a[i,j] * b[j]
+   EndForAll
+EndFor
+ForAll i=1 to N
+   c[i]=C[i,M]
+EndForAll
+
+           (b)
+\end{verbatim}
+\end{minipage}
+\caption{
+Two possible order of execution for the program of figure~\ref{figSched1}. The 
+left one is parallel. (\texttt{ForAll} represents a parallel loop).}
+\label{figSched2}
+\end{figure}
+
+The basic goal of the scheduler is to find out valid execution orders, 
+called {\em schedules} in what follows. 
+A secondary goal is to find out {\em good} schedules. 
+However, there is no best schedule: the quality of
+a schedule depends on a particular criterion. 
+
+In our model, the time is considered as a discrete single clock and we
+look for parallel ordering of the computations.  The theoretical basis
+for the scheduling process is inherited from the research on systolic
+array and automatic parallelization. The scheduler implements two
+different procedures: one, called the Farkas method, is defined
+in~\cite{Feautrier92aa}; the other one, called the vertex method, is
+presented in~\cite{citationdespaa}.
+
+The scheduler of \alfa{} is an analysis tool: it does not modify the
+current program in \texttt{\$result}.  The result is the description of a
+possible parallel schedule. For instance, for the program of
+figure~\ref{figSched1}, if we assume that the inputs are available at
+time 0 and that each assignement takes 1 clock tick, we
+will obtain the information that, for all \texttt{i}, value {\tt
+C[i,j]} can be computed at step \texttt{j}.  Thus, for all \texttt{i}, the
+values \texttt{c[i]} can be computed at step \texttt{M+1}. This schedule
+can be summarized by:
+\begin{equation}
+\label{Schedeqn1}
+\begin{array}{l} T_a[i,j] = 0 \\ T_b[i] = 0 \\ 
+T_C[i,j] = j \\ T_c[i] = M+1 \end{array} 
+\end{equation}
+This particular schedule corresponds exactly
+to the parallel execution order of the program of figure~\ref{figSched2}-(b).
+
+In the present chapter, we are interested in {\em affine by variable}
+schedules, i.e schedules in which, for each variable, the execution
+date is an affine function of the indices (and possibly of the
+structural parameters). The idea of the scheduling process is to
+gather all the constraints that the schedule must verify in a linear
+programming problem ({\sc lp}) and to solve this \lp{} using a {\sc lp}-solver.
+
+\section{Basic Farkas scheduler}
+
+The scheduling process is quite complex, since many parameters
+can influence the result. In this section, 
+we present the basics of the scheduler.
+
+\subsection{How to use the \texttt{schedule} function}
+
+The function to be called in order to schedule a program is {\tt
+schedule}. Its effects is to find out a schedule for the {\aalpha} program
+contained in \texttt{\$result}, and to put the schedule in the
+global \mma{} variable \texttt{\$schedule}. Options allow one to modify
+parameters, hence the possible forms of a call to the function {\tt
+schedule} listed here: 
+\begin{itemize}
+\item \texttt{schedule[]}\\ finds an affine-by-variable schedule for {\tt
+\$result} and assigns it to
+\texttt{\$schedule} (this schedule attempts to  minimize
+ the global execution time).
+\item \texttt{schedule[sys]}\\ 
+finds an affine-by-variable schedule for the {\aalpha} system \texttt{sys}
+ and assigns it to
+\texttt{\$schedule}
+\item {\tt
+schedule[option\_1->value\_1,\ldots,option\_n->value\_n]}\\
+finds a schedule for \texttt{\$result} which respects the chosen options and
+assigns it to \texttt{\$schedule}
+\item {\tt
+schedule[sys,option\_1->value\_1,\ldots,option\_n->value\_n]}\\
+finds a schedule for the {\aalpha} system \texttt{sys} which
+ respects the chosen options and
+assigns it to \texttt{\$schedule}
+\end{itemize}
+
+For example, calling the scheduler on the matrix-vector multiplication
+of figure~\ref{figSched1} prints out the following informations:
+\begin{verbatim}
+In[30]:= schedule[];
+Dependence analysis...
+Duration : 1 for each equation 
+Building LP...
+LP: 82 Constraints
+Writing file for PIP....
+Solving the LP...
+Version C.3 MultiPrecision (mpip, rev. 1.3.0)
+cross : 407646, alloc : 1
+Max cross-product result: 4 (1 digits, base 10)
+Max numerator term: 8 (2 digits, base 10)
+Max denominator: 2 (1 digits, base 10)
+n 1 u 130''' s 11'''
+T_a{i, j, N, M} = 0
+T_b{i, N, M} = 0
+T_c{i, N, M} = 1 + M
+T_C{i, j, N, M} = j
+
+Out[30]= scheduleResult[1, {{a, {i, j, N, M}, sched[{0, 0, 0, 0}, 0]}, 
+   {b, {i, N, M}, sched[{0, 0, 0}, 0]}, {c, {i, N, M}, sched[{0, 0, 1}, 1]}, 
+   {C, {i, j, N, M}, sched[{0, 1, 0, 0}, 0]}}]
+\end{verbatim}
+ 
+The first lines indicate which computations are performed.  The Farkas
+scheduler first built a \lp{}, then writes this \lp{} in a file,
+then calls a \lp{}-solver. Writing this file takes some time, thus
+informations are displayed for the user not to become anxious.
+
+The lines starting by \texttt{Version} are output by the \lp{}-solver
+\pip{}. The result of calling Pip is then shown. Here, for
+instance the schedule says that \texttt{B[i,j,k]} is computed at time
+\texttt{i}. The result (after \texttt{Out[30]}) is the corresponding
+\mma{} expression representing \texttt{\$schedule}.
+
+For such a little program, only a few seconds are necessary to find
+out a schedule. But it may take quite a long time for larger {\aalpha}
+programs.
+
+\subsection{Format of the output of \texttt{schedule}}
+
+The output of the \texttt{schedule} function has a special form. 
+It is enclosed in a structure whose head is
+\texttt{Alpha`ScheduleResult}. The first argument of this
+structure is the type of 
+the schedule (integer, coded as the option scheduleType, 
+see section~\ref{schedType}) and its 
+second argument is the schedule itself. 
+The syntax of this structure is:\\
+\texttt{
+<schedResult> ::= Alpha`scheduleResult[scheduleType\_Integer,\{sched...\}]\\
+$\begin{array}{l} \mbox{ <sched>} ::= \\ ~\\  ~ \end{array}\begin{array}{l} \mbox{\{ nameVar\_String,}\\
+          \mbox{ indices\_List,}\\
+           \mbox{ Alpha`sched[tauVector\_List,constCoef\_Integer] \}}
+\end{array}$
+}\\
+The effect of the \texttt{schedule} function is to assign this form 
+to te global variable \texttt{\$schedule}.
+
+Another example is given in section~\ref{ExampleSched}. 
+A schedule can be displayed using the \texttt{show} command:
+\begin{verbatim}
+In[31]:=show[$schedule]
+
+T_a{i, j, N, M} = 0
+T_b{i, N, M} = 0
+T_c{i, N, M} = 1 + M
+T_C{i, j, N, M} = j
+
+Out[31]:=
+\end{verbatim}
+
+\subsection{Using the result of the scheduler}
+
+We may use the result of the scheduler as an information on the program, 
+but we can also tranform the {\aalpha} program such that this information
+become explicit in the program.  For instance, on the matrix-vector example, 
+if we perform the \index{change of basis}change of basis
+\texttt{(i,j -> j,i)} on variable \texttt{C}
+and if we rename (for instance) 
+the first index \texttt{t} and the second one \texttt{j},
+we obtain the program of figure~\ref{figSched3}.
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/MatVectSched.alpha}
+\caption{Scheduled version of  program of figure~\ref{figSched1}}
+\label{figSched3}
+\end{figure}
+
+This program is functionnaly equivalent to the one of figure~\ref{figSched1}
+but it shows exactly at which clock tick each  value of the local variable
+\texttt{C} is computed: \texttt{C[t,i]} is computed at step \texttt{t}. We call
+a program which has this property a \index{scheduled program} {\em
+scheduled} {\aalpha} program.  Of course, in a scheduled {\aalpha}
+program, the first index of the local variables defines a partial
+order which is compatible with data dependencies.
+
+The scheduled program of figure~\ref{figSched3} has been obtained by
+evaluating the expression
+\index{applySchedule}\texttt{applySchedule[]}.  This command applies a
+change of basis to each local variable of the program contained in
+\texttt{\$result} in such a way that the first index in the new basis
+represent the time. The change of basis is not performed on the inputs
+and outputs, as otherwise the new program would not be equivalent to the
+previous one. Another example of the use of \texttt{applySchedule[]}
+is shown in section~\ref{ExampleSched}.
+
+\section{Advanced scheduling}
+In this section we introduce some of the parameters of the 
+\texttt{schedule} command which allow more precise results to be
+obtained.  A detailed description of this function can be found in
+the documentation 
+file \texttt{\$MMALPHA/doc/user/Scheduler\_user\_manual.ps}.
+
+\subsection{Options of schedule}
+The \texttt{schedule} function has many options. These options
+have default values indicated hereafter. To change these
+values, put one of the corresponding replacement
+rules as a parameter to the
+\texttt{schedule} function (see the example in section~\ref{ExampleSched}).
+
+\paragraph{Option \texttt{scheduleType}}
+\label{schedType}
+This option gives the type of schedule.
+Its possible values are:
+\begin{itemize}
+\item \texttt{scheduleType -> affineByVar} (default) 
+affine by variable scheduling;
+\item \texttt{scheduleType -> sameLinearPart} affine by variable scheduling with constant linear part;
+\item \texttt{scheduleType -> ?}  affine by variable scheduling with constant linear part except for the parameters.
+\end{itemize}
+
+\paragraph{objFunction }
+This option gives the objective function chosen. Its type is integer,
+the possible values are:
+\begin{itemize}
+\item \texttt{objFunction -> 0 } (default) the total latency is minimized. 
+\item \texttt{objFunction -> 1 } no objective function (the
+coefficients of the scheduling vectors are minimized in a
+lexicographic order).
+
+It is mandatory not to minimize the total execution time when this 
+time is not bounded (otherwise, the schedule will fail).
+\end{itemize}
+
+\paragraph{ratOrInt}
+The resolution of the linear programming problem generated is done 
+by the software {\sc mp}Pip which is an infinite precision version
+ of the sofware {\sc pip}~\cite{Feautrier88a}. The resolution can be done with
+integer programming or rational linear programming.
+  This option indicates whether the resolution of the {\sc lp} by {\sc mp}Pip
+ is
+ done in integer mode (resulting scheduling vectors with integral
+ coefficients) or in rationnal mode (resulting scheduling vectors may contains
+ rationnal coefficients).  Its type is integer, the possible values
+ are:
+\begin{itemize}
+\item \texttt{ratOrInt -> 0 } : rationnal solution.
+\item \texttt{ratOrInt ->  1 } : (default) integer solution.
+\end{itemize}
+
+\paragraph{addConstraints}
+This option allows to add some constraints to the {\sc lp} generated.
+This option is very usefull to guide the scheduling process.
+ Its type is a list of string, each string representing a constraint. The
+ constraints authorized are affine constraints on scheduling
+vectors.
+There are two types of  constraint added, one can force a scheduling
+vector value or simply set linear constraints on its components. 
+\begin{itemize}
+\item forcing a  variable $A$ to be schedule at time i+2j+2 can be done 
+with the constraints: \texttt{"TA[i,j]=i+2j+2" }. 
+\item for more precise constraint,  one can directly access to each components 
+of the schedule functions of each variable. For instance \texttt{TAD2}
+ will represent the variable coefficient of the second indice
+ in the schedule of variable \texttt{A} (and \texttt{CA} will represent 
+the constant part in the schedule of variable \texttt{A}).
+ With these names, one can set linear constraints 
+on these coefficients using operators \texttt{==} or \texttt{>=}. For instance,
+\texttt{\{"TAD1 == 1","TAD2 == 2", "CA >= 2" \} } is the same constraint
+as above except thar the constant is allowed to be greater than two.
+\end{itemize}  
+Example of use:\\
+\texttt{schedule[addConstraints->\{"TA[i,j,N]=i+2j-2",
+"TBD2==2","TBD1+2TCD3>=1"\}]}
+
+
+
+\paragraph{duration} indicates how to count the duration of each computation. The possible value for the duration option are: 
+\begin{itemize}
+\item \texttt{duration -> \{\} }: (default) each equation takes 1 step
+	 (whatever complex the computation is).
+\item \texttt{duration -> \{Integer...\} }: 
+
+The duration of each equation is given by the user. The list must
+contain as many integer as there are variables (do not forget the
+input variables). For instance on the program of figure~\ref{figSched1}, the
+command \texttt{schedule[]} is equivalent to the command:
+\texttt{schedule[duration->\{1,1,1,1\}]}.
+\end{itemize}
+
+
+\section{Another example}
+\label{ExampleSched} 
+Consider the program of figure~\ref{figSched4}, which represent a
+uniform program for the \index{multiplication of matrices}
+multiplication of matrices. in this section, we give the result of the
+schedule with different options.
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/MMunif.alpha}
+\caption{Uniform matrix matrix product}
+\label{figSched4}
+\end{figure}
+
+\paragraph{Default use}
+If you type the following command (after having loaded the program of figure~\ref{figSched4}):\\
+\texttt{schedule[]}\\
+the result should be: 
+\begin{verbatim}
+T_a{i, j, N} = 0
+T_b{i, j, N} = 0
+T_c{i, j, N} = 1 + 2 N
+T_B{i, j, k, N} = i
+T_A{i, j, k, N} = j
+T_C{i, j, k, N} = k + N
+
+Out[14]= scheduleResult[1, {{a, {i, j, N}, sched[{0, 0, 0}, 0]}, 
+   {b, {i, j, N}, sched[{0, 0, 0}, 0]}, {c, {i, j, N}, sched[{0, 0, 2}, 1]}, 
+   {B, {i, j, k, N}, sched[{1, 0, 0, 0}, 0]}, 
+   {A, {i, j, k, N}, sched[{0, 1, 0, 0}, 0]}, 
+   {C, {i, j, k, N}, sched[{0, 0, 1, 1}, 0]}}]
+\end{verbatim}
+The result (after \texttt{Out[14]}) is the
+Mathematica structure assigned to \texttt{\$schedule}.
+
+\paragraph{Adding a constraint}
+Suppose that the inputs \texttt{a[i,j]} and \texttt{b[i,j]} arrive
+respectively at time \texttt{i+j} and \texttt{i+j+3}. Moreover, we
+want a schedule of unique linear part (because this allow a locally
+connected array to be obtained from a uniform program).  We have to
+add the two constraints: \texttt{"Ta[i,j]=i+j"} and
+\texttt{"Tb[i,j]=i+j+3"}. Also, we need to set the option scheduleType
+to 2, hence the command is:
+\begin{verbatim}
+In[15]:= schedule[addConstraints->{"Ta[i,j]=i+j","Tb[i,j]=i+j+3"},
+                   scheduleType->2]
+\end{verbatim}
+The result is 
+\begin{verbatim}
+T_a{i, j, N} = i + j
+T_b{i, j, N} = 3 + i + j
+T_c{i, j, N} = 5 + i + j + N
+T_B{i, j, k, N} = 3 + i + j + k
+T_A{i, j, k, N} = i + j + k
+T_C{i, j, k, N} = 4 + i + j + k
+\end{verbatim}
+
+Note that the unique linear part option is applied on local variables
+only (indeed, it cannot be enforced on inputs and outputs which do not have
+the same number of indices.) After scheduling, one can obtain a
+scheduled program by typing the command: \texttt{applySchedule[]}. The
+result is the program of figure~\ref{figSched5}.
+
+Warning: the \texttt{applySchedule} function finds the change of basis 
+by unimodular completion of the scheduling vector. The unimodular 
+completion is not always possible (for instance, if the scheduling 
+vector is null), in that case, applySchedule will perform 
+a generalized change of basis and add a new dimension to the domain of 
+the corresponding variable. A warning is printed out during this operation.
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/MMunifSched.alpha}
+\caption{Scheduled  matrix matrix product}
+\label{figSched5}
+\end{figure}
+
+\subsection{What if no schedule can be found?}
+Due to the restriction to linear schedule, there may 
+happen that the schedule function only answers: 
+\texttt{No schedule was found, sorry...}
+There maybe several reasons for that:
+\begin{itemize}
+\item The program is not semantically correct, try \texttt{analyze[]}.
+\item There exists a schedule but the time is not bounded. 
+In this case try with the option \texttt{objFunction} set to 1.
+\item No affine one dimensional schedule exists. You can try to find
+a multidimensional schedule with the \texttt{multiSched}.
+\item No schedule exists (there is no way of solving this problem).
+\end{itemize}
+
+\section{To come soon}
+\begin{itemize}
+\item Multi-dimensional schedule.
+\item Structured scheduling.
+\item Data-flow scheduling. 
+\end{itemize}
+
+

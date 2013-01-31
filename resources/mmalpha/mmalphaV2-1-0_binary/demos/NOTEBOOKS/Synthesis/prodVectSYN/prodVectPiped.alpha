@@ -1,0 +1,20 @@
+system prodVect :{N | 3<=N}
+                (a : {i,j | 1<=i<=N; 1<=j<=N} of integer; 
+                 b : {i | 1<=i<=N} of integer)
+       returns  (c : {i | 1<=i<=N} of integer);
+var
+  pipeCb1 : {t,p | 1<=t<=N; 0<=p<=N; 3<=N} of integer;
+  C : {t,p | 0<=t<=N; 1<=p<=N} of integer;
+let
+  pipeCb1[t,p] = 
+      case
+        { | 1<=t<=N; p=0; 3<=N} : b[t];
+        { | 1<=t<=N; 1<=p<=N; 3<=N} : pipeCb1[t,p-1];
+      esac;
+  C[t,p] = 
+      case
+        { | t=0} : 0[];
+        { | 1<=t} : C[t-1,p] + a[p,t] * pipeCb1;
+      esac;
+  c[i] = C[N,i];
+tel;

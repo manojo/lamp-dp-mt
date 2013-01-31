@@ -1,0 +1,27 @@
+system lu      (a : {i,j | 1<=i<=8; 1<=j<=8} of real)
+       returns (l : {i,j | j+1<=i<=8; 1<=j} of real; 
+                u : {i,j | 1<=i<=j; j<=8} of real);
+var
+  L : {t,j,k | j+2k+1<=t<=j+k+8; k+1<=j<=8; 1<=k} of real;
+  U : {t,j,k | j+2k+1<=t<=j+k+8; k<=j<=8; 1<=k} of real;
+  F : {t,j,k | j+2k+1<=t<=j+k+8; (1,k)<=j<=8; 0<=k} of real;
+let
+  L[t,j,k] = 
+      case
+        { | j=k+1} : F[t-1,j-1,k];
+        { | k+2<=j} : L[t-1,j-1,k];
+      esac;
+  U[t,j,k] = 
+      case
+        { | t=j+2k+1} : F[t-2,j,k-1];
+        { | j+2k+2<=t} : U[t-1,j,k];
+      esac;
+  F[t,j,k] = 
+      case
+        { | k=0} : a[t-j-k,j];
+        { | j=k} : F[t-1,j,k-1] / U;
+        { | k+1<=j} : F[t-1,j,k-1] - L * U;
+      esac;
+  l[i,j] = F[i+2j,j,j];
+  u[i,j] = F[2i+j-1,j,i-1];
+tel;

@@ -1,0 +1,7 @@
+Begin["Alpha`Simul`test3`"];
+Clear[ Alpha`Simul`test3`a, Alpha`Simul`test3`b, Alpha`Simul`test3`c];
+    Alpha`Simul`test3`c[i_, f:(_Integer|_Symbol)...] := If[ -2 + i >= 0,
+    Plus[ Alpha`Simul`test3`a[ i,f ], Alpha`Simul`test3`b[ 2 + 3 i,f ] ],
+    Message[ semanticFunction::undef ] ];
+    Alpha`Simul`test3`c[ ___ ] := Message[Alpha`Simul`test3`c::params ];
+End[];

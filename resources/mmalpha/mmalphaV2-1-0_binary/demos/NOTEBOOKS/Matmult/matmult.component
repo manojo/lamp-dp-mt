@@ -1,0 +1,12 @@
+
+COMPONENT matmult
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  a : IN aTYPE;
+  b : IN bTYPE;
+  c : OUT cTYPE
+);
+END COMPONENT;
+

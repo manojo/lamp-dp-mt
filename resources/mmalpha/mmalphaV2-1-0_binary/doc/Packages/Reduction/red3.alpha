@@ -1,0 +1,6 @@
+system red1: {N| N>0} 
+  (x: {i,j| 0<=i<N; 0<=j<N} of integer) 
+returns (y: integer);
+let
+  y[] = reduce( +, (i,j->i), x)[N-1];
+tel;

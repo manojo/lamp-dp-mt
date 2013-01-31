@@ -1,0 +1,396 @@
+\chapter{Deriving \index{systolic}systolic architectures using {\alfa}}
+\label{chapderiving}
+
+{\sc Version of \today}
+
+In this chapter, we describe a methodology for deriving
+systolic architectures using {\mmalfa}. This \index{design
+methodology}methodology is illustrated by means of an {\alfa}
+program for the matrix-vector multiplication. A companion
+notebook called \texttt{matvect.nb} allows the reader to
+execute interactively this demonstration. This notebook is
+situated in directory:\\
+\texttt{\$MMALPHA/demos/NOTEBOOKS/Matvect}\\
+A link to this notebook is available in the 
+master notebook (see~\ref{master}).
+
+\section{Introduction}
+
+The methodology presented here is inherited from the research of the
+``systolic community''~\cite{Meg1,KungHT,QuintonRo89} and from its
+adaptation to {\alfa}~\cite{SieWilde94,Dinechin96c,Patricia96}.
+
+The successive steps of the derivation are the following ones:
+\begin{enumerate}
+\item High level specification in {\alfa}.
+\item Uniformization.
+\item Scheduling and mapping.
+\item Control signal generation.
+\item \label{step5} Generation of an {\alphard} specification. 	\\
+~\\These steps may be followed by three additional ones: 
+\item Translation to {\vhdl}.
+\item Logic synthesis.
+\item Layout synthesis.
+\end{enumerate}
+
+The five first transformations deal with producing a so-called
+\alphard{} program.  {\alphard} is a subset of the {\alfa} language
+used for architectural description at the register transfer level.
+The description of {\alphard} format can be found
+in~\cite{Patricia96}, and is presented in chapter~\ref{chapvhdl}.  In
+the present chapter, we only describe how to perform the first four above
+steps using {\mmalfa}. The result will be a single {\alfa}
+program which can be interpreted as a systolic array for executing the
+original {\alfa} specification. The main difference between this
+format -- called {\alphaz} -- and {\alphard} is their structuring: an
+{\alphard} program is structured into several sub-systems while an
+{\alphaz} program contains only one {\alfa} system.
+
+\section{Example of the matrix-vector product\index{matrix-vector product}}
+We start by an \alfa{} description of the algorithm, 
+as shown in figure~\ref{figder1}. 
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/MatVect.alpha}
+\caption{{\alfa} program for the matrix-vector}
+\label{figder1}
+\end{figure}
+
+The dependence graph of this program 
+is shown in the left hand side of figure~\ref{figder2}, 
+for $N=M=4$. In this
+figure, it can be seen that each component of the {\tt b} vectors is
+broadcasted to several computations. For instance, $b_1$ is used in
+the computation of $ a_{1,1}, a_{1,2}, a_{1,3}$ and $a_{1,4}$. The
+first step of the synthesis consists of ``pipelining'' these values
+in order to obtain a uniform dependence graph such as 
+that shown in the right hand side of
+figure~\ref{figder2}. This step is often called {\em uniformization}
+or {\em localization}
+in the litterature.
+
+\subsection{Uniformization\index{Uniformization}}
+
+Methodologies for automatic uniformization were
+proposed by several researchers
+(see~\cite{QuintonVa88} for example). However, performing the
+uniformization process completely automatically is difficult as there
+are many possibilities for uniformizing a given program. Hence, 
+this transformation requires some help from the user.
+
+Before proceeding, we first perform a pre-processing 
+transformation, which consists of adding a local 
+variable \texttt{A} to replace the occurrence of
+\texttt{a} in the definition of \texttt{C}. The purpose of
+this modification is to anticipate a change of basis 
+that will be done later on, and which cannot be applied on
+an input variable without altering the semantics of
+the program. The \mmalfa{} function which does this
+is:\\
+\texttt{addLocal["A = a"];}\\
+%We first perform a single pre-processing step which consists of adding all
+%the constraints present in the parameter domain declaration (present
+%at the top of the system) inside every domain appearing in the
+%program. Then we add, for each input variable, a local variable
+%(remember that we cannot perform transformations involving inputs and
+%output variables). Next, we have to \index{pipeline}pipeline the
+%broadcasted expressions.
+
+We are now ready to uniformize the occurence \texttt{b[i]}
+in the definition of \texttt{C}. 
+The pipeline vector will be the direction of
+the $\vec{\imath}$ axis in our example, as shown in 
+figure~\ref{figder2}.
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\centerline{\includegraphics{figures/tr1}}
+\caption{Dependence graph for the program of figure~\ref{figder1}, before 
+and after uniformization.}
+\label{figder2}
+\end{figure}
+
+In our example, the {\mmalfa} function for uniformizing is: 
+\begin{verbatim}
+pipeall["C","b.(i,j->j)","B1.(i,j->i+1,j)"];
+\end{verbatim}
+The parameters given to 
+{\tt pipeall} can be read as follows: 
+\begin{quote}
+In the definition of {\tt C},
+pipeline the expression
+{\tt  b.(i,j->j)}. The pipeline vector is
+$(1,0)$, the variable which will pipeline the value will be called
+{\tt B1}.
+\end{quote}
+Two remarks: 
+\begin{itemize}
+\item The array notation {\tt b[i]} cannot be used
+here, as it would be ambiguous. 
+\item The pipeline vector is indicated as a translation in
+{\alfa} form.  
+\end{itemize}
+The result of applying these commands is shown in
+figure~\ref{figder3} where only the equation of the resulting {\alfa}
+program are shown.  Note that the domains of the branches
+of \texttt{B1} definition have been computed by {\tt
+pipeall}. Note also that the dependence graph of this program
+-- represented in the right hand side of figure~\ref{figder2} -- is
+now uniform. For more information on the pipelining process refer
+to the
+documentation~\cite{docpipeline}.
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\begin{verbatim}
+B1[i,j] = 
+      case
+        {| i=1; 1<=j<=M; 2<=N; 2<=M} : b[j];
+        {| 2<=i<=N; 1<=j<=M; 2<=M} : B1[i-1,j];
+      esac;
+A[i,j] = a;
+C[i,j] = 
+      case
+        {| j=0} : 0[];
+        {| 1<=j} : C[i,j-1] + A[i,j] * B1;
+      esac;
+\end{verbatim}
+\caption{Definitions of \texttt{B}, \texttt{A}, and \texttt{C}
+of program of figure~\ref{figder1} after uniformization}
+\label{figder3}
+\end{figure}
+
+\subsection{\index{Scheduling}Scheduling and \index{mapping}mapping}
+\label{schedAlpha}
+
+A schedule of this program is found by the {\tt schedule} function.  
+(see chapter~\ref{chapscheduling} for more details.) 
+Here we call this function with the option
+{\tt scheduleType} in order to find out
+a schedule where 
+all variables share the same linear part: this
+preserve the uniformity of the program. 
+The {\mmalfa} command which does this is: 
+\begin{verbatim}
+schedule[scheduleType->sameLinearPart];
+\end{verbatim}
+The result yields $T_C[i,j] = i+j$ and is illustrated in
+figure~\ref{figder4}. The mapping must be given by the
+user. Following the standard systolic methodology, the 
+\index{allocation}allocation
+function $a$ is a projection of the $n$-dimensional index space onto a
+$n-1$-dimensional space. Here, we assume that we want to  project on the
+$\vec{\jmath}$ axis ({\tt (i,j -> j)} (see figure~\ref{figder4}). This results
+in a \index{linear array}linear array of $N$ processors.
+ 
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\centerline{\includegraphics{figures/tr3}}
+\caption{Scheduling and mapping of the uniform program}
+\label{figder4}
+\end{figure}
+
+
+\subsection{Applying a spatio-temporal reindexing}
+We now have all the spatio-temporal information -- timing, and spatial
+mapping -- for obtaining a systolic array.  We can make this
+information explicit in the {\alfa} program by performing a change of basis: 
+in this way, in the new domains, the first index will represent the
+execution date and the second index will represent the processor
+number. 
+
+%In our case, this corresponds to the \index{change of
+%basis}change of basis by the function \texttt{f}: {\tt (i,j->i+j,j)}. 
+%The following sequence of \mma{} expressions does
+%the job: 
+%\begin{verbatim}
+%f = readMat["(i,j,N,M->i+j,i,N,M)"];
+%id2 = readMat["(t,p,N,M->t,p,N,M)"];
+%g = composeAffines[f,id2]
+%changeOfBasis["C",g]
+%changeOfBasis["A",g]
+%changeOfBasis["B1",g]
+%\end{verbatim}
+%Recall that \texttt{id = expression} denotes an assignment in \mma{}.
+%The first line assigns to symbol $f$ the expression obtained by
+%parsing the
+%\alfa{} matrix expression \texttt{"(i,j,N,M->i+j,i,N,M)"}
+%using the {\tt readMat} function. 
+%(Notice that this expression contains
+%the parameters \texttt{N} and 
+%\texttt{M} of the {\tt MatVect} program.)
+%The {\tt id2}
+%symbol is assigned a function to rename the indices 
+%($(t,p)$ instead of $(i,j)$) for readability. 
+%Then the change of basis 
+%is performed on all local variables using the
+%\texttt{changeOfBasis} functio. 
+
+The function which does this transformation is:\\
+\begin{verbatim}
+applySchedule[];
+renameIndices[{"t","p"}];
+\end{verbatim}
+\index{\texttt{applySchedule}}
+(The command \texttt{rename} allows one to change the 
+names of the indices.)
+The resulting program is shown in 
+figure~\ref{figder5}.  This program is scheduled and mapped: for
+example, {\tt C[t,p]} will be computed at step {\tt t} on processor
+{\tt p}.
+
+Note that \texttt{applySchedule} chooses the 
+mapping of the program. It is possible to modify this
+mapping by applying another change of basis.\footnote{There is an 
+incoherence here between the notebook and this chapter...}
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/MVsched.alpha}
+\caption{{\alfa} program after change of basis}
+\label{figder5}
+\end{figure}
+
+\subsection{Generation of an {\alphaz} program}
+\label{alphaZ}
+The generation of {\alphaz} code consists of \index{Control signal}control
+signal generation, and simplification of the code. 
+The control signal
+generation is necessary when the computation of a variable 
+changes over execution time. For instance,
+consider variable {\tt C} of the program of
+figure~\ref{figder5}. 
+When evaluating {\tt C[t,p]}, a processor {\tt p}
+must know whether {\tt t=p} of {\tt t>p}, and this can only be done
+with the help of a control signal. In addition, this control signal
+should be inialized by a controller. 
+
+The situation is different for variable \texttt{B1}.
+There are two different definitions
+of {\tt B1[t,p]}
+depending on whether {\tt p=1} or {\tt p>1}: 
+{\tt b[t-p]} and {\tt B1[t-1,p-1]}.
+But these conditions
+do not involve the time {\tt t}. As a consequence, 
+no control signal needs to be generated, as these
+conditions will be directly reflected in the structure of 
+cell number 1, and cells number \texttt{p}, \texttt{p>1}.
+
+
+\begin{figure}[htbp]
+\begin{verbatim}
+C[t,p] = 
+    case
+      {| p<=t<=p+M; 1<=p<=N; 2<=N; 2<=M} : 
+         case
+           {| t=p; 1<=p<=N; 2<=N; 2<=M} : (if (loadC) then 0[] else True[]);
+           {| p+1<=t<=p+M; 1<=p<=N; 2<=N; 2<=M} : 
+              (if (not loadC) then C[t-1,p] + A[t,p] * B1[t,p] else False[]);
+         esac;
+    esac;
+loadC[t,p] = 
+    case
+      {| p<=t<=p+M; 1<=p<=N; 2<=N; 2<=M} : 
+         case
+           {| t=p; 1<=p<=N; 2<=N; 2<=M} : True[];
+           {| p+1<=t<=p+M; 1<=p<=N; 2<=N; 2<=M} : False[];
+         esac;
+    esac;
+\end{verbatim}
+\caption{Definition of {\tt C} after space-time case separation, and 
+control signal generation.}
+\label{figder6}
+\end{figure}
+
+Control signal generation is performed by a single call to the \mma{}
+function {\tt toAlpha0v2}:
+\begin{verbatim}
+toAlpha0v2[];
+\end{verbatim}
+The \alphaz{} program is shown in figure~\ref{figder7}. It can directly 
+be interpreted as the array of figure~\ref{figder8}. 
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/MVfinal.alpha}
+\caption{ {\alphaz} program before translation in {\alphard}, this program 
+represent the array of figure~\ref{figder8}}
+\label{figder7}
+\end{figure}
+
+%Before generating control
+%signals, we perform a preliminary transformation called 
+%{\em space-time case
+%separation}, which consists of replacing the usual one level case with
+%a two level case, the first level involving conditions involving
+%only processor numbers.  Figure~\ref{figder6} shows how 
+%the definition of {\tt C} has been modified
+%after the space-time case separation. Note
+%that the first case level contains only one branch as there are no
+%condition involving only processors indices.
+%
+%In the program of figure~\ref{figder5}, only {\tt C} needs a
+%control signal. The variable needing a control signal 
+%can be automatically detected (after space-time case separation)
+%with the command {\tt needsMuxQ}. For instance,  
+%{\tt needsMuxQ[getDefinition["C"]]} returns {\tt True}.
+%The control signal generation 
+%is made automatically with the function {\tt makeMuxControl}, for
+%these actions, the commands are: 
+%
+%\begin{verbatim}
+%spaceTimeCase["C", {1}, {2}];
+%spaceTimeCase["A", {1}, {2}];
+%spaceTimeCase["B1", {1}, {2}]; 
+%makeMuxControl["C", "loadC", {1}, {2}];
+%\end{verbatim}
+%
+%
+%At this point, current implementation state imposes to fix the values
+%of the parameters.  After the signal has been generated, it is
+%necessary to pipeline it to the border of the array, this should be
+%done with the {\tt pipeControl} command (or with the {\tt pipeline}
+%command if you want a very specific pipeline). The last two command
+%call two low-level transformations: split dependencies. Hence the
+%{\mmalfa} commands are:
+%
+%\begin{verbatim}
+%pipeControl["loadC",{1,0}];
+%assignParameterValue["N",4];
+%assignParameterValue["M",4];
+%EquationSpatTemp[]
+%makeSimpleExpr[]
+%\end{verbatim}
+
+
+
+
+\subsection{Obtaining an {\alphard} specification}
+
+{\alphard} is a subset of {\Alpha} which represents hardware in a
+structured manner. {\alphard} will be described precisely in
+section~\ref{alphard}.  From the {\alphaz} specification, {\alphard}
+code is obtained automatically by the command {\tt alpha0ToAlphard}
+
+\begin{verbatim}
+alpha0ToAlphard[controlVars[]];
+\end{verbatim}
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\centerline{\includegraphics{figures/tr6}}
+\caption{\index{array}Array obtained after high level synthesis (here for $N=3$)}
+\label{figder8}
+\end{figure}
+
+\section{Appendix: list of commands}
+\begin{verbatim}
+addLocal["A = a"];
+pipeall["C","b.(i,j->j)","B1.(i,j->i+1,j)"];
+schedule[scheduleType->sameLinearPart];
+applySchedule[];
+renameIndices[{"t","p"}];
+toAlpha0v2[];
+alpha0ToAlphard[controlVars[]];
+\end{verbatim}

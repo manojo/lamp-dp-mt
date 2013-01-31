@@ -1,0 +1,12 @@
+
+COMPONENT sequenceModule
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  DBXMirr1In : IN DBXMirr1InTYPE;
+  QSXMirr1In : IN QSXMirr1InTYPE;
+  MOut : OUT MOutTYPE
+);
+END COMPONENT;
+

@@ -1,0 +1,7 @@
+system strange ()
+       returns ();
+var
+  a : integer;
+let
+  a = 1;
+tel;

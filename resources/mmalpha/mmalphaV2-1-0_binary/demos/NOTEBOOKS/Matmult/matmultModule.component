@@ -1,0 +1,12 @@
+
+COMPONENT matmultModule
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  aXMirr1In : IN aXMirr1InTYPE;
+  TSep1In : IN TSep1InTYPE;
+  COut : OUT COutTYPE
+);
+END COMPONENT;
+

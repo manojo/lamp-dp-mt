@@ -1,0 +1,43 @@
+BeginPackage["Alpha`Simul`lyon`"];
+a::usage = "";
+addret::usage = "";
+addsom::usage = "";
+and1::usage = "";
+be::usage = "";
+br1::usage = "";
+bs::usage = "";
+ppe::usage = "";
+pps::usage = "";
+te::usage = "";
+tr1::usage = "";
+ts::usage = "";
+Begin["`Private`"];
+Clear[ a, addret, addsom, and1, be, br1, bs, ppe, pps, te, tr1, ts, ts];
+    br1[f:__][ck_] := be[f][ -1 + ck ];
+    br1[ ___ ][ ___ ] := Message[br1::params ];
+    bs[f:__][ck_] := br1[f][ -1 + ck ];
+    bs[ ___ ][ ___ ] := Message[bs::params ];
+    and1[f:__][ck_] := And[ br1[f][ ck ], a[f][ ck ] ];
+    and1[ ___ ][ ___ ] := Message[and1::params ];
+    addsom[f:__][ck_] := Xor[ Xor[ and1[f][ -1 + ck ], ppe[f][ -1 + ck ] ], addret[f][ -1 + ck ] ];
+    addsom[ ___ ][ ___ ] := Message[addsom::params ];
+    addret[f:__][ck_] := Which[
+ck == 0,
+If[ ck == 0,
+    False,
+    Message[ semanticFunction::undef ] ],
+-1 + ck >= 0,
+If[ -1 + ck >= 0,
+    Or[ Or[ And[ and1[f][ -1 + ck ], ppe[f][ -1 + ck ] ], And[ and1[f][ -1 + ck ], addret[f][ -1 + ck ] ] ], And[ ppe[f][ -1 + ck ], addret[f][ -1 + ck ] ] ],
+    Message[ semanticFunction::undef ] ],
+True, Message[ semanticFunction::undef ]
+];;
+    addret[ ___ ][ ___ ] := Message[addret::params ];
+    tr1[f:__][ck_] := te[f][ -1 + ck ];
+    tr1[ ___ ][ ___ ] := Message[tr1::params ];
+    ts[f:__][ck_] := tr1[f][ -1 + ck ];
+    ts[ ___ ][ ___ ] := Message[ts::params ];
+    pps[f:__][ck_] := And[ addsom[f][ ck ], tr1[f][ ck ] ];
+    pps[ ___ ][ ___ ] := Message[pps::params ];
+End[];
+EndPackage[];

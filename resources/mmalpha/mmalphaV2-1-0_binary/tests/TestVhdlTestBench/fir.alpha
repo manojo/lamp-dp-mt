@@ -1,0 +1,14 @@
+system fir :   {K,N | 3<=K<=N-1}
+               (x : {i | 0<=i<=N} of integer[S,16]; 
+                w : {k | 1<=k<=K} of integer[S,16])
+       returns (y : {i | K<=i<=N} of integer[S,32]);
+var 
+  YLOC: {i,k | K<=i<=N; 0<=k<=K} of integer[S,32];
+let
+  YLOC[i,k] = 
+    case
+      {| k = 0 }: 0[];
+      {| k > 0 }: YLOC[i,k-1] + w[k]*x[i-k];
+    esac;
+  y[i] = YLOC[i,K];
+tel;

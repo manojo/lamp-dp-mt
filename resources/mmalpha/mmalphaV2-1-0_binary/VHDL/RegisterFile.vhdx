@@ -1,0 +1,46 @@
+--
+-- This VHDL Pattern allows a register file to be generated
+-- The parameters are the name, the size of the elements, the
+-- number of registers, and the type of these elements
+--
+-- $comment$
+--
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_signed.all;
+use IEEE.numeric_std.all;
+
+ENTITY $name$ IS  
+  PORT(
+    clk : IN STD_LOGIC;         -- global clock
+    enable : IN STD_LOGIC;      -- clock enable
+    inReg : IN $type$;       -- input
+    outReg : OUT $type$      -- output
+  );
+END $name$;
+ 
+ARCHITECTURE archiOf$name$ OF $name$ IS
+  TYPE TypeArrayOfRegElements IS ARRAY (1 TO $size$) OF $type$;
+  SIGNAL arrayOfRegElements: TypeArrayOfRegElements; 
+
+  BEGIN
+        
+  PROCESS(clk, enable)
+  BEGIN
+    IF rising_edge(clk) THEN
+      IF enable = '1' THEN 
+
+      arrayOfRegElements(1) <= inReg;
+
+      FOR i IN $size$ TO 2 LOOP
+        arrayOfRegElements(i) <= arrayOfRegElements(i-1);
+      END LOOP;
+
+      END IF;
+    END IF;
+  END PROCESS;             
+
+  outReg <= arrayOfRegElements($size$);
+
+END archiOf$name$;

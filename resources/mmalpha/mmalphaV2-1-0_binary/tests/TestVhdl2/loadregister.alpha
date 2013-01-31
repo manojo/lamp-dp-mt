@@ -1,0 +1,20 @@
+system loadregister :{Tinit,Duration | 1<=Tinit; 2<=Duration}
+                    (ctl : {t | Tinit<=t<=Tinit+Duration-1} of boolean; 
+                     ValInit : {t | Tinit<=t<=Tinit+Duration-1} of integer)
+       returns      (result : {t | Tinit+1<=t<=Tinit+Duration} of integer);
+var
+  s : {t | Tinit<=t<=Tinit+Duration-1; 1<=Tinit; 2<=Duration} of integer;
+  z : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+let
+  result[t] = z[t];
+  z[t] = s[t-1];
+  s[t] = if (ctl[t]) then 
+          case
+            { | t=Tinit} : ValInit[t];
+            { | Tinit+1<=t} : 0[];
+          esac else 
+      case
+        { | t=Tinit} : 0[];
+        { | Tinit+1<=t} : z[t];
+      esac;
+tel;

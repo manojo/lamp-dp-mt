@@ -1,0 +1,286 @@
+%
+% File created on {2009, 4, 25, 18, 19, 40.128578} by makeDoc.
+%
+% Section header
+\section{The Alpha`VertexSchedule` package } 
+\label{label:Alpha`VertexSchedule`}
+\input{incl-VertexSchedule.tex}
+\alphanote{VertexSchedule}{Documentation revised on August 1st, 2004.} 
+ 
+\alphausage{VertexSchedule}{The Alpha`VertexSchedule` package is one of the two scheduling packages
+of \MMAlpha{}. Functions of the Alpha`Schedule` package should be preferred,
+but in some cases, VertexSchedule offers some interesting functionalities.
+Symbols defined in this package are \$dependencyConstraints, 
+\$optimalityConstraints, \$scheduleDepTable, \$scheduleLibrary, 
+\$scheduleMDSol. Functions are checkSchedOptions, constOf, depComponents,
+depCycles, depGraph, DomDimension, DomSingletonQ, DomTrueDimension,
+eliminateVar, encodeSchedule, equations, ishow, isIndentityOnDim,
+getLinPart, getUseSchedule, loadScheduleLibrary, matrixTransPart, 
+polDomainQ, timeMinSchedConstraints, saveScheduleLibrary, scd, slackOf,
+sortEquations, zpolDomainQ
+}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{VertexSchedule}
+
+\alphausage{\$dependencyConstraints}{\$dependencyConstraints contains the  dependency constraints used for
+solving the scheduling. It is a list whose entries correspond directly
+to the entries of the deptable. The last element is the set of
+dependency variables. This global variable is set when calling the
+scheduleConstraints  function}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{\$dependencyConstraints}
+
+\alphausage{\$optimalityConstraints}{\$optimalityConstraints contains the  optimality (total time, etc)
+constraints used for solving the scheduling. It is a list, whose
+entries are pairs \{variables, constraints\}. This global variable is set
+by the timeMinSchedConstraints function}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{\$optimalityConstraints}
+
+\alphausage{\$scheduleDepTable}{when set, \$scheduleDepTable containts the dependency table of \$result. It is
+computed by a call to scd.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{\$scheduleDepTable}
+
+\alphausage{\$scheduleLibrary}{\$scheduleLibrary containts the schedules found by the scheduler when
+called on the elements of the current library. These schedules are used
+when the scheduler is called with the structured option}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{\$scheduleLibrary}
+
+\alphausage{\$scheduleMDSol}{\$scheduleMDSol is an array which gathers information during a call to 
+the scd function. \$scheduleMDSol[i] contains a list \{o,c,v,sol\}
+consisting  of the objective function, constraints, variables, and
+solution to the linear problem solved when dealing with dimension i of
+the schedule. For a unidimensional schedule, only level 1 is set. For a
+dataflow schedule, level 1 corresponds to  the dataflow leve, and other
+levels to the multidimensional schedule of the  inside indexes.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{\$scheduleMDSol}
+
+\alphausage{adaptUses}{adaptUses[] modifies all use statements, by adding extra input 
+equations}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{adaptUses}
+
+\alphausage{listOfAdaptedSignals}{listOfAdaptedSignals is an option of adaptUses, False by default. If
+True, adaptUses returns a list formed of the equivalence between the
+adapted signals and the old signals}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{listOfAdaptedSignals}
+
+\alphausage{addSchedule}{addSchedule is an option of loadScheduleLibrary. Default value is 
+True. If True, the schedule contained in file sys.scdlib is added
+to \$scheduleLibrary, where it replaces a previous schedule for the
+current system.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{addSchedule}
+
+\alphausage{affineDepConsts}{affineDepConsts[ dp, v, dur, taus, alphas, opts ] computes the constraints
+due to dependency do, on variable v, with duration dur, coefficients taus and
+alpha, and options opts.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{affineDepConsts}
+
+\alphausage{checkSchedOptions}{checkSchedOptions[options] checks the options against the 
+options of scd}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{checkSchedOptions}
+
+\alphausage{constOf}{constOf[symbol] gives the value of symbol}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{constOf}
+
+\alphausage{depComponents}{depComponents[] computes the strongly connected components of 
+the dependence graph}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{depComponents}
+
+\alphausage{durationsNonZero}{durationsNonZero is an option of scd. It gives the rank in the dependence
+table of the dependences the duration of which is non zero. Those durations
+are assumed to be 1. A negative rank is counted from backward from the end
+of the dependence table.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{durationsNonZero}
+
+\alphausage{depCycles}{depCycles[] computes the elementary cycles in the dependence graph. 
+depCycles[ selfDep$ \rightarrow $False ] computes the elementary cycles, 
+without the self dependences}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{depCycles}
+
+\alphausage{depGraph}{depGraph[] computes and displays the dependence graph of \$result in
+the format of the Combinatorica package. This function assumes that
+the dependence graph has already been computed. See also Options[
+depGraph ]. Inputs are green, outputs are blue and selfvertices are
+red.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{depGraph}
+
+\alphausage{depGraphViz}{depGraphViz[] computes and displays the dependence graph of \$result in
+the format of the GraphViz package. This function assumes that
+the dependence graph has already been computed. See also Options[
+depGraph ]. Inputs are green, outputs are blue and selfvertices are
+red. Option displaySchedule allows the schedule to be displayed.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{depGraphViz}
+
+\alphausage{displaySchedule}{displaySchedule is an option of depGraphViz that adds the schedule
+of all variables}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{displaySchedule}
+
+\alphausage{showViz}{showViz[] draws a dot file for the alpha program}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{showViz}
+
+\alphausage{variables}{variables is an option of several functions, for example depGraph or
+appSched. Default value is all, meaning all variables of a system}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{variables}
+
+\alphausage{extraEdges}{Option of depGraph. Seems to be unused...}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{extraEdges}
+
+\alphausage{variables}{Option of depGraph. Default value is all. Allows one to speficy the list
+of variables to which the graph is restricted.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{variables}
+
+\alphausage{factor}{Option of depGraph. Default value is 1. Gives a size factor for arrow heads
+and points of the dependence graph.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{factor}
+
+\alphausage{labelSize}{Option of depGraph. Default is 0.1. Size of the labels.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{labelSize}
+
+\alphausage{labelFactor}{Option of depGraph. Default is 1.2. Gives the distances of the labels 
+from the center of the graph.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{labelFactor}
+
+\alphausage{DomDimension}{DomDimension[d] gives the dimension of domain d, including the 
+parameter dimension (see DomTrueDimension to get the dimension 
+with de parameter dimension)}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{DomDimension}
+
+\alphausage{DomSingletonQ}{DomSingletonQ[sys, d] is True if the true dimension of d is 0 and 
+if d is the universal domain. DomSingletonQ[d] is equivalent to 
+DomSingletonQ[\$result,d]}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{DomSingletonQ}
+
+\alphausage{DomTrueDimension}{DomTrueDimension[sys,d] gives the dimension of domain d less the 
+dimension of the parameter space of sys. DomTrueDimension[d] is 
+equivalent to DomDimension[\$result,d]}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{DomTrueDimension}
+
+\alphausage{eliminateVar}{eliminateVar[v] removes variable v, after checking that the variable
+is useless}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{eliminateVar}
+
+\alphausage{encodeSchedule}{encodeSchedule[sys, params, sol, opts] returns the encoding of the
+schedule sol of system sys, with parameters params, using options opts.
+Among the options of encodeSchedule, one option allows one to choose
+between the Farkas format and the Vertex format}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{encodeSchedule}
+
+\alphausage{equations}{equations is an option value of the option variables of depGraph. If 
+True, the variables of are ordered in the order given by the equations, 
+with input first.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{equations}
+
+\alphausage{ishow}{ishow[] pretty-prints \$result, without calling the external C 
+program. It supports some features of the imperative form (such as
+aliases) which ashow does not support.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{ishow}
+
+\alphausage{isIdentityOnDim}{isIdentityOnDim[mat,\{1,3\}] (for instance) 
+checks that matrix mat1 is identity on dimension 1 and 3}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{isIdentityOnDim}
+
+\alphausage{getLinPart}{getLinPart[m] computes the mma form of the linear part of the Alpha
+matrix m, considered as an affine function. Note: use getLinearPart
+instead.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{getLinPart}
+
+\alphausage{getUseSchedule}{getUseSchedule[ x ] obtains the schedule of the use entry of a dependency table x,
+by looking in the global variable \$scheduleLibrary.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{getUseSchedule}
+
+\alphausage{loadScheduleLibrary}{loadScheduleLibrary[sys] loads in global variable \$scheduleLibrary 
+the content of the file sys.scdlib}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{loadScheduleLibrary}
+
+\alphausage{matrixTransPart}{matrixTransPart[m] computes the mma form of the translation part of
+the Alpha matrix m, considered as an affine function.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{matrixTransPart}
+
+\alphausage{parameterRules}{parameterRules is an option of loadScheduleLibrary. Default value
+is \{\}. It contains replacement rules for the parameters of the 
+schedule which is loaded. For example, if option parameterRules $ \rightarrow $ \{"K"$ \rightarrow $2\} 
+is set, then parameter "K" will be replaced by value 2 while reading
+the schedule.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{parameterRules}
+
+\alphausage{periodicFactor}{periodicFactor is an option of getUseSchedule. Its default value is 1.The first parameter of the schedule of a subsystem is multiplied byfactor}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{periodicFactor}
+
+\alphausage{saveScheduleLibrary}{saveScheduleLibrary[sys] saves the content of global variable \$scheduleLibrary 
+in the file sys.scdlib. saveScheduleLibrary[] saves the content of \$scheduleLibrary in
+the file name.scdlib, where name is the name of the system currently contained
+in \$result. To save only the schedule of the system in \$result, use 
+saveScheduleLibrary[ onlyMainSystem $ \rightarrow $ True ].}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{saveScheduleLibrary}
+
+\alphausage{onlyMainSystem}{onlyMainSystem is an option of saveScheduleLibrary. If True, only 
+the schedule of the system in \$result is saved, otherwise (default)
+all schedules in \$scheduleLibrary are saved.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{onlyMainSystem}
+
+\alphausage{timeMinSchedConstraints}{Timeminschedconstraints[] computes the constraints needed to minimize
+the total execution time of
+\$result. timeMinSchedConstraints[var\_String] computes only the
+dependence constraints for variable var. Options of
+timeMinSchedConstraints are sameLinearPart (default False),
+addConstraints (\{\}) and verbose (False).}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{timeMinSchedConstraints}
+
+\alphausage{saveSchedule}{saveSchedule is an option of scd. If True, \$schedule is saved in 
+file sys.scd, where sys is the name of the scheduled system.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{saveSchedule}
+
+\alphausage{scd}{***scd[] finds out the schedule that minimizes the total computation time
+for a bounded Alpha program. Fails if the system is not bounded. scd can 
+also be used to find a multidimensional schedule, or a dataflow schedule.
+An option allows a structured schedule to be found.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{scd}
+
+\alphausage{periods}{periods is a parameter of scd. It is the list of periods associated with
+the subsystems, whenever these subsystems contain the parameters "\$P".}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{periods}
+
+\alphausage{onlyUseDep}{onlyUseDep is an option of scd that specifies the use dependencies that are
+to be kept. Default value is all, otherwise, it is a list of integers.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{onlyUseDep}
+
+\alphausage{simplex}{simplex[o,c,v] finds the minimum of function o on contraints c (list) 
+for list of variables v. Variables are not assumed to be linear}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{simplex}
+
+\alphausage{slackOf}{slackOf[listOfConstraints] gives the difference between the lhs and 
+the rhs in the constraints, using the solution contained in \$scheduleMDSol[1].
+This function allows somehow to explore a given schedule.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{slackOf}
+
+\alphausage{slg}{slg[g] shows graph g. slg[g,Directed] shows g as a directed graph.
+This function is a slight modification of ShowLabeledGraph.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{slg}
+
+\alphausage{pal}{}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{pal}
+
+\alphausage{sortEquations}{sortEquations[sys:\_system] returns a the same system where the equation 
+have been reordered in such a way that all computation executed 
+simultaneously (with duration 0) can be executed in the textual order,
+it currently assumes that the time is one dimensionnal and the first indice.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{sortEquations}
+
+\alphausage{zpolDomainQ}{zpolDomainQ[d] is true if d is a domain with z-polyhedra}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{zpolDomainQ}
+
+\alphausage{matrix2mma}{matrix2mma[m] computes the mma form of the Alpha matrix m.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{matrix2mma}
+
+\alphausage{eqsDomain}{}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{eqsDomain}
+
+\alphausage{statScheduleConstraints}{statScheduleConstraints[] does as scheduleConstraints, but provides 
+a few statistics}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{statScheduleConstraints}
+
+\alphausage{summaryScheduleConstraints}{summaryScheduleConstraints[] computes the constraints needed to minimize the 
+total time, and projects these constraints on the Input and Output variables.}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{summaryScheduleConstraints}
+
+\alphausage{variablesOf}{variablesOf[ exp ] gives the list of variables in the 
+list of expression exp}{Alpha/VertexSchedule.m}{Alpha`VertexSchedule`}
+\index{variablesOf}
+

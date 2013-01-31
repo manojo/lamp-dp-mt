@@ -1,0 +1,16 @@
+This directory contains binary files for Linux. For the moment, these
+binary files were NOT compiled using the source files which are in 
+$MMALPHA/sources, as should happen if you run make all in this directory. 
+
+Content (May 2005)
+
+code_gen	This binary was compiled after some modifications of the 
+	makefiles which have not been reported in LipForge yet
+domlib		This binary was brought back from an older version of 
+	MMAlpha
+index.html
+pip		This binary was compiled from an older version of Pip, as
+	the current one does not compile on darwin
+read_alpha	Same as code_gen
+write_alpha	Same as code_gen
+write_c		Same as code_gen

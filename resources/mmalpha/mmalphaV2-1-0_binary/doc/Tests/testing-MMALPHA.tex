@@ -1,0 +1,123 @@
+\documentclass[12pt]{article}
+\begin{document}
+
+\newcommand{\domlib}{{\sc domlib}}
+\newcommand{\ML}{{\sc Mathlink}}
+\newcommand{\mprep}{{\sc mprep}}
+\newcommand{\polylib}{{\sc polylib}}
+\newcommand{\mma}{{\sc Mathematica}}
+\newcommand{\mkf}{{\texttt Makefile}}
+\newcommand{\gcc}{\texttt{gcc}}
+\newcommand{\doml}{\texttt{domlib.c}}
+\newcommand{\tm}{\texttt{domlibtm.c}}
+\newcommand{\mmAlpha}{\textsc{MMAlpha}}
+\newcommand{\MMAlpha}{\textsc{MMAlpha}}
+\newcommand{\MMA}{\textsc{Mathematica}}
+\newcommand{\true}{\texttt{True}}
+\newcommand{\false}{\texttt{False}}
+
+\title{Testing \mmAlpha{}}
+\author{Patrice Quinton}
+\date{Version of \today}
+\maketitle
+
+\begin{abstract}
+This document gives information on testing \mmAlpha{}. Some other information 
+is also available in \texttt{doc/Install}. Information regarding compiling \texttt{domlib}
+is given in \texttt{doc/Developers/Compiling}.
+\end{abstract}
+\section{Right after installing \mmAlpha{}}
+\mmAlpha{} provides testing facilities which are explained in this document. 
+After installation, run \texttt{test1[]}. This checks various things, in particular, that 
+the \texttt{domlib} is properly installed. 
+The report of this test is written in file \texttt{\$MMALPHA/tests/testReportFile.txt}. 
+If this test does not return the value \texttt{True}, please send a mail together
+with this file to 
+\begin{verbatim}
+patrice.quinton@irisa.fr
+\end{verbatim}
+
+\paragraph{Warning:} Notice that executing \texttt{test1[]} erases the previous version of the test 
+report file.
+
+\paragraph{Do it yourself:} You may also fix by yourself some common errors: report to Section~\label{troubleshooting}.
+
+\paragraph{Tested configurations}
+The current distribution runs properly on a MacBook Pro, whith \mma{} version 5 and 6. 
+Version 7.0 of \mma{} is under test.
+
+\section{More tests}
+Other tests are done using the commands 
+\texttt{test2[]}, 
+\texttt{test3[]}, 
+and \texttt{test4[]}. All these tests append information in the 
+file \texttt{\$MMALPHA/tests/testReportFile.txt}. 
+
+If one of these tests fails (i.e., it does not return the value \texttt{True}),
+please send a mail together
+with the test report file to 
+\begin{verbatim}
+patrice.quinton@irisa.fr
+\end{verbatim}
+
+If all these tests are successful, your installation should be correct.
+
+\section{Exploring tests}
+Commands \texttt{test1}, \texttt{test2}, etc. make use of another test program, 
+which allows each individual package to be tested. For example, 
+\begin{verbatim}
+test[ "Domlib" ]
+\end{verbatim}
+runs a test for the domlib and returns \texttt{True} if the test was successful. This 
+command writes information in the test report file. If one test fails, the name
+of this test is written in the test report file. Say test \texttt{"domlib 23"} fails, then 
+you can replay it by evaluating : 
+\begin{verbatim}
+test[ "Domlib" , "domlib 23"]
+\end{verbatim}
+The nature of this test will then be displayed. 
+Notice however, that running an individual test may not always provide the
+same result as when it is run in the context of a full package test. The reason is that
+some of the package test were written before this facility was offered. I am trying\footnote{As of December 2008.}
+to fix this, but test programs are numerous and long...
+
+Test files are in directory \texttt{\$MMALPHA/Tests}. Commands \texttt{test1} to
+\texttt{test4} are part of \texttt{\$MMALPHA/lib/Packages/Alpha.m}.
+
+\section{Common Problems at Installation and How to Fix Them}
+(See also \texttt{doc/Install}).
+
+Check this in order. 
+\begin{enumerate}
+\item Is environment variable \texttt{\$MMALPHA} set? If this is not the case, \mma{} does not
+start \MMAlpha{}. 
+To check this, start \MMAlpha{} and evaluate
+\begin{verbatim}
+Environment[ "MMALPHA" ]
+\end{verbatim}
+If this variable was not set, then the result is \texttt{\$Failed}, otherwise, it should be the path
+of the directory where you installed \MMAlpha{}. To fix this problem, report to the installation 
+manual. Remember on \texttt{MacOSX} that you must start \mma{} from a shell window, and not
+directly by double-clicking on the \mma{} icon: in this case, \mma{} does not import the 
+environment variables.
+\item Does the environment variable \texttt{\$PATH} contain the directory where the binaries
+of \MMAlpha{} are ? If this is not the case, \texttt{domlib} cannot be loaded. 
+Check this by evaluating
+\begin{verbatim}
+$Path
+\end{verbatim}
+and checking that there appears a path of the form \texttt"{... /mmalpha/bin.ostype"} where 
+\texttt{ostype} depends on your operating system. For \texttt{MacOSX}, is should be
+\texttt{bin.darwin}, for \texttt{Linux}, it should be \texttt{bin.linux}, etc. To fix this, report to
+the installation manual and set the environment variable. You can get the value of your
+OS type by evaluating \texttt{Environment[ "OSTYPE"]} in \mma{}. 
+\item Does the directory of the binaries exist? To check this, get the value of environment 
+variable \texttt{\$OSTYPE}, and check that there exist a directory \texttt{bin.ostype} in 
+your \MMAlpha{} repository. If such a directory does not exist, the problem has to be
+reported to the author of this note... 
+\item Even if the \texttt{bin.ostype} directory exists, it may not contain the proper 
+binary files: \texttt{domlib}, etc. 
+\end{enumerate}
+
+\end{document}
+

@@ -1,0 +1,20 @@
+#-----------------------------------------------
+#  This defines where MATHLINK is for version 6.0 
+MATHLINK = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+
+#-----------------------------------------------
+MATHPREP	= $(MATHLINK)/mprep
+
+#-----------------------------------------------
+#  This is useless
+#MATHPREPCOR	= $(MMALPHA)/sources/MathLink/mprepcor.3.0.1
+MATHINCLUDE	= -I$(MATHLINK)
+MATHLIB		= -L$(MATHLINK)
+
+#  Notice that the load library is not the same as for other versions...
+MATHLOADLIB	= -lMLi3 -lm
+
+#  This may be necessary for Solaris.
+MATHEXTRALIBS = # -lnsl -lsocket
+MATHEXTRAOBJS =
+

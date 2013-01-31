@@ -1,0 +1,12 @@
+system addreg :{Tinit,Duration | 1<=Tinit; 2<=Duration}
+               (x : {t | Tinit<=t<=Tinit+Duration-1} of integer; 
+                y : {t | Tinit<=t<=Tinit+Duration-1} of integer)
+       returns (z : {t | Tinit+1<=t<=Tinit+Duration-1} of integer);
+var
+  X1 : {t | Tinit+1<=t<=Tinit+Duration-1} of integer;
+  Y1 : {t | Tinit+1<=t<=Tinit+Duration-1} of integer;
+let
+  X1[t] = x[t-1];
+  Y1[t] = y[t-1];
+  z[t] = X1 + Y1;
+tel;

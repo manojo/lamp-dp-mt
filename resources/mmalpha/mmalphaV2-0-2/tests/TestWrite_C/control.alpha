@@ -1,0 +1,14 @@
+system Control ()
+  returns (clock, rd : {t | 0<= t} of boolean);
+let
+  clock[i] = 
+    case
+     {|i = 0} : False;
+     {|i > 0} : not clock[i-1];
+    esac;
+  rd[i] =
+    case
+     {|i = 2} : True;
+     {|i < 2; i >2} : False;
+    esac;
+tel;

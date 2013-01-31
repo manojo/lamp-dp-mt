@@ -1,0 +1,340 @@
+\section{How to install \MMAlfa{}}
+%Initial version : Tanguy Risset
+%Last Modification : Feb 2004 by Patrice Quinton
+
+This section contains MMAlpha installation instructions for Unix users,
+Windows NT or XP users, MacOsX and Linux users.\footnote{The source of this document
+is in the \texttt{doc/Install} directory. It appears also as an appendix of the AlphaStart document.}
+
+The \MMAlfa{} sofware can be downloaded at url \texttt{http://www.irisa.fr/cosi/ALPHA/}.
+In case of problems, send a mail to \texttt{patrice.quinton@irisa.fr}~.
+
+\subsection{Installing \MMAlfa{} on Unix-like systems} 
+By Unix-like, we mean Unix, Mac OS X, or Linux. The following 
+procedure has been checked for Unix and Mac OS X, not for Linux.
+\begin{enumerate}
+\item 
+\label{stepOneMac}
+This first action must be done only if 
+\MMAlfa{} has not yet been installed on the server 
+or the computer you
+are using. If \MMAlfa{} is already installed, go to step~\ref{stepTwoMac}.
+
+The current distribution, as obtained from the 
+\MMAlfa{} web site, is a file named \texttt{mmalphaV2-1-0.zip}.
+Double-click on this file to expand this directory.
+You may also run the following command
+\begin{verbatim}
+unzip mmalphaV2-1-0.zip
+\end{verbatim}
+from a shell window.
+%De-archive the complete distribution in some directory, say
+%\texttt{/home/group/name/} (a directory called alpha is created)
+%by executing the \texttt{install\_tar} script available at 
+%\begin{verbatim}
+%http://www.irisa.fr/cosi/ALPHA/DOWNLOAD
+%\end{verbatim}
+\item
+\label{stepTwoMac}
+Create a \texttt{MMALPHA} environment variable containing the
+path of the directory where \mmalfa{} has been installed.
+If you use a \texttt{csh} shell, you have to type:
+\begin{verbatim}
+setenv MMALPHA path-of-mmalpha
+\end{verbatim}
+and for a \texttt{bash} shell:
+\begin{verbatim}
+export MMALPHA=path-of-mmalpha
+\end{verbatim}
+These commands may alternatively be added to your \texttt{.cshrc}
+or to your \texttt{.bashrc} file (or to your \texttt{.login} file) in order to be
+executed automatically when starting a shell. 
+\item
+\label{stepThreeMac}
+You have then to set 
+the \texttt{PATH} environment variable to contain the directory
+where the binary files of \mmalfa{} are. On Mac OS X, this directory
+is \texttt{path-of-mmalpha/bin.darwin}. 
+For a \texttt{csh} shell:
+\begin{verbatim}
+setenv PATH ${MMALPHA}/bin.darwin:${PATH}
+\end{verbatim}
+and for a \texttt{bash} shell:
+\begin{verbatim}
+export PATH=${MMALPHA}/bin.darwin:${PATH}
+\end{verbatim}
+
+Again, you may add this command to your \texttt{.cshrc} or
+\texttt{.bashrc} file.
+%\item 
+%Execute the initialization script 
+%that is now in \texttt{\$MMAlpha/init\_user.csh}
+%(or in \texttt{\$MMAlpha/init\_user.bash} if you use the 
+%\texttt{bash} shell) by the command:
+%\begin{verbatim}
+%source $MMALPHA/config/init_user.csh
+%\end{verbatim}
+%(or 
+%\begin{verbatim}
+%source $MMALPHA/config/init_user.csh
+%\end{verbatim}
+%for the \texttt{bash} shell.)
+%The only files that should be edited by you are the
+%files in directory \texttt{\$MMALPHA/config/}.
+\item
+\label{stepThree}
+Copy  the  file \texttt{\$MMALPHA/config/init-for-you.m} under the 
+name \texttt{init.m} to 
+your \mma{} base directory\footnote{The \mma{} base directory
+used to be the user home directory in \mma{} versions 
+prior to version 5. Under \mma{}, the home directory
+is given by evaluating the \texttt{\$HomeDirectory} \mma{} variable.
+Since version 5 (see documentation of \mma{}), 
+the \mma{} base directory is given by the
+\texttt{\$UserBaseDirectory} variable. For example, in 
+MacOS X, 
+it is located in \texttt{\~/Library/Mathematica/Kernel} directory:
+this is where you should put the \texttt{init.m} file.}
+(or append it to your base \texttt{init.m} file if it already 
+exists). 
+For users unfamiliar with Mathematica, recall
+that this \texttt{init.m} file is executed whenever Mathematica's kernel
+is launched.  
+\item
+\label{stepFour}
+It's ready! Run \mma{} by typing in a shell window the command:
+\begin{verbatim}
+mathematica
+\end{verbatim}
+and once a notebook is started, type and evaluate in it the command
+\begin{verbatim}
+start[]
+\end{verbatim}
+to launch the master notebook of \MMAlfa{}. From this master notebook, examples
+and explanations are available.
+\item To check that everything is OK, evaluate successively the following commands
+\begin{verbatim}
+test1[]
+test2[]
+test3[]
+test4[]
+\end{verbatim}
+Each one of these command starts a set of tests and shoul return the value
+\texttt{True}. If this is not the case, something in your installation is wrong. 
+In case of problems, see Section~\ref{troubles}. 
+
+Notice that executing these
+commands generates a lot of error messages, and even, unexpected messages
+in the shell windows: as long as the final result of the test is \texttt{True}, this is
+not a problem. 
+\end{enumerate}
+
+\paragraph*{Remarks}
+\begin{itemize}
+%\item The \texttt{PATH} location may change for the now
+%\texttt{intel-pc} processors. I have not yet decided where it should be.
+
+\item On MacOS X, 
+\mma{} should be started from the Terminal application, as
+otherwise, the \texttt{\$MMALPHA} environment variable 
+cannot be set (at least, I do not know how to set this variable...). 
+Moreover, after installing \mma{}, it is needed to add an alias
+to start \mma{}. Usually, \mma{} is installed in directory \texttt{/Applications}, for
+example : 
+\begin{verbatim}
+/Applications/Mathematica\ 5.1.app/Contents/MacOS/Mathematica
+\end{verbatim}
+So, you may add an alias in your \texttt{.cshrc} file. 
+\end{itemize}
+
+\subsection{Installing MMALPHA on Windows NT or Windows XP}
+\paragraph*{Warning:} version V2 has not been tested on Windows NT, since I do not have
+currently access to such a configuration. PQ, Jan. 2, 2009.
+\begin{enumerate}
+\item 
+\label{stepOneWin}
+This first action must be done only if 
+\MMAlfa{} has not yet been installed in the server you
+are using. If \MMAlfa{} is already installed, go to step~\ref{stepTwoWin}.
+The current distribution is a file \texttt{mmalphaV2-1-0.zip} file. Double-click on this file to expand this directory.
+\item
+\label{stepTwoWin}
+You have to set two environment variables: \texttt{MMALPHA} and 
+\texttt{Path}. To do so:
+\begin{enumerate}
+\item
+Open the system configuration panel (start \texttt{->} configuration panel)
+\item Double click on the "System" icon.
+\item Choose the "Advance" panel.
+\item Click on "Environment variables".
+\item Consider the user variable panel (top part).
+\item Create a \texttt{MMALPHA} variable whose value is the path of the directory where
+\MMAlfa{} is installed. Typically, the value of this variable should be 
+\begin{verbatim}
+C:\...\mmalphaV2-1-0
+\end{verbatim}
+To create such a variable, click on \texttt{New}, and fill 
+the name and value. 
+This step allows \mma{} to know
+where \MMAlfa{} is located.
+\item Append
+\begin{verbatim}
+;%MMALPHA%\bin.cygwin32
+\end{verbatim}
+to the user Path environment 
+variable. To do so, select the \texttt{Path} variable, click \texttt{Modify}, 
+place the cursor at the end of the string and type 
+\begin{verbatim}
+;%MMALPHA%\bin.cygwin32
+\end{verbatim}
+\footnote{Or possibly, cygwin.}This step allows the Domlib library
+to be launched.
+\end{enumerate}
+\item		
+\label{stepThree}
+Copy  the  file \texttt{\$MMALPHA/init.m} to 
+your \mma{} base directory\footnote{The \mma{} base directory
+used to be the user home directory in \mma{} versions 
+prior to version 5. Under \mma{}, the home directory
+is given by evaluating the \texttt{\$HomeDirectory} \mma{} variable.
+Since version 5 (see documentation of \mma{}), 
+the \mma{} base directory is given by the
+\texttt{\$UserBaseDirectory} variable. For example, in 
+Windows,
+it is probably located in \texttt{\~/Library/Mathematica/Kernel} directory:
+this is where you should put the \texttt{init.m} file.}
+(or append it to your base \texttt{init.m} file if it already 
+exists). 
+For users unfamiliar with Mathematica, recall
+that this \texttt{init.m} file is executed whenever Mathematica's kernel
+is launched.  
+
+\item
+It's ready! Start \mma{}. The first evaluation in 
+the initial notebook should start \MMAlfa{}. Normally, the
+Messages window of \mma{} opens and contains a few
+lines indicating that \mma{} was started successfully.
+Evaluate start[] in any notebook to launch the master 
+notebook of \mma{}.
+From this master notebook, examples
+and explanations are available.
+\item To check that everything is OK, evaluate successively the following commands
+\begin{verbatim}
+test1[]
+test2[]
+test3[]
+test4[]
+\end{verbatim}
+Each one of these command starts a set of tests and shoul return the value
+\texttt{True}. If this is not the case, something in your installation is wrong. 
+In case of problems, see Section~\ref{troubles}. 
+Notice that executing these
+commands generates a lot of error messages, and even, unexpected messages
+in the shell windows: as long as the final result of the test is \texttt{True}, this is
+not a problem. 
+\end{enumerate}
+
+\subsection{In Case of Problems}
+\label{troubles}
+Before reading this section, make sure that you have tried to evaluate
+the \texttt{test1[]} through \texttt{test4[]} commands. 
+
+There is a \mma{} program called \texttt{diagnose.m}, located in 
+\texttt{\$MMAlpha/config/diagnose.m}, that may help locate problems. 
+To run it, start a fresh version of \MMAlfa{} (from the console window), 
+then evaluate 
+\begin{verbatim}
+SetDirectory[ "/ your mmalpha dir/config"]
+<<diagnose.m
+\end{verbatim}
+This will check various potential problem, report them in the \mma{} window, 
+and write also a file \texttt{diagnosis.txt} in your home directory. 
+
+Here are a few difficulties you may encounter, and some ways to 
+overcome them. Additional information is given in the test
+documentation, in file
+\begin{verbatim}
+$MMALPHA/doc/Tests/testing-MMALPHA.pdf
+\end{verbatim}
+
+\subsection{The \texttt{MMALPHA} environment variable is not set}
+To check this, evaluate
+\begin{verbatim}
+Environment[ "MMALPHA" ]
+\end{verbatim}
+in your notebook. If it does not answer the proper value, there
+is a problem.
+
+First, remember that you must start \mmalfa{} from a shell, otherwise, 
+\mma{} does not inherit from your environment variables (this is true 
+on Unix-like systems, not on Windows -like).
+
+Second, it may be that your \texttt{init.m} file was not loaded: see next
+section.
+
+\subsubsection{The initialization file is not correctly installed}
+Most of the problems come with the fact that
+the \texttt{init.m} file may not be installed in the correct
+directory. If this is the case, evaluating \texttt{test1[]} for
+example will just return \texttt{test1[]} unevaluated, as
+\mma{} was not able to load \mmalfa{}: indeed, loading
+is done through the \texttt{init.m} file.
+
+After launching \mma{}, make sure that the Kernel is also launched
+by evaluating any \mma{} expression (for example, \texttt{2+2}). 
+Before this evaluation is done, the \mma{}'s Kernel should 
+evaluate the content of the \texttt{init.m} file, which results in 
+a message in the \texttt{Messages} window of \mma{}. This
+message ends with:
+\begin{verbatim}
+Alpha V2.0 Initialization
+The Documentation can be found in ...
+Current version in ...
+Current directory is ...
+If you use the notebook interface, you can open the master notebook: 
+In[1]:= start[];
+\end{verbatim}
+If the Messages window is not opened, the \texttt{init.m} file was
+not called and may not be in the proper directory. To check this, 
+evaluate the expression \texttt{\$UserBaseDirectory} in \mma{}, 
+and then check that the \texttt{init.m} file is in the 
+\texttt{\$UserBaseDirectory/Kernel}.
+
+\subsubsection{The Domlib does not start}
+This happen if in the Messages window, the following 
+message appears:
+\begin{verbatim}
+Warning: could not install domlib
+\end{verbatim}
+
+Also, if you run the \texttt{test1[]} command, 
+you do have a \texttt{True} result. 
+
+Several reasons may be the cause of this problem.
+\begin{enumerate}
+\item Variable \texttt{\$PATH} may not contain the directory where
+the Domlib is. The Domlib is in the directory \texttt{\$MMALPHA/bin.ostype},
+where \texttt{ostype} is \texttt{darwin} for MacOS X, 
+\texttt{linux} for Linux, and \texttt{cygwin32} for Windows. 
+On Unix-like systems, check the value of this variable by
+the command \texttt{echo \$PATH}. On Windows, check the value of
+the \texttt{PATH} environment variable.
+\item The binary file for the domlib may not be in the proper
+directory. This means that \MMAlfa{} has not been installed 
+properly, or altered. Again, check that the directory 
+\texttt{\$MMALPHA/bin.ostype} contains \texttt{domlib}. If this is
+not the case, unzip the \mmalfa{} distribution to get it (if you
+do not find it in the distribution... just send me a mail !)
+\item The \texttt{domlib} binary does not fit with your configuration. 
+You then have to recompile it. I have not yet been able to configure
+\mmalfa{} so that recompiling is easy, but I try. Please, refer
+to the test documentation first, then to the documentation about
+domlib.
+\end{enumerate}
+
+\subsubsection{Other problems}
+You may encounter other problems, for example, some tests are corrects, 
+some other are not. After the execution of the \texttt{test1[]} through
+\texttt{test4[]} commands, you find a test report file in the 
+\texttt{\$MMALPHA/tests} directory: send me this file, and I'll try
+to find out what is wrong in order to help you.

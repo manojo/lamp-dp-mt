@@ -1,0 +1,17 @@
+system QR :    {N,K | K+1<=N; 2<=K}
+               (x :  boolean)
+       returns (r :  boolean);
+var
+  X_ctl2P_Init : {t,p1,p2 | p1+1<=t<=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} of boolean;
+let
+  X_ctl2P_Init[t,p1,p2] = 
+      case
+        { | t=p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | t=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | p1+2<=t<=2p1; p1<=N; p2=1; K+1<=N; 2<=K} : 
+           { | t=p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | t=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | p1+2<=t<=2p1; p1<=N; p2=1; K+1<=N; 2<=K} : 
+              case
+                { | t=p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} : x[];
+                { | t=2p1+1; 2<=p1<=N; p2=1; K+1<=N; 2<=K} | { | p1+2<=t<=2p1; p1<=N; p2=1; K+1<=N; 2<=K} : False[];
+              esac;
+      esac;
+  r[] = X_ctl2P_Init[2N+1,N,1];
+tel;

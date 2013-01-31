@@ -1,0 +1,2042 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     41002,       1429]*)
+(*NotebookOutlinePosition[     44225,       1524]*)
+(*  CellTagsIndexPosition[     43676,       1507]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The \"Alpha\" package", "Title",
+  FontColor->RGBColor[1, 0, 0],
+  CellTags->"firstcell"],
+
+Cell["Patrice Quinton", "Subsubtitle"],
+
+Cell[BoxData[
+    \(July\ 1999. \ Checked\ Dec . \ 2007. \)], "Input"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+alpha@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell[" Execute this cell, to redefine the current directory", "SmallText",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(setMMADir[{"\<doc\>", "\<packages\>", "\<Alpha\>"}]\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \("/Users/quinton/mmalpha/doc/Packages/Alpha"\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1. Introduction", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+  "The ",
+  StyleBox["Alpha",
+    FontColor->RGBColor[1, 0, 0]],
+  " package is the root package of MMAlpha. MMAlpha uses several predefined \
+symbols, all starting with \"$\": "
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?$testDirectory\)\)], "Input"],
+
+Cell[BoxData[
+    \("$testDirectory is the path name of the directory that contains the  \
+test files for all packages. Currently set to $MMALPHA/tests/"\)], "Print",
+  CellTags->"Info3407669575-7249216"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["?$rootDirectory", "Input"],
+
+Cell[BoxData[
+    \("$rootDirectory contains the path of the MMAlpha  directory. It is set \
+to $MMALPHA"\)], "Print",
+  CellTags->"Info3407669599-8839355"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["?$demoDirectory", "Input"],
+
+Cell[BoxData[
+    \("$demoDirectory contains the path of the demo directory of \
+MMAlpha."\)], "Print",
+  CellTags->"Info3407669603-2726621"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?$result\)\)], "Input"],
+
+Cell[BoxData[
+    \("$result is the Mathematica symbol which holds the result of the most \
+recent operation (load or transformation). It is the default source program \
+for many transformations. When it is used by default by a transformation, it \
+is also modified by this transformation"\)], "Print",
+  CellTags->"Info3407669606-5127252"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?$program\)\)], "Input"],
+
+Cell[BoxData[
+    \("$program is a Mathematica symbol which keeps the abstract syntax tree \
+of the source of any transformation. It is initialized by load, and changed \
+when a (second) transformation is applied. The most recent AST is kept in \
+$result (see ?$result)"\)], "Print",
+  CellTags->"Info3407669609-4494423"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?$library\)\)], "Input"],
+
+Cell[BoxData[
+    \("$library is the Mathematica symbol which holds the list of Alpha \
+programs (systems and subsystems) most recently loaded using load. The system \
+in $result is also present in  $library."\)], "Print",
+  CellTags->"Info3407669612-3603803"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?$schedule\)\)], "Input"],
+
+Cell[BoxData[
+    \("$schedule is the Mathematica symbol that contains the schedule  \
+information of a system after the execution of the schedule or the scd \
+functions. The format of $schedule is:\n scheduleResult[name, \n   List[{var, \
+varIndices, sched[tauVect, constCoef]}],\n   objFunction].\n  where name is \
+the name of the system, var is a variable of sys, varIndices is the list of \
+indexes of var, tauVect is a list of integer corresponding to the linear part \
+of the schedule of var, constCoef is the affine part, and objFunction is the  \
+objective function that was used to find the schedule."\)], "Print",
+  CellTags->"Info3407669615-4010012"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2. Functions", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell["2.1. The load function", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?load\)\)], "Input"],
+
+Cell[BoxData[
+    \("load[filename] parses the ALPHA program contained in file filename  \
+and returns the corresponding abstract syntax tree. As a side effect,  \
+symbols $program and $result are loaded with the parsed program. See also \
+save, asave, asaveLib."\)], "Print",
+  CellTags->"Info3407669621-2305458"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(load["\<Test1.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \("[exemple5]? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad \
+char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? \
+bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\
+\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r \
+(octal=13)\n"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2.2. The show function", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?show\)\)], "Input"],
+
+Cell[BoxData[
+    \("show[var] pretty-prints the program, the domain, the matrix or  the \
+schedule contained in symbol var. Default value of var is  $result. show[var, \
+p] pretty prints the domain or the matrix  contained in symbol var taking \
+parameter domain p into account.  var and p should be abstract syntax trees."\
+\)], "Print",
+  CellTags->"Info3407669634-9671600"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(show[silent -> True]\)], "Input"],
+
+Cell[BoxData[
+    \("system exemple5 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 5<=t} of integer;\nlet\n  S = case\n        {t | t=1} : 0.(t->);\n       \
+ {t | 2<=t} : x.(t->t-1) + y.(t->t-1);\n      esac;\n  z = {t | 5<=t} : \
+S.(t->t);\ntel;"\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2.3. The showMat function", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?showMat\)\)], "Input"],
+
+Cell[BoxData[
+    \("showMat[m] pretty-prints the matrix m in Alpha format."\)], "Print",
+  CellTags->"Info3407669639-4448657"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(FullForm[showMat[readMat["\<(i,j->i+2,j+2)\>"]]]\)], "Input"],
+
+Cell[BoxData[
+    \("(i,j->i+2,j+2)"\)], "Print"],
+
+Cell[BoxData[
+    TagBox[
+      StyleBox["Null",
+        ShowSpecialCharacters->False,
+        ShowStringCharacters->True,
+        NumberMarks->True],
+      FullForm]], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2.4. The showLib function", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?showLib\)\)], "Input"],
+
+Cell[BoxData[
+    \("showLib[lib] prints all the systems of library lib in standard \
+notation.  Default value of lib is $library. Warning, currently does not  \
+work in notebooks, use show[lib] instead"\)], "Print",
+  CellTags->"Info3407669643-8078762"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(showLib[]\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2.5. The ashow function", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?ashow\)\)], "Input"],
+
+Cell[BoxData[
+    \("ashow[] pretty prints the program in $result in array notation. \
+ashow[var]  pretty prints the program contained in var in array notation."\)],
+   "Print"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system exemple5 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 5<=t} of integer;\nlet\n  S[t] = \n      case\n        {| t=1} : 0[];\n  \
+      {| 2<=t} : x[t-1] + y[t-1];\n      esac;\n  z[t] = {| 5<=t} : S[t];\n\
+tel;"\)], "Print"]
+}, Open  ]]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2.6. The ashowLib function", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?ashowLib\)\)], "Input"],
+
+Cell[BoxData[
+    \("ashowLib[] prints all the systems in $library in array notation. \
+ashowLib[lib] prints all the systems of a library lib in array notation. \
+Warning, currently do not work on notebooks, use ashow[lib] instead"\)], 
+  "Print"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(ashowLib[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2.7. The save function", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?save\)\)], "Input"],
+
+Cell[BoxData[
+    \("save[filename] saves the standard notation pretty printed version of \
+$result in file filename. save[sys,filename] saves the standard notation \
+pretty printed version of sys in file filename."\)], "Print"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(save["\<TT.alpha\>"]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(load["\<TT.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("[exemple5]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("system exemple5 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 5<=t} of integer;\nlet\n  S[t] = \n      case\n        {| t=1} : 0[];\n  \
+      {| 2<=t} : x[t-1] + y[t-1];\n      esac;\n  z[t] = {| 5<=t} : S[t];\n\
+tel;"\)], "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2.8. The asave function", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?asave\)\)], "Input"],
+
+Cell[BoxData[
+    \("asave[filename] saves the array notation pretty printed version of \
+$result in file filename. asave[sys,filename] saves the array notation pretty \
+printed version of sys in file filename."\)], "Print"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(asave["\<TT.alpha\>"]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(load["\<TT.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("[exemple5]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("system exemple5 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 5<=t} of integer;\nlet\n  S[t] = \n      case\n        {| t=1} : 0[];\n  \
+      {| 2<=t} : x[t-1] + y[t-1];\n      esac;\n  z[t] = {| 5<=t} : S[t];\n\
+tel;"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(save[]\)], "Input"],
+
+Cell[BoxData[
+    \(save::"params" \( : \ \) "called with wrong parameters."\)], "Message"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2.9. The saveLib and asaveLib functions", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?saveLib\)\)], "Input"],
+
+Cell[BoxData[
+    \("savelib[filename] saves all systems contained in $library in file \
+filename in standard notation.  savelib[lib, filename] saves all systems \
+contained in lib in file filename in standard notation."\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?asaveLib\)\)], "Input"],
+
+Cell[BoxData[
+    \("asavelib[filename] saves all systems contained in $library in file  \
+filename in array notation.  asavelib[lib, filename] saves all systems \
+contained in lib in file filename in array notation."\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(load["\<Test2.alpha\>"]; \)\)], "Input"],
+
+Cell[BoxData[
+    \("[exemple5][exemple6]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(saveLib["\<TT.alpha\>"]; load["\<TT.alpha\>"]; show[]\)], "Input"],
+
+Cell[BoxData[
+    \("[exemple5][exemple6]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("system exemple6 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 5<=t} of integer;\nlet\n  S = case\n        {t | t=1} : 0.(t->);\n       \
+ {t | 2<=t} : x.(t->t-1) + y.(t->t-1);\n      esac;\n  z = {t | 5<=t} : \
+S.(t->t);\ntel;"\)], "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2.9. The getPart function", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?getPart\)\)], "Input"],
+
+Cell[BoxData[
+    \("getPart[exp,position] returns the subexpression of exp which is \
+designated by position.  The parameter position is a list of integers \
+following the convention of the Mathematica function Position. For example, \
+getPart[exp,\\{2,3\\}] identifies the third subtree of the second subtree of \
+exp. Warning: getPart does not accept in second parameter a list of positions \
+such as those returned by the Mathematica function Position."\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(getPart[$result, {2, 3}]\)], "Input"],
+
+Cell[BoxData[
+    \({pol[1, 1, 0, 0, {{1, 1}}, {{1, 1}}]}\)], "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2.10. The getSystem and putSystem functions", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?getSystem\)\)], "Input"],
+
+Cell[BoxData[
+    \("getSystem[id_String] extracts a system named id from the library \
+$library and selects it as the current system to be worked on (changes \
+$program and $result).  getSystem[id_String, lib_List]  extracts a system \
+named id from the library lib"\)], "Print"]
+}, Open  ]],
+
+Cell["\<\
+When \"Test2.alpha\" is loaded, the $library variable is set up to \
+the value of the complete library, and the $result variable contains the \
+first system of the library:\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(load["\<Test2.alpha\>"]; \)\)], "Input"],
+
+Cell[BoxData[
+    \("[exemple5][exemple6]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(show[$result]\)], "Input"],
+
+Cell[BoxData[
+    \("system exemple6 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 5<=t} of integer;\nlet\n  S = case\n        {t | t=1} : 0.(t->);\n       \
+ {t | 2<=t} : x.(t->t-1) + y.(t->t-1);\n      esac;\n  z = {t | 5<=t} : \
+S.(t->t);\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(showLib[]\)], "Input"],
+
+Cell["After the getSystem command, $result is changed: ", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(getSystem["\<exemple6\>"]; show[]\)], "Input"],
+
+Cell[BoxData[
+    \("system exemple6 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 5<=t} of integer;\nlet\n  S = case\n        {t | t=1} : 0.(t->);\n       \
+ {t | 2<=t} : x.(t->t-1) + y.(t->t-1);\n      esac;\n  z = {t | 5<=t} : \
+S.(t->t);\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(getSystem["\<abc\>"]\)], "Input"],
+
+Cell[BoxData[
+    InterpretationBox[
+      \("abc"\[InvisibleSpace]" : not found in the library."\),
+      SequenceForm[ "abc", " : not found in the library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \($Failed\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?putSystem\)\)], "Input"],
+
+Cell[BoxData[
+    \("putSystem[sys_Alpha`system, lib_List] puts a system sys (default \
+$result) into the library lib (default $library). If the system already exist \
+in the library it is replaced, otherwise it is appended."\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(changeOfBasis["\<S.(t->t+2)\>"]; show[]\)], "Input"],
+
+Cell[BoxData[
+    \("system exemple6 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 7<=t} of integer;\nlet\n  S = case\n        {t | t=3} : 0.(t->);\n       \
+ {t | 4<=t} : x.(t->t-3) + y.(t->t-3);\n      esac;\n  z = {t | 5<=t} : \
+S.(t->t+2);\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(putSystem[]; \)\)], "Input"],
+
+Cell[BoxData[
+    InterpretationBox[\("exemple6"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "exemple6", " replaced in library."],
+      Editable->False]], "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2.11. The writeC and writeTex functions", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?writeC\)\)], "Input"],
+
+Cell[BoxData[
+    \("writeC[filename_String] generates C-code from $result to the file \
+filename.  writeC[sys_String,filename_String] generates C-code from file sys \
+to filename.  filename is optional and defaults to \"Alpha.c\".  \
+writeC[filename_String, option_String] and writeC[sys,filename,option] \
+generate C-code filename, with options options sent to the C generator.  \
+Option \"-p num1 num2 ...\" sets Alpha parameters to value num1, num2, etc. \
+The C-code is correct only if all Alpha parameters are assigned values.  The \
+\"-g\" option provides a debug version, where all equation calls are printed \
+out. The \"-s\" option is for the generation of C-code to be interfaced with \
+the Signal language. WARNING: writeC does not work properly for systems with \
+unbounded domains."\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?writeTex\)\)], "Input"],
+
+Cell[BoxData[
+    \("writeTex[] generates the LaTex form of program contained in $result, \
+into file Alpha.tex. writeTex[sys] generates the Latex form of program \
+contained in symbol sys, into file Alpha.tex. writeTex[filename_String] \
+generates the Latex form of program contained in $result, into file filename \
+of the current directory. writeTex[sys,filename_String] generates the Latex \
+form of program contained in symbol sys into file filename of the current \
+directory.   writeTex[...,\"-a\"] produces a program in array notation. \
+Warning: writeTex overwrites an existing output file."\)], "Print"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(writeTex["\<ex6.tex\>"]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(FileNames[]\)], "Input"],
+
+Cell[BoxData[
+    \({"Alpha.c", "Alpha.nb", "Alpha.tex", "CVS", "ex6.tex", "-p", 
+      "Test1.alpha", "Test2.alpha", "toto", "TT.alpha"}\)], "Output"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2.12. The readAlpha function", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?readAlpha\)\)], "Input"],
+
+Cell[BoxData[
+    \("readAlpha[filename_String] parses the ALPHA program in file filename \
+and returns its abstract syntax tree.Does not modify $program or $result."\)],
+   "Print"]
+}, Open  ]],
+
+Cell["\<\
+The readAlpha function does not change $result, nor $library.\
+\>", 
+  "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(readAlpha["\<Test1.alpha\>"]\)], "Input"],
+
+Cell[BoxData[
+    \("[exemple5]"\)], "Print"],
+
+Cell[BoxData[
+    \({system["exemple5", 
+        domain[0, {}, {pol[1, 1, 0, 0, {{1, 1}}, {{1, 1}}]}], {
+          decl["x", integer, 
+            domain[1, {"t"}, {
+                pol[1, 2, 0, 1, {{1, 0, 1}}, {{0, 1, 0}, {1, 0, 1}}]}]], 
+          decl["y", integer, 
+            domain[1, {"t"}, {
+                pol[1, 2, 0, 1, {{1, 0, 1}}, {{0, 1, 0}, {1, 0, 1}}]}]]}, {
+          decl["z", integer, 
+            domain[1, {"t"}, {
+                pol[2, 2, 0, 
+                  0, {{1, 1, \(-5\)}, {1, 0, 1}}, {{1, 1, 0}, {1, 5, 
+                      1}}]}]]}, {
+          decl["S", integer, 
+            domain[1, {"t"}, {
+                pol[2, 2, 0, 
+                  0, {{1, 1, \(-5\)}, {1, 0, 1}}, {{1, 1, 0}, {1, 5, 
+                      1}}]}]]}, {
+          equation["S", 
+            case[{restrict[
+                  domain[1, {"t"}, {
+                      pol[2, 1, 1, 
+                        0, {{0, 1, \(-1\)}, {1, 0, 1}}, {{1, 1, 1}}]}], 
+                  affine[const[0], matrix[1, 2, {"t"}, {{0, 1}}]]], 
+                restrict[
+                  domain[1, {"t"}, {
+                      pol[2, 2, 0, 
+                        0, {{1, 1, \(-2\)}, {1, 0, 1}}, {{1, 1, 0}, {1, 2, 
+                            1}}]}], 
+                  binop[add, 
+                    affine[var["x"], 
+                      matrix[2, 2, {"t"}, {{1, \(-1\)}, {0, 1}}]], 
+                    affine[var["y"], 
+                      matrix[2, 2, {"t"}, {{1, \(-1\)}, {0, 1}}]]]]}]], 
+          equation["z", 
+            restrict[
+              domain[1, {"t"}, {
+                  pol[2, 2, 0, 
+                    0, {{1, 1, \(-5\)}, {1, 0, 1}}, {{1, 1, 0}, {1, 5, 
+                        1}}]}], 
+              affine[var["S"], matrix[2, 2, {"t"}, {{1, 0}, {0, 1}}]]]]}]}
+      \)], "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2.13. The readExp, readDom, readMat function", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?readExp\)\)], "Input"],
+
+Cell[BoxData[
+    \("readExp[exp_String]  Parses the ALPHA expression string exp and \
+returns its abstact syntax tree. readExp[exp_String, parametersNames_List] or \
+readExp[exp_String, parametersdomain_Alpha`domain] are used  to parse a \
+parametric expression. In that case, it is mandatory to supply the parameters \
+domain parameterdomain or the  parameters names parametersNames. Example: \
+readExp[\"A.(i,j,N->N,N) + B.(i,N->i,N)\"]; readExp[\"A.(i,j->N) + \
+B.(i->i)\", {\"N\"}]; readExp[\"A.(i,j->N) + B.(i->i)\", \
+Alpha`domain[1,{\"N\"}, ...] ];"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(readExp["\<A+B\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(binop[add, var["A"], var["B"]]\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(readExp["\<{i|i=2}\>"]\)], "Input"],
+
+Cell[BoxData[
+    \("\n? line 1: parse error\n"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?readDom\)\)], "Input"],
+
+Cell[BoxData[
+    \("readDom[domain_String] Parses an ALPHA domain string domain and \
+returns its abstact syntax tree.  To parse a parametric domain like \
+\\{i\\|i<N\\}, it is mandatory to supply the parameter domain \
+parametersDomain or the parameters names parametersNames: \
+readDom[domain_String, parametersNames_List] or  readDom[domain_String, \
+parametersDomain_Alpha`domain]. Example: readDom[\"\\{i,j,N \\| ... \\}\"];  \
+readDom[\"\\{i,j \\| ... \\}\", \\{\"N\"\\}]; readDom[\"\\{i,j | ... \
+\\}\",Alpha`domain[1,\\{\"N\"\\}, ...] ]"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(readDom["\<{i|i=2}\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(domain[
+      1, {"i"}, {pol[2, 1, 1, 0, {{0, 1, \(-2\)}, {1, 0, 1}}, {{1, 2, 1}}]}]
+      \)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?readMat\)\)], "Input"],
+
+Cell[BoxData[
+    \("readMat[dep_String] Parses an ALPHA dependency string <dep> and \
+returns its matrix abstract syntax tree.  To parse a parametric dependancy \
+like (i,j->N), it is mandatory to supply the parameter domain \
+parametersDomain or the parameter Names  parametersNames: \
+readMat[dep_String,parametersNames_List] or  readMat[dep_String, \
+parametersDomain_Alpha`domain]. Example of use: readMat[\"(i,j,N->i)\"]\n \
+readMat[\"(i,j->i)\", {\"N\"}]; readMat[\"(i,j->i)\",Alpha`domain[1,{\"N\"}, \
+...] ]"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(readMat["\<(i,j->i+3,2j)\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(matrix[3, 3, {"i", "j"}, {{1, 0, 3}, {0, 2, 0}, {0, 0, 1}}]\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(testFunction[readMat["\<(i,j->i+3,2j)\>"], \ 
+      matrix[3, 3, {"\<i\>", "\<j\>"}, {{1, 0, 3}, {0, 2, 0}, {0, 0, 1}}], \ 
+      "\<Alpha xx\>"]; testFunction[readMat[1, 2], Null, "\<Alpha xx\>"]\)], 
+  "Input"],
+
+Cell[BoxData[
+    InterpretationBox[\("Passed test "\[InvisibleSpace]"Alpha xx"\),
+      SequenceForm[ "Passed test ", "Alpha xx"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(readMat::"params" \( : \ \) "called with wrong parameters"\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("Passed test "\[InvisibleSpace]"Alpha xx"\),
+      SequenceForm[ "Passed test ", "Alpha xx"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(True\)], "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2.13. The reinstall function", "Subsubsection"],
+
+Cell["This function is only needed on MacOS.", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?reinstall\)\)], "Input"],
+
+Cell[BoxData[
+    \("reinstall[] kills the links to writeAlpha and parseAlpha, and \
+reinstalls them. reinstall[\"Domlib\"], reinstall[\"readAlpha\"], and \
+reinstall[\"writeAlpha\"] reinstall respectively the Domlib, the program \
+readAlpha and writeAlpha. Warning, work on MaOs only"\)], "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2.13. The astQ function", "Subsubsection"],
+
+Cell["This function is only needed on MacOS.", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?astQ\)\)], "Input"],
+
+Cell[BoxData[
+    \("astQ[param] is True if param is an AST, False otherwise."\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(load["\<TT.alpha\>"]; \)\)], "Input"],
+
+Cell[BoxData[
+    \("[exemple5][exemple6]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(astQ[$result]\)], "Input"],
+
+Cell[BoxData[
+    \(True\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(astQ[22]\)], "Input"],
+
+Cell[BoxData[
+    \(show::"empty" \( : \ \) "empty object to show"\)], "Message"],
+
+Cell[BoxData[
+    \(False\)], "Output"]
+}, Open  ]]
+}, Closed]]
+}, Closed]]
+}, Open  ]],
+
+Cell["3. Test", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(tests["\<Alpha\>"]\)], "Input"],
+
+Cell[BoxData[
+    \("/Users/quinton/mmalpha/tests/"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Calling Test"\[InvisibleSpace]"Alpha.m"\),
+      SequenceForm[ "Calling Test", "Alpha.m"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Test for Alpha.m"\)], "Print"],
+
+Cell[BoxData[
+    \("[exemple5]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 1"\),
+      SequenceForm[ "--------> Passed test ", "Alpha 1"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(load::"param" \(\(:\)\(\ \)\) 
+      "should be called with a file name"\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 2"\),
+      SequenceForm[ "--------> Passed test ", "Alpha 2"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("system exemple5 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 5<=t} of integer;\nlet\n  S = case\n        {t | t=1} : 0.(t->);\n       \
+ {t | 2<=t} : x.(t->t-1) + y.(t->t-1);\n      esac;\n  z = {t | 5<=t} : \
+S.(t->t);\ntel;"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 3"\),
+      SequenceForm[ "--------> Passed test ", "Alpha 3"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(show::"empty" \(\(:\)\(\ \)\) "empty object to show"\)], "Message"],
+
+Cell[BoxData[
+    \({}\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 4"\),
+      SequenceForm[ "--------> Passed test ", "Alpha 4"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 7"\),
+      SequenceForm[ "--------> Passed test ", "Alpha 7"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 8"\),
+      SequenceForm[ "--------> Passed test ", "Alpha 8"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("system exemple5 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 5<=t} of integer;\nlet\n  S[t] = \n      case\n        { | t=1} : 0[];\n \
+       { | 2<=t} : x[t-1] + y[t-1];\n      esac;\n  z[t] = { | 5<=t} : S[t];\n\
+tel;"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 9"\),
+      SequenceForm[ "--------> Passed test ", "Alpha 9"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("param:"\[InvisibleSpace]22\),
+      SequenceForm[ "param:", 22],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(show::"error" \(\(:\)\(\ \)\) 
+      "error while showing program or expression"\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 10"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 10"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 11"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 11"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 12"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 12"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("\n? line 1: parse error\n"\)], "Print"],
+
+Cell[BoxData[
+    \(load::"notalpha" \(\(:\)\(\ \)\) 
+      "file was not an ALPHA system"\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 13"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 13"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(save::"params" \(\(:\)\(\ \)\) 
+      "called with wrong parameters."\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 14"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 14"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[exemple5]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 15"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 15"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(asave::"params" \(\(:\)\(\ \)\) 
+      "called with wrong parameters."\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 16"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 16"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[exemple5][exemple6]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("[exemple5][exemple6]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 17"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 17"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[exemple5][exemple6]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 18"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 18"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[exemple5][exemple6]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha  \
+19"\),
+      SequenceForm[ "--------> Passed test ", "Alpha  19"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(getPart::"params" \(\(:\)\(\ \)\) 
+      "called with wrong parameters."\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 20"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 20"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    RowBox[{\(Part::"partw"\), \(\(:\)\(\ \)\), "\<\"Part \\!\\(12\\) of \
+\\!\\(system[\\(\\(\\\"exemple6\\\", \\(\\(\[LeftSkeleton] 4 \[RightSkeleton]\
+\\)\\), \\(\\({\\(\\(equation[\\(\\(\\\"S\\\", \\(\\(case[\\(\\({\\(\\(\
+\[LeftSkeleton] 1 \[RightSkeleton]\\)\\), \
+\\(\\(restrict[\\(\\(\[LeftSkeleton] 1 \
+\[RightSkeleton]\\)\\)]\\)\\)}\\)\\)]\\)\\)\\)\\)]\\)\\), \\(\\(\
+\[LeftSkeleton] 1 \[RightSkeleton]\\)\\)}\\)\\)\\)\\)]\\) does not exist. \\!\
+\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::partw\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    \(getPart::"wrgpos" \(\(:\)\(\ \)\) 
+      "position out of expression."\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 21"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 21"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 22"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 22"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(getSystem::"params" \(\(:\)\(\ \)\) 
+      "called with wrong parameters."\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 23"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 23"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("abc"\[InvisibleSpace]" : not found in the \
+library."\),
+      SequenceForm[ "abc", " : not found in the library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 24"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 24"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("exemple6"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "exemple6", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 25"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 25"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(putSystem::"params" \(\(:\)\(\ \)\) 
+      "called with wrong parameters."\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 26"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 26"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[exemple5]"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 27"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 27"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(readAlpha::"params" \(\(:\)\(\ \)\) 
+      "should be called with a file name"\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 28"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 28"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 29"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 29"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(readExp::"params" \(\(:\)\(\ \)\) 
+      "called with wrong parameters"\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 30"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 30"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("\n? line 1: parse error\n"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 31"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 31"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 32"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 32"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(readDom::"params" \(\(:\)\(\ \)\) 
+      "called with wrong parameters"\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 33"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 33"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 34"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 34"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(readMat::"params" \(\(:\)\(\ \)\) 
+      "called with wrong parameters"\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha 35"\),
+      
+      SequenceForm[ "--------> Passed test ", "Alpha 35"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Testing writeC"\)], "Print"],
+
+Cell[BoxData[
+    \("[prodVect]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("? Wrong number of parameters in -p switch.\n"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"writeC 1"\),
+      
+      SequenceForm[ "--------> Passed test ", "writeC 1"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Testing Zpols"\)], "Print"],
+
+Cell[BoxData[
+    \("[Zpol1]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha Zpol \
+1"\),
+      SequenceForm[ "--------> Passed test ", "Alpha Zpol 1"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[ZpolParam]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha Zpol \
+2"\),
+      SequenceForm[ "--------> Passed test ", "Alpha Zpol 2"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[ZpolParam]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha Zpol \
+3"\),
+      SequenceForm[ "--------> Passed test ", "Alpha Zpol 3"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[ZpolNoSquareIntMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha Zpol \
+4"\),
+      SequenceForm[ "--------> Passed test ", "Alpha Zpol 4"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[neg][ZpolArrayNot]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha Zpol \
+5"\),
+      SequenceForm[ "--------> Passed test ", "Alpha Zpol 5"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[neg][ZpolArrayNot]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("[neg][ZpolArrayNot]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha Zpol \
+6"\),
+      SequenceForm[ "--------> Passed test ", "Alpha Zpol 6"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"Alpha Zpol \
+7"\),
+      SequenceForm[ "--------> Passed test ", "Alpha Zpol 7"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("**** Test OK for Alpha.m "\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("------------- > Test for "\[InvisibleSpace]"Alpha"\
+\[InvisibleSpace]" was passed successfully."\),
+      SequenceForm[ 
+      "------------- > Test for ", "Alpha", " was passed successfully."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(True\)], "Output"]
+}, Closed]]
+},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1440}, {0, 835}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+CellGrouping->Manual,
+WindowSize->{937, 520},
+WindowMargins->{{18, Automatic}, {75, Automatic}},
+PrintingCopies->1,
+PrintingPageRange->{1, 9999},
+PageHeaders->{{Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"], Inherited, Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"]}, {Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"], Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"]}},
+PrintingOptions->{"PaperSize"->{612, 792},
+"PaperOrientation"->"Portrait",
+"FirstPageHeader"->False,
+"FirstPageFooter"->False,
+"FacingPages"->True,
+"Magnification"->1},
+ShowSelection->True,
+Magnification->1.5,
+StyleDefinitions -> "Default.nb"
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{
+  "firstcell"->{
+    Cell[1776, 53, 95, 2, 132, "Title",
+      CellTags->"firstcell"]},
+  "Info3407669575-7249216"->{
+    Cell[2837, 101, 204, 3, 58, "Print",
+      CellTags->"Info3407669575-7249216"]},
+  "Info3407669599-8839355"->{
+    Cell[3113, 111, 156, 3, 58, "Print",
+      CellTags->"Info3407669599-8839355"]},
+  "Info3407669603-2726621"->{
+    Cell[3341, 121, 141, 3, 34, "Print",
+      CellTags->"Info3407669603-2726621"]},
+  "Info3407669606-5127252"->{
+    Cell[3567, 132, 340, 5, 106, "Print",
+      CellTags->"Info3407669606-5127252"]},
+  "Info3407669609-4494423"->{
+    Cell[3993, 145, 321, 5, 106, "Print",
+      CellTags->"Info3407669609-4494423"]},
+  "Info3407669612-3603803"->{
+    Cell[4400, 158, 260, 4, 82, "Print",
+      CellTags->"Info3407669612-3603803"]},
+  "Info3407669615-4010012"->{
+    Cell[4747, 170, 662, 9, 274, "Print",
+      CellTags->"Info3407669615-4010012"]},
+  "Info3407669621-2305458"->{
+    Cell[5663, 197, 314, 5, 106, "Print",
+      CellTags->"Info3407669621-2305458"]},
+  "Info3407669634-9671600"->{
+    Cell[6647, 231, 377, 6, 130, "Print",
+      CellTags->"Info3407669634-9671600"]},
+  "Info3407669639-4448657"->{
+    Cell[7646, 263, 127, 2, 34, "Print",
+      CellTags->"Info3407669639-4448657"]},
+  "Info3407669643-8078762"->{
+    Cell[8296, 295, 254, 4, 82, "Print",
+      CellTags->"Info3407669643-8078762"]}
+  }
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{
+  {"firstcell", 42310, 1467},
+  {"Info3407669575-7249216", 42411, 1470},
+  {"Info3407669599-8839355", 42526, 1473},
+  {"Info3407669603-2726621", 42641, 1476},
+  {"Info3407669606-5127252", 42756, 1479},
+  {"Info3407669609-4494423", 42872, 1482},
+  {"Info3407669612-3603803", 42988, 1485},
+  {"Info3407669615-4010012", 43103, 1488},
+  {"Info3407669621-2305458", 43219, 1491},
+  {"Info3407669634-9671600", 43335, 1494},
+  {"Info3407669639-4448657", 43451, 1497},
+  {"Info3407669643-8078762", 43566, 1500}
+  }
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 95, 2, 132, "Title",
+  CellTags->"firstcell"],
+Cell[1874, 57, 38, 0, 45, "Subsubtitle"],
+Cell[1915, 59, 70, 1, 39, "Input"],
+Cell[1988, 62, 97, 3, 62, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2110, 69, 106, 1, 40, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2241, 74, 112, 2, 39, "Input",
+  InitializationCell->True],
+Cell[2356, 78, 77, 1, 40, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2482, 85, 66, 1, 104, "Section"],
+Cell[2551, 88, 206, 6, 73, "Text"],
+
+Cell[CellGroupData[{
+Cell[2782, 98, 52, 1, 39, "Input"],
+Cell[2837, 101, 204, 3, 58, "Print",
+  CellTags->"Info3407669575-7249216"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3078, 109, 32, 0, 38, "Input"],
+Cell[3113, 111, 156, 3, 58, "Print",
+  CellTags->"Info3407669599-8839355"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3306, 119, 32, 0, 38, "Input"],
+Cell[3341, 121, 141, 3, 34, "Print",
+  CellTags->"Info3407669603-2726621"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3519, 129, 45, 1, 39, "Input"],
+Cell[3567, 132, 340, 5, 106, "Print",
+  CellTags->"Info3407669606-5127252"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3944, 142, 46, 1, 39, "Input"],
+Cell[3993, 145, 321, 5, 106, "Print",
+  CellTags->"Info3407669609-4494423"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4351, 155, 46, 1, 39, "Input"],
+Cell[4400, 158, 260, 4, 82, "Print",
+  CellTags->"Info3407669612-3603803"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4697, 167, 47, 1, 39, "Input"],
+Cell[4747, 170, 662, 9, 274, "Print",
+  CellTags->"Info3407669615-4010012"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5458, 185, 63, 1, 57, "Section"],
+
+Cell[CellGroupData[{
+Cell[5546, 190, 47, 0, 41, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[5618, 194, 42, 1, 39, "Input"],
+Cell[5663, 197, 314, 5, 106, "Print",
+  CellTags->"Info3407669621-2305458"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6014, 207, 61, 1, 39, "Input"],
+Cell[6078, 210, 350, 5, 562, "Print"],
+Cell[6431, 217, 50, 1, 34, "Print"]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6530, 224, 47, 0, 41, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[6602, 228, 42, 1, 39, "Input"],
+Cell[6647, 231, 377, 6, 130, "Print",
+  CellTags->"Info3407669634-9671600"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7061, 242, 53, 1, 39, "Input"],
+Cell[7117, 245, 357, 5, 304, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7523, 256, 50, 0, 41, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[7598, 260, 45, 1, 39, "Input"],
+Cell[7646, 263, 127, 2, 34, "Print",
+  CellTags->"Info3407669639-4448657"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7810, 270, 81, 1, 39, "Input"],
+Cell[7894, 273, 49, 1, 34, "Print"],
+Cell[7946, 276, 178, 6, 59, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[8173, 288, 50, 0, 41, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[8248, 292, 45, 1, 39, "Input"],
+Cell[8296, 295, 254, 4, 82, "Print",
+  CellTags->"Info3407669643-8078762"]
+}, Open  ]],
+Cell[8565, 302, 42, 1, 39, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[8644, 308, 48, 0, 41, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[8717, 312, 43, 1, 39, "Input"],
+Cell[8763, 315, 177, 3, 58, "Print"],
+
+Cell[CellGroupData[{
+Cell[8965, 322, 40, 1, 39, "Input"],
+Cell[9008, 325, 348, 5, 322, "Print"]
+}, Open  ]]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[9417, 337, 51, 0, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[9493, 341, 46, 1, 39, "Input"],
+Cell[9542, 344, 247, 4, 106, "Print"]
+}, Open  ]],
+Cell[9804, 351, 43, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[9884, 357, 47, 0, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[9956, 361, 42, 1, 39, "Input"],
+Cell[10001, 364, 228, 3, 82, "Print"]
+}, Open  ]],
+Cell[10244, 370, 53, 1, 39, "Input"],
+
+Cell[CellGroupData[{
+Cell[10322, 375, 62, 1, 39, "Input"],
+Cell[10387, 378, 45, 1, 34, "Print"],
+Cell[10435, 381, 50, 1, 34, "Print"],
+Cell[10488, 384, 348, 5, 322, "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[10885, 395, 48, 0, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[10958, 399, 43, 1, 39, "Input"],
+Cell[11004, 402, 224, 3, 82, "Print"]
+}, Open  ]],
+Cell[11243, 408, 54, 1, 39, "Input"],
+
+Cell[CellGroupData[{
+Cell[11322, 413, 62, 1, 39, "Input"],
+Cell[11387, 416, 45, 1, 34, "Print"],
+Cell[11435, 419, 50, 1, 34, "Print"],
+Cell[11488, 422, 348, 5, 322, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[11873, 432, 39, 1, 39, "Input"],
+Cell[11915, 435, 91, 1, 33, "Message"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[12055, 442, 64, 0, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[12144, 446, 45, 1, 39, "Input"],
+Cell[12192, 449, 233, 3, 82, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[12462, 457, 46, 1, 39, "Input"],
+Cell[12511, 460, 230, 3, 82, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[12778, 468, 62, 1, 39, "Input"],
+Cell[12843, 471, 55, 1, 34, "Print"],
+Cell[12901, 474, 50, 1, 34, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[12988, 480, 86, 1, 39, "Input"],
+Cell[13077, 483, 55, 1, 34, "Print"],
+Cell[13135, 486, 50, 1, 34, "Print"],
+Cell[13188, 489, 356, 5, 298, "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[13593, 500, 50, 0, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[13668, 504, 45, 1, 39, "Input"],
+Cell[13716, 507, 470, 6, 178, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[14223, 518, 57, 1, 39, "Input"],
+Cell[14283, 521, 71, 1, 40, "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[14403, 528, 68, 0, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[14496, 532, 47, 1, 39, "Input"],
+Cell[14546, 535, 280, 4, 106, "Print"]
+}, Open  ]],
+Cell[14841, 542, 196, 4, 73, "Text"],
+
+Cell[CellGroupData[{
+Cell[15062, 550, 62, 1, 39, "Input"],
+Cell[15127, 553, 55, 1, 34, "Print"],
+Cell[15185, 556, 50, 1, 34, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[15272, 562, 46, 1, 39, "Input"],
+Cell[15321, 565, 356, 5, 298, "Print"]
+}, Open  ]],
+Cell[15692, 573, 42, 1, 39, "Input"],
+Cell[15737, 576, 65, 0, 46, "Text"],
+
+Cell[CellGroupData[{
+Cell[15827, 580, 66, 1, 39, "Input"],
+Cell[15896, 583, 356, 5, 286, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[16289, 593, 53, 1, 39, "Input"],
+Cell[16345, 596, 194, 4, 33, "Print"],
+Cell[16542, 602, 41, 1, 39, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[16620, 608, 47, 1, 39, "Input"],
+Cell[16670, 611, 238, 3, 79, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[16945, 619, 72, 1, 39, "Input"],
+Cell[17020, 622, 358, 5, 286, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[17415, 632, 50, 1, 39, "Input"],
+Cell[17468, 635, 183, 3, 33, "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[17700, 644, 64, 0, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[17789, 648, 44, 1, 39, "Input"],
+Cell[17836, 651, 809, 11, 298, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[18682, 667, 46, 1, 39, "Input"],
+Cell[18731, 670, 613, 8, 226, "Print"]
+}, Open  ]],
+Cell[19359, 681, 56, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[19452, 687, 44, 1, 32, "Input"],
+Cell[19499, 690, 151, 2, 64, "Output"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[19687, 697, 53, 0, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[19765, 701, 47, 1, 39, "Input"],
+Cell[19815, 704, 182, 3, 82, "Print"]
+}, Open  ]],
+Cell[20012, 710, 88, 3, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[20125, 717, 61, 1, 39, "Input"],
+Cell[20189, 720, 45, 1, 34, "Print"],
+Cell[20237, 723, 1806, 42, 472, "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[22092, 771, 69, 0, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[22186, 775, 45, 1, 39, "Input"],
+Cell[22234, 778, 570, 8, 226, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[22841, 791, 51, 1, 39, "Input"],
+Cell[22895, 794, 64, 1, 40, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[22996, 800, 55, 1, 39, "Input"],
+Cell[23054, 803, 60, 1, 82, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[23151, 809, 45, 1, 39, "Input"],
+Cell[23199, 812, 559, 8, 194, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[23795, 825, 55, 1, 39, "Input"],
+Cell[23853, 828, 125, 3, 39, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[24015, 836, 45, 1, 39, "Input"],
+Cell[24063, 839, 530, 8, 194, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[24630, 852, 61, 1, 39, "Input"],
+Cell[24694, 855, 93, 1, 39, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[24824, 861, 232, 4, 85, "Input"],
+Cell[25059, 867, 165, 3, 33, "Print"],
+Cell[25227, 872, 93, 1, 33, "Message"],
+Cell[25323, 875, 165, 3, 33, "Print"],
+Cell[25491, 880, 38, 1, 39, "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[25578, 887, 53, 0, 30, "Subsubsection"],
+Cell[25634, 889, 54, 0, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[25713, 893, 47, 1, 39, "Input"],
+Cell[25763, 896, 298, 4, 106, "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[26110, 906, 48, 0, 30, "Subsubsection"],
+Cell[26161, 908, 54, 0, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[26240, 912, 42, 1, 39, "Input"],
+Cell[26285, 915, 91, 1, 34, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[26413, 921, 59, 1, 39, "Input"],
+Cell[26475, 924, 55, 1, 34, "Print"],
+Cell[26533, 927, 50, 1, 34, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[26620, 933, 46, 1, 39, "Input"],
+Cell[26669, 936, 38, 1, 40, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[26744, 942, 41, 1, 39, "Input"],
+Cell[26788, 945, 81, 1, 30, "Message"],
+Cell[26872, 948, 39, 1, 40, "Output"]
+}, Open  ]]
+}, Closed]]
+}, Closed]]
+}, Open  ]],
+Cell[26962, 955, 58, 1, 104, "Section"],
+
+Cell[CellGroupData[{
+Cell[27045, 960, 51, 1, 32, "Input"],
+Cell[27099, 963, 64, 1, 34, "Print"],
+Cell[27166, 966, 163, 3, 34, "Print"],
+Cell[27332, 971, 51, 1, 34, "Print"],
+Cell[27386, 974, 45, 1, 34, "Print"],
+Cell[27434, 977, 50, 1, 34, "Print"],
+Cell[27487, 980, 183, 3, 34, "Print"],
+Cell[27673, 985, 107, 2, 30, "Message"],
+Cell[27783, 989, 183, 3, 34, "Print"],
+Cell[27969, 994, 356, 5, 298, "Print"],
+Cell[28328, 1001, 183, 3, 34, "Print"],
+Cell[28514, 1006, 87, 1, 30, "Message"],
+Cell[28604, 1009, 35, 1, 34, "Print"],
+Cell[28642, 1012, 183, 3, 34, "Print"],
+Cell[28828, 1017, 183, 3, 34, "Print"],
+Cell[29014, 1022, 183, 3, 34, "Print"],
+Cell[29200, 1027, 351, 5, 322, "Print"],
+Cell[29554, 1034, 183, 3, 34, "Print"],
+Cell[29740, 1039, 137, 3, 34, "Print"],
+Cell[29880, 1044, 115, 2, 30, "Message"],
+Cell[29998, 1048, 192, 4, 34, "Print"],
+Cell[30193, 1054, 192, 4, 34, "Print"],
+Cell[30388, 1060, 192, 4, 34, "Print"],
+Cell[30583, 1066, 60, 1, 82, "Print"],
+Cell[30646, 1069, 105, 2, 30, "Message"],
+Cell[30754, 1073, 192, 4, 34, "Print"],
+Cell[30949, 1079, 104, 2, 30, "Message"],
+Cell[31056, 1083, 192, 4, 34, "Print"],
+Cell[31251, 1089, 45, 1, 34, "Print"],
+Cell[31299, 1092, 50, 1, 34, "Print"],
+Cell[31352, 1095, 192, 4, 34, "Print"],
+Cell[31547, 1101, 105, 2, 30, "Message"],
+Cell[31655, 1105, 192, 4, 34, "Print"],
+Cell[31850, 1111, 55, 1, 34, "Print"],
+Cell[31908, 1114, 50, 1, 34, "Print"],
+Cell[31961, 1117, 55, 1, 34, "Print"],
+Cell[32019, 1120, 50, 1, 34, "Print"],
+Cell[32072, 1123, 192, 4, 34, "Print"],
+Cell[32267, 1129, 55, 1, 34, "Print"],
+Cell[32325, 1132, 50, 1, 34, "Print"],
+Cell[32378, 1135, 192, 4, 34, "Print"],
+Cell[32573, 1141, 55, 1, 34, "Print"],
+Cell[32631, 1144, 50, 1, 34, "Print"],
+Cell[32684, 1147, 189, 4, 34, "Print"],
+Cell[32876, 1153, 107, 2, 30, "Message"],
+Cell[32986, 1157, 192, 4, 34, "Print"],
+Cell[33181, 1163, 632, 10, 68, "Message"],
+Cell[33816, 1175, 105, 2, 30, "Message"],
+Cell[33924, 1179, 192, 4, 34, "Print"],
+Cell[34119, 1185, 192, 4, 34, "Print"],
+Cell[34314, 1191, 109, 2, 30, "Message"],
+Cell[34426, 1195, 192, 4, 34, "Print"],
+Cell[34621, 1201, 189, 4, 34, "Print"],
+Cell[34813, 1207, 192, 4, 34, "Print"],
+Cell[35008, 1213, 183, 3, 34, "Print"],
+Cell[35194, 1218, 192, 4, 34, "Print"],
+Cell[35389, 1224, 109, 2, 30, "Message"],
+Cell[35501, 1228, 192, 4, 34, "Print"],
+Cell[35696, 1234, 45, 1, 34, "Print"],
+Cell[35744, 1237, 192, 4, 34, "Print"],
+Cell[35939, 1243, 113, 2, 30, "Message"],
+Cell[36055, 1247, 192, 4, 34, "Print"],
+Cell[36250, 1253, 192, 4, 34, "Print"],
+Cell[36445, 1259, 106, 2, 30, "Message"],
+Cell[36554, 1263, 192, 4, 34, "Print"],
+Cell[36749, 1269, 60, 1, 82, "Print"],
+Cell[36812, 1272, 192, 4, 34, "Print"],
+Cell[37007, 1278, 192, 4, 34, "Print"],
+Cell[37202, 1284, 106, 2, 30, "Message"],
+Cell[37311, 1288, 192, 4, 34, "Print"],
+Cell[37506, 1294, 192, 4, 34, "Print"],
+Cell[37701, 1300, 106, 2, 30, "Message"],
+Cell[37810, 1304, 192, 4, 34, "Print"],
+Cell[38005, 1310, 49, 1, 34, "Print"],
+Cell[38057, 1313, 45, 1, 34, "Print"],
+Cell[38105, 1316, 50, 1, 34, "Print"],
+Cell[38158, 1319, 79, 1, 58, "Print"],
+Cell[38240, 1322, 192, 4, 34, "Print"],
+Cell[38435, 1328, 48, 1, 34, "Print"],
+Cell[38486, 1331, 42, 1, 34, "Print"],
+Cell[38531, 1334, 50, 1, 34, "Print"],
+Cell[38584, 1337, 195, 4, 34, "Print"],
+Cell[38782, 1343, 46, 1, 34, "Print"],
+Cell[38831, 1346, 50, 1, 34, "Print"],
+Cell[38884, 1349, 195, 4, 34, "Print"],
+Cell[39082, 1355, 46, 1, 34, "Print"],
+Cell[39131, 1358, 50, 1, 34, "Print"],
+Cell[39184, 1361, 195, 4, 34, "Print"],
+Cell[39382, 1367, 55, 1, 34, "Print"],
+Cell[39440, 1370, 50, 1, 34, "Print"],
+Cell[39493, 1373, 195, 4, 34, "Print"],
+Cell[39691, 1379, 54, 1, 34, "Print"],
+Cell[39748, 1382, 50, 1, 34, "Print"],
+Cell[39801, 1385, 195, 4, 34, "Print"],
+Cell[39999, 1391, 54, 1, 34, "Print"],
+Cell[40056, 1394, 50, 1, 34, "Print"],
+Cell[40109, 1397, 54, 1, 34, "Print"],
+Cell[40166, 1400, 50, 1, 34, "Print"],
+Cell[40219, 1403, 195, 4, 34, "Print"],
+Cell[40417, 1409, 195, 4, 34, "Print"],
+Cell[40615, 1415, 60, 1, 34, "Print"],
+Cell[40678, 1418, 267, 5, 34, "Print"],
+Cell[40948, 1425, 38, 1, 40, "Output"]
+}, Closed]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

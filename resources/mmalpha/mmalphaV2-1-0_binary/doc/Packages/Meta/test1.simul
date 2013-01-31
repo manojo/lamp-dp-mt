@@ -1,0 +1,7 @@
+Begin["Alpha`Simul`test1`"];
+Clear[ Alpha`Simul`test1`a, Alpha`Simul`test1`b, Alpha`Simul`test1`c];
+
+    (* Definition of c *)
+    Alpha`Simul`test1`c[f:(_Integer|_Symbol)...] := Plus[ a[f], b[f] ];
+    Alpha`Simul`test1`c[ ___ ] := Message[Alpha`Simul`test1`c::params ];
+End[];

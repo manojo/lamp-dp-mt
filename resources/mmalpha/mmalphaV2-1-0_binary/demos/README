@@ -1,0 +1,64 @@
+demo available (last modif 30/06/95 T.Risset)
+
+INIT : This demo has been set for beginners, it details 
+the basic MMAlpha commands (load, save, analyze)
+
+
+In the NANA directory, are demo prepared for the Nana demo of the
+29/06/95 in Leuven.  
+	-MATVECT derivation of Alpha0 code and code for
+	Madmacs from a system executing the matrix vector
+	product. This demos can be used as a tutorial for
+	transformation of alpha programs
+	
+	-SVD svd code in alpha written by sophie robert.
+	This version uses the subsystems, inlining of subsystems,
+	writing cnf code, writing C code, executing resulting C code. 
+	The svd algorithm used takes as input a rectangualr matrix 
+	and output a vector.
+
+	-SVDUPDATE svd updating code written by sophie robert.
+	uses the subsystem studied in the MATVECT demo. Same as SVD demo
+
+	-VERIF Demos for verifying that the transformations performed
+	in the MATVECT demo are valid. Show the uses of subsystems, and the 
+	use of library of ALpha programs.
+
+FIR : demo prepared for the ASAR project: derivation of Alpha0 code from 
+Alpha code for the FIR (WARNING: at this date (05/09/96), this demo 
+is not working any more).
+
+
+SCHEDULE : demo showing how can be use the schedule[] function.
+
+
+ZPOL : demo showing the use of the function defined for computations 
+on Z-polyhedra in the Zpol.m package.
+
+
+BINMULT : demo showing the complete synthesis of a bit-serial
+          parameterized multiplier.
+   Loads in a specification (in several systems), simulates it, serializes it,
+   flattens it, schedules and space/time transforms it, and simulates again
+   the resulting abstract systolic again.
+   Details to be found in Florent de Dinechin's thesis.
+ 
+
+Files to be kept (those which are not indented)
+
+Some of the demo directories could be reused in some demos notebooks.
+
+   drwxrwxrwx   2 quinton  5               0 Nov  9 10:02 BINMULT
+drwxrwxrwx   2 quinton  5               0 Jan 23 17:24 CVS
+   drwxrwxrwx   2 quinton  5               0 Nov  9 10:03 ESTIMATION
+   drwxrwxrwx   2 quinton  5               0 Nov  9 10:03 FIR
+   drwxrwxrwx   2 quinton  5               0 Nov 11 16:32 INIT
+   drwxrwxrwx   2 quinton  5               0 Nov  9 10:08 NANA
+drwxrwxrwx   2 quinton  5               0 Jan 24 18:08 NOTEBOOKS
+   drwxrwxrwx   2 quinton  5               0 Nov  9 10:09 PORTRAIT
+   -r--r--r--   1 quinton  5            1723 Jan 23 17:24 README
+   drwxrwxrwx   2 quinton  5               0 Nov  9 10:09 SCHEDULE
+   drwxrwxrwx   2 quinton  5               0 Nov  9 10:09 VHDL
+   drwxrwxrwx   2 quinton  5               0 Nov  9 10:10 ZPOL
+   -r--r--r--   1 quinton  5             795 Jan 23 17:24 demos.html
+-r--r--r--   1 quinton  5            1002 Dec 27 17:00 index.html

@@ -1,0 +1,3 @@
+-- VHDL Model Created for system "definition.vhd" 
+-- 29/12/2008 10:40:27.357685
+-- by Alpha2Vhdl Version 0.9 

@@ -1,0 +1,26 @@
+system fir :   {N,M | 3<=N<=M-1}
+               (x : {i | 1<=i<=M} of integer; 
+                H : {n | 0<=n<=N-1} of integer)
+       returns (res : {i | N<=i<=M} of integer);
+var
+  pipeCx1 : {t,p | p+1<=t<=(p+M,N+M); 2<=p<=M; 3<=N<=M-1} of integer;
+  pipeCH1 : {t,p | M+1<=t<=N+M; 2<=p<=M; 3<=N<=M-1} of integer;
+  ser1 : {t,p | M<=t<=N+M; N<=p<=M} of integer;
+let
+  pipeCx1[t,p] = 
+      case
+        { | 3<=t<=M+2; p=2; 3<=N<=M-1} : x[-t+p+M+1];
+        { | p+1<=t<=(N+M,p+M); 3<=p<=M; 3<=N<=M-1} : pipeCx1[t-1,p-1];
+      esac;
+  pipeCH1[t,p] = 
+      case
+        { | M+1<=t<=N+M; p=2; 3<=N<=M-1} : H[t-M-1];
+        { | M+1<=t<=N+M; 3<=p<=M; 3<=N<=M-1} : pipeCH1[t,p-1];
+      esac;
+  ser1[t,p] = 
+      case
+        { | t=M} : 0[];
+        { | M+1<=t} : ser1[t-1,p] + pipeCH1 * pipeCx1;
+      esac;
+  res[i] = ser1[N+M,i];
+tel;

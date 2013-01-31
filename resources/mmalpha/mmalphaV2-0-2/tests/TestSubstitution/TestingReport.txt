@@ -1,0 +1,205 @@
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:07:45
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:08:52
+Calling TestSubstitution.m
+****** > test Substitution 12 was wrong
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:09:25
+Calling TestSubstitution.m
+****** > test Substitution 12 was wrong
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:11:54
+Calling TestSubstitution.m
+****** > test Substitution 12 was wrong
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:13:15
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:15:04
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:16:24
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:17:01
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:17:50
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:18:00
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:19:12
+Calling TestSubstitution.m
+****** > test Substitution 15 was wrong
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:19:26
+Calling TestSubstitution.m
+****** > test Substitution 15 was wrong
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:19:51
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:20:48
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:20:52
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:22:29
+Calling TestSubstitution.m
+****** > test Substitution 17 was wrong
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:23:41
+Calling TestSubstitution.m
+****** > test Substitution 17 was wrong
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:24:51
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:26:06
+Calling TestSubstitution.m
+****** > test Substitution 18 was wrong
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:26:26
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:29:27
+Calling TestSubstitution.m
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:30:18
+Calling TestSubstitution.m
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:31:32
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:31:52
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:32:05
+Calling TestSubstitution.m
+****** > test Substitution 29 was wrong
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:38:20
+Calling TestSubstitution.m
+****** > test Substitution 27 was wrong
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:39:09
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Thu 25 Dec 2008 18:39:24
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: CutMMA
+Date: Thu 25 Dec 2008 18:40:43
+Calling TestCutMMA.m
+End of test
+------> Testing: Substitution
+Date: Fri 26 Dec 2008 08:56:53
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Fri 26 Dec 2008 09:06:23
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Fri 26 Dec 2008 09:06:29
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Fri 26 Dec 2008 09:07:12
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Fri 26 Dec 2008 09:08:36
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Fri 26 Dec 2008 10:21:40
+Calling TestSubstitution.m
+****** > test Substitution 2 was wrong
+****** > test Substitution 6 was wrong
+End of test
+------> Testing: Substitution
+Date: Fri 26 Dec 2008 10:22:32
+Calling TestSubstitution.m
+****** > test Substitution 6 was wrong
+End of test
+------> Testing: Substitution
+Date: Fri 26 Dec 2008 10:23:54
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Normalize
+Date: Fri 26 Dec 2008 10:27:17------> Testing: Normalization
+Date: Fri 26 Dec 2008 10:27:58
+Calling TestNormalization.m
+------------- > Test for Normalization was passed successfully.
+End of test
+------> Testing: Normaliz
+Date: Fri 26 Dec 2008 10:28:15------> Testing: Normaliz
+Date: Fri 26 Dec 2008 10:40:57------> Testing: Normaliz
+Date: Fri 26 Dec 2008 10:41:28------> Testing: Normaliz
+Date: Fri 26 Dec 2008 10:44:26------> Testing: Normaliz
+Date: Fri 26 Dec 2008 10:44:52------> Testing: Normaliz
+Date: Fri 26 Dec 2008 10:44:56------> Testing: Normaliz
+Date: Fri 26 Dec 2008 10:45:17------> Testing: Normaliz
+Date: Fri 26 Dec 2008 10:45:20------> Testing: Normaliz
+Date: Fri 26 Dec 2008 10:45:22------> Testing: Normaliz
+Date: Fri 26 Dec 2008 10:47:44------> Testing: Normaliz
+Date: Fri 26 Dec 2008 10:47:49------> Testing: Normalization
+Date: Fri 26 Dec 2008 10:47:52
+Calling TestNormalization.m
+------------- > Test for Normalization was passed successfully.
+End of test

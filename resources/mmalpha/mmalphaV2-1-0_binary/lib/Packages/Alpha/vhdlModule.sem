@@ -1,0 +1,1840 @@
+BeginPackage["Alpha`vhdlModule`",{"Alpha`",
+                                "Alpha`Domlib`",
+                                "Alpha`Tables`",
+                                "Alpha`Matrix`", 
+                                "Alpha`Options`", 
+                                "Alpha`Vhdl2`", 
+                                "Alpha`Visual`",
+                                "Alpha`VertexSchedule`",
+                                "Alpha`Semantics`",
+                                "Alpha`Static`"}];
+
+(* Standard head for CVS
+
+	$Author: quinton $
+	$Date: 2009/05/22 10:24:36 $
+	$Source: /local/chroot/cvsroot/irisa/mmalpha/lib/Packages/Alpha/vhdlModule.sem,v $
+*)
+(*
+	Semantics of vhdlModule
+*)
+
+VhdlModule::usage = 
+"The Alpha`VhdlModule` package contains the function vhdlModule that 
+allows a Module to be translated to Vhdl. This package consists of 
+two files: vhdlModule.m and vhdlModule.sem.";
+
+vhdlModule::usage = 
+"vhdlModule[sys] generates Vhdl code for an Alpha Module sys. The
+default value of sys is $result.";
+
+vhdlModule::note = 
+"VhdlModule is the semantics associated to the VhdlModule.m which is
+generated automatically from VhdlModule.meta using the Alpha`Meta` 
+package.";
+
+buildType::usage = 
+"buildType[ var, type, domain ] returns an entry describing the type of 
+the variable"; 
+
+semFuncModule::usage = "semantics function.";
+
+dim1ScalarQ::usage = "dim1ScalarQ[ var ] is True if its first dimension is scalar";
+dim2ScalarQ::usage = "dim2ScalarQ[ var ] is True if its second dimension is scalar";
+
+Begin["`Private`"];
+
+Clear[dim1ScalarQ];
+dim1ScalarQ[var:_String] :=
+Catch[
+  Module[ {vt},
+    vt = findVarType[ var ];
+    vt[[3]] === "" || MatchQ[ vt[[3]], {"scalar type", _} ]
+  ]
+];
+dim1ScalarQ[___] := Message[ dim1ScalarQ::params ];
+
+Clear[dim2ScalarQ];
+dim2ScalarQ[var:_String] :=
+Catch[
+  Module[ {vt},
+    vt = findVarType[ var ];
+    vt[[3]] === "" || (MatchQ[ vt[[3]], {_,_} ] && StringMatchQ[vt[[3,2]], "*LineTYPE*"])
+  ]
+];
+dim1ScalarQ[___] := Message[ dim1ScalarQ::params ];
+
+(* This is a "global" variable which stores the uses *)
+Clear[useList];
+
+(* This is going to be the label number of the generates *)
+Clear[labelNumber];
+
+(* Global Variable representing all the elements type of 2D arrays *) 
+Clear[DataTYPE];
+
+(* Global Variable that indicates the index of the dataTYPE of the 
+ rows of the 2D array (in the DataTYPE List), used to distinguish between
+LineTYPE of std_logic and LineTYPE of integer *) 
+Clear[counterType]
+
+(* Get a new label *)
+Clear[getLabel];
+getLabel[]:="G"<>ToString[labelNumber+=1];
+
+(*
+   This is the name of the function, as called by MMAlpha
+*)
+Clear[vhdlModule];
+vhdlModule[opts:___Rule] := vhdlModule[$result,opts];
+vhdlModule[sys:_system, opts:___Rule]:=
+Module[{msg, error, dbg, optMute},
+  dbg = debug/.{opts}/.{debug->False};
+  optMute = mute/.{opts}/.Options[ a2v ];
+
+  vhdlModuleDebug = dbg;
+
+  (* Clear label number *)
+  labelNumber = 0;
+
+  (* Clear use list *)
+  useList = {};
+	
+  (* Clear DataTYPE and type counter *)
+  DataTYPE={};
+  counterType=0;
+
+  Catch[
+    (* Call the translator *)
+    vhdlModuleTranslateSYSTEMDECLARATION[sys, opts]
+  ]
+];
+vhdlModule[___]:=Message[vhdlModule::params];
+vhdlModule::emptybody = "Warning: the body of this cell is empty...";
+
+Clear[ semFuncModule ]; 
+
+(* 
+	System. 
+*)
+semFuncModule[ "system", 
+         systemName:_String,  (* The name of the system *)
+         params:_,   (* Parameters *)
+         indecls:_,  (* The translation of its input declarations *)
+         outdecls:_,  (* The translation of its output declarations *)
+         locdecls:_,  (* The translation of its local declarations *)
+         equations:_,  (* The translation of the equations *)
+         opts:___Rule ]:=
+Module[{ dbg, optTempFile, vrb, head, entity, auxFunc, declarations, 
+         libDeclarations,
+         body, typeDeclarations, lib, component, componentsUsed, lyr, optMute, newIndecls,
+         newOutdecls, newLocdecls },
+
+Catch[
+
+  (* At this stage, the declarations have been translated, and their type 
+   are in the global variable $vhdlTypes *)
+
+  (* Options *)
+  lib = vhdlLibrary/.{opts}/.Options[ a2v ];
+  dbg = debug/.{opts}/.Options[ a2v ];
+  vrb = verbose/.{opts}/.Options[ a2v ];
+  clkEn = clockEnable/.{opts}/.Options[ a2v ];
+  lyr = lyrtech/.{opts}/.Options[ a2v ];
+  optMute = mute/.{opts}/.Options[ a2v ];
+  vhdlp = vhdlPatterns/.{opts}/.Options[ a2v ];
+
+  (* Generates the header of the Vhdl module *)
+  (* Calls the vhdlHeader function *)
+  head = Check[vhdlHeader[ systemName ], Throw[Null] ]; 
+
+  (*
+  Print["888888888 ", indecls ];
+  *)
+
+  (* Modifications of the types *)
+  Module[ {},
+
+    (* This function is applied on all declarations. If the declaration
+     concerns a 2D array, its form is {varName, typeName, {type1, type2}}
+     where varName is the name of the variable, typeName is the provisional
+     name given to the (complex) type of this variable (the form is 
+     varNameTYPE), and the third argument contains informations regarding
+     the type of the first dimension and that of the second dimension. 
+     To simplify vhdl Code, we replace array types by scalar types, when
+     the array has only one element. In this case, type1 has the value
+     "scalar type". When this is so, we replace the entry d by a new
+     one of the form {varName, type2, ""} *)
+    Clear[ translateFunction ];
+    translateFunction[d:_] :=
+    Module[ {},
+      If[ MatchQ[ d[[3]], {"scalar type", _} ], {d[[1]], d[[3,2]], ""}, d ]
+    ];
+
+    (* Transform declarations *)
+    newIndecls = Map[ translateFunction, indecls ];
+    newOutdecls = Map[ translateFunction, outdecls ];
+    newLocdecls = Map[ translateFunction, locdecls ];
+
+  ];
+
+  (* Generates the entity part of the Vhdl code, and the
+     corresponding component for later use *)
+  (* We use outdecls, the list of output declarations *)
+
+(*
+  Print["9999999999 "];
+*)
+  entity = 
+  StringJoin[
+    "\nENTITY ",
+    systemName,
+    " IS\n",
+    "PORT(\n  clk: IN STD_LOGIC;\n",
+    If[ clkEn, "  CE : IN STD_LOGIC;\n", "" ],
+    If[ lyr, "  Rst : IN STD_LOGIC_VECTOR (0 DOWNTO 0)", "  Rst : IN STD_LOGIC" ],
+    Module[{x},
+      x = Map[
+        ";"<>vhdlDeclEnt[#,"IN",opts]&,
+        newIndecls]; 
+      (* Print[ x ]; *) x
+    ],
+    Map[
+      ";"<>vhdlDeclEnt[#,"OUT",opts]&,
+      outdecls],
+    "\n);\nEND ",
+    systemName,
+    ";\n"
+    ];
+
+(*
+  Print["111111111 "];
+*)
+
+  (* Generate the component corresponding to the module *)
+  component = 
+  StringJoin[
+    "\nCOMPONENT ",
+    systemName,
+    "\n",
+    "PORT(\n  clk: IN STD_LOGIC;\n",
+    If[ clkEn, "  CE : IN STD_LOGIC;\n", "" ],
+    (* This option is obsolete *)
+    If[ lyr, "  Rst : IN STD_LOGIC_VECTOR (0 DOWNTO 0)", "  Rst : IN STD_LOGIC" ],
+    Map[
+      ";"<>Alpha`Vhdl2`vhdlDeclEnt[#,"IN",opts]&,
+      newIndecls],
+    Map[
+      ";"<>Alpha`Vhdl2`vhdlDeclEnt[#,"OUT",opts]&,
+      outdecls],
+    "\n);\nEND COMPONENT",
+    ";\n"
+    ];
+
+  (* Gather the type declarations for the arrays. Those that have
+    been marked as scalar are not kept. These declarations are found by
+    joining all declarations, selecting the second and the third fields
+    and finally, unioning the result *)
+  typeDeclarations = Join[ newIndecls, newOutdecls, newLocdecls];
+  typeDeclarations = Union[ Map[ {#[[2]], #[[3]]}&, typeDeclarations ] ];
+
+(*
+  Print["1313131313", typeDeclarations ];
+*)
+  (* Now, we transform the type declarations in order to keep only true arrays *)
+  (* False arrays, i.e., arrays with only one element, have been marked somehow
+    with a "scalar type" string *)
+  typeDeclarations = 
+  StringJoin[
+    Map[
+      Which[
+        (* Dimension is one, and false array: return empty string *)
+        #[[2]]==="" || #[[2]]==="scalar type"
+      ,
+        ""
+      ,
+        (* Dimension is two, and first dimension is false array : return also empty string *)
+        MatchQ[ #[[2]], {"scalar type", _} ]
+      ,
+        "\n  TYPE "<>#[[1]]<>" IS "<>#[[2,2]]<>"; -- Not needed"       
+      ,
+        (* Normal case of dimension 2 *)
+        MatchQ[ #[[2]], {_,_}]
+      ,
+        "\n  TYPE "<>#[[1]]<>" IS "<>#[[2,1]]<>" OF "<>#[[2,2]]<>";"       
+      ,
+        (* Normal case of dimension 1 *)
+        True
+      ,
+        "\n  TYPE "<>#[[1]]<>" IS "<>#[[2]]<>";"
+      ]&,
+      typeDeclarations
+    ]
+  ];
+
+(*
+  Print["1313131313", typeDeclarations ];
+*)
+
+  Global`$typeDeclarations = typeDeclarations;
+
+  (* Generate the architecture part of the Vhdl code *)
+  (* Declarations *)
+  (* Auxiliary function *)
+
+  (* This function produces the declarations in the architecture
+     part. For each declaration, If the dimension is less than 
+     2, we just produce a type, as done in a cell. 
+     Otherwise, we have to produce an array.   
+   *)
+
+  (* Production of the declarations. They are 
+     obtained by the semFuncModule *)
+  declarations = 
+  StringJoin[
+    "\nARCHITECTURE behavioural OF ",
+    systemName,
+    " IS\n",
+    Map[
+      Alpha`Vhdl2`vhdlDeclArc[#,opts]&,
+      locdecls],
+
+    (* When the vhdlpattern option is set, we have to insert in the 
+      VHDL code a few place-holders, that will be filled later on 
+      during the synthesis process. This is true in the periodic 
+      synthesis. *)
+    If[ vhdlp, "\n  -- $MissingDeclarations$\n", "" ],
+    "\n\n  -- Insert missing components here!\n\n---------",
+    "\n  -- $MissingComponents$\n", 
+    "\n\n"
+  ]; (* End of StringJoin *)
+
+  (* Add declarations of types *)
+  typeDeclarations = 
+  head <> lib <>
+  "\nPACKAGE TYPES IS"<>
+  If[
+    (StringMatchQ[typeDeclarations, "*LineTYPE*"])
+  ,
+    Apply[StringJoin,
+      MapIndexed["\n TYPE LineTYPE"<>ToString[#2[[1]]]<>
+		     " IS ARRAY (INTEGER RANGE <>) OF "<>#1<>";" &,
+		DataTYPE]]
+  ,
+    ""]<>
+  typeDeclarations<>
+  "\nEND TYPES;\n";  (* Use work etc. was removed by PQ July 20 2009 *)
+
+  If[ dbg, Print[ "Library declarations: \n", libDeclarations ] ];
+  If[ dbg, Print[ "typeDeclarations: \n", typeDeclarations ] ];
+
+  (* Body *)
+  eqs = Flatten[equations];
+
+  (* To remove empty equations, generated when domain is empty *)
+  (* This case may happen if the system has not been normalized
+     before *)
+  eqs = Select[eqs, Function[x, x=!=""]];
+
+  body = 
+    If[ eqs === {}, 
+        Message[ vhdlModule::emptybody ];"",
+        "BEGIN"<>
+        "\n"<>eqs[[1]]<>
+        Apply[ StringJoin, 
+          Table[ ";\n"<>eqs[[i]], {i,2,Length[eqs]} ]
+        ]<>";\n"<>
+        If[ vhdlp, "\n   -- $AdditionalCode$\n", ""] <>
+        "\nEND BEHAVIOURAL;\n"
+    ];
+
+  (* Getting the components *)
+  Module[{modules,cc},
+    modules = systemNames[];
+    If[ (cc = Complement[ useList, modules ]) === {}, 
+        If[ !optMute, Print["All modules are known..."] ], 
+        If[ !optMute, 
+          Print["-------------------- WARNING! "];
+          Print["The following subsystems are not in $library: "];
+          Print[cc]; 
+          Print["Insert their component description in the VHDL code."]
+       ]
+    ]
+  ];
+
+  (* List of called components *)
+  componentsUsed = useList;
+
+  (* Return the vhdl code *)
+   {head<>"\n"<>lib<>"\nUSE work.TYPES.all\n"<>entity<>declarations<>body, typeDeclarations, 
+    component, componentsUsed}
+
+  ] (* Catch *)
+
+];
+
+(*
+    This function takes a declaration, and returns a name, 
+    a type name, and a type definition.
+*)
+Clear[ buildType ];
+buildType[ varName:_String, varType:_, dom:_domain, opts:___Rule ]:=
+Catch[
+  Module[ {dimension, argDom, type, typeDef, dbg, gb, newTypeEntry, typeID},
+    dimension = dom[[1]]; 
+
+    If[ DomEmptyQ[ dom ], Throw[ Message[ vhdlModule::emptydom, varName ] ] ];
+
+    (* Returns the bounding box of the declaration domain. If there is
+       only one spatial dim, it will have the form {lower, upper}, otherwise
+       it will be {{lower1,upper1},{lower2,upper2}} *)
+
+    (* To Be done : treating non rectangular domains *)
+    argDom = 
+      Which[
+        dimension <=1
+      , 
+        Null
+      , 
+        2 <= dimension <= 3
+      , 
+        With[{indexes = Drop[ dom[[2]], 1]},
+          Check[ 
+            gb = DomProject[ dom, indexes ]; 
+            If[ dbg, Print[ gb ] ],
+            Throw[ Message[ vhdlModule::projerror, varName ] ]
+          ];
+          Check[ 
+            gb = DomConvex[ gb ]; 
+            If[ dbg, Print[ gb ] ],
+            Throw[ Message[ vhdlModule::converror, varName ] ]
+          ];
+          Check[
+            gb = getBoundingBox[ gb ];
+            If[ dbg, Print[ gb ] ],
+            Throw[ Message[ vhdlModule::bberror, varName ] ]
+          ];
+          If[ gb === {}, 
+            Throw[ Message[ vhdlModule::emptydom, varName ] ],
+            If[ dimension == 2, gb[[1]], gb ]
+          ]
+        ]
+      ,
+        True, 
+        vhdlModule::dim = 
+        "variable `1` has dimension greater than 3. Cannot cover this case.";
+        Throw[ Message[ vhdlModule::dim, varName ] ]
+      ];
+
+      (* Get the floor of the lower bound, and the ceiling of the upper bound *)
+      If[ MatchQ[ argDom, {{_,_}..} ], argDom = Map[ { Floor[#[[1]]], Ceiling[#[[2]]] }&, argDom ] ];
+
+(*$
+      Print["22222222222222"];
+      Print["$vhdlTypes: ", $vhdlTypes];
+*)
+
+      (* I added the options to the call to vhdlType... PQ  *)
+      (* Returns the vhdl type of the declared variable *)
+      type = vhdlType[ varType, opts ];
+      typeID = vhdlIDType[ varType, opts ];
+
+      (* Returns the type definition of the declared variable *)
+    typeDef = 
+      Which[
+
+        (* If the dimension is 1, the type definition is empty *)
+        dimension <=1
+      , 
+        ""
+      ,
+        (* If the dimension is 2 and the boundaries are equals, 
+          the type definition is also a scalar *)
+        dimension == 2 && argDom[[1]] === argDom[[2]]
+      , 
+        "scalar type"
+      ,
+        (* If the dimension is 2, the type definition is not empty *)
+        dimension == 2
+      ,
+        (* The vhdl type definition is an array, and the type
+          name itself is build from the type of this array, for 
+          example, Array2To5OfIntegers *)
+        Module[{loc},
+          loc = 
+            " ARRAY ("<>ToString[argDom[[1]]]<>
+            " TO "<>ToString[argDom[[2]]]<>
+            ") OF "<>type;
+          type = "Array"<>ToString[argDom[[1]]]<>"To"<>ToString[argDom[[2]]]<>
+            "Of"<>typeID;
+          loc
+        ]
+      ,
+        True
+      , 
+        (* dimension == 3  *)
+        (* The type has two values, depending on the boundaries *)
+        Module[
+          { loc2D1, loc2D2, curDataType, pos1, scalar1, scalar2 },
+(*
+          Print["6666666666666"];
+          Print[" ---------- ", varName ];
+          Print[ argDom[[1,1]], argDom[[1,2]] ];
+          Print[ argDom[[2,1]], argDom[[2,2]] ];
+          If[ argDom[[1,1]] === argDom[[1,2]], Print["First dimension is scalar..." ] ];
+          If[ argDom[[2,1]] === argDom[[2,2]], Print["First dimension is scalar..." ] ];
+*)
+          scalar1 = argDom[[1,1]] === argDom[[1,2]]; (* True if the first dimension has only one value *)
+          scalar2 = argDom[[2,1]] === argDom[[2,2]]; (* True if the second dimension has only one value *)
+
+          (* Try to find out in DataType if the same type is already
+            present. If so, return the number of this type, otherwise, 
+            append the new type to DataType *)
+          If[ 
+            !MemberQ[ DataTYPE, type ]
+          ,
+            (* add a new Line type *)
+            DataTYPE = Append[ DataTYPE, type ];
+            counterType = counterType+1;
+            curDataType = counterType
+          ,
+            (* use an existing DataTYPE number *)
+            pos1 = Position[DataTYPE,type];
+            If[pos1==={},
+              Throw[ Message[ vhdlModule::type, varName ] ] 
+            ];
+            curDataType = pos1[[1,1]]
+          ];
+
+          (* For the 2D case, we fill the type entry with a pair *)
+          loc2D1 = 
+          If[ scalar1, "scalar type",
+            "ARRAY ("<>ToString[ argDom[[1,1]] ]<>
+            " TO "<>ToString[ argDom[[1,2]] ]<>
+            ")" ];
+
+          loc2D2 =
+          If[ scalar2, DataTYPE[[curDataType]],
+	    "LineTYPE"<>ToString[curDataType]<> " ("<>ToString[ argDom[[2,1]] ]<>
+            " TO "<>ToString[ argDom[[2,2]] ]<>
+            ")" ];
+
+          type = "Array"<>ToString[argDom[[1,1]]]<>"To"<>ToString[argDom[[1,2]]]<>
+            "OfArray"<>ToString[argDom[[2,1]]]<>"To"<>ToString[argDom[[2,2]]]<>
+            "Of"<>typeID;
+
+          {loc2D1, loc2D2}
+        ]
+
+      ];
+    newTypeEntry = {varName, type, typeDef};
+
+    (* Append this new type to $vhdlTypes *)
+    $vhdlTypes = Append[ $vhdlTypes, newTypeEntry ];
+
+(*
+    Print["For variable: ", varName, ashow[ getDeclarationDomain[ varName ], silent -> True ], "\n", 
+      "Variable: ", newTypeEntry[[1]], " type name: ", newTypeEntry[[2]], " type: ", newTypeEntry[[3]] ];
+*)
+    newTypeEntry
+  ]
+];
+buildType[___] := Message[ buildType::params ];
+
+(*
+    This function takes a declaration, and returns a name, 
+    a type name, and a type definition. As a side effect, makes an 
+    entry in the global variable $vhdlTypes where types of variables
+    are stored as a 3-uple, name, elementary type, array type
+*)
+semFuncModule[ "decl", varName:_String, varType:_, dom:_domain, 
+  opts:___Rule ]:= buildType[ varName, varType, dom, opts ];
+
+(* Error messages *)
+vhdlModule::emptydom = 
+"variable `1` has an empty declaration domain. The Vhdl generator cannot
+handle this problem directly. To overcome it, normalize the system 
+using the normalize0 function, then remove all unused variables.  
+For example: \nnormalize0[];removeAllUnusedVars[];\nwill solve the
+problem";
+vhdlModule::bberror = 
+"error while calling getBoundingBox to compute the declaration 
+interval of variable `1`";
+vhdlModule::projerror = 
+"error while projecting domain of variable `1` to compute its 
+declaration";
+vhdlModule::converror = 
+"error while convexizing domain of variable `1` to compute its 
+declaration";
+vhdl::errorgdecl = "error while calling getDeclaration for `1`";
+vhdl::errorPos = "error while calling Position for `1`";
+vhdl::assgnerror = "$vhdlCurrent in not an Alpha system...";
+
+(* Semantic function for an assignement *)
+semFuncModule[ "assignment", 
+               lhs:_, rhs:_, opts:___Rule ]:=
+ Module[{ decldom, dbg },
+
+(*    dbg = True; *)
+
+    If[!MatchQ[Alpha`Vhdl2`$vhdlCurrent,_system],
+        Message[vhdlModule::assgnerror];Throw["ERROR"]
+      ];
+
+    (* Get declaration domain of lhs var *)
+    decldom = 
+      Check[getDeclaration[Alpha`Vhdl2`$vhdlCurrent,lhs][[3]], 
+            Message[vhdlModule::errorgdecl,lhs];Throw[""]
+      ];
+
+  Switch[ rhs, 
+    {_String|{"const"[_]}, _matrix},
+      (* This is the case of a simple assignment, A = b[something].
+         In this case, we call translateSimpleConnection. 
+         It may also be a constant, but this case is not covered yet *)
+      translateSimpleConnection[ lhs, decldom, rhs ],
+
+    {_domain,{_String|"const"[_],_matrix}},
+      (* This case was added by Patrice, on July 12, 2003 *)
+      (* Single restriction, constant of not *)
+    translateSimpleConnection[ 
+      lhs, 
+      DomIntersection[rhs[[1]],decldom],
+      rhs[[2]], opts 
+    ],
+
+    {{_domain,{_String|"const"[_],_matrix}}..},
+	(* case with several restrictions *)
+    Map[ translateSimpleConnection[ 
+           lhs, 
+           DomIntersection[#[[1]],decldom],
+           #[[2]], opts ]&, 
+           rhs 
+         ],
+    _, vhdlModule::assgnerr = "assignment not recognized, lhs is `1`, rhs is `2`";
+       Message[ vhdlModule::assgnerr, lhs, rhs ];""
+  ]
+ ];
+
+(* Internal function needed for translateSimpleConnection *)
+Clear[ getRhsInterval ];
+getRhsInterval[ lhs:_, rhs:_ ] :=
+Module[{posLhs, posRhs, assignPosLhs, wantedPosRhs, rhspos, 
+  rhsExpDom, rhsContextDomain, rhsDomI},
+
+  (* Get position of lhs *)
+  posLhs = 
+    Check[
+      Position[Alpha`Vhdl2`$vhdlCurrent,lhs],
+      Message[vhdlModule::errorPos, lhs];Throw[""]
+    ];
+
+  (* Get position of rhs *)
+  posRhs = 
+    Check[
+      Position[Alpha`Vhdl2`$vhdlCurrent,rhs],
+      Message[vhdlModule::errorPos, rhs];Throw[""]
+    ];
+
+   assignPosLhs = 
+     posLhs[[
+       Check[Position[posLhs, {6, _, 1}][[1, 1]],
+         Message[vhdlModule::errorPos, rhs];Throw[""]
+       ]
+       ]
+     ];
+
+   rhspos = 
+     posRhs[[
+       Check[Position[posRhs, 
+         Append[Drop[assignPosLhs, -1], __]][[1, 1]],
+         Message[vhdlModule::errorPos, rhs];Throw[""]
+       ]
+     ]
+   ];
+
+   rhsExpDom = 
+     Check[
+       expDomain[Alpha`Vhdl2`$vhdlCurrent, rhs],
+       Message[vhdlModule::errorPos, rhs];Throw[""]
+     ];
+
+   rhsContextDomain = 
+     Check[
+       getContextDomain[Alpha`Vhdl2`$vhdlCurrent, rhspos],
+       Message[vhdlModule::errorPos, rhs];Throw[""]
+     ];
+
+   rhsDomI = 
+     Check[
+       DomIntersection[rhsExpDom, rhsContextDomain],
+       Message[vhdlModule::errorPos, rhs];Throw[""]
+     ];
+
+   Drop[getBoundingBox[rhsDomI], 1]
+];
+getRhsInterval[___] := Message[ getRhsInterval::params];
+
+(*
+  This function translates the result of a simple connection.
+  The parameters are: the lhs name, the domain where the assignment
+  applies, the rhs name, and the dependence matrix of the lhs. 
+
+  There are many cases, each definition is filtered by some conditions
+*)
+
+Clear[ translateSimpleConnection ];
+
+(* Eliminate the case when dom is empty *)
+translateSimpleConnection[ lhs:_String, dom:_domain, 
+    {rhs:_String, m:_matrix}, opts:___Rule ]/; DomEmptyQ[ dom ] :=
+(  Print["vhdlModule::warning:in the definition of "<>lhs<> ", there is an empty branch"];"")
+
+(* 
+  The lhs has only one index, and is of the form lhs[t] = ...
+  The function is conditionned by the condition m[[2]] == 2, 
+  i.e, the dimension of the dependence matrix is 2
+*)
+translateSimpleConnection[ lhs:_String, dom:_domain, 
+  {rhs:_String, m:_matrix}, opts:___Rule ]/; m[[2]] == 2 :=
+Catch[
+  Module[{ dimdom, dimmat, interval, singlenumber, domPro, mmamat, 
+    transvect, gb, rhsInterval, dbg},
+
+    dbg = debug/.{opts}/.Options[ a2v ];
+
+    (* Get the right-hand side interval *)
+    rhsInterval = getRhsInterval[ lhs, rhs ];
+
+    If[ dbg, Print["rhs interval: ", rhsInterval ] ];
+
+    dimmatRight = m[[1]];
+
+    (* Get matrix m in MMA form *)
+    mmamat = 
+    Check[ alphaToMmaMatrix[ m ], 
+         Message[ vhdlModule::errora2mma ];Throw[""] ];
+
+    (* Get translation vector of m *)
+    transvect = 
+      Check[ getTranslationVector[m],
+         Message[ vhdlModule::errortrvec ];Throw[""] ];
+
+    (* Project domain, on first component of domain *)
+    domPro = DomProject[ dom, Drop[dom[[2]],1] ];  
+
+    (* If the domain is a union, convexize it *)
+    If[ Length[ domPro[[3]] ]>1, domPro = DomConvex[domPro] ];
+
+    (* compute the bounding box *)
+    interval = 
+      Which[ 
+        DomEmptyQ[domPro], {},
+        domPro[[1]] == 1,
+          Check[gb = (getBoundingBox[domPro][[1]]),
+            Message[vhdlModule::errorgbb];
+            Throw[""]],
+        domPro[[1]] == 2,      (* Extention to 2D processors arrays *)
+          Check[gb = (getBoundingBox[domPro]),
+            Message[vhdlModule::errorgbb];
+            Throw[""]],
+        True, {}
+      ];
+
+    If[ dbg, Print["lhs interval: ", interval ] ]; 
+    If[ dbg, Print["domPro: ", ashow[ domPro, silent->True ] ] ];
+    If[ dbg, Print["m: ", ashow[ m, silent->True ] ] ];
+
+    Which[
+      (* The rhs dependency has the same dimension ... *)
+      dimmatRight==2,
+      SingleAssign[lhs, "", rhs, ""],
+
+      (* The rhs dependency has a higher dimension ... *)
+      dimmatRight==3,
+      Which[
+        (* The rhs dep has one single point *)
+        rhsInterval[[1,1]]==rhsInterval[[1,2]]
+      ,
+        rhsparam = 
+          Module[{indexp},
+            indexp = mmamat.{"t"}+transvect;
+            indexp = Drop[indexp,1];            (* drop the t constituent *)
+            "("<>ToString[indexp[[1]]]<>")"
+          ];
+        SingleAssign[lhs, "", rhs, rhsparam]
+      ,
+        (* The time interval of the lhs is empty, meaning 
+           that we have a spatial connection *)
+        interval == {}
+      ,
+        rhsparam = 
+          StringReplace[
+            ToString[ mmamat.{"p"}+transvect ],
+            { "{" -> "(", "}" -> ")", " "->"" }
+          ];
+        MultipleAssign1D[
+          "p", rhsInterval[[1,1]], rhsInterval[[1,2]], lhs, "(p)", rhs, rhsparam
+        ]
+      ,
+        (* Other cases *)
+        True
+      ,
+        (* In this case, several situations may occur... This is a
+           little bit more tricky *)
+        vhdlModule::impass1 = " this assignment is not currently accepted ";
+        Print["Warning: In definition of ", lhs, vhdlModule::impass1, 
+            "Check the assignment."];
+        SingleAssign[lhs, "", rhs, ashow[m, silent->True ] ]
+      ]
+    ,
+
+     (* We consider here only the case of a single point *)
+      dimmatRight==4,
+      If[
+        (rhsInterval[[1,1]]==rhsInterval[[1,2]]) 
+        && (rhsInterval[[2,1]]==rhsInterval[[2,2]]),
+        rhsparam = 
+          Module[{indexp},
+            indexp = mmamat.{"t"}+transvect;
+            indexp = Drop[indexp,1];            (* drop the t constituent *)
+            "("<>ToString[indexp[[1]]]<>")("<>ToString[indexp[[2]]]<>")"
+          ];
+        SingleAssign[lhs, "", rhs, rhsparam],
+        vhdlModule::impass2 = " this assignment is not recognized. ";
+        Print["Warning: In definition of variable ", lhs, "this type of",
+          "assignment is not accepted. Check the Vhdl code."];
+        SingleAssign[lhs, "", rhs, "*****"],
+      ]
+    ,
+      True,
+      Throw[ Message[ vhdlModule::assignement, lhs , rhs]]
+    ]
+  ]
+];
+
+(*   --------------------  *)
+(* 
+  When the lhs has two indexes, of the form lhs[t,P1] =...
+  The function is conditionned by the condition m[[2]] == 3, 
+  i.e, the dimension of the dependence matrix is 3
+*)
+translateSimpleConnection[ lhs:_String, dom:_domain, 
+    {rhs:_String, m:_matrix}, opts:___Rule ]/; m[[2]] == 3 :=
+Catch[
+  Module[{ dimdom, dimmat, interval, singlenumber, domPro, mmamat, 
+    transvect, gb, rhsInterval, dbg, res, rhsIsScalar, lhsIsScalar},
+
+    dbg = debug/.{opts}/.Options[ a2v ];
+
+    lhsIsScalar = (findVarType[ lhs ][[3]] === "scalar type");
+    rhsIsScalar = (findVarType[ rhs ][[3]] === "scalar type");
+
+    If[ dbg, Print["**** Translating simple connection: ",rhs ] ];
+
+    (* Get the right-hand side interval *)
+    rhsInterval = getRhsInterval[ lhs, rhs ];
+
+    If[ dbg, Print["rhs interval is: ", rhsInterval ] ];
+
+    If[ dbg, Print["Dependence matrix: ", ashow[ m, silent->True ] ] ];
+    dimmatRight = m[[1]];
+
+    (* Get matrix m in MMA form *)
+    mmamat = Check[ alphaToMmaMatrix[ m ], 
+       Message[ vhdlModule::errora2mma ];Throw[""] ];
+
+    (* Get translation vector of m *)
+    transvect = Check[ getTranslationVector[m],
+         Message[ vhdlModule::errortrvec ];Throw[""] ];
+
+    (* Project domain, on first component of domain *)
+    domPro = DomProject[ dom, Drop[dom[[2]],1] ];  
+
+    (* If the domain is a union, convexize it *)
+    If[ Length[ domPro[[3]] ]>1, domPro = DomConvex[domPro] ];
+
+    (* Debug *)
+    If[ dbg, Print["Projected domain: ", ashow[ domPro, silent->True ] ] ];
+
+    (* Compute the bounding box of the projected domain *)
+    interval = 
+      Which[ 
+        DomEmptyQ[domPro], {},
+        domPro[[1]] == 1,
+          Check[gb = (getBoundingBox[domPro][[1]]),
+          Message[vhdlModule::errorgbb];
+          Throw[""]],
+        domPro[[1]] == 2,      (* Extention to 2D processors arrays *)
+          Check[gb = (getBoundingBox[domPro]),
+              Message[vhdlModule::errorgbb];
+              Throw[""]],
+        True, {}
+      ];
+
+      If[ dbg, Print["Lhs interval: ", interval] ];
+
+      res = 
+
+      Which[
+
+        (* The dimension of the dependency is one less than lhs *)
+        dimmatRight==2,
+        If[
+          (* This situation corresponds to a single assignement *)
+          interval[[1]]==interval[[2]],
+          Module[ {res},
+            res = If[ lhsIsScalar,
+              SingleAssign[lhs,"", rhs, ""],
+              SingleAssign[lhs,"("<>ToString[interval[[1]]]<>")", rhs, ""] 
+             ]; res
+          ],
+
+          (* I believe that in this situation, we should broadcast 
+           the rhs value to all processors, if the lhs interval is 
+           not a single point *)
+          MultipleAssign1D[
+            "p", interval[[1]], interval[[2]], lhs, "(p)", rhs, ""
+          ]
+        ],
+
+        (* The rhs and the lhs have the same dimension *)
+        dimmatRight==3,
+
+        (* If the lhs interval is a single point, then there is 
+         a single assignment, provided the same condition is true
+         for the rhs *)
+(*
+        If[ lhsIsScalar || rhsIsScalar, Print["333333333 Modification to be done " ]];
+*)
+        If[
+          (interval[[1]]==interval[[2]]),
+          If[
+            (rhsInterval[[1,1]]==rhsInterval[[1,2]]),
+            SingleAssign[
+              lhs, 
+              If[ lhsIsScalar, "", "("<>ToString[interval[[1]]]<>")"], 
+              rhs, 
+              If[ rhsIsScalar, "", "("<>ToString[rhsInterval[[1,1]]]<>")"]
+            ],
+              (* Broadcast *)
+            MultipleAssign1D[ "p", interval[[1]], interval[[2]], lhs, "(p)", rhs, "" ]
+          ],
+
+          (* The lhs interval is not a single point *)
+          (* Here which index *)
+          (* "p" or "p1" or "p2"? this point can be solved by a symbol table *)
+          index = "p"; 
+          rhsparam = 
+            Module[{indexp},
+              indexp = mmamat.{"t",index}+transvect;
+              indexp = Drop[indexp,1];            (* drop the t constituent *)
+             "("<>ToString[indexp[[1]]]<>")"   
+            ];
+
+          If[
+            (rhsInterval[[1,1]]==rhsInterval[[1,2]])
+          ,
+(*
+            If[ lhsIsScalar || rhsIsScalar, Print["555555 Modification to be done " ]];
+*)
+            MultipleAssign1D[ 
+              index, interval[[1]], interval[[2]], lhs, 
+              If[ lhsIsScalar, "", "("<>index<>")"], 
+              rhs, 
+              If[ rshIsScalar, "", rhsparam ]
+            ]
+          ,
+            (* here verify that "interval" has the same range as "rhsInterval" *)
+            MultipleAssign1D[ index, interval[[1]], interval[[2]], lhs, 
+              "("<>index<>")", rhs, rhsparam ]
+          ]
+        ]
+      ,
+
+        dimmatRight==4,
+        If[
+          (interval[[1]] == interval[[2]])
+        ,
+          rhsparam = 
+            Module[{t,indexp},
+              indexp = mmamat.{t,ToString[interval[[1]]]}+transvect;
+              indexp = Drop[indexp,1];            (* drop the t constituent *)
+              "("<>ToString[indexp[[1]]]<>")("<>ToString[indexp[[2]]]<>")"
+            ];
+          Which[
+            ((rhsInterval[[1,1]]==rhsInterval[[1,2]]) 
+            && (rhsInterval[[2,1]]==rhsInterval[[2,2]]))
+          ,
+            SingleAssign[
+              lhs, 
+              If[ lhsIsScalar, "", "("<>ToString[interval[[1]]]<>")"], 
+              rhs, 
+              If[ rhsIsScalar, "", rhsparam]
+            ]
+          ,
+            (rhsInterval[[1,1]]==rhsInterval[[1,2]])
+          ,
+             Print["In definition of variable ", lhs];
+             Throw[ Message[ vhdlModule::impossibleassignement, "14bis"];""]
+          ,
+            (rhsInterval[[2,1]]==rhsInterval[[2,2]])
+          ,
+            Print["In definition of variable ", lhs];
+            Throw[ Message[ vhdlModule::impossibleassignement, "15bis"];""]
+          ,
+            ((rhsInterval[[1,1]]!=rhsInterval[[1,2]]) 
+            && (rhsInterval[[2,1]]!=rhsInterval[[2,2]]))
+          ,
+            Print["In definition of variable ", lhs];
+            Throw[ Message[ vhdlModule::impossibleassignement, "16bis"];""]
+          ,
+            True,
+            Throw[Message["Non-intended case"]]
+          ]
+        ,
+          index = "p1"; (* or "p2" this point can be sovle by a symbol table *)
+          rhsparam = 
+            Module[{indexp}, (* or p2 this point can be sovle by a symbol table *)
+              indexp = mmamat.{"t",index}+transvect;
+              indexp = Drop[indexp,1];            (* drop the t constituent *)
+              "("<>ToString[indexp[[1]]]<>")("<>ToString[indexp[[2]]]<>")"
+            ];
+
+           Which[
+             ((rhsInterval[[1,1]]==rhsInterval[[1,2]]) 
+             && (rhsInterval[[2,1]]==rhsInterval[[2,2]]))
+           ,
+             MultipleAssign1D[index,interval[[1]],interval[[2]],lhs, 
+               "("<>index<>")", rhs, rhsparam]
+           ,
+             (rhsInterval[[1,1]]==rhsInterval[[1,2]])
+           ,
+             MultipleAssign1D[index,interval[[1]],interval[[2]],lhs, 
+               "("<>index<>")", rhs, rhsparam]
+           ,
+             (rhsInterval[[2,1]]==rhsInterval[[2,2]])
+           ,
+             MultipleAssign1D[index,interval[[1]],interval[[2]],lhs, 
+               "("<>index<>")", rhs, rhsparam]
+           ,
+             ((rhsInterval[[1,1]]!=rhsInterval[[1,2]]) 
+             && (rhsInterval[[2,1]]!=rhsInterval[[2,2]])),
+             Print["In definition of variable ", lhs];
+             Throw[ Message[ vhdlModule::impossibleassignement, "16ter"];""]
+           ,
+             True,
+             Throw[Message["Non-intended case"]]
+           ]
+        ],
+      True,
+      Throw[ Message[ vhdlModule::assignement, lhs , rhs]]
+    ]; (* Which *)
+    
+    If[ dbg, Print["555555"] ]; res
+  ] (* Module *)
+]; (* Case *)
+
+(*==================================*)
+(* 
+   When the lhs has three index, 
+   and the rhs has one index
+   i.e. lhs[t,P1,P2] = rhs[t]
+   The function is conditionned by
+   m[[2]] and m[[1]]               
+*)
+translateSimpleConnection[ lhs:_String, dom:_domain, 
+    {rhs:_String, m:_matrix}, opts:___Rule ]/; ((m[[2]] == 4)&&(m[[1]] == 2)) :=
+Catch[
+  Module[{ dimdom, dimmat, interval, singlenumber, domPro, mmamat, 
+    transvect, gb, rhsInterval, dbg},
+
+    mmamat = Check[ alphaToMmaMatrix[ m ], 
+                  Message[ vhdlModule::errora2mma ];Throw[""] ];
+    transvect = Check[ getTranslationVector[m],
+                  Message[ vhdlModule::errortrvec ];Throw[""] ];
+
+    (* Project domain, on first component of domain *)
+    domPro = DomProject[ dom, Drop[dom[[2]],1] ];  
+
+    (* If the domain is a union, convexize it *)
+    If[ Length[ domPro[[3]] ]>1, domPro = DomConvex[domPro] ];
+
+    (* Compute the bounding box *)
+    interval = 
+      Which[ 
+        DomEmptyQ[domPro], {},
+        domPro[[1]] == 1,
+          Check[gb = (getBoundingBox[domPro][[1]]),
+            Message[vhdlModule::errorgbb];
+            Throw[""]],
+        domPro[[1]] == 2,      (* Extention to 2D processors arrays *)
+          Check[gb = (getBoundingBox[domPro]),
+            Message[vhdlModule::errorgbb];
+            Throw[""]],
+        True, {}
+        ];
+
+    Which[
+      (* SINGLE POINT *)
+      ((interval[[1,1]]==interval[[1,2]]) 
+      && (interval[[2,1]]==interval[[2,2]]))
+    , 
+      SingleAssign[lhs, "("<>ToString[interval[[1,1]]]<>")("<>
+        ToString[interval[[2,1]]]<>")", rhs, ""]
+    ,
+      (* SINGLE ROW *)
+      (interval[[1,1]]==interval[[1,2]])
+    , 
+      MultipleAssign1D["p2",interval[[2,1]],interval[[2,2]],lhs, 
+        "("<>ToString[interval[[1,1]]]<>")("<>"p2"<>")", rhs, ""]
+    ,
+      (* SINGLE COLUMN *)
+      (interval[[2,1]]==interval[[2,2]])
+    , 
+      MultipleAssign1D["p1",interval[[1,1]],interval[[1,2]],lhs, "("<>"p1"<>")("<>
+        ToString[interval[[2,1]]]<>")", rhs, ""]
+    ,
+      (* 2D ARRAYS *)
+      ((interval[[1,1]]!=interval[[1,2]]) 
+      && (interval[[2,1]]!=interval[[2,2]]))
+    , 
+      MultipleAssign2D[interval[[1,1]], interval[[1,2]], interval[[2,1]], 
+        interval[[2,2]], lhs, rhs, ""]
+    ,
+      True,  (* ERROR *)
+      Print["In definition of variable ", lhs];
+      Throw[ Message[ vhdlModule::impossibleassignement, "10"];""]
+    ]
+  ] 
+];
+
+(*==================================*)
+(* When the lhs has three index.    *)
+(* and the rhs has two index.       *)
+(* i.e. lhs[t,P1,P2] = rhs[t,P1-1]  *)
+(*==================================*)
+(*==================================*)
+(* The function is conditionned by  *)
+(* m[[2]] and m[[1]]                *)
+(*==================================*)
+translateSimpleConnection[ lhs:_String, dom:_domain, 
+  {rhs:_String, m:_matrix}, opts:___Rule ]/; ((m[[2]] == 4)&&(m[[1]] == 3)) :=
+Catch[
+  Module[{ dimdom, dimmat, interval, singlenumber, domPro, mmamat, 
+    transvect, gb, rhsInterval, dbg},
+
+    rhsInterval = getRhsInterval[ lhs, rhs ];
+
+    (* Get the mathematica matrix form of m *)
+    mmamat = Check[ alphaToMmaMatrix[ m ], 
+                  Message[ vhdlModule::errora2mma ];Throw[""] ];
+
+    (* Get the translation vector of m *)
+    transvect = Check[ getTranslationVector[m],
+                  Message[ vhdlModule::errortrvec ];Throw[""] ];
+
+    (* Project domain, on first component of domain *)
+    domPro = DomProject[ dom, Drop[dom[[2]],1] ];  
+
+    (* If the domain is a union, convexize it *)
+    If[ Length[ domPro[[3]] ]>1, domPro = DomConvex[domPro] ];
+
+    (* compute the bounding box *)
+    interval = 
+      Which[ 
+        DomEmptyQ[domPro], {},
+        domPro[[1]] == 1,
+        Check[gb = (getBoundingBox[domPro][[1]]),
+            Message[vhdlModule::errorgbb];
+            Throw[""]],
+        domPro[[1]] == 2,      (* Extention to 2D processors arrays *)
+        Check[gb = (getBoundingBox[domPro]),
+            Message[vhdlModule::errorgbb];
+            Throw[""]],
+        True, {}
+      ];
+
+    Which[
+      (* SINGLE POINT *)
+      ((interval[[1,1]]==interval[[1,2]]) && (interval[[2,1]]==interval[[2,2]]))
+    , 
+      If[(rhsInterval[[1,1]]==rhsInterval[[1,2]])
+      ,
+        SingleAssign[lhs, "("<>ToString[interval[[1,1]]]<>")("<>
+          ToString[interval[[2,1]]]<>")", rhs, "("<>ToString[rhsInterval[[1,1]]]<>")"]
+      ,
+          Print["In definition of variable ", lhs];
+          Throw[ Message[ vhdlModule::impossibleassignement, "11"]];""
+      ]
+    ,
+      (* SINGLE ROW *)
+      (interval[[1,1]]==interval[[1,2]])
+    , 
+      rhsparam = 
+        Module[{indexp},
+          indexp = mmamat.{"t",interval[[1,1]], "p2"}+transvect;
+          indexp = Drop[indexp,1];            (* drop the t constituent *)
+          "("<>ToString[indexp[[1]]]<>")"
+        ];
+      If[(rhsInterval[[1,1]]==rhsInterval[[1,2]])
+      ,
+        MultipleAssign1D["p2",interval[[2,1]],interval[[2,2]],lhs, 
+          "("<>ToString[interval[[1,1]]]<>")("<>"p2"<>")", rhs, rhsparam]
+      ,
+        MultipleAssign1D["p2",interval[[2,1]],interval[[2,2]],lhs, 
+          "("<>ToString[interval[[1,1]]]<>")("<>"p2"<>")", rhs, rhsparam] 
+        (* here on peut simplifier ?? *)
+      ]
+    ,
+      (* SINGLE COLUMN *)
+      (interval[[2,1]]==interval[[2,2]])
+    , 
+      rhsparam = 
+        Module[{indexp},
+          indexp = mmamat.{"t","p1", interval[[2,2]]}+transvect;
+          indexp = Drop[indexp,1];            (* drop the t constituent *)
+          "("<>ToString[indexp[[1]]]<>")"
+        ];
+      If[
+        (rhsInterval[[1,1]]==rhsInterval[[1,2]])
+      ,
+        MultipleAssign1D["p1",interval[[1,1]],interval[[1,2]],lhs, 
+          "("<>"p1"<>")("<>ToString[interval[[2,1]]]<>")", rhs, rhsparam]
+      ,
+        MultipleAssign1D["p1",interval[[1,1]],interval[[1,2]],lhs, 
+          "("<>"p1"<>")("<>ToString[interval[[2,1]]]<>")", rhs, rhsparam]
+        (* here on peut simplifier ?? *)
+      ]
+    ,
+      (* 2D ARRAYS *)
+      ((interval[[1,1]]!=interval[[1,2]]) && (interval[[2,1]]!=interval[[2,2]]))
+    , 
+      Print["In definition of variable ", lhs];
+      Throw[ Message[ vhdlModule::impossibleassignement, "12"];"" ]
+    ,
+      True,  (* ERROR *)
+      Print["In definition of variable ", lhs];
+      Throw[ Message[ vhdlModule::impossibleassignement, "13"];"" ]
+    ]
+  ] 
+];
+
+(*==================================*)
+(* 
+  When the lhs has three index.    
+  and the rhs has three index.   
+  i.e. lhs[t,P1,P2] = rhs[t,P1,P2] 
+  The function is conditionned by  
+  m[[2]] and m[[1]]                
+*)
+translateSimpleConnection[ lhs:_String, dom:_domain, 
+  {rhs:_String, m:_matrix}, opts:___Rule ]/;((m[[2]] == 4)&&(m[[1]] == 4)) :=
+Catch[
+  Module[{ dimdom, dimmat, interval, singlenumber, domPro, mmamat, 
+    transvect, gb, rhsInterval, dbg},
+
+    rhsInterval = getRhsInterval[ lhs, rhs ];
+
+    mmamat = Check[ alphaToMmaMatrix[ m ], 
+                  Message[ vhdlModule::errora2mma ];Throw[""] ];
+
+    transvect = Check[ getTranslationVector[m],
+                  Message[ vhdlModule::errortrvec ];Throw[""] ];
+
+
+    (* Project domain, on first component of domain *)
+    domPro = DomProject[ dom, Drop[dom[[2]],1] ];  
+
+    (* If the domain is a union, convexize it *)
+    If[ Length[ domPro[[3]] ]>1, domPro = DomConvex[domPro] ];
+
+    (* compute the bounding box *)
+    interval = 
+      Which[ 
+        DomEmptyQ[domPro], {},
+        domPro[[1]] == 1,
+        Check[gb = (getBoundingBox[domPro][[1]]),
+            Message[vhdlModule::errorgbb];
+            Throw[""]],
+        domPro[[1]] == 2,      (* Extention to 2D processors arrays *)
+        Check[gb = (getBoundingBox[domPro]),
+            Message[vhdlModule::errorgbb];
+            Throw[""]],
+        True, {}
+      ];
+
+    Which[
+      (* SINGLE POINT *)
+      ((interval[[1,1]]==interval[[1,2]]) && (interval[[2,1]]==interval[[2,2]]))
+    , 
+      rhsparam = 
+        Module[{indexp}, (* or p2 this point can be sovle by a symbol table *)
+          indexp = mmamat.{"t",interval[[1,1]], interval[[2,1]]}+transvect;
+          indexp = Drop[indexp,1];            (* drop the t constituent *)
+          "("<>ToString[indexp[[1]]]<>")("<>ToString[indexp[[2]]]<>")"
+        ];
+       Which[
+         ((rhsInterval[[1,1]]==rhsInterval[[1,2]]) 
+         && (rhsInterval[[2,1]]==rhsInterval[[2,2]]))
+       ,
+         SingleAssign[lhs, "("<>ToString[interval[[1,1]]]<>")("<>
+           ToString[interval[[2,1]]]<>")", rhs, rhsparam]
+       ,
+         (rhsInterval[[1,1]]==rhsInterval[[1,2]])
+       ,
+         Print["In definition of variable ", lhs];
+         Throw[ Message[ vhdlModule::impossibleassignement, "14"];"" ]
+       ,
+         (rhsInterval[[2,1]]==rhsInterval[[2,2]])
+       ,
+         Print["In definition of variable ", lhs];
+         Throw[ Message[ vhdlModule::impossibleassignement, "15"];"" ]
+       ,
+         ((rhsInterval[[1,1]]!=rhsInterval[[1,2]]) 
+          && (rhsInterval[[2,1]]!=rhsInterval[[2,2]]))
+       ,
+         Print["In definition of variable ", lhs];
+         Throw[ Message[ vhdlModule::impossibleassignement, "16"];"" ]
+       ,
+         True,
+         Throw[Message["Non-intended case"]]
+      ]
+    ,
+      (* SINGLE ROW *)
+      (interval[[1,1]]==interval[[1,2]])
+    , 
+      rhsparam = 
+        Module[{indexp}, (* or p2 this point can be sovle by a symbol table *)
+          indexp = mmamat.{"t",interval[[1,1]], "p2"}+transvect;
+          indexp = Drop[indexp,1];            (* drop the t constituent *)
+          "("<>ToString[indexp[[1]]]<>")("<>ToString[indexp[[2]]]<>")"
+        ];
+       Which[
+         ((rhsInterval[[1,1]]==rhsInterval[[1,2]]) 
+         && (rhsInterval[[2,1]]==rhsInterval[[2,2]]))
+       ,
+         MultipleAssign1D["p2",interval[[2,1]],interval[[2,2]],lhs, 
+           "("<>ToString[interval[[1,1]]]<>")("<>"p2"<>")", rhs, rhsparam]
+       ,
+         (rhsInterval[[1,1]]==rhsInterval[[1,2]])
+       ,
+         MultipleAssign1D["p2",interval[[2,1]],interval[[2,2]],lhs, 
+           "("<>ToString[interval[[1,1]]]<>")("<>"p2"<>")", rhs, rhsparam]
+       ,
+         (rhsInterval[[2,1]]==rhsInterval[[2,2]])
+       ,
+         MultipleAssign1D["p2",interval[[2,1]],interval[[2,2]],lhs, 
+           "("<>ToString[interval[[1,1]]]<>")("<>"p2"<>")", rhs, rhsparam]
+       ,
+         ((rhsInterval[[1,1]]!=rhsInterval[[1,2]]) 
+          && (rhsInterval[[2,1]]!=rhsInterval[[2,2]]))
+       ,
+         Print["In definition of variable ", lhs];
+         Throw[ Message[ vhdlModule::impossibleassignement, "17"];"" ]
+       ,
+         True,
+         Throw[Message["Non-intended case"]]
+       ]
+    ,
+      (* SINGLE COLUMN *)
+      (interval[[2,1]]==interval[[2,2]])
+    , 
+       rhsparam = 
+         Module[{indexp}, (* or p2 this point can be sovle by a symbol table *)
+           indexp = mmamat.{"t","p1", interval[[2,1]]}+transvect;
+           indexp = Drop[indexp,1];            (* drop the t constituent *)
+           "("<>ToString[indexp[[1]]]<>")("<>ToString[indexp[[2]]]<>")"
+         ];
+       Which[
+         ((rhsInterval[[1,1]]==rhsInterval[[1,2]]) 
+          && (rhsInterval[[2,1]]==rhsInterval[[2,2]]))
+       ,
+         MultipleAssign1D["p1",interval[[1,1]],interval[[1,2]],lhs, 
+            "("<>"p1"<>")("<>ToString[interval[[2,1]]]<>")", rhs, rhsparam]
+       ,
+         (rhsInterval[[1,1]]==rhsInterval[[1,2]])
+       ,
+         MultipleAssign1D["p1",interval[[1,1]],interval[[1,2]],lhs, 
+           "("<>"p1"<>")("<>ToString[interval[[2,1]]]<>")", rhs, rhsparam]
+       ,
+         (rhsInterval[[2,1]]==rhsInterval[[2,2]])
+       ,
+          MultipleAssign1D["p1",interval[[1,1]],interval[[1,2]],lhs, 
+            "("<>"p1"<>")("<>ToString[interval[[2,1]]]<>")", rhs, rhsparam]
+       ,
+         ((rhsInterval[[1,1]]!=rhsInterval[[1,2]]) 
+         && (rhsInterval[[2,1]]!=rhsInterval[[2,2]]))
+       ,
+         Print["In definition of variable ", lhs];
+         Throw[ Message[ vhdlModule::impossibleassignement, "18"];"" ]
+       ,
+         True,
+         Throw[Message["Non-intended case"]]
+       ]
+    ,
+       (* 2D ARRAYS *)
+       ((interval[[1,1]]!=interval[[1,2]]) 
+        && (interval[[2,1]]!=interval[[2,2]]))
+    , 
+       rhsparam = 
+         Module[{indexp}, (* or p2 this point can be sovle by a symbol table *)
+           indexp = mmamat.{"t","p1", "p2"}+transvect;
+           indexp = Drop[indexp,1];            (* drop the t constituent *)
+           "("<>ToString[indexp[[1]]]<>")("<>ToString[indexp[[2]]]<>")"
+       ];
+     Which[
+       ((rhsInterval[[1,1]]==rhsInterval[[1,2]]) 
+        && (rhsInterval[[2,1]]==rhsInterval[[2,2]]))
+     ,
+       MultipleAssign2D[interval[[1,1]], interval[[1,2]], interval[[2,1]], 
+          interval[[2,2]], lhs, rhs, rhsparam]
+     ,
+       (rhsInterval[[1,1]]==rhsInterval[[1,2]])
+     ,
+       MultipleAssign2D[interval[[1,1]], interval[[1,2]], interval[[2,1]], 
+          interval[[2,2]], lhs, rhs, rhsparam]
+     ,
+       (rhsInterval[[2,1]]==rhsInterval[[2,2]])
+     ,
+       MultipleAssign2D[interval[[1,1]], interval[[1,2]], interval[[2,1]], 
+          interval[[2,2]], lhs, rhs, rhsparam],
+       ((rhsInterval[[1,1]]!=rhsInterval[[1,2]]) 
+         && (rhsInterval[[2,1]]!=rhsInterval[[2,2]]))
+     ,
+        MultipleAssign2D[interval[[1,1]], interval[[1,2]], interval[[2,1]], 
+           interval[[2,2]], lhs, rhs, rhsparam]
+     ,
+        True,
+        Throw[Message["Non-intended case"]]
+      ]
+    ,
+      True,  (* ERROR *)
+      Print["In definition of variable ", lhs];
+      Throw[ Message[ vhdlModule::impossibleassignement, "19"];"" ]
+    ]
+  ] 
+];
+
+(* Constants ... *)
+translateSimpleConnection[ lhs:_String, dom:_domain,
+    {{"const"[c:_]}, m:_matrix}, opts:___Rule] :=
+Module[ {},
+  "  "<>lhs<>" <- Constant[ "<>ToString[ c ]<>"]"
+];
+
+translateSimpleConnection[ lhs:_String, dom:_domain, 
+    {rhs:_String, m:_matrix}, opts:___Rule] := 
+  (Print["**************** Warning ****************"];
+   Print["Unrecognized Case for var ",lhs];
+   Print["Add Vhdl definition in code"];
+   "  ** Add Vhdl definition of variable "<>lhs);
+
+translateSimpleConnection[ a:___]:=
+  (Print["**************** Error ****************"];
+   Print["Unrecognized form of statement: "];Print[a];" -- Error ")
+
+vhdlModule::errorassgnmnt = 
+"unexpected error while generating assignment `1` = `2` etc. "; 
+vhdlModule::errora2mma = 
+"unexpected error while calling alphaToMmaMatrix"; 
+vhdlModule::errortrvec = 
+"unexpected error while calling getTranslationVector"; 
+vhdlModule::nottransl = 
+"in assignment `1` = `2` etc., dependency is not a translation. 
+Not covered yet."; 
+"unexpected error while generating assignment `1` = `2` etc. "; 
+vhdlModule::errorgbb = "unexpected error while calling getBoundingBox";
+vhdlModule::extdim = "dimension of extension of use `1` is too high";
+vhdlModule::errordom = 
+  "the domain of equation defining `1` is a union: I cannot handle it";
+vhdlModule::assignement = 
+  "the assignement of `1` by `2` is not foreseen";
+vhdlModule::impossibleassignement = 
+  "the assignement is impossible because it is a broadcast in `1`";
+
+
+(*==============================*)
+(* Generation of an assignation *)
+(*==============================*)
+Clear[SingleAssign];
+SingleAssign::usage = "SingleAssign[lhs, lparam, rhs, rparam ] creates the header of the vhd file. "; 
+SingleAssign[lhs: _String, lparam: _String, rhs: _String, rparam: _String ]:= 
+    StringJoin[
+      "\n  ",
+      lhs,
+      lparam,
+      " <= ",
+      rhs, 
+      rparam
+    ];
+
+(*==============================*)
+Clear[MultipleAssign1D];
+MultipleAssign1D::usage = "MultipleAssign1D[index, min, max, lhs, lparam, rhs, rparam] creates the header of the vhd file. "; 
+MultipleAssign1D[index: _String, min: _Integer|-Infinity, 
+  max: _Integer|Infinity, lhs: _String, 
+  lparam: _String, rhs: _String, rparam: _String ]:= 
+Module[{s},
+  If[ min === -Infinity || max === Infinity, 
+    vhdlModule::unbnd = "bounds of extension interval should be finite. Use statement will be incorrectly generated (see Vhdl code).";
+    Message[vhdlModule::unbnd]
+  ];
+  s = StringJoin[
+    "\n  ",
+    getLabel[],
+    " : FOR ",
+    index,
+    " IN ",
+    ToString[min],
+    " TO ",
+    ToString[max],
+    " GENERATE\n    ",
+    lhs,
+    lparam,
+    " <= ",
+    rhs, 
+    rparam,
+    ";",
+    "\n  END GENERATE"
+  ];
+  s
+];
+MultipleAssign1D[___] := Throw[Message[MultipleAssign1D::params]];
+
+(* Multiple assignment *)
+Clear[MultipleAssign2D];
+MultipleAssign2D::usage = "MultipleAssign2D[minp1, maxp1, minp2, maxp2, lhs, rhs, rparam] creates the header of the vhd file. "; 
+MultipleAssign2D[minp1: _, maxp1: _, minp2: _, maxp2: _, lhs: _String, rhs: _String, rparam: _String ]:= 
+Module[ {minp11, maxp11, minp22, maxp22},
+  minp11 = Floor[ minp1 ]; 
+  minp22 = Floor[ minp2 ]; 
+  maxp11 = Ceiling[ maxp1 ];
+  maxp22 = Ceiling[ maxp2 ];
+(* Print[ maxp1, maxp2 ]; *)
+  StringJoin[
+      "\n  ",
+      getLabel[],
+      " : FOR p1 IN ",
+      ToString[minp11],
+      " TO ",
+      ToString[maxp11],
+      " GENERATE\n    ",
+      getLabel[],
+      " : FOR p2 IN ",
+      ToString[minp22],
+      " TO ",
+      ToString[maxp22],
+      " GENERATE\n        ",
+      lhs,
+      "(p1)(p2)",
+      " <= ",
+      rhs, 
+      rparam,
+      ";",
+      "\n    END GENERATE;",
+      "\n  END GENERATE"
+    ]
+];
+MultipleAssign2D[___] := Message[ MultipleAssign2D::params ]; 
+(*
+  Generation of a use statement
+*)
+semFuncModule[ "use", id:_String, extension:_domain, 
+  paramAssign:_matrix, inputList:_, idList:_, opts:___Rule ] :=
+Catch[
+  Module[ { clkEn, decList, vhdlp, placeHolder, ids, reset, clockenable, 
+    res, ident, dbg },
+
+    (* Get the vhdlPatterns option *)
+    (* This option is true only when wants to generate Vhdl for the periodic
+      synthesizer *)
+    vhdlp = vhdlPatterns/.{opts}/.Options[ a2v ];
+    dbg = debug/.{opts}/.Options[ a2v ];
+
+    clkEn = clockEnable/.{opts}/.Options[a2v];
+
+    (* Initialize place holder *)
+    placeHolder = "";
+
+    (* We append the inputs and the output lists. On the 
+       fly, we remove the var[...] wrapper of the inputs *)
+    decList = Join[ Map[First, inputList], idList ];
+
+    (* Add use to list of components *)
+    useList = Append[useList, id];
+
+    ids = id;
+
+    (* If vhdlPatterns option is true, the reset and the clockenable 
+       are patterns *)
+    If[ vhdlp, 
+      clockenable = "$CE"<>ToString[ Length[ useList ] ]<>"$";
+      reset = "$Rst"<>ToString[ Length[ useList ] ]<>"$",
+      clockenable = "CE"; reset = "Rst"
+    ];
+
+    (* If vhdlPatterns option is true, do not generate components that 
+      are defined as patterns, but instead, introduce a place-holder 
+      (the name, enclosed in $ signs) *)
+    If[ vhdlp && (id === "ROM" || id === "PeriodicEnable" || 
+      id === "ModuloAddress" || id === "FSM" ), 
+      ids = ToString[ id ]<>ToString[ Length[ useList ] ] ];
+
+    (* For overSampling and underSampling, that's it *)
+    If[ vhdlp && (id === "overSampling" || id === "underSampling" ||
+     id === "upSampling" || id === "downSampling"), 
+      Return[
+        "\n    "<>"-- "<>ToString[ id ]<>"\n  "<>
+        Which[ 
+          MatchQ[ idList, {_String} ], 
+          First[ idList ], 
+          MatchQ[ idList, {var[_String]} ], 
+          First[ First[ idList ] ],
+          True,
+          "**** Wrong overSampling ****"
+        ]<>" <= "<>
+        Which[ 
+          MatchQ[ inputList, {_String} ], 
+          First[ inputList ], 
+          MatchQ[ inputList, {var[_String]} ], 
+          First[ First[ inputList ] ],
+          True,
+          "**** Wrong overSampling ****"
+        ]
+      ]
+    ];
+
+    If[ 
+      DomUniverseQ[extension]
+    , 
+      (* a use without extension *)
+      If[ dbg, Print["5555555555555", decList ] ];
+
+      (* An easy way to get the use by place-holder filling. See file /VHDL/Use *)
+      res = 
+        genVhdl[ "Use", "$label$" -> getLabel[], 
+          "$name$" -> ids, 
+          "$arguments$" -> 
+            Table[decList[[i]]<>", ",{i,1,Length[decList]-1}]<> Last[decList]<>")"
+        ];
+
+      (* Print[ res ];*) res 
+    , 
+
+      (* a use with extension *)
+      If[ dbg, Print["66666666666666"] ];
+
+      Module[{ interval, dimExt },
+        dimExt = extension[[1]];
+        If[ dimExt > 2, 
+          Message[ vhdlModule::extdim, id ];Throw[ Null ]
+        ];
+        interval = 
+          Which[ 
+            DomEmptyQ[extension]
+          , 
+            {0,0}
+          ,
+            extension[[1]] == 1
+          ,
+            Check[gb = (getBoundingBox[extension][[1]]),
+              Message[vhdlModule::errorgbb];
+              Throw[""]]
+          ,
+            extension[[1]] == 2      (* Extention to 2D processors arrays *)
+          ,
+            Check[gb = (getBoundingBox[extension]),
+              Message[vhdlModule::errorgbb];
+              Throw[""]]
+          ,
+            True
+          , 
+            {0,0}
+          ];
+
+        If[ Cases[ interval, Infinity|-Infinity ] =!= {}, 
+          vhdlModule::unbd = "use statement: `1` has an unbounded extension domain";
+          Message[ vhdlModule::unbd, id ];
+          Throw[""] 
+        ];
+
+        If[ dbg, Print["99999999999999 Interval: ", interval ] ];
+        (* In the case where the bounds would be rational *)
+        interval = Map[ { Floor[#], Ceiling[#] }&, interval ];
+
+        If[ dbg, Print["99999999999999 Interval: ", interval ] ];
+
+        Which[
+          Depth[interval]==3
+        ,
+          Which[
+
+            (* Single point *)
+            ((interval[[1,1]]==interval[[1,2]]) && (interval[[2,1]]==interval[[2,2]]))
+          , 
+            If[ dbg, Print["7777777777", " This case has been cleaned to remove false arrays " ]; 
+            Print[ id, " ",  decList ] ];
+
+            res = 
+              genVhdl[ "Use", "$label$" -> getLabel[], 
+                "$name$" -> id, 
+                "$arguments$" -> 
+                  Apply[ 
+                    StringJoin, 
+                      Table[ 
+                        decList[[i]]<>
+                        If[ dim1ScalarQ[ decList[[i]] ], "", "("<>ToString[interval[[1,1]]]<>")" ]<>
+                        If[ dim2ScalarQ[ decList[[i]] ], "", "("<>ToString[interval[[2,1]]]<>")"]<>", ",
+                        {i,1,Length[decList]-1} 
+                      ] <>
+                      If[ dim1ScalarQ[ Last[decList] ], "", "("<>ToString[interval[[1,1]]]<>")" ]<>
+                      If[ dim2ScalarQ[ Last[decList] ], "", "("<>ToString[interval[[2,1]]]<>")"]
+                  ]
+              ];
+(*            Print[ res ]; *) res
+          ,
+
+            (* SINGLE ROW *)
+            (interval[[1,1]]==interval[[1,2]]), 
+            If[ dbg, Print["1111111", " This case has been cleaned to remove false arrays " ]];
+            res = 
+              genVhdl[ "UseLoop", "$label1$" -> getLabel[], "$lb$" -> ToString[interval[[2,1]]],
+               "$ub$" -> ToString[interval[[2,2]]], "$label2$" -> getLable[], "$name$" -> id,
+               "$arguments$" -> 
+                  Apply[ 
+                    StringJoin, 
+                      Table[decList[[i]]<>
+                        If[ dim1ScalarQ[ decList[[i]] ], "", "("<>ToString[interval[[1,1]]]<>")"]<>
+                        If[ dim2ScalarQ[ decList[[i]] ], "", "(p)"]<>", ",
+                        {i,1,Length[decList]-1}
+                      ]<>Last[decList]<>
+                      If[ dim1ScalarQ[ Last[decList] ], "", "("<>ToString[interval[[1,1]]]<>")"]<>
+                      If[ dim2ScalarQ[ Last[decList] ], "", "(p)"]<>";"
+                  ]
+                ];
+(*            Print[ res ]; *) res
+          ,
+
+            (* Single column *)
+            (interval[[2,1]]==interval[[2,2]]), 
+            If[ dbg, Print["222222", " This case has been cleaned to remove false arrays " ] ];
+            res = 
+              genVhdl[ "UseLoop", "$label1$" -> getLabel[], "$lb$" -> ToString[interval[[1,1]]],
+               "$ub$" -> ToString[interval[[1,2]]], "$label2$" -> getLabel[], "$name$" -> id,
+               "$arguments$" -> 
+                  Apply[ 
+                    StringJoin, 
+                      Table[decList[[i]]<>
+                        If[ dim1ScalarQ[ decList[[i]] ], "", "("<>ToString[interval[[2,1]]]<>")" ]<>
+                        If[ dim2ScalarQ[ decList[[i]] ], "", "(p)" ]<>", "
+                        ,{i,1,Length[decList]-1}
+                      ]<>Last[decList]<>
+                      If[ dim1ScalarQ[ Last[decList] ], "", "("<>ToString[interval[[2,1]]]<>")" ]<>
+                      If[ dim2ScalarQ[ Last[decList] ], "", "(p)" ]<>");"
+                  ]
+                ];
+(*            Print[ res ]; *) res
+          ,
+            (* 2D arrays *)
+            ((interval[[1,1]]!=interval[[1,2]]) && (interval[[2,1]]!=interval[[2,2]])), 
+(*            Print["333333", " This case has been cleaned to remove false arrays " ]; *)
+            res = 
+              genVhdl[ "UseDoubleLoop", "$label1$" -> getLabel[], "$lb1$" -> ToString[interval[[1,1]]],
+               "$ub1$" -> ToString[interval[[1,2]]], "$label2$" -> getLabel[], 
+               "$lb2$" -> ToString[interval[[1,1]]],
+               "$ub2$" -> ToString[interval[[2,2]]], 
+               "$label3$" -> getLabel[], 
+               "$name$" -> id,
+               "$arguments$" -> 
+                  Apply[ 
+                    StringJoin, 
+                      Table[decList[[i]]<>
+                        If[ dim1ScalarQ[ decList[[i]] ], "", "(p1)" ]<>
+                        If[ dim2ScalarQ[ decList[[i]] ], "", "(p2)" ]<>", "
+                        ,{i,1,Length[decList]-1}
+                      ]<>Last[decList]<>
+                      If[ dim1ScalarQ[ Last[decList] ], "", "(p1)" ]<>
+                      If[ dim2ScalarQ[ Last[decList] ], "", "(p2)" ]<>");"
+                  ]
+                ];
+(*            Print[ res ]; *) res
+          ,
+            True,  (* ERROR *)
+            "ERROR in generetion of use statement"
+          ]
+        ,
+Print["8888888888"];
+          Depth[interval]==2
+        ,
+          res = 
+          If[ 
+            (* A For loop generate *)
+            interval[[1]]!= interval[[2]]
+          ,
+            Module[ { args }, 
+              (* We generate the arguments as array elements of as scalar, depending
+               on the type found in $vhdlTypes *)
+              args = 
+              Map[
+                If[ findVarType[#][[3]] === "scalar type", #, #<>"(p)" ]&,
+                decList
+              ];
+              genVhdl[ "UseLoop", "$label1$" -> getLabel[], "$lb$" -> ToString[interval[[1]]], 
+                "$ub$" -> ToString[interval[[2]]], "$label2$" -> getLabel[], 
+                "$name$" -> id, 
+                "$arguments$" -> 
+                Table[ args[[i]]<>", ", {i,1,Length[decList]-1}]<>Last[ args ]
+              ]
+            ]
+          ,
+            Module[ { args, index }, 
+              (* We generate the arguments as array elements of as scalar, depending
+               on the type found in $vhdlTypes *)
+              index = ToString[ interval[[1]] ];
+              args = 
+              Map[
+                If[ findVarType[#][[3]] === "scalar type", #, #<>"("<>index<>")" ]&,
+                decList
+              ];
+              genVhdl[ "Use", "$label$" -> getLabel[], 
+                "$name$" -> id, 
+                "$arguments$" -> 
+                  Table[ args[[i]]<>", ", {i,1,Length[decList]-1}]<>Last[ args ]
+              ]
+            ]
+
+          ]; Print[ res ]; res
+        , 
+          True
+        ,
+          "ERROR in generetion of use statement"
+        ] (* Which *)
+      ] (* Module *)
+    ]  (* If *)
+  ]  (* Module *)
+];  (* Catch *)
+
+(* --------------------------------------------------------------- *)
+Clear[vhdlHeader];
+vhdlHeader::usage = "vhdlHeader[id] creates the header of the vhd file. "; 
+vhdlHeader[idf_String]:= 
+Module[
+  { date, jj, mm, aa, hh, mn, ss },
+
+  jj=ToString[Date[][[3]]]; 
+  mm=ToString[Date[][[2]]]; 
+  aa=ToString[Date[][[1]]];
+  hh=ToString[Date[][[4]]]; 
+  mn=ToString[Date[][[5]]]; 
+  ss=ToString[Date[][[6]]];
+  date= StringJoin["-- ",jj,"/",mm,"/",aa," ",hh,":",mn,":",ss,"\n"];
+  StringJoin[
+    "-- VHDL Model Created for \"system ",idf,"\" \n",date,
+    "-- Alpha2Vhdl Version 0.9 "
+  ]
+];
+vhdlHeader[___] := Throw[Message[vhdlHeader::params]]
+
+End[];
+EndPackage[];

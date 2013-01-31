@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestTables
+END
+test1.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestTables/test1.alpha
+END
+TestTables.m
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestTables/TestTables.m
+END
+MV6.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestTables/MV6.alpha
+END

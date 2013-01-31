@@ -1,0 +1,16 @@
+system computeDistances :{N,M | 1<=N; 1<=M}
+                        (Data1 : {i,j | 0<=i<=N-1; 0<=j<=M-1} of integer[S,15]; 
+                         Data2 : {i,j | 0<=i<=N-1; 0<=j<=M-1} of integer[S,15])
+       returns          (DVect : {j | 0<=j<=M-1} of integer[S,15]);
+var
+  dloc : {i,j | -1<=i<=N-1; 0<=j<=M-1} of integer[S,15];
+  dabs : {i,j | 0<=i<=N-1; 0<=j<=M-1} of integer[S,15];
+let
+  dloc[i,j] = 
+      case
+        { | i=-1; 0<=j<=M-1} : 0[];
+        { | 0<=i; 0<=j<=M-1} : dloc[i-1,j] + dabs[i,j];
+      esac;
+  dabs[i,j] = if (Data2[i,j] - Data1[i,j]>=0[]) then Data2[i,j] else Data1[i,j];
+  DVect[j] = dloc[N-1,j];
+tel;

@@ -1,0 +1,248 @@
+(* ALPHA Tree produced by read_alpha v.3.3.4 (Doran) *){
+Alpha`system["cosparam",
+    (* parameter space *)
+    Alpha`domain[0, {}, {
+        Alpha`pol[1, 1, 0, 0, {
+            {1, 1}},{
+            {1, 1}}]}],
+    { (* input variables *)
+    Alpha`decl["v1", Alpha`real, 
+        Alpha`domain[1, {"i"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -1},
+                {1, -1, 4}},{
+                {1, 1, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["v2", Alpha`real, 
+        Alpha`domain[1, {"i"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -1},
+                {1, -1, 4}},{
+                {1, 1, 1},
+                {1, 4, 1}}]}]]},
+    { (* output variables *)
+    Alpha`decl["c", Alpha`real, 
+        Alpha`domain[0, {}, {
+            Alpha`pol[1, 1, 0, 0, {
+                {1, 1}},{
+                {1, 1}}]}]], 
+    Alpha`decl["s", Alpha`real, 
+        Alpha`domain[0, {}, {
+            Alpha`pol[1, 1, 0, 0, {
+                {1, 1}},{
+                {1, 1}}]}]]},
+    { (* local variables *)
+    Alpha`decl["alp", Alpha`real, 
+        Alpha`domain[0, {}, {
+            Alpha`pol[1, 1, 0, 0, {
+                {1, 1}},{
+                {1, 1}}]}]], 
+    Alpha`decl["beta", Alpha`real, 
+        Alpha`domain[0, {}, {
+            Alpha`pol[1, 1, 0, 0, {
+                {1, 1}},{
+                {1, 1}}]}]], 
+    Alpha`decl["gama", Alpha`real, 
+        Alpha`domain[0, {}, {
+            Alpha`pol[1, 1, 0, 0, {
+                {1, 1}},{
+                {1, 1}}]}]], 
+    Alpha`decl["eps", Alpha`real, 
+        Alpha`domain[0, {}, {
+            Alpha`pol[1, 1, 0, 0, {
+                {1, 1}},{
+                {1, 1}}]}]], 
+    Alpha`decl["t", Alpha`real, 
+        Alpha`domain[0, {}, {
+            Alpha`pol[1, 1, 0, 0, {
+                {1, 1}},{
+                {1, 1}}]}]], 
+    Alpha`decl["al", Alpha`real, 
+        Alpha`domain[1, {"j"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, 0},
+                {1, -1, 4}},{
+                {1, 0, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["be", Alpha`real, 
+        Alpha`domain[1, {"j"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, 0},
+                {1, -1, 4}},{
+                {1, 0, 1},
+                {1, 4, 1}}]}]], 
+    Alpha`decl["ga", Alpha`real, 
+        Alpha`domain[1, {"j"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, 0},
+                {1, -1, 4}},{
+                {1, 0, 1},
+                {1, 4, 1}}]}]]},
+    { (* let *)
+    Alpha`equation["al", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[1, {"j"}, {
+                    Alpha`pol[2, 1, 1, 0, {
+                        {0, 1, 0},
+                        {1, 0, 1}},{
+                        {1, 0, 1}}]}], 
+                Alpha`affine[Alpha`const[0], 
+                    Alpha`matrix[1, 2, {"j"}, {
+                        {0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[1, {"j"}, {
+                    Alpha`pol[2, 2, 0, 0, {
+                        {1, 1, -1},
+                        {1, 0, 1}},{
+                        {1, 1, 0},
+                        {1, 1, 1}}]}], 
+                Alpha`binop[Alpha`add, 
+                    Alpha`affine[Alpha`var["al"], 
+                        Alpha`matrix[2, 2, {"j"}, {
+                            {1, -1},
+                            {0, 1}}]], 
+                    Alpha`binop[Alpha`mul, 
+                        Alpha`affine[Alpha`var["v1"], 
+                            Alpha`matrix[2, 2, {"j"}, {
+                                {1, 0},
+                                {0, 1}}]], 
+                        Alpha`affine[Alpha`var["v1"], 
+                            Alpha`matrix[2, 2, {"j"}, {
+                                {1, 0},
+                                {0, 1}}]]]]]}]], 
+    Alpha`equation["alp", 
+        Alpha`affine[Alpha`var["al"], 
+            Alpha`matrix[2, 1, {}, {
+                {4},
+                {1}}]]], 
+    Alpha`equation["be", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[1, {"j"}, {
+                    Alpha`pol[2, 1, 1, 0, {
+                        {0, 1, 0},
+                        {1, 0, 1}},{
+                        {1, 0, 1}}]}], 
+                Alpha`affine[Alpha`const[0], 
+                    Alpha`matrix[1, 2, {"j"}, {
+                        {0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[1, {"j"}, {
+                    Alpha`pol[2, 2, 0, 0, {
+                        {1, 1, -1},
+                        {1, 0, 1}},{
+                        {1, 1, 0},
+                        {1, 1, 1}}]}], 
+                Alpha`binop[Alpha`add, 
+                    Alpha`affine[Alpha`var["be"], 
+                        Alpha`matrix[2, 2, {"j"}, {
+                            {1, -1},
+                            {0, 1}}]], 
+                    Alpha`binop[Alpha`mul, 
+                        Alpha`affine[Alpha`var["v2"], 
+                            Alpha`matrix[2, 2, {"j"}, {
+                                {1, 0},
+                                {0, 1}}]], 
+                        Alpha`affine[Alpha`var["v2"], 
+                            Alpha`matrix[2, 2, {"j"}, {
+                                {1, 0},
+                                {0, 1}}]]]]]}]], 
+    Alpha`equation["beta", 
+        Alpha`affine[Alpha`var["be"], 
+            Alpha`matrix[2, 1, {}, {
+                {4},
+                {1}}]]], 
+    Alpha`equation["ga", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[1, {"j"}, {
+                    Alpha`pol[2, 1, 1, 0, {
+                        {0, 1, 0},
+                        {1, 0, 1}},{
+                        {1, 0, 1}}]}], 
+                Alpha`affine[Alpha`const[0], 
+                    Alpha`matrix[1, 2, {"j"}, {
+                        {0, 1}}]]], 
+            Alpha`restrict[
+                Alpha`domain[1, {"j"}, {
+                    Alpha`pol[2, 2, 0, 0, {
+                        {1, 1, -1},
+                        {1, 0, 1}},{
+                        {1, 1, 0},
+                        {1, 1, 1}}]}], 
+                Alpha`binop[Alpha`add, 
+                    Alpha`affine[Alpha`var["ga"], 
+                        Alpha`matrix[2, 2, {"j"}, {
+                            {1, -1},
+                            {0, 1}}]], 
+                    Alpha`binop[Alpha`mul, 
+                        Alpha`affine[Alpha`var["v1"], 
+                            Alpha`matrix[2, 2, {"j"}, {
+                                {1, 0},
+                                {0, 1}}]], 
+                        Alpha`affine[Alpha`var["v2"], 
+                            Alpha`matrix[2, 2, {"j"}, {
+                                {1, 0},
+                                {0, 1}}]]]]]}]], 
+    Alpha`equation["gama", 
+        Alpha`affine[Alpha`var["ga"], 
+            Alpha`matrix[2, 1, {}, {
+                {4},
+                {1}}]]], 
+    Alpha`equation["eps", 
+        Alpha`binop[Alpha`div, 
+            Alpha`binop[Alpha`sub, Alpha`var["beta"], Alpha`var["alp"]], 
+            Alpha`binop[Alpha`mul, 
+                Alpha`affine[Alpha`const[2], 
+                    Alpha`matrix[1, 1, {}, {
+                        {1}}]], Alpha`var["gama"]]]], 
+    Alpha`equation["t", 
+        Alpha`if[
+            Alpha`binop[Alpha`eq, Alpha`var["eps"], 
+                Alpha`affine[Alpha`const[0], 
+                    Alpha`matrix[1, 1, {}, {
+                        {1}}]]], 
+            Alpha`affine[Alpha`const[1], 
+                Alpha`matrix[1, 1, {}, {
+                    {1}}]], 
+            Alpha`if[
+                Alpha`binop[Alpha`gt, Alpha`var["eps"], 
+                    Alpha`affine[Alpha`const[0], 
+                        Alpha`matrix[1, 1, {}, {
+                            {1}}]]], 
+                Alpha`binop[Alpha`div, 
+                    Alpha`affine[Alpha`const[1], 
+                        Alpha`matrix[1, 1, {}, {
+                            {1}}]], 
+                    Alpha`binop[Alpha`add, Alpha`var["eps"], 
+                        Alpha`binop[Alpha`add, 
+                            Alpha`affine[Alpha`const[1], 
+                                Alpha`matrix[1, 1, {}, {
+                                    {1}}]], 
+                            Alpha`binop[Alpha`mul, Alpha`var["eps"], Alpha`var["eps"]]]]], 
+                Alpha`binop[Alpha`div, 
+                    Alpha`unop[Alpha`neg, 
+                        Alpha`affine[Alpha`const[1], 
+                            Alpha`matrix[1, 1, {}, {
+                                {1}}]]], 
+                    Alpha`binop[Alpha`add, 
+                        Alpha`unop[Alpha`neg, Alpha`var["eps"]], 
+                        Alpha`binop[Alpha`add, 
+                            Alpha`affine[Alpha`const[1], 
+                                Alpha`matrix[1, 1, {}, {
+                                    {1}}]], 
+                            Alpha`binop[Alpha`mul, Alpha`var["eps"], Alpha`var["eps"]]]]]]]], 
+    Alpha`equation["c", 
+        Alpha`binop[Alpha`div, 
+            Alpha`affine[Alpha`const[1], 
+                Alpha`matrix[1, 1, {}, {
+                    {1}}]], 
+            Alpha`binop[Alpha`add, 
+                Alpha`affine[Alpha`const[1], 
+                    Alpha`matrix[1, 1, {}, {
+                        {1}}]], 
+                Alpha`binop[Alpha`mul, Alpha`var["t"], Alpha`var["t"]]]]], 
+    Alpha`equation["s", 
+        Alpha`binop[Alpha`mul, Alpha`var["c"], Alpha`var["t"]]]}]
+}

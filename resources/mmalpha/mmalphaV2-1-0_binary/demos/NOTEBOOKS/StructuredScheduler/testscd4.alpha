@@ -1,0 +1,21 @@
+system add :   {N | 1<=N}
+               (a : {k | 1<=k<=N} of integer; 
+                b : {k | 1<=k<=N} of integer)
+       returns (c : {k | 1<=k<=N} of integer);
+let
+  c[k] = a + b;
+tel;
+
+system testscd4 :{M | 1<=M}
+                (in : {k | 1<=k<=M} of integer)
+       returns  (out : {k,i | 1<=k<=M; 1<=i<=10} of integer);
+var 
+  A : {k,i | 1<=k<=M; 1<=i<=10} of integer;
+let
+  A[k,i] = 
+  case
+    {|i=1}: in[k];
+    {|i>1}: A[k,i-1] + 1[];
+  esac;
+  use {i|1<=i<=10} add[M] (A, A) returns  (out) ;
+tel;

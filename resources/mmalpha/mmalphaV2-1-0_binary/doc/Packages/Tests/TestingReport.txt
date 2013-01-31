@@ -1,0 +1,98 @@
+------> Testing: Alpha
+Date: Fri 23 Apr 2010 14:26:42
+Calling TestAlpha.m
+------------- > Test for Alpha was passed successfully.
+End of test
+------> Testing: Alphard
+Date: Fri 23 Apr 2010 14:27:08
+Calling TestAlphard.m
+****** > test Alphard 16 was wrong
+End of test
+------> Testing: ChangeOfBasis
+Date: Fri 23 Apr 2010 14:28:44
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: CodeGen
+Date: Fri 23 Apr 2010 14:29:57
+Calling TestCodeGen.m
+****** > test test cGen 13  was wrong
+End of test
+------> Testing: Cut
+Date: Fri 23 Apr 2010 14:30:27------> Testing: CutMMA
+Date: Fri 23 Apr 2010 14:30:34
+Calling TestCutMMA.m
+------------- > Test for CutMMA was passed successfully.
+End of test
+------> Testing: Decomposition
+Date: Fri 23 Apr 2010 14:30:46
+Calling TestDecomposition.m
+------------- > Test for Decomposition was passed successfully.
+End of test
+------> Testing: DesignManagement
+Date: Fri 23 Apr 2010 14:30:56------> Testing: Domlib
+Date: Fri 23 Apr 2010 14:31:09
+Calling TestDomlib.m
+------------- > Test for Domlib was passed successfully.
+End of test
+------> Testing: Matrix
+Date: Fri 23 Apr 2010 14:31:30
+Calling TestMatrix.m
+------------- > Test for Matrix was passed successfully.
+End of test
+------> Testing: MultiDim
+Date: Fri 23 Apr 2010 14:32:08
+Calling TestMultiDim.m
+------------- > Test for MultiDim was passed successfully.
+End of test
+------> Testing: NewSchedule
+Date: Fri 23 Apr 2010 14:32:20------> Testing: Normalization
+Date: Fri 23 Apr 2010 14:32:34
+Calling TestNormalization.m
+------------- > Test for Normalization was passed successfully.
+End of test
+------> Testing: PipeControl
+Date: Fri 23 Apr 2010 14:32:45
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: Pipeline
+Date: Fri 23 Apr 2010 14:32:54
+Calling TestPipeline.m
+------------- > Test for Pipeline was passed successfully.
+End of test
+------> Testing: Properties
+Date: Fri 23 Apr 2010 14:33:33------> Testing: Schedule
+Date: Fri 23 Apr 2010 14:33:51
+Calling TestSchedule.m
+------------- > Test for Schedule was passed successfully.
+End of test
+------> Testing: Semantics
+Date: Fri 23 Apr 2010 14:34:32
+Calling TestSemantics.m
+****** > test expDomain 7 was wrong
+End of test
+------> Testing: Static
+Date: Fri 23 Apr 2010 14:34:54
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Fri 23 Apr 2010 14:35:11
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: SubSystems
+Date: Fri 23 Apr 2010 14:35:26
+Calling TestSubSystems.m
+------------- > Test for SubSystems was passed successfully.
+End of test
+------> Testing: Tables
+Date: Fri 23 Apr 2010 14:35:43
+Calling TestTables.m
+------------- > Test for Tables was passed successfully.
+End of test
+------> Testing: Traduction
+Date: Fri 23 Apr 2010 14:35:53------> Testing: Uniformization
+Date: Fri 23 Apr 2010 14:36:10
+Calling TestUniformization.m

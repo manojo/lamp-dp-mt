@@ -1,0 +1,175 @@
+grammar fr.irisa.cairn.model.Mathematica with org.eclipse.xtext.common.Terminals
+
+generate mathematica "http://www.irisa.fr/cairn/model/Mathematica"
+
+Node :  ASTNode | ASTLeaf | BuiltInNode;
+
+ASTNode : name=ID  '[' (children+=Node (',' children+=Node)*)? ']';
+
+terminal KeyWord : 
+  "Module" | 
+  "List" | 
+  "Clear" | 
+  "CompundExpression" | 
+  "BeginPackage" | 
+  "Set" | 
+  "SetDelayed" | 
+  "Message" | 
+  "MessageName" | 
+  "Pattern" | 
+  "Rule" | 
+  "RuleDelayed" | 
+  "With" | 
+  "Blank" | 
+  "ReplaceAll" | 
+  "Map" | 
+  "Length" | 
+  "Protect" | 
+  "Union" | 
+  "Plus" | 
+  "Catch" | 
+  "If" | 
+  "Do" | 
+  "SameQ" | 
+  "UnSameQ" | 
+  "Or" | 
+  "And" | 
+  "Part" | 
+  "Print" | 
+  "Return" | 
+  "Times"; 
+
+
+BuiltInNode : keyword=KeyWord '[' (children+=Node (',' children+=Node)*)? ']';
+
+ASTLeaf : IntLeaf | StringLeaf | FloatLeaf | SymbolLeaf;
+
+//BuiltInNode : ListNode | SetNode;
+//
+//ListNode : 
+//	"List"  '[' (children+=Node (',' children+=Node)*)? ']';
+//
+//SetNode : 
+//	"List"  '[' (children+=Node (',' children+=Node)*)? ']';
+
+IntLeaf :
+	(signed="-")? value =INT;
+ 
+StringLeaf :
+	value=STRING;
+	
+SymbolLeaf :
+	name=ID;
+	
+
+FloatLeaf :
+(signed="-")? 
+(
+	(a=INT '.' b=INT) |
+	('.' b=INT) 
+);
+/*
+StmtBlock:
+	(stmts+=SetExpression ';')*;
+
+SetExpression returns Expression: 
+	MapExpression  ({Operation.left=current}name='=' right=MapExpression)*;
+
+MapExpression returns Expression:
+	SlashDotExpression  ({Operation.left=current} name="->" right=SlashDotExpression)*;
+	 
+SlashDotExpression returns Expression:
+	OrExpression  ({Operation.left=current} name="/." right=OrExpression)*;
+
+OrExpression returns Expression:
+	AndExpression ({Operation.left=current} operator=("or"|"xor") right=AndExpression)*;
+
+AndExpression returns Expression:
+	RelationalExpression ({Operation.left=current} operator="and" right=RelationalExpression)*;
+	
+RelationalExpression returns Expression:
+	AdditiveExpression ({Operation.left=current} operator=("===" | "<>" | ">=" | "<=" | ">" | "<") right=AdditiveExpression)*;
+
+AdditiveExpression returns Expression:
+	MultiplicativeExpression ({OperationCall.params+=current} name=("+" | "-") params+=MultiplicativeExpression)*;
+
+MultiplicativeExpression returns Expression:
+	UnaryOrInfixExpression ({OperationCall.params+=current} name=("*" | "/") params+=UnaryOrInfixExpression)*;
+
+UnaryOrInfixExpression returns Expression:
+	UnaryExpression | FunctionDefExpression; 
+
+UnaryExpression returns Expression:
+	name=("not" | "-") params+=FunctionDefExpression;
+	
+FunctionDefExpression returns Expression: 
+	FunctionExpression ({OperationCall.params+=current} ':=' body+=StmtBlock)* ; 
+
+FunctionExpression returns Expression: 
+	(PrimaryExpression (({OperationCall.params+=current} 
+	name='[' (args+=SetExpression (',' args+=SetExpression)*)? ']')
+	)?);
+
+PrimaryExpression returns Expression:
+	Literal | 
+	ObjectReference |
+	ParanthesizedExpression;
+
+ParanthesizedExpression returns Expression:
+	name="(" exp=SetExpression ")";
+
+Literal: BooleanLiteral | IntegerLiteral  | RealLiteral | StringLiteral;
+	
+BooleanLiteral: 	bool=("True" | "False" );
+IntegerLiteral: 	int=INT;
+RealLiteral:    	real=REAL;
+StringLiteral:   	string=STRING;
+
+terminal REAL: ('0'..'9')* '.' ('0'..'9')*;
+
+
+ObjectReference :  ContextDef | SymbolDef | DollarSymbolDef;
+
+
+WildCardExp:
+	('_')+; 
+
+
+ParamDef:
+	(name=SymbolDef ':') type=SymbolDef;
+
+SymbolDef:
+	(prefix+=ID '::')* name=ID;
+
+DollarSymbolDef :
+ 	'$' SymbolDef;
+ 	
+ContextDef:
+	(path=ContextPath)? '`' def=SymbolDef;
+	
+ContextPath:
+	path+=ID ('`' path+=ID);
+
+//
+//TypeDef:
+//	BuiltInType | UserTypeDef; 
+//	
+//BuiltInType:
+//	'integer' | 'boolean';
+//
+//UserTypeDef:
+//	ref=[TypeDef];
+//	
+//	
+
+
+//Alternatives H »» L
+//Blank H_L
+//BlankSequence H__L
+//Cases
+//Count
+//DeleteCases
+//MatchQ
+//Pattern
+//PatternTest H? L
+*/

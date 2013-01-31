@@ -1,0 +1,16 @@
+CONTENT (22 April 2005)
+Everything up-to-date as compared to LIPForge
+Files with * should be examined
+
+Makefile OK
+d Test
+VERSION OK
+*gen.c OK Different from alpha_beta, as it makes its includes in Write_Alpha, not Pretty, and this does not work. See gen.c-new in this directory
+gen.h OK
+lex.l OK
+node.h OK
+nodeprocs.c OK Idem gen.c
+nodeprocs.h OK
+*y.tab.h --> Different from MMAlpha-bigmess, and from alpha_beta... Seems that
+Tanguy made a revision. I guess that it is OK.
+yacc.y

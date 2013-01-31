@@ -1,0 +1,23 @@
+system boolOperator (a : { i | 0<= i <= 1} of boolean;
+                     b : { i | 0<= i <= 1} of boolean;
+	             c : { i | 0<= i <= 1} of boolean)
+   returns (Or : { i,j | 0<= i <= 1; 0<= j <= 1} of boolean;
+            Xor : { i,j | 0<= i <= 1; 0<= j <= 1} of boolean;
+	    And : { i,j | 0<= i <= 1; 0<= j <= 1} of boolean;
+            Not : { i | 0<= i <= 1} of boolean;
+            Imp : { i,j | 0<= i <= 1; 0<= j <= 1} of boolean;
+	    expr1 : { i,j,k | 0<= i <= 1; 0<= j <= 1; 0<= k <= 1} of boolean;
+	    expr2 : { i,j,k | 0<= i <= 1; 0<= j <= 1; 0<= k <= 1} of boolean;
+	    expr3 : { i,j,k | 0<= i <= 1; 0<= j <= 1; 0<= k <= 1} of boolean;
+	    expr4 : { i,j,k | 0<= i <= 1; 0<= j <= 1; 0<= k <= 1} of boolean);
+let
+  Or[i,j] = a[i] or b[j];
+  Xor[i,j] = a[i] xor b[j];
+  And[i,j] = a[i] and b[j];
+  Not[i] = not a[i];
+  Imp[i,j] = not a[i] or b[j];
+  expr1[i,j,k] = a[i] or b[j] and c[k];
+  expr2[i,j,k] = (a[i] or b[j]) and c[k];
+  expr3[i,j,k] = a[i] or b[j] xor c[k];
+  expr4[i,j,k] = a[i] or (b[j] xor c[k]);
+tel;

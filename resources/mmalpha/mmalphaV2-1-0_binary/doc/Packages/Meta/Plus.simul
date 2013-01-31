@@ -1,0 +1,53 @@
+Begin["Alpha`Simul`Plus`"];
+Clear[ Alpha`Simul`Plus`A, Alpha`Simul`Plus`B, Alpha`Simul`Plus`Cin, Alpha`Simul`Plus`Cout, Alpha`Simul`Plus`S, Alpha`Simul`Plus`X];
+
+    (* Definition of X *)
+    Alpha`Simul`Plus`X[b_, W_, f:(_Integer|_Symbol)...] := Alpha`Simul`FullAdder`X[b, W, f];
+    Alpha`Simul`Plus`X[ ___ ] := Message[Alpha`Simul`Plus`X::params ];
+
+    (* Definition of Cout *)
+    Alpha`Simul`Plus`Cout[b_, W_, f:(_Integer|_Symbol)...] := Alpha`Simul`FullAdder`Cout[b, W, f];
+    Alpha`Simul`Plus`Cout[ ___ ] := Message[Alpha`Simul`Plus`Cout::params ];
+
+    (* Definition of A *)
+    Alpha`Simul`FullAdder`A[b_, W_, f:(_Integer|_Symbol)...] := Alpha`Simul`Plus`A[b, W, f];
+    Alpha`Simul`FullAdder`A[ ___ ] := Message[Alpha`Simul`Plus`A::params ];
+
+    (* Definition of B *)
+    Alpha`Simul`FullAdder`B[b_, W_, f:(_Integer|_Symbol)...] := Alpha`Simul`Plus`B[b, W, f];
+    Alpha`Simul`FullAdder`B[ ___ ] := Message[Alpha`Simul`Plus`B::params ];
+
+    (* Definition of Cin *)
+    Alpha`Simul`FullAdder`Cin[b_, W_, f:(_Integer|_Symbol)...] := Alpha`Simul`Plus`Cin[b, W, f];
+    Alpha`Simul`FullAdder`Cin[ ___ ] := Message[Alpha`Simul`Plus`Cin::params ];
+
+    (* Definition of Cin *)
+    Alpha`Simul`Plus`Cin[b_, W_, f:(_Integer|_Symbol)...] := 
+      Which[
+        -2 + W >= 0 && b == 0
+      ,
+        If[ b == 0, False, Message[ semanticFunction::undef ] ]
+      ,
+        -1 + b >= 0 && -2 + W >= 0 && -b + W >= 0
+      ,
+        If[ -1 + b >= 0, Alpha`Simul`Plus`Cout[ -1 + b, W,f ], Message[ semanticFunction::undef ] ]
+      ,
+      True, Message[ semanticFunction::undef ]
+      ];
+    Alpha`Simul`Plus`Cin[ ___ ] := Message[Alpha`Simul`Plus`Cin::params ];
+
+    (* Definition of S *)
+    Alpha`Simul`Plus`S[b_, W_, f:(_Integer|_Symbol)...] := 
+      Which[
+        -1 - b + W >= 0 && -2 + W >= 0 && b >= 0
+      ,
+        If[ -1 - b + W >= 0, Alpha`Simul`Plus`X[ b, W,f ], Message[ semanticFunction::undef ] ]
+      ,
+        -2 + W >= 0 && b - W == 0
+      ,
+        If[ b - W == 0, Alpha`Simul`Plus`Cout[ -1 + W, W,f ], Message[ semanticFunction::undef ] ]
+      ,
+      True, Message[ semanticFunction::undef ]
+      ];
+    Alpha`Simul`Plus`S[ ___ ] := Message[Alpha`Simul`Plus`S::params ];
+End[];

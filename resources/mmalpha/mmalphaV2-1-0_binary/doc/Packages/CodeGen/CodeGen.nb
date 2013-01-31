@@ -1,0 +1,694 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     10538,        475]*)
+(*NotebookOutlinePosition[     11467,        509]*)
+(*  CellTagsIndexPosition[     11392,        503]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Code generation", "Title",
+  FontColor->RGBColor[1, 0, 0],
+  CellTags->"firstcell"],
+
+Cell["The Alpha Team", "Subsubtitle"],
+
+Cell["\<\
+April 2002. Checked Dec. 27, 2002 and Dec. 26, 2007. does not pass tests... \
+\
+\>", "Text"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+alpha@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell["Cr\[EAcute]dits", "Subsubsection",
+  FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+      Zbigniew Chamski 
+      Catherine Dezan 
+      Florent Dupont de Dinechin 
+      Patricia Le Mo\[EDoubleDot]nner 
+      Herv\[EAcute] Le Verge 
+      Christophe Mauras 
+      Patrice Quinton 
+      Fabien Quillere
+      Sanjay Rajopadhye 
+      Sophie Robert 
+      Tanguy Risset 
+      Doran Wilde \
+\>", "SmallText"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+ Execute this cell, to go in the CodeGen documentation directory. \
+\>", "Subsubsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(\(setMMADir[{"\<doc\>", "\<packages\>", "\<CodeGen\>"}];\)\)], "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Generating \"normal\" C code", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(load["\<MV1.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \($result\)], "Input"],
+
+Cell["This call should generate an error message...", "Text"],
+
+Cell[BoxData[
+    \(cGen["\<mv.c\>", {"\<N\>" \[Rule] 3}]\)], "Input"],
+
+Cell["Schedule it", "Text"],
+
+Cell[BoxData[
+    \(scd[]\)], "Input"],
+
+Cell["No, call cGen.", "Text"],
+
+Cell[BoxData[
+    \(cGen["\<mv.c\>", {"\<N\>" \[Rule] 3}, debug \[Rule] False]\)], "Input"],
+
+Cell["\<\
+You can look at file mv.c, compile it using \"gcc -o mv mv.c\", and run it. \
+The program will ask for all values.\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(?cGen\)\)], "Input"],
+
+Cell["\<\
+Note that the parameter need be fixed, in the current version. \
+\>", "Text"],
+
+Cell[BoxData[
+    \(cGen["\<mv.c\>", {}, debug \[Rule] False]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Options of cGen", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(Options[cGen]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell["matlab", "Subsubsection"],
+
+Cell[BoxData[
+    \(\(?matlab\)\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["rewrite", "Subsubsection"],
+
+Cell[BoxData[
+    \(\(?rewrite\)\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["interactive", "Subsubsection"],
+
+Cell[BoxData[
+    \(\(?interactive\)\)], "Input"],
+
+Cell[BoxData[
+    \(cGen["\<mv1.c\>", {}, interactive \[Rule] False]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["internalFormat", "Subsubsection"],
+
+Cell["\<\
+If this option is set, the cGen function does not produce a C file, but \
+returns the internal structure of the C code, using hseq, vseq, blocks etc...\
+\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(?internalFormat\)\)], "Input"],
+
+Cell[BoxData[
+    \(cc = cGen["\<mv1.c\>", {}, internalFormat \[Rule] True]\)], "Input"],
+
+Cell[BoxData[
+    \(FullForm[cc]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["noPrint", "Subsubsection"],
+
+Cell["\<\
+The noPrint option allows a \"clean\" C program to be generated. You can run \
+it with a command such as \"./mv <inputs >outputs\".\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(?noPrint\)\)], "Input"],
+
+Cell[BoxData[
+    \(cc = 
+      cGen["\<mv.c\>", {"\<N\>" \[Rule] 3}, noPrint \[Rule] True]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["bitTrue", "Subsubsection"],
+
+Cell["This option assumes that the bitTrue library is somewhere...", "Text"],
+
+Cell[BoxData[
+    \(\(?bitTrue\)\)], "Input"],
+
+Cell[BoxData[
+    \(cc = 
+      cGen["\<mv.c\>", {"\<N\>" \[Rule] 3}, bitTrue \[Rule] True]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["stimuli", "Subsubsection"],
+
+Cell["\<\
+If this option is set, the C code, when run, will produce one stimuli file \
+for each input and/or output variable. For variable say, a, the file is \
+called stim_in_a.txt (respectively, stim_out_a.txt).\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(?stimuli\)\)], "Input"],
+
+Cell[BoxData[
+    \(cc = 
+      cGen["\<mv.c\>", {"\<N\>" \[Rule] 3}, stimuli \[Rule] True, 
+        noPrint \[Rule] True]\)], "Input"],
+
+Cell[BoxData[
+    \(Options[cGen]\)], "Input"]
+}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Using infGen to save iNormalization", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?infGen\)\)], "Input"],
+
+Cell[BoxData[
+    \(load["\<MVReal.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(schedule[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(ii = infGen[matlab \[Rule] False, debug \[Rule] False];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ii >> essai.loop\)], "Input"],
+
+Cell[BoxData[
+    \(iNormCGen[ii, "\<mv.c\>", {"\<N\>" \[Rule] 3}]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Generating C code for Matlab", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(load["\<MVReal.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(schedule[]\)], "Input"],
+
+Cell[BoxData[
+    \(cGen["\<mv.c\>", {"\<N\>" \[Rule] 3}, matlab \[Rule] True, 
+      debug \[Rule] False]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Generating C code for the DLMS", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(load["\<DLMS.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(schedule[]\)], "Input"],
+
+Cell[BoxData[
+    \(cGen["\<dlms.c\>", {"\<N\>" \[Rule] 10, "\<M\>" \[Rule] 
+          20, "\<D\>" \[Rule] 3}]\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["The function iNorm", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(load["\<MV1.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(?iNorm\)\)], "Input"],
+
+Cell[BoxData[
+    \(xxx = iNorm[$result, 1]\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[xxx]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["The mkLoop function", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?mkLoop\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(dd = 
+        readDom["\<{x1,x2,p|0<=x2<=4;x2<=x1<=x2+9;x1<=p;p<=40}\>"];\)\)], \
+"Input"],
+
+Cell[BoxData[
+    \(ashow[dd]\)], "Input"],
+
+Cell[BoxData[
+    \(printC[mkLoop[dd, 1, 1, {}, "\<\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(\(dd = readDom["\<{x1,x2|0<=x1;0<=x2<=10}\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(<< Alpha/CodeGen/Loops.m\)], "Input"],
+
+Cell[BoxData[
+    \(printC[mkLoop[dd, 1, 0, {}, "\<\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(printC[hseq[Apply[Max, Join[{}, 1, f[2 + a]]]]]\)], "Input"],
+
+Cell[BoxData[
+    \(\(?hseq\)\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["The mkDomain function", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?mkDomain\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(dd = 
+        readDom["\<{x1,x2,p|0<=x2<=4;x2<=x1<=x2+9;x1<=p;p<=40}\>"];\)\)], \
+"Input"],
+
+Cell[BoxData[
+    \(ashow[dd]\)], "Input"],
+
+Cell[BoxData[
+    \(findBound["\<a\>", real, dd, 0, {}]\)], "Input"],
+
+Cell[BoxData[
+    \(Map[printC, mkDomain["\<a\>", real, dd, 0, {}]]\)], "Input"],
+
+Cell[BoxData[
+    \(<< Alpha/CodeGen/Domains.m\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["The findBound function", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(dd = 
+        readDom["\<{x1,x2,p|0<=x2<=4;x2<=x1<=x2+9;x1<=p;p<=40}\>"];\)\)], \
+"Input"],
+
+Cell[BoxData[
+    \(ashow[dd]\)], "Input"],
+
+Cell[BoxData[
+    \(findBound["\<a\>", real, dd, 0, {}]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Infinite programs (being developed)", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(load["\<infinite.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(analyze[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(?optimizationType\)\)], "Input"],
+
+Cell[BoxData[
+    \(scd[addConstraints \[Rule] {TAD1 == 1}, 
+      optimizationType \[Rule] Null]\)], "Input"],
+
+Cell[BoxData[
+    \(showSchedResult[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(?cGen\)\)], "Input"],
+
+Cell[BoxData[
+    \(<< Alpha/CodeGen/Domains.m\)], "Input"],
+
+Cell[BoxData[
+    \(cGen["\<infinite.c\>", {}]\)], "Input"],
+
+Cell[BoxData[
+    \(\(?polytope\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(?domAllocDims\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(?Array\)\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Testing CodeGen", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(tests["\<CodeGen\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(FullForm[
+      mkLoop[readDom["\<{i,j,N|1<=i<=N;j=2i}\>"], 1, 
+        1, {}, "\<code\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(\(load["\<VerySimple.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(cGen[$result, sched1, "\<verySimple.c\>", {}]\)], "Input"],
+
+Cell[BoxData[
+    \(Options[analyze]\)], "Input"]
+}, Closed]]
+}, Open  ]]
+},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1440}, {0, 835}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+Evaluator->"Local",
+WindowSize->{1009, 664},
+WindowMargins->{{0, Automatic}, {Automatic, 33}},
+PrintingCopies->1,
+PrintingPageRange->{Automatic, Automatic},
+Magnification->1.5
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{
+  "firstcell"->{
+    Cell[1776, 53, 89, 2, 132, "Title",
+      CellTags->"firstcell"]}
+  }
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{
+  {"firstcell", 11296, 496}
+  }
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 89, 2, 132, "Title",
+  CellTags->"firstcell"],
+Cell[1868, 57, 37, 0, 45, "Subsubtitle"],
+Cell[1908, 59, 102, 3, 47, "Text"],
+Cell[2013, 64, 97, 3, 62, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2135, 71, 72, 1, 41, "Subsubsection"],
+Cell[2210, 74, 334, 13, 282, "SmallText"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[2581, 92, 131, 3, 30, "Subsubsection"],
+Cell[2715, 97, 119, 2, 39, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2871, 104, 79, 1, 104, "Section"],
+Cell[2953, 107, 63, 1, 39, "Input"],
+Cell[3019, 110, 40, 1, 39, "Input"],
+Cell[3062, 113, 61, 0, 40, "Text"],
+Cell[3126, 115, 70, 1, 39, "Input"],
+Cell[3199, 118, 27, 0, 47, "Text"],
+Cell[3229, 120, 38, 1, 39, "Input"],
+Cell[3270, 123, 30, 0, 47, "Text"],
+Cell[3303, 125, 91, 1, 39, "Input"],
+Cell[3397, 128, 138, 3, 47, "Text"],
+Cell[3538, 133, 42, 1, 39, "Input"],
+Cell[3583, 136, 87, 2, 40, "Text"],
+Cell[3673, 140, 74, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[3784, 146, 66, 1, 57, "Section"],
+Cell[3853, 149, 46, 1, 39, "Input"],
+
+Cell[CellGroupData[{
+Cell[3924, 154, 31, 0, 41, "Subsubsection"],
+Cell[3958, 156, 44, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4039, 162, 32, 0, 30, "Subsubsection"],
+Cell[4074, 164, 45, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4156, 170, 36, 0, 30, "Subsubsection"],
+Cell[4195, 172, 49, 1, 39, "Input"],
+Cell[4247, 175, 81, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4365, 181, 39, 0, 30, "Subsubsection"],
+Cell[4407, 183, 177, 4, 73, "Text"],
+Cell[4587, 189, 52, 1, 39, "Input"],
+Cell[4642, 192, 88, 1, 39, "Input"],
+Cell[4733, 195, 45, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4815, 201, 32, 0, 30, "Subsubsection"],
+Cell[4850, 203, 155, 3, 73, "Text"],
+Cell[5008, 208, 45, 1, 39, "Input"],
+Cell[5056, 211, 104, 2, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5197, 218, 32, 0, 30, "Subsubsection"],
+Cell[5232, 220, 76, 0, 47, "Text"],
+Cell[5311, 222, 45, 1, 39, "Input"],
+Cell[5359, 225, 104, 2, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5500, 232, 32, 0, 30, "Subsubsection"],
+Cell[5535, 234, 227, 4, 73, "Text"],
+Cell[5765, 240, 45, 1, 39, "Input"],
+Cell[5813, 243, 135, 3, 32, "Input"],
+Cell[5951, 248, 46, 1, 39, "Input"]
+}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[6046, 255, 86, 1, 57, "Section"],
+Cell[6135, 258, 44, 1, 39, "Input"],
+Cell[6182, 261, 66, 1, 32, "Input"],
+Cell[6251, 264, 43, 1, 32, "Input"],
+Cell[6297, 267, 92, 1, 32, "Input"],
+Cell[6392, 270, 49, 1, 32, "Input"],
+Cell[6444, 273, 79, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[6560, 279, 79, 1, 57, "Section"],
+Cell[6642, 282, 66, 1, 39, "Input"],
+Cell[6711, 285, 43, 1, 32, "Input"],
+Cell[6757, 288, 119, 2, 32, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[6913, 295, 81, 1, 57, "Section"],
+Cell[6997, 298, 60, 1, 39, "Input"],
+Cell[7060, 301, 43, 1, 39, "Input"],
+Cell[7106, 304, 123, 2, 32, "Input"],
+Cell[7232, 308, 40, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[7309, 314, 69, 1, 57, "Section"],
+Cell[7381, 317, 63, 1, 42, "Input"],
+Cell[7447, 320, 43, 1, 42, "Input"],
+Cell[7493, 323, 56, 1, 42, "Input"],
+Cell[7552, 326, 43, 1, 35, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[7632, 332, 70, 1, 57, "Section"],
+Cell[7705, 335, 44, 1, 42, "Input"],
+Cell[7752, 338, 112, 3, 42, "Input"],
+Cell[7867, 343, 42, 1, 42, "Input"],
+Cell[7912, 346, 69, 1, 42, "Input"],
+Cell[7984, 349, 81, 1, 42, "Input"],
+Cell[8068, 352, 57, 1, 42, "Input"],
+Cell[8128, 355, 69, 1, 42, "Input"],
+Cell[8200, 358, 80, 1, 42, "Input"],
+Cell[8283, 361, 42, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[8362, 367, 72, 1, 57, "Section"],
+Cell[8437, 370, 46, 1, 42, "Input"],
+Cell[8486, 373, 112, 3, 42, "Input"],
+Cell[8601, 378, 42, 1, 42, "Input"],
+Cell[8646, 381, 68, 1, 42, "Input"],
+Cell[8717, 384, 80, 1, 42, "Input"],
+Cell[8800, 387, 59, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[8896, 393, 73, 1, 57, "Section"],
+Cell[8972, 396, 112, 3, 42, "Input"],
+Cell[9087, 401, 42, 1, 42, "Input"],
+Cell[9132, 404, 68, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[9237, 410, 86, 1, 57, "Section"],
+Cell[9326, 413, 68, 1, 42, "Input"],
+Cell[9397, 416, 42, 1, 35, "Input"],
+Cell[9442, 419, 54, 1, 35, "Input"],
+Cell[9499, 422, 110, 2, 35, "Input"],
+Cell[9612, 426, 50, 1, 35, "Input"],
+Cell[9665, 429, 42, 1, 35, "Input"],
+Cell[9710, 432, 59, 1, 35, "Input"],
+Cell[9772, 435, 59, 1, 42, "Input"],
+Cell[9834, 438, 46, 1, 42, "Input"],
+Cell[9883, 441, 50, 1, 42, "Input"],
+Cell[9936, 444, 43, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[10016, 450, 66, 1, 57, "Section"],
+Cell[10085, 453, 53, 1, 39, "Input"],
+Cell[10141, 456, 124, 3, 39, "Input"],
+Cell[10268, 461, 66, 1, 32, "Input"],
+Cell[10337, 464, 40, 1, 32, "Input"],
+Cell[10380, 467, 78, 1, 39, "Input"],
+Cell[10461, 470, 49, 1, 32, "Input"]
+}, Closed]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

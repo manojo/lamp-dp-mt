@@ -1,0 +1,30 @@
+%
+% File created on {2008, 3, 11, 15, 1, 57.629758} by makeDoc.
+%
+% Section header
+\section{The Alpha`MakeDoc` package } 
+\label{label:Alpha`MakeDoc`}
+\input{incl-MakeDoc.tex}
+\alphausage{MakeDoc}{MakeDoc is a package which contains functions for the automatic creation of a reference Manual. MakeDoc contains functions doDoc and makeDoc.}{Alpha/MakeDoc.m}{Alpha`MakeDoc`}
+\index{MakeDoc}
+
+\alphanote{MakeDoc}{Functions of MakeDoc read all usage and note statements of a package, and for each one, they produce a Latex macro entry alphausage or alphanote. Before creating an entry, substitutions are performed on the text, so that special words (such as \$schedule) and special characters (such as \_) are transformed. The substitution list is in the private variable repRules in the file MakeDoc.m.} 
+ 
+\alphausage{doDoc}{doDoc[ package, texFile ] generates in file texFile the documentation LaTex file associated to a Mathematica file package. doDoc extracts the information contained in the usage and note descriptions placed at the beginning of file package, and produces an output Latex file. doDoc[ package ] automatically writes in a file which has the name  package where the .m suffix is replaced by .tex.  doDoc[ Package, functionList ] generates the documentation only for  the functions enumerated in functionList (as Strings). doDoc has  options fullLatex and callFile which allow a complete latex file,  resp. a calling Latex file to be produced. If there exists a file incl-textFile in the target directory, then a Latex input statement is added in the documentation package.}{Alpha/MakeDoc.m}{Alpha`MakeDoc`}
+\index{doDoc}
+
+\alphausage{fullLatex}{fullLatex is an option of doDoc and makeDoc. Default value is False. If True, the latex file contains the preamble and the \\end\{document\} statement.  Otherwise, it should be used in an input file}{Alpha/MakeDoc.m}{Alpha`MakeDoc`}
+\index{fullLatex}
+
+\alphausage{targetDir}{option of doDoc. By default, it is "". Gives the name of a directory where the latex file and the calling latex file should be written.}{Alpha/MakeDoc.m}{Alpha`MakeDoc`}
+\index{targetDir}
+
+\alphausage{callFile}{callFile is an option of doDoc and makeDoc. Default valus is False. If True, a latex calling file is created.}{Alpha/MakeDoc.m}{Alpha`MakeDoc`}
+\index{callFile}
+
+\alphausage{sourceDir}{option of makeDoc. Default value is Null. If Null, the source package are those of \$MMALPHA. Their names are in the file \$MMALPHA/sources/ MaleDoc/List\_modules. Otherwise, these names are prefixed by the  value of the sourceDir option.}{Alpha/MakeDoc.m}{Alpha`MakeDoc`}
+\index{sourceDir}
+
+\alphausage{makeDoc}{This function does not work, currently. Use doDoc instead. makeDoc[] updates the Reference Manual of \MMAlpha{} by running  the file genReferenceManual.m in directory\\ \$MMALPHA/doc/ReferenceManual/\\ This produces new versions of the latex files describing the  packages. The Reference Manual can be produced using Latex on  referenceManual.tex. See also doDoc.}{Alpha/MakeDoc.m}{Alpha`MakeDoc`}
+\index{makeDoc}
+

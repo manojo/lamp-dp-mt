@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS
+END
+decimation.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/decimation.alpha
+END
+ZpolUnion.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/ZpolUnion.alpha
+END
+ZAST1
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/ZAST1
+END
+SATz.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/SATz.alpha
+END
+ZpolNoSquarseIntMat.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/ZpolNoSquarseIntMat.alpha
+END
+ZpolUse1.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/ZpolUse1.alpha
+END
+ZpolComposeAffine.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/ZpolComposeAffine.alpha
+END
+ZpolInput.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/ZpolInput.alpha
+END
+Zpol1.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/Zpol1.alpha
+END
+ZpolParam.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/ZpolParam.alpha
+END
+Zpol2.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/Zpol2.alpha
+END
+ChkUseful.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestStatic/EXAMPLEZPOLS/ChkUseful.alpha
+END

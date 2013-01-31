@@ -1,0 +1,13 @@
+--
+-- Component for a combinatoric ROM
+-- $comment$
+--
+
+COMPONENT $name$ IS
+  PORT 
+  (
+    address : IN INTEGER RANGE 0 TO $sizeMun$;
+    data : OUT SIGNED ($wordLengthMun$ DOWNTO 0)
+  );
+END COMPONENT;
+

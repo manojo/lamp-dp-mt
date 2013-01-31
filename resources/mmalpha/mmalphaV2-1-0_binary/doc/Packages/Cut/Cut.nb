@@ -1,0 +1,397 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      8461,        259]*)
+(*NotebookOutlinePosition[      9916,        310]*)
+(*  CellTagsIndexPosition[      9842,        304]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+Cell["The \"Cut\" package", "Title",
+  FontColor->RGBColor[1, 0, 0],
+  CellTags->"firstcell"],
+
+Cell["Patrice Quinton, Tanguy Risset", "Subsubtitle"],
+
+Cell["July 1999", "Text"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+quinton@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell[" Execute this cell, to redefine the current directory", "SmallText",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(setMMADir[{"\<doc\>", "\<packages\>", "\<Cut\>"}]\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \("/udd/risset/alpha_beta/Mathematica/doc/packages/Cut"\)], "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["1. Introduction", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+  "The ",
+  StyleBox["Cut",
+    FontColor->RGBColor[1, 0, 0]],
+  " package contains functions to cut Alpha definitions according to a given \
+domain."
+}], "Text",
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?Cut\)\)], "Input"],
+
+Cell[BoxData[
+    \("Cut.m is the package which contains the cut, decompose  and merge \
+transformations. "\)], "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2. Cut", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(load["\<Test2.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("[test2]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("system test2   (x :  integer)\n       returns (y :  integer);\nvar\n  \
+A :  integer;\n  B :  integer;\n  C :  integer;\n  X1 :  integer;\n  X :  \
+integer;\n  Y :  integer;\n  Z : {i | 1>=0} of integer;\n  bool1 :  boolean;\n\
+  bool2 :  boolean;\nlet\n  Z[i] = \n      case\n        { | i=0} : X[];\n    \
+    { | 1<=i} : -B[];\n        { | i<=-1} : Z[i+1];\n      esac;\ntel;"\)], 
+  "Print"]
+}, Open  ]],
+
+Cell[TextData[{
+  "In the previous program, we \"cut\" variable ",
+  StyleBox["Z", "Input"],
+  " into two variables, named ",
+  StyleBox["Zout", "Input"],
+  " and ",
+  StyleBox["Zin", "Input"],
+  ", using the separating constraint defined by the expression ",
+  "{i|i>=1}",
+  "."
+}], "Text",
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(cut["\<Z\>", "\<{i|i>=1}\>", "\<Zout\>", "\<Zin\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system test2   (x :  integer)\n       returns (y :  integer);\nvar\n  \
+A :  integer;\n  B :  integer;\n  C :  integer;\n  X1 :  integer;\n  X :  \
+integer;\n  Y :  integer;\n  Zout : {i | 1<=i} of integer;\n  Zin : {i | \
+i<=0} of integer;\n  bool1 :  boolean;\n  bool2 :  boolean;\nlet\n  Zout[i] = \
+{ | 1<=i} : \n         case\n           { | i=0} : X[];\n           { | 1<=i} \
+: -B[];\n           { | i<=-1} : \n              case\n                {i | \
+1<=i} : Zout;\n                {i | i<=0} : Zin;\n              esac[i+1];\n  \
+       esac;\n  Zin[i] = { | i<=0} : \n         case\n           { | i=0} : \
+X[];\n           { | 1<=i} : -B[];\n           { | i<=-1} : \n              \
+case\n                {i | 1<=i} : Zout;\n                {i | i<=0} : Zin;\n \
+             esac[i+1];\n         esac;\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell["Notice that the resulting program is not normalized.", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(normalize[]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system test2   (x :  integer)\n       returns (y :  integer);\nvar\n  \
+A :  integer;\n  B :  integer;\n  C :  integer;\n  X1 :  integer;\n  X :  \
+integer;\n  Y :  integer;\n  Zout : {i | 1<=i} of integer;\n  Zin : {i | \
+i<=0} of integer;\n  bool1 :  boolean;\n  bool2 :  boolean;\nlet\n  Zout[i] = \
+-B[];\n  Zin[i] = \n      case\n        { | i=0} : X[];\n        { | i<=-1} : \
+Zin[i+1];\n      esac;\ntel;"\)], "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2. Merge", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["Merge is the reverse Cut transformation", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?merge\)\)], "Input"],
+
+Cell[BoxData[
+    \("merge[var1_String, var2_String, newVar_String] replaces in $result two \
+local variable definitions with a single one. The declaration domain of the \
+new variable is the union of the domains of the old ones. The definition of \
+the new variable is a 'case' whose branches are definitions of the old \
+variables restricted to their respective domains. RHS occurrences of the old \
+variables are replaced by the proper restrictions of the new variable. \
+merge[sys_Alpha`system, var1_String, var2_String, newVar_String] replaces in \
+system `sys'  two local variable definitions with a single   one and return \
+the new system."\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system test2   (x :  integer)\n       returns (y :  integer);\nvar\n  \
+A :  integer;\n  B :  integer;\n  C :  integer;\n  X1 :  integer;\n  X :  \
+integer;\n  Y :  integer;\n  Zout : {i | 1<=i} of integer;\n  Zin : {i | \
+i<=0} of integer;\n  bool1 :  boolean;\n  bool2 :  boolean;\nlet\n  Zout[i] = \
+-B[];\n  Zin[i] = \n      case\n        { | i=0} : X[];\n        { | i<=-1} : \
+Zin[i+1];\n      esac;\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(merge["\<Zin\>", "\<Zout\>", "\<NewZ\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system test2   (x :  integer)\n       returns (y :  integer);\nvar\n  \
+A :  integer;\n  B :  integer;\n  C :  integer;\n  X1 :  integer;\n  X :  \
+integer;\n  Y :  integer;\n  NewZ : {i | 1>=0} of integer;\n  bool1 :  \
+boolean;\n  bool2 :  boolean;\nlet\n  NewZ[i] = \n      case\n        { | \
+i<=0} : \n           case\n             { | i=0} : X[];\n             { | \
+i<=-1} : ({i | i<=0} : NewZ)[i+1];\n           esac;\n        { | 1<=i} : \
+-B[];\n      esac;\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell[TextData[{
+  "In the previous program, we \"merge\" variable  ",
+  StyleBox["Zout", "Input"],
+  " and ",
+  StyleBox["Zin into newZ. ", "Input"],
+  "Notice that the resulting program is not normalized."
+}], "Text",
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(simplifySystem[]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system test2   (x :  integer)\n       returns (y :  integer);\nvar\n  \
+A :  integer;\n  B :  integer;\n  C :  integer;\n  X1 :  integer;\n  X :  \
+integer;\n  Y :  integer;\n  NewZ : {i | 1>=0} of integer;\n  bool1 :  \
+boolean;\n  bool2 :  boolean;\nlet\n  NewZ[i] = \n      case\n        { | \
+i=0} : X[];\n        { | i<=-1} : NewZ[i+1];\n        { | 1<=i} : -B[];\n     \
+ esac;\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell["This is exactly the original program\.18", "Text"]
+}, Closed]]
+},
+FrontEndVersion->"X 3.0",
+ScreenRectangle->{{0, 1024}, {0, 768}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+CellGrouping->Manual,
+WindowSize->{799, 720},
+WindowMargins->{{96, Automatic}, {Automatic, 23}},
+PrintingCopies->1,
+PrintingPageRange->{1, 9999},
+PageHeaders->{{Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"], Inherited, Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"]}, {Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"], Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"]}},
+PrintingOptions->{"PaperSize"->{612, 792},
+"PaperOrientation"->"Portrait",
+"FirstPageHeader"->False,
+"FirstPageFooter"->False,
+"FacingPages"->True,
+"Magnification"->1},
+Magnification->1.5,
+StyleDefinitions -> "Default.nb"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{
+  "firstcell"->{
+    Cell[1709, 49, 93, 2, 105, "Title",
+      CellTags->"firstcell"]}
+  }
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{
+  {"firstcell", 9746, 297}
+  }
+*)
+
+(*NotebookFileOutline
+Notebook[{
+Cell[1709, 49, 93, 2, 105, "Title",
+  CellTags->"firstcell"],
+Cell[1805, 53, 53, 0, 67, "Subsubtitle"],
+Cell[1861, 55, 25, 0, 46, "Text"],
+Cell[1889, 57, 99, 3, 62, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2013, 64, 106, 1, 40, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2144, 69, 110, 2, 39, "Input",
+  InitializationCell->True],
+Cell[2257, 73, 87, 1, 70, "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[2393, 80, 66, 1, 45, "Section"],
+Cell[2462, 83, 225, 8, 46, "Text"],
+
+Cell[CellGroupData[{
+Cell[2712, 95, 41, 1, 39, "Input"],
+Cell[2756, 98, 120, 2, 56, "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[2925, 106, 57, 1, 45, "Section"],
+
+Cell[CellGroupData[{
+Cell[3007, 111, 65, 1, 39, "Input"],
+Cell[3075, 114, 42, 1, 33, "Print"],
+Cell[3120, 117, 50, 1, 33, "Print"],
+Cell[3173, 120, 416, 6, 470, "Print"]
+}, Open  ]],
+Cell[3604, 129, 338, 12, 71, "Text"],
+
+Cell[CellGroupData[{
+Cell[3967, 145, 93, 1, 39, "Input"],
+Cell[4063, 148, 857, 11, 815, "Print"]
+}, Open  ]],
+Cell[4935, 162, 68, 0, 46, "Text"],
+
+Cell[CellGroupData[{
+Cell[5028, 166, 53, 1, 39, "Input"],
+Cell[5084, 169, 446, 6, 493, "Print"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5579, 181, 59, 1, 45, "Section"],
+Cell[5641, 184, 55, 0, 46, "Text"],
+
+Cell[CellGroupData[{
+Cell[5721, 188, 43, 1, 39, "Input"],
+Cell[5767, 191, 661, 9, 263, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6465, 205, 40, 1, 39, "Input"],
+Cell[6508, 208, 446, 6, 493, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6991, 219, 82, 1, 39, "Input"],
+Cell[7076, 222, 508, 7, 539, "Print"]
+}, Open  ]],
+Cell[7599, 232, 265, 8, 71, "Text"],
+
+Cell[CellGroupData[{
+Cell[7889, 244, 58, 1, 39, "Input"],
+Cell[7950, 247, 424, 6, 470, "Print"]
+}, Open  ]],
+Cell[8389, 256, 56, 0, 46, "Text"]
+}, Closed]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

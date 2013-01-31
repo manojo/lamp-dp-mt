@@ -1,0 +1,7 @@
+-- negative constants ??
+system foo () returns (b:integer);
+var A: integer;
+let
+   A[] = -2[]; 
+   b  = A;
+tel;

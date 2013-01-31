@@ -1,0 +1,7 @@
+    -- $comment$
+    PROCESS(clk, $enable$)
+    BEGIN
+      IF rising_edge(clk) THEN
+        IF $enable$ = '1' THEN $lhs$ <= $rhs$; END IF;
+      END IF;
+    END PROCESS

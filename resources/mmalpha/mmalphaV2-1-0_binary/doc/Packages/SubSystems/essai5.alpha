@@ -1,0 +1,12 @@
+system called  (in :  integer)
+       returns (out :  integer);
+let
+  out[] = 2[] divin;
+tel;
+
+system caller :{N | 1<=N}
+               (v : {i | 1<=i<=N} of integer)
+       returns (w : {i | 1<=i<=N} of integer);
+let
+  use {i | 1<=i<=N} called[] (v) returns  (w) ;
+tel;

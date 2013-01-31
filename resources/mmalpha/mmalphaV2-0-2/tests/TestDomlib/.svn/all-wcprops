@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestDomlib
+END
+MMunif.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestDomlib/MMunif.alpha
+END
+TestDomlib.m
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestDomlib/TestDomlib.m
+END
+.cvsignore
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestDomlib/.cvsignore
+END
+TestDomlib - copie.m
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestDomlib/TestDomlib%20-%20copie.m
+END
+TestDomlib-Short.m
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestDomlib/TestDomlib-Short.m
+END

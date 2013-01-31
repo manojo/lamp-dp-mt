@@ -1,0 +1,35 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_signed.all;
+use IEEE.numeric_std.all;
+--
+--  This is a generic read-only memory.
+--  Parameters are the name, the size, the word length, the values.
+-- 
+
+-- $comment$
+
+-- Entity definition
+ENTITY $name$ IS
+PORT 
+  (
+    address : IN INTEGER RANGE 0 TO $sizeMun$;
+    data : OUT SIGNED ($wordLengthMun$ DOWNTO 0)
+  );
+END $name$;
+
+-- Architecture
+ARCHITECTURE archiOf$name$ OF $name$ IS
+
+  TYPE values IS ARRAY (0 TO $sizeMun$) 
+    OF SIGNED ($wordLengthMun$ DOWNTO 0);
+
+  CONSTANT rom : values :=
+    ($values$);
+      
+BEGIN  
+  
+-- Get the value
+  data <= rom(address);
+ 
+END archiOf$name$;

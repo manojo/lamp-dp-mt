@@ -1,0 +1,25 @@
+system add : {N | N>=1} (a,b: {i | 1<=i<=N } of integer)
+returns (c: {i | 1<=i<=N } of integer);
+var
+  A, B, CC : {i | 1<=i<=N } of integer;
+let
+  A = a; B = b;
+  CC = A + B;
+  c = CC;
+tel;
+system modeadd : {N, M | N>=1; M>=1} (a,b:{i,j|1<=j<=M; 1<=i<=N} of integer)
+returns (c:{i,j|1<=j<=M; 1<=i<=N} of integer);
+var 
+  A, B, C1, C2, C3, C4, C5 : {i,j | 1<=j<=M; 1<=i<=N} of integer;
+let
+  A = a;
+  B = b;
+  use {j|1<=j<=M} add[N] (A, B) returns (C1);
+  C2[i,j]= C1[i,j] + 1[];
+  use {j|1<=j<=M} add[N] (A, C2) returns (C3);
+  C4[i,j] = C2[i,j]*2[] + 3[];
+  use {j|1<=j<=M} add[N] (B, C4) returns (C5);
+  c = C5;
+tel;
+
+

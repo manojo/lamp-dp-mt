@@ -1,0 +1,94 @@
+------> Testing: Static
+Date: Thu 1 Jan 2009 17:06:14
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:06:36
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:08:14
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Static
+Date: Thu 1 Jan 2009 17:08:17
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Static
+Date: Thu 1 Jan 2009 17:09:41
+Calling TestStatic.m
+****** > test Static 8 was wrong------> Testing: Static
+Date: Thu 1 Jan 2009 17:11:24
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:11:57
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:32:40
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:34:47
+Calling TestStatic.m------> Testing: Alpha
+Date: Thu 1 Jan 2009 17:35:10
+Calling TestAlpha.m
+------------- > Test for Alpha was passed successfully.
+End of test
+------> Testing: Static
+Date: Thu 1 Jan 2009 17:36:49
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:36:57
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:37:03
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Static
+Date: Thu 1 Jan 2009 17:37:08
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Static
+Date: Thu 1 Jan 2009 17:37:12
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:38:09
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:38:39
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:39:19
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Static
+Date: Thu 1 Jan 2009 17:39:23
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Static
+Date: Thu 1 Jan 2009 17:40:34
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:41:08
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:41:31
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:42:29
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:43:03
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:43:56
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:45:45
+Calling TestStatic.m------> Testing: Static
+Date: Thu 1 Jan 2009 17:46:04
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Static
+Date: Thu 1 Jan 2009 17:46:56
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Static
+Date: Thu 1 Jan 2009 17:47:09
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Alpha
+Date: Thu 1 Jan 2009 17:48:27
+Calling TestAlpha.m
+------------- > Test for Alpha was passed successfully.
+End of test

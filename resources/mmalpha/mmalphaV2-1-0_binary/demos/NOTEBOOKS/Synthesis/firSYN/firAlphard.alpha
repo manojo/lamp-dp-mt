@@ -1,0 +1,117 @@
+system ControlfirModule :{N,M | 3<=N<=M-1}
+                        ( )
+       returns          (ser1Xctl1 : {t | t=M} | {t | M+1<=t<=N+M} of boolean);
+let
+  ser1Xctl1[t] = 
+      case
+        { | t=M} : True[];
+        { | M+1<=t} : False[];
+      esac;
+tel;
+
+system cellfirModule1 :{p,N,M | p=2; 3<=N<=M-1}
+                      (HXMirr1 : {t | M+1<=t<=N+M} of integer; 
+                       xXMirr1 : {t | 3<=t<=M+2} of integer)
+       returns        (pipeCx1 : {t | 3<=t<=M+2} of integer; 
+                       pipeCH1 : {t | M+1<=t<=N+M} of integer);
+let
+  pipeCx1[t] = xXMirr1[t];
+  pipeCH1[t] = HXMirr1[t];
+tel;
+
+system cellfirModule2 :{p,N,M | N<=p<=M; 3<=N<=M-1}
+                      (pipeCx1Reg2Xloc : {t | p<=t<=(p+M-1,N+M)} of integer; 
+                       pipeCH1Reg1 : {t | M+1<=t<=N+M} of integer; 
+                       ser1Xctl1XIn : {t | M<=t<=N+M} of boolean)
+       returns        (pipeCx1 : {t | p+1<=t<=N+M} of integer; 
+                       pipeCH1 : {t | M+1<=t<=N+M} of integer; 
+                       ser1 : {t | M<=t<=N+M} of integer);
+var
+  ser1loc3 : {t | M<=t<=N+M} of integer;
+  pipeCx1Reg2 : {t | p+1<=t<=N+M} of integer;
+  ser1Reg3 : {t | M+1<=t<=N+M} of integer;
+  TSep1 : {t | M+1<=t<=N+M} of integer;
+  TSep2 : {t | M+1<=t<=N+M} of integer;
+let
+  ser1[t] = ser1loc3[t];
+  pipeCH1[t] = pipeCH1Reg1[t];
+  pipeCx1[t] = pipeCx1Reg2[t];
+  pipeCx1Reg2[t] = pipeCx1Reg2Xloc[t-1];
+  ser1Reg3[t] = ser1loc3[t-1];
+  TSep1[t] = pipeCH1Reg1[t] * pipeCx1Reg2[t];
+  TSep2[t] = ser1Reg3[t] + TSep1[t];
+  ser1loc3[t] = 
+      case
+        { | t=M} : if (ser1Xctl1XIn[t]) then 0[] else 0[];
+        { | M+1<=t} : if (ser1Xctl1XIn[t]) then 0[] else TSep2[t];
+      esac;
+tel;
+
+system cellfirModule4 :{p,N,M | 3<=p<=N-1; N<=M-1}
+                      (pipeCx1Reg2Xloc : {t | p<=t<=p+M-1} of integer; 
+                       pipeCH1Reg1 : {t | M+1<=t<=N+M} of integer)
+       returns        (pipeCx1 : {t | p+1<=t<=p+M} of integer; 
+                       pipeCH1 : {t | M+1<=t<=N+M} of integer);
+var
+  pipeCx1Reg2 : {t | p+1<=t<=p+M} of integer;
+let
+  pipeCx1Reg2[t] = pipeCx1Reg2Xloc[t-1];
+  pipeCx1[t] = pipeCx1Reg2[t];
+  pipeCH1[t] = pipeCH1Reg1[t];
+tel;
+
+system firModule :{N,M | 3<=N<=M-1}
+                 (HXMirr1In : {t,p | M+1<=t<=N+M; p=2} of integer; 
+                  xXMirr1In : {t,p | 3<=t<=M+2; p=2} of integer)
+       returns   (ser1Out : {t,p | M<=t<=N+M; N<=p<=M} of integer);
+var
+  ser1Xctl1 : {t | M<=t<=N+M} of boolean;
+  HXMirr1 : {t,p | M+1<=t<=N+M; p=2} of integer;
+  xXMirr1 : {t,p | 3<=t<=M+2; p=2} of integer;
+  pipeCx11 : {t,p | 3<=t<=M+2; p=2} of integer;
+  pipeCx1Reg2Xloc : {t,p | p<=t<=(p+M-1,N+M); 3<=p<=M+1} of integer;
+  pipeCH11 : {t,p | M+1<=t<=N+M; p=2} of integer;
+  pipeCH1Reg1 : {t,p | M+1<=t<=N+M; 3<=p<=M} of integer;
+  pipeCx12 : {t,p | p+1<=t<=N+M; N<=p<=M} of integer;
+  pipeCH12 : {t,p | M+1<=t<=N+M; N<=p<=M} of integer;
+  ser1Xctl1XIn : {t,p | M<=t<=N+M; N<=p<=M} of boolean;
+  ser12 : {t,p | M<=t<=N+M; N<=p<=M} of integer;
+  pipeCx14 : {t,p | p+1<=t<=p+M; 3<=p<=N-1} of integer;
+  pipeCH14 : {t,p | M+1<=t<=N+M; 3<=p<=N-1} of integer;
+let
+  HXMirr1[t,p] = HXMirr1In[t,p];
+  pipeCH1Reg1[t,p] = 
+      case
+        { | p=3} : pipeCH11[t,p-1];
+        { | N+1<=p} : pipeCH12[t,p-1];
+        { | 4<=p<=N} : pipeCH14[t,p-1];
+      esac;
+  pipeCx1Reg2Xloc[t,p] = 
+      case
+        { | p=3} : pipeCx11[t,p-1];
+        { | N+1<=p} : pipeCx12[t,p-1];
+        { | 4<=p<=N} : pipeCx14[t,p-1];
+      esac;
+  ser1Out[t,p] = ser12[t,p];
+  ser1Xctl1XIn[t,p] = ser1Xctl1[t];
+  xXMirr1[t,p] = xXMirr1In[t,p];
+  use  ControlfirModule[N,M] () returns  (ser1Xctl1) ;
+  use {p | p=2} cellfirModule1[p,N,M] (HXMirr1, xXMirr1) returns  (pipeCx11, pipeCH11) ;
+  use {p | N<=p<=M} cellfirModule2[p,N,M] (pipeCx1Reg2Xloc, pipeCH1Reg1, ser1Xctl1XIn) returns  (pipeCx12, pipeCH12, ser12) ;
+  use {p | 3<=p<=N-1} cellfirModule4[p,N,M] (pipeCx1Reg2Xloc, pipeCH1Reg1) returns  (pipeCx14, pipeCH14) ;
+tel;
+
+system fir :   {N,M | 3<=N<=M-1}
+               (x : {i | 1<=i<=M} of integer; 
+                H : {n | 0<=n<=N-1} of integer)
+       returns (res : {i | N<=i<=M} of integer);
+var
+  HXMirr1 : {t,p | M+1<=t<=N+M; p=2} of integer;
+  xXMirr1 : {t,p | 3<=t<=M+2; p=2} of integer;
+  ser1 : {t,p | M<=t<=N+M; N<=p<=M} of integer;
+let
+  HXMirr1[t,p] = H[t-M-1];
+  xXMirr1[t,p] = x[-t+M+3];
+  res[i] = ser1[N+M,i];
+  use  firModule[N,M] (HXMirr1, xXMirr1) returns  (ser1) ;
+tel;

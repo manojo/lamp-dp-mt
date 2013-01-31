@@ -1,0 +1,13 @@
+
+COMPONENT firrModule
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  dXMirr1In : IN  SIGNED (15 DOWNTO 0);
+  xXMirr1In : IN  SIGNED (15 DOWNTO 0);
+  xXMirr2In : IN  SIGNED (15 DOWNTO 0);
+  YOut : OUT Array-1To2OfInteger
+);
+END COMPONENT;
+

@@ -1,0 +1,225 @@
+{
+(*
+  This file contains the meta description of the Vhdl translater
+  for Alpha modules. 
+*)
+
+(*	
+	System declaration
+*)
+  SYSTEMDECLARATION ::= 
+    system[ name: _String, 
+            paramDecl: DOMAINPARAM, 
+            inputDeclList: {DECLARATION},
+            outputDeclList: {DECLARATION}, 
+            localDeclList: {DECLARATION}, 
+            equationBlock: {EQUATION}
+          ] 
+          :> semFuncModule[ 
+               "system", 
+               name,
+               trparamDecl, 
+               trinputDeclList, 
+               troutputDeclList, 
+               trlocalDeclList,
+               trequationBlock,
+               opts
+             ]
+,
+
+  DECLARATION ::=
+    decl[ varName: _String, 
+          varType: (integer|boolean|integer[_String,_Integer]),
+          domain: DOMAIN 
+        ]
+        :> semFuncModule[ 
+               "decl", 
+                varName, 
+                varType, 
+                domain,
+                opts
+           ]
+(*
+  The semantics is the varName, the varType, and the domain.
+*)
+
+,
+(*
+	Parameter domain. Nothing returned.
+*)
+  DOMAINPARAM ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> Null
+,
+
+(*
+	Domains. Nothing returned.
+*)
+  DOMAIN ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> Null
+,
+
+(*
+    Polyhedron. Nothing returned.
+*)
+  POLYHEDRON ::= 
+    pol[ constraintsNum:_Integer,
+         generatorsNum:_Integer,
+         equationsNum:_Integer,
+         linesNum:_Integer,
+         constraintList: {CONSTRAINT},
+         generatorList: {GENERATOR}
+       ]
+       :> Null
+,
+
+  CONSTRAINT ::= {_List -> List}
+,
+
+  GENERATOR ::= {_List -> List} 
+
+(* 	
+	An equation is either an assignment or a use
+*)
+,
+
+  EQUATION ::= 
+    { _equation -> ASSIGNMENT,	
+      _use -> USESTATEMENT	
+    }
+,
+    
+(* 
+	The only possible assignment is a connection
+*)
+  ASSIGNMENT ::= 
+    equation[ leftHandSide: _String, 
+              rightHandSide: CONNECTION
+            ] 
+            :> semFuncModule[ 
+                 "assignment", 
+                 leftHandSide, trrightHandSide, opts
+               ]
+(*
+   The semantics of an assignment is a pair formed by the 
+   left hand side, and a list of 3-uples: domain, variable, and 
+   matrix. 
+*)
+,
+
+(* 	
+	The syntax of a use statement prohibits expressions as input 
+	parameters. These parameters can only be simple variables 
+*)
+  USESTATEMENT ::= 
+    use[ id: _String, 
+         extension: DOMAIN,
+         paramAssign: MATRIX,
+         inputList: {VAREXP},
+	 idList: {___String}
+       ]
+       :>semFuncModule[ 
+            "use", 
+            id, 
+            extension, 
+            paramAssign, 
+            inputList, 
+            idList,
+            opts
+          ]
+(*
+  Return everything
+*)
+,
+
+(*
+	Connection
+*)
+  CONNECTION ::= 
+    { 
+      _case-> CASEXP, 		(* Local connection *)
+      _restrict -> RESTEXP, 	(* Non local connections *)
+      _affine -> AFFEXP, 	(* Non local connections *)
+      _const -> CONST		(* Non local connections *)
+    }
+, 
+(*
+	Local connection
+*)
+  CASEXP ::= 
+    case[ 
+         expressionList: {RESTEXP} 
+        ] 
+        :> trexpressionList
+(*
+   The translation of a case expression is the list formed of
+   the translation of its branches. 
+*)
+,
+(*
+	Restriction 
+*)
+  RESTEXP ::= 
+    restrict[ 
+         domain: DOMAIN, 
+         expression: AFFEXP 	
+         ] 			
+         :> {domain, trexpression}
+,
+
+  CONST ::= 
+    const[ 
+         constant: ( _Integer | _Real | True | False ) 
+         ] 
+         :> { "const"[ constant ] }
+(*
+  The semantics is just the constant
+*)
+, 
+(* 
+	Affine expression
+*)
+  AFFEXP ::= 
+    affine[ 
+      expression: VAREXPORCONSTE,
+      affineFunction: MATRIX 	
+          ] 
+          :> {trexpression, affineFunction}
+,
+
+  MATRIX ::= 
+    matrix[ 
+      d1:_Integer, 
+      d2:_Integer, 
+      in:{___String}, 
+      mmaMatrix:MATRIXNUM
+          ]
+          :> Null
+(*
+   Empty semantics
+*)
+,
+
+  MATRIXNUM ::= {_List -> {List}}
+,
+  VAREXPORCONSTE ::= 
+       { _var -> VAREXP,
+         _const -> CONST
+       }
+,
+  VAREXP ::= 
+    var[ 
+         identifier: _String 
+       ] 
+    :> identifier
+(*
+  Returns the name of the expression
+*)
+}

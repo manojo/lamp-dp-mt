@@ -1,0 +1,30 @@
+include ../MakeIncludes/Makefile.config
+
+CPPFLAGS  = -I$(POLYDIR) \
+	    $(MATHINCLUDE)
+
+LDFLAGS   = -L$(LIBDIR) $(MATHLIB) 
+LOADLIBES =  -lpolyx $(MATHLOADLIB) $(MATHEXTRALIBS) # -lgmp 
+DUMMY     = mlink.c
+
+NAME      = domlib
+
+OBJS      = $(OBJDIR)/domlib.o $(OBJDIR)/mlink.o $(MATHEXTRAOBJS)
+
+LIBS      = $(LIBDIR)/libpolyx.a
+
+$(NAME) : $(BINDIR)/$(NAME)
+	@# gnu-make needs this empty line to avoid implicit rules
+
+mlink.c : domlib.tm $(NEEDOBJDIR)
+	$(MATHPREP) $< >$(OBJDIR)/temp.mprep
+	$(MATHPREPCOR) $(OBJDIR)/temp.mprep > $@
+
+
+include ../MakeIncludes/Makefile.rules
+
+#  Added Sept. 23, 2007 and modified May 2008
+#  Checks and list various variables
+checkvars: .phony
+	make -f Makefile.checkvars
+.phony: 

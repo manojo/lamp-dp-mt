@@ -1,0 +1,47 @@
+Directory: "user-doc".
+Created      : March 1995 by Doran Wilde
+Last modified: March 1995 by Florent de Dinechin 
+
+Purpose: 
+========
+
+MMalpha user documentation directory
+
+Note:
+====
+Compressed ps files (*.ps.Z) may be viewed on screen by
+   zcat xyz.ps.Z | xps -
+or may be printed by
+   zcat xyz.ps.Z | lpr
+
+** : doc needs updating.
+
+
+
+Contents:
+=========
+File_Hierarchy  	-- conventions for the file Hierarchy in Mmalpha
+AlphaToAlpha0.dvi 	-- Translation from Alpha to Alpha0 and MadAnalyze.
+AnaStatASAP96.ps 	-- Static analysis (ASAP 96)
+BitExpASAP97.ps 	-- Binary expansion (ASAP 97)
+MmAlpha.1.dvi 		** Introduction to Mmalpha
+Normalization.3.dvi 	-- Normalization of alpha programs		
+PI827.ps.Z 		-- The Alpha Language
+PI828.ps.Z 		-- Using Static Analysis to Derive Imperative Code from Alpha
+PI829.ps.Z 		-- Regular Array Synthesis using Alpha
+PI830.ps.Z 		-- Loop Nest Synthesis using the Polyhedral Library
+Static.3.dvi 		** Static analysis tool for alpha programs
+StructToplas.ps		-- Structures and their use, submitted to TopLas
+SubSystems.dvi		** Structuration of Alpha.
+Substitution.3.dvi 	** Substitution of Alpha term in Mmalpha
+Syntax.dvi		-- The syntax of the Alpha language.
+traducteur.dvi		-- document on the alphaToMad translator. 
+domlib.3.dvi 		-- Polyhedral domain for Mmalpha
+mathpip_user.ps.Z 	-- User doc of the interface between Mathematica and
+				Pip (MathPip library).
+polylib.ps 		-- The polyhedral library
+reduce.ps		** ???
+simuldoc.ps.Z 		-- User doc of the graphic simulator of systolic arrays 
+				(en french)
+trans.doc		** ???
+xalpha_report.ps.Z	** ???

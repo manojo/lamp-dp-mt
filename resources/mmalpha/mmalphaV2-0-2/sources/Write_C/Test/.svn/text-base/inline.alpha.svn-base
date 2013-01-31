@@ -1,0 +1,41 @@
+system dotprod1 :{N | 1<=N}
+                (in : {arg,i | 2<=arg<=3; 1<=i<=N} | 
+                 {arg,i | 1<=arg<=3; i=1; 1<=N} of real)
+       returns  (out : {arg,i | arg=1; i=N+1} of real);
+var
+  aux0 : {arg,i | 2<=arg<=3; 1<=i<=N} | {arg,i | 1<=arg<=3; i=1; 1<=N} | 
+  {arg,i | arg=1; 2<=i<=N} of real;
+  aux1 : {arg,i | arg=1; 1<=i<=N} of real;
+  aux2 : {arg,i | arg=1; 2<=i<=N+1} of real;
+  recinter : {arg,i | arg=1; 2<=i<=N} of real;
+  in_addmul1 : {arg,i | 1<=arg<=3; 1<=i<=N} of real;
+  out_addmul1 : {arg,i | arg=1; 1<=i<=N} of real;
+  aux1_addmul1 : {arg,i | arg=1; 1<=i<=N} of real;
+  aux2_addmul1 : {arg,i | 1<=arg<=2; 1<=i<=N} of real;
+  in_mul2 : {arg,i | 1<=arg<=2; 1<=i<=N} of real;
+  out_mul2 : {arg,i | arg=1; 1<=i<=N} of real;
+  in_add3 : {arg,i | 1<=arg<=2; 1<=i<=N} of real;
+  out_add3 : {arg,i | arg=1; 1<=i<=N} of real;
+let
+  aux0[arg,i] = 
+      case
+        {| 2<=arg<=3; 1<=i<=N} | {| 1<=arg<=3; i=1; 1<=N} : in;
+        {| arg=1; 2<=i<=N} : recinter;
+      esac;
+  in_addmul1[arg,i] = aux0;
+  in_mul2[arg,i] = {| 1<=arg<=2; 1<=i<=N} : in_addmul1[arg+1,i];
+  out_mul2[arg,i] = in_mul2[arg,i] * in_mul2[arg+1,i];
+  aux1_addmul1[arg,i] = out_mul2;
+  aux2_addmul1[arg,i] = 
+      case
+        {| arg=1; 1<=i<=N} : in_addmul1;
+        {| arg=2; 1<=i<=N} : aux1_addmul1[arg-1,i];
+      esac;
+  in_add3[arg,i] = aux2_addmul1;
+  out_add3[arg,i] = in_add3[arg,i] + in_add3[arg+1,i];
+  out_addmul1[arg,i] = out_add3;
+  aux1[arg,i] = out_addmul1;
+  aux2[arg,i] = aux1[arg,i-1];
+  recinter[arg,i] = {| arg=1; 2<=i<=N} : aux2;
+  out[arg,i] = {| arg=1; i=N+1} : aux2;
+tel;

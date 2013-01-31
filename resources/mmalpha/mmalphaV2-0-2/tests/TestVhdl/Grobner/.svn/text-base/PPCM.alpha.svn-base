@@ -1,0 +1,118 @@
+-- Alphard programm  for the big mux of the first  
+-- cell of the spolisation circuit.
+
+
+
+system coefcomp:{Tinit,Duration| Tinit>=0; Duration > 0}
+  (Ilam1,Ilam2,Ix1,Iy1,Ix2,Iy2 : {t|Tinit<=t<=Tinit+Duration-1} of integer;
+	Redu :{t|Tinit<=t<=Tinit+Duration-1} of boolean )
+  returns (llam1,llam2,lx1,lx2,ly1,ly2 : {t|Tinit<=t<=Tinit+Duration-1} of integer);
+var 
+ppcmx,ppcmy,ux1,ux2,uy1,uy2,sx,sy,ssx,ssy: {t|Tinit<=t<=Tinit+Duration-1} of integer;
+infx,infy,red,red2 : {t|Tinit<=t<=Tinit+Duration-1} of boolean;
+
+let
+ppcmx=max(Ix1,Ix2);
+ppcmy=max(Iy1,Iy2);
+ux1=ppcmx-Ix1;
+ux2=ppcmx-Ix2;
+uy1=ppcmy-Iy1;
+uy2=ppcmy-Iy2;
+
+infx[t]= if (Ix1<=Ix2) then 
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : True[];
+	esac
+      else
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : False[];
+	esac;
+ 
+infy[t]=if (Iy1<=Iy2) then 
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : True[];
+	esac
+      else
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : False[];
+	esac;
+ 
+red= infx and infy;
+-- red2 is false if we perform a reduction which is impossible
+red2= not (Redu and not red);
+sx=Ix2-Ix1;
+sy=Iy2-Iy1;
+
+llam1[t]=if red2 then
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : Ilam2[t];
+	esac
+      else
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : 1[];
+	esac;
+
+llam2[t]=if red2 then
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : Ilam1[t];
+	esac
+      else
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : 0[];
+	esac;
+
+ssx[t]=if red2 then
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : sx[t];
+	esac
+      else
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : 0[];
+	esac;
+
+ssy[t]=if red2 then
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : sy[t];
+	esac
+      else
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : 0[];
+	esac;
+	
+lx1=if Redu then 
+	case 
+	 {t|Tinit<=t<=Tinit+Duration} : ssx;
+	esac
+     else
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : ux1;
+	esac;
+
+lx2[t]=if Redu then 
+	case 
+	 {t|Tinit<=t<=Tinit+Duration} : 0[];
+	esac
+     else
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : ux2[t];
+	esac;
+ly1=if Redu then 
+	case 
+	 {t|Tinit<=t<=Tinit+Duration} : ssy;
+	esac
+     else
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : uy1;
+	esac;
+
+ly2[t]=if Redu then 
+	case 
+	 {t|Tinit<=t<=Tinit+Duration} : 0[];
+	esac
+     else
+	case
+	 {t|Tinit<=t<=Tinit+Duration} : uy2[t];
+	esac;
+
+
+tel;

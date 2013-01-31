@@ -1,0 +1,171 @@
+{
+
+(* 2. Systems *)
+
+  LIBRARY ::= { _List -> {SYSTEMDECLARATION} }
+,
+
+  SYSTEMDECLARATION ::= 
+    system[ name: _String, 
+            paramDecl: DOMAIN, 
+            inputDeclList: {DECLARATION},
+            outputDeclList: {DECLARATION}, 
+            localDeclList: {DECLARATION}, 
+            equationBlock: {EQUATION}
+          ] 
+          :> {name, paramDecl, inputDeclList, outputDeclList, localDeclList,
+              equationBlock}
+,
+
+(* 3. Declarations of variables *)
+(* A correction to be done *)
+
+  DECLARATION ::=
+    decl[ varName: _String, 
+          type: _Symbol,
+          domain: DOMAIN 
+        ]
+        :> {varName, type, trdomain}
+
+,
+
+(* 4. Domains *)
+
+  DOMAIN ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedron: {POLYHEDRON}
+          ] 
+          :> { dimension, indexList, polyedron }
+,
+
+  (* --- Il faudrait remplacer a, b, c, d par leur signification *)
+  POLYHEDRON ::= 
+    pol[ a:_Integer,
+         b:_Integer,
+         c:_Integer,
+         d:_Integer,
+         constraintList: {CONSTRAINT},
+         generatorList: {GENERATOR}
+       ]
+       :> { a, b, c, d, constraintList, generatorList }
+,
+
+  CONSTRAINT ::= {_List -> List}
+,
+
+  GENERATOR ::= {_List -> List}
+(* 5. Equations *)
+,
+
+  EQUATION ::= 
+    { _equation -> ASSIGNMENT,
+      _use -> USESTATEMENT
+    }
+,
+    
+  ASSIGNMENT ::= 
+    equation[ leftHandSide: _String, 
+              rightHandSide: EXPRESSION
+            ] 
+            :> {leftHandSide, rightHandSide}
+,
+
+(* 6. Expressions *)
+
+  EXPRESSION ::= 
+    { 
+      _case-> CASEXP, 
+      _restrict -> RESTEXP, 
+      _if -> IFEXP,
+      _affine -> AFFEXP,
+      _binop -> BINEXP,
+      _unop -> UNEXP,
+      _reduce -> REDEXP,
+      _var -> VAREXP, 
+      _const -> CONSTEXP
+ }, 
+
+  CASEXP ::= 
+    case[ 
+         expressionList: {EXPRESSION} 
+        ] 
+        :> expressionList
+,
+
+  RESTEXP ::= 
+    restrict[ 
+         domain: DOMAIN, 
+         expression: EXPRESSION 
+         ] 
+         :> { domain, expression }
+, 
+
+  IFEXP ::=
+    if[
+       condition: EXPRESSION,
+       alt1: EXPRESSION,
+       alt2: EXPRESSION
+      ]
+      :> { condition, alt1, alt2 }
+,
+
+  AFFEXP ::= 
+    affine[ 
+      expression: EXPRESSION,
+      affineFunction: MATRIX 
+          ] 
+          :> {expression, affineFunction}
+,
+
+  MATRIX ::= 
+    matrix[ 
+      d1:_Integer, 
+      d2:_Integer, 
+      in:{___String}, 
+      mmaMatrix:_ 
+          ]
+          :> mmaMatrix
+,
+
+  BINEXP ::= 
+    binop[ 
+          binaryOp: ( add | mult | or | xor | 
+                      min | max | minus | div | mod ),
+          operand1: EXPRESSION, 
+          operand2: EXPRESSION 
+         ] 
+         :> {operand1, binaryOp, operand2} 
+,
+
+  UNEXP ::= 
+    unop[ 
+          unaryOp: ( minus | not | sqrt ),
+          operand: EXPRESSION
+         ] 
+         :> {unaryOp, operand} 
+,
+
+  REDEXP ::= 
+    red[
+         commutativeOp: ( plus | mult | or | xor | min | max ),
+         affineExp: AFFEXP,
+         expression: EXPRESSION
+       ]
+       :> { commutativeOp, affineExp, expression }
+,
+
+  VAREXP ::= 
+    var[ 
+         identifier: _String 
+       ] 
+    :> identifier
+,
+
+  CONSTEXP ::= 
+    const[ 
+         constant: ( _Integer | _Real | True | False ) 
+         ] 
+         :> constant
+
+}

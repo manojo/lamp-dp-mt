@@ -1,0 +1,81 @@
+system ControlprodVectModule ( )
+       returns               (CXctl1 : {t | t=0} | {t | 1<=t<=20} of boolean);
+let
+  CXctl1[t] = 
+      case
+        { | t=0} : True[];
+        { | 1<=t} : False[];
+      esac;
+tel;
+
+system cellprodVectModule1 :{p | p=0}
+                           (bXMirr1 : {t | 1<=t<=20} of integer)
+       returns             (pipeCb1 : {t | 1<=t<=20} of integer);
+let
+  pipeCb1[t] = bXMirr1[t];
+tel;
+
+system cellprodVectModule2 :{p | 1<=p<=20}
+                           (pipeCb1Reg3 : {t | 1<=t<=20} of integer; 
+                            aReg2 : {t | 1<=t<=20} of integer; 
+                            CXctl1XIn : {t | 0<=t<=20} of boolean)
+       returns             (pipeCb1 : {t | 1<=t<=20} of integer; 
+                            C : {t | 0<=t<=20} of integer);
+var
+  Cloc2 : {t | 0<=t<=20} of integer;
+  CReg1 : {t | 1<=t<=20} of integer;
+  TSep1 : {t | 1<=t<=20} of integer;
+  TSep2 : {t | 1<=t<=20} of integer;
+let
+  C[t] = Cloc2[t];
+  pipeCb1[t] = pipeCb1Reg3[t];
+  CReg1[t] = Cloc2[t-1];
+  TSep1[t] = aReg2[t] * pipeCb1Reg3[t];
+  TSep2[t] = CReg1[t] + TSep1[t];
+  Cloc2[t] = 
+      case
+        { | t=0} : if (CXctl1XIn[t]) then 0[] else 0[];
+        { | 1<=t} : if (CXctl1XIn[t]) then 0[] else TSep2[t];
+      esac;
+tel;
+
+system prodVectModule (aReg2In : {t,p | 1<=t<=20; 1<=p<=20} of integer; 
+                       bXMirr1In : {t,p | 1<=t<=20; p=0} of integer)
+       returns        (COut : {t,p | 0<=t<=20; 1<=p<=20} of integer);
+var
+  CXctl1 : {t | 0<=t<=20} of boolean;
+  bXMirr1 : {t,p | 1<=t<=20; p=0} of integer;
+  pipeCb11 : {t,p | 1<=t<=20; p=0} of integer;
+  pipeCb1Reg3 : {t,p | 1<=t<=20; 1<=p<=20} of integer;
+  pipeCb12 : {t,p | 1<=t<=20; 1<=p<=20} of integer;
+  aReg2 : {t,p | 1<=t<=20; 1<=p<=20} of integer;
+  CXctl1XIn : {t,p | 0<=t<=20; 1<=p<=20} of boolean;
+  C2 : {t,p | 0<=t<=20; 1<=p<=20} of integer;
+let
+  aReg2[t,p] = aReg2In[t,p];
+  bXMirr1[t,p] = bXMirr1In[t,p];
+  COut[t,p] = C2[t,p];
+  CXctl1XIn[t,p] = CXctl1[t];
+  pipeCb1Reg3[t,p] = 
+      case
+        { | p=1} : pipeCb11[t,p-1];
+        { | 2<=p} : pipeCb12[t,p-1];
+      esac;
+  use  ControlprodVectModule[] () returns  (CXctl1) ;
+  use {p | p=0} cellprodVectModule1[p] (bXMirr1) returns  (pipeCb11) ;
+  use {p | 1<=p<=20} cellprodVectModule2[p] (pipeCb1Reg3, aReg2, CXctl1XIn) returns  (pipeCb12, C2) ;
+tel;
+
+system prodVect (a : {i,j | 1<=i<=20; 1<=j<=20} of integer; 
+                 b : {i | 1<=i<=20} of integer)
+       returns  (c : {i | 1<=i<=20} of integer);
+var
+  aReg2 : {t,p | 1<=t<=20; 1<=p<=20} of integer;
+  bXMirr1 : {t,p | 1<=t<=20; p=0} of integer;
+  C : {t,p | 0<=t<=20; 1<=p<=20} of integer;
+let
+  bXMirr1[t,p] = b[t];
+  aReg2[t,p] = a[p,t];
+  c[i] = C[20,i];
+  use  prodVectModule[] (aReg2, bXMirr1) returns  (C) ;
+tel;

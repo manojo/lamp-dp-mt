@@ -1,0 +1,75 @@
+%
+% File created on {2008, 3, 11, 16, 16, 25.925924} by makeDoc.
+%
+% Section header
+\section{The Alpha`Tables` package } 
+\label{label:Alpha`Tables`}
+\alphanote{Matrix}{Documentation revised on March 11, 2008} 
+ 
+\alphausage{Tables}{The Alpha`Tables` package contains variable and function definitions relative to the retrieval of contextual information on nodes and  programs.  Functions are:   addAllParameterDomain, addParameterDomain, getDeclaration,  getDeclarationDomain, getDefinition, getDimension, getEquation, getIndexNames, getInputVars, getLocalVars, getOutputVars, getVariables, getSystemName, getSystemParameters, getSystemParameterDomain, symToString, lookUpFor, lookUpForPos, accessByPath, and undoModif.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{Tables}
+
+\alphausage{addAllParameterDomain}{addAllParameterDomain[sys] adds the constraints present in the  parameter domain of system sys to each domain of the system.  addAllParameterDomain[] does the same to \$result.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{addAllParameterDomain}
+
+\alphausage{addParameterDomain}{addParameterDomain[ dom, paramdom ] adds to the constraints of dom  the constraints on the parameters defined in paramdom. For internal use  mostly.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{addParameterDomain}
+
+\alphausage{getDeclaration}{getDeclaration[var] returns the complete declaration of variable var in system \$result or an empty list if the declaration does not exist. getDeclaration[sys, var] returns the declaration of var in system sys.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getDeclaration}
+
+\alphausage{getDeclarationDomain}{getDeclarationDomain[v] returns the declaration domain of variable v  in system \$result. getDeclarationDomain[sys,v] returns the declaration domain  of variable v in system sys}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getDeclarationDomain}
+
+\alphausage{getDefinition}{getDefinition[var] returns the RHS of the equation defining variable var or an empty list if the definition does not exist. If the variable is defined as output of a subsystem, returns an empty list and prints  an error message.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getDefinition}
+
+\alphausage{getDimension}{getDimension[dom] returns the dimension of the Alpha domain dom.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getDimension}
+
+\alphausage{getEquation}{getEquation[var] returns the equation defining a variable var or an  empty list if the definition does not exist. If the variable is the output of a subsystem, getEquation issues a warning and returns the use statement of this subsystem.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getEquation}
+
+\alphausage{getIndexNames}{getIndexNames[sys, var] returns the list of index names from  a variable's declaration. getIndexNames[var] does the same to  \$result.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getIndexNames}
+
+\alphausage{getInputVars}{getInputVars[sys] returns the list of input variables used in system sys. getInputVars[] does the same to \$result.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getInputVars}
+
+\alphausage{getLocalVars}{getLocalVars[sys] returns the list of local variables used in system sys. getLocalVars[] does the same to \$result.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getLocalVars}
+
+\alphausage{getOutputVars}{getOutputVars[sys] returns the list of Output variables used in system sys. getOutputVars[] does the same to \$result.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getOutputVars}
+
+\alphausage{getVariables}{getVariables[sys] returns the list of variables used in system sys. getVariables[] does the same to \$result.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getVariables}
+
+\alphausage{getSystemName}{getSystemName[sys] return the name of system sys. getSystemName[] gives the name of \$result.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getSystemName}
+
+\alphausage{getSystemParameters}{getSystemParameters[sys] return the parameters of the system sys (default \$result)}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getSystemParameters}
+
+\alphausage{getSystemParameterDomain}{getSystemParameterDomain[sys] return the parameters domain  of the system sys (default \$result)}{Alpha/Tables.m}{Alpha`Tables`}
+\index{getSystemParameterDomain}
+
+\alphausage{symToString}{symToString[symb\_] Converts a symbol to string. Leaves any other object simply evaluated. Returns the string containing its name according in current output format.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{symToString}
+
+\alphausage{lookUpFor}{lookUpFor[sys, position:\{\_Integer...\}, operator\_Symbol] returns the   smallest tree whose root is the specified by operator and which   contains the specified position, or an empty list if operator not found.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{lookUpFor}
+
+\alphausage{lookUpForPos}{lookUpForPos[sys, position:\{\_Integer...\}, operator\_Symbol] returns  the position of the nearest occurrence of a specific operator surrounding a specified position, or an empty list if operator not found.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{lookUpForPos}
+
+\alphausage{accessByPath}{accessByPath[path:\{\_Integer..\}] extracts the part of  \$result specified by subtree position path.  accessByPath[tree\_, path:\{\_Integer..\}] extracts the part of a tree specified by its subtree position  specifier path}{Alpha/Tables.m}{Alpha`Tables`}
+\index{accessByPath}
+
+\alphanote{accessByPath}{Only one position can be supplied at a time, so a single tree is returned if the position is valid (no check is done.)} 
+ 
+\alphausage{undoModif}{undoModif[] called after a program transformation undoes its effects. Returns the program as before the last transformation.}{Alpha/Tables.m}{Alpha`Tables`}
+\index{undoModif}
+
+\alphanote{undoModif}{'undoModif' copies the contents of 'Alpha`\$program' into 'Alpha`\$result' so the result of the last transformation (see description of 'Alpha`\$result' and 'Alpha`\$program') is reset to the result of the previous one.} 
+ 

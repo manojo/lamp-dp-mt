@@ -1,0 +1,32 @@
+%
+% File created on {2008, 3, 11, 16, 16, 25.855745} by makeDoc.
+%
+% Section header
+\section{The Alpha`Static` package } 
+\label{label:Alpha`Static`}
+\alphanote{Static}{Documentation revised on August 10, 2004} 
+ 
+\alphausage{Static}{The Alpha`Static` package contains functions for the static analysis  of Alpha programs. These functions are: analyze, dep, and checkUseful.}{Alpha/Static.m}{Alpha`Static`}
+\index{Static}
+
+\alphausage{analyze}{analyze[sys] performs a static analysis of system sys (default \$result) and returns True if the analysis is successful (even with warnings), False otherwise. The analyze function has options verbose, recurse, library and scalarTypeCheck (see Options[analyze]). Option verbose (Boolean; default True) reports analysis progress.  Option recurse (Boolean; defaut False) recursively looks up for all the subsystems involved and analyzes them, too.  Option library (List; default \$library) gives the library to search for subsystems. Example of option usage: analyze[recurse$ \rightarrow $True, verbose$ \rightarrow $False]}{Alpha/Static.m}{Alpha`Static`}
+\index{analyze}
+
+\alphausage{dep}{dep[sys] generates a dependency table for sys (default \$result). The form of the table is:\\ dtable[\{\\   depend[ Domain, LHS\_var\_name, RHS\_var\_name, Matrix, RHS\_var\_domain],\\   depend[ Domain, LHS\_var\_name, RHS\_var\_name, Matrix, RHS\_var\_domain],\\   . . . \\ ].\\ The table may be pretty--printed using show[dep[]].}{Alpha/Static.m}{Alpha`Static`}
+\index{dep}
+
+\alphausage{dep1}{dep1[sys, \{occur:\{\_Integer..\}, occurs\_\_\_\}] generates dependency table entries for all occurrences in the list. Used by dep[] to generate the dependency table.}{Alpha/Static.m}{Alpha`Static`}
+\index{dep1}
+
+\alphausage{checkUseful}{checkUseful[sys, var] checks that the variable var is used in the system sys for all the points of its domain. Default value of sys is \$result. If var is omitted, the function is applied to all variables of sys.}{Alpha/Static.m}{Alpha`Static`}
+\index{checkUseful}
+
+\alphausage{checkDeclarations}{This function is a private function of the package.}{Alpha/Static.m}{Alpha`Static`}
+\index{checkDeclarations}
+
+\alphausage{buildLHSIdList}{This function is a private function of the package.}{Alpha/Static.m}{Alpha`Static`}
+\index{buildLHSIdList}
+
+\alphausage{buildRHSIdList}{This function is a private function of the package.}{Alpha/Static.m}{Alpha`Static`}
+\index{buildRHSIdList}
+

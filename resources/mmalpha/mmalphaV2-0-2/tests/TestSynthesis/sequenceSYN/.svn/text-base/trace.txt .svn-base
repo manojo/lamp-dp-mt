@@ -1,0 +1,12 @@
+(* ----------
+  Trace file 
+  5/1/2009 -- 21h 53mn 47.078588s
+  List of commands executed
+  ----------  *)
+load[ Samba.alpha mute -> True ];
+analyze[ mute -> True ]
+scd[  ]
+appSched[  ]
+pipeVars[ mute -> True ]
+toAlpha0v2[ mute -> True, verbose -> False ]
+alpha0ToAlphard[ mergeDomains -> True, verbose-> False, mute -> True ]

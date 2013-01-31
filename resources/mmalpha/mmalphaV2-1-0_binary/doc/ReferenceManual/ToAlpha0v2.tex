@@ -1,0 +1,42 @@
+%
+% File created on {2007, 11, 15, 17, 10, 20.668673} by makeDoc.
+%
+% Section header
+\section{The Alpha`ToAlpha0v2` package } 
+\label{label:Alpha`ToAlpha0v2`}
+\alphausage{ToAlpha0v2}{ToAlpha0v2: Package. Contains functions for the transformation of scheduled programs into Alpha0v2 form: decomposeSTdeps, makeInputMirrorEqus[], toAlpha0v2[]}{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{ToAlpha0v2}
+
+\alphausage{needSeparation}{debugUse}{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{needSeparation}
+
+\alphausage{toAlpha0v2}{toAlpha0v2[sys\_Alpha`system,options\_List] converts a scheduled program `sys' (see schedule[] and applySchedule[]) to Alpha0v2 form. The program `sys' is assumed to be such that all the local variables have the same dimension (see uniformizeDims[]) and all the dependencies are uniform. This function calls in sequence spaceTimeDecomposition[] makeAllMuxControl[], pipeAllControl[] and decomposeSTdeps[]. See these transformations for further information. WARNING: if there is more than one space index then pipeAllControl[] doesn't work yet. If sys is not present then the transformations apply to \$result and modify it. The option list is optional. }{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{toAlpha0v2}
+
+\alphausage{steps}{steps is an option of toAlpha0v2. It gives a list of numbers, each one corresponding to a step.}{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{steps}
+
+\alphausage{makeSimpleExpr}{makeSimpleExpr[sys] renames all the subexpressions which are not simple until the program as no more composed expression (in the sense of the analysis performed by needSeparation). Currently, the expression simplified are only the one involving multiplexer and operators}{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{makeSimpleExpr}
+
+\alphausage{decomposeSTdeps}{decomposeSTdeps[sys] splits, in sys, each dependency involving space and time into two dependencies, one on space, the other on time. decomposeSTdeps[] applies to \$result and modifies it.}{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{decomposeSTdeps}
+
+\alphausage{makeInputMirrorEqus}{makeInputMirrorEqus[sys\_Alpha`system,options\_List] adds to system `sys' mirror equations fot the inputs. This low-level transformation is needed before the translator to AlpHard is invoked. `sys' is optional, defaults to \$result, and the option list is optional, too (see Options[makeInputMirrorEqus]).}{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{makeInputMirrorEqus}
+
+\alphausage{reuseCommonExpr}{reuseCommonExpr[sys\_Alpha`system] attemps to gather expressions used several time by adding local variables for these expressions in system `sys'.  reuseCommonExpr[sys\_Alpha`system,var\_String,expr\_] specifically add   variable `var' for expr `expr' (which s in ast form). Currently only   RHS of equation are scanned up for multiple uses}{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{reuseCommonExpr}
+
+\alphausage{integerToBooleanSyst}{integerToBooleanSyst[$<$syst\_Alpha`system$>$] Function, change all * in and and all + in or. Returns the resulting  AST}{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{integerToBooleanSyst}
+
+\alphausage{booleanToIntegerSyst}{booleanToInteger[$<$syst\_Alpha`system$>$] Function, change all and in * and all or in +. Returns the resulting  AST}{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{booleanToIntegerSyst}
+
+\alphausage{correctIdEqs}{debug}{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{correctIdEqs}
+
+\alphausage{splitMax}{splitMax[sys]returns the system sys in which  the Max4 has been replaced by calls to Max operators, splitMax[] applies this to \$result}{Alpha/ToAlpha0v2.m}{Alpha`ToAlpha0v2`}
+\index{splitMax}
+

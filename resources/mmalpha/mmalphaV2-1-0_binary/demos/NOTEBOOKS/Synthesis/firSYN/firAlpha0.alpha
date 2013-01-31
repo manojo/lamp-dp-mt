@@ -1,0 +1,59 @@
+system fir :   {N,M | 3<=N<=M-1}
+               (x : {i | 1<=i<=M} of integer; 
+                H : {n | 0<=n<=N-1} of integer)
+       returns (res : {i | N<=i<=M} of integer);
+var
+  HXMirr1 : {t,p | M+1<=t<=N+M; p=2} of integer;
+  xXMirr1 : {t,p | 3<=t<=M+2; p=2} of integer;
+  TSep2 : {t,p | M+1<=t<=N+M; N<=p<=M} of integer;
+  TSep1 : {t,p | M+1<=t<=N+M; N<=p<=M} of integer;
+  pipeCx1Reg2Xloc : {t,p | p<=t<=(p+M-1,N+M); 3<=p<=M+1} of integer;
+  ser1Reg3 : {t,p | M+1<=t<=N+M; N<=p<=M} of integer;
+  pipeCx1Reg2 : {t,p | p+1<=t<=(N+M,p+M); 3<=p<=M} of integer;
+  pipeCH1Reg1 : {t,p | M+1<=t<=N+M; 3<=p<=M} of integer;
+  ser1Xctl1XIn : {t,p | M<=t<=N+M; N<=p<=M} of boolean;
+  pipeCx1 : {t,p | p+1<=t<=(p+M,N+M); 2<=p<=M} of integer;
+  pipeCH1 : {t,p | M+1<=t<=N+M; 2<=p<=M} of integer;
+  ser1 : {t,p | M<=t<=N+M; N<=p<=M} of integer;
+  ser1Xctl1 : {t | M<=t<=N+M} of boolean;
+let
+  HXMirr1[t,p] = H[t-M-1];
+  xXMirr1[t,p] = x[-t+M+3];
+  pipeCx1Reg2Xloc[t,p] = pipeCx1[t,p-1];
+  pipeCx1Reg2[t,p] = pipeCx1Reg2Xloc[t-1,p];
+  ser1Reg3[t,p] = ser1[t-1,p];
+  pipeCH1Reg1[t,p] = pipeCH1[t,p-1];
+  ser1Xctl1XIn[t,p] = ser1Xctl1[t];
+  pipeCx1[t,p] = 
+      case
+        { | p=2} : xXMirr1;
+        { | 3<=p} : pipeCx1Reg2;
+      esac;
+  pipeCH1[t,p] = 
+      case
+        { | p=2} : HXMirr1;
+        { | 3<=p} : pipeCH1Reg1;
+      esac;
+  ser1Xctl1[t] = 
+      case
+        case
+          { | t=M} : True[];
+          { | M+1<=t} : False[];
+        esac;
+      esac;
+  TSep1[t,p] = pipeCH1 * pipeCx1;
+  TSep2[t,p] = ser1Reg3 + TSep1;
+  ser1[t,p] = 
+      case
+        if (ser1Xctl1XIn) then 
+            case
+              { | t=M} : 0[];
+              { | M+1<=t} : 0[];
+            esac else 
+        case
+          { | t=M} : 0[];
+          { | M+1<=t} : TSep2;
+        esac;
+      esac;
+  res[i] = ser1[N+M,i];
+tel;

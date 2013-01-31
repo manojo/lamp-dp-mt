@@ -1,0 +1,48 @@
+\documentclass[11pt]{article}
+\begin{document}
+
+\newcommand{\mma}{\texttt{Mathematica}}
+\newcommand{\mmalfa}{\texttt{MMAlpha}}
+
+\title{Note about the Distribution of \mmalfa{}\footnote{Last update of this note on \today{}}}
+\author{Patrice Quinton}
+\date{January 2007}
+\maketitle
+\section{Introduction}
+\label{introduction}
+There is in the main directory a file named \texttt{CopyMMA.m}, which can be used to 
+create a distribution of \mmalfa{}. 
+
+\section{How to run in}
+To run this program, do the following:
+\begin{enumerate}
+\item Start \mma{} and start \mmalfa{}.
+\item Make sure that you are in the \texttt{\$MMALPHA} directory.
+\item If needed, edit the \texttt{CopyMMA.m} file in order to define
+the source directory and the destination directory of the distribution.
+\item Type \texttt{<<CopyMMA}.
+\end{enumerate}
+This should make it. 
+
+\section{Technical Information}
+The \texttt{CopyMMA.m} file is a \mma{} program. A few comments are in order.
+\begin{enumerate}
+\item The source directory and the destination directory are {\em hardwired}. To change them,
+change the value of variables \texttt{sourceMMA} and \texttt{destMMA} (around line 80 of the
+program). 
+\item The program uses two functions: \texttt{copyF}, which copies a file, and 
+\texttt{copyDir}, which copies a full directory. These functions are straightforward. 
+\item While building the distribution, a file named \texttt{content.txt} is created
+and updated in the main directory of the destination. This file contains the description
+of the files that were copied.
+\item The content of the distribution is {\em hardwired}, i.e. the choice of directories
+and files is in the \texttt{CopyMMA.m} program. This file is itself copied in the distribution, 
+in such a way that you can check what was this program when the distribution was created.
+\item If you open \texttt{CopyMMA.m}, you will see that directories are either wholly copied
+-- with possibly deleting some useless files, -- or partially copied, file by file. Which method
+was used depends on the number of files that had to be copied.
+\end{enumerate}
+
+
+\end{document}
+ 

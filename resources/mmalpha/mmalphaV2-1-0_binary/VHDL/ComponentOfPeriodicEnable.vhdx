@@ -1,0 +1,14 @@
+--
+-- Component for a periodic enable of period $period$
+-- $comment$
+-- 
+
+COMPONENT $name$ IS  
+  PORT(
+    clk : IN STD_LOGIC;
+    ceGen : IN STD_LOGIC;
+    rst : IN STD_LOGIC;
+    periodicGe : OUT STD_LOGIC
+  );
+END COMPONENT;
+

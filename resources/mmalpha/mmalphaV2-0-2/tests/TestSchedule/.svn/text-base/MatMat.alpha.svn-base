@@ -1,0 +1,29 @@
+system MatVect: {N,M | N>=2;  2<=M}
+ 		 (a : {i,j|1<=i<=N; 1<=j<=M} of integer; 
+                b : {j|1<=j<=M } of integer)
+       returns (c : {i|1 <= i <= N} of integer);
+  var 
+	C :  {i,j|1 <= i <= N; 0<= j <=M} of integer;
+  let
+	C[i,j] = case
+		{|j=0} : 0.(i,j-> );
+		{|j>=1} : C[i,j-1] + a[i,j] * b[j];
+		esac;
+	c[i]=C[i,M];
+  tel;   
+
+
+system MatMat :{N,M,P | 2<=N; 2<=M; 2<=P}
+               (A : {i,j | 1<=i<=N; 1<=j<=M} of real; 
+                B : {i,j | 1<=i<=M; 1<=j<=P} of real)
+       returns (C : {i,k | 1<=i<=N; 1<=k<=P} of real);
+var
+  Abis : {i,j,k | 1<=i<=N; 1<=j<=M; 1<=k<=P} of real;
+  VectIN : {i,k | 1<=i<=M; 1<=k<=P} of real;
+  VectOUT : {j,k | 1<=j<=N; 1<=k<=P} of real;
+let
+  Abis[i,j,k] = A[i,j];
+  VectIN[i,k] = B[i,k];
+  use {k | 1<=k<=P} MatVect[N,M] (Abis, VectIN) returns  (VectOUT) ;
+  C[i,k] = VectOUT[i,k];
+tel;

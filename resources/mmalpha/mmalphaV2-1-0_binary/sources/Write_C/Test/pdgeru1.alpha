@@ -1,0 +1,38 @@
+-- from Sophie Robert
+-- N=16, NB=4, JB=4, k=2 et l=2) et le programme C.
+
+--A priori le probleme se situe entre le domaine alpha de Bcol 
+--et la boucle des "outputs" du programme C. Et a la simulation
+--j'ai un case error au niveau du calcul de Bcol[1,1,3].
+
+system pdgeru :{N,NB,JB,k,l | (4,NB,JB)<=N; k<=NB; l<=JB; 1<=k; 1<=l}
+
+               (Acol : {i,j,p | i=1; j=JB; 1<=p<=(NB,k+1); 1<=JB} | 
+                {i,j,p | 1<=i<=(JB,j+1); 1<=j<=JB; 1<=p<=(NB,k)} | 
+                {i,j,p | 1<=i<=JB; 1<=j<=JB; 1<=p<=(NB,k-1)} of real; 
+
+                Vect : {i,p | i=1; 1<=p<=(NB,k+1); JB=l} | 
+                {i,p | 1<=i<=(JB,l+1); 1<=p<=k} | {i,p | 1<=i<=JB; 1<=p<=k-1}
+                 of real)
+
+       returns (Bcol : {i,j,p | i=1; j=JB; 1<=p<=(NB,k+1); 1<=JB} | 
+                {i,j,p | 1<=i<=(JB,j+1); 1<=j<=JB; 1<=p<=(NB,k)} | 
+                {i,j,p | 1<=i<=JB; 1<=j<=JB; 1<=p<=(NB,k-1)} of real);
+let
+
+  Bcol = 
+      case
+	{i,j,p | 1<=p<k} : Acol.(i,j,p->i,j,p);	
+	{i,j,p | p=k} :	case
+		{i,j,p | 1<=i<=(j+1,l); 1<=j<=JB} : Acol.(i,j,p->i,j,p);
+		{i,j,p | i=l+1; j=l; l+1<=JB} : Acol.(i,j,p->i,j,p);
+		{i,j,p | i=l+1; l+1<=j<=JB} : 
+			Acol.(i,j,p->i,j,p)-Vect.(i,j,p->i,p)*Acol.(i,j,p->l,j,k);
+		{i,j,p | l+2<=i<=(j+1,JB); j<=JB} : Acol.(i,j,p->i,j,p);
+			esac;
+	{i,j,p | p=k+1} : case
+		{i,j,p | i=1; j=JB; k+1<=NB; 1<=JB<=l} : Acol.(i,j,p->i,j,p);
+		{i,j,p | i=1; j=JB; k+1<=NB; l+1<=JB} : Acol.(i,j,p->i,j,p);
+           esac;
+      esac;
+tel;

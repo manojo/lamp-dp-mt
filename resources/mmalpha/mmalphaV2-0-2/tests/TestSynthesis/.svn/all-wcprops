@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis
+END
+TestSynthesis.m
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/TestSynthesis.m
+END
+fir.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/fir.alpha
+END
+MV1.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/MV1.alpha
+END
+samba.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/samba.alpha
+END
+temp.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/temp.alpha
+END

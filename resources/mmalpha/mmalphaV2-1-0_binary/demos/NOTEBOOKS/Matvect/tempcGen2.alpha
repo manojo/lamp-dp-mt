@@ -1,0 +1,7 @@
+"system prodVect :{N | 3<=N}\n                (a : {i,j | 1<=i<=N; 1<=j<=N} \
+of integer; \n                 b : {i | 1<=i<=N} of integer)\n       returns  \
+(c : {i | 1<=i<=N} of integer);\nvar\n  outc : {t,p | t=N+1; 1<=p<=N; 3<=N} \
+of integer;\n  C : {t,p | 0<=t<=N; 1<=p<=N} of integer;\nlet\n  c = \
+outc.(i->N+1,i);\n  C = case\n        {i,j | j=0} : 0.(i,j->);\n        {i,j \
+| 1<=j} : C.(i,j->j,i).(i,j->i,j-1) + a.(i,j->i,j) * b.(i,j->j);\n      \
+esac.(t,p->p,t);\n  outc = C.(i,j->j,i).(i->i,N).(t,p->p);\ntel;"

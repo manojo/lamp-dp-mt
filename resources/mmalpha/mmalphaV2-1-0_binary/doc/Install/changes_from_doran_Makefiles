@@ -1,0 +1,31 @@
+This file is temporary.
+It indicates which changes should be done when we
+get Doran's version of the sources
+(ftp ftp.CS.ORST.EDU, cd  users/w/wilded/Alpha/sources)
+This changes should be made in the Makefiles so that it 
+can compile.
+
+source/Pretty   --> OK (rien change)
+source/Polylib   --> OK (rien change)
+source/AST       --> 
+PRETTY=../Pretty
+PL=${MMALPHA}/sources/Polylib ---> PL=../Polylib
+source/Read_alpha
+
+source/Read_Alpha  --> 
+#BIN_DIR = $(MMALPHA)/bin.$(HOSTTYPE)
+BIN_DIR = ../../bin/bin.$(HOSTTYPE)
+
+source/Write_Alpha -->
+#BIN_DIR= $(MMALPHA)/bin.$(HOSTTYPE)
+BIN_DIR= ../../bin/bin.$(HOSTTYPE)
+
+source/Domlib`
+#MATH=/usr/local/apps/math
+MATH=/soft/Mathematica/Math
+#BIN=$(MMALPHA)/bin.$(HOSTTYPE)
+BIN=../../bin/bin.$(HOSTTYPE)
+source/Write_C
+#BIN_DIR= $(MMALPHA)/bin.$(HOSTTYPE)
+BIN_DIR= ../../bin/bin.$(HOSTTYPE)
+

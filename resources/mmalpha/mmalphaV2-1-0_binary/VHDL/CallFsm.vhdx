@@ -1,0 +1,1 @@
+G$number$ : Fsm PORT MAP (clk, CE, rst, $outputs$);

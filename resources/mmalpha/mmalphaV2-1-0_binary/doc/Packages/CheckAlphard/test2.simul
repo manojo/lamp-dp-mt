@@ -1,0 +1,10 @@
+BeginPackage["Alpha`Simul`test2`"];
+a::usage = "";
+b::usage = "";
+c::usage = "";
+Begin["`Private`"];
+Clear[ a, b, c, c];
+    c[j_, f:___] := Plus[ a[ j,f ], b[ 2 + 3 j,f ] ];
+    c[ ___ ] := Message[c::params ];
+End[];
+EndPackage[];

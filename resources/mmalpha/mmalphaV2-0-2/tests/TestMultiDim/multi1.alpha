@@ -1,0 +1,21 @@
+system multi1 : { N | N >= 2} 
+	()
+       returns (a,b : {i,j,k | 1<=i,j,k<=N} of integer);
+let 
+   a[i,j,k] = case
+		{|2<=i,j,k<=N }: b[i-1,j-1,k]+a[i,j,k-1]; 
+		{|i=1 } | {|j=1 } | {|k=1 }: 0[];
+	      esac; 
+   b[i,j,k] = case
+		{|1<=j<=N; 2<=i<=N; 1<=k<=N-1 }: a[i-1,j,k]+b[i,j,k+1]; 
+		{|i=1 }  | {|k=N }: 0[];
+	      esac; 
+
+tel;
+										     
+
+---- schedule given by Paul method: 
+--T_a{i, j, k, N} = -1 + i
+--                  -1 + k
+--T_b{i, j, k, N} = -1 + i
+--                   N - k 

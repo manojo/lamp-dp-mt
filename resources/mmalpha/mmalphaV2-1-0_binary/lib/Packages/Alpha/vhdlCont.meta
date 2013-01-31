@@ -1,0 +1,125 @@
+{
+(*
+  Higher level
+*)
+  SYSTEMDECLARATION ::= 
+    system[ systemName: _String, 
+            paramDecl: DOMAIN, 
+            inputDeclList: {DECLARATION},
+            outputDeclList: {DECLARATION}, 
+            localDeclList: {DECLARATION}, 
+            equationBlock: {EQUATION}
+          ] 
+          :> semFuncCont[ "system", 
+                      systemName, 
+                      trinputDeclList, 
+                      troutputDeclList,
+                      trequationBlock, opts
+             ]
+,
+(*
+  The semantics of a declaration is a pair formed of
+  its name and its domain 
+*)
+  DECLARATION ::=
+    decl[ varName: _String, 
+          varType: boolean,
+          domain: DOMAIN
+        ]
+        :> { varName, domain }
+,
+(*
+  The semantics of a domain is Null
+*)
+  DOMAIN ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> Null
+,
+  POLYHEDRON ::= 
+    pol[ constraintsNum:_Integer,
+         generatorsNum:_Integer,
+         equationsNum:_Integer,
+         linesNum:_Integer,
+         constraintList: {CONSTRAINT},
+         generatorList: {GENERATOR}
+       ]
+       :> Null
+,
+  CONSTRAINT ::= {_List -> List} 
+,
+  GENERATOR ::= {_List -> List} 
+,
+  EQUATION ::= 
+    { _equation -> ASSIGNMENT
+    }
+,
+(*
+  The semantics is a pair formed of the lhs part
+  and the translation of the rhs part
+*)
+  ASSIGNMENT ::= 
+    equation[ leftHandSide: _String, 
+              rightHandSide: CASEXP
+            ] 
+            :> semFuncCont[ "equation", leftHandSide, trrightHandSide ]
+,
+(*
+  The semantics should return the semantics of 
+  each branch of the case
+*)
+  CASEXP ::= 
+    case[ 
+         expressionList: {RESTEXP} 
+        ] 
+        :> trexpressionList
+,
+(*
+  The semantics returns only the domain, and 
+  the semantics of the expression part, which 
+  should be True or False
+*)
+  RESTEXP ::= 
+    restrict[ 
+         domain: DOMAIN, 
+         expression: AFFEXP
+         ] 
+         :> {domain,trexpression}
+, 
+(*
+  The semantics returns only the translation of
+  the expression part, i.e., True or False
+*)
+  AFFEXP ::= 
+    affine[ 
+      expression: CONSTEXP,
+      affineFunction: MATRIX 
+          ] 
+          :> trexpression
+,
+(*
+  Ignored as far as the semantics is concerned
+*)
+  MATRIX ::= 
+    matrix[ 
+      d1:_Integer, 
+      d2:_Integer, 
+      in:{___String}, 
+      mmaMatrix:MATRIXNUM
+          ]
+          :> Null
+,
+  MATRIXNUM ::= {_List -> {List}}
+,
+(*
+  In a controller, the only possible constant is 
+  True or False
+*)
+  CONSTEXP ::= 
+    const[ 
+         constant: ( True | False )
+         ] 
+         :> constant
+}

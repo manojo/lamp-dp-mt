@@ -1,0 +1,5 @@
+{scheduleResult["dot", {"N"}, {{"a", {"k", "N"}, sched[{1, 0}, 0]}, 
+   {"b", {"k", "N"}, sched[{1, 0}, 0]}}, {{"c", {"N"}, sched[{1}, 2]}}], 
+ scheduleResult["matmult", {"N"}, 
+  {{"a", {"i", "j", "N"}, sched[{0, 0, 0}, 0]}, {"b", {"i", "j", "N"}, 
+    sched[{0, 0, 0}, 0]}}, {{"c", {"i", "j", "N"}, sched[{1, 1, 1}, 1]}}]}

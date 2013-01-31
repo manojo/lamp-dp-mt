@@ -1,0 +1,11 @@
+system called (in: integer) returns (out: integer);
+let
+  -- This does not work. Why?
+  out = 2 + in;
+tel;
+system caller : {N | N>=1}
+ (v: {i| 0< i <= N} of integer) 
+ returns (w: {i| 0< i <= N} of integer);
+let
+  use {i| 0<i<=N} called (v) returns (w);
+tel;

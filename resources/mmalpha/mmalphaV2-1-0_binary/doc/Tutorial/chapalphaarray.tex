@@ -1,0 +1,152 @@
+\chapter{Arrays of synchronous operators}
+\label{chapalphaarray}
+In this chapter, we show how arrays of hardware operators can be modelled in
+{\alfa}\index{arrays}. In chapter~\ref{chapalphascal}, the basic
+operators of the language were described. As we shall see here, a 
+simple extension of these operators allows two-dimensional -- and
+higher-dimensional -- variables and expressions to be used. 
+
+\section{Describing array of elements}
+Figure~\ref{adder-array} shows an array of adders. 
+\section{An array of adders}
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+%\colorbox{white}{
+\centerline{\includegraphics{figures/exemple_9}}
+%}
+\caption{An array of adders}\label{adder-array}
+\end{figure}
+
+The corresponding {\alfa} code is shown on figure~\ref{adder-array-alpha}.
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/adder-array.alpha}
+\caption{An array of adders in {\alfa}}\label{adder-array-alpha}
+\end{figure}
+Blabla
+\section{Change of basis}
+Any {\alfa} program can be seen as a black box which takes input
+variables, and produces output variables. Therefore, intermediate
+variables are unimportant, and, in particular, one can reindex them
+using one-to-one index mappings. Obviously, 
+\begin{verbatim}
+A[i] = B[i];
+B[i] = C[i];
+\end{verbatim}
+is identical to 
+\begin{verbatim}
+A[i] = B[i-1];
+B[i] = C[i+1];
+\end{verbatim}
+ The change of basis operation does just this reindexing. In the
+context of {\alfa}, the reindexing functions that we consider need to
+be restricted to affine {\em unimodular functions},\index{affine
+functions}\index{unimodular functions} that is to say, affine mappings
+which admit an integral inverse.
+
+Consider variable {\tt Z} in program~\ref{adder-array-alpha}. Consider
+the reindexing function $B$ from $\Z^2$ to itself, defined by $B(t,p)
+= (t+p,p)$. One can show that $B$ is unimodular. Let us denote
+$B$ using the {\alfa} syntax, as {\tt (t,p -> t+p,p)}. This function 
+is one-to-one, and its inverse is $B^{-1}$, denoted {\tt (t,p -> t-p,p)}.
+
+To apply the change of basis defined by $B$ on variable {\tt Z}, 
+we need to do the following operations:
+\begin{enumerate}
+\item Replace the domain of definition of {\tt Z} by its image under
+the $B$ mapping. As the domain of {\tt Z} is 
+{\tt \{t,p|t>=1;4>=p;p>=0\}}, its image by $B$ is 
+{\tt \{t,p | p+1<=t; 0<=p<=4\}}.
+\item Replace any occurrence of {\tt Z} in a right-hand side of 
+an equation by {\tt Z.(t,p -> t+p,p)}.
+\item Replace the entire equation {\tt Z = expr} defining {\tt Z}
+by {\tt Z = expr.(t,p -> t-p,p)}.
+\end{enumerate}
+
+The new program is shown in figure~\ref{adder-array-bn-alpha}. We can normalize
+it, which leads to program~\ref{adder-array-cb-alpha}.
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/adder-array-bn.alpha}
+\caption{Program adderarray, after change of basis {\tt (t,p->t+p,p)}
+performed on {\tt Z}}\label{adder-array-bn-alpha}
+\end{figure}
+
+This new program can be interpreted as the architecture shown in 
+figure~\ref{adder-array-cb-tex}.
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+\verbatiminput{alpha_progs/adder-array-cb.alpha}
+\caption{Program adderarray, after change of basis 
+and normalization}\label{adder-array-cb-alpha}
+\end{figure}
+
+\begin{figure}[htbp]
+%\htmlimage{scale=\myscale}
+%\colorbox{white}{
+\centerline{\includegraphics{figures/exemple_10}}
+%}
+\caption{An array of adders}\label{adder-array-cb-tex}
+\end{figure}
+
+% Reduction
+%\centerline{\input{/udd/quinton/documents/lncs_574/seminaire_litp/figures/exemple_8}}
+%\input{/udd/quinton/documents/lncs_574/seminaire_litp/exemples_alpha/exemple_8}
+%
+%\transparent{0cm}{{Convolution}}{0cm}
+%{\small
+%\input{/udd/quinton/cours/cours_nouveau/convgen}
+%}
+%\transparent{0cm}{{Convolution apr\`{e}s s\'{e}rialisation}}{0cm}
+%{\small
+%\input{/udd/quinton/cours/cours_nouveau/conv}
+%}
+%\transparent{0cm}{{Convolution, apr\`{e}s changement de base}}{0cm}
+%{\small
+%\input{/udd/quinton/cours/cours_nouveau/conv1}
+%}
+%\begin{slide}{}
+%\titre{Conception typique (Mathematica Alpha)}
+%{\small
+%\begin{enumerate}
+%\item Analyse syntaxique, v\'{e}rification
+%\item Placement des variables (manuel)
+%\item Uniformisation (automatique)
+%\item Ordonnancement (automatique)
+%\item Changement  de base (automatique)
+%\item Separation espace et temps
+%\item Remplacement des {\bf case} par des signaux de contr\^{o}le (automatique)
+%\item Generation circuit (MadMacs ou VHDL) 
+%\end{enumerate}
+%}
+%\end{slide}
+
+
+
+
+\subsection*{Processing this example in {\mmalfa}}
+Load the array of adders:
+\begin{verbatim}
+load["adder-array.alpha"];   (* loads the alpha file *)
+ashow[];                     (* shows its content *)
+\end{verbatim}
+Apply a change of basis:
+\begin{verbatim}
+changeOfBasis["B.(t,p->t+p,p)"];  (* apply a change of basis *)
+ashow[];                     (* shows the result *)
+\end{verbatim}
+Notice that the result of a change of basis is automatically normalized. 
+
+\section{Conclusion}
+In this chapter, we have seen how arrays of elements can be 
+described using {\alfa}. In order to present hardware examples, we
+have limited ourself to programs where the indexes can be
+interpreted as the time and the space (i.e., {\tt t} and {\tt p}).
+Actually, {\alfa} programs are not restricted to such indexes. 
+{\em Au contraire}, hardware-like {\alfa} programs represent the 
+ultimate goal of a synthesis process which starts from a 
+behavioural specification. They are in fact a proper subset of all 
+{\alfa} programs.
+
+In Chapter~\ref{chapfunctional}, we shall consider {\alfa} from the
+data parallel perspective. 

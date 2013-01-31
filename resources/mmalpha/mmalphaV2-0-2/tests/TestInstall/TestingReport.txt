@@ -1,0 +1,5 @@
+------> Testing: Domlib
+Date: Fri 26 Dec 2008 11:45:15
+Calling TestDomlib.m
+------------- > Test for Domlib was passed successfully.
+End of test

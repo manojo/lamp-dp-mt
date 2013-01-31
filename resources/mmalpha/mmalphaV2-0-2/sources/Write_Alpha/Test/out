@@ -1,0 +1,20 @@
+system Durbin :{N | 1<=N}
+               (r : {i | 1<=i<=N} of real)
+       returns (y : {i | 1<=i<=N} of real);
+var
+  Y : {k,i | i<=k<=N; 1<=i} of real;
+  B : {k | 1<=k<=N} of real;
+let
+  Y = case
+        {k,i | k=1; i=1} : -r.(k,i->1);
+        {k,i | (2,i+1)<=k} : Y.(k,i->k-1,i) + Y.(k,i->k,k) * Y.(k,i->k-1,k-i);
+        {k,i | k=i; 2<=i} : 
+           (-r.(k,i->k) - reduce(+, (k,i->k), r[i] * Y[k-1,k-i]).(k,i->k)) / 
+           B.(k,i->k);
+      esac;
+  B = case
+        {k | k=1} : 1;
+        {k | 2<=k} : B.(k->k-1) * (1 - Y.(k->k-1,k-1) * Y.(k->k-1,k-1));
+      esac;
+  y = Y.(i->N,i);
+tel;

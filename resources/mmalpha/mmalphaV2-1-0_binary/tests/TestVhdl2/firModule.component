@@ -1,0 +1,12 @@
+
+COMPONENT firModule
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  H_mirr1In : IN  SIGNED (15 DOWNTO 0);
+  x_mirr1In : IN  SIGNED (15 DOWNTO 0);
+  YOut : OUT Array0To5OfInteger
+);
+END COMPONENT;
+

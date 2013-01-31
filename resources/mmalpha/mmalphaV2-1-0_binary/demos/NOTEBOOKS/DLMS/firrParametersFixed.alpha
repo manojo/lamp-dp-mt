@@ -1,0 +1,276 @@
+system ControlfirrModule ( )
+       returns           (WXctl1PXInit : {t | 0<=t<=3} | {t | 4<=t<=7} of boolean);
+let
+  WXctl1PXInit[t] = 
+      case
+        { | t<=3} : True[];
+        { | 4<=t} : False[];
+      esac;
+tel;
+
+system cellfirrModule3 :{p | p=0}
+                       (pipeCE5Reg3Xloc : {t | 3<=t<=6} of integer; 
+                        pipeCx17Reg4Xloc : {t | 0<=t<=5} of integer; 
+                        pipeCx19Reg5Xloc : {t | -4<=t<=5} of integer; 
+                        YReg8Xloc : {t | -1<=t<=6} of integer; 
+                        WXctl1PXInitXIn : {t | 0<=t<=7} of boolean)
+       returns         (pipeCE5 : {t | 4<=t<=7} of integer; 
+                        pipeCx17 : {t | 2<=t<=7} of integer; 
+                        pipeCx19 : {t | -2<=t<=7} of integer; 
+                        WXctl1P : {t | 0<=t<=7} of boolean; 
+                        Y : {t | 0<=t<=7} of integer);
+var
+  Yloc5 : {t | 0<=t<=7} of integer;
+  pipeCE5Reg3 : {t | 4<=t<=7} of integer;
+  pipeCx17Reg4 : {t | 2<=t<=7} of integer;
+  pipeCx19Reg5 : {t | -2<=t<=7} of integer;
+  TSep1 : {t | 4<=t<=7} of integer;
+  TSep2 : {t | 4<=t<=7} of integer;
+  W : {t | 0<=t<=7} of integer;
+  WReg6 : {t | 4<=t<=7} of integer;
+  YReg8 : {t | 0<=t<=7} of integer;
+let
+  Y[t] = Yloc5[t];
+  WXctl1P[t] = WXctl1PXInitXIn[t];
+  pipeCx19[t] = pipeCx19Reg5[t];
+  pipeCx17[t] = pipeCx17Reg4[t];
+  pipeCE5[t] = pipeCE5Reg3[t];
+  pipeCE5Reg3[t] = pipeCE5Reg3Xloc[t-1];
+  pipeCx17Reg4[t] = pipeCx17Reg4Xloc[t-2];
+  pipeCx19Reg5[t] = pipeCx19Reg5Xloc[t-2];
+  YReg8[t] = YReg8Xloc[t-1];
+  WReg6[t] = W[t-1];
+  TSep1[t] = pipeCE5Reg3[t] * pipeCx17Reg4[t];
+  TSep2[t] = WReg6[t] + TSep1[t];
+  W[t] = 
+      case
+        { | t<=3} : if (WXctl1PXInitXIn[t]) then 0[] else 0[];
+        { | 4<=t} : if (WXctl1PXInitXIn[t]) then 0[] else TSep2[t];
+      esac;
+  Yloc5[t] = YReg8[t] + W[t] * pipeCx19Reg5[t];
+tel;
+
+system cellfirrModule4 :{p | p=2}
+                       (dXMirr1 : {t | 2<=t<=9} of integer; 
+                        pipeCE5Reg3Xloc : {t | 5<=t<=8} of integer; 
+                        pipeCx17Reg4Xloc : {t | 4<=t<=8} of integer; 
+                        pipeCx19Reg5Xloc : {t | 0<=t<=8} of integer; 
+                        WXctl1PReg7Xloc : {t | 1<=t<=8} of boolean; 
+                        YReg8Xloc : {t | 1<=t<=8} of integer)
+       returns         (pipeCE5 : {t | 6<=t<=9} of integer; 
+                        pipeCx17 : {t | 6<=t<=9} of integer; 
+                        pipeCx19 : {t | 2<=t<=9} of integer; 
+                        WXctl1P : {t | 2<=t<=9} of boolean; 
+                        Y : {t | 2<=t<=9} of integer);
+var
+  Yloc5 : {t | 2<=t<=9} of integer;
+  pipeCE5Reg3 : {t | 6<=t<=9} of integer;
+  pipeCx17Reg4 : {t | 6<=t<=9} of integer;
+  pipeCx19Reg5 : {t | 2<=t<=9} of integer;
+  TSep1 : {t | 6<=t<=9} of integer;
+  TSep2 : {t | 6<=t<=9} of integer;
+  W : {t | 2<=t<=9} of integer;
+  WReg6 : {t | 6<=t<=9} of integer;
+  WXctl1PReg7 : {t | 2<=t<=9} of boolean;
+  YReg8 : {t | 2<=t<=9} of integer;
+let
+  Y[t] = Yloc5[t];
+  WXctl1P[t] = WXctl1PReg7[t];
+  pipeCx19[t] = pipeCx19Reg5[t];
+  pipeCx17[t] = pipeCx17Reg4[t];
+  pipeCE5[t] = pipeCE5Reg3[t];
+  pipeCE5Reg3[t] = pipeCE5Reg3Xloc[t-1];
+  pipeCx17Reg4[t] = pipeCx17Reg4Xloc[t-2];
+  pipeCx19Reg5[t] = pipeCx19Reg5Xloc[t-2];
+  WXctl1PReg7[t] = WXctl1PReg7Xloc[t-1];
+  YReg8[t] = YReg8Xloc[t-1];
+  WReg6[t] = W[t-1];
+  TSep1[t] = pipeCE5Reg3[t] * pipeCx17Reg4[t];
+  TSep2[t] = WReg6[t] + TSep1[t];
+  W[t] = 
+      case
+        { | t<=5} : if (WXctl1PReg7[t]) then 0[] else 0[];
+        { | 6<=t} : if (WXctl1PReg7[t]) then 0[] else TSep2[t];
+      esac;
+  Yloc5[t] = YReg8[t] + W[t] * pipeCx19Reg5[t];
+tel;
+
+system cellfirrModule5 :{p | p=1}
+                       (pipeCE5Reg3Xloc : {t | p+3<=t<=p+6} of integer; 
+                        pipeCx17Reg4Xloc : {t | 2p<=t<=p+6} of integer; 
+                        pipeCx19Reg5Xloc : {t | 2p-4<=t<=p+6} of integer; 
+                        WXctl1PReg7Xloc : {t | p-1<=t<=p+6} of boolean; 
+                        YReg8Xloc : {t | p-1<=t<=p+6} of integer)
+       returns         (pipeCE5 : {t | p+4<=t<=p+7} of integer; 
+                        pipeCx17 : {t | 2p+2<=t<=p+7} of integer; 
+                        pipeCx19 : {t | 2p-2<=t<=p+7} of integer; 
+                        WXctl1P : {t | p<=t<=p+7} of boolean; 
+                        Y : {t | p<=t<=p+7} of integer);
+var
+  Yloc5 : {t | p<=t<=p+7} of integer;
+  pipeCE5Reg3 : {t | p+4<=t<=p+7} of integer;
+  pipeCx17Reg4 : {t | 2p+2<=t<=p+7} of integer;
+  pipeCx19Reg5 : {t | 2p-2<=t<=p+7} of integer;
+  TSep1 : {t | p+4<=t<=p+7} of integer;
+  TSep2 : {t | p+4<=t<=p+7} of integer;
+  W : {t | p<=t<=p+7} of integer;
+  WReg6 : {t | p+4<=t<=p+7} of integer;
+  WXctl1PReg7 : {t | p<=t<=p+7} of boolean;
+  YReg8 : {t | p<=t<=p+7} of integer;
+let
+  Y[t] = Yloc5[t];
+  WXctl1P[t] = WXctl1PReg7[t];
+  pipeCx19[t] = pipeCx19Reg5[t];
+  pipeCx17[t] = pipeCx17Reg4[t];
+  pipeCE5[t] = pipeCE5Reg3[t];
+  pipeCE5Reg3[t] = pipeCE5Reg3Xloc[t-1];
+  pipeCx17Reg4[t] = pipeCx17Reg4Xloc[t-2];
+  pipeCx19Reg5[t] = pipeCx19Reg5Xloc[t-2];
+  WXctl1PReg7[t] = WXctl1PReg7Xloc[t-1];
+  YReg8[t] = YReg8Xloc[t-1];
+  WReg6[t] = W[t-1];
+  TSep1[t] = pipeCE5Reg3[t] * pipeCx17Reg4[t];
+  TSep2[t] = WReg6[t] + TSep1[t];
+  W[t] = 
+      case
+        { | t<=p+3} : if (WXctl1PReg7[t]) then 0[] else 0[];
+        { | p+4<=t} : if (WXctl1PReg7[t]) then 0[] else TSep2[t];
+      esac;
+  Yloc5[t] = YReg8[t] + W[t] * pipeCx19Reg5[t];
+tel;
+
+system cellfirrModule6 :{p | p=-1}
+                       (xXMirr2 : {t | 0<=t<=5} of integer; 
+                        pipeCx19Reg5Xloc : {t | -6<=t<=3} of integer)
+       returns         (pipeCE5 : {t | 3<=t<=6} of integer; 
+                        pipeCx17 : {t | 0<=t<=5} of integer; 
+                        pipeCx19 : {t | -4<=t<=5} of integer; 
+                        Y : {t | -1<=t<=6} of integer);
+var
+  Yloc4 : {t | -1<=t<=6} of integer;
+  EReg2 : {t | 3<=t<=6} of integer;
+  EReg2Xloc : {t | 2<=t<=9} of integer;
+  pipeCx19Reg5 : {t | -4<=t<=5} of integer;
+let
+  Y[t] = Yloc4[t];
+  EReg2Xloc[t] = E[t];
+  EReg2[t] = EReg2Xloc[t-1];
+  pipeCx19Reg5[t] = pipeCx19Reg5Xloc[t-2];
+  pipeCx19[t] = pipeCx19Reg5[t];
+  pipeCx17[t] = xXMirr2[t];
+  pipeCE5[t] = EReg2[t];
+  Yloc4[t] = 0[];
+tel;
+
+system cellfirrModule7 :{p | p=-2}
+                       (xXMirr1 : {t | -6<=t<=3} of integer)
+       returns         (pipeCx19 : {t | -6<=t<=3} of integer);
+let
+  pipeCx19[t] = xXMirr1[t];
+tel;
+
+system firrModule (dXMirr1In : {t,p | 2<=t<=9; p=2} of integer; 
+                   xXMirr1In : {t,p | -6<=t<=3; p=-2} of integer; 
+                   xXMirr2In : {t,p | 0<=t<=5; p=-1} of integer)
+       returns    (YOut : {t,p | p<=t<=p+7; -1<=p<=2} of integer);
+var
+  WXctl1PXInit : {t | 0<=t<=7} of boolean;
+  pipeCE53 : {t,p | 4<=t<=7; p=0} of integer;
+  pipeCE5Reg3Xloc : {t,p | p+3<=t<=p+6; 0<=p<=3} of integer;
+  pipeCx173 : {t,p | 2<=t<=7; p=0} of integer;
+  pipeCx17Reg4Xloc : {t,p | 2p<=t<=(p+6,2p+5); 0<=p<=3} of integer;
+  pipeCx193 : {t,p | -2<=t<=7; p=0} of integer;
+  pipeCx19Reg5Xloc : {t,p | 2p-4<=t<=(2p+5,p+6); -1<=p<=3} of integer;
+  WXctl1P3 : {t,p | 0<=t<=7; p=0} of boolean;
+  WXctl1PReg7Xloc : {t,p | p-1<=t<=p+6; 1<=p<=3} of boolean;
+  Y3 : {t,p | 0<=t<=7; p=0} of integer;
+  YReg8Xloc : {t,p | p-1<=t<=p+6; 0<=p<=3} of integer;
+  WXctl1PXInitXIn : {t,p | 0<=t<=7; p=0} of boolean;
+  dXMirr1 : {t,p | 2<=t<=9; p=2} of integer;
+  pipeCE54 : {t,p | 6<=t<=9; p=2} of integer;
+  pipeCx174 : {t,p | 6<=t<=9; p=2} of integer;
+  pipeCx194 : {t,p | 2<=t<=9; p=2} of integer;
+  WXctl1P4 : {t,p | 2<=t<=9; p=2} of boolean;
+  Y4 : {t,p | 2<=t<=9; p=2} of integer;
+  pipeCE55 : {t,p | 5<=t<=8; p=1} of integer;
+  pipeCx175 : {t,p | 4<=t<=8; p=1} of integer;
+  pipeCx195 : {t,p | 0<=t<=8; p=1} of integer;
+  WXctl1P5 : {t,p | 1<=t<=8; p=1} of boolean;
+  Y5 : {t,p | 1<=t<=8; p=1} of integer;
+  xXMirr2 : {t,p | 0<=t<=5; p=-1} of integer;
+  pipeCE56 : {t,p | 3<=t<=6; p=-1} of integer;
+  pipeCx176 : {t,p | 0<=t<=5; p=-1} of integer;
+  pipeCx196 : {t,p | -4<=t<=5; p=-1} of integer;
+  Y6 : {t,p | -1<=t<=6; p=-1} of integer;
+  xXMirr1 : {t,p | -6<=t<=3; p=-2} of integer;
+  pipeCx197 : {t,p | -6<=t<=3; p=-2} of integer;
+let
+  dXMirr1[t,p] = dXMirr1In[t,p];
+  pipeCE5Reg3Xloc[t,p] = 
+      case
+        { | p=1} : pipeCE53[t,p-1];
+        { | p=3} : pipeCE54[t,p-1];
+        { | p=2} : pipeCE55[t,p-1];
+        { | p=0} : pipeCE56[t,p-1];
+      esac;
+  pipeCx17Reg4Xloc[t,p] = 
+      case
+        { | p=1} : pipeCx173[t,p-1];
+        { | p=3} : pipeCx174[t,p-1];
+        { | p=2} : pipeCx175[t,p-1];
+        { | p=0} : pipeCx176[t,p-1];
+      esac;
+  pipeCx19Reg5Xloc[t,p] = 
+      case
+        { | p=1} : pipeCx193[t,p-1];
+        { | p=3} : pipeCx194[t,p-1];
+        { | p=2} : pipeCx195[t,p-1];
+        { | p=0} : pipeCx196[t,p-1];
+        { | p=-1} : pipeCx197[t,p-1];
+      esac;
+  WXctl1PReg7Xloc[t,p] = 
+      case
+        { | p=1} : WXctl1P3[t,p-1];
+        { | p=3} : WXctl1P4[t,p-1];
+        { | p=2} : WXctl1P5[t,p-1];
+      esac;
+  WXctl1PXInitXIn[t,p] = WXctl1PXInit[t];
+  xXMirr1[t,p] = xXMirr1In[t,p];
+  xXMirr2[t,p] = xXMirr2In[t,p];
+  YOut[t,p] = 
+      case
+        { | p=0} : Y3[t,p];
+        { | p=2} : Y4[t,p];
+        { | p=1} : Y5[t,p];
+        { | p=-1} : Y6[t,p];
+      esac;
+  YReg8Xloc[t,p] = 
+      case
+        { | p=1} : Y3[t,p-1];
+        { | p=3} : Y4[t,p-1];
+        { | p=2} : Y5[t,p-1];
+        { | p=0} : Y6[t,p-1];
+      esac;
+  use  ControlfirrModule[] () returns  (WXctl1PXInit) ;
+  use {p | p=0} cellfirrModule3[p] (pipeCE5Reg3Xloc, pipeCx17Reg4Xloc, pipeCx19Reg5Xloc, YReg8Xloc, WXctl1PXInitXIn) returns  (pipeCE53, pipeCx173, pipeCx193, WXctl1P3, Y3) ;
+  use {p | p=2} cellfirrModule4[p] (dXMirr1, pipeCE5Reg3Xloc, pipeCx17Reg4Xloc, pipeCx19Reg5Xloc, WXctl1PReg7Xloc, YReg8Xloc) returns  (pipeCE54, pipeCx174, pipeCx194, WXctl1P4, Y4) ;
+  use {p | p=1} cellfirrModule5[p] (pipeCE5Reg3Xloc, pipeCx17Reg4Xloc, pipeCx19Reg5Xloc, WXctl1PReg7Xloc, YReg8Xloc) returns  (pipeCE55, pipeCx175, pipeCx195, WXctl1P5, Y5) ;
+  use {p | p=-1} cellfirrModule6[p] (xXMirr2, pipeCx19Reg5Xloc) returns  (pipeCE56, pipeCx176, pipeCx196, Y6) ;
+  use {p | p=-2} cellfirrModule7[p] (xXMirr1) returns  (pipeCx197) ;
+tel;
+
+system firr    (x : {n | 1<=n<=10} of integer; 
+                d : {n | 3<=n<=10} of integer)
+       returns (res : {n | 3<=n<=10} of integer);
+var
+  dXMirr1 : {t,p | 2<=t<=9; p=2} of integer;
+  xXMirr1 : {t,p | -6<=t<=3; p=-2} of integer;
+  xXMirr2 : {t,p | 0<=t<=5; p=-1} of integer;
+  Y : {t,p | p<=t<=p+7; -1<=p<=2} of integer;
+let
+  dXMirr1[t,p] = d[t+1];
+  xXMirr2[t,p] = x[t+1];
+  xXMirr1[t,p] = x[t+7];
+  res[n] = Y[n-1,2];
+  use  firrModule[] (dXMirr1, xXMirr1, xXMirr2) returns  (Y) ;
+tel;

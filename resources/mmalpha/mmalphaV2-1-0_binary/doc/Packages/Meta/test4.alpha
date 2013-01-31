@@ -1,0 +1,10 @@
+system test4   (a : {i | 1<=i} of integer; 
+                b : {i | 1<=i} of integer)
+       returns (c : {i | i<=20} of integer);
+let
+  c[i] = 
+      case
+        { | i=2} : a[i];
+        { | i=3} : b[i];
+      esac;
+tel;

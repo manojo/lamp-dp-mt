@@ -1,0 +1,307 @@
+\chapter{The syntax of \alfa{}}
+\label{appendixalpha}
+
+This appendix gives the syntax and the abstract syntax
+of the \alfa{} language. We plan to illustrate this description
+with nice examples...
+
+\section{Definition of \Alpha}
+\label{alpha1}
+
+\subsection{Meta Syntax}
+\begin{tabbing}
+xxxxxxx\= xxxxxxxxxxxxxxxxxx\= xxxxxxxxx\= xxxxxxx\= \kill
+\>{\sl phrase* } \>===\>  zero or more repetitions of {\sl phrase}.\\
+\> {\sl phrase1 {\sl \Alt} phrase2} \>===\> alternation, either {\sl
+phrase1} or {\sl phrase2}.\\
+\>  [\ldots] \>===\> optional phrase.\\
+\> \Group{\ldots} \>===\> syntactic grouping.\\
+\> {\bf \tt bold} \>===\> a terminal.\\
+\> {\sl Italic} \>===\> a non-terminal.\\
+\end{tabbing}
+
+\subsection{Systems}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\Program     \> :: \>\> \PDecl\ \PDecl *\\
+\PDecl       \> :: \>\> \SystemDecl\\
+\\\SystemDecl   \> :: \>\> system\ \Name \Opt{ : \ParamDecl }
+                                    ( \InputDeclList )\\
+\> \>\>\>  returns ( \OutputDeclList ) ;\\
+\> \>\>\> \Opt{ var \LocalDeclList ;} \\
+\> \>\>\> \EquationBlock ;\\
+\\
+\Name \>::\>\> \Identifier\\
+\\
+\ParamDecl  \> :: \>\> \Domain \\
+\\
+\InputDeclList \>::\>\> \VarDeclList\\
+\OutputDeclList \>::\>\> \VarDeclList\\
+\LocalDeclList \>::\>\> \VarDeclList\\
+\end{tabbing}
+}
+
+\subsection{Declarations of variables}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\VarDeclList \>::\>\> \VarDeclList *\\
+\VarDeclaration \>::\>\> \IdentifierList\ : \Opt{\Domain of} \ScalarType ;\\
+\ScalarType \> ::\>\> integer \Alt\ real \Alt\ boolean
+\end{tabbing}
+}
+
+\subsection{Domains}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\Domain \>::\>\> \{ \IndexList \verb~|~ \ConstraintList \}\\
+\>\>\Alt\> \Domain \verb~|~ \Domain\\
+\>\>\Alt\> \Domain \verb~&~ \Domain\\
+\>\>\Alt\> \Domain .\AffineFunction\\
+\>\>\Alt\> \verb'~' \Domain\\
+\>\>\Alt\> \Domain .convex\\
+\>\>\Alt\> ( \Domain )\\
+\\
+\IndexList\>::\>\> \Opt{\IndexList ,} \Identifier\\
+\\
+\ConstraintList\>::\>\> \Opt{\ConstraintList ;} \Constraint\\
+\Constraint \>::\>\> \IncreasingSeq \Alt\ \DecreasingSeq \Alt\ \EqualitySeq\\
+\IncreasingSeq \>::\>\> \Group{ \IncreasingSeq \Alt\ \IndexExpList }
+  \Group{ < \Alt\ <= } \IndexExpList\\
+\DecreasingSeq \>::\>\> \Group{ \DecreasingSeq \Alt\ \IndexExpList }
+  \Group{ > \Alt\ >= } \IndexExpList\\
+\EqualitySeq\>::\>\> \Group{ \EqualitySeq \Alt\ \IndexExpList } = \IndexExpList
+\end{tabbing}
+}
+
+\subsection{Equations}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\EquationBlock \>::\>\> let \EquationList tel \\
+\EquationList  \>::\>\> \Opt{ \EquationList } \Equation\\
+\Equation\>::\>\> \Identifier [ \IndexList ] = \Expression ;\\
+\>\> \Alt\ \> \Identifier = \Expression ;\\
+\>\> \Alt\ \> use \Opt{ \ExtensionDomain} \Identifier
+                                    \Opt{.\ParamAssignation} \\
+\>\>\>\>( \InputList )\\
+\>\>\>\> returns ( \IdentifierList ) ;\\
+\\
+\ParamAssignation \>::\>\> \AffineFunction \\
+\\
+\InputList \>::\>\> \Opt{ \InputList , } \Expression\\
+\\
+\ExtensionDomain \>::\>\> \Domain \\
+\end{tabbing}
+}
+
+\subsection{Expressions}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\Expression\>::\>\> case \ExpressionList esac \\
+\>\> \Alt\ \> if \Expression then \Expression else \Expression\\
+\>\> \Alt\ \> \Domain :\Expression\\
+\>\> \Alt\ \> \Expression .\AffineFunction\\
+\>\> \Alt\ \> \Expression [ \IndexExpList ] \\
+\>\> \Alt\ \> \Expression \BinaryOp \Expression\\
+\>\> \Alt\ \> \BinaryOp ( \Expression, \Expression ) \\
+\>\> \Alt\ \> \UnaryOp \Expression\\
+\>\> \Alt\ \> reduce ( \CommutativeOp, \AffineFunction, \Expression ) \\
+\>\> \Alt\ \> ( \Expression ) \\
+\>\> \Alt\ \> \Identifier\\
+\>\> \Alt\ \> \Constant\\
+\\
+\ExpressionList \>::\>\> \Opt{ \ExpressionList  } \Expression ;\\
+\\
+\BinaryOp \>::\>\> \CommutativeOp \Alt\ \RelativeOp \Alt\ - \Alt\ div \Alt\ mod\\
+\CommutativeOp \>::\>\> + \Alt\ * \Alt\ and \Alt\ or \Alt\ xor \Alt\ min \Alt\ max\\
+\RelativeOp \>::\>\> = \Alt\ <> \Alt\ < \Alt\ <= \Alt\ > \Alt\ >=\\
+\UnaryOp \>::\>\> - \Alt\ not \Alt\ sqrt\\
+\\
+\Constant \>::\>\> \IntegerConstant \Alt\ \RealConstant \Alt\ \BooleanConstant\\
+\end{tabbing}
+}
+
+
+\subsection{Dependance Functions and Index Expressions}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\AffineFunction \>::\>\> ( \IndexList -> \IndexExpList )\\
+\IndexExpList \>::\>\> \Opt{ \IndexExpList, } \IndexExpression\
+          \Alt\ \IndexExpression\\
+\IndexExpression \>::\>\> \IndexExpression \Group{+ \Alt\  - } \IndexTerm\
+          \Alt\ [ - ] \IndexTerm\\
+\IndexTerm \>::\>\> \IntegerConstant \Identifier \Alt\ \IntegerConstant \Alt\ \Identifier
+\end{tabbing}
+}
+
+
+\subsection{Terminals}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\IntegerConstant \>::\>\> \Opt{-} \Number\\
+\RealConstant \>::\>\> \Opt{-} \Number .\Number\\
+\BooleanConstant \>::\>\> true \Alt\ false \Alt True \Alt\ False\\
+\Number \>::\>\> \Digit \Digit *\\
+\Digit \>::\>\> 0 \Alt\ 1 \Alt\ldots\Alt\ 9\\
+\Identifier \>::\>\> \Letter \Group{\Letter \Alt\ \Digit} *\\
+\Letter \>::\>\> a \Alt\ldots\Alt\ z  \Alt\ A \Alt\ldots\Alt\ Z \Alt\ \verb'_'\\
+\end{tabbing}
+}
+
+
+
+\section{{\Alpha} Abstract syntax}
+\label{alpha2}
+
+\subsection{Meta Syntax}
+\begin{tabbing}
+xxxxxxx\= xxxxxxxxxxxxxxxxxx\= xxxxxxxxx\= xxxxxxx\= \kill
+\>{\sl phrase* } \>===\>  zero or more repetitions of {\sl phrase}.\\
+\> {\sl phrase1 {\sl \Alt} phrase2} \>===\> alternation, either {\sl
+phrase1} or {\sl phrase2}.\\
+\>  [\ldots] \>===\> optional phrase.\\
+\> \Group{\ldots} \>===\> syntactic grouping.\\
+\> {\bf \tt bold} \>===\> a terminal.\\
+\> {\sl Italic} \>===\> a non-terminal.\\
+\end{tabbing}
+
+\subsection{Systems}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\Program     \> :: \>\> \PDecl\ \PDecl *\\
+\PDecl       \> :: \>\> \SystemDecl\\
+\\\SystemDecl   \> :: \>\> system\ \Name \Opt{ : \ParamDecl }
+                                    ( \InputDeclList )\\
+\> \>\>\>  returns ( \OutputDeclList ) ;\\
+\> \>\>\> \Opt{ var \LocalDeclList ;} \\
+\> \>\>\> \EquationBlock ;\\
+\\
+\Name \>::\>\> \Identifier\\
+\\
+\ParamDecl  \> :: \>\> \Domain \\
+\\
+\InputDeclList \>::\>\> \VarDeclList\\
+\OutputDeclList \>::\>\> \VarDeclList\\
+\LocalDeclList \>::\>\> \VarDeclList\\
+\end{tabbing}
+}
+
+\subsection{Declarations of variables}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\VarDeclList \>::\>\> \VarDeclList *\\
+\VarDeclaration \>::\>\> \IdentifierList\ : \Opt{\Domain of} \ScalarType ;\\
+\ScalarType \> ::\>\> integer \Alt\ real \Alt\ boolean
+\end{tabbing}
+}
+
+\subsection{Domains}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\Domain \>::\>\> \{ \IndexList \verb~|~ \ConstraintList \}\\
+\>\>\Alt\> \Domain \verb~|~ \Domain\\
+\>\>\Alt\> \Domain \verb~&~ \Domain\\
+\>\>\Alt\> \Domain .\AffineFunction\\
+\>\>\Alt\> \verb'~' \Domain\\
+\>\>\Alt\> \Domain .convex\\
+\>\>\Alt\> ( \Domain )\\
+\\
+\IndexList\>::\>\> \Opt{\IndexList ,} \Identifier\\
+\\
+\ConstraintList\>::\>\> \Opt{\ConstraintList ;} \Constraint\\
+\Constraint \>::\>\> \IncreasingSeq \Alt\ \DecreasingSeq \Alt\ \EqualitySeq\\
+\IncreasingSeq \>::\>\> \Group{ \IncreasingSeq \Alt\ \IndexExpList }
+  \Group{ < \Alt\ <= } \IndexExpList\\
+\DecreasingSeq \>::\>\> \Group{ \DecreasingSeq \Alt\ \IndexExpList }
+  \Group{ > \Alt\ >= } \IndexExpList\\
+\EqualitySeq\>::\>\> \Group{ \EqualitySeq \Alt\ \IndexExpList } = \IndexExpList
+\end{tabbing}
+}
+
+\subsection{Equations}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\EquationBlock \>::\>\> let \EquationList tel \\
+\EquationList  \>::\>\> \Opt{ \EquationList } \Equation\\
+\Equation\>::\>\> \Identifier [ \IndexList ] = \Expression ;\\
+\>\> \Alt\ \> \Identifier = \Expression ;\\
+\>\> \Alt\ \> use \Opt{ \ExtensionDomain} \Identifier
+                                    \Opt{.\ParamAssignation} \\
+\>\>\>\>( \InputList )\\
+\>\>\>\> returns ( \IdentifierList ) ;\\
+\\
+\ParamAssignation \>::\>\> \AffineFunction \\
+\\
+\InputList \>::\>\> \Opt{ \InputList , } \Expression\\
+\\
+\ExtensionDomain \>::\>\> \Domain \\
+\end{tabbing}
+}
+
+\subsection{Expressions}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\Expression\>::\>\> case \ExpressionList esac \\
+\>\> \Alt\ \> if \Expression then \Expression else \Expression\\
+\>\> \Alt\ \> \Domain :\Expression\\
+\>\> \Alt\ \> \Expression .\AffineFunction\\
+\>\> \Alt\ \> \Expression [ \IndexExpList ] \\
+\>\> \Alt\ \> \Expression \BinaryOp \Expression\\
+\>\> \Alt\ \> \BinaryOp ( \Expression, \Expression ) \\
+\>\> \Alt\ \> \UnaryOp \Expression\\
+\>\> \Alt\ \> reduce ( \CommutativeOp, \AffineFunction, \Expression ) \\
+\>\> \Alt\ \> ( \Expression ) \\
+\>\> \Alt\ \> \Identifier\\
+\>\> \Alt\ \> \Constant\\
+\\
+\ExpressionList \>::\>\> \Opt{ \ExpressionList  } \Expression ;\\
+\\
+\BinaryOp \>::\>\> \CommutativeOp \Alt\ \RelativeOp \Alt\ - \Alt\ div \Alt\ mod\\
+\CommutativeOp \>::\>\> + \Alt\ * \Alt\ and \Alt\ or \Alt\ xor \Alt\ min \Alt\ max\\
+\RelativeOp \>::\>\> = \Alt\ <> \Alt\ < \Alt\ <= \Alt\ > \Alt\ >=\\
+\UnaryOp \>::\>\> - \Alt\ not \Alt\ sqrt\\
+\\
+\Constant \>::\>\> \IntegerConstant \Alt\ \RealConstant \Alt\ \BooleanConstant\\
+\end{tabbing}
+}
+
+
+\subsection{Dependance Functions and Index Expressions}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\AffineFunction \>::\>\> ( \IndexList -> \IndexExpList )\\
+\IndexExpList \>::\>\> \Opt{ \IndexExpList, } \IndexExpression\
+          \Alt\ \IndexExpression\\
+\IndexExpression \>::\>\> \IndexExpression \Group{+ \Alt\  - } \IndexTerm\
+          \Alt\ [ - ] \IndexTerm\\
+\IndexTerm \>::\>\> \IntegerConstant \Identifier \Alt\ \IntegerConstant \Alt\ \Identifier
+\end{tabbing}
+}
+
+
+\subsection{Terminals}
+{\tt
+\begin{tabbing}
+xxxxxxxxxxxxxxxx\= xxx\= xx\=  xx\= \kill
+\IntegerConstant \>::\>\> \Opt{-} \Number\\
+\RealConstant \>::\>\> \Opt{-} \Number .\Number\\
+\BooleanConstant \>::\>\> true \Alt\ false \Alt True \Alt\ False\\
+\Number \>::\>\> \Digit \Digit *\\
+\Digit \>::\>\> 0 \Alt\ 1 \Alt\ldots\Alt\ 9\\
+\Identifier \>::\>\> \Letter \Group{\Letter \Alt\ \Digit} *\\
+\Letter \>::\>\> a \Alt\ldots\Alt\ z  \Alt\ A \Alt\ldots\Alt\ Z \Alt\ \verb'_'\\
+\end{tabbing}
+}
+

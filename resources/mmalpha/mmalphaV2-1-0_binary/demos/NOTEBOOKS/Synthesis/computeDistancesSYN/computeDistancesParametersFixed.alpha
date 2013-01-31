@@ -1,0 +1,97 @@
+system ControlcomputeDistancesModule ( )
+       returns                       (dlocXctl1 : {t | t=3} | {t | 4<=t<=23} of boolean);
+let
+  dlocXctl1[t] = 
+      case
+        { | t=3} : True[];
+        { | 4<=t} : False[];
+      esac;
+tel;
+
+system cellcomputeDistancesModule1 :{p | p=-1}
+                                   (descriptorXMirr1 : {t | 1<=t<=20} of integer[S,15])
+       returns                     (pipeCdescriptor1 : {t | 1<=t<=20} of integer[S,15]);
+let
+  pipeCdescriptor1[t] = descriptorXMirr1[t];
+tel;
+
+system cellcomputeDistancesModule2 :{p | 0<=p<=99}
+                                   (pipeCdescriptor1Reg8 : {t | 1<=t<=20} of integer[S,15]; 
+                                    imageReg4 : {t | 2<=t<=21} of integer[S,15]; 
+                                    dlocXctl1XIn : {t | 3<=t<=23} of boolean)
+       returns                     (pipeCdescriptor1 : {t | 1<=t<=20} of integer[S,15]; 
+                                    d : {t | t=24} of integer[S,15]);
+var
+  absValue : {t | 3<=t<=22} of integer[S,15];
+  absValueReg7 : {t | 4<=t<=23} of integer[S,15];
+  diff : {t | 2<=t<=21} of integer[S,15];
+  diffReg1 : {t | 3<=t<=22} of integer[S,15];
+  diffReg2 : {t | 3<=t<=22} of integer[S,15];
+  diffReg3 : {t | 3<=t<=22} of integer[S,15];
+  dloc : {t | 3<=t<=23} of integer[S,15];
+  dlocReg6 : {t | 4<=t<=23} of integer[S,15];
+  tempReg5 : {t | 2<=t<=21} of integer[S,15];
+  TSep1 : {t | 3<=t<=22} of boolean;
+  TSep2 : {t | 3<=t<=22} of integer[S,15];
+  TSep3 : {t | 4<=t<=23} of integer[S,15];
+let
+  pipeCdescriptor1[t] = pipeCdescriptor1Reg8[t];
+  absValueReg7[t] = absValue[t-1];
+  dlocReg6[t] = dloc[t-1];
+  tempReg5[t] = pipeCdescriptor1Reg8[t-1];
+  diffReg3[t] = diff[t-1];
+  diffReg2[t] = diff[t-1];
+  diffReg1[t] = diff[t-1];
+  diff[t] = imageReg4[t] - tempReg5[t];
+  TSep1[t] = diffReg1[t]>0[];
+  TSep2[t] = -diffReg3[t];
+  absValue[t] = if (TSep1[t]) then diffReg2[t] else TSep2[t];
+  TSep3[t] = dlocReg6[t] + absValueReg7[t];
+  dloc[t] = 
+      case
+        { | t=3} : if (dlocXctl1XIn[t]) then 0[] else 0[];
+        { | 4<=t} : if (dlocXctl1XIn[t]) then 0[] else TSep3[t];
+      esac;
+  d[t] = dloc[t-1];
+tel;
+
+system computeDistancesModule (descriptorXMirr1In : {t,p | 1<=t<=20; p=-1} of integer[S,15]; 
+                               imageReg4In : {t,p | 2<=t<=21; 0<=p<=99} of integer[S,15])
+       returns                (dOut : {t,p | t=24; 0<=p<=99} of integer[S,15]);
+var
+  dlocXctl1 : {t | 3<=t<=23} of boolean;
+  descriptorXMirr1 : {t,p | 1<=t<=20; p=-1} of integer[S,15];
+  pipeCdescriptor11 : {t,p | 1<=t<=20; p=-1} of integer[S,15];
+  pipeCdescriptor1Reg8 : {t,p | 1<=t<=20; 0<=p<=99} of integer[S,15];
+  pipeCdescriptor12 : {t,p | 1<=t<=20; 0<=p<=99} of integer[S,15];
+  imageReg4 : {t,p | 2<=t<=21; 0<=p<=99} of integer[S,15];
+  dlocXctl1XIn : {t,p | 3<=t<=23; 0<=p<=99} of boolean;
+  d2 : {t,p | t=24; 0<=p<=99} of integer[S,15];
+let
+  descriptorXMirr1[t,p] = descriptorXMirr1In[t,p];
+  dlocXctl1XIn[t,p] = dlocXctl1[t];
+  dOut[t,p] = d2[t,p];
+  imageReg4[t,p] = imageReg4In[t,p];
+  pipeCdescriptor1Reg8[t,p] = 
+      case
+        { | p=0} : pipeCdescriptor11[t,p-1];
+        { | 1<=p} : pipeCdescriptor12[t,p-1];
+      esac;
+  use  ControlcomputeDistancesModule[] () returns  (dlocXctl1) ;
+  use {p | p=-1} cellcomputeDistancesModule1[p] (descriptorXMirr1) returns  (pipeCdescriptor11) ;
+  use {p | 0<=p<=99} cellcomputeDistancesModule2[p] (pipeCdescriptor1Reg8, imageReg4, dlocXctl1XIn) returns  (pipeCdescriptor12, d2) ;
+tel;
+
+system computeDistances (descriptor : {i | 0<=i<=19} of integer[S,15]; 
+                         image : {i,j | 0<=i<=19; 0<=j<=99} of integer[S,15])
+       returns          (distances : {j | 0<=j<=99} of integer[S,15]);
+var
+  descriptorXMirr1 : {t,p | 1<=t<=20; p=-1} of integer[S,15];
+  imageReg4 : {t,p | 2<=t<=21; 0<=p<=99} of integer[S,15];
+  d : {t,p | t=24; 0<=p<=99} of integer[S,15];
+let
+  descriptorXMirr1[t,p] = descriptor[t-1];
+  imageReg4[t,p] = image[t-2,p];
+  distances[j] = d[24,j];
+  use  computeDistancesModule[] (descriptorXMirr1, imageReg4) returns  (d) ;
+tel;

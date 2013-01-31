@@ -1,0 +1,13 @@
+system testSchedule :{N | 1<=N}
+                    (x : {i | 1<=i<=N} of integer)
+       returns      (y : {i | 1<=i<=N} of integer);
+var
+  Y : {i,j | (1,j)<=i<=N; 0<=j} of integer;
+let
+  Y[i,j] = 
+      case
+        { | j=0} : 0[];
+        { | 1<=j} : Y[i,j-1] + x[i];
+      esac;
+  y[i] = Y[i,i];
+tel;

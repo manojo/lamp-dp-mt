@@ -1,0 +1,4288 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 6.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[    131316,       4278]
+NotebookOptionsPosition[    107341,       3546]
+NotebookOutlinePosition[    112783,       3699]
+CellTagsIndexPosition[    112025,       3676]
+WindowFrame->Normal
+ContainsDynamic->False*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The Meta package", "Title",
+ FontColor->RGBColor[1, 0, 0],
+ CellTags->"firstcell"],
+
+Cell["Patrice Quinton", "Subsubtitle"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042, Rennes Cedex, France
+alpha@irisa.fr\
+\>", "SmallText"],
+
+Cell["July, 1999", "Text"],
+
+Cell[CellGroupData[{
+
+Cell["Cr\[EAcute]dits", "SmallText",
+ FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+      Zbigniew Chamski 
+      Catherine Dezan 
+      Florent Dupont de Dinechin 
+      Patricia Le Mo\[EDoubleDot]nner 
+      Herv\[EAcute] Le Verge 
+      Christophe Mauras 
+      Patrice Quinton 
+      Fabien Quillere
+      Sanjay Rajopadhye 
+      Sophie Robert 
+      Tanguy Risset 
+      Doran Wilde \
+\>", "SmallText"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Most recent modifications", "SmallText",
+ FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+08/22/98 - Added a new type of swich argument to switch rules\
+\>", "Text"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Open and execute this cell to go in the right directory", "SmallText",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"setMMADir", "[", 
+  RowBox[{"{", 
+   RowBox[{"\"\<doc\>\"", ",", "\"\<Packages\>\"", ",", "\"\<Meta\>\""}], 
+   "}"}], "]"}]], "Input",
+ InitializationCell->True],
+
+Cell[BoxData["\<\"/Users/patricequinton/mmalpha/doc/Packages/Meta\"\>"], \
+"Output",
+ CellChangeTimes->{3.447853120737545*^9}]
+}, Open  ]]
+}, Open  ]],
+
+Cell["Summary", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[TextData[{
+ ButtonBox["Introduction",
+  BaseStyle->"Hyperlink",
+  ButtonData:>"Introduction"],
+ "\n",
+ ButtonBox["How to define meta rules",
+  BaseStyle->"Hyperlink",
+  ButtonData:>"How to define"],
+ "\n",
+ ButtonBox["How to use Meta",
+  BaseStyle->"Hyperlink",
+  ButtonData:>"To use Meta"],
+ "\n",
+ ButtonBox["An exemple\n\nThere is a documentation avaible in the doc/Meta \
+directory.",
+  BaseStyle->"Hyperlink",
+  ButtonData:>"Alpha to Mathematica"]
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell["1. Introduction", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Introduction"],
+
+Cell[TextData[ButtonBox["Back to summary",
+ BaseStyle->"Hyperlink",
+ ButtonData:>"Summary"]], "SmallText"],
+
+Cell[TextData[{
+ "This notebook presents a meta translator, called ",
+ StyleBox["meta", "Input"],
+ "."
+}], "Text",
+ TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"meta", ";", 
+  RowBox[{"?", "meta"}]}]], "Input"],
+
+Cell[BoxData["\<\"meta[fileName] reads the file fileName.meta and the file \
+fileName.sem, and translates these files into a mathematica package called \
+filename.m. The file fileName.meta contains a set of meta-rules, and \
+fileName.sem contains  the semantic functions associated with these \
+rules.\"\>"], "Print",
+ CellTags->"Info3407833766-2217598"]
+}, Open  ]],
+
+Cell[TextData[{
+ "The meta package allows one to define a set of meta rules for the \
+translation of a ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " expression. These meta rules are translated as a ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " package. The functions of such a package can then be applied to an \
+expression, in order to translate this expression into something useful. In \
+the following, we explain how this meta translator operates, and we \
+illustrate this by means of a couple of example. "
+}], "Text",
+ TextJustification->1]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2. How to define meta rules", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"How to define"],
+
+Cell[TextData[ButtonBox["Back to summary",
+ BaseStyle->"Hyperlink",
+ ButtonData:>"Summary"]], "SmallText"],
+
+Cell["The input file contains a list of meta-rules. ", "Text"],
+
+Cell["\<\
+A meta rule has the following syntax (in BNF form, with terminals in red, \
+natural language definitions in green, and non terminals between brackets. \
+Underlined parts are hyperlinks to descriptions.)\
+\>", "Text"],
+
+Cell[TextData[{
+ "<metarule> ::= <rule name> \"",
+ StyleBox["::=",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <abstract node> \"",
+ StyleBox[":>",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <semantics>\n                       | <rule name> \"",
+ StyleBox["::=",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <switch_rule> \"",
+ StyleBox[":>",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <semantics>\n<rule name> := <MMAsymbol>\n<",
+ ButtonBox["abstract node",
+  BaseStyle->"Hyperlink",
+  ButtonData:>"Abstract node"],
+ "> ::= <MMAsymbol> \"",
+ StyleBox["[",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <list of arguments> \"",
+ StyleBox["]",
+  FontColor->RGBColor[1, 0, 0]],
+ "\"\n<",
+ ButtonBox["switch_rule",
+  BaseStyle->"Hyperlink",
+  ButtonData:>"Switch rule"],
+ "> ::= <MMAsymbol> \"",
+ StyleBox[":>",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <list of switch arguments>\n<semantics> ::= ",
+ StyleBox["a call to a semantic function",
+  FontColor->RGBColor[0, 1, 0]],
+ " (*)\n<",
+ ButtonBox["argument",
+  BaseStyle->"Hyperlink",
+  ButtonData:>"Arguments"],
+ "> ::= <symbol> \"",
+ StyleBox[":",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <pattern>\n                        | <MMAsymbol> \"",
+ StyleBox[":",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <rule name>\n                        | <MMAsymbol> \"",
+ StyleBox[":",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" \"",
+ StyleBox["{",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <rule name> \"",
+ StyleBox["}",
+  FontColor->RGBColor[1, 0, 0]],
+ "\"\n<",
+ ButtonBox["switch argument",
+  BaseStyle->"Hyperlink",
+  ButtonData:>"Switch argument"],
+ "> ::= \"",
+ StyleBox["_",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <MMAsymbol> \"",
+ StyleBox["->",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <rule name>\n\t\t\t\t\t\t| \"",
+ StyleBox["_",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <MMAsymbol> \"",
+ StyleBox["->",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" \"",
+ StyleBox["{",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" <rule name> \"",
+ StyleBox["}",
+  FontColor->RGBColor[1, 0, 0]],
+ "\"\n\t\t\t\t\t\t| \"",
+ StyleBox["_List",
+  FontColor->RGBColor[1, 0, 0]],
+ " ",
+ StyleBox["->",
+  FontColor->RGBColor[1, 0, 0]],
+ "\" List\n<pattern> ::= ",
+ StyleBox["any ",
+  FontColor->RGBColor[0, 1, 0]],
+ StyleBox["Mathematica",
+  FontSlant->"Italic",
+  FontColor->RGBColor[0, 1, 0]],
+ StyleBox[" pattern",
+  FontColor->RGBColor[0, 1, 0]]
+}], "Text",
+ FontFamily->"Avant Garde"],
+
+Cell[CellGroupData[{
+
+Cell["Abstract nodes", "Subsection",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Abstract node"],
+
+Cell[TextData[ButtonBox["Back to grammar",
+ BaseStyle->"Hyperlink",
+ ButtonData:>"grammar"]], "SmallText"],
+
+Cell[TextData[{
+ "Abstract nodes represent expressions which correspond to a given level of \
+the abstract syntax tree. For example, the first level of an Alpha program \
+has the form ",
+ StyleBox["system[n,p,id,od,ld,e]", "Input"],
+ ", where ",
+ StyleBox["system", "Input"],
+ " is the head, ",
+ StyleBox["n", "Input"],
+ " is a string representing the name of the system, ",
+ StyleBox["p", "Input"],
+ " is the parameter, ",
+ StyleBox["id", "Input"],
+ " is the list of input variable declarations, ",
+ StyleBox["od", "Input"],
+ " is the list of output variable declaration, ",
+ StyleBox["ld", "Input"],
+ " the local declarations, and ",
+ StyleBox["e", "Input"],
+ " the list of equations. Such a node is described by the meta-rule: "
+}], "Text",
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SYSTEM", " ", 
+   StyleBox["::",
+    FontColor->RGBColor[1, 0, 0]]}], 
+  StyleBox["=",
+   FontColor->RGBColor[1, 0, 0]], 
+  RowBox[{
+   RowBox[{"system", "[", " ", 
+    RowBox[{
+     RowBox[{"n", ":", "_String"}], ",", " ", 
+     RowBox[{"p", ":", "DOMAIN"}], ",", " ", 
+     RowBox[{"id", ":", 
+      RowBox[{"{", "DECLARATION", "}"}]}], ",", " ", 
+     RowBox[{"od", ":", 
+      RowBox[{"{", "DECLARATION", "}"}]}], ",", " ", 
+     RowBox[{"ld", ":", 
+      RowBox[{"{", "DECLARATION", "}"}]}], ",", "\n", "    ", 
+     RowBox[{"e", ":", 
+      RowBox[{"{", "EQUATION", "}"}]}]}], "]"}], " ", 
+   StyleBox[":>",
+    FontColor->RGBColor[1, 0, 0]], " ", 
+   RowBox[{"semantics", "..."}]}]}]], "Input"],
+
+Cell[TextData[{
+ "The left-hand-side of the rule, ",
+ StyleBox["system", "Input"],
+ ", is the name of the rule, and is used to build the name of the function ",
+ StyleBox["translateSYSTEM", "Input"],
+ " that will be called when the abstract node is found in an AST. Following \
+the ::=, is the pattern which describes the form of the abstract node, \
+followed, after the symbol :> by the semantics associated to this node. The \
+first argument of this pattern, ",
+ StyleBox["n:_String", "Input"],
+ ", has the form ",
+ StyleBox["<symbol>:pattern", "Input"],
+ ". This pattern will be used to check that the corresponding terminal \
+element in the AST is a string. If not, an error message will be issued. The \
+",
+ StyleBox["n", "Input"],
+ " symbol names the argument which matches this position, and can be used in \
+the semantics of the rule. The second argument,  ",
+ StyleBox["p:DOMAIN", "Input"],
+ ", has the form ",
+ StyleBox["<symbol>:rule_name", "Input"],
+ ". It generates a call to a function ",
+ StyleBox["translateDOMAIN", "Input"],
+ ", whose result is named ",
+ StyleBox["p", "Input"],
+ " (the function ",
+ StyleBox["translateDOMAIN", "Input"],
+ " is the one which is generated by analyzing the meta-rule whose \
+left-hand-side is domain, and which is hopefully provided in the list of \
+meta-rules.) The next argument, ",
+ StyleBox["id:{DECLARATION}", "Input"],
+ ", is treated in a similar way, except that one expect a list of \
+declarations: accordingly, a call to ",
+ StyleBox["Map[ translateDECLARATION, id ]", "Input"],
+ " is generated in the function ",
+ StyleBox["translateSYSTEM", "Input"],
+ ". "
+}], "Text",
+ TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "Here is the ",
+ StyleBox["translateSYSTEM", "Input"],
+ " function which is generated by Meta. "
+}], "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     RowBox[{"Clear", "[", " ", "translateSYSTEM", " ", "]"}], ";"}], "\n", 
+    RowBox[{
+     RowBox[{"translateSYSTEM", "[", " ", 
+      RowBox[{"x", ":", 
+       RowBox[{"system", "[", 
+        RowBox[{
+        "n_", ",", " ", "p_", ",", " ", "id_", ",", " ", "od_", ",", " ", 
+         "ld_", ",", " ", "e_"}], "]"}]}], " ", "]"}], " ", ":=", "\n", 
+     RowBox[{"Module", "[", " ", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{
+        "trn", ",", " ", "trp", ",", " ", "trid", ",", " ", "trod", ",", " ", 
+         "trld", ",", " ", "tre"}], "}"}], ",", "\n", "  ", 
+       RowBox[{"Catch", "[", "\n", "    ", 
+        RowBox[{"Check", "[", "\n", "      ", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"If", "[", " ", 
+            RowBox[{
+             RowBox[{"MatchQ", "[", " ", 
+              RowBox[{"n", ",", " ", "_String"}], " ", "]"}], ",", ",", " ", 
+             RowBox[{"Throw", "[", " ", 
+              RowBox[{"Message", "[", " ", 
+               RowBox[{
+                RowBox[{"translateSYSTEM", "::", "error1"}], ",", "n", ",", 
+                " ", "x"}], "]"}], " ", "]"}]}], " ", "]"}], ";", "\n", 
+           "      ", 
+           RowBox[{"trn", " ", "=", " ", "n"}], ";", "\n", "      ", 
+           RowBox[{"trp", " ", "=", " ", 
+            RowBox[{"translateDOMAIN", "[", " ", "p", " ", "]"}]}], ";", "\n",
+            "      ", 
+           RowBox[{"trid", " ", "=", " ", 
+            RowBox[{"Map", "[", " ", 
+             RowBox[{"translateDECLARATION", ",", " ", "id"}], " ", "]"}]}], 
+           ";", "\n", "      ", 
+           RowBox[{"trod", " ", "=", " ", 
+            RowBox[{"Map", "[", " ", 
+             RowBox[{"translateDECLARATION", ",", " ", "od"}], " ", "]"}]}], 
+           ";", "\n", "      ", 
+           RowBox[{"trld", " ", "=", " ", 
+            RowBox[{"Map", "[", " ", 
+             RowBox[{"translateDECLARATION", ",", " ", "ld"}], " ", "]"}]}], 
+           ";", "\n", "      ", 
+           RowBox[{"tre", " ", "=", " ", 
+            RowBox[{"Map", "[", " ", 
+             RowBox[{"translateEQUATION", ",", " ", "e"}], " ", "]"}]}], ";", 
+           "\n", "    ", 
+           RowBox[{"semanticFunction", "[", 
+            RowBox[{"system", ",", " ", 
+             RowBox[{"{", 
+              RowBox[{
+              "n", ",", " ", "p", ",", " ", "id", ",", " ", "od", ",", " ", 
+               "ld", ",", " ", "tre"}], "}"}]}], "]"}]}], ",", "\n", "    ", 
+          RowBox[{"Message", "[", " ", 
+           RowBox[{
+            RowBox[{"translateSYSTEM", "::", "error2"}], ",", " ", "x"}], " ",
+            "]"}]}], "\n", "    ", "]"}], " ", 
+        RowBox[{"(*", " ", 
+         RowBox[{"End", " ", "Check"}], " ", "*)"}], "\n", "  ", "]"}]}], " ",
+       
+      RowBox[{"(*", " ", 
+       RowBox[{"End", " ", "Catch"}], " ", "*)"}], "\n", "]"}], " ", 
+     RowBox[{"(*", " ", 
+      RowBox[{"End", " ", "Module"}], " ", "*)"}]}]}], "\n", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"translateSYSTEM", "[", " ", 
+      RowBox[{"x", ":", "___"}], " ", "]"}], " ", ":=", " ", 
+     RowBox[{"Message", "[", " ", 
+      RowBox[{
+       RowBox[{"translateSYSTEM", "::", "error3"}], ",", " ", "x"}], " ", 
+      "]"}]}], " ", ";"}]}], " "}]], "Input"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Switch rules", "Subsection",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->{"Abstract node", "Switch rule"}],
+
+Cell[TextData[ButtonBox["Back to grammar",
+ BaseStyle->"Hyperlink",
+ ButtonData:>"grammar"]], "SmallText"],
+
+Cell["\<\
+Switch rules allow alternate abstract rules to be called, depending on a \
+pattern. For example, the following meta-rule is used to select the various \
+forms of Alpha expressions:\
+\>", "Text",
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"EXPRESSION", " ", 
+   StyleBox["::",
+    FontColor->RGBColor[1, 0, 0]]}], 
+  StyleBox["=",
+   FontColor->RGBColor[1, 0, 0]], " ", 
+  RowBox[{"{", " ", 
+   RowBox[{
+    RowBox[{"_binop", 
+     StyleBox["->",
+      FontColor->RGBColor[1, 0, 0]], "BINOP"}], ",", " ", 
+    RowBox[{"_var", 
+     StyleBox["->",
+      FontColor->RGBColor[1, 0, 0]], "VAR"}], ",", " ", 
+    RowBox[{"_affine", 
+     StyleBox["->",
+      FontColor->RGBColor[1, 0, 0]], "AFFINE"}], ",", " ", 
+    RowBox[{"_restrict", 
+     StyleBox["->",
+      FontColor->RGBColor[1, 0, 0]], "RESTRICT"}]}], " ", "}"}]}]], "Input"],
+
+Cell[TextData[{
+ "Again, this rule has the syntax of a ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " rule. It is not, however, used exactly as a ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " rule, but rather translated into a program, named ",
+ StyleBox["translateEXPRESSION", "Input"],
+ ". The arguments of this rule are particular cases of patterns, namely, what \
+Mathematica calls \"typed blanks\": a typed_blank is a ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " expression of the form ",
+ StyleBox["_type", "Input"],
+ ", which matches any expression whose head is ",
+ StyleBox["type", "Input"],
+ ". This rule generates a ",
+ StyleBox["Switch", "Input"],
+ " expression, each branch of which is a call to the functions which \
+correspond to the  ",
+ StyleBox["translateBINOP", "Input"],
+ ", ",
+ StyleBox["translateVAR", "Input"],
+ ", ",
+ StyleBox["translateAFFINE", "Input"],
+ ", and ",
+ StyleBox["translateRESTRICT", "Input"],
+ ". "
+}], "Text",
+ TextJustification->1],
+
+Cell[TextData[{
+ "The second part of an argument of the form ",
+ StyleBox["pattern -> SYMBOL", "Input"],
+ " can also be a list of symbols, as in ",
+ StyleBox["_BINOP -> {BINOP}", "Input"],
+ ". Here, the argument is a list of elements, each one following the syntax \
+of a ",
+ StyleBox["BINOP", "Input"],
+ " expression. "
+}], "Text"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Arguments", "Subsection",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->{"Abstract node", "Switch rule", "Arguments"}],
+
+Cell[TextData[ButtonBox["Back to grammar",
+ BaseStyle->"Hyperlink",
+ ButtonData:>"grammar"]], "SmallText"],
+
+Cell[TextData[{
+ "The form of arguments is choosen depending on the type of subtree which is \
+expected in the AST. If the subtree simply consists of a terminal element, a \
+pattern is used. For non terminal subtrees, arguments of the form ",
+ StyleBox["<symbol>",
+  FontFamily->"Avant Garde"],
+ StyleBox[":",
+  FontFamily->"Avant Garde",
+  FontColor->RGBColor[1, 0, 0]],
+ StyleBox["<symbol>",
+  FontFamily->"Avant Garde"],
+ " or ",
+ StyleBox["<symbol>",
+  FontFamily->"Avant Garde"],
+ StyleBox[":{",
+  FontFamily->"Avant Garde",
+  FontColor->RGBColor[1, 0, 0]],
+ StyleBox["<symbol>",
+  FontFamily->"Avant Garde"],
+ StyleBox["}",
+  FontFamily->"Avant Garde",
+  FontColor->RGBColor[1, 0, 0]],
+ " are used. Finally, an argument of the form ",
+ StyleBox["<symbol>",
+  FontFamily->"Avant Garde"],
+ StyleBox[":{",
+  FontFamily->"Avant Garde",
+  FontColor->RGBColor[1, 0, 0]],
+ StyleBox["List",
+  FontFamily->"Avant Garde"],
+ StyleBox["}",
+  FontFamily->"Avant Garde",
+  FontColor->RGBColor[1, 0, 0]],
+ " generates a call to a function translateList. "
+}], "Text",
+ TextJustification->1]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Switch argument", "Subsection",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->{"Abstract node", "Switch rule", "Arguments", "Switch argument"}],
+
+Cell[TextData[ButtonBox["Back to grammar",
+ BaseStyle->"Hyperlink",
+ ButtonData:>"grammar"]], "SmallText"],
+
+Cell[TextData[{
+ "A switch argument has the form ",
+ StyleBox["_Symbol ",
+  FontFamily->"Avant Garde"],
+ StyleBox["->",
+  FontFamily->"Avant Garde",
+  FontColor->RGBColor[1, 0, 0]],
+ StyleBox[" <rule name>",
+  FontFamily->"Avant Garde"],
+ "  or ",
+ StyleBox["_Symbol ",
+  FontFamily->"Avant Garde"],
+ StyleBox["->",
+  FontFamily->"Avant Garde",
+  FontColor->RGBColor[1, 0, 0]],
+ StyleBox[" {<rule name>}",
+  FontFamily->"Avant Garde"],
+ " . The <rule name> is the name of a rule which is selected by the head of \
+the node, as specified by the pattern. As an example: "
+}], "Text"],
+
+Cell[BoxData[
+ RowBox[{" ", 
+  RowBox[{"_var", " ", "->", " ", "varexpression"}]}]], "Input"],
+
+Cell[TextData[{
+ "describes an alternative where the ",
+ StyleBox["varexpression", "Input"],
+ " rule is called, when the head of the node is ",
+ StyleBox["var", "Input"],
+ ". "
+}], "Text"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Semantic expression", "Subsection",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->{
+  "Abstract node", "Switch rule", "Arguments", "Switch argument", 
+   "Semantic expression"}],
+
+Cell[TextData[ButtonBox["Back to grammar",
+ BaseStyle->"Hyperlink",
+ ButtonData:>"grammar"]], "SmallText"],
+
+Cell[TextData[{
+ "A semantic expression is any ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " expression, involving symbols which name arguments in the right-hand side \
+expression, or results to the calls to functions. Let us explain this on an \
+example. "
+}], "Text",
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{" ", 
+  RowBox[{
+   RowBox[{"equation", "[", 
+    RowBox[{
+     RowBox[{"c", ":", "_String"}], ",", " ", 
+     RowBox[{"e", ":", "EXPRESSION"}]}], "]"}], " ", ":>", " ", 
+   RowBox[{"semanticFunction", "[", " ", 
+    RowBox[{"equation", ",", " ", 
+     RowBox[{"{", 
+      RowBox[{"c", ",", " ", "tre"}], "}"}]}], " ", "]"}]}]}]], "Input"],
+
+Cell[TextData[{
+ "The above rule described the abstract node equation. We expect this node to \
+contain a string, then an expression. The string, when found, will be named \
+",
+ StyleBox["c", "Input"],
+ ". The equation is named ",
+ StyleBox["e", "Input"],
+ ". By convention, the result of the call to function ",
+ StyleBox["translate", "Input"],
+ StyleBox["EXPRESSION", "Input"],
+ " applied to ",
+ StyleBox["e", "Input"],
+ " is named ",
+ StyleBox["tre", "Input"],
+ " and can be used in the semantic part. The semantic expression, ",
+ StyleBox["semanticFunction[ equation, {c, tre} ]", "Input"],
+ ", is a call to a function defined in a separate file, called here ",
+ StyleBox["ifile.sem", "Input"],
+ " . There are absolutely no constraints in the way the semantic expression \
+is defined. In this example, I choosed to name the functions I use \
+semanticFunction, with first parameter being the abstract node head, and the \
+second parameter gathers a list of expression I need to translate the AST. "
+}], "Text",
+ TextJustification->1]
+}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["3. To use Meta", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"To use Meta"],
+
+Cell[TextData[ButtonBox["Back to summary",
+ BaseStyle->"Hyperlink",
+ ButtonData:>"Summary"]], "SmallText"],
+
+Cell["\<\
+First, write a file containing meta-rules, with suffix \".meta\", and a file \
+containing the semantic functions, suffixed by \".sem\". Second, translate \
+the source file. Let the file be named \"ifile.meta\", and its semantics be \
+\"ifile.sem\".\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Apply the meta function to a file ifile.meta. The error messages are not \
+significant:\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Options", "[", "meta", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"verbose", "\[Rule]", "False"}], ",", 
+   RowBox[{"debug", "\[Rule]", "False"}], ",", 
+   RowBox[{"check", "\[Rule]", "False"}], ",", 
+   RowBox[{"directory", "\[Rule]", "Null"}]}], "}"}]], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"<<", "Alpha/Meta.m"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"meta", "[", 
+   RowBox[{"\"\<ifile\>\"", ",", 
+    RowBox[{"debug", "\[Rule]", "True"}]}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData["\<\"-- meta was called with a string\"\>"], "Print"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Input file: \"\>", "\[InvisibleSpace]", "\<\"ifile.meta\"\>", 
+   "\[InvisibleSpace]", "\<\" exists\"\>"}],
+  SequenceForm["Input file: ", "ifile.meta", " exists"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Context is :\"\>", "\[InvisibleSpace]", "\<\"Global`\"\>"}],
+  SequenceForm["Context is :", "Global`"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"New Context will be: \"\>", 
+   "\[InvisibleSpace]", "\<\"Alpha`Work`\"\>"}],
+  SequenceForm["New Context will be: ", "Alpha`Work`"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Cleaning \"\>", "\[InvisibleSpace]", "\<\"Alpha`Work`*\"\>"}],
+  SequenceForm["Cleaning ", "Alpha`Work`*"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Cleaning \"\>", 
+   "\[InvisibleSpace]", "\<\"Alpha`Work`Private`*\"\>"}],
+  SequenceForm["Cleaning ", "Alpha`Work`Private`*"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Remove", "::", "\<\"rmnsm\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"There are no symbols matching \
+\\\"\\!\\(\\\"Alpha`Work`Private`*\\\"\\)\\\". \\!\\(\\*ButtonBox[\\\"More\
+\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"Remove::rmnsm\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Cleaning \"\>", "\[InvisibleSpace]", "\<\"Alpha`ifile`*\"\>"}],
+  
+  SequenceForm["Cleaning ", "Alpha`ifile`*"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Remove", "::", "\<\"rmnsm\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"There are no symbols matching \
+\\\"\\!\\(\\\"Alpha`ifile`*\\\"\\)\\\". \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"Remove::rmnsm\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Cleaning \"\>", 
+   "\[InvisibleSpace]", "\<\"Alpha`ifile`Private`*\"\>"}],
+  SequenceForm["Cleaning ", "Alpha`ifile`Private`*"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Remove", "::", "\<\"rmnsm\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"There are no symbols matching \
+\\\"\\!\\(\\\"Alpha`ifile`Private`*\\\"\\)\\\". \\!\\(\\*ButtonBox[\\\"More\
+\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"Remove::rmnsm\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"stop\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Further output of \\!\\(Remove :: \\\"rmnsm\\\"\\) will be \
+suppressed during this calculation. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Context is :\"\>", 
+   "\[InvisibleSpace]", "\<\"Alpha`Work`\"\>"}],
+  SequenceForm["Context is :", "Alpha`Work`"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Reading file \"\>", 
+   "\[InvisibleSpace]", "\<\"ifile.meta\"\>"}],
+  SequenceForm["Reading file ", "ifile.meta"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Parsing file \"\>", 
+   "\[InvisibleSpace]", "\<\"ifile.meta\"\>"}],
+  SequenceForm["Parsing file ", "ifile.meta"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"spell1\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Possible spelling error: new symbol name \\\"\\!\\(trco\\)\
+\\\" is similar to existing symbol \\\"\\!\\(trc\\)\\\". \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"spell1\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Possible spelling error: new symbol name \\\"\\!\\(trge\\)\
+\\\" is similar to existing symbol \\\"\\!\\(tre\\)\\\". \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"spell1\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Possible spelling error: new symbol name \
+\\\"\\!\\(expression\\)\\\" is similar to existing symbol \
+\\\"\\!\\(Expression\\)\\\". \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"stop\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Further output of \\!\\(General :: \\\"spell1\\\"\\) will \
+be suppressed during this calculation. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\
+\\\", ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"in", "::", "\<\"shdw\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Symbol \\!\\(\\\"in\\\"\\) appears in multiple contexts \
+\\!\\({\\\"Alpha`Work`\\\", \\\"Alpha`FarkasSchedule`\\\"}\\); definitions in \
+context \\!\\(\\\"Alpha`Work`\\\"\\) may shadow or be shadowed by other \
+definitions. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::shdw\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Context is now:\"\>", "\[InvisibleSpace]", "\<\"Global`\"\>"}],
+  
+  SequenceForm["Context is now:", "Global`"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Output file is: \"\>", 
+   "\[InvisibleSpace]", "\<\"ifile.m\"\>"}],
+  SequenceForm["Output file is: ", "ifile.m"],
+  Editable->False]], "Print"],
+
+Cell[BoxData["\<\"---- List of functions defined by the meta analysis: \
+\"\>"], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"domain", "[", 
+   RowBox[{"d_Integer", ",", 
+    RowBox[{"i", ":", 
+     RowBox[{"{", "___String", "}"}]}], ",", 
+    RowBox[{"p", ":", 
+     RowBox[{"{", "pol", "}"}]}]}], "]"}], "\[RuleDelayed]", 
+  "Null"}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"system", "[", 
+   RowBox[{"n_String", ",", 
+    RowBox[{"p", ":", "domain"}], ",", 
+    RowBox[{"id", ":", 
+     RowBox[{"{", "declaration", "}"}]}], ",", 
+    RowBox[{"od", ":", 
+     RowBox[{"{", "declaration", "}"}]}], ",", 
+    RowBox[{"ld", ":", 
+     RowBox[{"{", "declaration", "}"}]}], ",", 
+    RowBox[{"e", ":", 
+     RowBox[{"{", "equation", "}"}]}]}], "]"}], "\[RuleDelayed]", 
+  RowBox[{"semanticFunction", "[", 
+   RowBox[{"system", ",", 
+    RowBox[{"{", 
+     RowBox[{"n", ",", "p", ",", "id", ",", "od", ",", "ld", ",", "tre"}], 
+     "}"}]}], "]"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"pol", "[", 
+   RowBox[{
+   "a_Integer", ",", "b_Integer", ",", "c_Integer", ",", "d_Integer", ",", 
+    RowBox[{"co", ":", 
+     RowBox[{"{", "constraint", "}"}]}], ",", 
+    RowBox[{"ge", ":", 
+     RowBox[{"{", "generators", "}"}]}]}], "]"}], "\[RuleDelayed]", 
+  RowBox[{"pol", "[", 
+   RowBox[{
+   "tra", ",", "trb", ",", "trc", ",", "trd", ",", "trco", ",", "trge"}], 
+   "]"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{"constraint", "\[RuleDelayed]", 
+  RowBox[{"{", "_List", "}"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{"generators", "\[RuleDelayed]", 
+  RowBox[{"{", "_List", "}"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"equation", "[", 
+   RowBox[{"c_String", ",", 
+    RowBox[{"e", ":", "expression"}]}], "]"}], "\[RuleDelayed]", 
+  RowBox[{"semanticFunction", "[", 
+   RowBox[{"equation", ",", 
+    RowBox[{"{", 
+     RowBox[{"c", ",", "tre"}], "}"}]}], "]"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{"expression", "\[RuleDelayed]", 
+  RowBox[{"{", 
+   RowBox[{
+   "_binop", ",", "_var", ",", "_affine", ",", "_restrict", ",", "_case", ",",
+     "_const"}], "}"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"binop", "[", 
+   RowBox[{"op_Symbol", ",", 
+    RowBox[{"op1", ":", "expression"}], ",", 
+    RowBox[{"op2", ":", "expression"}]}], "]"}], "\[RuleDelayed]", 
+  RowBox[{"semanticFunction", "[", 
+   RowBox[{"binop", ",", 
+    RowBox[{"{", 
+     RowBox[{"op", ",", "trop1", ",", "trop2"}], "}"}]}], "]"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"var", "[", "v_String", "]"}], "\[RuleDelayed]", 
+  RowBox[{"semanticFunction", "[", 
+   RowBox[{"var", ",", "v"}], "]"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"affine", "[", 
+   RowBox[{
+    RowBox[{"e", ":", "expressionaffine"}], ",", 
+    RowBox[{"m", ":", "matrix"}]}], "]"}], "\[RuleDelayed]", 
+  RowBox[{"semanticFunction", "[", 
+   RowBox[{"affine", ",", 
+    RowBox[{"{", 
+     RowBox[{"e", ",", "trm"}], "}"}]}], "]"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{"expressionaffine", "\[RuleDelayed]", 
+  RowBox[{"{", 
+   RowBox[{"_var", ",", "_const"}], "}"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"matrix", "[", 
+   RowBox[{"d1_Integer", ",", "d2_Integer", ",", 
+    RowBox[{"in", ":", 
+     RowBox[{"{", "___String", "}"}]}], ",", "m_"}], "]"}], "\[RuleDelayed]", 
+  "m"}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"restrict", "[", 
+   RowBox[{
+    RowBox[{"d", ":", "domain"}], ",", 
+    RowBox[{"e", ":", "expression"}]}], "]"}], "\[RuleDelayed]", 
+  RowBox[{"semanticFunction", "[", 
+   RowBox[{"restrict", ",", 
+    RowBox[{"{", 
+     RowBox[{"d", ",", "tre"}], "}"}]}], "]"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"case", "[", 
+   RowBox[{"e", ":", 
+    RowBox[{"{", "expression", "}"}]}], "]"}], "\[RuleDelayed]", 
+  RowBox[{"semanticFunction", "[", 
+   RowBox[{"case", ",", "e", ",", "tre"}], "]"}]}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"const", "[", "c_", "]"}], "\[RuleDelayed]", "c"}]], "Print"],
+
+Cell[BoxData["\<\"----\"\>"], "Print"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\" Options:\"\>", "\[InvisibleSpace]", 
+   RowBox[{"debug", "\[Rule]", "True"}]}],
+  SequenceForm[" Options:", debug -> True],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"FullForm", "::", "\<\"optx\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Unknown option \\!\\(debug\\) in \
+\\!\\(FullForm[\\(\\(\\(\\(\\(\\(domain[\\(\\(d_Integer, \\(\\(i : \
+\\(\\({___String}\\)\\)\\)\\), \\(\\(p : \\(\\({pol}\\)\\)\\)\\)\\)\\)]\\)\\) \
+\[RuleDelayed] Null\\)\\), \\(\\(debug \[Rule] True\\)\\)\\)\\)]\\). \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::optx\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+ RowBox[{"FullForm", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"domain", "[", 
+     RowBox[{"d_Integer", ",", 
+      RowBox[{"i", ":", 
+       RowBox[{"{", "___String", "}"}]}], ",", 
+      RowBox[{"p", ":", 
+       RowBox[{"{", "pol", "}"}]}]}], "]"}], "\[RuleDelayed]", "Null"}], ",", 
+   
+   RowBox[{"debug", "\[Rule]", "True"}]}], "]"}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"meta", "::", "\<\"params\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Error while translating \
+\\!\\(\\(\\(domain[\\(\\(d_Integer, \\(\\(i : \\(\\({___String}\\)\\)\\)\\), \
+\\(\\(p : \\(\\({pol}\\)\\)\\)\\)\\)\\)]\\)\\) \[RuleDelayed] \
+Null\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"FullForm", "::", "\<\"optx\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Unknown option \\!\\(debug\\) in \\!\\(FullForm[\\(\\(\
+\[LeftSkeleton] 1 \[RightSkeleton]\\)\\)]\\). \\!\\(\\*ButtonBox[\\\"More\
+\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::optx\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{"FullForm", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"system", "[", 
+     RowBox[{"n_String", ",", 
+      RowBox[{"p", ":", "domain"}], ",", 
+      RowBox[{"id", ":", 
+       RowBox[{"{", "declaration", "}"}]}], ",", 
+      RowBox[{"od", ":", 
+       RowBox[{"{", "declaration", "}"}]}], ",", 
+      RowBox[{"ld", ":", 
+       RowBox[{"{", "declaration", "}"}]}], ",", 
+      RowBox[{"e", ":", 
+       RowBox[{"{", "equation", "}"}]}]}], "]"}], "\[RuleDelayed]", 
+    RowBox[{"semanticFunction", "[", 
+     RowBox[{"system", ",", 
+      RowBox[{"{", 
+       RowBox[{"n", ",", "p", ",", "id", ",", "od", ",", "ld", ",", "tre"}], 
+       "}"}]}], "]"}]}], ",", 
+   RowBox[{"debug", "\[Rule]", "True"}]}], "]"}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"meta", "::", "\<\"params\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Error while translating \\!\\(\\(\\(system[\\(\\(n_String, \
+\\(\\(p : domain\\)\\), \\(\\(\[LeftSkeleton] 1 \[RightSkeleton]\\)\\), \
+\\(\\(od : \\(\\(\[LeftSkeleton] 1 \[RightSkeleton]\\)\\)\\)\\), \\(\\(ld : \
+\\(\\({declaration}\\)\\)\\)\\), \\(\\(e : \
+\\(\\({equation}\\)\\)\\)\\)\\)\\)]\\)\\) \[RuleDelayed] \
+\\(\\(\[LeftSkeleton] 1 \[RightSkeleton]\\)\\)\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"FullForm", "::", "\<\"optx\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Unknown option \\!\\(debug\\) in \\!\\(\[LeftSkeleton] 1 \
+\[RightSkeleton]\\). \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::optx\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"stop\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Further output of \\!\\(FullForm :: \\\"optx\\\"\\) will \
+be suppressed during this calculation. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\
+\\\", ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{"FullForm", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"pol", "[", 
+     RowBox[{
+     "a_Integer", ",", "b_Integer", ",", "c_Integer", ",", "d_Integer", ",", 
+      RowBox[{"co", ":", 
+       RowBox[{"{", "constraint", "}"}]}], ",", 
+      RowBox[{"ge", ":", 
+       RowBox[{"{", "generators", "}"}]}]}], "]"}], "\[RuleDelayed]", 
+    RowBox[{"pol", "[", 
+     RowBox[{
+     "tra", ",", "trb", ",", "trc", ",", "trd", ",", "trco", ",", "trge"}], 
+     "]"}]}], ",", 
+   RowBox[{"debug", "\[Rule]", "True"}]}], "]"}]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"meta", "::", "\<\"params\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Error while translating \\!\\(\\(\\(pol[\\(\\(a_Integer, \
+b_Integer, \\(\\(\[LeftSkeleton] 9 \[RightSkeleton]\\)\\), \\(\\(\
+\[LeftSkeleton] 9 \[RightSkeleton]\\)\\), \\(\\(co : \\(\\({constraint}\\)\\)\
+\\)\\), \\(\\(ge : \\(\\({generators}\\)\\)\\)\\)\\)\\)]\\)\\) \[RuleDelayed] \
+\\(\\(\[LeftSkeleton] 1 \[RightSkeleton]\\)\\)\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"stop\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Further output of \\!\\(meta :: \\\"params\\\"\\) will be \
+suppressed during this calculation. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Translating the switch rule: \"\>", "\[InvisibleSpace]", 
+   RowBox[{"constraint", "\[RuleDelayed]", 
+    RowBox[{"{", "_List", "}"}]}]}],
+  SequenceForm["Translating the switch rule: ", constraint :> {
+     Blank[List]}],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"meta", "::", "\<\"wrgarg\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\" Wrong Argument to Meta: \\!\\(_List\\)\"\>"}]], "Message"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[TextData[{
+ "As a result, a file named i",
+ StyleBox["file.m", "Input"],
+ " is created, which contains the definition of the translation functions. \
+This package is named ",
+ StyleBox["Alpha`ifile`", "Input"],
+ ", and the functions of this file are all prefixed by i",
+ StyleBox["file", "Input"],
+ ", the name of the input file. "
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"<<", "ifile.m"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Get", "::", "\<\"noopen\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Cannot open \\!\\(\\\"ifile.m\\\"\\). \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::noopen\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData["$Failed"], "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["4. An example: an arithmetic expression evaluator", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Alpha to Mathematica"],
+
+Cell["Not done yet ", "Text"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "5. An example: an Alpha to ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " translator (prototype)"
+}], "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Alpha to Mathematica"],
+
+Cell[TextData[ButtonBox["Back to summary",
+ BaseStyle->"Hyperlink",
+ ButtonData:>"Summary"]], "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell["Building the translator", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["Read the meta file. Parameter ", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"meta", "[", 
+   RowBox[{"\"\<alpha2mma\>\"", ",", 
+    RowBox[{"debug", "\[Rule]", "False"}], ",", 
+    RowBox[{"check", "\[Rule]", "True"}], ",", 
+    RowBox[{
+    "directory", "->", 
+     "\"\</Users/patricequinton/mmalpha/doc/Packages/Meta\>\""}]}], "]"}], 
+  ";"}]], "Input",
+ CellChangeTimes->{{3.447853263662113*^9, 3.447853264851996*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Remove", "::", "\<\"rmnsm\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"There are no symbols matching \\\"\\!\\(\\\"Alpha`Work`*\\\
+\"\\)\\\". \\!\\(\\*ButtonBox[\\\"\[RightSkeleton]\\\", ButtonStyle->\\\"Link\
+\\\", ButtonFrame->None, ButtonData:>\\\"paclet:ref/message/Remove/rmnsm\\\", \
+ButtonNote -> \\\"Remove::rmnsm\\\"]\\)\"\>"}]], "Message",
+ CellChangeTimes->{{3.447853269817684*^9, 3.44785329763494*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Remove", "::", "\<\"rmnsm\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"There are no symbols matching \
+\\\"\\!\\(\\\"Alpha`Work`Private`*\\\"\\)\\\". \\!\\(\\*ButtonBox[\\\"\
+\[RightSkeleton]\\\", ButtonStyle->\\\"Link\\\", ButtonFrame->None, \
+ButtonData:>\\\"paclet:ref/message/Remove/rmnsm\\\", ButtonNote -> \
+\\\"Remove::rmnsm\\\"]\\)\"\>"}]], "Message",
+ CellChangeTimes->{{3.447853269817684*^9, 3.4478532976623697`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"in", "::", "\<\"shdw\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Symbol \\!\\(\\\"in\\\"\\) appears in multiple contexts \
+\\!\\({\\\"Alpha`Work`\\\", \\\"Alpha`FarkasSchedule`\\\"}\\); definitions in \
+context \\!\\(\\\"Alpha`Work`\\\"\\) may shadow or be shadowed by other \
+definitions. \\!\\(\\*ButtonBox[\\\"\[RightSkeleton]\\\", \
+ButtonStyle->\\\"Link\\\", ButtonFrame->None, \
+ButtonData:>\\\"paclet:ref/message/General/shdw\\\", ButtonNote -> \
+\\\"Alpha`Work`in::shdw\\\"]\\)\"\>"}]], "Message",
+ CellChangeTimes->{{3.447853269817684*^9, 3.447853297664454*^9}}],
+
+Cell[BoxData["\<\"Meta translator, version 0.9 -- October 1998\"\>"], "Print",
+ CellChangeTimes->{{3.4478532700367126`*^9, 3.447853297666367*^9}}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"The new package is created in file: \"\>", 
+   "\[InvisibleSpace]", "\<\"alpha2mma.m\"\>"}],
+  SequenceForm["The new package is created in file: ", "alpha2mma.m"],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.4478532700367126`*^9, 3.4478532976677427`*^9}}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"List of new functions :\\n\"\>", "\[InvisibleSpace]", 
+   RowBox[{"{", 
+    RowBox[{"\<\"alpha2mmaTranslatelist\"\>", 
+     ",", "\<\"alpha2mmaTranslateDOMAIN\"\>", 
+     ",", "\<\"alpha2mmaTranslateSYSTEM\"\>", 
+     ",", "\<\"alpha2mmaTranslatePOL\"\>", 
+     ",", "\<\"alpha2mmaTranslateCONSTRAINT\"\>", 
+     ",", "\<\"alpha2mmaTranslateGENERATORS\"\>", 
+     ",", "\<\"alpha2mmaTranslateEQUATION\"\>", 
+     ",", "\<\"alpha2mmaTranslateASSIGNMENT\"\>", 
+     ",", "\<\"alpha2mmaTranslateEXPRESSION\"\>", 
+     ",", "\<\"alpha2mmaTranslateBINOP\"\>", 
+     ",", "\<\"alpha2mmaTranslateVAR\"\>", 
+     ",", "\<\"alpha2mmaTranslateAFFINE\"\>", 
+     ",", "\<\"alpha2mmaTranslateEXPRESSIONAFFINE\"\>", 
+     ",", "\<\"alpha2mmaTranslateMATRIX\"\>", 
+     ",", "\<\"alpha2mmaTranslateRESTRICT\"\>", 
+     ",", "\<\"alpha2mmaTranslateCASE\"\>", 
+     ",", "\<\"alpha2mmaTranslateCONST\"\>", 
+     ",", "\<\"alpha2mmaTranslateUSESTATEMENT\"\>"}], "}"}]}],
+  SequenceForm[
+  "List of new functions :\n", {
+   "alpha2mmaTranslatelist", "alpha2mmaTranslateDOMAIN", 
+    "alpha2mmaTranslateSYSTEM", "alpha2mmaTranslatePOL", 
+    "alpha2mmaTranslateCONSTRAINT", "alpha2mmaTranslateGENERATORS", 
+    "alpha2mmaTranslateEQUATION", "alpha2mmaTranslateASSIGNMENT", 
+    "alpha2mmaTranslateEXPRESSION", "alpha2mmaTranslateBINOP", 
+    "alpha2mmaTranslateVAR", "alpha2mmaTranslateAFFINE", 
+    "alpha2mmaTranslateEXPRESSIONAFFINE", "alpha2mmaTranslateMATRIX", 
+    "alpha2mmaTranslateRESTRICT", "alpha2mmaTranslateCASE", 
+    "alpha2mmaTranslateCONST", "alpha2mmaTranslateUSESTATEMENT"}],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.4478532700367126`*^9, 3.4478532976694*^9}}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Directory of semantic file:\"\>", 
+   "\[InvisibleSpace]", \
+"\<\"/Users/patricequinton/mmalpha/doc/Packages/Meta\"\>"}],
+  SequenceForm[
+  "Directory of semantic file:", 
+   "/Users/patricequinton/mmalpha/doc/Packages/Meta"],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.4478532700367126`*^9, 3.447853297693075*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Directory", "[", "]"}]], "Input"],
+
+Cell[BoxData["\<\"/Users/patricequinton/mmalpha/doc/Packages/Meta\"\>"], \
+"Output",
+ CellChangeTimes->{3.447853125311152*^9, 3.447853172822424*^9, 
+  3.447853214642461*^9, 3.447853417425786*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.4478531919001503`*^9, 3.4478531942219954`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"\<\"alpha2mma.m\"\>", ",", "\<\"alpha2mma.m~\"\>", 
+   ",", "\<\"alpha2mma.meta\"\>", ",", "\<\"alpha2mma.meta~\"\>", 
+   ",", "\<\"alpha2mma.sem\"\>", ",", "\<\"alpha.m\"\>", 
+   ",", "\<\"alpha.meta\"\>", ",", "\<\"CheckCell.meta\"\>", 
+   ",", "\<\"CheckCell.sem\"\>", ",", "\<\"CVS\"\>", ",", "\<\".DS_Store\"\>",
+    ",", "\<\"fulladder.alpha\"\>", ",", "\<\"FullAdder.simul\"\>", 
+   ",", "\<\"ifile.meta\"\>", ",", "\<\"ifile.meta~\"\>", 
+   ",", "\<\"ifile.sem\"\>", ",", "\<\"lyon.alpha\"\>", 
+   ",", "\<\"lyon.simul\"\>", ",", "\<\"matmat.alpha\"\>", 
+   ",", "\<\"matmat.simul\"\>", ",", "\<\"Meta.m\"\>", ",", "\<\"Meta.nb\"\>",
+    ",", "\<\"Plus.simul\"\>", ",", "\<\"test1.alpha\"\>", 
+   ",", "\<\"test1.alpha~\"\>", ",", "\<\"test1.simul\"\>", 
+   ",", "\<\"test2.alpha\"\>", ",", "\<\"test2.m\"\>", 
+   ",", "\<\"test2.simul\"\>", ",", "\<\"test3.alpha\"\>", 
+   ",", "\<\"test3.simul\"\>", ",", "\<\"test4.alpha\"\>", 
+   ",", "\<\"test4.simul\"\>", ",", "\<\"test.m\"\>"}], "}"}]], "Output",
+ CellChangeTimes->{3.447853194631631*^9, 3.4478534136878357`*^9}]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"<<", "alpha2mma.m"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test1", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["Load the alpha file.", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<test1.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData["\<\"[test1]\"\>"], "Print",
+ CellChangeTimes->{3.4478533182488213`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData["\<\"system test1   (a :  integer; \\n                b :  \
+integer)\\n       returns (c :  integer);\\nlet\\n  c[] = a + \
+b;\\ntel;\"\>"], "Print",
+ CellChangeTimes->{3.4478533210956087`*^9}]
+}, Open  ]],
+
+Cell["\<\
+Translate it. By default, function alpha2mma runs on $result.\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alpha2mma", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Translated input will be in file \"\>", 
+   "\[InvisibleSpace]", "\<\"test1.simul\"\>"}],
+  SequenceForm["Translated input will be in file ", "test1.simul"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.447853441199396*^9}]
+}, Open  ]],
+
+Cell["Result of translation is in a file .simul. Load it", "Text"],
+
+Cell[BoxData[
+ RowBox[{"<<", "test1.simul"}]], "Input"],
+
+Cell["\<\
+Now, you can use the simulator. Starting it defines functions, in the package \
+Alpha'simul'test1. \
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"simul", "[", "\"\<test1\>\"", "]"}]], "Input"],
+
+Cell[BoxData["\<\"Alpha`Simul`test1`\"\>"], "Output",
+ CellChangeTimes->{3.4478534515829287`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"c", "[", 
+  RowBox[{"2", ",", 
+   RowBox[{"-", "1"}]}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"c", "::", "\<\"params\"\>"}], 
+  RowBox[{":", " "}], "\<\"wrong pararameters\"\>"}]], "Message", "MSG",
+ CellChangeTimes->{3.447853455313287*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"End", "[", "]"}]], "Input"],
+
+Cell[BoxData["\<\"Alpha`Simul`test1`\"\>"], "Output",
+ CellChangeTimes->{3.447853520366292*^9}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test2", "Subsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<test2.alpha\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData["\<\"[test2]\"\>"], "Print",
+ CellChangeTimes->{3.447853531830213*^9}],
+
+Cell[BoxData["\<\"system test2   (a : {i | 10<=i} of integer; \\n             \
+   b : {i | 10<=i} of integer)\\n       returns (c : {i | i<=20} of integer);\
+\\nlet\\n  c[i] = a[i] + b[3i+2];\\ntel;\"\>"], "Print",
+ CellChangeTimes->{3.447853531847704*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alpha2mma", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Translated input will be in file \"\>", 
+   "\[InvisibleSpace]", "\<\"test2.simul\"\>"}],
+  SequenceForm["Translated input will be in file ", "test2.simul"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.447853534940044*^9}]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"<<", "test2.simul"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"simul", "[", "\"\<test2\>\"", "]"}]], "Input"],
+
+Cell[BoxData["\<\"Alpha`Simul`test2`\"\>"], "Output",
+ CellChangeTimes->{3.4478535755388327`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"??", "a"}]], "Input"],
+
+Cell["Alpha`Simul`test2`a", "Print",
+ CellTags->"Info3407914141-2358850"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"c", "[", 
+  RowBox[{"1", ",", "f"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"a", "[", 
+   RowBox[{"1", ",", "f"}], "]"}], "+", 
+  RowBox[{"b", "[", 
+   RowBox[{"5", ",", "f"}], "]"}]}]], "Output",
+ CellChangeTimes->{3.447853591600246*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"End", "[", "]"}]], "Input"],
+
+Cell[BoxData["\<\"Alpha`Simul`test2`\"\>"], "Output",
+ CellChangeTimes->{3.447853647292508*^9}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test3", "Subsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<test3.alpha\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData["\<\"[test3]\"\>"], "Print",
+ CellChangeTimes->{3.447853654056005*^9}],
+
+Cell[BoxData["\<\"system test3   (a : {i | 10<=i} of integer; \\n             \
+   b : {i | 10<=i} of integer)\\n       returns (c : {i | i<=20} of integer);\
+\\nlet\\n  c[i] = { | 2<=i} : a[i] + b[3i+2];\\ntel;\"\>"], "Print",
+ CellChangeTimes->{3.447853654090316*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alpha2mma", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Translated input will be in file \"\>", 
+   "\[InvisibleSpace]", "\<\"test3.simul\"\>"}],
+  SequenceForm["Translated input will be in file ", "test3.simul"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.447853656788707*^9}]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"<<", "test3.simul"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"?", "c"}]], "Input"],
+
+Cell["Alpha`Simul`test3`c", "Print", "PrintUsage",
+ CellChangeTimes->{3.447853677256774*^9},
+ CellTags->"Info3447860877-8940394"],
+
+Cell[BoxData[
+ InterpretationBox[GridBox[{
+    {GridBox[{
+       {
+        RowBox[{
+         RowBox[{"c", "[", 
+          RowBox[{"i_", ",", "f___"}], "]"}], ":=", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{
+             RowBox[{"-", "2"}], "+", "i"}], "\[GreaterEqual]", "0"}], ",", 
+           RowBox[{
+            RowBox[{"a", "[", 
+             RowBox[{"i", ",", "f"}], "]"}], "+", 
+            RowBox[{"b", "[", 
+             RowBox[{
+              RowBox[{"2", "+", 
+               RowBox[{"3", " ", "i"}]}], ",", "f"}], "]"}]}], ",", 
+           RowBox[{"Message", "[", 
+            RowBox[{"semanticFunction", "::", "\<\"undef\"\>"}], "]"}]}], 
+          "]"}]}]},
+       {" "},
+       {
+        RowBox[{
+         RowBox[{"c", "[", "___", "]"}], ":=", 
+         RowBox[{"Message", "[", 
+          RowBox[{"c", "::", "\<\"params\"\>"}], "]"}]}]}
+      },
+      BaselinePosition->{Baseline, {1, 1}},
+      GridBoxAlignment->{
+       "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+        "RowsIndexed" -> {}},
+      GridBoxItemSize->{"Columns" -> {{
+           Scaled[0.999]}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+        "RowsIndexed" -> {}}]}
+   },
+   BaselinePosition->{Baseline, {1, 1}},
+   GridBoxAlignment->{
+    "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+     "RowsIndexed" -> {}}],
+  Definition["c"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.4478536772935343`*^9},
+ CellTags->"Info3447860877-8940394"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"simul", "[", "\"\<test3\>\"", "]"}], ";"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"c", "[", "2", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"a", "[", "2", "]"}], "+", 
+  RowBox[{"b", "[", "8", "]"}]}]], "Output",
+ CellChangeTimes->{{3.447853673549806*^9, 3.447853692048482*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"c", "[", 
+  RowBox[{"2", ",", "i"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"a", "[", 
+   RowBox[{"2", ",", "i"}], "]"}], "+", 
+  RowBox[{"b", "[", 
+   RowBox[{"8", ",", "i"}], "]"}]}]], "Output",
+ CellChangeTimes->{3.447853696072962*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"??", "c"}]], "Input"],
+
+Cell["Alpha`Simul`test3`c", "Print",
+ CellTags->"Info3407914214-9305738"],
+
+Cell[BoxData[
+ InterpretationBox[GridBox[{
+    {GridBox[{
+       {
+        RowBox[{
+         RowBox[{"c", "[", 
+          RowBox[{"i_", ",", "f___"}], "]"}], ":=", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{
+             RowBox[{"-", "2"}], "+", "i"}], "\[GreaterEqual]", "0"}], ",", 
+           RowBox[{
+            RowBox[{"a", "[", 
+             RowBox[{"i", ",", "f"}], "]"}], "+", 
+            RowBox[{"b", "[", 
+             RowBox[{
+              RowBox[{"2", "+", 
+               RowBox[{"3", " ", "i"}]}], ",", "f"}], "]"}]}], ",", 
+           RowBox[{"Message", "[", 
+            RowBox[{"semanticFunction", "::", "\<\"undef\"\>"}], "]"}]}], 
+          "]"}]}]},
+       {" "},
+       {
+        RowBox[{
+         RowBox[{"c", "[", "___", "]"}], ":=", 
+         RowBox[{"Message", "[", 
+          RowBox[{"c", "::", "\<\"params\"\>"}], "]"}]}]}
+      },
+      BaselinePosition->{Baseline, {1, 1}},
+      GridBoxAlignment->{
+       "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+        "RowsIndexed" -> {}},
+      GridBoxItemSize->{"Columns" -> {{
+           Scaled[0.999]}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+        "RowsIndexed" -> {}}]}
+   },
+   BaselinePosition->{Baseline, {1, 1}},
+   GridBoxAlignment->{
+    "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+     "RowsIndexed" -> {}}],
+  Definition["c"],
+  Editable->False]], "Print",
+ CellTags->"Info3407914214-9305738"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"c", "[", 
+  RowBox[{
+   RowBox[{"-", "5"}], ",", "f"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"semanticFunction", "::", "\<\"undef\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"trying to evaluate an undefined variable \
+instance.\"\>"}]], "Message",
+ CellChangeTimes->{3.447853705959196*^9}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test4", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<test4.alpha\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData["\<\"[test4]\"\>"], "Print",
+ CellChangeTimes->{3.447853713797112*^9}],
+
+Cell[BoxData["\<\"system test4   (a : {i | 1<=i} of integer; \\n              \
+  b : {i | 1<=i} of integer)\\n       returns (c : {i | i<=20} of \
+integer);\\nlet\\n  c[i] = \\n      case\\n        { | i=2} : a[i];\\n        \
+{ | i=3} : b[i];\\n      esac;\\ntel;\"\>"], "Print",
+ CellChangeTimes->{3.447853713818408*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alpha2mma", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Translated input will be in file \"\>", 
+   "\[InvisibleSpace]", "\<\"test4.simul\"\>"}],
+  SequenceForm["Translated input will be in file ", "test4.simul"],
+  Editable->False]], "Print"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"<<", "test4.simul"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"??", "c"}]], "Input"],
+
+Cell["Alpha`Simul`test4`c", "Print", "PrintUsage",
+ CellChangeTimes->{3.4478543993978033`*^9},
+ CellTags->"Info3447861599-9155020"],
+
+Cell[BoxData[
+ InterpretationBox[GridBox[{
+    {GridBox[{
+       {
+        RowBox[{
+         RowBox[{"c", "[", 
+          RowBox[{"i_", ",", "f___"}], "]"}], ":=", 
+         RowBox[{
+          RowBox[{"Which", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{
+              RowBox[{"-", "2"}], "+", "i"}], "\[Equal]", "0"}], ",", 
+            RowBox[{"If", "[", 
+             RowBox[{
+              RowBox[{
+               RowBox[{
+                RowBox[{"-", "2"}], "+", "i"}], "\[Equal]", "0"}], ",", 
+              RowBox[{"a", "[", 
+               RowBox[{"i", ",", "f"}], "]"}], ",", 
+              RowBox[{"Message", "[", 
+               RowBox[{"semanticFunction", "::", "\<\"undef\"\>"}], "]"}]}], 
+             "]"}], ",", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"-", "3"}], "+", "i"}], "\[Equal]", "0"}], ",", 
+            RowBox[{"If", "[", 
+             RowBox[{
+              RowBox[{
+               RowBox[{
+                RowBox[{"-", "3"}], "+", "i"}], "\[Equal]", "0"}], ",", 
+              RowBox[{"b", "[", 
+               RowBox[{"i", ",", "f"}], "]"}], ",", 
+              RowBox[{"Message", "[", 
+               RowBox[{"semanticFunction", "::", "\<\"undef\"\>"}], "]"}]}], 
+             "]"}], ",", "True", ",", 
+            RowBox[{"Message", "[", 
+             RowBox[{"semanticFunction", "::", "\<\"undef\"\>"}], "]"}]}], 
+           "]"}], ";;", "All"}]}]},
+       {" "},
+       {
+        RowBox[{
+         RowBox[{"c", "[", "___", "]"}], ":=", 
+         RowBox[{"Message", "[", 
+          RowBox[{"c", "::", "\<\"params\"\>"}], "]"}]}]}
+      },
+      BaselinePosition->{Baseline, {1, 1}},
+      GridBoxAlignment->{
+       "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+        "RowsIndexed" -> {}},
+      GridBoxItemSize->{"Columns" -> {{
+           Scaled[0.999]}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+        "RowsIndexed" -> {}}]}
+   },
+   BaselinePosition->{Baseline, {1, 1}},
+   GridBoxAlignment->{
+    "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+     "RowsIndexed" -> {}}],
+  Definition["c"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.447854399434198*^9},
+ CellTags->"Info3447861599-9155020"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"simul", "[", "\"\<test4\>\"", "]"}]], "Input"],
+
+Cell[BoxData["\<\"Alpha`Simul`test4`\"\>"], "Output",
+ CellChangeTimes->{3.447854396843464*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"c", "[", "1", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"semanticFunction", "::", "\<\"undef\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"trying to evaluate an undefined variable \
+instance.\"\>"}]], "Message"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"c", "[", 
+  RowBox[{"2", ",", "i"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"a", "[", 
+  RowBox[{"2", ",", "i"}], "]"}]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"c", "[", "3", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"b", "[", "3", "]"}]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"End", "[", "]"}]], "Input"],
+
+Cell[BoxData["\<\"Alpha`Simul`test3`\"\>"], "Output",
+ CellChangeTimes->{3.4478537499757032`*^9}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test5", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+This example is a full adder (actually, this is an adder on W bits, but we \
+only consider the full adder subsystem for the time being): \
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<fulladder.alpha\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData["\<\"[FullAdder][Plus]\"\>"], "Print",
+ CellChangeTimes->{3.447853753690441*^9}],
+
+Cell[BoxData["\<\"system Plus :  {W | 2<=W}\\n               (A : {b | \
+0<=b<=W} of boolean; \\n                B : {b | 0<=b<=W} of boolean)\\n      \
+ returns (S : {b | 0<=b<=W} of boolean);\\nvar\\n  Cin : {b | 0<=b<=W-1} of \
+boolean;\\n  Cout : {b | 0<=b<=W-1} of boolean;\\n  X : {b | 0<=b<=W-1} of \
+boolean;\\nlet\\n  use {b | 0<=b<=W-1} FullAdder[] (A, B, Cin) returns  (X, \
+Cout) ;\\n  Cin[b] = \\n      case\\n        { | b=0} : False[];\\n        { \
+| 1<=b} : Cout[b-1];\\n      esac;\\n  S[b] = \\n      case\\n        { | \
+b<=W-1} : X[b];\\n        { | b=W} : Cout[W-1];\\n      esac;\\ntel;\"\>"], \
+"Print",
+ CellChangeTimes->{3.4478537537184563`*^9}]
+}, Open  ]],
+
+Cell["Let us select the full adder in the library:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getSystem", "[", "\"\<FullAdder\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData["\<\"system FullAdder (A :  boolean; \\n                  B :  \
+boolean; \\n                  Cin :  boolean)\\n       returns   (X :  \
+boolean; \\n                  Cout :  boolean);\\nlet\\n  X[] = A xor B xor \
+Cin;\\n  Cout[] = A and B or A and Cin or B and Cin;\\ntel;\"\>"], "Print",
+ CellChangeTimes->{3.447853756727189*^9, 3.447853883469832*^9}]
+}, Open  ]],
+
+Cell["Then we translate it:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alpha2mma", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Translated input will be in file \"\>", 
+   "\[InvisibleSpace]", "\<\"FullAdder.simul\"\>"}],
+  SequenceForm["Translated input will be in file ", "FullAdder.simul"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.4478537598097467`*^9, 3.447853886667946*^9}]
+}, Open  ]],
+
+Cell["Then we load the result of the translation:", "Text"],
+
+Cell[BoxData[
+ RowBox[{"<<", "\"\<FullAdder.simul\>\""}]], "Input"],
+
+Cell["\<\
+Now, let us check the adder. First, both inputs are True, input carry is \
+False:\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"simul", "[", "\"\<FullAdder\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"Alpha`Simul`FullAdder`X", "[", 
+    RowBox[{"f", ":", "___"}], "]"}], ":=", 
+   RowBox[{"A", "[", "f", "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.4478541998154907`*^9, 3.44785423918755*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"??", "X"}]], "Input",
+ CellChangeTimes->{{3.447854105793276*^9, 3.447854106083831*^9}, {
+   3.447854182987898*^9, 3.44785418357691*^9}, 3.447854307115755*^9}],
+
+Cell["Alpha`Simul`FullAdder`X", "Print", "PrintUsage",
+ CellChangeTimes->{3.4478543372266006`*^9},
+ CellTags->"Info3447861537-6227839"],
+
+Cell[BoxData[
+ InterpretationBox[GridBox[{
+    {GridBox[{
+       {
+        RowBox[{
+         RowBox[{"X", "[", "f___", "]"}], ":=", 
+         RowBox[{
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"A", "[", "f", "]"}], "\[Xor]", 
+            RowBox[{"B", "[", "f", "]"}]}], ")"}], "\[Xor]", 
+          RowBox[{"Cin", "[", "f", "]"}]}]}]}
+      },
+      BaselinePosition->{Baseline, {1, 1}},
+      GridBoxAlignment->{
+       "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+        "RowsIndexed" -> {}},
+      GridBoxItemSize->{"Columns" -> {{
+           Scaled[0.999]}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+        "RowsIndexed" -> {}}]}
+   },
+   BaselinePosition->{Baseline, {1, 1}},
+   GridBoxAlignment->{
+    "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+     "RowsIndexed" -> {}}],
+  Definition["X"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.447854337284127*^9},
+ CellTags->"Info3447861537-6227839"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"A", "[", "]"}], ":=", "True"}], ";", 
+  RowBox[{
+   RowBox[{"B", "[", "]"}], ":=", "True"}], ";", 
+  RowBox[{
+   RowBox[{"Cin", "[", "]"}], ":=", "False"}], ";"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"?", "A"}]], "Input",
+ CellChangeTimes->{{3.4478539470996847`*^9, 3.447853947336073*^9}}],
+
+Cell["Alpha`Simul`FullAdder`A", "Print", "PrintUsage",
+ CellChangeTimes->{3.447853948121519*^9},
+ CellTags->"Info3447861148-8846711"],
+
+Cell[BoxData[
+ InterpretationBox[GridBox[{
+    {GridBox[{
+       {
+        RowBox[{
+         RowBox[{"A", "[", "]"}], ":=", "True"}]}
+      },
+      BaselinePosition->{Baseline, {1, 1}},
+      GridBoxAlignment->{
+       "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+        "RowsIndexed" -> {}},
+      GridBoxItemSize->{"Columns" -> {{
+           Scaled[0.999]}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+        "RowsIndexed" -> {}}]}
+   },
+   BaselinePosition->{Baseline, {1, 1}},
+   GridBoxAlignment->{
+    "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+     "RowsIndexed" -> {}}],
+  Definition["A"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.447853948152109*^9},
+ CellTags->"Info3447861148-8846711"]
+}, Open  ]],
+
+Cell["We evaluate the result:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"?", "Cout"}]], "Input",
+ CellChangeTimes->{{3.44785397948447*^9, 3.447854032402507*^9}}],
+
+Cell["Alpha`Simul`FullAdder`Cout", "Print", "PrintUsage",
+ CellChangeTimes->{3.447854033057485*^9},
+ CellTags->"Info3447861232-5888387"],
+
+Cell[BoxData[
+ InterpretationBox[GridBox[{
+    {GridBox[{
+       {
+        RowBox[{
+         RowBox[{"Cout", "[", "___", "]"}], ":=", 
+         RowBox[{"Message", "[", 
+          RowBox[{"Cout", "::", "\<\"params\"\>"}], "]"}]}]}
+      },
+      BaselinePosition->{Baseline, {1, 1}},
+      GridBoxAlignment->{
+       "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+        "RowsIndexed" -> {}},
+      GridBoxItemSize->{"Columns" -> {{
+           Scaled[0.999]}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+        "RowsIndexed" -> {}}]}
+   },
+   BaselinePosition->{Baseline, {1, 1}},
+   GridBoxAlignment->{
+    "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+     "RowsIndexed" -> {}}],
+  Definition["Cout"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.4478540331107616`*^9},
+ CellTags->"Info3447861232-5888387"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"X", "[", "f", "]"}]], "Input",
+ CellChangeTimes->{{3.447853956764021*^9, 3.447853959321644*^9}, {
+  3.4478540754271593`*^9, 3.447854079455797*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"X", "::", "\<\"params\"\>"}], 
+  RowBox[{":", " "}], "\<\"wrong pararameters\"\>"}]], "Message", "MSG",
+ CellChangeTimes->{3.447853960005727*^9, 3.447854080454823*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"X", "[", "]"}], ",", 
+   RowBox[{"Cout", "[", "]"}]}], "}"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"False", ",", "True"}], "}"}]], "Output",
+ CellChangeTimes->{{3.447853771648004*^9, 3.447853792920116*^9}, 
+   3.447854349031179*^9}]
+}, Open  ]],
+
+Cell["Let us try a two bit adder. ", "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"A", "[", "0", "]"}], ":=", "True"}], ";", 
+  RowBox[{
+   RowBox[{"B", "[", "0", "]"}], ":=", "True"}], ";", 
+  RowBox[{
+   RowBox[{"Cin", "[", "0", "]"}], ":=", "False"}], ";", 
+  RowBox[{
+   RowBox[{"A", "[", "1", "]"}], ":=", "False"}], ";", 
+  RowBox[{
+   RowBox[{"B", "[", "1", "]"}], ":=", "False"}], ";", 
+  RowBox[{
+   RowBox[{"Cin", "[", "1", "]"}], ":=", 
+   RowBox[{"Cout", "[", "0", "]"}]}]}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"X", "[", "1", "]"}], ",", 
+   RowBox[{"X", "[", "0", "]"}], ",", 
+   RowBox[{"Cout", "[", "1", "]"}]}], "}"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"True", ",", "False", ",", "False"}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.447854094644207*^9, {3.447854355691929*^9, 3.4478543669980717`*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"End", "[", "]"}]], "Input"],
+
+Cell[BoxData["\<\"Alpha`Simul`FullAdder`\"\>"], "Output",
+ CellChangeTimes->{3.4478538091591597`*^9, 3.447854363955686*^9}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test of matrix multiplication", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<matmat.alpha\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData["\<\"[matmat]? bad char: \\n (octal=13)\\n? bad char: \\n \
+(octal=13)\\n? bad char: \\n (octal=13)\\n? bad char: \\n (octal=13)\\n? bad \
+char: \\n (octal=13)\\n? bad char: \\n (octal=13)\\n? bad char: \\n \
+(octal=13)\\n? bad char: \\n (octal=13)\\n? bad char: \\n (octal=13)\\n? bad \
+char: \\n (octal=13)\\n? bad char: \\n (octal=13)\\n? bad char: \\n \
+(octal=13)\\n? bad char: \\n (octal=13)\\n\"\>"], "Print"],
+
+Cell[BoxData["\<\" Library Loaded\"\>"], "Print"],
+
+Cell[BoxData["\<\"system matmat :{N | 1<=N}\\n               (a : {i,j | \
+1<=i<=N; 1<=j<=N} of integer; \\n                b : {i,j | 1<=i<=N; 1<=j<=N} \
+of integer)\\n       returns (c : {i,j | 1<=i<=N; 1<=j<=N} of integer);\\nvar\
+\\n  CC : {i,j,k | 1<=i<=N; 1<=j<=N; 0<=k<=N} of integer;\\nlet\\n  CC[i,j,k] \
+= \\n      case\\n        { | k=0} : 0[];\\n        { | 0<=k} : CC[i,j,k-1] + \
+a[i,k] * b[k,j];\\n      esac;\\n  c[i,j] = CC[i,j,N];\\ntel;\"\>"], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alpha2mma", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Translated input will be in file \"\>", 
+   "\[InvisibleSpace]", "\<\"matmat.simul\"\>"}],
+  SequenceForm["Translated input will be in file ", "matmat.simul"],
+  Editable->False]], "Print"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"<<", "matmat.simul"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"simul", "[", "\"\<matmat\>\"", "]"}]], "Input"],
+
+Cell[BoxData["\<\"Alpha`Simul`matmat`\"\>"], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"CC", "[", 
+  RowBox[{"1", ",", "3", ",", "3"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"CC", "::", "\<\"params\"\>"}], 
+  RowBox[{":", " "}], "\<\"wrong pararameters\"\>"}]], "Message"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"End", "[", "]"}]], "Input"],
+
+Cell[BoxData["\<\"Alpha`Simul`matmat`\"\>"], "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["6. A meta grammar for Alpha's AST", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Alpha to Mathematica"],
+
+Cell["\<\
+This meta grammar is in the file alpha.meta. This grammar - up to the bugs... \
+- could be used as a basis for writing all translators. \
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"meta", "[", "\"\<alpha\>\"", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Remove", "::", "\<\"rmnsm\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"There are no symbols matching \\\"\\!\\(\\\"Alpha`Work`*\\\
+\"\\)\\\".\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Remove", "::", "\<\"rmnsm\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"There are no symbols matching \
+\\\"\\!\\(\\\"Alpha`Work`Private`*\\\"\\)\\\".\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"spell1\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Possible spelling error: new symbol name \\\"\\!\\(name\\)\
+\\\" is similar to existing symbol \\\"\\!\\(Pname\\)\\\".\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"a", "::", "\<\"shdw\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Symbol \\!\\(\\\"a\\\"\\) appears in multiple contexts \\!\
+\\({\\\"Alpha`Work`\\\", \\\"Alpha`Simul`matmat`\\\"}\\); definitions in \
+context \\!\\(\\\"Alpha`Work`\\\"\\) may shadow or be shadowed by other \
+definitions.\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"b", "::", "\<\"shdw\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Symbol \\!\\(\\\"b\\\"\\) appears in multiple contexts \\!\
+\\({\\\"Alpha`Work`\\\", \\\"Alpha`Simul`matmat`\\\"}\\); definitions in \
+context \\!\\(\\\"Alpha`Work`\\\"\\) may shadow or be shadowed by other \
+definitions.\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"c", "::", "\<\"shdw\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Symbol \\!\\(\\\"c\\\"\\) appears in multiple contexts \\!\
+\\({\\\"Alpha`Work`\\\", \\\"Alpha`Simul`matmat`\\\"}\\); definitions in \
+context \\!\\(\\\"Alpha`Work`\\\"\\) may shadow or be shadowed by other \
+definitions.\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"spell1\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Possible spelling error: new symbol name \
+\\\"\\!\\(expression\\)\\\" is similar to existing symbol \
+\\\"\\!\\(Expression\\)\\\".\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"spell1\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Possible spelling error: new symbol name \
+\\\"\\!\\(condition\\)\\\" is similar to existing symbol \
+\\\"\\!\\(Condition\\)\\\".\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"stop\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Further output of \\!\\(General :: \\\"spell1\\\"\\) will \
+be suppressed during this calculation.\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"in", "::", "\<\"shdw\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Symbol \\!\\(\\\"in\\\"\\) appears in multiple contexts \
+\\!\\({\\\"Alpha`Work`\\\", \\\"Alpha`FarkasSchedule`\\\"}\\); definitions in \
+context \\!\\(\\\"Alpha`Work`\\\"\\) may shadow or be shadowed by other \
+definitions.\"\>"}]], "Message"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"spell\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Possible spelling error: new symbol name \\\"\\!\\(mult\\)\
+\\\" is similar to existing symbols \\!\\({mul, multi}\\).\"\>"}]], "Message"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   RowBox[{"List", "[", 
+    RowBox[{
+    "name", ",", "paramDecl", ",", "inputDeclList", ",", "outputDeclList", 
+     ",", "localDeclList", ",", "equationBlock"}], "]"}],
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   "\"\<{name, paramDecl, inputDeclList, outputDeclList, localDeclList, \
+equationBlock}\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   RowBox[{"List", "[", 
+    RowBox[{"varName", ",", "type", ",", "trdomain"}], "]"}],
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<{varName, type, trdomain}\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   RowBox[{"List", "[", 
+    RowBox[{"dimension", ",", "indexList", ",", "polyedron"}], "]"}],
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<{dimension, indexList, polyedron}\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   RowBox[{"List", "[", 
+    RowBox[{
+    "a", ",", "b", ",", "c", ",", "d", ",", "constraintList", ",", 
+     "generatorList"}], "]"}],
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<{a, b, c, d, constraintList, generatorList}\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   RowBox[{"List", "[", 
+    RowBox[{"leftHandSide", ",", "rightHandSide"}], "]"}],
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<{leftHandSide, rightHandSide}\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["expressionList",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<expressionList\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   RowBox[{"List", "[", 
+    RowBox[{"domain", ",", "expression"}], "]"}],
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<{domain, expression}\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   RowBox[{"List", "[", 
+    RowBox[{"condition", ",", "alt1", ",", "alt2"}], "]"}],
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<{condition, alt1, alt2}\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   RowBox[{"List", "[", 
+    RowBox[{"expression", ",", "affineFunction"}], "]"}],
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<{expression, affineFunction}\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["mmaMatrix",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<mmaMatrix\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   RowBox[{"List", "[", 
+    RowBox[{"operand1", ",", "binaryOp", ",", "operand2"}], "]"}],
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<{operand1, binaryOp, operand2}\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   RowBox[{"List", "[", 
+    RowBox[{"unaryOp", ",", "operand"}], "]"}],
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<{unaryOp, operand}\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   RowBox[{"List", "[", 
+    RowBox[{"commutativeOp", ",", "affineExp", ",", "expression"}], "]"}],
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<{commutativeOp, affineExp, expression}\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["identifier",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<identifier\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["constant",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox["\"\<constant\>\"",
+   ShowSpecialCharacters->False,
+   ShowStringCharacters->True],
+  FullForm]], "Print"],
+
+Cell[BoxData["\<\"Meta translator, version 0.9 -- October 1998\"\>"], "Print"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"The new package is created in file: \"\>", 
+   "\[InvisibleSpace]", "\<\"alpha.m\"\>"}],
+  SequenceForm["The new package is created in file: ", "alpha.m"],
+  Editable->False]], "Print"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"List of new functions :\\n\"\>", "\[InvisibleSpace]", 
+   RowBox[{"{", 
+    RowBox[{"\<\"alphaTranslatelist\"\>", 
+     ",", "\<\"alphaTranslateLIBRARY\"\>", 
+     ",", "\<\"alphaTranslateSYSTEMDECLARATION\"\>", 
+     ",", "\<\"alphaTranslateDECLARATION\"\>", 
+     ",", "\<\"alphaTranslateDOMAIN\"\>", 
+     ",", "\<\"alphaTranslatePOLYHEDRON\"\>", 
+     ",", "\<\"alphaTranslateCONSTRAINT\"\>", 
+     ",", "\<\"alphaTranslateGENERATOR\"\>", 
+     ",", "\<\"alphaTranslateEQUATION\"\>", 
+     ",", "\<\"alphaTranslateASSIGNMENT\"\>", 
+     ",", "\<\"alphaTranslateEXPRESSION\"\>", 
+     ",", "\<\"alphaTranslateCASEXP\"\>", 
+     ",", "\<\"alphaTranslateRESTEXP\"\>", ",", "\<\"alphaTranslateIFEXP\"\>",
+      ",", "\<\"alphaTranslateAFFEXP\"\>", 
+     ",", "\<\"alphaTranslateMATRIX\"\>", ",", "\<\"alphaTranslateBINEXP\"\>",
+      ",", "\<\"alphaTranslateUNEXP\"\>", ",", "\<\"alphaTranslateREDEXP\"\>",
+      ",", "\<\"alphaTranslateVAREXP\"\>", 
+     ",", "\<\"alphaTranslateCONSTEXP\"\>"}], "}"}]}],
+  SequenceForm[
+  "List of new functions :\n", {
+   "alphaTranslatelist", "alphaTranslateLIBRARY", 
+    "alphaTranslateSYSTEMDECLARATION", "alphaTranslateDECLARATION", 
+    "alphaTranslateDOMAIN", "alphaTranslatePOLYHEDRON", 
+    "alphaTranslateCONSTRAINT", "alphaTranslateGENERATOR", 
+    "alphaTranslateEQUATION", "alphaTranslateASSIGNMENT", 
+    "alphaTranslateEXPRESSION", "alphaTranslateCASEXP", 
+    "alphaTranslateRESTEXP", "alphaTranslateIFEXP", "alphaTranslateAFFEXP", 
+    "alphaTranslateMATRIX", "alphaTranslateBINEXP", "alphaTranslateUNEXP", 
+    "alphaTranslateREDEXP", "alphaTranslateVAREXP", 
+    "alphaTranslateCONSTEXP"}],
+  Editable->False]], "Print"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"<<", "Alpha/Meta.m"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"<<", "alpha.m"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Get", "::", "\<\"noopen\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Cannot open \\!\\(\\\"alpha.sem\\\"\\).\"\>"}]], "Message"],
+
+Cell[BoxData["\<\"Are you sure that the file Alpha/alpha.sem exists?\"\>"], \
+"Print"],
+
+Cell["\<\
+In this example, there is even no Semantics file, hence the error message. \
+Let us load an Alpha program:\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<test2.alpha\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData["\<\"[test2]\"\>"], "Print"],
+
+Cell[BoxData["\<\" Library Loaded\"\>"], "Print"],
+
+Cell[BoxData["\<\"system test2   (a : {i | 10<=i} of integer; \\n             \
+   b : {i | 10<=i} of integer)\\n       returns (c : {j | j<=20} of integer);\
+\\nlet\\n  c[j] = a[j] + b[3j+2];\\ntel;\"\>"], "Print"]
+}, Open  ]]
+}, Open  ]],
+
+Cell["Then we call the translater on a declaration:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alphaTranslateDECLARATION", "[", 
+  RowBox[{
+   RowBox[{"$result", "[", 
+    RowBox[{"[", "3", "]"}], "]"}], "[", 
+   RowBox[{"[", "1", "]"}], "]"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"\<\"a\"\>", ",", "integer", ",", 
+   RowBox[{"{", 
+    RowBox[{"1", ",", 
+     RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"pol", "[", 
+       RowBox[{"2", ",", "2", ",", "0", ",", "0", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"{", 
+           RowBox[{"1", ",", "1", ",", 
+            RowBox[{"-", "10"}]}], "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1", ",", "0", ",", "1"}], "}"}]}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"{", 
+           RowBox[{"1", ",", "1", ",", "0"}], "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1", ",", "10", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+      "}"}]}], "}"}]}], "}"}]], "Output"]
+}, Open  ]],
+
+Cell["then on a domain:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alphaTranslateDOMAIN", "[", 
+  RowBox[{"readDom", "[", "\"\<{i,j,k|i=k;j>=k-2j+1}\>\"", "]"}], 
+  "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"3", ",", 
+   RowBox[{"{", 
+    RowBox[{"\<\"i\"\>", ",", "\<\"j\"\>", ",", "\<\"k\"\>"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"pol", "[", 
+     RowBox[{"3", ",", "3", ",", "1", ",", "1", ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"0", ",", "1", ",", "0", ",", 
+          RowBox[{"-", "1"}], ",", "0"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"1", ",", "0", ",", "3", ",", 
+          RowBox[{"-", "1"}], ",", 
+          RowBox[{"-", "1"}]}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"1", ",", "0", ",", "0", ",", "0", ",", "1"}], "}"}]}], 
+       "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"0", ",", "3", ",", "1", ",", "3", ",", "0"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"1", ",", "0", ",", "1", ",", "0", ",", "0"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"1", ",", "0", ",", "1", ",", "0", ",", "3"}], "}"}]}], 
+       "}"}]}], "]"}], "}"}]}], "}"}]], "Output"]
+}, Open  ]],
+
+Cell["a polyhedron, ", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alphaTranslatePOLYHEDRON", "[", 
+  RowBox[{"pol", "[", 
+   RowBox[{"3", ",", "3", ",", "1", ",", "1", ",", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"0", ",", "1", ",", "0", ",", 
+        RowBox[{"-", "1"}], ",", "0"}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"1", ",", "0", ",", "3", ",", 
+        RowBox[{"-", "1"}], ",", 
+        RowBox[{"-", "1"}]}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"1", ",", "0", ",", "0", ",", "0", ",", "1"}], "}"}]}], "}"}], 
+    ",", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"0", ",", "3", ",", "1", ",", "3", ",", "0"}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"1", ",", "0", ",", "1", ",", "0", ",", "0"}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"1", ",", "0", ",", "1", ",", "0", ",", "3"}], "}"}]}], 
+     "}"}]}], "]"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"3", ",", "3", ",", "1", ",", "1", ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"0", ",", "1", ",", "0", ",", 
+       RowBox[{"-", "1"}], ",", "0"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "0", ",", "3", ",", 
+       RowBox[{"-", "1"}], ",", 
+       RowBox[{"-", "1"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "0", ",", "0", ",", "0", ",", "1"}], "}"}]}], "}"}], 
+   ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"0", ",", "3", ",", "1", ",", "3", ",", "0"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "0", ",", "1", ",", "0", ",", "0"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "0", ",", "1", ",", "0", ",", "3"}], "}"}]}], "}"}]}],
+   "}"}]], "Output"]
+}, Open  ]],
+
+Cell["an equation:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"translateEQUATION", "[", 
+  RowBox[{
+   RowBox[{"$result", "[", 
+    RowBox[{"[", "6", "]"}], "]"}], "[", 
+   RowBox[{"[", "1", "]"}], "]"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"translateEQUATION", "[", 
+  RowBox[{"equation", "[", 
+   RowBox[{"\<\"c\"\>", ",", 
+    RowBox[{"binop", "[", 
+     RowBox[{"add", ",", 
+      RowBox[{"affine", "[", 
+       RowBox[{
+        RowBox[{"var", "[", "\<\"a\"\>", "]"}], ",", 
+        RowBox[{"matrix", "[", 
+         RowBox[{"2", ",", "2", ",", 
+          RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"{", 
+             RowBox[{"1", ",", "0"}], "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}], ",", 
+      RowBox[{"affine", "[", 
+       RowBox[{
+        RowBox[{"var", "[", "\<\"b\"\>", "]"}], ",", 
+        RowBox[{"matrix", "[", 
+         RowBox[{"2", ",", "2", ",", 
+          RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"{", 
+             RowBox[{"3", ",", "2"}], "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}]}], 
+     "]"}]}], "]"}], "]"}]], "Output"]
+}, Open  ]],
+
+Cell["a library:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alphaTranslateLIBRARY", "[", "$library", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"{", 
+   RowBox[{"\<\"test2\"\>", ",", 
+    RowBox[{"domain", "[", 
+     RowBox[{"0", ",", 
+      RowBox[{"{", "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"pol", "[", 
+        RowBox[{"1", ",", "1", ",", "0", ",", "0", ",", 
+         RowBox[{"{", 
+          RowBox[{"{", 
+           RowBox[{"1", ",", "1"}], "}"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"{", 
+           RowBox[{"1", ",", "1"}], "}"}], "}"}]}], "]"}], "}"}]}], "]"}], 
+    ",", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"decl", "[", 
+       RowBox[{"\<\"a\"\>", ",", "integer", ",", 
+        RowBox[{"domain", "[", 
+         RowBox[{"1", ",", 
+          RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"pol", "[", 
+            RowBox[{"2", ",", "2", ",", "0", ",", "0", ",", 
+             RowBox[{"{", 
+              RowBox[{
+               RowBox[{"{", 
+                RowBox[{"1", ",", "1", ",", 
+                 RowBox[{"-", "10"}]}], "}"}], ",", 
+               RowBox[{"{", 
+                RowBox[{"1", ",", "0", ",", "1"}], "}"}]}], "}"}], ",", 
+             RowBox[{"{", 
+              RowBox[{
+               RowBox[{"{", 
+                RowBox[{"1", ",", "1", ",", "0"}], "}"}], ",", 
+               RowBox[{"{", 
+                RowBox[{"1", ",", "10", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+           "}"}]}], "]"}]}], "]"}], ",", 
+      RowBox[{"decl", "[", 
+       RowBox[{"\<\"b\"\>", ",", "integer", ",", 
+        RowBox[{"domain", "[", 
+         RowBox[{"1", ",", 
+          RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"pol", "[", 
+            RowBox[{"2", ",", "2", ",", "0", ",", "0", ",", 
+             RowBox[{"{", 
+              RowBox[{
+               RowBox[{"{", 
+                RowBox[{"1", ",", "1", ",", 
+                 RowBox[{"-", "10"}]}], "}"}], ",", 
+               RowBox[{"{", 
+                RowBox[{"1", ",", "0", ",", "1"}], "}"}]}], "}"}], ",", 
+             RowBox[{"{", 
+              RowBox[{
+               RowBox[{"{", 
+                RowBox[{"1", ",", "1", ",", "0"}], "}"}], ",", 
+               RowBox[{"{", 
+                RowBox[{"1", ",", "10", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+           "}"}]}], "]"}]}], "]"}]}], "}"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"decl", "[", 
+      RowBox[{"\<\"c\"\>", ",", "integer", ",", 
+       RowBox[{"domain", "[", 
+        RowBox[{"1", ",", 
+         RowBox[{"{", "\<\"j\"\>", "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"pol", "[", 
+           RowBox[{"2", ",", "2", ",", "0", ",", "0", ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", 
+                RowBox[{"-", "1"}], ",", "20"}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"1", ",", "0", ",", "1"}], "}"}]}], "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", 
+                RowBox[{"-", "1"}], ",", "0"}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"1", ",", "20", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+          "}"}]}], "]"}]}], "]"}], "}"}], ",", 
+    RowBox[{"{", "}"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"equation", "[", 
+      RowBox[{"\<\"c\"\>", ",", 
+       RowBox[{"binop", "[", 
+        RowBox[{"add", ",", 
+         RowBox[{"affine", "[", 
+          RowBox[{
+           RowBox[{"var", "[", "\<\"a\"\>", "]"}], ",", 
+           RowBox[{"matrix", "[", 
+            RowBox[{"2", ",", "2", ",", 
+             RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+             RowBox[{"{", 
+              RowBox[{
+               RowBox[{"{", 
+                RowBox[{"1", ",", "0"}], "}"}], ",", 
+               RowBox[{"{", 
+                RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}], 
+         ",", 
+         RowBox[{"affine", "[", 
+          RowBox[{
+           RowBox[{"var", "[", "\<\"b\"\>", "]"}], ",", 
+           RowBox[{"matrix", "[", 
+            RowBox[{"2", ",", "2", ",", 
+             RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+             RowBox[{"{", 
+              RowBox[{
+               RowBox[{"{", 
+                RowBox[{"3", ",", "2"}], "}"}], ",", 
+               RowBox[{"{", 
+                RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}]}], 
+        "]"}]}], "]"}], "}"}]}], "}"}], "}"}]], "Output"]
+}, Open  ]],
+
+Cell["a simple variable:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"varexp", "=", 
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     RowBox[{
+      RowBox[{"$result", "[", 
+       RowBox[{"[", "6", "]"}], "]"}], "[", 
+      RowBox[{"[", "1", "]"}], "]"}], "[", 
+     RowBox[{"[", "2", "]"}], "]"}], "[", 
+    RowBox[{"[", "2", "]"}], "]"}], "[", 
+   RowBox[{"[", "1", "]"}], "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"var", "[", "\<\"a\"\>", "]"}]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alphaTranslateEXPRESSION", "[", "varexp", "]"}]], "Input"],
+
+Cell[BoxData["\<\"a\"\>"], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["an affine expression:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"vvv1", "=", 
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     RowBox[{"$result", "[", 
+      RowBox[{"[", "6", "]"}], "]"}], "[", 
+     RowBox[{"[", "1", "]"}], "]"}], "[", 
+    RowBox[{"[", "2", "]"}], "]"}], "[", 
+   RowBox[{"[", "2", "]"}], "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"affine", "[", 
+  RowBox[{
+   RowBox[{"var", "[", "\<\"a\"\>", "]"}], ",", 
+   RowBox[{"matrix", "[", 
+    RowBox[{"2", ",", "2", ",", 
+     RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"1", ",", "0"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alphaTranslateEXPRESSION", "[", "vvv1", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"var", "[", "\<\"a\"\>", "]"}], ",", 
+   RowBox[{"matrix", "[", 
+    RowBox[{"2", ",", "2", ",", 
+     RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"1", ",", "0"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "}"}]], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["a binary expression:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"vvv2", "=", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"$result", "[", 
+     RowBox[{"[", "6", "]"}], "]"}], "[", 
+    RowBox[{"[", "1", "]"}], "]"}], "[", 
+   RowBox[{"[", "2", "]"}], "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"binop", "[", 
+  RowBox[{"add", ",", 
+   RowBox[{"affine", "[", 
+    RowBox[{
+     RowBox[{"var", "[", "\<\"a\"\>", "]"}], ",", 
+     RowBox[{"matrix", "[", 
+      RowBox[{"2", ",", "2", ",", 
+       RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"1", ",", "0"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}], ",", 
+   RowBox[{"affine", "[", 
+    RowBox[{
+     RowBox[{"var", "[", "\<\"b\"\>", "]"}], ",", 
+     RowBox[{"matrix", "[", 
+      RowBox[{"2", ",", "2", ",", 
+       RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"3", ",", "2"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}]}], 
+  "]"}]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alphaTranslateEXPRESSION", "[", "vvv2", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"affine", "[", 
+    RowBox[{
+     RowBox[{"var", "[", "\<\"a\"\>", "]"}], ",", 
+     RowBox[{"matrix", "[", 
+      RowBox[{"2", ",", "2", ",", 
+       RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"1", ",", "0"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}], ",", 
+   "add", ",", 
+   RowBox[{"affine", "[", 
+    RowBox[{
+     RowBox[{"var", "[", "\<\"b\"\>", "]"}], ",", 
+     RowBox[{"matrix", "[", 
+      RowBox[{"2", ",", "2", ",", 
+       RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"3", ",", "2"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}]}], 
+  "}"}]], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["an equation:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"vvv3", "=", 
+  RowBox[{
+   RowBox[{"$result", "[", 
+    RowBox[{"[", "6", "]"}], "]"}], "[", 
+   RowBox[{"[", "1", "]"}], "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"equation", "[", 
+  RowBox[{"\<\"c\"\>", ",", 
+   RowBox[{"binop", "[", 
+    RowBox[{"add", ",", 
+     RowBox[{"affine", "[", 
+      RowBox[{
+       RowBox[{"var", "[", "\<\"a\"\>", "]"}], ",", 
+       RowBox[{"matrix", "[", 
+        RowBox[{"2", ",", "2", ",", 
+         RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"1", ",", "0"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}], ",", 
+     RowBox[{"affine", "[", 
+      RowBox[{
+       RowBox[{"var", "[", "\<\"b\"\>", "]"}], ",", 
+       RowBox[{"matrix", "[", 
+        RowBox[{"2", ",", "2", ",", 
+         RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"3", ",", "2"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}]}], 
+    "]"}]}], "]"}]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alphaTranslateEQUATION", "[", "vvv3", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"\<\"c\"\>", ",", 
+   RowBox[{"binop", "[", 
+    RowBox[{"add", ",", 
+     RowBox[{"affine", "[", 
+      RowBox[{
+       RowBox[{"var", "[", "\<\"a\"\>", "]"}], ",", 
+       RowBox[{"matrix", "[", 
+        RowBox[{"2", ",", "2", ",", 
+         RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"1", ",", "0"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}], ",", 
+     RowBox[{"affine", "[", 
+      RowBox[{
+       RowBox[{"var", "[", "\<\"b\"\>", "]"}], ",", 
+       RowBox[{"matrix", "[", 
+        RowBox[{"2", ",", "2", ",", 
+         RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"3", ",", "2"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}]}], 
+    "]"}]}], "}"}]], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["a full system:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alphaTranslateSYSTEMDECLARATION", "[", "$result", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"\<\"test2\"\>", ",", 
+   RowBox[{"domain", "[", 
+    RowBox[{"0", ",", 
+     RowBox[{"{", "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"pol", "[", 
+       RowBox[{"1", ",", "1", ",", "0", ",", "0", ",", 
+        RowBox[{"{", 
+         RowBox[{"{", 
+          RowBox[{"1", ",", "1"}], "}"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"{", 
+          RowBox[{"1", ",", "1"}], "}"}], "}"}]}], "]"}], "}"}]}], "]"}], ",",
+    
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"decl", "[", 
+      RowBox[{"\<\"a\"\>", ",", "integer", ",", 
+       RowBox[{"domain", "[", 
+        RowBox[{"1", ",", 
+         RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"pol", "[", 
+           RowBox[{"2", ",", "2", ",", "0", ",", "0", ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", "1", ",", 
+                RowBox[{"-", "10"}]}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"1", ",", "0", ",", "1"}], "}"}]}], "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", "1", ",", "0"}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"1", ",", "10", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+          "}"}]}], "]"}]}], "]"}], ",", 
+     RowBox[{"decl", "[", 
+      RowBox[{"\<\"b\"\>", ",", "integer", ",", 
+       RowBox[{"domain", "[", 
+        RowBox[{"1", ",", 
+         RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"pol", "[", 
+           RowBox[{"2", ",", "2", ",", "0", ",", "0", ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", "1", ",", 
+                RowBox[{"-", "10"}]}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"1", ",", "0", ",", "1"}], "}"}]}], "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", "1", ",", "0"}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"1", ",", "10", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+          "}"}]}], "]"}]}], "]"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"decl", "[", 
+     RowBox[{"\<\"c\"\>", ",", "integer", ",", 
+      RowBox[{"domain", "[", 
+       RowBox[{"1", ",", 
+        RowBox[{"{", "\<\"j\"\>", "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"pol", "[", 
+          RowBox[{"2", ",", "2", ",", "0", ",", "0", ",", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"{", 
+              RowBox[{"1", ",", 
+               RowBox[{"-", "1"}], ",", "20"}], "}"}], ",", 
+             RowBox[{"{", 
+              RowBox[{"1", ",", "0", ",", "1"}], "}"}]}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"{", 
+              RowBox[{"1", ",", 
+               RowBox[{"-", "1"}], ",", "0"}], "}"}], ",", 
+             RowBox[{"{", 
+              RowBox[{"1", ",", "20", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+         "}"}]}], "]"}]}], "]"}], "}"}], ",", 
+   RowBox[{"{", "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"equation", "[", 
+     RowBox[{"\<\"c\"\>", ",", 
+      RowBox[{"binop", "[", 
+       RowBox[{"add", ",", 
+        RowBox[{"affine", "[", 
+         RowBox[{
+          RowBox[{"var", "[", "\<\"a\"\>", "]"}], ",", 
+          RowBox[{"matrix", "[", 
+           RowBox[{"2", ",", "2", ",", 
+            RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", "0"}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}], ",",
+         
+        RowBox[{"affine", "[", 
+         RowBox[{
+          RowBox[{"var", "[", "\<\"b\"\>", "]"}], ",", 
+          RowBox[{"matrix", "[", 
+           RowBox[{"2", ",", "2", ",", 
+            RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"3", ",", "2"}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}]}], 
+       "]"}]}], "]"}], "}"}]}], "}"}]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<test2.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData["\<\"[test2]\"\>"], "Print"],
+
+Cell[BoxData["\<\" Library Loaded\"\>"], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"alphaTranslateSYSTEMDECLARATION", "[", "$result", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"\<\"test2\"\>", ",", 
+   RowBox[{"domain", "[", 
+    RowBox[{"0", ",", 
+     RowBox[{"{", "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"pol", "[", 
+       RowBox[{"1", ",", "1", ",", "0", ",", "0", ",", 
+        RowBox[{"{", 
+         RowBox[{"{", 
+          RowBox[{"1", ",", "1"}], "}"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"{", 
+          RowBox[{"1", ",", "1"}], "}"}], "}"}]}], "]"}], "}"}]}], "]"}], ",",
+    
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"decl", "[", 
+      RowBox[{"\<\"a\"\>", ",", "integer", ",", 
+       RowBox[{"domain", "[", 
+        RowBox[{"1", ",", 
+         RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"pol", "[", 
+           RowBox[{"2", ",", "2", ",", "0", ",", "0", ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", "1", ",", 
+                RowBox[{"-", "10"}]}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"1", ",", "0", ",", "1"}], "}"}]}], "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", "1", ",", "0"}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"1", ",", "10", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+          "}"}]}], "]"}]}], "]"}], ",", 
+     RowBox[{"decl", "[", 
+      RowBox[{"\<\"b\"\>", ",", "integer", ",", 
+       RowBox[{"domain", "[", 
+        RowBox[{"1", ",", 
+         RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"pol", "[", 
+           RowBox[{"2", ",", "2", ",", "0", ",", "0", ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", "1", ",", 
+                RowBox[{"-", "10"}]}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"1", ",", "0", ",", "1"}], "}"}]}], "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", "1", ",", "0"}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"1", ",", "10", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+          "}"}]}], "]"}]}], "]"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"decl", "[", 
+     RowBox[{"\<\"c\"\>", ",", "integer", ",", 
+      RowBox[{"domain", "[", 
+       RowBox[{"1", ",", 
+        RowBox[{"{", "\<\"j\"\>", "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"pol", "[", 
+          RowBox[{"2", ",", "2", ",", "0", ",", "0", ",", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"{", 
+              RowBox[{"1", ",", 
+               RowBox[{"-", "1"}], ",", "20"}], "}"}], ",", 
+             RowBox[{"{", 
+              RowBox[{"1", ",", "0", ",", "1"}], "}"}]}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"{", 
+              RowBox[{"1", ",", 
+               RowBox[{"-", "1"}], ",", "0"}], "}"}], ",", 
+             RowBox[{"{", 
+              RowBox[{"1", ",", "20", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+         "}"}]}], "]"}]}], "]"}], "}"}], ",", 
+   RowBox[{"{", "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"equation", "[", 
+     RowBox[{"\<\"c\"\>", ",", 
+      RowBox[{"binop", "[", 
+       RowBox[{"add", ",", 
+        RowBox[{"affine", "[", 
+         RowBox[{
+          RowBox[{"var", "[", "\<\"a\"\>", "]"}], ",", 
+          RowBox[{"matrix", "[", 
+           RowBox[{"2", ",", "2", ",", 
+            RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"1", ",", "0"}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}], ",",
+         
+        RowBox[{"affine", "[", 
+         RowBox[{
+          RowBox[{"var", "[", "\<\"b\"\>", "]"}], ",", 
+          RowBox[{"matrix", "[", 
+           RowBox[{"2", ",", "2", ",", 
+            RowBox[{"{", "\<\"i\"\>", "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"{", 
+               RowBox[{"3", ",", "2"}], "}"}], ",", 
+              RowBox[{"{", 
+               RowBox[{"0", ",", "1"}], "}"}]}], "}"}]}], "]"}]}], "]"}]}], 
+       "]"}]}], "]"}], "}"}]}], "}"}]], "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell["This is the end of this notebook...", "Subsubtitle",
+ FontColor->RGBColor[1, 0, 0]]
+}, Open  ]]
+},
+AutoGeneratedPackage->None,
+WindowToolbars->"EditBar",
+CellGrouping->Manual,
+WindowSize->{980, 570},
+WindowMargins->{{-13, Automatic}, {-10, Automatic}},
+DockedCells->FEPrivate`FrontEndResource[
+ "FEExpressions", "CompatibilityToolbar"],
+PrintingCopies->1,
+PrintingPageRange->{1, 1},
+ShowSelection->True,
+IndexCreationOptions -> {"Format" -> "Hyperlinks"},
+Magnification->1.5,
+FrontEndVersion->"6.0 for Mac OS X x86 (32-bit) (June 19, 2007)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{
+ "firstcell"->{
+  Cell[590, 23, 88, 2, 114, "Title",
+   CellTags->"firstcell"]},
+ "Summary"->{
+  Cell[1991, 87, 79, 2, 100, "Section",
+   CellTags->"Summary"]},
+ "Introduction"->{
+  Cell[2567, 112, 92, 2, 100, "Section",
+   CellTags->"Introduction"]},
+ "Info3407833766-2217598"->{
+  Cell[3009, 133, 354, 5, 100, "Print",
+   CellTags->"Info3407833766-2217598"]},
+ "How to define"->{
+  Cell[3979, 159, 105, 2, 100, "Section",
+   CellTags->"How to define"]},
+ "Abstract node"->{
+  Cell[6858, 268, 95, 2, 53, "Subsection",
+   CellTags->"Abstract node"],
+  Cell[13703, 454, 110, 2, 39, "Subsection",
+   CellTags->{"Abstract node", "Switch rule"}],
+  Cell[16154, 537, 120, 2, 39, "Subsection",
+   CellTags->{"Abstract node", "Switch rule", "Arguments"}],
+  Cell[17504, 585, 145, 2, 39, "Subsection",
+   CellTags->{
+    "Abstract node", "Switch rule", "Arguments", "Switch argument"}],
+  Cell[18666, 629, 179, 4, 39, "Subsection",
+   CellTags->{
+    "Abstract node", "Switch rule", "Arguments", "Switch argument", 
+     "Semantic expression"}]},
+ "Switch rule"->{
+  Cell[13703, 454, 110, 2, 39, "Subsection",
+   CellTags->{"Abstract node", "Switch rule"}],
+  Cell[16154, 537, 120, 2, 39, "Subsection",
+   CellTags->{"Abstract node", "Switch rule", "Arguments"}],
+  Cell[17504, 585, 145, 2, 39, "Subsection",
+   CellTags->{
+    "Abstract node", "Switch rule", "Arguments", "Switch argument"}],
+  Cell[18666, 629, 179, 4, 39, "Subsection",
+   CellTags->{
+    "Abstract node", "Switch rule", "Arguments", "Switch argument", 
+     "Semantic expression"}]},
+ "Arguments"->{
+  Cell[16154, 537, 120, 2, 39, "Subsection",
+   CellTags->{"Abstract node", "Switch rule", "Arguments"}],
+  Cell[17504, 585, 145, 2, 39, "Subsection",
+   CellTags->{
+    "Abstract node", "Switch rule", "Arguments", "Switch argument"}],
+  Cell[18666, 629, 179, 4, 39, "Subsection",
+   CellTags->{
+    "Abstract node", "Switch rule", "Arguments", "Switch argument", 
+     "Semantic expression"}]},
+ "Switch argument"->{
+  Cell[17504, 585, 145, 2, 39, "Subsection",
+   CellTags->{
+    "Abstract node", "Switch rule", "Arguments", "Switch argument"}],
+  Cell[18666, 629, 179, 4, 39, "Subsection",
+   CellTags->{
+    "Abstract node", "Switch rule", "Arguments", "Switch argument", 
+     "Semantic expression"}]},
+ "Semantic expression"->{
+  Cell[18666, 629, 179, 4, 39, "Subsection",
+   CellTags->{
+    "Abstract node", "Switch rule", "Arguments", "Switch argument", 
+     "Semantic expression"}]},
+ "To use Meta"->{
+  Cell[20711, 690, 90, 2, 53, "Section",
+   CellTags->"To use Meta"]},
+ "Alpha to Mathematica"->{
+  Cell[38203, 1232, 134, 2, 53, "Section",
+   CellTags->"Alpha to Mathematica"],
+  Cell[38406, 1241, 204, 7, 53, "Section",
+   CellTags->"Alpha to Mathematica"],
+  Cell[69731, 2300, 118, 2, 100, "Section",
+   CellTags->"Alpha to Mathematica"]},
+ "Info3407914141-2358850"->{
+  Cell[48355, 1550, 73, 1, 30, "Print",
+   CellTags->"Info3407914141-2358850"]},
+ "Info3447860877-8940394"->{
+  Cell[50028, 1621, 129, 2, 58, "Print",
+   CellTags->"Info3447860877-8940394"],
+  Cell[50160, 1625, 1532, 44, 95, "Print",
+   CellTags->"Info3447860877-8940394"]},
+ "Info3407914214-9305738"->{
+  Cell[52447, 1708, 73, 1, 30, "Print",
+   CellTags->"Info3407914214-9305738"],
+  Cell[52523, 1711, 1488, 43, 95, "Print",
+   CellTags->"Info3407914214-9305738"]},
+ "Info3447861599-9155020"->{
+  Cell[55516, 1817, 131, 2, 58, "Print",
+   CellTags->"Info3447861599-9155020"],
+  Cell[55650, 1821, 2243, 61, 141, "Print",
+   CellTags->"Info3447861599-9155020"]},
+ "Info3447861537-6227839"->{
+  Cell[61949, 2030, 135, 2, 58, "Print",
+   CellTags->"Info3447861537-6227839"],
+  Cell[62087, 2034, 987, 28, 30, "Print",
+   CellTags->"Info3447861537-6227839"]},
+ "Info3447861148-8846711"->{
+  Cell[63449, 2080, 133, 2, 58, "Print",
+   CellTags->"Info3447861148-8846711"],
+  Cell[63585, 2084, 765, 22, 30, "Print",
+   CellTags->"Info3447861148-8846711"]},
+ "Info3447861232-5888387"->{
+  Cell[64544, 2117, 136, 2, 58, "Print",
+   CellTags->"Info3447861232-5888387"],
+  Cell[64683, 2121, 866, 24, 32, "Print",
+   CellTags->"Info3447861232-5888387"]}
+ }
+*)
+(*CellTagsIndex
+CellTagsIndex->{
+ {"firstcell", 107930, 3566},
+ {"Summary", 108009, 3569},
+ {"Introduction", 108094, 3572},
+ {"Info3407833766-2217598", 108195, 3575},
+ {"How to define", 108296, 3578},
+ {"Abstract node", 108390, 3581},
+ {"Switch rule", 108971, 3595},
+ {"Arguments", 109476, 3607},
+ {"Switch argument", 109894, 3617},
+ {"Semantic expression", 110210, 3625},
+ {"To use Meta", 110388, 3630},
+ {"Alpha to Mathematica", 110486, 3633},
+ {"Info3407914141-2358850", 110760, 3640},
+ {"Info3447860877-8940394", 110870, 3643},
+ {"Info3407914214-9305738", 111064, 3648},
+ {"Info3447861599-9155020", 111257, 3653},
+ {"Info3447861537-6227839", 111452, 3658},
+ {"Info3447861148-8846711", 111645, 3663},
+ {"Info3447861232-5888387", 111838, 3668}
+ }
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[590, 23, 88, 2, 114, "Title",
+ CellTags->"firstcell"],
+Cell[681, 27, 38, 0, 39, "Subsubtitle"],
+Cell[722, 29, 98, 3, 49, "SmallText"],
+Cell[823, 34, 26, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[874, 38, 67, 1, 31, "SmallText"],
+Cell[944, 41, 334, 13, 258, "SmallText"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[1315, 59, 77, 1, 26, "SmallText"],
+Cell[1395, 62, 85, 2, 47, "Text"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[1517, 69, 107, 1, 26, "SmallText"],
+Cell[CellGroupData[{
+Cell[1649, 74, 186, 5, 40, "Input",
+ InitializationCell->True],
+Cell[1838, 81, 126, 2, 40, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[1991, 87, 79, 2, 100, "Section",
+ CellTags->"Summary"],
+Cell[2073, 91, 469, 17, 145, "Text"],
+Cell[CellGroupData[{
+Cell[2567, 112, 92, 2, 100, "Section",
+ CellTags->"Introduction"],
+Cell[2662, 116, 106, 2, 31, "SmallText"],
+Cell[2771, 120, 137, 5, 39, "Text"],
+Cell[CellGroupData[{
+Cell[2933, 129, 73, 2, 40, "Input"],
+Cell[3009, 133, 354, 5, 100, "Print",
+ CellTags->"Info3407833766-2217598"]
+}, Open  ]],
+Cell[3378, 141, 564, 13, 107, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3979, 159, 105, 2, 100, "Section",
+ CellTags->"How to define"],
+Cell[4087, 163, 106, 2, 40, "SmallText"],
+Cell[4196, 167, 62, 0, 47, "Text"],
+Cell[4261, 169, 226, 4, 73, "Text"],
+Cell[4490, 175, 2343, 89, 333, "Text"],
+Cell[CellGroupData[{
+Cell[6858, 268, 95, 2, 53, "Subsection",
+ CellTags->"Abstract node"],
+Cell[6956, 272, 106, 2, 40, "SmallText"],
+Cell[7065, 276, 766, 21, 151, "Text"],
+Cell[7834, 299, 736, 22, 108, "Input"],
+Cell[8573, 323, 1650, 38, 333, "Text"],
+Cell[CellGroupData[{
+Cell[10248, 365, 125, 4, 47, "Text"],
+Cell[10376, 371, 3278, 77, 453, "Input"]
+}, Open  ]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[13703, 454, 110, 2, 39, "Subsection",
+ CellTags->{"Abstract node", "Switch rule"}],
+Cell[13816, 458, 106, 2, 40, "SmallText"],
+Cell[13925, 462, 227, 5, 73, "Text"],
+Cell[14155, 469, 625, 20, 62, "Input"],
+Cell[14783, 491, 999, 30, 177, "Text"],
+Cell[15785, 523, 332, 9, 73, "Text"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[16154, 537, 120, 2, 39, "Subsection",
+ CellTags->{"Abstract node", "Switch rule", "Arguments"}],
+Cell[16277, 541, 106, 2, 40, "SmallText"],
+Cell[16386, 545, 1081, 35, 125, "Text"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[17504, 585, 145, 2, 39, "Subsection",
+ CellTags->{"Abstract node", "Switch rule", "Arguments", "Switch argument"}],
+Cell[17652, 589, 106, 2, 40, "SmallText"],
+Cell[17761, 593, 581, 19, 73, "Text"],
+Cell[18345, 614, 93, 2, 39, "Input"],
+Cell[18441, 618, 188, 6, 47, "Text"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[18666, 629, 179, 4, 39, "Subsection",
+ CellTags->{
+  "Abstract node", "Switch rule", "Arguments", "Switch argument", 
+   "Semantic expression"}],
+Cell[18848, 635, 106, 2, 40, "SmallText"],
+Cell[18957, 639, 301, 8, 73, "Text"],
+Cell[19261, 649, 362, 10, 62, "Input"],
+Cell[19626, 661, 1036, 23, 203, "Text"]
+}, Closed]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[20711, 690, 90, 2, 53, "Section",
+ CellTags->"To use Meta"],
+Cell[20804, 694, 106, 2, 40, "SmallText"],
+Cell[20913, 698, 272, 5, 73, "Text"],
+Cell[CellGroupData[{
+Cell[21210, 707, 111, 3, 47, "Text"],
+Cell[CellGroupData[{
+Cell[21346, 714, 63, 1, 39, "Input"],
+Cell[21412, 717, 250, 6, 40, "Output"]
+}, Open  ]],
+Cell[21677, 726, 56, 1, 39, "Input"],
+Cell[CellGroupData[{
+Cell[21758, 731, 149, 4, 39, "Input"],
+Cell[21910, 737, 66, 0, 34, "Print"],
+Cell[21979, 739, 243, 5, 34, "Print"],
+Cell[22225, 746, 182, 4, 34, "Print"],
+Cell[22410, 752, 212, 5, 34, "Print"],
+Cell[22625, 759, 186, 4, 34, "Print"],
+Cell[22814, 765, 206, 5, 34, "Print"],
+Cell[23023, 772, 342, 7, 30, "Message"],
+Cell[23368, 781, 191, 5, 34, "Print"],
+Cell[23562, 788, 337, 8, 30, "Message"],
+Cell[23902, 798, 208, 5, 34, "Print"],
+Cell[24113, 805, 343, 7, 30, "Message"],
+Cell[24459, 814, 362, 8, 49, "Message"],
+Cell[24824, 824, 194, 5, 34, "Print"],
+Cell[25021, 831, 194, 5, 34, "Print"],
+Cell[25218, 838, 194, 5, 34, "Print"],
+Cell[25415, 845, 386, 8, 49, "Message"],
+Cell[25804, 855, 386, 8, 49, "Message"],
+Cell[26193, 865, 399, 8, 49, "Message"],
+Cell[26595, 875, 362, 7, 49, "Message"],
+Cell[26960, 884, 483, 9, 49, "Message"],
+Cell[27446, 895, 191, 5, 34, "Print"],
+Cell[27640, 902, 194, 5, 34, "Print"],
+Cell[27837, 909, 89, 1, 34, "Print"],
+Cell[27929, 912, 255, 8, 34, "Print"],
+Cell[28187, 922, 614, 17, 82, "Print"],
+Cell[28804, 941, 430, 12, 58, "Print"],
+Cell[29237, 955, 98, 2, 34, "Print"],
+Cell[29338, 959, 98, 2, 34, "Print"],
+Cell[29439, 963, 289, 8, 34, "Print"],
+Cell[29731, 973, 198, 5, 34, "Print"],
+Cell[29932, 980, 349, 9, 58, "Print"],
+Cell[30284, 991, 168, 4, 34, "Print"],
+Cell[30455, 997, 314, 9, 34, "Print"],
+Cell[30772, 1008, 132, 3, 34, "Print"],
+Cell[30907, 1013, 221, 6, 34, "Print"],
+Cell[31131, 1021, 312, 9, 34, "Print"],
+Cell[31446, 1032, 233, 6, 34, "Print"],
+Cell[31682, 1040, 95, 2, 34, "Print"],
+Cell[31780, 1044, 38, 0, 34, "Print"],
+Cell[31821, 1046, 203, 5, 34, "Print"],
+Cell[32027, 1053, 519, 10, 49, "Message"],
+Cell[32549, 1065, 364, 11, 34, "Print"],
+Cell[32916, 1078, 295, 7, 30, "Message"],
+Cell[33214, 1087, 366, 7, 30, "Message"],
+Cell[33583, 1096, 742, 20, 82, "Print"],
+Cell[34328, 1118, 485, 9, 49, "Message"],
+Cell[34816, 1129, 344, 7, 30, "Message"],
+Cell[35163, 1138, 361, 7, 49, "Message"],
+Cell[35527, 1147, 548, 15, 58, "Print"],
+Cell[36078, 1164, 453, 8, 49, "Message"],
+Cell[36534, 1174, 361, 8, 49, "Message"],
+Cell[36898, 1184, 301, 7, 34, "Print"],
+Cell[37202, 1193, 158, 4, 30, "Message"]
+}, Open  ]]
+}, Open  ]],
+Cell[37387, 1201, 348, 9, 73, "Text"],
+Cell[CellGroupData[{
+Cell[37760, 1214, 51, 1, 39, "Input"],
+Cell[37814, 1217, 303, 7, 30, "Message"],
+Cell[38120, 1226, 34, 0, 40, "Output"]
+}, Open  ]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[38203, 1232, 134, 2, 53, "Section",
+ CellTags->"Alpha to Mathematica"],
+Cell[38340, 1236, 29, 0, 47, "Text"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[38406, 1241, 204, 7, 53, "Section",
+ CellTags->"Alpha to Mathematica"],
+Cell[38613, 1250, 106, 2, 31, "SmallText"],
+Cell[CellGroupData[{
+Cell[38744, 1256, 76, 1, 51, "Subsection"],
+Cell[38823, 1259, 46, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[38894, 1263, 380, 10, 64, "Input"],
+Cell[39277, 1275, 443, 8, 28, "Message"],
+Cell[39723, 1285, 456, 9, 28, "Message"],
+Cell[40182, 1296, 601, 11, 89, "Message"],
+Cell[40786, 1309, 146, 1, 30, "Print"],
+Cell[40935, 1312, 312, 6, 30, "Print"],
+Cell[41250, 1320, 1720, 34, 238, "Print"],
+Cell[42973, 1356, 373, 9, 30, "Print"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[43383, 1370, 57, 1, 40, "Input"],
+Cell[43443, 1373, 195, 3, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[43675, 1381, 127, 2, 40, "Input"],
+Cell[43805, 1385, 1118, 18, 156, "Output"]
+}, Open  ]],
+Cell[44938, 1406, 55, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[45030, 1412, 58, 1, 51, "Subsection"],
+Cell[45091, 1415, 36, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[45152, 1419, 93, 2, 40, "Input"],
+Cell[45248, 1423, 85, 1, 30, "Print"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[45370, 1429, 53, 1, 40, "Input"],
+Cell[45426, 1432, 207, 3, 146, "Print"]
+}, Open  ]],
+Cell[45648, 1438, 85, 2, 39, "Text"],
+Cell[CellGroupData[{
+Cell[45758, 1444, 57, 1, 40, "Input"],
+Cell[45818, 1447, 278, 6, 30, "Print"]
+}, Open  ]],
+Cell[46111, 1456, 66, 0, 39, "Text"],
+Cell[46180, 1458, 55, 1, 40, "Input"],
+Cell[46238, 1461, 123, 3, 39, "Text"],
+Cell[CellGroupData[{
+Cell[46386, 1468, 70, 1, 40, "Input"],
+Cell[46459, 1471, 97, 1, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[46593, 1477, 96, 3, 40, "Input"],
+Cell[46692, 1482, 180, 4, 32, "Message"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[46909, 1491, 51, 1, 40, "Input"],
+Cell[46963, 1494, 95, 1, 40, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[47107, 1501, 27, 0, 51, "Subsection"],
+Cell[CellGroupData[{
+Cell[47159, 1505, 125, 3, 40, "Input"],
+Cell[47287, 1510, 83, 1, 30, "Print"],
+Cell[47373, 1513, 257, 3, 146, "Print"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[47667, 1521, 57, 1, 40, "Input"],
+Cell[47727, 1524, 278, 6, 30, "Print"]
+}, Open  ]],
+Cell[48020, 1533, 55, 1, 40, "Input"],
+Cell[CellGroupData[{
+Cell[48100, 1538, 70, 1, 40, "Input"],
+Cell[48173, 1541, 97, 1, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[48307, 1547, 45, 1, 40, "Input"],
+Cell[48355, 1550, 73, 1, 30, "Print",
+ CellTags->"Info3407914141-2358850"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[48465, 1556, 77, 2, 40, "Input"],
+Cell[48545, 1560, 196, 6, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[48778, 1571, 51, 1, 40, "Input"],
+Cell[48832, 1574, 95, 1, 40, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[48976, 1581, 27, 0, 51, "Subsection"],
+Cell[CellGroupData[{
+Cell[49028, 1585, 125, 3, 40, "Input"],
+Cell[49156, 1590, 83, 1, 30, "Print"],
+Cell[49242, 1593, 269, 3, 146, "Print"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[49548, 1601, 57, 1, 40, "Input"],
+Cell[49608, 1604, 278, 6, 30, "Print"]
+}, Open  ]],
+Cell[49901, 1613, 55, 1, 40, "Input"],
+Cell[CellGroupData[{
+Cell[49981, 1618, 44, 1, 40, "Input"],
+Cell[50028, 1621, 129, 2, 58, "Print",
+ CellTags->"Info3447860877-8940394"],
+Cell[50160, 1625, 1532, 44, 95, "Print",
+ CellTags->"Info3447860877-8940394"]
+}, Open  ]],
+Cell[51707, 1672, 88, 2, 40, "Input"],
+Cell[CellGroupData[{
+Cell[51820, 1678, 54, 1, 40, "Input"],
+Cell[51877, 1681, 172, 4, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[52086, 1690, 77, 2, 40, "Input"],
+Cell[52166, 1694, 196, 6, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[52399, 1705, 45, 1, 40, "Input"],
+Cell[52447, 1708, 73, 1, 30, "Print",
+ CellTags->"Info3407914214-9305738"],
+Cell[52523, 1711, 1488, 43, 95, "Print",
+ CellTags->"Info3407914214-9305738"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[54048, 1759, 96, 3, 40, "Input"],
+Cell[54147, 1764, 224, 6, 28, "Message"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[54420, 1776, 58, 1, 51, "Subsection"],
+Cell[CellGroupData[{
+Cell[54503, 1781, 125, 3, 40, "Input"],
+Cell[54631, 1786, 83, 1, 30, "Print"],
+Cell[54717, 1789, 323, 4, 238, "Print"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[55077, 1798, 57, 1, 40, "Input"],
+Cell[55137, 1801, 236, 5, 30, "Print"]
+}, Open  ]],
+Cell[55388, 1809, 55, 1, 40, "Input"],
+Cell[CellGroupData[{
+Cell[55468, 1814, 45, 1, 40, "Input"],
+Cell[55516, 1817, 131, 2, 58, "Print",
+ CellTags->"Info3447861599-9155020"],
+Cell[55650, 1821, 2243, 61, 141, "Print",
+ CellTags->"Info3447861599-9155020"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[57930, 1887, 70, 1, 40, "Input"],
+Cell[58003, 1890, 95, 1, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[58135, 1896, 54, 1, 40, "Input"],
+Cell[58192, 1899, 182, 5, 28, "Message"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[58411, 1909, 77, 2, 40, "Input"],
+Cell[58491, 1913, 78, 2, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[58606, 1920, 54, 1, 40, "Input"],
+Cell[58663, 1923, 55, 1, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[58755, 1929, 51, 1, 40, "Input"],
+Cell[58809, 1932, 97, 1, 40, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[58955, 1939, 58, 1, 51, "Subsection"],
+Cell[59016, 1942, 161, 3, 62, "Text"],
+Cell[CellGroupData[{
+Cell[59202, 1949, 129, 3, 40, "Input"],
+Cell[59334, 1954, 93, 1, 30, "Print"],
+Cell[59430, 1957, 671, 9, 491, "Print"]
+}, Open  ]],
+Cell[60116, 1969, 60, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[60201, 1973, 128, 3, 40, "Input"],
+Cell[60332, 1978, 368, 4, 215, "Print"]
+}, Open  ]],
+Cell[60715, 1985, 37, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[60777, 1989, 57, 1, 40, "Input"],
+Cell[60837, 1992, 310, 6, 30, "Print"]
+}, Open  ]],
+Cell[61162, 2001, 59, 0, 39, "Text"],
+Cell[61224, 2003, 67, 1, 40, "Input"],
+Cell[61294, 2006, 105, 3, 39, "Text"],
+Cell[61402, 2011, 92, 2, 40, "Input"],
+Cell[61497, 2015, 242, 6, 42, "Input"],
+Cell[CellGroupData[{
+Cell[61764, 2025, 182, 3, 40, "Input"],
+Cell[61949, 2030, 135, 2, 58, "Print",
+ CellTags->"Info3447861537-6227839"],
+Cell[62087, 2034, 987, 28, 30, "Print",
+ CellTags->"Info3447861537-6227839"]
+}, Open  ]],
+Cell[63089, 2065, 220, 7, 40, "Input"],
+Cell[CellGroupData[{
+Cell[63334, 2076, 112, 2, 40, "Input"],
+Cell[63449, 2080, 133, 2, 58, "Print",
+ CellTags->"Info3447861148-8846711"],
+Cell[63585, 2084, 765, 22, 30, "Print",
+ CellTags->"Info3447861148-8846711"]
+}, Open  ]],
+Cell[64365, 2109, 39, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[64429, 2113, 112, 2, 40, "Input"],
+Cell[64544, 2117, 136, 2, 58, "Print",
+ CellTags->"Info3447861232-5888387"],
+Cell[64683, 2121, 866, 24, 32, "Print",
+ CellTags->"Info3447861232-5888387"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[65586, 2150, 171, 3, 40, "Input"],
+Cell[65760, 2155, 202, 4, 32, "Message"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[65999, 2164, 123, 4, 40, "Input"],
+Cell[66125, 2170, 172, 4, 40, "Output"]
+}, Open  ]],
+Cell[66312, 2177, 89, 2, 39, "Text"],
+Cell[66404, 2181, 461, 14, 64, "Input"],
+Cell[CellGroupData[{
+Cell[66890, 2199, 172, 5, 40, "Input"],
+Cell[67065, 2206, 187, 4, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[67289, 2215, 51, 1, 40, "Input"],
+Cell[67343, 2218, 123, 1, 40, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[67515, 2225, 82, 1, 51, "Subsection"],
+Cell[CellGroupData[{
+Cell[67622, 2230, 126, 3, 40, "Input"],
+Cell[67751, 2235, 429, 5, 629, "Print"],
+Cell[68183, 2242, 49, 0, 30, "Print"],
+Cell[68235, 2244, 471, 5, 330, "Print"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[68743, 2254, 57, 1, 40, "Input"],
+Cell[68803, 2257, 238, 5, 30, "Print"]
+}, Open  ]],
+Cell[69056, 2265, 56, 1, 40, "Input"],
+Cell[CellGroupData[{
+Cell[69137, 2270, 71, 1, 40, "Input"],
+Cell[69211, 2273, 54, 0, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[69302, 2278, 88, 2, 40, "Input"],
+Cell[69393, 2282, 132, 3, 28, "Message"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[69562, 2290, 51, 1, 40, "Input"],
+Cell[69616, 2293, 54, 0, 40, "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[69731, 2300, 118, 2, 100, "Section",
+ CellTags->"Alpha to Mathematica"],
+Cell[69852, 2304, 160, 3, 62, "Text"],
+Cell[CellGroupData[{
+Cell[70037, 2311, 69, 1, 40, "Input"],
+Cell[70109, 2314, 190, 5, 28, "Message"],
+Cell[70302, 2321, 198, 5, 28, "Message"],
+Cell[70503, 2328, 240, 5, 49, "Message"],
+Cell[70746, 2335, 335, 7, 89, "Message"],
+Cell[71084, 2344, 335, 7, 89, "Message"],
+Cell[71422, 2353, 335, 7, 89, "Message"],
+Cell[71760, 2362, 253, 6, 49, "Message"],
+Cell[72016, 2370, 251, 6, 49, "Message"],
+Cell[72270, 2378, 218, 5, 49, "Message"],
+Cell[72491, 2385, 339, 7, 89, "Message"],
+Cell[72833, 2394, 239, 5, 49, "Message"],
+Cell[73075, 2401, 294, 9, 54, "Print"],
+Cell[73372, 2412, 217, 7, 54, "Print"],
+Cell[73592, 2421, 209, 7, 30, "Print"],
+Cell[73804, 2430, 158, 5, 30, "Print"],
+Cell[73965, 2437, 217, 7, 30, "Print"],
+Cell[74185, 2446, 166, 5, 30, "Print"],
+Cell[74354, 2453, 259, 9, 30, "Print"],
+Cell[74616, 2464, 176, 5, 30, "Print"],
+Cell[74795, 2471, 206, 7, 30, "Print"],
+Cell[75004, 2480, 162, 5, 30, "Print"],
+Cell[75169, 2487, 139, 5, 30, "Print"],
+Cell[75311, 2494, 147, 5, 30, "Print"],
+Cell[75461, 2501, 197, 7, 30, "Print"],
+Cell[75661, 2510, 153, 5, 30, "Print"],
+Cell[75817, 2517, 207, 7, 30, "Print"],
+Cell[76027, 2526, 156, 5, 30, "Print"],
+Cell[76186, 2533, 205, 7, 30, "Print"],
+Cell[76394, 2542, 161, 5, 30, "Print"],
+Cell[76558, 2549, 134, 5, 30, "Print"],
+Cell[76695, 2556, 142, 5, 30, "Print"],
+Cell[76840, 2563, 214, 7, 30, "Print"],
+Cell[77057, 2572, 163, 5, 30, "Print"],
+Cell[77223, 2579, 195, 7, 30, "Print"],
+Cell[77421, 2588, 151, 5, 30, "Print"],
+Cell[77575, 2595, 222, 7, 30, "Print"],
+Cell[77800, 2604, 171, 5, 30, "Print"],
+Cell[77974, 2611, 135, 5, 30, "Print"],
+Cell[78112, 2618, 143, 5, 30, "Print"],
+Cell[78258, 2625, 133, 5, 30, "Print"],
+Cell[78394, 2632, 141, 5, 30, "Print"],
+Cell[78538, 2639, 78, 0, 30, "Print"],
+Cell[78619, 2641, 234, 5, 30, "Print"],
+Cell[78856, 2648, 1724, 34, 215, "Print"]
+}, Open  ]],
+Cell[80595, 2685, 56, 1, 40, "Input"],
+Cell[CellGroupData[{
+Cell[80676, 2690, 51, 1, 40, "Input"],
+Cell[80730, 2693, 157, 4, 28, "Message"],
+Cell[80890, 2699, 86, 1, 30, "Print"],
+Cell[80979, 2702, 130, 3, 39, "Text"],
+Cell[CellGroupData[{
+Cell[81134, 2709, 125, 3, 40, "Input"],
+Cell[81262, 2714, 41, 0, 30, "Print"],
+Cell[81306, 2716, 49, 0, 30, "Print"],
+Cell[81358, 2718, 215, 2, 146, "Print"]
+}, Open  ]]
+}, Open  ]],
+Cell[81600, 2724, 61, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[81686, 2728, 190, 5, 40, "Input"],
+Cell[81879, 2735, 765, 22, 64, "Output"]
+}, Open  ]],
+Cell[82659, 2760, 33, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[82717, 2764, 138, 3, 40, "Input"],
+Cell[82858, 2769, 1046, 28, 87, "Output"]
+}, Open  ]],
+Cell[83919, 2800, 30, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[83974, 2804, 886, 24, 87, "Input"],
+Cell[84863, 2830, 805, 23, 64, "Output"]
+}, Open  ]],
+Cell[85683, 2856, 28, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[85736, 2860, 182, 5, 40, "Input"],
+Cell[85921, 2867, 1084, 30, 87, "Output"]
+}, Open  ]],
+Cell[87020, 2900, 26, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[87071, 2904, 81, 1, 40, "Input"],
+Cell[87155, 2907, 4400, 118, 202, "Output"]
+}, Open  ]],
+Cell[91570, 3028, 34, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[91629, 3032, 340, 11, 40, "Input"],
+Cell[91972, 3045, 65, 1, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[92074, 3051, 82, 1, 40, "Input"],
+Cell[92159, 3054, 36, 0, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[92232, 3059, 37, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[92294, 3063, 278, 9, 40, "Input"],
+Cell[92575, 3074, 402, 12, 40, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[93014, 3091, 80, 1, 40, "Input"],
+Cell[93097, 3094, 392, 12, 40, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[93538, 3112, 36, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[93599, 3116, 220, 7, 40, "Input"],
+Cell[93822, 3125, 893, 27, 64, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[94752, 3157, 80, 1, 40, "Input"],
+Cell[94835, 3160, 888, 28, 64, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[95772, 3194, 28, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[95825, 3198, 164, 5, 40, "Input"],
+Cell[95992, 3205, 1012, 29, 64, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[97041, 3239, 78, 1, 40, "Input"],
+Cell[97122, 3242, 1000, 29, 64, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[98171, 3277, 30, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[98226, 3281, 90, 1, 40, "Input"],
+Cell[98319, 3284, 4261, 117, 225, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[102617, 3406, 93, 2, 40, "Input"],
+Cell[102713, 3410, 41, 0, 30, "Print"],
+Cell[102757, 3412, 49, 0, 30, "Print"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[102843, 3417, 90, 1, 40, "Input"],
+Cell[102936, 3420, 4261, 117, 225, "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+Cell[107236, 3542, 89, 1, 39, "Subsubtitle"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
+

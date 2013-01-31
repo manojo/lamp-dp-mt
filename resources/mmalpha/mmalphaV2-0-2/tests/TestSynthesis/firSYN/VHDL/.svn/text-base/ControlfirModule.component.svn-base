@@ -1,0 +1,10 @@
+
+COMPONENT ControlfirModule
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  ser1Xctl1 : OUT STD_LOGIC
+);
+END COMPONENT;
+

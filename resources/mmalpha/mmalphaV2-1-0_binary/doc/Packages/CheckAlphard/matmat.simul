@@ -1,0 +1,23 @@
+BeginPackage["Alpha`Simul`matmat`"];
+a::usage = "";
+b::usage = "";
+c::usage = "";
+CC::usage = "";
+Begin["`Private`"];
+Clear[ a, b, c, CC, CC];
+    CC[f:__][i_, j_, k_, N_] := Which[
+-1 + N >= 0 && k == 0,
+If[ k == 0,
+    0,
+    Message[ semanticFunction::undef ] ],
+-1 + i >= 0 && -1 + j >= 0 && -1 + k >= 0 && -i + N >= 0 && -j + N >= 0 && -k + N >= 0,
+If[ k >= 0,
+    Plus[ CC[f][ i, j, -1 + k, N ], Times[ a[f][ i, k, N ], b[f][ k, j, N ] ] ],
+    Message[ semanticFunction::undef ] ],
+True, Message[ semanticFunction::undef ]
+];;
+    CC[ ___ ][ ___ ] := Message[CC::params ];
+    c[f:__][i_, j_, N_] := CC[f][ i, j, N, N ];
+    c[ ___ ][ ___ ] := Message[c::params ];
+End[];
+EndPackage[];

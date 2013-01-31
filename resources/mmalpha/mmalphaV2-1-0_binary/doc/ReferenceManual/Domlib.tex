@@ -1,0 +1,286 @@
+%
+% File created on {2009, 4, 25, 17, 47, 46.071200} by makeDoc.
+%
+% Section header
+\section{The Alpha`Domlib` package } 
+\label{label:Alpha`Domlib`}
+\alphanote{Domlib}{Documentation revised on August 10, 2004} 
+ 
+\alphausage{DomLib}{Domlib is a library of domain functions. It contains the functions const2al,
+const2mma, dom2mma, dom2al, domCompRays, DomAddRays, DomBasis, DomConstraints,
+DomConvex, DomCost, DomDifference, DomEmpty, DomEmptyQ, DomEqualities,
+DomEqualQ, DomExtend, DomImage, DomIntersection, DomIntEmptyQ, DomLeftHermite,
+DomLTQ, DomMatrixSimplify, DomPreimage, DomProject, DomRays, DomRightHermite,
+DomSimplify, DomSort, DomUnion, DomUniverse, DomUniverseQ, DomVertices,
+DomVisual, DomZImage, DomZPreimage, hypercube, LatticeDifference,
+LatticeImage, LatticeIntersection, LatticeHermite, LatticePreimage,
+linearConstraintQ, linearExpQ, linHalfSpace, polToZpol, rays, vertices,
+and zpolToPol.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomLib}
+
+\alphanote{Domlib}{Domlib is based upon the PolyLib library, which is a set of public domain 
+C programs first developed at Irisa. Domlib is interfaced to this library
+using MathLink.} 
+ 
+\alphausage{domlib}{Math link. Link to the external program "domlib". The mechanism of 
+MathLink is pretty complicated and needs to be clarified here.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{domlib}
+
+\alphausage{const2al}{const2al[ind,c] translates in Alpha form the constraint c. 
+ind is an index list (e.g. \{"i","j"\}) and c is a constraint in
+form eq[i+2j,3] or ge[i+2j,3].}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{const2al}
+
+\alphausage{const2mma}{const2mma[indexList,vectorList] converts a constraint, expressed as a list of 
+index names and a list of vectors, into Mathematica form}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{const2mma}
+
+\alphausage{dom2mma}{dom2mma[d] converts Alpha domain d into a pair \{constraints,index\} (e.g.
+\{\{i,j\},\{i+j$>$=2,...\}\}) suitable for Mathematica.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{dom2mma}
+
+\alphausage{dom2al}{dom2al[\{cst,ind\}] translates a domain given in MMA
+form into its Alpha encoding. ind is a list of indexes, and cst is
+a list of constraints of the form i+j $>$ 2. Warning: left-hand side is
+the linear part, and right-hand side is an integer.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{dom2al}
+
+\alphanote{dom2al}{In dom2al, the symbols must be strings, otherwise there is a problem.
+This has to be checked.} 
+ 
+\alphausage{domCompRays}{domCompRays[dom] recomputes the rays of the Alpha domain dom and
+returns an Alpha domain. domCompRays ignores the ray part of dom, and
+recomputes it. This function allows one to modify a contraint in a domain,
+and to update the domain accordingly.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{domCompRays}
+
+\alphausage{domHalfSpaceQ}{domHalfSpaceQ[dom] is True if the Alpha domain dom is a half-space. dom 
+is either a string or an ast.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{domHalfSpaceQ}
+
+\alphausage{DomAddRays}{DomAddRays[dom,m] returns the domain dom augmented with rays from the matrix
+m. rays are in Alpha format (i.e. n+2 components for n dimensions).
+
+Example: 
+
+dom is \{i,j $|$ i $>$= 0\},
+
+m=matrix[3, 4, \{\}, \{\{1, 0, 1, 0\}, \{1, 10, 10, 1\}\}],
+
+DomAddRays[dom,m] returns \{i,j $|$ 0$<$=i$<$=(j,10)\}.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomAddRays}
+
+\alphausage{DomBasis}{DomBasis[m] returns a row basis of the Alpha matrix m using Gauss 
+Jordan-elimination.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomBasis}
+
+\alphausage{DomConstraints}{DomConstraints[m] returns the minimum convex polyehdron defined by 
+the constraint matrix m. DomConstraints[m1,m2] returns the Z-polyhedron 
+obtained by image of the polyhedrom P by the invertible mapping m1, 
+where P is the minimum convex Polyhedron satisfying the constraints 
+given in m2, i.e., Z = m1(DomConstraints[m2]).}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomConstraints}
+
+\alphausage{DomConvex}{DomConvex[d] returns the minimum convex polyhedron which encloses the
+(polyhedral or Z) domain d. Warning (4/11/98), this function was bugged 
+in Polylib, and the current implementation uses DomRays instead of 
+DomConvex.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomConvex}
+
+\alphausage{DomCost}{DomCost[d, c] returns the interval of values of the cost function c
+evaluated over domain d = \{MinN, MinD, MinI, MaxN, MaxD, MaxI\}.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomCost}
+
+\alphanote{DomCost}{DomCost is a function of the Domlib library, and what it does in 
+not clear.} 
+ 
+\alphausage{DomDifference}{DomDifference[d1, d2] returns the domain difference of domain d1 less d2.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomDifference}
+
+\alphausage{DomEmpty}{DomEmpty[n] returns the empty domain of dimension n.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomEmpty}
+
+\alphausage{DomEmptyQ}{DomEmptyQ[d] returns True if domain d is empty, False otherwise. The
+test of emptyness is based uniquely on the rational polyhedron, not the 
+integral polyhedron.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomEmptyQ}
+
+\alphausage{DomEqualities}{DomEqualities[d] returns the matrix of equations (lineality space) of
+domain d (does not handle union of convexes).}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomEqualities}
+
+\alphausage{DomEqualQ}{DomEqualQ[d] returns True if domain d1 is equivalant to d2, False
+otherwise.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomEqualQ}
+
+\alphausage{DomExtend}{DomExtend[dom, idx] extends  dom to the indices in the index list idx. 
+This list should contains the indices of dom.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomExtend}
+
+\alphausage{DomImage}{DomImage[d,m] returns the image of the domain d under the transformation 
+matrix m. This function always returns a polyhedral domain. 
+If d is a Z-Domain, it returns the image of the rational polyhedral 
+domain enclosing the Z-Domain.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomImage}
+
+\alphausage{DomIntersection}{DomIntersection[d1, d2] returns the domain intersection of domains d1 and d2.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomIntersection}
+
+\alphausage{DomIntEmptyQ}{DomIntEmptyQ[dom1, dom2] returns True if dom1 contains no integral points
+in the context of dom2, False otherwise. ??}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomIntEmptyQ}
+
+\alphausage{DomLeftHermite}{DomLeftHermite[m] returns \{H, Q\} where m = HQ, Q unimodular, H hermite.
+(Warning, bugged function please use hermiteL[]).}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomLeftHermite}
+
+\alphausage{DomLTQ}{DomLTQ[dom1, dom2, idx, pdim] compares dom1 and dom2 at index position
+idx (integer). pdim is the dimension of the parameter space. Returns 1 if
+dom1$>$dom2, returns -1 if dom1$<$dom2, returns 0 if dom1$>$$<$dom2 (whatever it
+means.)}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomLTQ}
+
+\alphanote{DomLTQ}{DomLTQ does not check the type and number of parameters.} 
+ 
+\alphausage{DomMatrixSimplify}{DomMatrixSimplify[m1,m2] returns m1 simplified in the presence of m2.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomMatrixSimplify}
+
+\alphausage{DomPreimage}{DomPreimage[d,m] returns the preimage of the domain d under the transformation 
+matrix m. This function always returns a polyhedral domain. For a
+ZDomain, it returns the pre-image of the rational polyhedral domain 
+enclosing the ZDomain.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomPreimage}
+
+\alphausage{DomProject}{DomProject[dom, idx] projects dom onto the indices given 
+in the index list idx. Reorders indices and changes the dimension
+accordingly.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomProject}
+
+\alphausage{DomRays}{DomRays[m] returns the minimum convex polyhedron defined by the rays 
+given in the matrix m.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomRays}
+
+\alphausage{DomRightHermite}{This function is bugged, use hermiteR instead.
+DomRightHermite[m] returns the Hermite decomposition \{Q, H\} of the
+Alpha matrix m, i.e. m = QH, Q unimodular, H Hermite.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomRightHermite}
+
+\alphausage{DomSimplify}{DomSimplify[d1, d2] returns a domain equal to d1 simplified in 
+the context of d2. In other words, we remove of the definition of
+d1 all constraints which are implied by d2.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomSimplify}
+
+\alphausage{DomSort}{DomSort[ldom, idx, pdim, time:True$|$False] returns the 
+topological ordered list of domains ldom. idx is the level to 
+consider for sorting, pdim is the parameter space dimension. 
+Returns a list of logical times (one per domain) if time is True, 
+otherwise it returns a permutation of ldom. An application of this 
+permutation to ldom returns a sorted list.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomSort}
+
+\alphanote{DomSort}{This function seems to be fragile. The only place where it is used 
+is in the INorm package.} 
+ 
+\alphausage{DomUnion}{DomUnion[d1, d2] returns the domain union of domains d1 and d2.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomUnion}
+
+\alphausage{DomUniverse}{DomUniverse[n]	returns the universe domain of dimension n.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomUniverse}
+
+\alphausage{DomUniverseQ}{DomUniverseQ[d] returns True if domain d is the universe, False otherwise.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomUniverseQ}
+
+\alphausage{DomVertices}{DomVertices[ldom, context] finds the parametrized vertices of a list 
+of parametrized polyhedra ldom. context is the domain of 
+parameters. It returns a list of pairs whose elements contain 
+a parameter domain, and a list of parametrized vertices. 
+DomVertices[pol, param] finds the parametrized vertices 
+of a parametrized polyhedron pol.
+DomVertices[pol], finds the vertices of the non-parametrized 
+polyhedron pol. It returns \{\{e,l\}\} where e is the universe 0-domain and 
+l is a list of non-parametrized vertices.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomVertices}
+
+\alphanote{DomVertices}{This function seems to be fragile. It is used nowhere in \MMAlpha{}.} 
+ 
+\alphausage{DomVisual}{DomVisual[d1,d2] visualizes the domain d1 with the Opera tool. d2 is
+the parameter domain. Warning if the domain d2 is ommited, it is
+replaced by the parameter domain of \$result. WARNING: CURRENTLY NOT
+AVAILABLE (the function does nothing).}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomVisual}
+
+\alphausage{DomZImage}{DomZImage[dom, mat] finds the Z-image of the domain dom by the matrix mat.
+This function may or may not return a Z-Domain depending on the 
+transformation matrix.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomZImage}
+
+\alphausage{DomZPreimage}{DomZPreimage[dom, mat] finds the Z-Preimage of the domain dom by the 
+matrix mat. This function may or may not return a Z-Domain depending on 
+the transformation matrix.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomZPreimage}
+
+\alphausage{hypercube}{hypercube[n] creates a hypercubic domain (in Mathematica form) of dimension n, 
+and size 10. dom2l[hypercube[n]] allows such a domain to 
+be translated into Alpha form. Useful for testing purposes.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{hypercube}
+
+\alphausage{LatticeDifference}{LatticeDifference[m1,m2] returns the difference of the lattices m1 and m2.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{LatticeDifference}
+
+\alphanote{LatticeDifference}{Seems to return a list of matrices.} 
+ 
+\alphausage{LatticeImage}{LatticeImage[m1,m2] returns the image of the lattice m1 by the function m2.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{LatticeImage}
+
+\alphausage{LatticeIntersection}{LatticeIntersection[m1,m2] returns the intersection of the lattices m1 and m2.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{LatticeIntersection}
+
+\alphausage{LatticeHermite}{LatticeHermite[m] returns the lattice m in Hermite Normal Form.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{LatticeHermite}
+
+\alphausage{LatticePreimage}{LatticePreimage[m1,m2]	returns the preimage of the lattice m1 by the 
+function m2.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{LatticePreimage}
+
+\alphausage{linearConstraintQ}{linearConstraintQ[c,\{symbols\}] is True if c is a linear constraint
+formed with symbols, False otherwise.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{linearConstraintQ}
+
+\alphausage{linearExpQ}{linearExpQ[exp,\{symbols\}] is True if exp is a linear expression 
+formed with symbols, False otherwise.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{linearExpQ}
+
+\alphausage{linHalfSpace}{linHalfSpace[h] returns the Mathematica Matrix corresponding to the Alpha
+half-space h.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{linHalfSpace}
+
+\alphausage{polToZpol}{If the domain d is a union of polyhedra, polToZpol[d] returns the
+equivalent Z-polyhedron, otherwise it returns d as is.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{polToZpol}
+
+\alphausage{rays}{rays[d] returns the list of rays of the Alpha domain d. rays[\{const,index\}]
+returns the vertices of d given in Mathematica form.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{rays}
+
+\alphausage{vertices}{vertices[d] returns the list of vertices of the Alpha domain d. 
+vertices[\{const,index\}] returns the vertices of d given in Mathematica form.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{vertices}
+
+\alphausage{zpolToPol}{If the domain d is a Z-Domain, zpolToPol[d] returns the rational polyhedral
+domain enclosing d, otherwise it returns d as is.}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{zpolToPol}
+
+\alphausage{zpolIsPolQ}{zpolIsPolQ[d] is True if the Z-polyhedron d is actually a polyhedron
+(i.e. has identity matrices as lattices).}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{zpolIsPolQ}
+
+\alphausage{DomTrueRays}{DomTrueRays[ dom ] returns the list of true rays of dom, i.e. rays which
+are not lines}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomTrueRays}
+
+\alphausage{DomConstraintsOfDom}{DomConstrainsOfDom[ dom ] returns the constraints }{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomConstraintsOfDom}
+
+\alphausage{DomLines}{DomLines[ dom ] returns the lines of dom}{Alpha/Domlib.m}{Alpha`Domlib`}
+\index{DomLines}
+

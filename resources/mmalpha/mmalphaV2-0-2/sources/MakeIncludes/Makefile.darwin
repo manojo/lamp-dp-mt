@@ -1,0 +1,15 @@
+#-----------------------------------------------
+#   This is the special config Makefile for Mac OS X. It was changed on
+#   September 23, 2007
+DEFINES      = -DUNIX
+
+#-----------------------------------------------
+LD = gcc
+PRECISIONFLAG=-DLINEAR_VALUE_IS_LONGLONG
+LDFLAGS		= -L$(LIBDIR) 
+
+#-----------------------------------------------
+#   Include special definitions for Mathlink depending on the version.
+#   Note that we are not in this directory...
+include ../MakeIncludes/Makefile.darwin.$(MMAVERSION)
+#include ../MakeIncludes/Makefile.linux.$(MMAVERSION)

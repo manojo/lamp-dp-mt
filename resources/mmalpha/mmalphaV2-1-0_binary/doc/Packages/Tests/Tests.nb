@@ -1,0 +1,2162 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 7.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[     63236,       2153]
+NotebookOptionsPosition[     51044,       1756]
+NotebookOutlinePosition[     52824,       1819]
+CellTagsIndexPosition[     52727,       1813]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Tests for MMAlpha", "Title",
+ FontColor->RGBColor[1, 0, 0],
+ CellTags->"firstcell"],
+
+Cell["The Alpha Team", "Subsubtitle"],
+
+Cell["January 1998, Revised Dec. 27, 2002 and April 2010. ", "Text",
+ CellChangeTimes->{{3.48101506840618*^9, 3.481015073716036*^9}}],
+
+Cell[CellGroupData[{
+
+Cell["Cr\[EAcute]dits", "Subsubsection",
+ FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+      Zbigniew Chamski 
+      Catherine Dezan 
+      Florent Dupont de Dinechin 
+      Patricia Le Mo\[EDoubleDot]nner 
+      Herv\[EAcute] Le Verge 
+      Christophe Mauras 
+      Patrice Quinton 
+      Fabien Quillere
+      Sanjay Rajopadhye 
+      Sophie Robert 
+      Tanguy Risset 
+      Doran Wilde \
+\>", "SmallText"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+ Open and execute this cell, to go in the Tests package directory\
+\>", "Subsubsection",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell["setMMADir[{\"doc/Packages/Tests\"}]", "Input",
+ InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Foreword", "Section",
+ CellChangeTimes->{{3.4810154152784*^9, 3.481015417396121*^9}},
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+This notebook contains explanations regarding tests, but in the meantime, I \
+adapted the tests so that a quite complete test can be run to check the \
+installation of MMAlpha. \
+\>", "Text",
+ CellChangeTimes->{{3.481015430741206*^9, 3.481015517001807*^9}},
+ TextAlignment->Left,
+ TextJustification->1.],
+
+Cell[TextData[StyleBox["Have a look at the pdf documentation in \
+$MaMALPHA/doc/Tests. ",
+ FontWeight->"Bold"]], "Text"],
+
+Cell[TextData[{
+ "The installation test consists in evaluation the following tests that all \
+should return True. If not, there is some problem in the installation. (It \
+may also happen that some evaluations during a session have corrupted some \
+function definitions, as all definitions are not protected. If this happens, \
+just quit ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " and start a new session.)"
+}], "Text",
+ CellChangeTimes->{{3.4810155240739527`*^9, 3.481015630767243*^9}},
+ TextAlignment->Left,
+ TextJustification->1.],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"test1", "[", "]"}], 
+  RowBox[{"(*", " ", 
+   RowBox[{"Very", " ", "fast"}], " ", "*)"}]}]], "Input",
+ CellChangeTimes->{{3.481015206771413*^9, 3.481015208571258*^9}, {
+  3.481015315522399*^9, 3.481015320996161*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"test2", "[", "]"}], 
+  RowBox[{"(*", " ", 
+   RowBox[{"Very", " ", "fast"}], " ", "*)"}]}]], "Input",
+ CellChangeTimes->{{3.481015227087681*^9, 3.481015229468092*^9}, {
+  3.481015325690255*^9, 3.4810153306496677`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"test3", "[", "]"}], " ", 
+  RowBox[{"(*", " ", 
+   RowBox[{"may", " ", "take", " ", "one", " ", "minute"}], " ", 
+   "*)"}]}]], "Input",
+ CellChangeTimes->{{3.481015250043579*^9, 3.481015252385275*^9}, {
+  3.481015300610816*^9, 3.48101531242585*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"test4", "[", "]"}], " ", 
+  RowBox[{"(*", " ", 
+   RowBox[{"may", " ", "take", " ", "one", " ", "minute"}], " ", 
+   "*)"}]}]], "Input",
+ CellChangeTimes->{{3.481015334230831*^9, 3.481015336673519*^9}, {
+  3.48101539508184*^9, 3.481015395744568*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Introduction", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+Warning: in the following, some tests have not been checked, and return wrong \
+result. They are in red titled paragraphs. Blue titled paragraphs should be \
+OK. April 2010. 
+
+This notebook explains how one can run a systematic test of MMAlpha. Certain \
+packages are provided with a sequence of (more or less) systematic tests. If \
+you run these tests, and something strange happens, this is the sign that \
+your version of MMAlpha is corrupted, or, if you are developping a new \
+package, or modifying a given package, that you inadvertently made a wrong \
+modification. \
+\>", "Text",
+ CellChangeTimes->{{3.4810150902786617`*^9, 3.481015123359376*^9}, 
+   3.4810154488666363`*^9, {3.4810157033204517`*^9, 3.48101575803627*^9}},
+ TextJustification->1],
+
+Cell["To run a test, use the tests function:", "Text"],
+
+Cell[BoxData[
+ RowBox[{"?", "tests"}]], "Input"],
+
+Cell["\<\
+This function, when used with no arguments, calls systematically the testing \
+procedure for all packages. This takes a while (a couple of minutes). A \
+better solution is to run the tests package by package. \
+\>", "Text"],
+
+Cell[TextData[{
+ "Tests programs are in the directory $MMALPHA/tests. Each package which is \
+equipped with tests has a directory called TestPackage (for example, \
+TestNormalization, TestCut, etc.). To run the test of say, Normalization, \
+just evaluate ",
+ StyleBox["tests[\"Normalization\"]", "Input"],
+ ". The evaluation must return True. Test files are provided basically as \
+non-regressive tests for MMAlpha development. \nWarning: some of the \
+following tests are wrong! We are fixing them. In what follows, blue sections \
+correspond to test that were passed as of Dec. 27 2002, and red sections to \
+tests which show some problems. \n",
+ StyleBox["Notes: \n\t", "Input"],
+ "- if you run tests[\"Normalization\",string], in some cases, this will \
+evaluate only the test named string of Normalization. This is convenient for \
+debugging, but this does not always work... as it requires the test file to \
+have a special form which is not met by all tests currently. \n\t- some tests \
+do not work if you are not using your own copy of MMAlpha, because they try \
+to save or copy files, which may not be allowed in a common distribution.\n\t"
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Writing a new test", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+Here are a few instructions on how to write a test file (notice that not all \
+test files conform to these instructions, as some were written before a \
+systematic procedure was set up). \
+\>", "Text"],
+
+Cell[TextData[{
+ "This is the example of the test for ChangeOfBasis. First, create a \
+directory named TestChangeOfBasis, in the directory ",
+ StyleBox["$MMAlpha/tests", "Input"],
+ " . It is important that the name of the directory be \"Test\" followed by \
+the name of the package, as the function ",
+ StyleBox["tests", "Input"],
+ ", when called with the argument ",
+ StyleBox["\"ChangeOfBasis\"", "Input"],
+ ", will look for this directory. "
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[TextData[{
+ "In this directory, create a file ",
+ StyleBox["TestChangeOfBasis.m", "Input"],
+ ", which contains a sequence of test instructions. Here is the example of \
+the test for ",
+ StyleBox["ChangeOfBasis", "Input"],
+ ". The test, properly speaking, makes use of a function, called ",
+ StyleBox["testFunction", "Input"],
+ "."
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{"?", "testFunction"}]], "Input"],
+
+Cell["\<\
+Its first argument is the test expression to be evaluated, the second \
+argument is the expected result, and the third argument is the name of the \
+test (a string). The result is a boolean value. For example:\
+\>", "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{"testFunction", "[", 
+  RowBox[{
+   RowBox[{"2", "+", "2"}], ",", "4", ",", "\"\<Test1\>\""}], "]"}]], "Input"],
+
+Cell["or", "Text"],
+
+Cell[BoxData[
+ RowBox[{"testFunction", "[", 
+  RowBox[{
+   RowBox[{"2", "+", "2"}], ",", "5", ",", "\"\<Test1\>\""}], "]"}]], "Input"],
+
+Cell[TextData[{
+ "When the result of the test is incorrect, a message is issued, and the \
+result is ",
+ StyleBox["False", "Input"],
+ ". Using this function allows the value of the various tests to be gathered, \
+and using a ",
+ StyleBox["And", "Input"],
+ ", the final result of the test can be computed. "
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{"Written", " ", "by", " ", 
+     RowBox[{"P", ".", " ", "Quinton"}]}], ",", " ", 
+    RowBox[{
+     RowBox[{"24", "/", "12"}], "/", "97"}]}], " ", "*)"}], "\n", 
+  RowBox[{
+   RowBox[{"dir", " ", "=", " ", 
+    RowBox[{"Directory", "[", "]"}]}], "\n", 
+   RowBox[{
+    RowBox[{"SetDirectory", "[", 
+     RowBox[{
+      RowBox[{"Environment", "[", "\"\<MMALPHA\>\"", "]"}], "<>", 
+      "\"\</tests/TestChangeOfBasis\>\""}], "]"}], ";"}], "\n", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Print", "[", "\"\<Test for ChangeOfBasis\>\"", "]"}], ";"}], 
+    "\n"}], " ", "\n", 
+   RowBox[{
+    RowBox[{"allTest", "=", "\n", "  ", 
+     RowBox[{"{", " ", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"load", "[", "\"\<Test1.alpha\>\"", "]"}], ";", "\n", "   ", 
+        RowBox[{"testFunction", "[", 
+         RowBox[{
+          RowBox[{"changeOfBasis", "[", "\"\<S.(t->t+1)\>\"", "]"}], ",", 
+          RowBox[{"<<", "RTest1"}], ",", "\"\<COB1\>\""}], "]"}]}], ",", "\n",
+        "   ", 
+       RowBox[{
+        RowBox[{"load", "[", "\"\<Test2.alpha\>\"", "]"}], ";", "\n", "   ", 
+        RowBox[{"testFunction", "[", 
+         RowBox[{
+          RowBox[{"changeOfBasis", "[", "\"\<Z.(t,p->t+p,p)\>\"", "]"}], ",", 
+          RowBox[{"<<", "RTest2"}], ",", "\"\<COB2\>\""}], "]"}]}], ",", "\n",
+        "   ", 
+       RowBox[{
+        RowBox[{"load", "[", "\"\<Test1.alpha\>\"", "]"}], ";", "\n", "   ", 
+        RowBox[{"testFunction", "[", 
+         RowBox[{
+          RowBox[{"changeOfBasis", "[", 
+           RowBox[{"\"\<S.(t->t,t)\>\"", ",", 
+            RowBox[{"{", 
+             RowBox[{"\"\<q\>\"", ",", "\"\<r\>\""}], "}"}]}], "]"}], ",", 
+          RowBox[{"<<", "RTest3"}], ",", "\"\<COB3\>\""}], "]"}]}], ",", "\n",
+        "   ", 
+       RowBox[{"testFunction", "[", 
+        RowBox[{
+         RowBox[{"changeOfBasis", "[", "\"\<z.(t->t-1)\>\"", "]"}], ",", 
+         "Null", ",", "\"\<COB4\>\""}], "]"}], ",", "\n", "   ", 
+       RowBox[{"testFunction", "[", 
+        RowBox[{
+         RowBox[{"changeOfBasis", "[", 
+          RowBox[{"\"\<S.(t->t-1)\>\"", ",", 
+           RowBox[{"{", 
+            RowBox[{"\"\<q\>\"", ",", "r"}], "}"}]}], "]"}], ",", "Null", 
+         ",", "\"\<COB5\>\""}], "]"}], ",", "\n", "   ", 
+       RowBox[{"testFunction", "[", 
+        RowBox[{
+         RowBox[{"changeOfBasis", "[", "\"\<S.(t->2t+1)\>\"", "]"}], ",", 
+         "Null", ",", "\"\<COB6\>\""}], "]"}], ",", "\n", "   ", 
+       RowBox[{"testFunction", "[", 
+        RowBox[{
+         RowBox[{"changeOfBasis", "[", "\"\<U.(t->t-1)\>\"", "]"}], ",", 
+         "Null", ",", "\"\<COB7\>\""}], "]"}], ",", "\n", "   ", 
+       RowBox[{"testFunction", "[", 
+        RowBox[{
+         RowBox[{"changeOfBasis", "[", 
+          RowBox[{"\"\<S.(t->t)\>\"", ",", 
+           RowBox[{"{", 
+            RowBox[{"\"\<q\>\"", ",", "\"\<r\>\""}], "}"}]}], "]"}], ",", 
+         "Null", ",", "\"\<COB8\>\""}], "]"}], ",", "\n", "   ", 
+       RowBox[{
+        RowBox[{"load", "[", "\"\<Test1.alpha\>\"", "]"}], ";", "\n", "   ", 
+        RowBox[{"testFunction", "[", 
+         RowBox[{
+          RowBox[{"changeOfBasis", "[", 
+           RowBox[{"\"\<S.(t->2t,2t)\>\"", ",", 
+            RowBox[{"{", 
+             RowBox[{"\"\<q\>\"", ",", "\"\<r\>\""}], "}"}]}], "]"}], ",", 
+          "Null", ",", "\"\<COB9\>\""}], "]"}]}], ",", "\n", "   ", 
+       RowBox[{
+        RowBox[{"load", "[", "\"\<Test3.alpha\>\"", "]"}], ";", "\n", "   ", 
+        RowBox[{"testFunction", "[", 
+         RowBox[{
+          RowBox[{"changeOfBasis", "[", 
+           RowBox[{
+           "\"\<HPipe\>\"", ",", "\n", "                              ", 
+            RowBox[{"matrix", "[", 
+             RowBox[{"5", ",", "5", ",", 
+              RowBox[{"{", 
+               RowBox[{
+               "\"\<i\>\"", ",", "\"\<n\>\"", ",", "\"\<N\>\"", ",", 
+                "\"\<M\>\""}], "}"}], ",", "\n", 
+              "                                     ", 
+              RowBox[{"{", 
+               RowBox[{
+                RowBox[{"{", 
+                 RowBox[{"1", ",", "1", ",", "0", ",", "0", ",", "1"}], "}"}],
+                 ",", 
+                RowBox[{"{", 
+                 RowBox[{"1", ",", "0", ",", "0", ",", "0", ",", "0"}], "}"}],
+                 ",", 
+                RowBox[{"{", 
+                 RowBox[{"0", ",", "0", ",", "1", ",", "0", ",", "0"}], "}"}],
+                 ",", 
+                RowBox[{"{", 
+                 RowBox[{"0", ",", "0", ",", "0", "\n", ",", "1", ",", "0"}], 
+                 "}"}], ",", 
+                RowBox[{"{", 
+                 RowBox[{"0", ",", "0", ",", "0", ",", "0", ",", "1"}], 
+                 "}"}]}], "}"}]}], "]"}], ",", 
+            RowBox[{"{", 
+             RowBox[{"\"\<t\>\"", ",", "\"\<n\>\""}], "}"}]}], "]"}], ",", 
+          "\n", "                ", 
+          RowBox[{"<<", "RTest4"}], ",", "\"\<COB10\>\""}], "]"}]}]}], "\n", 
+      " ", "}"}]}], "\n"}], " ", "\n", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"testResult", "=", 
+      RowBox[{"Apply", "[", 
+       RowBox[{"And", ",", "allTest"}], "]"}]}], ";"}], "\n"}], " ", "\n", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"SetDirectory", "[", "dir", "]"}], ";"}], "\n"}], " ", "\n", 
+   RowBox[{
+    RowBox[{"If", " ", "[", 
+     RowBox[{"testResult", ",", " ", "\n", "    ", 
+      RowBox[{"Print", "[", "\"\<Test OK for ChangeOfBasis.m \>\"", "]"}], 
+      ",", "\n", "    ", 
+      RowBox[{
+      "Print", "[", 
+       "\"\<Problems occured during test of   ChangeOfBasis.m \>\"", "]"}]}], 
+     "]"}], "\n"}], " ", "\n", "testResult"}]}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test of the Alpha package", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Alpha\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for AlpHard", "Section",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"tests", "[", "\"\<Alphard\>\"", "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test for changeOfBasis", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<ChangeOfBasis\>\"", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Test for CodeGen", "Section",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"tests", "[", "\"\<CodeGen\>\"", "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for CutMMA", "Section",
+ CellChangeTimes->{{3.481014640742724*^9, 3.4810146410121317`*^9}},
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<CutMMA\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.481014633385206*^9, 3.481014633775237*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Decompose", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Decomposition\>\"", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Test program for DesignManagement",
+ FontColor->RGBColor[1, 0, 0]]], "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<DesignManagement\>\"", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Domlib", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Domlib\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Test program for MathPip??",
+ FontColor->RGBColor[1, 0, 0]]], "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<MathPip\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Matrix", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Matrix\>\"", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for MultiDim", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<MultiDim\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for NewSchedule", "Section",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<NewSchedule\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test for Normalization", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Normalization\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for PipeControl", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<PipeControl\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Pipeline", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Pipeline\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Properties", "Section",
+ FontColor->RGBColor[1, 0, 0],
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Properties\>\"", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Schedule", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Schedule\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Test program for Semantics",
+ FontColor->RGBColor[1, 0, 0]]], "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Semantics\>\"", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Static", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[TextData[ButtonBox["Back to summary",
+ BaseStyle->"Hyperlink",
+ ButtonData:>"Summary"]], "Text",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Static\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Substitution", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Substitution\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for SubSystems", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<SubSystems\>\"", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Tables", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Tables\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Traduction??", "Section",
+ FontColor->RGBColor[1, 0, 0],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Traduction\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Uniformization (**)", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Uniformization\>\"", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for UniformizationTools", "Section",
+ FontColor->RGBColor[1, 0, 0],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<UniformizationTools\>\"", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Test program for Vhdl2",
+ FontColor->RGBColor[1, 0, 0]]], "Section",
+ FontColor->RGBColor[0, 0, 1],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Vhdl2\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Test program for Vhdl (useless)",
+ FontColor->RGBColor[1, 0, 0]]], "Section",
+ FontColor->RGBColor[0, 0, 1],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Vhdl\>\"", "]"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"Problems during VHDL tests\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018966279*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Returned value was: \\n\"\>", "\[InvisibleSpace]", 
+   TagBox[
+    StyleBox["512",
+     ShowSpecialCharacters->False,
+     ShowStringCharacters->True,
+     NumberMarks->True],
+    FullForm], "\[InvisibleSpace]", "\<\"\\nExpected value was:\\n\"\>", 
+   "\[InvisibleSpace]", 
+   TagBox[
+    StyleBox["0",
+     ShowSpecialCharacters->False,
+     ShowStringCharacters->True,
+     NumberMarks->True],
+    FullForm]}],
+  SequenceForm["Returned value was: \n", 
+   FullForm[512], "\nExpected value was:\n", 
+   FullForm[0]],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150188882523`*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"op: \"\>", "\[InvisibleSpace]", "\<\"\"\>"}],
+  SequenceForm["op: ", ""],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018877837*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"fullname: \"\>", 
+   "\[InvisibleSpace]", "\<\"/private/tmp//tmp/root065.c\"\>"}],
+  SequenceForm["fullname: ", "/private/tmp//tmp/root065.c"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018808413*^9}],
+
+Cell[BoxData["\<\"OK\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150186345377`*^9}],
+
+Cell[BoxData["\<\"[total]\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150183802443`*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018199801*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018191567*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018183091*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018174201*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018163903*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018155545*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018146847*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018138611*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018129603*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150181211243`*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018112535*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150181029654`*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150180941*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150180693293`*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015018054452*^9}],
+
+Cell[BoxData["\<\"Problem in affExtHom\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.48101501804342*^9}],
+
+Cell[BoxData["\<\"\\n[include file:cell1.alpha]\\n[include \
+file:mux.alpha][multiplex]\\n[return to previous file]\\n[include \
+file:add.alpha][galmul][addition]\\n[return to previous file]\\n[include \
+file:PPCM.alpha][coefcomp]\\n[return to previous file][cell1b]\\n[return to \
+previous file]\\n[include file:newsort.alpha][sortcell]\\n[return to previous \
+file][total]\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015017852928*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Calling Test: \"\>", "\[InvisibleSpace]", "\<\"Vhdl.m\"\>"}],
+  SequenceForm["Calling Test: ", "Vhdl.m"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015017750778*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Test report file is in \"\>", 
+   "\[InvisibleSpace]", \
+"\<\"/Users/patricequinton/mmalpha/tests/TestUniformization/TestingReport.txt\
+\"\>"}],
+  SequenceForm[
+  "Test report file is in ", 
+   "/Users/patricequinton/mmalpha/tests/TestUniformization/TestingReport.txt"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.48101501774408*^9}],
+
+Cell[BoxData["\<\"C:\\\\alpha_beta\\\\Mathematica/tests/\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Calling Test\"\>", "\[InvisibleSpace]", "\<\"Vhdl.m\"\>"}],
+  SequenceForm["Calling Test", "Vhdl.m"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "::", "\<\"cdir\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Cannot set current directory to \
+\\!\\(\\\"/udd/risset/alpha_beta/M\\\" \[Ellipsis] \
+\\\"/tests/TestVhdl/Grobner/\\\"\\).\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "::", "\<\"notFound\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\" File \\!\\(\\\"root.alpha\\\"\\) not found \"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- \
+(\\!\\(\\\"Tinit\\\"\\))\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" added to library.\"\>"}],
+  SequenceForm["controlFirModule", " added to library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- (\\!\\(\\\"Duration\\\"\\))\"\
+\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" replaced in library.\"\>"}],
+  SequenceForm["controlFirModule", " replaced in library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- \
+(\\!\\(\\\"Nbproc\\\"\\))\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"stop\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Further output of \\!\\(assignParameterValue :: \
+\\\"notParameter\\\"\\) will be suppressed during this calculation.\"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" replaced in library.\"\>"}],
+  SequenceForm["controlFirModule", " replaced in library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "::", "\<\"notFound\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\" File \\!\\(\\\"root065.alpha\\\"\\) not found \"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "::", "\<\"cdir\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Cannot set current directory to \
+\\!\\(\\\"/tmp\\\"\\).\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"\\nPlease wait...\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"firModule\"\>", 
+   "\[InvisibleSpace]", "\<\" was recognized as a Module.\"\>"}],
+  SequenceForm["firModule", " was recognized as a Module."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Alpha`Vhdl`Private`trtUseModule", "::", "\<\"librairie\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Sub-system \\!\\(\\\"ControlfirModule\\\"\\) is not in \
+$library\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Alpha`Vhdl`Private`genArchitecture", "::", "\<\"error3\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Error while calling genModule on \
+\\!\\(\\\"firModule\\\"\\)\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   RowBox[{"1.8429999999999964`", " ", "Second"}], 
+   "\[InvisibleSpace]", "\<\" needed to translate \"\>", 
+   "\[InvisibleSpace]", "\<\"firModule\"\>"}],
+  SequenceForm[
+  1.8429999999999964` Second, " needed to translate ", "firModule"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" was recognized as a Controller.\"\>"}],
+  SequenceForm["controlFirModule", " was recognized as a Controller."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Test program for Visual", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Visual\>\"", "]"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"------ > Test for \"\>", "\[InvisibleSpace]", "\<\"Visual\"\>",
+    "\[InvisibleSpace]", "\<\" was passed successfully.\"\>"}],
+  SequenceForm["------ > Test for ", "Visual", " was passed successfully."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.48101502568377*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"--------> Passed test \"\>", 
+   "\[InvisibleSpace]", "\<\"Visual 7\"\>"}],
+  SequenceForm["--------> Passed test ", "Visual 7"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015025678527*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"--------> Passed test \"\>", 
+   "\[InvisibleSpace]", "\<\"Visual 6\"\>"}],
+  SequenceForm["--------> Passed test ", "Visual 6"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150256738*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"--------> Passed test \"\>", 
+   "\[InvisibleSpace]", "\<\"Visual 5\"\>"}],
+  SequenceForm["--------> Passed test ", "Visual 5"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150256688337`*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"--------> Passed test \"\>", 
+   "\[InvisibleSpace]", "\<\"Visual 4\"\>"}],
+  SequenceForm["--------> Passed test ", "Visual 4"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015025664158*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"--------> Passed test \"\>", 
+   "\[InvisibleSpace]", "\<\"Visual 3\"\>"}],
+  SequenceForm["--------> Passed test ", "Visual 3"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015025659243*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"--------> Passed test \"\>", 
+   "\[InvisibleSpace]", "\<\"Visual 2\"\>"}],
+  SequenceForm["--------> Passed test ", "Visual 2"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015025654669*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"--------> Passed test \"\>", 
+   "\[InvisibleSpace]", "\<\"Visual 1\"\>"}],
+  SequenceForm["--------> Passed test ", "Visual 1"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015025649749*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Calling Test: \"\>", "\[InvisibleSpace]", "\<\"Visual.m\"\>"}],
+  SequenceForm["Calling Test: ", "Visual.m"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150256444597`*^9}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Test report file is in \"\>", 
+   "\[InvisibleSpace]", \
+"\<\"/Users/patricequinton/mmalpha/tests/TestUniformization/TestingReport.txt\
+\"\>"}],
+  SequenceForm[
+  "Test report file is in ", 
+   "/Users/patricequinton/mmalpha/tests/TestUniformization/TestingReport.txt"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150256387577`*^9}],
+
+Cell[BoxData["\<\"C:\\\\alpha_beta\\\\Mathematica/tests/\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Calling Test\"\>", "\[InvisibleSpace]", "\<\"Vhdl.m\"\>"}],
+  SequenceForm["Calling Test", "Vhdl.m"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "::", "\<\"cdir\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Cannot set current directory to \
+\\!\\(\\\"/udd/risset/alpha_beta/M\\\" \[Ellipsis] \
+\\\"/tests/TestVhdl/Grobner/\\\"\\).\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "::", "\<\"notFound\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\" File \\!\\(\\\"root.alpha\\\"\\) not found \"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- \
+(\\!\\(\\\"Tinit\\\"\\))\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" added to library.\"\>"}],
+  SequenceForm["controlFirModule", " added to library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- (\\!\\(\\\"Duration\\\"\\))\"\
+\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" replaced in library.\"\>"}],
+  SequenceForm["controlFirModule", " replaced in library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- \
+(\\!\\(\\\"Nbproc\\\"\\))\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"stop\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Further output of \\!\\(assignParameterValue :: \
+\\\"notParameter\\\"\\) will be suppressed during this calculation.\"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" replaced in library.\"\>"}],
+  SequenceForm["controlFirModule", " replaced in library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "::", "\<\"notFound\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\" File \\!\\(\\\"root065.alpha\\\"\\) not found \"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "::", "\<\"cdir\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Cannot set current directory to \
+\\!\\(\\\"/tmp\\\"\\).\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"\\nPlease wait...\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"firModule\"\>", 
+   "\[InvisibleSpace]", "\<\" was recognized as a Module.\"\>"}],
+  SequenceForm["firModule", " was recognized as a Module."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Alpha`Vhdl`Private`trtUseModule", "::", "\<\"librairie\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Sub-system \\!\\(\\\"ControlfirModule\\\"\\) is not in \
+$library\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Alpha`Vhdl`Private`genArchitecture", "::", "\<\"error3\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Error while calling genModule on \
+\\!\\(\\\"firModule\\\"\\)\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   RowBox[{"1.8429999999999964`", " ", "Second"}], 
+   "\[InvisibleSpace]", "\<\" needed to translate \"\>", 
+   "\[InvisibleSpace]", "\<\"firModule\"\>"}],
+  SequenceForm[
+  1.8429999999999964` Second, " needed to translate ", "firModule"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" was recognized as a Controller.\"\>"}],
+  SequenceForm["controlFirModule", " was recognized as a Controller."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Test program for WriteC",
+ FontColor->RGBColor[1, 0, 0]]], "Section",
+ FontColor->RGBColor[0, 0, 1],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<WriteC\>\"", "]"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Test report file is in \"\>", 
+   "\[InvisibleSpace]", \
+"\<\"/Users/patricequinton/mmalpha/tests/TestUniformization/TestingReport.txt\
+\"\>"}],
+  SequenceForm[
+  "Test report file is in ", 
+   "/Users/patricequinton/mmalpha/tests/TestUniformization/TestingReport.txt"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4810150425865927`*^9}],
+
+Cell[BoxData["\<\"C:\\\\alpha_beta\\\\Mathematica/tests/\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Calling Test\"\>", "\[InvisibleSpace]", "\<\"Vhdl.m\"\>"}],
+  SequenceForm["Calling Test", "Vhdl.m"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "::", "\<\"cdir\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Cannot set current directory to \
+\\!\\(\\\"/udd/risset/alpha_beta/M\\\" \[Ellipsis] \
+\\\"/tests/TestVhdl/Grobner/\\\"\\).\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "::", "\<\"notFound\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\" File \\!\\(\\\"root.alpha\\\"\\) not found \"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- \
+(\\!\\(\\\"Tinit\\\"\\))\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" added to library.\"\>"}],
+  SequenceForm["controlFirModule", " added to library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- (\\!\\(\\\"Duration\\\"\\))\"\
+\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" replaced in library.\"\>"}],
+  SequenceForm["controlFirModule", " replaced in library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- \
+(\\!\\(\\\"Nbproc\\\"\\))\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"stop\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Further output of \\!\\(assignParameterValue :: \
+\\\"notParameter\\\"\\) will be suppressed during this calculation.\"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" replaced in library.\"\>"}],
+  SequenceForm["controlFirModule", " replaced in library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "::", "\<\"notFound\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\" File \\!\\(\\\"root065.alpha\\\"\\) not found \"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "::", "\<\"cdir\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Cannot set current directory to \
+\\!\\(\\\"/tmp\\\"\\).\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"\\nPlease wait...\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"firModule\"\>", 
+   "\[InvisibleSpace]", "\<\" was recognized as a Module.\"\>"}],
+  SequenceForm["firModule", " was recognized as a Module."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Alpha`Vhdl`Private`trtUseModule", "::", "\<\"librairie\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Sub-system \\!\\(\\\"ControlfirModule\\\"\\) is not in \
+$library\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Alpha`Vhdl`Private`genArchitecture", "::", "\<\"error3\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Error while calling genModule on \
+\\!\\(\\\"firModule\\\"\\)\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   RowBox[{"1.8429999999999964`", " ", "Second"}], 
+   "\[InvisibleSpace]", "\<\" needed to translate \"\>", 
+   "\[InvisibleSpace]", "\<\"firModule\"\>"}],
+  SequenceForm[
+  1.8429999999999964` Second, " needed to translate ", "firModule"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" was recognized as a Controller.\"\>"}],
+  SequenceForm["controlFirModule", " was recognized as a Controller."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Test program for Zpol",
+ FontColor->RGBColor[1, 0, 0]]], "Section",
+ FontColor->RGBColor[0, 0, 1],
+ Background->None,
+ CellTags->"Test"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"tests", "[", "\"\<Zpol\>\"", "]"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Test report file is in \"\>", 
+   "\[InvisibleSpace]", \
+"\<\"/Users/patricequinton/mmalpha/tests/TestUniformization/TestingReport.txt\
+\"\>"}],
+  SequenceForm[
+  "Test report file is in ", 
+   "/Users/patricequinton/mmalpha/tests/TestUniformization/TestingReport.txt"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.481015051400667*^9}],
+
+Cell[BoxData["\<\"C:\\\\alpha_beta\\\\Mathematica/tests/\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Calling Test\"\>", "\[InvisibleSpace]", "\<\"Vhdl.m\"\>"}],
+  SequenceForm["Calling Test", "Vhdl.m"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "::", "\<\"cdir\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Cannot set current directory to \
+\\!\\(\\\"/udd/risset/alpha_beta/M\\\" \[Ellipsis] \
+\\\"/tests/TestVhdl/Grobner/\\\"\\).\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "::", "\<\"notFound\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\" File \\!\\(\\\"root.alpha\\\"\\) not found \"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- \
+(\\!\\(\\\"Tinit\\\"\\))\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" added to library.\"\>"}],
+  SequenceForm["controlFirModule", " added to library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- (\\!\\(\\\"Duration\\\"\\))\"\
+\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" replaced in library.\"\>"}],
+  SequenceForm["controlFirModule", " replaced in library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "::", "\<\"notParameter\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"-- Message text not found -- \
+(\\!\\(\\\"Nbproc\\\"\\))\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"General", "::", "\<\"stop\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Further output of \\!\\(assignParameterValue :: \
+\\\"notParameter\\\"\\) will be suppressed during this calculation.\"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" replaced in library.\"\>"}],
+  SequenceForm["controlFirModule", " replaced in library."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "::", "\<\"notFound\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\" File \\!\\(\\\"root065.alpha\\\"\\) not found \"\>"}]], \
+"Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "::", "\<\"cdir\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Cannot set current directory to \
+\\!\\(\\\"/tmp\\\"\\).\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"\\nPlease wait...\\n\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"firModule\"\>", 
+   "\[InvisibleSpace]", "\<\" was recognized as a Module.\"\>"}],
+  SequenceForm["firModule", " was recognized as a Module."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Alpha`Vhdl`Private`trtUseModule", "::", "\<\"librairie\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Sub-system \\!\\(\\\"ControlfirModule\\\"\\) is not in \
+$library\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Alpha`Vhdl`Private`genArchitecture", "::", "\<\"error3\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"Error while calling genModule on \
+\\!\\(\\\"firModule\\\"\\)\"\>"}]], "Message",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   RowBox[{"1.8429999999999964`", " ", "Second"}], 
+   "\[InvisibleSpace]", "\<\" needed to translate \"\>", 
+   "\[InvisibleSpace]", "\<\"firModule\"\>"}],
+  SequenceForm[
+  1.8429999999999964` Second, " needed to translate ", "firModule"],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"controlFirModule\"\>", 
+   "\[InvisibleSpace]", "\<\" was recognized as a Controller.\"\>"}],
+  SequenceForm["controlFirModule", " was recognized as a Controller."],
+  Editable->False]], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Suggestions", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+- Some functions still return $Failed. I would prefer that they return Null.
+- composeAffine does not work when affine functions have incompatible \
+dimensions.
+- unimodularQ should be generalized to non square matrices.
+- inverseMatrix may invert a non unimodular matrix, which may cause show to \
+fail. What do we do?
+- in the definition of convexize, it is suggested to use DomConvex instead. \
+Why? By the way, DomConvex, as all functions in the Domlib, are not \
+\"type-strong\".
+- convexize, convexizeAll, convHull, getDimension,  are not in the correct \
+package. 
+- translationVector should be generalized to non square matrices (obvious, \
+but do we do it?)
+- smithNormalForm should be tested
+- inverseInContext also\
+\>", "Text"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["7. bugs (?)", "Section",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+ RowBox[{"normalize", "[", "22", "]"}]], "Input"]
+}, Closed]]
+}, Open  ]]
+},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+Evaluator->"Local",
+WindowSize->{1010, 664},
+WindowMargins->{{-13, Automatic}, {Automatic, 24}},
+DockedCells->FEPrivate`FrontEndResource[
+ "FEExpressions", "CompatibilityToolbar"],
+Magnification->1.5,
+FrontEndVersion->"7.0 for Mac OS X x86 (32-bit) (February 18, 2009)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{
+ "firstcell"->{
+  Cell[567, 22, 89, 2, 114, "Title",
+   CellTags->"firstcell"]},
+ "Test"->{
+  Cell[16768, 522, 97, 2, 150, "Section",
+   CellTags->"Test"],
+  Cell[16981, 532, 94, 2, 150, "Section",
+   CellTags->"Test"],
+  Cell[17188, 542, 96, 2, 150, "Section",
+   CellTags->"Test"],
+  Cell[17399, 552, 94, 2, 79, "Section",
+   CellTags->"Test"],
+  Cell[17606, 562, 146, 3, 150, "Section",
+   CellTags->"Test"],
+  Cell[17866, 573, 111, 3, 79, "Section",
+   CellTags->"Test"],
+  Cell[18223, 589, 117, 3, 150, "Section",
+   CellTags->"Test"],
+  Cell[18457, 600, 115, 3, 150, "Section",
+   CellTags->"Test"],
+  Cell[18687, 611, 111, 3, 79, "Section",
+   CellTags->"Test"],
+  Cell[18909, 622, 117, 3, 150, "Section",
+   CellTags->"Test"],
+  Cell[19141, 633, 124, 3, 150, "Section",
+   CellTags->"Test"],
+  Cell[19384, 644, 124, 3, 79, "Section",
+   CellTags->"Test"],
+  Cell[19632, 655, 161, 4, 79, "Section",
+   CellTags->"Test"],
+  Cell[19903, 667, 170, 4, 150, "Section",
+   CellTags->"Test"],
+  Cell[30420, 1027, 111, 3, 79, "Section",
+   CellTags->"Test"],
+  Cell[38783, 1318, 162, 4, 150, "Section",
+   CellTags->"Test"],
+  Cell[44414, 1521, 160, 4, 79, "Section",
+   CellTags->"Test"]}
+ }
+*)
+(*CellTagsIndex
+CellTagsIndex->{
+ {"firstcell", 51530, 1772},
+ {"Test", 51606, 1775}
+ }
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[567, 22, 89, 2, 114, "Title",
+ CellTags->"firstcell"],
+Cell[659, 26, 37, 0, 39, "Subsubtitle"],
+Cell[699, 28, 133, 1, 39, "Text"],
+Cell[CellGroupData[{
+Cell[857, 33, 71, 1, 36, "Subsubsection"],
+Cell[931, 36, 334, 13, 634, "SmallText"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[1302, 54, 129, 3, 25, "Subsubsection"],
+Cell[1434, 59, 79, 1, 40, "Input",
+ InitializationCell->True]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[1550, 65, 122, 2, 100, "Section"],
+Cell[1675, 69, 313, 7, 62, "Text"],
+Cell[1991, 78, 120, 2, 39, "Text"],
+Cell[2114, 82, 544, 12, 84, "Text"],
+Cell[2661, 96, 251, 6, 40, "Input"],
+Cell[2915, 104, 253, 6, 40, "Input"],
+Cell[3171, 112, 285, 7, 40, "Input"],
+Cell[3459, 121, 285, 7, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3781, 133, 62, 1, 100, "Section"],
+Cell[3846, 136, 764, 14, 174, "Text"],
+Cell[4613, 152, 54, 0, 39, "Text"],
+Cell[4670, 154, 48, 1, 40, "Input"],
+Cell[4721, 157, 233, 4, 62, "Text"],
+Cell[4957, 163, 1208, 20, 309, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6202, 188, 68, 1, 100, "Section"],
+Cell[6273, 191, 211, 4, 62, "Text"],
+Cell[6487, 197, 501, 12, 126, "Text"],
+Cell[6991, 211, 392, 11, 126, "Text"],
+Cell[7386, 224, 55, 1, 60, "Input"],
+Cell[7444, 227, 278, 6, 93, "Text"],
+Cell[7725, 235, 134, 3, 60, "Input"],
+Cell[7862, 240, 18, 0, 58, "Text"],
+Cell[7883, 242, 134, 3, 60, "Input"],
+Cell[8020, 247, 363, 10, 93, "Text"],
+Cell[8386, 259, 5624, 135, 1269, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[14047, 399, 75, 1, 150, "Section"],
+Cell[14125, 402, 70, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[14232, 408, 74, 1, 150, "Section"],
+Cell[14309, 411, 90, 2, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[14436, 418, 72, 1, 150, "Section"],
+Cell[14511, 421, 78, 1, 60, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[14626, 427, 66, 1, 79, "Section"],
+Cell[14695, 430, 90, 2, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[14822, 437, 141, 2, 150, "Section"],
+Cell[14966, 441, 137, 2, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[15140, 448, 76, 1, 150, "Section"],
+Cell[15219, 451, 78, 1, 60, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[15334, 457, 134, 2, 79, "Section"],
+Cell[15471, 461, 81, 1, 60, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[15589, 467, 73, 1, 79, "Section"],
+Cell[15665, 470, 71, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[15773, 476, 127, 2, 150, "Section"],
+Cell[15903, 480, 72, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[16012, 486, 73, 1, 150, "Section"],
+Cell[16088, 489, 71, 1, 60, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[16196, 495, 75, 1, 79, "Section"],
+Cell[16274, 498, 73, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[16384, 504, 78, 1, 150, "Section"],
+Cell[16465, 507, 76, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[16578, 513, 72, 1, 150, "Section"],
+Cell[16653, 516, 78, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[16768, 522, 97, 2, 150, "Section",
+ CellTags->"Test"],
+Cell[16868, 526, 76, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[16981, 532, 94, 2, 150, "Section",
+ CellTags->"Test"],
+Cell[17078, 536, 73, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[17188, 542, 96, 2, 150, "Section",
+ CellTags->"Test"],
+Cell[17287, 546, 75, 1, 60, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[17399, 552, 94, 2, 79, "Section",
+ CellTags->"Test"],
+Cell[17496, 556, 73, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[17606, 562, 146, 3, 150, "Section",
+ CellTags->"Test"],
+Cell[17755, 567, 74, 1, 60, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[17866, 573, 111, 3, 79, "Section",
+ CellTags->"Test"],
+Cell[17980, 578, 132, 3, 58, "Text"],
+Cell[18115, 583, 71, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[18223, 589, 117, 3, 150, "Section",
+ CellTags->"Test"],
+Cell[18343, 594, 77, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[18457, 600, 115, 3, 150, "Section",
+ CellTags->"Test"],
+Cell[18575, 605, 75, 1, 60, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[18687, 611, 111, 3, 79, "Section",
+ CellTags->"Test"],
+Cell[18801, 616, 71, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[18909, 622, 117, 3, 150, "Section",
+ CellTags->"Test"],
+Cell[19029, 627, 75, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[19141, 633, 124, 3, 150, "Section",
+ CellTags->"Test"],
+Cell[19268, 638, 79, 1, 60, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[19384, 644, 124, 3, 79, "Section",
+ CellTags->"Test"],
+Cell[19511, 649, 84, 1, 60, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[19632, 655, 161, 4, 79, "Section",
+ CellTags->"Test"],
+Cell[19796, 661, 70, 1, 60, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[19903, 667, 170, 4, 150, "Section",
+ CellTags->"Test"],
+Cell[CellGroupData[{
+Cell[20098, 675, 69, 1, 60, "Input"],
+Cell[CellGroupData[{
+Cell[20192, 680, 152, 3, 45, "Print"],
+Cell[20347, 685, 691, 22, 150, "Print"],
+Cell[21041, 709, 244, 7, 45, "Print"],
+Cell[21288, 718, 314, 8, 45, "Print"],
+Cell[21605, 728, 130, 3, 45, "Print"],
+Cell[21738, 733, 135, 3, 45, "Print"],
+Cell[21876, 738, 149, 3, 81, "Print"],
+Cell[22028, 743, 149, 3, 81, "Print"],
+Cell[22180, 748, 149, 3, 81, "Print"],
+Cell[22332, 753, 149, 3, 81, "Print"],
+Cell[22484, 758, 149, 3, 81, "Print"],
+Cell[22636, 763, 149, 3, 81, "Print"],
+Cell[22788, 768, 149, 3, 81, "Print"],
+Cell[22940, 773, 149, 3, 81, "Print"],
+Cell[23092, 778, 149, 3, 81, "Print"],
+Cell[23244, 783, 151, 3, 81, "Print"],
+Cell[23398, 788, 149, 3, 81, "Print"],
+Cell[23550, 793, 151, 3, 81, "Print"],
+Cell[23704, 798, 147, 3, 81, "Print"],
+Cell[23854, 803, 151, 3, 81, "Print"],
+Cell[24008, 808, 149, 3, 81, "Print"],
+Cell[24160, 813, 148, 3, 81, "Print"],
+Cell[24311, 818, 482, 8, 391, "Print"],
+Cell[24796, 828, 276, 7, 45, "Print"],
+Cell[25075, 837, 440, 12, 81, "Print"],
+Cell[25518, 851, 122, 2, 48, "Print"],
+Cell[25643, 855, 230, 6, 45, "Print"]
+}, Open  ]],
+Cell[25888, 864, 298, 8, 73, "Message"],
+Cell[26189, 874, 217, 7, 42, "Message"],
+Cell[26409, 883, 246, 7, 42, "Message"],
+Cell[26658, 892, 266, 7, 45, "Print"],
+Cell[26927, 901, 249, 7, 42, "Message"],
+Cell[27179, 910, 272, 7, 45, "Print"],
+Cell[27454, 919, 247, 7, 42, "Message"],
+Cell[27704, 928, 289, 8, 73, "Message"],
+Cell[27996, 938, 272, 7, 45, "Print"],
+Cell[28271, 947, 220, 7, 42, "Message"],
+Cell[28494, 956, 231, 7, 42, "Message"],
+Cell[CellGroupData[{
+Cell[28750, 967, 104, 2, 115, "Print"],
+Cell[28857, 971, 272, 7, 45, "Print"]
+}, Open  ]],
+Cell[29144, 981, 264, 7, 73, "Message"],
+Cell[29411, 990, 260, 7, 73, "Message"],
+Cell[CellGroupData[{
+Cell[29696, 1001, 366, 10, 45, "Print"],
+Cell[30065, 1013, 294, 7, 45, "Print"]
+}, Open  ]]
+}, Open  ]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[30420, 1027, 111, 3, 79, "Section",
+ CellTags->"Test"],
+Cell[CellGroupData[{
+Cell[30556, 1034, 71, 1, 60, "Input"],
+Cell[CellGroupData[{
+Cell[30652, 1039, 374, 8, 45, "Print"],
+Cell[31029, 1049, 300, 8, 45, "Print"],
+Cell[31332, 1059, 298, 8, 45, "Print"],
+Cell[31633, 1069, 302, 8, 45, "Print"],
+Cell[31938, 1079, 300, 8, 45, "Print"],
+Cell[32241, 1089, 300, 8, 45, "Print"],
+Cell[32544, 1099, 300, 8, 45, "Print"],
+Cell[32847, 1109, 300, 8, 45, "Print"],
+Cell[33150, 1119, 282, 7, 45, "Print"],
+Cell[33435, 1128, 443, 12, 81, "Print"],
+Cell[33881, 1142, 122, 2, 48, "Print"],
+Cell[34006, 1146, 230, 6, 45, "Print"]
+}, Open  ]],
+Cell[34251, 1155, 298, 8, 73, "Message"],
+Cell[34552, 1165, 217, 7, 42, "Message"],
+Cell[34772, 1174, 246, 7, 42, "Message"],
+Cell[35021, 1183, 266, 7, 45, "Print"],
+Cell[35290, 1192, 249, 7, 42, "Message"],
+Cell[35542, 1201, 272, 7, 45, "Print"],
+Cell[35817, 1210, 247, 7, 42, "Message"],
+Cell[36067, 1219, 289, 8, 73, "Message"],
+Cell[36359, 1229, 272, 7, 45, "Print"],
+Cell[36634, 1238, 220, 7, 42, "Message"],
+Cell[36857, 1247, 231, 7, 42, "Message"],
+Cell[CellGroupData[{
+Cell[37113, 1258, 104, 2, 115, "Print"],
+Cell[37220, 1262, 272, 7, 45, "Print"]
+}, Open  ]],
+Cell[37507, 1272, 264, 7, 73, "Message"],
+Cell[37774, 1281, 260, 7, 73, "Message"],
+Cell[CellGroupData[{
+Cell[38059, 1292, 366, 10, 45, "Print"],
+Cell[38428, 1304, 294, 7, 45, "Print"]
+}, Open  ]]
+}, Closed]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[38783, 1318, 162, 4, 150, "Section",
+ CellTags->"Test"],
+Cell[CellGroupData[{
+Cell[38970, 1326, 71, 1, 60, "Input"],
+Cell[CellGroupData[{
+Cell[39066, 1331, 443, 12, 81, "Print"],
+Cell[39512, 1345, 122, 2, 48, "Print"],
+Cell[39637, 1349, 230, 6, 45, "Print"]
+}, Open  ]],
+Cell[39882, 1358, 298, 8, 73, "Message"],
+Cell[40183, 1368, 217, 7, 42, "Message"],
+Cell[40403, 1377, 246, 7, 42, "Message"],
+Cell[40652, 1386, 266, 7, 45, "Print"],
+Cell[40921, 1395, 249, 7, 42, "Message"],
+Cell[41173, 1404, 272, 7, 45, "Print"],
+Cell[41448, 1413, 247, 7, 42, "Message"],
+Cell[41698, 1422, 289, 8, 73, "Message"],
+Cell[41990, 1432, 272, 7, 45, "Print"],
+Cell[42265, 1441, 220, 7, 42, "Message"],
+Cell[42488, 1450, 231, 7, 42, "Message"],
+Cell[CellGroupData[{
+Cell[42744, 1461, 104, 2, 115, "Print"],
+Cell[42851, 1465, 272, 7, 45, "Print"]
+}, Open  ]],
+Cell[43138, 1475, 264, 7, 73, "Message"],
+Cell[43405, 1484, 260, 7, 73, "Message"],
+Cell[CellGroupData[{
+Cell[43690, 1495, 366, 10, 45, "Print"],
+Cell[44059, 1507, 294, 7, 45, "Print"]
+}, Open  ]]
+}, Open  ]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[44414, 1521, 160, 4, 79, "Section",
+ CellTags->"Test"],
+Cell[CellGroupData[{
+Cell[44599, 1529, 69, 1, 60, "Input"],
+Cell[CellGroupData[{
+Cell[44693, 1534, 441, 12, 81, "Print"],
+Cell[45137, 1548, 122, 2, 48, "Print"],
+Cell[45262, 1552, 230, 6, 45, "Print"]
+}, Open  ]],
+Cell[45507, 1561, 298, 8, 73, "Message"],
+Cell[45808, 1571, 217, 7, 42, "Message"],
+Cell[46028, 1580, 246, 7, 42, "Message"],
+Cell[46277, 1589, 266, 7, 45, "Print"],
+Cell[46546, 1598, 249, 7, 42, "Message"],
+Cell[46798, 1607, 272, 7, 45, "Print"],
+Cell[47073, 1616, 247, 7, 42, "Message"],
+Cell[47323, 1625, 289, 8, 73, "Message"],
+Cell[47615, 1635, 272, 7, 45, "Print"],
+Cell[47890, 1644, 220, 7, 42, "Message"],
+Cell[48113, 1653, 231, 7, 42, "Message"],
+Cell[CellGroupData[{
+Cell[48369, 1664, 104, 2, 115, "Print"],
+Cell[48476, 1668, 272, 7, 45, "Print"]
+}, Open  ]],
+Cell[48763, 1678, 264, 7, 73, "Message"],
+Cell[49030, 1687, 260, 7, 73, "Message"],
+Cell[CellGroupData[{
+Cell[49315, 1698, 366, 10, 45, "Print"],
+Cell[49684, 1710, 294, 7, 45, "Print"]
+}, Open  ]]
+}, Open  ]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[50039, 1724, 61, 1, 79, "Section"],
+Cell[50103, 1727, 749, 16, 363, "Text"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[50889, 1748, 61, 1, 79, "Section"],
+Cell[50953, 1751, 63, 1, 60, "Input"]
+}, Closed]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

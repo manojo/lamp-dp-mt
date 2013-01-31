@@ -1,0 +1,36 @@
+-- Alphard programm  for the big Add of the first  
+-- cell of the spolisation circuit.
+-- the gallois multiplier is iplemented with integer
+
+system galmul:{Tinit,Duration| Tinit>=0; Duration > 0}
+	(gal1,gal2: {t|Tinit<=t<=Tinit+Duration-1} of integer)
+   returns (gal3:  {t|Tinit<=t<=Tinit+Duration-1} of integer);
+let  
+gal3[t]= if ((gal1[t] = 0[]) or (gal2[t] = 0[]))  then 
+	case 
+	{t|Tinit<=t<=Tinit+Duration} : 	0[] ;
+	esac
+	else 
+	case
+	{t|Tinit<=t<=Tinit+Duration} : 	gal1[t]+gal2[t]-1[];
+	esac;
+tel;	
+
+
+system addition:{Tinit,Duration| Tinit>=0; Duration > 0}
+  (Ilam1,Ilam2,lllam1,lllam2,Ix1,Ix2,Iy1,Iy2,Ux1,Ux2,Uy1,Uy2
+	 : {t|Tinit<=t<=Tinit+Duration-1} of integer)
+  returns (Rlam1,Rx1,Ry1,Rlam2,Rx2,Ry2
+	 : {t|Tinit<=t<=Tinit+Duration-1} of integer);
+let
+use galmul[Tinit,Duration]
+	(Ilam1,lllam1) returns (Rlam1);
+use galmul[Tinit,Duration]
+	(Ilam2,lllam2) returns (Rlam2);
+
+Rx1=Ix1+Ux1;
+Ry1=Iy1+Uy1;
+Rx2=Ix2+Ux2;
+Ry2=Iy2+Uy2;
+
+tel;

@@ -1,0 +1,32 @@
+-- VHDL Model Created for "system reg" 
+-- 15/7/2003 0:34:25
+-- Alpha2Vhdl Version 0.9 
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_signed.all;
+use IEEE.numeric_std.all;
+
+ENTITY reg IS
+PORT(
+  Ck: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  x : IN  INTEGER RANGE -32768 TO 32767;
+  z : OUT  INTEGER RANGE -32768 TO 32767
+);
+END reg;
+
+ARCHITECTURE behavioural OF reg IS
+
+
+  -- Insert missing components here!---------
+BEGIN
+
+    PROCESS(ck) BEGIN IF (ck = '1' AND ck'EVENT) THEN
+      IF CE='1' THEN z <= x; END IF;
+                END IF;
+    END PROCESS;
+
+END behavioural;
+

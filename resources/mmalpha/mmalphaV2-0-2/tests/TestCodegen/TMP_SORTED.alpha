@@ -1,0 +1,7 @@
+let
+  {t,N | t=1; 2<=N} :: 
+    let
+      {t,p,N | t=1; 1<=p<=N; 2<=N} :: A = a.(t,p,N->p,N) * a.(t,p,N->p,N);
+      {t,p1,p2,N | t=1; 1<=p1<=N; p2=2; 2<=N} :: outc = A.(t,p1,p2,N->t,p1,N);
+    tel;
+tel;

@@ -1,0 +1,135 @@
+%
+% File created on {2008, 3, 11, 16, 16, 25.885021} by makeDoc.
+%
+% Section header
+\section{The Alpha`Matrix` package } 
+\label{label:Alpha`Matrix`}
+\alphanote{Matrix}{Documentation revised on March 11, 2008} 
+ 
+\alphausage{Matrix}{The Alpha`Matrix` package contains a few functions related to Alpha matrices. These functions are  alphaToMmaMatrix, composeAffines, convHull, convexize, convexizeAll, deleteColumn, deleteRow, determinant, dropColumns, dropParameters,  dropRows, emptyLinearPartQ, getLinearPart, getTranslationVector,  hermite, hermiteL, hermiteR, inverseMatrix, identityQ, idLinearPartQ, idMatrix, inverseInContext, nullSpaceVectors, mmaToAlphaMatrix,  nullLinearPartQ, simplifyAffines, solveDiophantine, smithNormalForm,  squareMatrixQ, suppressRowNum, translationMatrix, translationQ, unimodularQ,  composeAffines, inverseMatrix, unimodularQ, unimodularCompletion,  unimodCompl.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{Matrix}
+
+\alphausage{addLinSpace}{Obsolete function, replaced by the generalized ChangeOfBasis.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{addLinSpace}
+
+\alphausage{alphaToMmaMatrix}{alphaToMmaMatrix[mat] translates a linear function from Alpha format into Mathematica format (list of list). If the linear function mat was affine (non nul constant part) this constant part is lost.  \\ Example:\\ alphaToMmaMatrix[\\ matrix[3, 3, \{i, j\}, \{\{1, 2, 0\}, \{0, 3, 0\}, \{0, 0, 1\}\}]\\ ]\\ gives \{\{1, 2\}, \{0, 3\}\}.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{alphaToMmaMatrix}
+
+\alphausage{canonicalProjection}{Obsolete. canonicalProjection[dom, pos] returns a projected domain obtained  by supressing the indices given by the integer list pos.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{canonicalProjection}
+
+\alphanote{canonicalProjection}{OBSOLETE. Replaced by (generalized) ChangeOfBasis.} 
+ 
+\alphausage{composeAffines}{composeAffines[m1,m2] returns the composition of two affine matrices m1 and m2. These matrices are described in the Alpha format.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{composeAffines}
+
+\alphausage{convHull}{convHull[ldom] returns the convex hull of a (possibly empty) list of  domains ldom.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{convHull}
+
+\alphanote{convHull}{If the input list is empty, returns an empty list.} 
+ 
+\alphausage{convexize}{convexize[domain] returns the convex hull of domain if domain is convex, otherwise returns domain unmodified. Used to convexize a union  of domains (try to use DomConvex instead).}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{convexize}
+
+\alphausage{convexizeAll}{convexizeAll[sys] tries to convexize all the non-convex domains of sys (default \$result) and returns the modified system.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{convexizeAll}
+
+\alphausage{deleteColumn}{deleteColumn[m,k] removes the k-th column of the Alpha matrix m. It removes also index k of m.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{deleteColumn}
+
+\alphausage{deleteRow}{deleteRow[m,k] removes the k-th row of the Alpha matrix m. It does not touch the index list of m.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{deleteRow}
+
+\alphausage{determinant}{determinant[m] gives the determinant of a square Alpha matrix. The result can be integer or rationnal, the constant part is not taken into account.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{determinant}
+
+\alphausage{dropColumns}{dropColumns[m,n] removes n columns of the Alpha matrix m, from front if n is positive, from end if n is negative. This function does not touch the  dimensions nor the indexes of the matrix.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{dropColumns}
+
+\alphausage{dropParameters}{dropParameters[sys,m] removes the rows of Alpha matrix m corresponding to  parameters of system sys (default \$result). If there are too many  parameters, dropParameters returns m unchanged.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{dropParameters}
+
+\alphausage{dropRows}{dropRows[m,n] removes n rows of the Alpha matrix m, from front if n is  positive, from the end otherwise. This function does not touch the  dimensions nor the indexes of the matrix.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{dropRows}
+
+\alphausage{emptyLinearPartQ}{emptyLinearPartQ[m] is True if the linear part of matrix m is empty,  False otherwise.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{emptyLinearPartQ}
+
+\alphausage{getLinearPart}{getLinearPart[m] returns the linear part of an affine function m.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{getLinearPart}
+
+\alphausage{getTranslationVector}{getTranslationVector[m] returns the translation vector of a square  affine function m.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{getTranslationVector}
+
+\alphausage{hermite}{hermite[m] returns the left hermite decomposition \{h,u\} (as Alpha matrices) of m1 (such that m1=composeAffines[h,u]).\\ WARNING: Currently, this function only deals with linear function (the constant part is ignored).}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{hermite}
+
+\alphausage{hermiteL}{hermiteL[m] performs the left Hermite decomposition of the Mathematica matrix m and returns mathematica matrices  \{H,Q\} where Q unimodular, H upper triangular and m = Dot[H,Q].}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{hermiteL}
+
+\alphausage{hermiteR}{hermiteR[m] computes the right Hermite decomposition of the  Mathematica matrix m and returns Mathematica matrices \{H,Q\}, where Q is unimodular, H is lower triangular, and m=Dot[Q,H].}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{hermiteR}
+
+\alphausage{inverseMatrix}{inverseMatrix[m] computes and returns the inverse of a square affine  matrix m.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{inverseMatrix}
+
+\alphausage{identityQ}{identityQ[m] is True if an Alpha affine function m is the identity,  False otherwise.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{identityQ}
+
+\alphausage{idLinearPartQ}{idLinearPartQ[m] is True if the linear part of the affine function given as Alpha matrix m is the identity, False otherwise.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{idLinearPartQ}
+
+\alphausage{idMatrix}{idMatrix[idx\_List,idy\_List] returns the transformation matrix for dependence (idx$ \rightarrow $idy), where idx and idy are lists of index names. It is assumed that names in idy are also in idx.  \\Example:\\ idMatrix[\{"i","j"\},\{"i","i","j"\}] = \\ matrix[4, 3, \{"i","j"\}, \{\{1,0, 0\}, \{1, 0, 0\}, \{0, 1, 0\}, \{0, 0, 1\}\}].}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{idMatrix}
+
+\alphausage{inverseInContext}{inverseincontext[m,d] computes the inverse matrix of Alpha matrix m in  context with domain d, i.e., taking into account the lineality space  defined by d.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{inverseInContext}
+
+\alphausage{isIdLinearPart}{obsolete form of idLinearPartQ.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{isIdLinearPart}
+
+\alphausage{isNullLinearPart}{obsolete form of nullLinearPartQ.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{isNullLinearPart}
+
+\alphausage{nullSpaceVectors}{nullSpaceVectors[mat] gives the list of vectors of the null space of Alpha matrix mat.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{nullSpaceVectors}
+
+\alphausage{mmaToAlphaMatrix}{mmaToAlphaMatrix[m] returns the Alpha form of a Mathematica matrix m. mmaToAlphaMatrix[m,i] returns the Alpha form of matrix m with index (list of strings) i. mmaToAlphaMatrix[m,c:List[\_\_\_]] returns the Alpha form of a linear function Z $ \rightarrow $ mZ+c.  \\Example: \\mmaToAlphaMatrix[\{\{1, 2\},\{0, 3\}\},\{1,4\}]\\gives the Alpha matrix  which represents the affine function (i,j$ \rightarrow $i+2j+1,3j+4).   mmaToAlphaMatrix[m,c,i] returns the Alpha form of linear function Z $ \rightarrow $ mZ+c, with index (string list) i.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{mmaToAlphaMatrix}
+
+\alphausage{nullLinearPartQ}{nullLinearPartQ[m] is True if the linear part of the affine function given as Alpha matrix m is null, False otherwise.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{nullLinearPartQ}
+
+\alphausage{solveDiophantine}{solveDiophantine[a,b] solves  the linear diophantine system  of equations aX = b where a is a MMA matrix, and b a MMA vector. The  solution has the form \{x1,n,M\} where x1 is a particular solution  of aX=b, n is the number of columns of M, and M is a matrix such  that X=Mt (t is a n-vector) is the general solution of aX=0. The  general solution of aX=b is x1+Mt. If the system has no integral solution, then x1 is \{\}. solveDiophantine[a] solves  the linear  diophantine system of equation  ax=0 where a is a MMA matrix.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{solveDiophantine}
+
+\alphausage{smithNormalForm}{smithNormalForm[mat computes the Smith Normal Form of an Alpha matrix mat and returns \{u,s,v\} (Alpha matrices), where u,v are unimodular and s is diagonal such that mat = u.s.v.  smithNormalForm[m] computes the Smith Normal Form of a Mathematica matrix m.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{smithNormalForm}
+
+\alphausage{squareMatrixQ}{squareMatrixQ[m] is True if m is a square Alpha matrix.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{squareMatrixQ}
+
+\alphausage{subMatrices}{subMatrices[m1,m2] subtracts two matrices m1 and m2. This function is for internal use by the Pipeline function.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{subMatrices}
+
+\alphausage{suppressRowNum}{suppressRowNum[mat,i] suppresses row i in (\MMAlpha{}) matrix mat.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{suppressRowNum}
+
+\alphausage{translationMatrix}{translationMatrix[ind, vec] returns an Alpha translation matrix  corresponding to the function: (ind $ \rightarrow $ ind+vec), where ind is a list of indices and vec an integral vector.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{translationMatrix}
+
+\alphausage{translationQ}{translationQ[m] is True if the full rank affine function m is a translation, False otherwise.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{translationQ}
+
+\alphausage{unimodularQ}{unimodularQ[m] is True if an \MMAlpha{} affine matrix m is square and unimodular, False otherwise.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{unimodularQ}
+
+\alphausage{unimodularCompletion}{unimodularCompletion[vl] completes a vector list vl into a unimodular matrix which is returned. unimodularCompletion[mat] takes the vector  expressed as an Alpha matrix mat and completes it into a unimodular  Alpha matrix which is returned. If the original vector is of size n,  the resulting matrix is of size (n+1)*(n+1) and the first row of the  resulting matrix is the original vector with 0 appended as constant term. For example, \\unimodularCompletion[\{1,1,1\}] returns \\ matrix[4, 4, \{\}, \{\{1, 1, 1, 0\}, \{0, 0, 0, 1\}, \{0, 0, 1, 0\}, \{0, 1, 0, 0\}\}]\\ and  \\unimodularCompletion[matrix[4, 4, \{\}, \{\{1, 1, 1, 0\},  \{0, 0, 0, 1\}\}]  \\ returns \\ matrix[4, 4, \{\}, \{\{1, 1, 1, 0\}, \{0, 0, 0, 1\}, \{0, 0, 1, 0\},     \\\{0, 1, 0, 0\}\}].}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{unimodularCompletion}
+
+\alphausage{unimodCompl}{unimodCompl[mat] returns an unimodular completion of matrix mat, or \$Failed if an error occurs. The result is an Alpha matrix. The indices of the result are those of mat, with some new arbitrary indices if necessary.  Exemple : completion of (i,j$ \rightarrow $2i) returns (i,j,k$ \rightarrow $2i+k,j,i). The optional parameter indicates the dimension of the parameter space (0 if none). \\unimodCompl[mat] is the mathematica version (no constant row and column). It returns a square unimodular \MMAlpha{} matrix. First lines of this matrix are the matrix mat (modulo an extension on the right).   \\ For exemple: \{\{2,0,0\},\{1,2,0\}\} will be completed as: \\ \{\{2,0,0,1,0\}, \{1,2,0,0,1\}, \{0,0,1,0,0\}, \{1,0,0,0,0\}, \{0,1,0,0,0\}\}. \\ unimodCompl[mat,nbPar] returns a MMA matrix or \$Failed if an error  occurs. mat is a (k*(n+p+1) MMA matrix, it represents a  k-dimensional affine function for a n-dim variable, with a p-dim parameter space. Thus, the last column is the constant column. nbPar is the parameter space dimension, i.e. p. The function computes n from p and mat. The result is a MMA matrix, which has at least (n+p+1) rows and exactly (n+p+1) columns. The first k rows are exactly mat. If the result isn't square, it means that some dimension will be added by the returned change of basis.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{unimodCompl}
+
+\alphausage{simplifyAffines}{simplifyAffines[] simplifies all affine functions in system \$result.  \\simplifyAffines[sys] simplifies all affine functions on system sys.}{Alpha/Matrix.m}{Alpha`Matrix`}
+\index{simplifyAffines}
+

@@ -1,0 +1,14 @@
+system prodVect :{N | 2<=N}
+                (a : {i,j | 1<=i<=N; 1<=j<=N} of boolean; 
+                 b : {i | 1<=i<=N} of boolean)
+       returns  (c : {i | 1<=i<=N} of boolean);
+var
+  C : {t,p | 0<=t<=N; 1<=p<=N} of boolean;
+let
+  C[t,p] = 
+      case
+        { | t=0} : False[];
+        { | 1<=t} : C[t-1,p] + a[p,t] * b[t];
+      esac;
+  c[i] = C[N,i];
+tel;

@@ -1,0 +1,57 @@
+--load["essai.a"]; inlineAll[]; writeC["test.c", "-p3"];
+--then gcc test.c complains.
+--If you do an assignParameterValue["N",3"] before writeC
+--then it's OK.  
+--So there's a simple workaround, so it's a low-priority bug report.
+
+system add (in:{arg|1<=arg<=2} of real) returns (out:{arg|arg=1} of real);
+let 
+   out[arg]=in[arg]+in[arg+1];
+tel
+
+system mul (in:{arg|1<=arg<=2} of real) returns (out:{arg|arg=1} of real);
+let 
+   out[arg]=in[arg]*in[arg+1];
+tel
+
+system addmul (in:{arg|1<=arg<=3} of real) returns (out:{arg|arg=1} of real);
+var
+   aux1 : {arg|arg=1} of real;
+   aux2 : {arg|1<=arg<=2} of real;
+let 
+   use mul ({arg|1<=arg<=2}:in.(arg->arg+1)) returns (aux1);
+   aux2 = case 
+            {arg|arg=1} : in;
+            {arg|arg=2} : aux1.(arg->arg-1);
+          esac;
+   use add (aux2) returns (out);
+
+tel
+
+system dotprod1:{N| 1<=N}
+                (in : {arg,i | 2<=arg<=3; 1<=i<=N} 
+                      | {arg,i | 1<=arg<=3; i=1; 1<=N}
+                       of real
+                ) 
+        returns (out: {arg,i | arg=1; i=N+1 } of real);
+var
+   aux0 :{arg,i | 2<=arg<=3; 1<=i<=N} 
+       | {arg,i | 1<=arg<=3; i=1; 1<=N}
+       | {arg,i | arg=1; 2<=i<=N} of real;
+   aux1 :  {arg,i | arg=1; 1<=i<=N } of real;
+   aux2 :  {arg,i | arg=1; 2<=i<=N+1 } of real;
+   recinter: {arg,i | arg=1; 2<=i<=N} of real;
+let 
+   aux0 = case
+             {arg,i | 2<=arg<=3; 1<=i<=N} 
+              | {arg,i | 1<=arg<=3; i=1; 1<=N}: in;
+             {arg,i | arg=1; 2<=i<=N} : recinter;
+          esac;
+
+   use {i|1<=i<=N} addmul (aux0) returns(aux1);
+   aux2 = aux1. (arg,i->arg,i-1);
+
+   recinter = {arg,i | arg=1; 2<=i<=N}: aux2;
+   out =  {arg,i | arg=1; i=N+1 } : aux2;
+
+tel

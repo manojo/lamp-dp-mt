@@ -1,0 +1,19 @@
+system controlFirModule :{N,M | 2<=N<=M-1}
+  ( )
+returns
+  (HPipe_ctl1P_Init : {t | t=1; 2<=N<=M-1} | 
+                      {t | 2<=t<=-N+M+1; 2<=N} of boolean; 
+   xPipe_ctl2P_Init : {t | t=2; 2<=N<=M-1} | 
+                      {t | 3<=t<=-N+M+2; 2<=N} of boolean);
+let
+  HPipe_ctl1P_Init[t] = 
+      case
+        {| t=1; 2<=N<=M-1} : True[];
+        {| 2<=t<=-N+M+1; 2<=N} : False[];
+      esac;
+  xPipe_ctl2P_Init[t] = 
+      case
+        {| t=2; 2<=N<=M-1} : True[];
+        {| 3<=t<=-N+M+2; 2<=N} : False[];
+      esac;
+tel;

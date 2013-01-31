@@ -1,0 +1,17 @@
+system cell1 : {p | 2<=p<=10}
+               (A : {t | 1<=t} of integer)
+       returns (S : {t | 2<=t} of integer);
+var
+  a : {t | 1<=t} of integer;
+  b : {t | 1<=t} of integer;
+  e : {t | 1<=t} of integer;
+  c : {t | 2<=t} of integer;
+  d : {t | 2<=t} of integer;
+let
+  a[t] = 0[] + A[t];
+  b[t] = a[t];
+  c[t] = b[t-1];
+  d[t] = a[t-1] + b[t-1] - c[t];
+  e[t] = -a[t];
+  S[t] = c[t];
+tel;

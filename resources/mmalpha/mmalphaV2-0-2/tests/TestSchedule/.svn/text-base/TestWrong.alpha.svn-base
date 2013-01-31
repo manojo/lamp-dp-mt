@@ -1,0 +1,13 @@
+system Test6:{N,M,P| N,M,P>=1} 
+(a : { i,k | 1<=i<=N; 1<=k<=P }  of integer)
+returns (c :  { i,j | 1<=i<=N; 1<=j<=P } of integer);
+var
+C : { i,j,k | 1<=i<=N; 1<=j<=P; 0<=k<=M} of integer ;
+D : { i,j,k | 1<=i<=N; 1<=j<=P; 0<=k<=M} of integer ;
+let
+C = {i,j,k|1<=i<=N} : D.(i,j,k->i,j,k);
+D = {i,j,k|1<=i<=N} : C.(i,j,k->i,j,k);
+c = a.(i,j->i,j); 
+tel;
+										     
+										     

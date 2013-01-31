@@ -1,0 +1,6 @@
+system Test1 : {N,M,P | 1<=N; 1<=M; 1<=P}
+               ( )
+       returns (c : {i,j | 1<=i<=N; 1<=j<=P} of integer);
+let
+  c[i,j] = 1[];
+tel;

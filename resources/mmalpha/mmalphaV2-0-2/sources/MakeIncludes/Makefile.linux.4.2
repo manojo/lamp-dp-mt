@@ -1,0 +1,21 @@
+#-----------------------------------------------
+#  This defines where MATHLINK is for version 4.2, for Linux
+#-----------------------------------------------
+# at Irisa: 
+#MATHLINK     = /soft/Mathematica/V3.0.1.1/AddOns/MathLink/DevelopersKits/Linux/CompilerAdditions
+#  Where the compiler additions of Mathlink are
+MATHLINK     = /usr/local/Wolfram/Mathematica/4.2/AddOns/MathLink/DeveloperKit/Linux/CompilerAdditions
+#-----------------------------------------------
+MATHPREP	= $(MATHLINK)/mprep
+
+#-----------------------------------------------
+#  This variable refers to a corrector of the mprep program, 
+#  but it is not used anymore.
+#MATHPREPCOR	= $(MMALPHA)/lib/MathLink/mprepcor.3.0.1
+MATHINCLUDE	= -I$(MATHLINK)/
+MATHLIB		= -L$(MATHLINK)/
+MATHLOADLIB	= -lML -lm
+MATHEXTRALIBS = -lnsl # -lsocket
+MATHEXTRAOBJS =
+
+

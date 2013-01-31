@@ -1,0 +1,69 @@
+system computeDistances :{N,M | 1<=N; 2<=M}
+                        (descriptor : {i | 0<=i<=N-1} of integer[S,15]; 
+                         image : {i,j | 0<=i<=N-1; 0<=j<=M-1} of integer[S,15])
+       returns          (distances : {j | 0<=j<=M-1} of integer[S,15]);
+var
+  descriptorXMirr1 : {t,p | 1<=t<=N; p=-1} of integer[S,15];
+  TSep3 : {t,p | 4<=t<=N+3; 0<=p<=M-1} of integer[S,15];
+  TSep2 : {t,p | 3<=t<=N+2; 0<=p<=M-1} of integer[S,15];
+  TSep1 : {t,p | 3<=t<=N+2; 0<=p<=M-1} of boolean;
+  pipeCdescriptor1Reg8 : {t,p | 1<=t<=N; 0<=p<=M-1} of integer[S,15];
+  absValueReg7 : {t,p | 4<=t<=N+3; 0<=p<=M-1} of integer[S,15];
+  dlocReg6 : {t,p | 4<=t<=N+3; 0<=p<=M-1} of integer[S,15];
+  tempReg5 : {t,p | 2<=t<=N+1; 0<=p<=M-1} of integer[S,15];
+  imageReg4 : {t,p | 2<=t<=N+1; 0<=p<=M-1} of integer[S,15];
+  diffReg3 : {t,p | 3<=t<=N+2; 0<=p<=M-1} of integer[S,15];
+  diffReg2 : {t,p | 3<=t<=N+2; 0<=p<=M-1} of integer[S,15];
+  diffReg1 : {t,p | 3<=t<=N+2; 0<=p<=M-1} of integer[S,15];
+  dlocXctl1XIn : {t,p | 3<=t<=N+3; 0<=p<=M-1} of boolean;
+  pipeCdescriptor1 : {t,p | 1<=t<=N; -1<=p<=M-1} of integer[S,15];
+  temp : {t,p | 1<=t<=N; 0<=p<=M-1} of integer[S,15];
+  d : {t,p | t=N+4; 0<=p<=M-1} of integer[S,15];
+  dloc : {t,p | 3<=t<=N+3; 0<=p<=M-1} of integer[S,15];
+  diff : {t,p | 2<=t<=N+1; 0<=p<=M-1} of integer[S,15];
+  absValue : {t,p | 3<=t<=N+2; 0<=p<=M-1} of integer[S,15];
+  dlocXctl1 : {t | 3<=t<=N+3} of boolean;
+let
+  descriptorXMirr1[t,p] = descriptor[t-1];
+  pipeCdescriptor1Reg8[t,p] = pipeCdescriptor1[t,p-1];
+  absValueReg7[t,p] = absValue[t-1,p];
+  dlocReg6[t,p] = dloc[t-1,p];
+  tempReg5[t,p] = temp[t-1,p];
+  imageReg4[t,p] = image[t-2,p];
+  diffReg3[t,p] = diff[t-1,p];
+  diffReg2[t,p] = diff[t-1,p];
+  diffReg1[t,p] = diff[t-1,p];
+  dlocXctl1XIn[t,p] = dlocXctl1[t];
+  pipeCdescriptor1[t,p] = 
+      case
+        { | p=-1} : descriptorXMirr1;
+        { | 0<=p} : pipeCdescriptor1Reg8;
+      esac;
+  temp[t,p] = pipeCdescriptor1[t,p];
+  diff[t,p] = imageReg4 - tempReg5;
+  TSep1[t,p] = diffReg1>0[];
+  TSep2[t,p] = -diffReg3;
+  absValue[t,p] = if (TSep1) then diffReg2 else TSep2;
+  dlocXctl1[t] = 
+      case
+        case
+          { | t=3} : True[];
+          { | 4<=t} : False[];
+        esac;
+      esac;
+  TSep3[t,p] = dlocReg6 + absValueReg7;
+  dloc[t,p] = 
+      case
+        if (dlocXctl1XIn) then 
+            case
+              { | t=3} : 0[];
+              { | 4<=t} : 0[];
+            esac else 
+        case
+          { | t=3} : 0[];
+          { | 4<=t} : TSep3;
+        esac;
+      esac;
+  d[t,p] = dloc[t-1,p];
+  distances[j] = d[N+4,j];
+tel;

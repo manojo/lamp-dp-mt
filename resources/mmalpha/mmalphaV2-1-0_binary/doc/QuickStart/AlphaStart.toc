@@ -1,0 +1,56 @@
+\contentsline {section}{\numberline {1}Introduction}{1}
+\contentsline {section}{\numberline {2}How does {\sc MMAlpha}{}{} work?}{3}
+\contentsline {section}{\numberline {3}Installing {\sc MMAlpha}{}}{3}
+\contentsline {section}{\numberline {4}The {\sc Alpha}{} language}{4}
+\contentsline {subsection}{\numberline {4.1}{{\sc Alpha}} through examples}{4}
+\contentsline {subsection}{\numberline {4.2}Array notation and standard notation}{5}
+\contentsline {subsection}{\numberline {4.3}More on the syntax of {\sc Alpha}{}}{6}
+\contentsline {section}{\numberline {5}Basic operations on {{\sc Alpha}} programs}{7}
+\contentsline {subsection}{\numberline {5.1}Loading and viewing an {{\sc Alpha}} program}{7}
+\contentsline {subsection}{\numberline {5.2}Viewing {{\sc Alpha}} programs}{8}
+\contentsline {subsection}{\numberline {5.3}On-line documentation and options}{8}
+\contentsline {subsection}{\numberline {5.4}Saving a program}{9}
+\contentsline {subsection}{\numberline {5.5}Analyzing an {{\sc Alpha}} program}{9}
+\contentsline {subsection}{\numberline {5.6}Simulating a program}{10}
+\contentsline {subsection}{\numberline {5.7}Scheduling}{11}
+\contentsline {subsection}{\numberline {5.8}Mapping the program to a parallel array}{13}
+\contentsline {section}{\numberline {6}Generating Hardware}{15}
+\contentsline {section}{\numberline {7}Other transformations of {{\sc Alpha}} programs}{16}
+\contentsline {subsection}{\numberline {7.1}Pipelining}{16}
+\contentsline {subsection}{\numberline {7.2}Change of basis}{18}
+\contentsline {subsection}{\numberline {7.3}Substitution}{19}
+\contentsline {subsection}{\numberline {7.4}Normalization}{19}
+\contentsline {section}{\numberline {8}Structured {{\sc Alpha}} programs}{20}
+\contentsline {subsection}{\numberline {8.1}Simple structures}{20}
+\contentsline {paragraph}{Note.}{21}
+\contentsline {subsection}{\numberline {8.2}Handling structured programs}{21}
+\contentsline {subsection}{\numberline {8.3}Program transformations associated with structures}{21}
+\contentsline {section}{\numberline {9}And now?}{22}
+\contentsline {section}{\numberline {A}Definition of {\sc Alpha}}{24}
+\contentsline {subsection}{\numberline {A.1}Meta Syntax}{24}
+\contentsline {subsection}{\numberline {A.2}Systems}{24}
+\contentsline {subsection}{\numberline {A.3}Declarations of variables}{24}
+\contentsline {subsection}{\numberline {A.4}Domains}{25}
+\contentsline {subsection}{\numberline {A.5}Equations}{25}
+\contentsline {subsection}{\numberline {A.6}Expressions}{26}
+\contentsline {subsection}{\numberline {A.7}Dependance Functions and Index Expressions}{26}
+\contentsline {subsection}{\numberline {A.8}Terminals}{27}
+\contentsline {section}{\numberline {B}Description of the internal format of ASTs}{27}
+\contentsline {subsection}{\numberline {B.1}Systems}{27}
+\contentsline {subsection}{\numberline {B.2}Domains}{28}
+\contentsline {subsection}{\numberline {B.3}Equations}{28}
+\contentsline {subsection}{\numberline {B.4}Matrices}{29}
+\contentsline {subsection}{\numberline {B.5}General specifications}{29}
+\contentsline {section}{\numberline {C}A brief description of the {\sc MMAlpha}{} distribution}{30}
+\contentsline {subsection}{\numberline {C.1}The \texttt {Master} notebook}{30}
+\contentsline {subsection}{\numberline {C.2}Documentation}{30}
+\contentsline {section}{\numberline {D}Limitations of {Mathematica}{}}{31}
+\contentsline {subsection}{\numberline {D.1}The {\sc vhdl}{} translater}{31}
+\contentsline {section}{\numberline {E}How to install {\sc MMAlpha}{}}{32}
+\contentsline {subsection}{\numberline {E.1}Installing {\sc MMAlpha}{} on Unix-like systems}{32}
+\contentsline {subsection}{\numberline {E.2}Installing MMALPHA on Windows NT or Windows XP}{34}
+\contentsline {subsection}{\numberline {E.3}In Case of Problems}{35}
+\contentsline {subsection}{\numberline {E.4}The \texttt {MMALPHA} environment variable is not set}{35}
+\contentsline {subsubsection}{\numberline {E.4.1}The initialization file is not correctly installed}{36}
+\contentsline {subsubsection}{\numberline {E.4.2}The Domlib does not start}{36}
+\contentsline {subsubsection}{\numberline {E.4.3}Other problems}{37}

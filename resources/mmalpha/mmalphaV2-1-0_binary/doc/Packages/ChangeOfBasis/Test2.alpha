@@ -1,0 +1,17 @@
+--
+--  Exemple 9
+-- 
+system exemple9 (x,y: {t,p|t>=1;1<=p<=4} of integer)  
+returns (z: {t|t>=1} of integer);  
+var    Z:{t,p|t>=1;0<=p<=4} of integer;
+       S:{t,p|t>=1;1<=p<=4} of integer;  
+let    
+	S[t,p] = x[t,p]+y[t,p];
+	Z[t,p] = 
+        case
+          {|p=0}:0[];
+          {|p>=1}: Z[t,p-1]+S[t,p];
+        esac;
+	z[t] = Z[t,4];
+tel;
+

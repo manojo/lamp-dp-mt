@@ -1,0 +1,44 @@
+system fir :   {N,M | 1<=N<=M-1}
+               (x : {i | 0<=i<=M} of real; 
+                H : {n | 0<=n<=N-1} of real)
+       returns (y : {i | N<=i<=M} of real);
+var
+  xPipe2 : {i,n | N<=i<=M; n=-1; 1<=N<=M-1} | {i,n | n+1<=i<=N; 
+-1<=n; 1<=N<=M-1} of integer
+  ;
+  HPipe2 : {i,n | n+1<=i<=(N,n+N); -1<=n; N<=M-1} of integer;
+  xPipe : {i,n | N<=i<=M; -1<=n<=N-1; 1<=N<=M-1} of real;
+  HPipe : {i,n | N<=i<=M; 0<=n<=N-1; N<=M-1} of real;
+  Y : {i,n | N<=i<=M; -1<=n<=N-1} of real;
+let
+  xPipe2[i,n] = 
+      case
+        {| N<=i<=M; n=-1; 1<=N<=M-1} | {| 0<=i<=N; n=-1; 
+1<=N<=M-1} : x[i-n-1]
+        ;
+        {| n+1<=i<=N; 0<=n; N<=M-1} : xPipe2[i-1,n-1];
+      esac;
+  HPipe2[i,n] = 
+      case
+        {| 0<=i<=N-1; n=-1; N<=M-1} : H[-i+n+N];
+        {| n+1<=i<=N; 0<=n; N<=M-1} : HPipe2[i-1,n-1];
+      esac;
+  xPipe[i,n] = 
+      case
+        {| N<=i<=M; n=-1; 1<=N<=M-1} | {| i=N; -1<=n<=N-1; 
+1<=N<=M-1} : xPipe2
+        ;
+        {| N+1<=i<=M; 0<=n<=N-1} : xPipe[i-1,n-1];
+      esac;
+  HPipe[i,n] = 
+      case
+        {| i=N; 0<=n<=N-1; N<=M-1} : HPipe2;
+        {| N+1<=i<=M; 0<=n<=N-1} : HPipe[i-1,n];
+      esac;
+  Y[i,n] = 
+      case
+        {| n=-1} : 0[];
+        {| 0<=n<=N} : Y[i,n-1] + HPipe * xPipe;
+      esac;
+  y[i] = Y[i,N-1];
+tel;

@@ -1,0 +1,36 @@
+--	Program to compute the free schedule of the APP recurrence
+
+system FreeApp : { N | N>=1 } ()
+      returns ( free : { i,j,k | 0<=k<=N; 0<i,j<=N } of integer );
+
+--  The original APP recurrence is (using a variable app with the same domain
+-- as free above)
+
+--  app[i,j,k] =
+--    case
+--	{| k=0} :			a[i,j];			-- input
+--	{| k>0; i=j=k} :		closure(app[i,j,k-1]);
+--	{| k>0; j=k; (i>k|i<k)} :	app[i,k,k] * app[i,j,k-1] ;
+--	{| k>0; i=k; (j>k|j<k)} :	app[i,j,k-1] * f[k,j,k];
+--	{| k>0; (i>k|i<k); (j>k|j<k)} :	app[i,j,k-1] + app[i,k,k] * f[k,j,k];
+--    esac;
+
+--  The scheduling abstraction has the same structure, except that the
+-- operations on the RHS of the equations are now changed (although the
+-- dependencies are still the same.
+
+let
+ free[i,j,k] =
+  case
+    {| k=0} :		0;			-- input
+    {| k>0; i=j=k} :	1 + free[i,j,k-1];
+    {| k>0; j=k; i>k} :	1 + (free[i,j,k-1] max free[k,j,k]);
+    {| k>0; j=k; i<k} :	1 + (free[i,j,k-1] max free[k,j,k]);
+    {| k>0; i=k; j>k} :	1 + (free[i,k,k] max free[i,j,k-1]);
+    {| k>0; i=k; j<k} :	1 + (free[i,k,k] max free[i,j,k-1]);
+    {| k>0; i>k>j} :	1 + (free[i,j,k-1] max free[i,k,k] max free[k,j,k]);
+    {| k>0; j>k>i} :	1 + (free[i,j,k-1] max free[i,k,k] max free[k,j,k]);
+    {| k>0; j,i>k} :	1 + (free[i,j,k-1] max free[i,k,k] max free[k,j,k]);
+    {| k>0; i,j<k} :	1 + (free[i,j,k-1] max free[i,k,k] max free[k,j,k]);
+  esac;
+tel;

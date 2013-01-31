@@ -1,0 +1,22 @@
+system SimpleEx :{N,M | 2<=N; 0<=M}
+                (a : {n | 1<=n<=N} of real; 
+                 b : {n,i | 1<=n<=N; 0<=i<=M} of real)
+       returns  (c : {n,i | 1<=n<=N; 0<=i<=M} of real);
+var
+  A : {t,p | p+1<=t<=p+N; 0<=p<=M} of real;
+  Amirr : {t,p | 1<=t<=N; p=0} of real;
+  B_mirr : {t,p | p<=t<=p+N-1; 0<=p<=M} of real;
+  B_reg : {t,p | p+1<=t<=p+N; 0<=p<=M} of real;
+  C : {t,p | p+1<=t<=p+N; 0<=p<=M} of real;
+let
+  B_mirr[t,p] = b[t-p+1,p];
+  A[t,p] = 
+      case
+        { | p=0} : Amirr[t,p];
+        { | 1<=p} : A[t-1,p-1];
+      esac;
+  Amirr[t,p] = a[t];
+  B_reg[t,p] = B_mirr[t-1,p];
+  C[t,p] = B_reg[t,p] + A[t,p];
+  c[n,i] = C[n+i,i];
+tel;

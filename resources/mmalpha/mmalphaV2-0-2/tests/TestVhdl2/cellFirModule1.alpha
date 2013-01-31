@@ -1,0 +1,22 @@
+-- Example for VHDL translator -- September 1998
+-- This example is a cell extracted from the FIR module
+system cellFirModule1 :{p,N,M | p=0; 2<=N<=M-1}
+  (H_mirr1 : {t | -N<=t<=-1; p=0; 2<=N<=M-1} of integer; 
+   x_mirr1 : {t | -N+1<=t<=-N+M; p=0; 2<=N<=M-1} of integer)
+returns
+  (Y : {t | 2<=t<=-N+M+2; p=0; 2<=N<=M-1} of integer; 
+   xPipe : {t | 1<=t<=-N+M; p=0; 2<=N} of integer; 
+   HPipeES : {t | -N<=t<=-1; p=0; 2<=N<=M-1} of integer; 
+   xPipeES : {t | -N+1<=t<=1; p=0; 2<=N<=M-1} | 
+             {t | 1<=t<=-N+M; p=0; 2<=N} of integer
+  ); 
+var
+  xPipeESloc4 : {t | -N+1<=t<=1; p=0; 2<=N<=M-1} | 
+    {t | 1<=t<=-N+M; p=0; 2<=N} of integer;
+let
+  xPipeES[t] = xPipeESloc4[t];
+  xPipeESloc4[t] = x_mirr1[t];
+  HPipeES[t] = H_mirr1[t];
+  xPipe[t] = xPipeESloc4[t];
+  Y[t] = 0[];
+tel;

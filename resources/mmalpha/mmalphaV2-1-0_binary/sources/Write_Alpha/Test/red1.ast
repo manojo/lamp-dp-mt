@@ -1,0 +1,48 @@
+(* ALPHA Tree produced by read_alpha v.3.3.5 (Doran) *){
+Alpha`system["test",
+    (* parameter space *)
+    Alpha`domain[1, {"N"}, {
+        Alpha`pol[2, 2, 0, 0, {
+            {1, 1, -2},
+            {1, 0, 1}},{
+            {1, 1, 0},
+            {1, 2, 1}}]}],
+    { (* input variables *)
+    Alpha`decl["a", Alpha`integer, 
+        Alpha`domain[3, {"i", "j", "N"}, {
+            Alpha`pol[5, 5, 0, 0, {
+                {1, 1, 0, 0, -1},
+                {1, -1, 0, 1, 0},
+                {1, 0, 1, 0, -1},
+                {1, 0, -1, 1, 0},
+                {1, 0, 0, 0, 1}},{
+                {1, 1, 1, 1, 1},
+                {1, 0, 0, 1, 0},
+                {1, 1, 0, 1, 0},
+                {1, 1, 1, 1, 0},
+                {1, 0, 1, 1, 0}}]}]]},
+    { (* output variables *)
+    Alpha`decl["b", Alpha`integer, 
+        Alpha`domain[2, {"i", "N"}, {
+            Alpha`pol[3, 3, 0, 0, {
+                {1, 1, 0, -1},
+                {1, -1, 1, 0},
+                {1, 0, 0, 1}},{
+                {1, 0, 1, 0},
+                {1, 1, 1, 0},
+                {1, 1, 1, 1}}]}]]},
+    { (* local variables *)},
+    { (* let *)
+    Alpha`equation["b", 
+        Alpha`reduce[Alpha`add, 
+            Alpha`matrix[3, 4, {"i", "j", "N"}, {
+                {0, 1, 0, 0},
+                {0, 0, 1, 0},
+                {0, 0, 0, 1}}], 
+            Alpha`affine[Alpha`var["a"], 
+                Alpha`matrix[4, 4, {"i", "j", "N"}, {
+                    {1, 0, 0, 0},
+                    {0, 1, 0, 0},
+                    {0, 0, 1, 0},
+                    {0, 0, 0, 1}}]]]]}]
+}

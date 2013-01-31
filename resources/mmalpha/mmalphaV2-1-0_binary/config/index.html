@@ -1,0 +1,87 @@
+<!DOCTYPE HTML SYSTEM "html.dtd">
+
+<HTML>
+<HEAD><TITLE>The configuration directory</TITLE></HEAD>
+<BODY>
+<H1>
+<a href="http://www.irisa.fr/cosi/ALPHA"><img src="../doc/Alpha.gif" align=ABSCENTER></a>
+The configuration directory</H1> 
+<hr>
+<A HREF="../index.html">Up! (welcome directory)</A>
+<hr>
+<P> 
+This directory contains files and information needed
+to install MMAlpha. More information is available
+<A HREF="../doc/Install/Doc-How-to-install.pdf">here</A>
+(mirrored in Appendix E of the
+<A HREF="../doc/QuickStart/AlphaStart.pdf">QuickStart document</A>.)
+
+<h2>Installation</h2>
+The <A HREF="init.m">init.m</A> file must be either called by your own init.m
+file when you start MMAlpha
+or copied in your base directory. 
+<p>
+A few words of explanations. When 
+you start Mathematica (on any system), Mathematica executes the
+file named init.m which is present in a directory
+called the base directory, at
+least, if such a file exists. 
+The address of this directory, which depends on your
+operating system, is obtained by evaluating the variable
+$UserBaseDirectory in Mathematica. 
+<p>
+To run MMAlpha, you should write such an init.m 
+file and put it in your base directory. This file could contain, 
+at least:
+<br>
+<b>
+Get[ Environment["MMALPHA"]<>"/config/init.m" ] ; 
+<br>
+</b>
+which will read the init.m file contained in this directory.
+You could also add here additional Mathematica instructions. 
+For example, the following
+<b>
+<br>
+$myNotebooks = ".../myNotebooks";
+<br>
+$myMasterNotebook = "myMaster.nb";
+<br>
+</b>
+that would
+set the MMAlpha variables <b>$myNotebooks</b> and <b>$myMasterNotebook</b>
+which are used to indicate to MMAlpha where your own notebooks and 
+your master notebook are located (see explanations in the 
+master notebook of MMAlpha, in section More).
+<h2>Troubleshooting</h2>
+If you cannot start MMAlpha, check the following.
+<ul>
+<li>Start Mathematica, and look in the Messages* window. 
+Normally, the content of this window should
+look like 
+<a href="tbs.txt">this.</a>
+<li>If it does not, this means that MMAlpha has not
+been properly installed.
+<pr>
+Check that your environment variable $MMALPHA has
+been set properly. This variable must contain the 
+path of the MMAlpha directory. On Unix or Linux, it
+is set using a setenv command. On Windows NT, it is
+set by opening the System Windows in the Configuration
+Pannel, then Advanced, then Environment Variables, and 
+setting the MMALPHA variable (all this is described in 
+the MMALPHA home page.)
+<li>If you are desperate, send a mail to the alpha team...
+</ul> 
+<HR>
+<A HREF=".">Content of this directory</A>
+<HR>
+<ADDRESS>
+Last modification: April 24, 2010.<BR>
+To get more info, send
+<A HREF="mailto:patrice.quinton@irisa.fr">
+a mail here.
+</ADDRESS>
+<hr>
+</BODY>
+</HTML>

@@ -1,0 +1,188 @@
+{
+(*
+	This file contains the syntax of Alpha0  Abstract Syntax Tree.
+	The syntax checked is as closed as possible from the Alpha0 v2
+	syntax docuùment ($MMALPHA/doc/user/Alpha0v2.ps), when it is
+	not respected it should be commented. Once 
+	processed with the meta function, it produces a file named CheckAlpha0.m which
+	allows one to analyze an AST and check that this AST has the syntax of a 
+	Module. 
+*)
+
+(*	
+	System declaration
+*)
+  SYSTEMDECLARATION ::= 
+    system[ name: _String, 
+            paramDecl: DOMAINPARAM, 
+            inputDeclList: {DECLARATION},
+            outputDeclList: {DECLARATION}, 
+            localDeclList: {DECLARATION}, 
+            equationBlock: {EQUATION}
+          ] 
+          :> semFuncCheckAlpha0[ system, trparamDecl, 
+               trinputDeclList, troutputDeclList, trlocalDeclList,
+               trequationBlock, debug -> CheckAlpha0Debug ]
+,
+
+  DECLARATION ::=
+    decl[ varName: _String, 
+          varType: (integer|boolean|integer[_String,_Integer]),
+          domain: DOMAIN 
+        ]
+        :> semFuncCheckAlpha0[ decl, decl[ varName, varType, domain ], debug -> CheckAlpha0Debug ]
+(*
+	the variable should have either p+1 dimension (p dimensin of
+    processor space) or 1 dimension (for control signal) 
+*)
+
+,
+(*
+	Parameter domain
+*)
+  DOMAINPARAM ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :>  dimension
+,
+(*
+	Domains
+*)
+  DOMAIN ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> dimension (* can be anything *)
+,
+
+  POLYHEDRON ::= 
+    pol[ constraintsNum:_Integer,
+         generatorsNum:_Integer,
+         equationsNum:_Integer,
+         linesNum:_Integer,
+         constraintList: {CONSTRAINT},
+         generatorList: {GENERATOR}
+       ]
+       :> Null
+,
+
+  CONSTRAINT ::= {_List -> List}
+,
+
+  GENERATOR ::= {_List -> List} 
+
+(* 	
+	An equation is either an assignment or a use 
+*)
+,
+
+  EQUATION ::= 
+    {       _use -> USESTATEMENT,
+	    _?(isMirrorEqQ[$current,#] &)   -> DONOTCHECK,
+	    _?((!isMirrorEqQ[$current,#]) &)   ->   ASSIGNMENT
+    }
+,
+    
+(* 
+	There are four possible assignement: data equations,
+	connection equation, control equation, mirror equations 
+	To Be changed here 
+*)
+  ASSIGNMENT ::= 
+    equation[ leftHandSide: _String, 
+              rightHandSide: RHSEQ
+            ] 
+            :> semFuncCheckAlpha0[ assignment, rightHandSide, 
+                             equation[ leftHandSide, rightHandSide], debug -> CheckAlpha0Debug ]
+(*	
+	Semantics: returns the result of the rhs evaluation, which should be 
+	a boolean, and the equation itself, in order to issue an error message. 
+*)
+,
+
+(* 	
+Use should be pointwise operator i.e. the extension domain is of
+dimention the space time domain
+*)
+  USESTATEMENT ::= 
+    use[ id: _String, 
+         extension: DOMAIN,
+         paramAssign: MATRIX,
+         inputList: {VAREXP},
+	 idList: {___String}
+       ]
+       :> semFuncCheckAlpha0[ use, {id, extension, paramAssign, inputList, idList}, debug->CheckAlpha0Debug ]
+,
+
+(*
+	RHS of equation 
+*)
+  RHSEQ ::= 
+    { 
+      _case-> CASEXP, 		(* To Be Changed *)
+      _restrict -> RESTEXP, 
+      _affine -> AFFEXP ,
+      _binop  -> DONOTCHECK   
+     }
+, 
+(*
+	Local connection
+*)
+  CASEXP ::= 
+    case[ 
+         expressionList: {RESTEXP} 
+        ] 
+        :> semFuncCheckAlpha0[ case , trexpressionList, debug -> CheckAlpha0Debug ] 
+,
+(*
+	Restriction 
+*)
+  RESTEXP ::= 
+    restrict[ 
+         domain: DOMAIN, 
+         expression: AFFEXP 	
+         ] 			
+         :> semFuncCheckAlpha0[ restrict, trdomain, trexpression, debug -> CheckAlpha0Debug ]
+, 
+(* 
+	Affine expression
+*)
+  AFFEXP ::= 
+    affine[ 
+      expression: VAREXP,
+      affineFunction: MATRIX 	
+          ] 
+          :> semFuncCheckAlpha0[ affexp, traffExpression, 
+                           affineFunction, 
+                           debug -> CheckAlpha0Debug ]
+(*	
+
+*)
+,
+
+  MATRIX ::= 
+    matrix[ 
+      d1:_Integer, 
+      d2:_Integer, 
+      in:{___String}, 
+      mmaMatrix:MATRIXNUM
+          ]
+          :> Null
+,
+
+  MATRIXNUM ::= {_List -> {List}}
+,
+  VAREXP ::= 
+    var[ 
+         identifier: _String 
+       ] 
+    :> Null
+,
+ DONOTCHECK ::= _ :> True
+}
+
+
+

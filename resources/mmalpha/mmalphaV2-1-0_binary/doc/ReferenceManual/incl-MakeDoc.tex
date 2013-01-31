@@ -1,0 +1,83 @@
+\subsection{Note regarding the documentation of \MMAlfa{}}
+\label{doc-makedoc}
+The \MMAlfa{} software is (partially) documented in various
+ways.\footnote{This chapter has been
+proof-read by Patrice Quinton on January 8, 2007.}
+\begin{itemize}
+\item A \texttt{html} documentation is included in the distribution.
+It can be accessed from the \texttt{welcome.html} file in the 
+\texttt{\$MMalpha{}} directory. 
+\item A {\em getting started} document is available in form of
+a \texttt{pdf}
+file. It is accessible from the initial \texttt{html} welcome
+page and is located in:
+\begin{verbatim} 
+$MMAlpha/doc/QuickStart/AlphaStart.pdf
+\end{verbatim} 
+This document is the most up-to-date tutorial for \MMAlpha{}. It does not
+describe all features of \MMAlpha{}, but normally, allows a user to
+discover the main features of the software.
+\item A reference manual is being developped in:
+\begin{verbatim} 
+$MMAlpha/doc/ReferenceManual
+\end{verbatim}
+and it is described hereafter.
+\item Other documentation files exist, but they are not guaranteed to 
+be up-to-date.
+\end{itemize}
+
+The reference manual of \MMALPHA{} is obtained through the use 
+of commands in the \texttt{Makedoc} package. 
+It is produced by executing the program called \texttt{genReferenceManual.m}
+which is situated in the same directory.
+
+This program contains a set of calls to the function \texttt{doDoc}
+of the \texttt{Makedoc} package (see \texttt{?doDoc}). Each one of
+these calls reads a package -- for example, \texttt{Alpha/Makedoc.m} --
+whose name is relative to directory
+\begin{verbatim} 
+$MMALPHA/lib/Packages
+\end{verbatim}
+and translates it into a \LaTeX{} file -- for example, \texttt{Makedoc.tex}, --
+in target directory \texttt{\$MMALPHA/doc/ReferenceManual}.
+
+The reference manual itself is edited manually. It is in the 
+file:
+\begin{verbatim}
+referenceManual.tex
+\end{verbatim}
+of the same directory. It contains
+basically input statements for the documentation files created by 
+\texttt{doDoc}. This function (which is documented hereafter), has
+several options: one can either generate a standalone \LaTeX{} file, or
+an input file (this helps for editing the documentation), one can 
+specify a list of functions that are only to be documented, one can 
+specify where the file has to be put, etc. 
+
+The reference manual is based on the usage and note statements which are
+contained in a given package. In there exists a file named 
+\texttt{incl-textFile} in the target directory, then an include 
+statement for this file is added in the generated \LaTeX{} file.
+For example, the documentation that you are reading is in the 
+file \texttt{incl-Makedoc.text} file, in directory:
+\begin{verbatim}
+$MMALPHA/doc/referenceManual
+\end{verbatim}
+Therefore, when the 
+\texttt{Makedoc.m} file is processed by the corresponding 
+statement in the \texttt{genReferenceManual.m} program, i.e.:
+\begin{small}
+\begin{verbatim}
+doDoc["Alpha/MakeDoc.m", "MakeDoc.tex", 
+  targetDir -> Environment["MMALPHA"] <> "/doc/ReferenceManual"];
+\end{verbatim}
+\end{small}
+an input statement is included in the \texttt{Makedoc.tex} file 
+which is generated.
+
+The \texttt{doDoc} function tries to modify the content of the
+usage and note statements so that special symbols are correctly
+output in \LaTeX{}. These transformations are described in the
+variable \texttt{repRules} of the package, and may be modified. 
+Index statements are generated for each usage statement. 
+

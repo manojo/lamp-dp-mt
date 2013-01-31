@@ -1,0 +1,10 @@
+-- Test of a case
+system test4 (a, b: {i| i>=1} of integer)
+returns (c: {j|j<=20} of integer);
+let
+  c[i] = 
+    case
+      {|i=2}: a[i];
+      {|i=3}: b[i];
+    esac;
+tel;

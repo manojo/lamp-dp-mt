@@ -1,0 +1,24 @@
+-- fully indexed system : before pipelining 
+system ArmaFilter: {N,M | M>=N>= 2}
+                (x : {i| 1<=i<=M} of integer; 
+                p : {i | 1<=i<=N} of integer;
+                q : {i| 1<=i<=N} of integer)
+      returns (y : {i | 1<=i<=M} of integer);
+var
+  Y : {i,j | 1<=i<=M; 1<=j<=N+1} of integer;
+  P : {i,j | i=0; 1<=j<=N} of integer ;
+  Q : {i,j | i=0; 1<=j<=N} of integer ;
+  X : {i,j | 1<=i<=M-1; j=0} of integer ;
+let
+  P[i,j] = { | i=0; 1<=j<=N} : p[j];
+  Q[i,j] = { | i=0; 1<=j<=N} : q[j];
+  X[i,j] = { | 1<=i<=M-1; j=0} : x[i];
+
+  Y[i,j] = 
+      case
+        {|1<=i<=M;j=N+1 } : 0[];
+        {|1<=i<=M;1<=j<=N;j >= i } : Y[i,j+1];
+        {|2<=i<=M;1<=j<=N;j <= i-1 } : Y[i,j+1]+P[0,j]+X[i-j,0]+Q[0,j]+Y[i-j,1];
+      esac;
+  y[i]  = Y[i,1];
+tel;

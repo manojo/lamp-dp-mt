@@ -1,0 +1,69 @@
+ \documentclass[11pt]{article}
+\begin{document}
+
+\newcommand{\mmalfa}{{\sc mmalpha}}
+\newcommand{\dar}{{\sc darwin}}
+\newcommand{\mma}{{\sc mathematica}}
+
+
+\title{About the Darwin version of \mmalfa{}\\
+Version of \today{}}
+\author{Patrice Quinton}
+\date{}
+\maketitle
+This short note presents the current status of the new \dar{} version of 
+\mmalfa{}. 
+
+\section{How to run it}
+\begin{enumerate}
+\item Set the shell to \texttt{tcsh} (I do not know how to use \texttt{bash}). To do so, 
+start the Terminal application, and look in the preference: you should set the
+initial command to \texttt{/bin/tcsh}.
+\item Create a \texttt{.cshrc} file in your home directory with the definition 
+of the \texttt{MMAlpha} environment variable (where MMAlpha is), the command
+to extend the search path. For example:
+\begin{verbatim}
+setenv MMALPHA /Users/quinton/mmalpha
+alias mma '/Applications/Mathematica\ 5.2.app/Contents/MacOS/Mathematica'
+set path=($MMALPHA/bin.$OSTYPE $path)
+\end{verbatim}
+First command defines the \texttt{MMAlpha} environment variable, the second one says where
+Mathematica is, and the third one adds to the \texttt{path} variable the 
+location of the binary files of \mma{}.
+\item Create an \texttt{init.m} file in your home directory. An example of such a file is
+in appendix~\ref{init}.
+\item Add an alias with the location of Mathematica (see the \texttt{.cshrc} above.
+\item Open a terminal window. This should run the \texttt{.cshrc} file 
+\item Type \texttt{mma}.
+\end{enumerate}
+
+That should make it! Actually, it does not : the \texttt{init.m} file does not start...
+
+\section{Compiling for \dar{}}
+
+\section{Troubleshouting}
+\texttt{init.m} does not start...
+
+\appendix{}
+\label{init}
+\section{Typical \texttt{init.m} file}
+There is no difference between this \texttt{init.m} file and 
+another for Windows or Linux.
+\begin{verbatim}
+(* This is a simple init.m file *)
+Module[ {env},
+  Catch[
+    env = Environment["MMALPHA"];
+    If[ env === $Failed, 
+          mmalpha::noenv = "The MMALPHA environment variable is not set";
+          Throw[ Message[ mmalpha::noenv ] ]
+    ];
+    Get[ env<>"/config/init.m" ];
+    Alpha`$myNotebooks = "/Users/quinton/myNotebooks";
+    Alpha`$myMasterNotebook = "myMaster.nb";
+    Print[ Alpha`$myNotebooks ];
+  ]
+]
+\end{verbatim}
+
+\end{document}

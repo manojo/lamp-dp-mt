@@ -1,0 +1,57 @@
+system ArmaFilter (x : {i | 1<=i<=16} of integer; 
+                   p : {i | 1<=i<=8} of integer; 
+                   q : {i | 1<=i<=8} of integer)
+       returns    (y : {i | 1<=i<=16} of integer);
+var
+  Y3 : {i,j | j+1<=i<=16; 1<=j<=8} of integer;
+  Q6 : {i,j | 0<=i<=j+1; 1<=j<=8} of integer;
+  Q5 : {i,j | j+1<=i<=16; 1<=j<=8} of integer;
+  X3 : {i,j | j+1<=i<=16; 1<=j<=8} of integer;
+  P6 : {i,j | 0<=i<=j+1; 1<=j<=8} of integer;
+  P5 : {i,j | j+1<=i<=16; 1<=j<=8} of integer;
+  Y : {i,j | 1<=i<=16; 1<=j<=9} of integer;
+  P : {i,j | i=0; 1<=j<=8} of integer;
+  Q : {i,j | i=0; 1<=j<=8} of integer;
+  X : {i,j | 1<=i<=15; j=0} of integer;
+let
+  Y3[i,j] = 
+      case
+        { | 2<=i<=16; j=1} : Y[i-1,j];
+        { | j+1<=i<=16; 2<=j<=8} : Y3[i-1,j-1];
+      esac;
+  Q6[i,j] = 
+      case
+        { | i=0; 1<=j<=8} : Q[i,j];
+        { | 1<=i<=j+1; 1<=j<=8} : Q6[i-1,j];
+      esac;
+  Q5[i,j] = 
+      case
+        { | i=j+1; 1<=j<=8} : Q6;
+        { | j+2<=i<=16; 1<=j<=8} : Q5[i-1,j];
+      esac;
+  X3[i,j] = 
+      case
+        { | 2<=i<=16; j=1} : X[i-1,j-1];
+        { | j+1<=i<=16; 2<=j<=8} : X3[i-1,j-1];
+      esac;
+  P6[i,j] = 
+      case
+        { | i=0; 1<=j<=8} : P[i,j];
+        { | 1<=i<=j+1; 1<=j<=8} : P6[i-1,j];
+      esac;
+  P5[i,j] = 
+      case
+        { | i=j+1; 1<=j<=8} : P6;
+        { | j+2<=i<=16; 1<=j<=8} : P5[i-1,j];
+      esac;
+  P[i,j] = p[j];
+  Q[i,j] = q[j];
+  X[i,j] = x[i];
+  Y[i,j] = 
+      case
+        { | 1<=i<=16; j=9} : 0[];
+        { | 1<=i<=j; j<=8} : Y[i,j+1];
+        { | j+1<=i<=16; 1<=j<=8} : Y[i,j+1] + P5 + X3 + Q5 + Y3;
+      esac;
+  y[i] = Y[i,1];
+tel;

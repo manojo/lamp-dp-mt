@@ -1,0 +1,500 @@
+CONTENT (22 April 2005)
+Everything up to date
+Files with * should be examined for corrections
+
+* d Domlib OK. But this directory has to be removed, I guess? 
+* Makefile OK. Different from MMAlpha-bigmess. Big differences. See 
+    Makefile-new
+Makefile.Visual OK
+Makefile.linux OK
+README
+* domlib.c OK. See domlib.c-new.
+    Actually, the only modification concerns include polylib, and 
+    it was due to the fact that my own makefile is pretty simple-minded.
+    Tanguy has the solution (use the LINEARVALUE flag).
+    Modifications are signalled in domlib.c-new by /* ------ */
+domlib.tm OK. 
+
+16/06/04 (Tanguy) 
+
+Thanks to the help of Antoine Fraboulet, we finally succeeded 
+in compiling Domlib on cygwin. We used Visual C++ (apparently there 
+was no way to provide compatibility between cygwin dll and Mathlink dll).
+But we used it in aclassical GNU makefile (Makefile.Visual). 
+The choice between Makefiles is done on the $OSTYPE variable. 
+
+The  Makefile.Visual assumes that the standard include and lib path have
+ been set by Visual C++. For instance, on my computer: 
+INCLUDE='C:\Program Files\Microsoft Visual Studio\VC98\include'
+LIB='C:\Program Files\Microsoft Visual Studio\VC98\mfc\lib;C:\Program Files\Microsoft Visual Studio\VC98\lib' 
+
+The makefile compiles domlib.c  to Obj.cygwin/domlib.obj
+then it uses Mathlink mprep program to compile Domlib.tm 
+then we have to correct the results of mprep with mprepcor.3.0.1
+(see the older comments below) and put the result into mlink.c 
+mlink.c is then compiled into Obj.cygwin/mlin.obj
+then all Polylib source files are compiled as .obj 
+Finally we link every thing using the ml32i1m.lib provided by Mathlink
+
+WARNING: the domlib.exe is generated but not copied in the $MMALPHA/bin.cygwin
+directory, you still have to do it by hand. this is because most of the 
+time Mathematica is Running and Domlib.exe cannot be overwritten. 
+We keep track of the old domlib.exe as olddomlib.exe 
+
+21/06/01 (Tanguy)
+
+Domlib works fine on unix with the new Polylib 
+
+I tried to compile Domlib with the new polylib. I could not.
+the compilation (with $MMLAPHA/sources/NewDomlib.mak and VisualC++) is OK, 
+but the execution fails. This should be corrected in the future. 
+In the meantime, we will have two Domlib running in MMAlpha, 
+the "old" one which uses the old Polylib ( in local directory OldPolylib) 
+and the new one which should evolved.
+
+
+
+To compile Domlib on unix, just do make make.
+On windows, use Visual C++ and open the Domlib "makefile" 
+workspace (Domlib.mak is  the makefile)
+
+
+The following is a remainder that it has not always been this way.
+It is obsolete since it was automated by Fabien
+as a shell script (mprepcor). We keep it just in case, and as
+a documentation of mprepcor. Florent
+
+
+This readme file is a help to the compilation of Domlib.
+When you start compilation, make should execute the following command:
+/soft/MathNew/Math//Bin/MathLink/mprep <domlib.tm >mlink.c.x
+
+And then print the following message:
+--------------------------------------------------------
+read README, Edit mlink.c.x and cp mlink.c.x mlink.c, then rerun make
+--------------------------------------------------------
+
+If this has not been done type 
+make cleaner 
+and then 
+make
+
+The file mlink.c.x is produced by mprep from domlib. For each function
+declare in Domlib, mprep create a function that is supposed to call the 
+original function. For instance, for the function ML_intersection(),
+mprerp writes (into mlink.c.x):
+ 
+
+/*
+ * This file automatically produced by /soft/MathNew/Math//Bin/MathLink/mprep.
+ */
+
+
+int MLAbort = 0;
+int MLDone  = 0;
+
+#include "mathlink.h"
+MLINK stdlink;
+
+....
+
+static int _tr0(mlp)
+	MLINK mlp;
+{
+	int	res = 0;
+	void	ML_Intersection();
+
+	res = 1;
+
+	ML_Intersection();
+
+
+	return res;
+} /* _tr0 */
+.....
+
+and then later in the file, mprep put:
+
+
+static struct func {
+	int   f_nargs;
+	int   manual;
+	int   (*f_func)();
+	char  *f_name;
+	} _tramps[15] = {
+		{ 0, 2, _tr0, "ML_Intersection" },
+		{ 0, 2, _tr1, "ML_Union" },
+ 	....
+
+Unfortunately, written this way there is no way to get the result 
+of _tr0, that is the bug. In the new version of Mathematica, the bug 
+could be avoided by replacing, in domlib.c,  "alink" by "stdlink" which is 
+a global variable. We will not speak about that here.
+
+To get the result of ML_intersection, you should cut the _tr0 function,
+and replace the above code by:
+
+
+/*
+ * This file automatically produced by /soft/MathNew/Math//Bin/MathLink/mprep.
+ */
+
+
+int MLAbort = 0;
+int MLDone  = 0;
+
+#include "mathlink.h"
+MLINK stdlink;
+
+
+static struct func {
+	int   f_nargs;
+	int   manual;
+	int   (*f_func)P((MLINK));
+	char  *f_name;
+	} _tramps[16] = {
+                 { 0, 2, ML_Intersection, "ML_Intersection" },
+                 { 0, 2, ML_Union, "ML_Union" },
+                 { 0, 2, ML_Difference, "ML_Difference" },
+                 { 0, 2, ML_Simplify, "ML_Simplify" },
+                 { 0, 2, ML_Convex, "ML_Convex" },
+                 { 0, 2, ML_Image, "ML_Image" },
+                 { 0, 2, ML_Preimage, "ML_Preimage" },
+                 { 0, 2, ML_Constraints, "ML_Constraints" },
+                 { 0, 2, ML_Rays, "ML_Rays" },
+                 { 0, 2, ML_Cost, "ML_Cost" },
+                 { 0, 2, ML_RightHermite, "ML_RightHermite" },
+                 { 0, 2, ML_LeftHermite, "ML_LeftHermite" },
+                 { 0, 2, ML_MatrixBasis, "ML_MatrixBasis" },
+                 { 0, 2, ML_MatrixSimplify, "ML_MatrixSimplify" },
+                 { 0, 2, ML_DomAddRays, "ML_DomAddRays" },
+                 { 0, 2, ML_DomPrint, "ML_DomPrint" }
+		};
+
+
+
+
+And that will work, if you copy this file to mlink.c. 
+
+Above is the diff command:
+diff mlink.c.x mlink.c
+
+2c2,3
+<  * This file automatically produced by /soft/MathNew/Math//Bin/MathLink/mprep.
+---
+>  * This file automatically produced by /usr/local/apps/math/Bin/MathLink/mprep.
+>  * mprep V2.2.2 (c) Copyright Wolfram Research, Inc. 1990-1994
+12,238d12
+< 
+< 
+< static int _tr0(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_Intersection();
+< 
+< 	res = 1;
+< 
+< 	ML_Intersection();
+< 
+< 
+< 	return res;
+< } /* _tr0 */
+< 
+< 
+< static int _tr1(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_Union();
+< 
+< 	res = 1;
+< 
+< 	ML_Union();
+< 
+< 
+< 	return res;
+< } /* _tr1 */
+< 
+< 
+< static int _tr2(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_Difference();
+< 
+< 	res = 1;
+< 
+< 	ML_Difference();
+< 
+< 
+< 	return res;
+< } /* _tr2 */
+< 
+< 
+< static int _tr3(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_Simplify();
+< 
+< 	res = 1;
+< 
+< 	ML_Simplify();
+< 
+< 
+< 	return res;
+< } /* _tr3 */
+< 
+< 
+< static int _tr4(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_Convex();
+< 
+< 	res = 1;
+< 
+< 	ML_Convex();
+< 
+< 
+< 	return res;
+< } /* _tr4 */
+< 
+< 
+< static int _tr5(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_Image();
+< 
+< 	res = 1;
+< 
+< 	ML_Image();
+< 
+< 
+< 	return res;
+< } /* _tr5 */
+< 
+< 
+< static int _tr6(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_Preimage();
+< 
+< 	res = 1;
+< 
+< 	ML_Preimage();
+< 
+< 
+< 	return res;
+< } /* _tr6 */
+< 
+< 
+< static int _tr7(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_Constraints();
+< 
+< 	res = 1;
+< 
+< 	ML_Constraints();
+< 
+< 
+< 	return res;
+< } /* _tr7 */
+< 
+< 
+< static int _tr8(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_Rays();
+< 
+< 	res = 1;
+< 
+< 	ML_Rays();
+< 
+< 
+< 	return res;
+< } /* _tr8 */
+< 
+< 
+< static int _tr9(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_Cost();
+< 
+< 	res = 1;
+< 
+< 	ML_Cost();
+< 
+< 
+< 	return res;
+< } /* _tr9 */
+< 
+< 
+< static int _tr10(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_RightHermite();
+< 
+< 	res = 1;
+< 
+< 	ML_RightHermite();
+< 
+< 
+< 	return res;
+< } /* _tr10 */
+< 
+< 
+< static int _tr11(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_LeftHermite();
+< 
+< 	res = 1;
+< 
+< 	ML_LeftHermite();
+< 
+< 
+< 	return res;
+< } /* _tr11 */
+< 
+< 
+< static int _tr12(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_MatrixBasis();
+< 
+< 	res = 1;
+< 
+< 	ML_MatrixBasis();
+< 
+< 
+< 	return res;
+< } /* _tr12 */
+< 
+< 
+< static int _tr13(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_MatrixSimplify();
+< 
+< 	res = 1;
+< 
+< 	ML_MatrixSimplify();
+< 
+< 
+< 	return res;
+< } /* _tr13 */
+< 
+< 
+< static int _tr14(mlp)
+< 	MLINK mlp;
+< {
+< 	int	res = 0;
+< 	void	ML_DomAddRays();
+< 
+< 	res = 1;
+< 
+< 	ML_DomAddRays();
+< 
+< 
+< 	return res;
+< } /* _tr14 */
+< 
+< 
+242c16
+< 	int   (*f_func)();
+---
+> 	int   (*f_func)P((MLINK));
+245,259c19,33
+< 		{ 0, 2, _tr0, "ML_Intersection" },
+< 		{ 0, 2, _tr1, "ML_Union" },
+< 		{ 0, 2, _tr2, "ML_Difference" },
+< 		{ 0, 2, _tr3, "ML_Simplify" },
+< 		{ 0, 2, _tr4, "ML_Convex" },
+< 		{ 0, 2, _tr5, "ML_Image" },
+< 		{ 0, 2, _tr6, "ML_Preimage" },
+< 		{ 0, 2, _tr7, "ML_Constraints" },
+< 		{ 0, 2, _tr8, "ML_Rays" },
+< 		{ 0, 2, _tr9, "ML_Cost" },
+< 		{ 0, 2, _tr10, "ML_RightHermite" },
+< 		{ 0, 2, _tr11, "ML_LeftHermite" },
+< 		{ 0, 2, _tr12, "ML_MatrixBasis" },
+< 		{ 0, 2, _tr13, "ML_MatrixSimplify" },
+< 		{ 0, 2, _tr14, "ML_DomAddRays" }
+---
+>                 { 0, 2, ML_Intersection, "ML_Intersection" },
+>                 { 0, 2, ML_Union, "ML_Union" },
+>                 { 0, 2, ML_Difference, "ML_Difference" },
+>                 { 0, 2, ML_Simplify, "ML_Simplify" },
+>                 { 0, 2, ML_Convex, "ML_Convex" },
+>                 { 0, 2, ML_Image, "ML_Image" },
+>                 { 0, 2, ML_Preimage, "ML_Preimage" },
+>                 { 0, 2, ML_Constraints, "ML_Constraints" },
+>                 { 0, 2, ML_Rays, "ML_Rays" },
+>                 { 0, 2, ML_Cost, "ML_Cost" },
+>                 { 0, 2, ML_RightHermite, "ML_RightHermite" },
+>                 { 0, 2, ML_LeftHermite, "ML_LeftHermite" },
+>                 { 0, 2, ML_MatrixBasis, "ML_MatrixBasis" },
+>                 { 0, 2, ML_MatrixSimplify, "ML_MatrixSimplify" },
+>                 { 0, 2, ML_DomAddRays, "ML_DomAddRays" }
+
+
+The other difference should not be important 
+(but its not sure at 23-03-95 )
+Tanguy Risset
+
+
+263c37
+< static int  _definepattern();
+---
+> static int  _definepattern P(( MLINK, char*, char*, int));
+265c39
+< int  _MLDoCallPacket();
+---
+> int  _MLDoCallPacket P((es
+ MLINK, struct func[], int));
+267c41
+< int  _MLMainStep();
+---
+> int  _MLMainStep P(( MLINK, struct func[], int));
+476a251,252
+> 	MLEnvironment ep;
+> 	MLMessageHandlerObject handler;
+479,481c255,264
+< 	if( !MLInitialize(NULL) ) return 3;
+< 	if( (mlp = MLOpen( argc, argv )) == (MLINK)0 ) return 2;
+< 	MLSetMessageHandler( mlp, MLDefaultHandler);
+---
+> 	ep = MLInitialize( (MLParametersPointer)0);
+> 	if( ep == (MLEnvironment)0) goto R0;
+> 
+> 	handler = MLCreateMessageHandler( ep, MLDefaultHandler, 0);
+> 
+> 	mlp = MLOpen( argc, argv);
+> 	if( mlp == (MLINK)0) goto R1;
+> 
+> 	MLSetMessageHandler( mlp, handler);
+> 
+484c267
+< 			if( ! refuse_to_be_a_frontend(mlp)) break;
+---
+> 			if( ! refuse_to_be_a_frontend( mlp)) break;
+485a269
+> 
+487c271,272
+< 	return !MLDone;
+---
+> R1:	MLDeinitialize( ep);
+> R0:	return !MLDone;
+

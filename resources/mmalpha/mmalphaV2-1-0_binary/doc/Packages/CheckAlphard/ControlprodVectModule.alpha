@@ -1,0 +1,9 @@
+system ControlprodVectModule ( )
+       returns               (C_ctl1P_Init : {t | t=1} | {t | 2<=t} of boolean);
+let
+  C_ctl1P_Init[t] = 
+      case
+        {| t=1} : True[];
+        {| 2<=t} : False[];
+      esac;
+tel;

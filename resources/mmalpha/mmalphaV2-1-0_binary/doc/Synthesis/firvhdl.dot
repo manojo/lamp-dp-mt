@@ -1,0 +1,7 @@
+digraph vhdlstruct {
+fir -> firModule
+firModule -> ControlfirModule
+firModule -> cellfirModule1
+firModule -> cellFirModule2
+firModule -> cellFirModule4
+}

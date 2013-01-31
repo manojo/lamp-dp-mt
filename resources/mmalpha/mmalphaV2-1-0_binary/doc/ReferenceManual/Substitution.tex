@@ -1,0 +1,66 @@
+%
+% File created on {2007, 11, 15, 17, 10, 18.860811} by makeDoc.
+%
+% Section header
+\section{The Alpha`Substitution` package } 
+\label{label:Alpha`Substitution`}
+\alphanote{Substitution}{Documentation revised on August 8, 2004} 
+ 
+\alphausage{Substitution}{Alpha`Substitution` is the package which contains the  functions for substituting Alpha variables.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{Substitution}
+
+\alphausage{addLocal}{see addlocal in Substitution.m}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{addLocal}
+
+\alphausage{addlocal}{addlocal[sys, var, exp] declares a new local variable var in system sys and defines it as exp on the domain of exp as calculated by expDomain. All instances of exp in sys are replaced with the variable var.\\ addlocal[sys, var, pos] adds a new local variable var defined on the  context domain of pos (as calculated by getContextDomain[]) and adds the definition of var as the expression at position pos. The expression defined by pos is replaced by var. Default value of  sys is \$result. WARNING: This function is kept for backward compatibility,  but it is not sufficiently specified, please use rather addLocalLHS or addLocalRHS functions}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{addlocal}
+
+\alphausage{addLocalLHS}{addLocalRHS[var, exp] is similar to addlocal (see addlocal) but  its action is more clearly defined. From a set of equations such as \\A =...; X =...A...\\ addLocalLHS["B","A"] changes it into\\ B = A; A =...; X =...B....\\ i.e., B is added in the LHS of the equation using A.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{addLocalLHS}
+
+\alphausage{addLocalRHS}{addLocalRHS[var, exp] is similar to addlocal (see addlocal) but  its action is more clearly defined. From a set of equations such as \\A =Y; X =...A...\\ addLocalRHS["B","A"] changes it into\\ A=B;B=Y;X=...B....,\\ i.e., B is added in the RHS of the equation using A, except if  A is an input, in which case it acts as addLocalLHS:\\ B=A; X=...B....}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{addLocalRHS}
+
+\alphanote{addlocal}{addlocal is more or less the inverse transformation of substituteInDef.} 
+ 
+\alphausage{getNewName}{getNewName[sys,var] checks that the identifier "var" is not already  used in sys (default \$result) and returns it if not. If this  identifier already exists, it returns a modified version of "var"  by duplicating its last letter.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{getNewName}
+
+\alphausage{getOccurs}{getOccurs[sys,p] finds out the positions of a pattern p in system sys,  and returns a Mathematica position specifier containing the list of  occurrences of p in \$result. The pattern p can be a string (e.g.  "A.(i,j$ \rightarrow $i+j)"), in which case it is parsed, or it can be an Alpha  AST. The result of getOccurs is a list of positions specifiers that are defined with respect to sys. A position specifier can then be  used in the function Part to access the element. For example, if the position is \{6,2,3\}, then Part[sys,6,2,3] gives the element. One can also use getPart[sys,\{6,2,3\}], which is easier to use directly.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{getOccurs}
+
+\alphausage{getOccursInDef}{getOccursInDef[sys, var, p] lists the positions of occurrences of  a pattern p in the definition of variable lhs inside an ALPHA program sys (default \$result).  \\getOccursInDef[sys, var, p, rank] gives the position number rank in the result of getOccursInDef[sys, var, p]. rank specifies which occurrence to report (1 = first, 2 = second,  \{1,2\}= first and second, etc).}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{getOccursInDef}
+
+\alphausage{replaceDefinition}{replaceDefinition[lhs, rhs] replaces the definition of a variable lhs  in an equation of program \$result with the Alpha expression rhs. replaceDefinition[sys, lhs, rhs] replaces the definition of variable  lhs in an ALPHA program sys with the Alpha expression rhs and return  the new system. lhs is a variable name (either symbol or string).  rhs is either an ast or a string.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{replaceDefinition}
+
+\alphanote{replaceDefinition}{The function returns a copy of the original program in which the rhs of the equation defining the specified variable is replaced by an expression passed as parameter. The result of the substitution is not normalized. The meaning of the program may be changed by this transformation.} 
+ 
+\alphausage{substituteInDef}{substituteInDef[lhs, var] substitutes in \$result all occurrences of variable `var' in the RHS of the definition of variable `lhs' by the definition of `var', and returns the new system in \$result. substituteInDef[lhs,var,rank] substitutes occurrences `rank' of variable `var' in the RHS of the defition of variable `lhs' by the definition of `var'. The parameter rank specifies which occurrence to replace ( 1 = first, 2 = second, \{1,2\}= first and second, etc). substitute[sys,lhs,var] and substitute[sys,lhs,var,rank] do the same on program contained in symbol `sys'.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{substituteInDef}
+
+\alphausage{occursInDefQ}{occursInDefQ[sys,var,p] returns True if the pattern p occurs in the of the definition of the variable var. Default value of sys is \$result. p can be either a string or an AST.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{occursInDefQ}
+
+\alphausage{unusedVarQ}{unusedVarQ[sys,var] is True if var is used in the rhs of an equation of system sys, False otherwise. Default value of sys is \$result.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{unusedVarQ}
+
+\alphausage{removeUnusedVar}{removeUnusedVar[sys,var] removes the definition of unused variable var in system sys. The default value of sys is \$result.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{removeUnusedVar}
+
+\alphausage{removeAllUnusedVars}{removeAllUnusedVars[sys] removes the definitions of all unused local variables of system sys (default, \$result).}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{removeAllUnusedVars}
+
+\alphausage{isOutputRegular}{isOutputRegular[sys,o] is True if output variable o has the form o = v where v is a simple variable. This predicate allows one to  detect non regular outputs}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{isOutputRegular}
+
+\alphausage{areAllOutputsRegular}{areAllOutputsRegular[ sys ] is True if all outputs of sys have the form o = v, False otherwise. areAllOutputsRegular[] does the same to \$result.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{areAllOutputsRegular}
+
+\alphausage{mkOutputRegular}{mkOutputRegular[sys,o] makes output variable o regular, if necessary. In other words, it makes sure that the definition of o has the form  o = v where v is a simple local variable. mkOutputRegular[o] does the same to \$result.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{mkOutputRegular}
+
+\alphausage{mkAllOutputsRegular}{mkAllOutputsRegular[sys] makes all output variables of sys regular. mkAllOutputsRegular[] does the same on \$result.}{Alpha/Substitution.m}{Alpha`Substitution`}
+\index{mkAllOutputsRegular}
+

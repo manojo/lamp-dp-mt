@@ -1,0 +1,527 @@
+\section{Translating to \vhdl{}}
+
+\alfa{} programs cannot be translated directly to 
+\vhdl{} (that would be to easy!). 
+Only a subset of \alfa{}, called \alphard{}, can be
+translated. 
+
+The \texttt{alphaToVHDL} command, or the \texttt{av} command which is
+similar, take an \alphard{} program, and translate it into \vhdl{}.
+
+Normally, \alphard{} programs should be produced using the synthesis
+process, which ends up using the \texttt{AlphaToHard} function: 
+if this is the case, the synthesized program should be correct by
+construction, and the \texttt{alphaToVHDL} function provides a
+correct \vhdl{} model too. However, it is possible to 
+write directly \alphard{} programs, and one can check such
+programs, using various \texttt{check} functions (see~\ref{check}).
+
+However, it is interesting to look in detail into the form of the
+\alphard{} language. This it what we do here, by examining how various
+pieces of hardware are represented in \alphard{}, and translated in
+\vhdl{}.
+*****************
+
+
+\texttt{alphaToVHDL[]} generates \vhdl{} files from the library 
+\texttt{$library}. Initial 
+activity time of the corresponding architecture is 0. 
+\texttt{alphaToVHDL[tinit]}
+generates \vhdl{} files from \texttt{$library} 
+with initial activity time \texttt{tinit}. 
+
+\texttt{alphaToVHDL[lib, tinit]} generates \vdhl{} 
+files from the library (list of 
+systems) or the single system \texttt{lib}.
+
+Actually, it is equivalent to use the 
+\texttt{av} command, which is shorter. 
+
+Note the following. First, both commands translate all programs loaded in 
+\texttt{$library}. This means that, if you modify the current program in
+\texttt{$result}, \texttt{$library}
+will be changed only if you put
+\texttt{$result} back in \texttt{$library}
+(see the \texttt{putSystem} command.) 
+
+Second, the \vhdl{} files which are generated have the name
+\texttt{pg.vhd}
+where
+\texttt{pg}
+is the actual system name of the loaded program (not to be confused with 
+the name of the file containing it.)
+
+\subsection{Options}
+\texttt{alphaToVHDL} and \texttt{av} have options.
+
+\begin{itemize}
+\item \texttt{debug->True}
+provide a trace of execution of the translater. It may be helpful to 
+detect which part of the program was not accepted by the translater. 
+\item \texttt{verbose->True}
+gives a little bit more information. 
+\item \texttt{tempFile -> False}
+puts the \vhdl{} files in the /tmp/ directory\footnote{I do not 
+know where this temporary directory is in Win NT.}
+\end{itemize}
+
+\section{How \alphard{} program are written}
+
+Combinatorial logic and register
+
+The following program is a cell containing an adder. As all cells, it is 
+parameterized by the itinial time, named 
+\texttt{Tinit}
+and the duration of its use, named
+\texttt{Duration}. 
+
+The domain of these parameters is not important for combinatorial logic, 
+but uncorrect values may cause the 
+\texttt{analyze} 
+command to fail on such a program.
+Here is the program: 
+\begin{verbatim}
+system addreg: {Tinit, Duration | Tinit>0; Duration>1} 
+(x,y : {t|Tinit<= t<= Tinit+Duration-1} of integer)
+returns (z: {t|Tinit+1<= t<= Tinit+Duration-1} of integer);
+var X, Y : {t|Tinit+1<= t<= Tinit+Duration-1} of integer;
+let
+	X[t] = x[t-1]; 
+	Y[t] = y[t-1];
+	z[t] = X + Y;
+tel;
+\end{verbatim}
+We now call the translator:
+\begin{verbatim}
+av[verbose -> True, tempFile -> True]
+\end{verbatim}
+and here is the generated \vhdl{} code: 
+\begin{verbatim}
+-- VHDL Model Created for "system addreg" 
+ --  27/4/1999 18:11:54
+library IEEE;
+use IEEE.std_logic_1164.all;
+library COMPASS_LIB;
+ use COMPASS_LIB.STDCOMP.all;
+library COMPASS_LIB; 
+ use COMPASS_LIB.COMPASS.all;
+  
+entity addreg is
+      Port ( Ck : In std_logic;
+      x : In Integer range 0 to 255;
+      y : In Integer range 0 to 255;
+      z : Out Integer range 0 to 255 );
+end addreg;
+
+architecture Behavioral of addreg is
+  signal X : Integer range 0 to 255;
+  signal Y : Integer range 0 to 255;
+begin
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        X <= x;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        Y <= y;
+    end if;
+  end process;
+
+  z <= (X + Y);
+
+end Behavioral;
+\end{verbatim}
+
+\section{Cell 1 of the FIR}
+
+This program is a cell of the FIR. It consists of combinational logic
+and registers. 
+\begin{verbatim}
+-- Example for VHDL translator -- September 1998
+-- This example is a cell extracted from the FIR module
+system cellFirModule3 :{p,N,M | 2<=p<=N; N<=M-1}
+  (Y_reg7loc : {t | p+1<=t<=p-N+M+1; 2<=p<=N; N<=M-1} of integer; 
+   xPipe_reg5loc : {t | p<=t<=p-N+M; 2<=p<=N; N<=M-1} of integer; 
+   HPipeES_reg4loc : {t | 2p-N-2<=t<=p-1; 2<=p<=N; N<=M-1} of integer;
+   xPipeES_reg3loc : {t | 2p-N-1<=t<=p; 2<=p<=N; N<=M-1} of integer;
+   xPipe_ctl2P_reg2loc : {t | p<=t<=p-N+M; 2<=p<=N; N<=M-1} of boolean;
+   HPipe_ctl1P_reg1loc : {t | p-1<=t<=p-N+M-1; 2<=p<=N; N<=M-1} of boolean
+  )
+returns
+  (Y : {t | p+2<=t<=p-N+M+2; 2<=p<=N; N<=M-1} of integer; 
+   xPipe : {t | p+1<=t<=p-N+M+1; 2<=p<=N; N<=M-1} of integer;
+   HPipeES : {t | 2p-N<=t<=p; 2<=p; N<=M-1} of integer; 
+   xPipeES : {t | 2p-N+1<=t<=p+1; 2<=p; N<=M-1} of integer;
+   xPipe_ctl2P : {t | p+1<=t<=p-N+M+1; 2<=p<=N; N<=M-1} of boolean;
+   HPipe_ctl1P : {t | p<=t<=p-N+M; 2<=p<=N; N<=M-1} of boolean
+  );
+var
+  HPipe_ctl1Ploc6 : {t | p<=t<=p-N+M; 2<=p<=N; N<=M-1} of boolean;
+  xPipe_ctl2Ploc5 : {t | p+1<=t<=p-N+M+1; 2<=p<=N; N<=M-1} of boolean;
+  xPipeESloc4 : {t | 2p-N+1<=t<=p+1; 2<=p; N<=M-1} of integer;
+  HPipeESloc3 : {t | 2p-N<=t<=p; 2<=p; N<=M-1} of integer;
+  xPipeloc2 : {t | p+1<=t<=p-N+M+1; 2<=p<=N; N<=M-1} of integer;
+  HPipe : {t | p<=t<=p-N+M; 2<=p<=N; N<=M-1} of integer;
+  HPipe_ctl1 : {t | p<=t<=p-N+M; 2<=p<=N; N<=M-1} of boolean;
+  HPipe_ctl1P_reg1 : {t | p<=t<=p-N+M; 2<=p<=N; N<=M-1} of boolean;
+  HPipeES_reg4 : {t | 2p-N<=t<=p; 2<=p; N<=M-1} of integer;
+  HPipe_reg6 : {t | p+1<=t<=p-N+M; 2<=p<=N} of integer;
+  HPipe_reg8 : {t | p+2<=t<=p-N+M+2; 2<=p<=N; N<=M-1} of integer;
+  xPipe_ctl2 : {t | p+1<=t<=p-N+M+1; 2<=p<=N; N<=M-1} of boolean;
+  xPipe_ctl2P_reg2 : {t | p+1<=t<=p-N+M+1; 2<=p<=N; N<=M-1} of boolean;
+  xPipeES_reg3 : {t | 2p-N+1<=t<=p+1; 2<=p; N<=M-1} of integer;
+  xPipe_reg5 : {t | p+2<=t<=p-N+M+1; 2<=p<=N} of integer;
+  xPipe_reg9 : {t | p+2<=t<=p-N+M+2; 2<=p<=N; N<=M-1} of integer;
+  Y_reg7 : {t | p+2<=t<=p-N+M+2; 2<=p<=N; N<=M-1} of integer;
+let
+  HPipe_ctl1P[t] = HPipe_ctl1Ploc6[t];
+  xPipe_ctl2P[t] = xPipe_ctl2Ploc5[t];
+  xPipeES[t] = xPipeESloc4[t];
+  HPipeES[t] = HPipeESloc3[t];
+  xPipe[t] = xPipeloc2[t];
+  Y_reg7[t] = Y_reg7loc[t-1];
+  xPipe_reg5[t] = xPipe_reg5loc[t-2];
+  HPipeES_reg4[t] = HPipeES_reg4loc[t-2];
+  xPipeES_reg3[t] = xPipeES_reg3loc[t-2];
+  xPipe_ctl2P_reg2[t] = xPipe_ctl2P_reg2loc[t-1];
+  HPipe_ctl1P_reg1[t] = HPipe_ctl1P_reg1loc[t-1];
+  xPipe_reg9[t] = xPipeloc2[t-1];
+  HPipe_reg8[t] = HPipe[t-2];
+  HPipe_reg6[t] = HPipe[t-1];
+  xPipeESloc4[t] = xPipeES_reg3[t];
+  HPipeESloc3[t] = HPipeES_reg4[t];
+  xPipe_ctl2Ploc5[t] = xPipe_ctl2P_reg2[t];
+  xPipe_ctl2[t] = xPipe_ctl2Ploc5[t];
+  xPipeloc2[t] = 
+    case
+      {| t=p+1; 2<=p<=N; N<=M-1} : 
+         if (xPipe_ctl2[t]) then xPipeESloc4[t] else 0[];
+      {| p+2<=t<=p-N+M+1; 2<=p<=N} : 
+         if (xPipe_ctl2[t]) then 0[] else xPipe_reg5[t];
+    esac;
+  HPipe_ctl1Ploc6[t] = HPipe_ctl1P_reg1[t];
+  HPipe_ctl1[t] = HPipe_ctl1Ploc6[t];
+  HPipe[t] = 
+    case
+      {| t=p; 2<=p<=N; N<=M-1} : 
+         if (HPipe_ctl1[t]) then HPipeESloc3[t] else 0[];
+      {| p+1<=t<=p-N+M; 2<=p<=N} : 
+         if (HPipe_ctl1[t]) then 0[] else HPipe_reg6[t];
+      esac;
+  Y[t] = Y_reg7[t] + HPipe_reg8[t] * xPipe_reg9[t];
+tel;
+\end{verbatim}
+And here is the generated \vhdl{} program:
+\begin{verbatim}
+-- VHDL Model Created for "system cellFirModule3" 
+ --  27/4/1999 19:14:50
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+library COMPASS_LIB;
+ use COMPASS_LIB.STDCOMP.all;
+library COMPASS_LIB; 
+ use COMPASS_LIB.COMPASS.all;
+  
+entity cellFirModule3 is
+      Port ( Ck : In std_logic;
+      Y_reg7loc : In Integer range 0 to 255;
+      xPipe_reg5loc : In Integer range 0 to 255;
+      HPipeES_reg4loc : In Integer range 0 to 255;
+      xPipeES_reg3loc : In Integer range 0 to 255;
+      xPipe_ctl2P_reg2loc : In std_logic;
+      HPipe_ctl1P_reg1loc : In std_logic;
+      Y : Out Integer range 0 to 255;
+      xPipe : Out Integer range 0 to 255;
+      HPipeES : Out Integer range 0 to 255;
+      xPipeES : Out Integer range 0 to 255;
+      xPipe_ctl2P : Out std_logic;
+      HPipe_ctl1P : Out std_logic );
+end cellFirModule3;
+
+
+architecture Behavioral of cellFirModule3 is
+
+  signal HPipe_ctl1Ploc6 : std_logic;
+  signal xPipe_ctl2Ploc5 : std_logic;
+  signal xPipeESloc4 : Integer range 0 to 255;
+  signal HPipeESloc3 : Integer range 0 to 255;
+  signal xPipeloc2 : Integer range 0 to 255;
+  signal HPipe : Integer range 0 to 255;
+  signal HPipe_ctl1 : std_logic;
+  signal HPipe_ctl1P_reg1 : std_logic;
+  signal HPipeES_reg4 : Integer range 0 to 255;
+  signal HPipe_reg6 : Integer range 0 to 255;
+  signal HPipe_reg8 : Integer range 0 to 255;
+  signal xPipe_ctl2 : std_logic;
+  signal xPipe_ctl2P_reg2 : std_logic;
+  signal xPipeES_reg3 : Integer range 0 to 255;
+  signal xPipe_reg5 : Integer range 0 to 255;
+  signal xPipe_reg9 : Integer range 0 to 255;
+  signal Y_reg7 : Integer range 0 to 255;
+  signal xPipe_reg5_S1 : Integer range 0 to 255;
+  signal HPipeES_reg4_S1 : Integer range 0 to 255;
+  signal xPipeES_reg3_S1 : Integer range 0 to 255;
+  signal HPipe_reg8_S1 : Integer range 0 to 255;
+
+begin
+
+  HPipe_ctl1P <= HPipe_ctl1Ploc6;
+
+  xPipe_ctl2P <= xPipe_ctl2Ploc5;
+
+  xPipeES <= xPipeESloc4;
+
+  HPipeES <= HPipeESloc3;
+
+  xPipe <= xPipeloc2;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        Y_reg7 <= Y_reg7loc;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        xPipe_reg5_S1 <= xPipe_reg5loc;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        xPipe_reg5 <= xPipe_reg5_S1;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        HPipeES_reg4_S1 <= HPipeES_reg4loc;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        HPipeES_reg4 <= HPipeES_reg4_S1;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        xPipeES_reg3_S1 <= xPipeES_reg3loc;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        xPipeES_reg3 <= xPipeES_reg3_S1;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        xPipe_ctl2P_reg2 <= xPipe_ctl2P_reg2loc;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        HPipe_ctl1P_reg1 <= HPipe_ctl1P_reg1loc;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        xPipe_reg9 <= xPipeloc2;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        HPipe_reg8_S1 <= HPipe;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        HPipe_reg8 <= HPipe_reg8_S1;
+    end if;
+  end process;
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        HPipe_reg6 <= HPipe;
+    end if;
+  end process;
+
+  xPipeESloc4 <= xPipeES_reg3;
+
+  HPipeESloc3 <= HPipeES_reg4;
+
+  xPipe_ctl2Ploc5 <= xPipe_ctl2P_reg2;
+
+  xPipe_ctl2 <= xPipe_ctl2Ploc5;
+
+  xPipeloc2 <= 
+    xPipeESloc4 when xPipe_ctl2 = '1'  else 
+    0 when xPipe_ctl2 = '1'  else xPipe_reg5;
+
+  HPipe_ctl1Ploc6 <= HPipe_ctl1P_reg1;
+
+  HPipe_ctl1 <= HPipe_ctl1Ploc6;
+
+  HPipe <= 
+    HPipeESloc3 when HPipe_ctl1 = '1'  else 
+    0 when HPipe_ctl1 = '1'  else HPipe_reg6;
+
+  Y <= (Y_reg7 + (HPipe_reg8 * xPipe_reg9));
+
+end Behavioral;
+\end{verbatim}
+
+\section{Control cell of the FIR}
+Here is the controller for the FIR program. 
+\begin{verbatim}
+system controlFirModule :{N,M | 2<=N<=M-1}
+  ( )
+returns
+  (HPipe_ctl1P_Init : {t | t=1; 2<=N<=M-1} | 
+                      {t | 2<=t<=-N+M+1; 2<=N} of boolean; 
+   xPipe_ctl2P_Init : {t | t=2; 2<=N<=M-1} | 
+                      {t | 3<=t<=-N+M+2; 2<=N} of boolean);
+let
+  HPipe_ctl1P_Init[t] = 
+      case
+        {| t=1; 2<=N<=M-1} : True[];
+        {| 2<=t<=-N+M+1; 2<=N} : False[];
+      esac;
+  xPipe_ctl2P_Init[t] = 
+      case
+        {| t=2; 2<=N<=M-1} : True[];
+        {| 3<=t<=-N+M+2; 2<=N} : False[];
+      esac;
+tel;
+\end{verbatim}
+This program is parameterized, and therefore, a \vhdl{}
+program cannot be generated without assigning values to 
+the parameters. This is done by means of the following
+commands: 
+\begin{verbatim}
+load["controlFirModule.alpha"];
+assignParameterValue["N", 5]; 
+assignParameterValue["M", 10]; 
+av[tempFile -> True]
+\end{verbatim}
+The \vhdl{} program for this controller is presented
+in appendix~\ref{vdhl:appendix}.
+
+\section*{Appendix: \vhdl{} code of the Fir controller}
+\label{vhdl:appendix}
+\begin{verbatim}
+-- VHDL Model Created for "system controlFirModule" 
+ --  27/4/1999 18:52:17
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+  
+entity controlFirModule is
+      Port ( Ck : In std_logic;
+      Rst : In std_logic;
+      HPipe_ctl1P_Init : Out std_logic;
+      xPipe_ctl2P_Init : Out std_logic );
+end controlFirModule;
+
+
+architecture state_machine of controlFirModule is
+  signal cpt: Integer;
+
+  type HPipe_ctl1P_InitStates is (E0,E0bis,E1,E2);
+  signal currentHPipe_ctl1P_InitState, nextHPipe_ctl1P_InitState :HPipe_ctl1P_InitStates;
+
+  type xPipe_ctl2P_InitStates is (E0,E0bis,E1,E2);
+  signal currentxPipe_ctl2P_InitState, nextxPipe_ctl2P_InitState :xPipe_ctl2P_InitStates;
+BEGIN 
+
+reset_sm : PROCESS
+ begin
+-- compass stateMachine adj currentHPipe_ctl1P_InitState
+-- compass stateMachine adj currentxPipe_ctl2P_InitState
+
+  WAIT UNTIL (Ck = '1' AND Ck'event);
+
+  IF Rst ='1' THEN 
+   cpt <= -1;
+   currentHPipe_ctl1P_InitState <= E0;
+   currentxPipe_ctl2P_InitState <= E0;
+  ELSE
+   cpt <= cpt + 1;
+   currentHPipe_ctl1P_InitState <= nextHPipe_ctl1P_InitState;
+   currentxPipe_ctl2P_InitState <= nextxPipe_ctl2P_InitState;
+  END IF;
+ END PROCESS;
+
+evolution_HPipe_ctl1P_Init : PROCESS(cpt, currentHPipe_ctl1P_InitState)
+ begin 
+ CASE currentHPipe_ctl1P_InitState IS
+  WHEN E0 => IF (cpt < 0) THEN nextHPipe_ctl1P_InitState <= E0;
+    ELSIF (cpt = 0) THEN nextHPipe_ctl1P_InitState <= E1; END IF;
+  WHEN E1 =>  IF (cpt = 1) THEN nextHPipe_ctl1P_InitState <= E2; END IF;
+  WHEN E2 => IF ((cpt >= 2) AND (cpt < 6 )) THEN nextHPipe_ctl1P_InitState <= E2;  END IF;
+   IF (cpt = 6) THEN nextHPipe_ctl1P_InitState <= E0bis; END IF;-- remise a zero de la SM
+  WHEN OTHERS => -- erreurs et hors service
+   nextHPipe_ctl1P_InitState <= E0bis ;
+ END CASE;
+END PROCESS;
+
+output_HPipe_ctl1P_Init : PROCESS(currentHPipe_ctl1P_InitState)
+ begin
+ CASE currentHPipe_ctl1P_InitState IS
+  WHEN E1=>HPipe_ctl1P_Init <= '1'; 
+  WHEN E2=>HPipe_ctl1P_Init <= '0'; 
+  WHEN OTHERS =>
+   HPipe_ctl1P_Init <= 'X';
+ END CASE;
+END PROCESS;
+evolution_xPipe_ctl2P_Init : PROCESS(cpt, currentxPipe_ctl2P_InitState)
+ begin 
+ CASE currentxPipe_ctl2P_InitState IS
+  WHEN E0 => IF (cpt < 1) THEN nextxPipe_ctl2P_InitState <= E0;
+    ELSIF (cpt = 1) THEN nextxPipe_ctl2P_InitState <= E1; END IF;
+  WHEN E1 =>  IF (cpt = 2) THEN nextxPipe_ctl2P_InitState <= E2; END IF;
+  WHEN E2 => IF ((cpt >= 3) AND (cpt < 7 )) THEN nextxPipe_ctl2P_InitState <= E2;  END IF;
+   IF (cpt = 7) THEN nextxPipe_ctl2P_InitState <= E0bis; END IF;-- remise a zero de la SM
+  WHEN OTHERS => -- erreurs et hors service
+   nextxPipe_ctl2P_InitState <= E0bis ;
+ END CASE;
+END PROCESS;
+
+output_xPipe_ctl2P_Init : PROCESS(currentxPipe_ctl2P_InitState)
+ begin
+ CASE currentxPipe_ctl2P_InitState IS
+  WHEN E1=>xPipe_ctl2P_Init <= '1'; 
+  WHEN E2=>xPipe_ctl2P_Init <= '0'; 
+  WHEN OTHERS =>
+   xPipe_ctl2P_Init <= 'X';
+ END CASE;
+END PROCESS;
+
+END state_machine;
+\end{verbatim}

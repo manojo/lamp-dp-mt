@@ -1,0 +1,424 @@
+%
+% File created on {2009, 4, 25, 18, 19, 40.078499} by makeDoc.
+%
+% Section header
+\section{The Alpha` package } 
+\label{label:Alpha`}
+\input{incl-Alpha.tex}
+\alphanote{Alpha}{Documentation revised on April 25, 2008} 
+ 
+\alphausage{Alpha}{\MMAlpha{} is a Mathematica-based implementation of the
+ALPHA language.  The "Alpha`" package contains basic commands for
+the \MMAlpha{} system.  The name "Alpha`" is also a root name for all
+packages and symbols of \MMAlpha{}.}{Alpha.m}{Alpha`}
+\index{Alpha}
+
+\alphanote{Alpha}{In this package, there is a description of some structures (domain,
+pol, zpol), of global variables (\$coneList, \$demoDirectory, \$depCone, 
+\$library, \$masterNotebook, \$MMALPHA, \$myMasterNotebook, \$myNotebooks, 
+\$program, \$result, \$rootDirectory, \$schedule, \$scheduleLibrary, 
+\$testDirectory, \$tmpDirectory, \$showGraph, 
+\$testResult, \$testDirectory, \$testIdentifier, \$testReportFile,
+\$tmpDirectory, \$runTime,
+\$vhdlPatternsDir), 
+and finally of some functions. Among these, 
+ashow, ashowLib, asave, asaveLib, getSystem, load, myStart, putSystem,
+save, saveLib, show, showLib, showMat, start, and systemNames
+are important for a user. Functions getPart, readAlpha, readDom, 
+readExp, readDom, testFunction, tests, varTypes, writeC, astQ, 
+fileName, openTemporary, getTemporary, packageLink, demoLink, docLink, 
+link, exportAlphaFunctions, and setMMADir are useful for developers. 
+Function writeTex, enTete, and wrap are unused or incomplete.} 
+ 
+\alphausage{domain}{domain[dim, idx, lpol] is the structure representing 
+a domain. dim is the (integer) dimension of the domain, 
+idx is the list of dimension names and lpol is a list of
+polyhedra or of Z-polyhedra. See also ?pol or ?zpol.}{Alpha.m}{Alpha`}
+\index{domain}
+
+\alphanote{domain}{Domains of Alpha are either polyhedra, unions of polyhedra, Z-polyhedra, 
+i.e., intersection of a polyhedron and of a lattice, or unions of 
+Z-polyhedra. Note also that in domains of Z-Polyhedra, the 
+index part is empty.} 
+ 
+\alphausage{pol}{pol[nbConstraints, nbRays, nbEq, nblines, cons, rays] is 
+the representation of a polyhedron in Alpha.
+nbConstraints (integer) is the number of
+constraints (equalities and inequalities), 
+nbRays (integer) is the number of rays
+(including lines), nbEq (integer) is the number of equalities,
+nblines (integer) is the number of lines, cons (matrix) is the
+set of equalities and inequalities, and rays (matrix) is the 
+set of rays and lines. Inequalities and rays are represented
+by lists of integers with a leading 1, and equalities or lines
+by lists of integers with a leading 0. See also ?domain and ?zpol.}{Alpha.m}{Alpha`}
+\index{pol}
+
+\alphausage{zpol}{zpol[m, lpol] is the representation of a Z-polyhedron in Alpha.
+m is an Alpha matrix which represents the Z-lattice, and lpol
+is a list of polyhedra. See also ?domain and ?pol.}{Alpha.m}{Alpha`}
+\index{zpol}
+
+\alphausage{\$coneList}{\$coneList contains the list of dependence cones of all 
+the dependences of \$result. This variable is set by the 
+initUniformization function, and it is a list of domains.}{Alpha.m}{Alpha`}
+\index{\$coneList}
+
+\alphausage{\$demoDirectory}{\$demoDirectory contains the path of the demo directory of \MMAlpha{}.}{Alpha.m}{Alpha`}
+\index{\$demoDirectory}
+
+\alphausage{\$depCone}{\$depCone is a glocal variable which contains the 
+dependence cone of \$result. This variable is set by the
+initUniformization function, and is in domain.}{Alpha.m}{Alpha`}
+\index{\$depCone}
+
+\alphausage{\$library}{\$library is the Mathematica symbol which holds the list of Alpha
+programs (systems and subsystems) most recently loaded using
+load. The system in \$result is also present in  \$library.}{Alpha.m}{Alpha`}
+\index{\$library}
+
+\alphausage{\$masterNotebook}{\$masterNotebook is the path of the master.nb notebook, which gives 
+access to all demo notebooks on Alpha. To open it, use the command 
+NotebookOpen[\$masterNotebook] or start[].}{Alpha.m}{Alpha`}
+\index{\$masterNotebook}
+
+\alphausage{\$MMALPHA}{\$MMALPHA contains the path of the \MMAlpha{} directory. This variable is 
+set by an environment variable called MMALPHA.}{Alpha.m}{Alpha`}
+\index{\$MMALPHA}
+
+\alphausage{\$myMasterNotebook}{\$myMasterNotebook is the name of the notebook that you have placed
+in the \$myNotebooks directory to access your own examples. To open
+it, evaluate myStart[].}{Alpha.m}{Alpha`}
+\index{\$myMasterNotebook}
+
+\alphausage{\$myNotebooks}{\$myNotebooks contains the path of the directory containing your examples.
+You can set this path in your init.m file. This file, placed in your home
+directory, is loaded by Mathematica before any other Mathematica command.}{Alpha.m}{Alpha`}
+\index{\$myNotebooks}
+
+\alphausage{\$program}{\$program is a Mathematica symbol which keeps the abstract
+syntax tree of the source of any transformation. It is initialized
+by load, and changed when a (second) transformation is applied. The
+most recent AST is kept in \$result (see ?\$result)}{Alpha.m}{Alpha`}
+\index{\$program}
+
+\alphausage{\$result}{\$result is the Mathematica symbol which holds the result of the
+most recent operation (load or transformation). It is the default
+source program for many transformations. When it is used by default by
+a transformation, it is also modified by this transformation}{Alpha.m}{Alpha`}
+\index{\$result}
+
+\alphausage{\$rootDirectory}{\$rootDirectory contains the path of the \MMAlpha{} 
+directory. It is set to \$MMALPHA}{Alpha.m}{Alpha`}
+\index{\$rootDirectory}
+
+\alphausage{\$schedule}{\$schedule is the Mathematica symbol that contains the schedule 
+information of a system after the execution of the schedule or
+the scd functions. The format of \$schedule is:
+
+scheduleResult[name, 
+
+  List[\{var, varIndices, sched[tauVect, constCoef]\}],
+
+  objFunction].
+ 
+where name is the name of the system, var is a variable of sys,
+varIndices is the list of indexes of var, tauVect is a list
+of integer corresponding to the linear part of the schedule of
+var, constCoef is the affine part, and objFunction is the 
+objective function that was used to find the schedule.}{Alpha.m}{Alpha`}
+\index{\$schedule}
+
+\alphausage{\$scheduleLibrary}{\$scheduleLibrary is the list of the schedules that have been computed for 
+various programs since the beginning of the current session.}{Alpha.m}{Alpha`}
+\index{\$scheduleLibrary}
+
+\alphausage{\$showGraph}{\$showGraph is a global variable that is set by the report function. Use is not
+garanteed.}{Alpha.m}{Alpha`}
+\index{\$showGraph}
+
+\alphausage{\$testResult}{\$testResult is a global variable that is used to store the accumulated 
+result value of a test.}{Alpha.m}{Alpha`}
+\index{\$testResult}
+
+\alphausage{\$testDirectory}{\$testDirectory is the path name of the directory that contains the 
+test files for all packages. Currently set to \$MMALPHA/tests/}{Alpha.m}{Alpha`}
+\index{\$testDirectory}
+
+\alphausage{\$testIdentifier}{\$testIdentifier contains the name of the test that one wants to perform.
+Default value is "".}{Alpha.m}{Alpha`}
+\index{\$testIdentifier}
+
+\alphausage{\$testReportFile}{\$testReportFile is the name of the reporting file for the tests. Its 
+value is "" when no report file is open, otherwise, it contains the}{Alpha.m}{Alpha`}
+\index{\$testReportFile}
+
+\alphausage{\$tmpDirectory}{\$tmpDirectory is the pathname of the directory that will be used 
+for all temporary files, i.e. /tmp/ on unix, C:/tmp/ on WindowsNT 
+(strongly recommended).}{Alpha.m}{Alpha`}
+\index{\$tmpDirectory}
+
+\alphausage{\$runTime}{\$runTime is a global variable that stores the running time of 
+the scheduler.}{Alpha.m}{Alpha`}
+\index{\$runTime}
+
+\alphausage{ashow}{ashow[sys] pretty prints in array notation the program contained in sys. Default value of sys is \$result. See also show.}{Alpha.m}{Alpha`}
+\index{ashow}
+
+\alphausage{ashowLib}{ashowLib[lib] prints in array notation all the systems of a library lib. 
+Default value of lib is \$library. Warning, currently does not work 
+on notebooks, use ashow[lib] instead. See also show, ashow.}{Alpha.m}{Alpha`}
+\index{ashowLib}
+
+\alphausage{asave}{asave[sys,filename] saves the array notation pretty printed version of
+\$result in file filename. Default value of sys is \$result. See also
+save, load, saveLib, asaveLib.}{Alpha.m}{Alpha`}
+\index{asave}
+
+\alphausage{asaveLib}{asavelib[lib,filename] saves in array notation all systems 
+contained in library lib in file filename. Default value of 
+lib is \$library. See also save, asave.}{Alpha.m}{Alpha`}
+\index{asaveLib}
+
+\alphausage{fshow}{obsolete form of show.}{Alpha.m}{Alpha`}
+\index{fshow}
+
+\alphausage{getPart}{getPart[exp,position] returns the subexpression of exp which is
+designated by position.  The parameter position is a list of integers
+following the convention of the Mathematica function Position. For
+example, getPart[exp,\{2,3\}] identifies the third subtree of the second
+subtree of exp. Warning: getPart does not accept in second parameter a
+list of positions such as those returned by the Mathematica function
+Position.}{Alpha.m}{Alpha`}
+\index{getPart}
+
+\alphausage{getSystem}{getSystem[sys,lib] extracts the system named sys from the library lib 
+and selects it as the current system. Default value of lib is 
+\$library. See also putSystem.}{Alpha.m}{Alpha`}
+\index{getSystem}
+
+\alphausage{load}{load[filename] parses the ALPHA program contained in file filename 
+and returns the corresponding abstract syntax tree. As a side effect, 
+symbols \$program and \$result are loaded with the parsed program.
+See also save, asave, asaveLib.}{Alpha.m}{Alpha`}
+\index{load}
+
+\alphausage{myStart}{myStart[] opens the \$myMasterNotebook notebook placed in the
+directory \$MMALPHA/myNotebooks.}{Alpha.m}{Alpha`}
+\index{myStart}
+
+\alphausage{on}{on[] is an obsolete form of start[]. It opens the Master 
+Notebook.}{Alpha.m}{Alpha`}
+\index{on}
+
+\alphausage{putSystem}{putSystem[sys,lib] puts the system sys (default \$result) into library 
+lib (default \$library). If sys already exists in lib, it is replaced, 
+otherwise it is appended. See also getSystem.}{Alpha.m}{Alpha`}
+\index{putSystem}
+
+\alphausage{readAlpha}{readAlpha[filename] parses the ALPHA program in file filename
+and returns its abstract syntax tree. Does not modify \$program 
+nor \$result.}{Alpha.m}{Alpha`}
+\index{readAlpha}
+
+\alphausage{readDom}{readDom[dom] parses the ALPHA domain dom and returns its abstact syntax
+tree. To parse a parametric domain such as \{i$|$i$<$N\}, it is
+mandatory to supply the parameter domain or the parameter 
+names as a second argument, for example:
+
+readDom["\{i,j $|$ ... \}", \{"N"\}]
+
+readDom["\{i,j $|$ ... \}",domain[1,\{"N"\}, ...] ] .}{Alpha.m}{Alpha`}
+\index{readDom}
+
+\alphausage{readExp}{readExp[exp] parses the ALPHA expression exp and returns its 
+abstact syntax tree. readExp[exp,paramNames] or 
+readExp[exp,paramDom] are used  to parse a parametric
+expression. Example: 
+
+readExp["A.(i,j,N$ \rightarrow $N,N) + B.(i,N$ \rightarrow $i,N)"]
+
+readExp["A.(i,j$ \rightarrow $N) + B.(i$ \rightarrow $i)", \{"N"\}]
+
+readExp["A.(i,j$ \rightarrow $N) + B.(i$ \rightarrow $i)", domain[1,\{"N"\}, ...] ].}{Alpha.m}{Alpha`}
+\index{readExp}
+
+\alphausage{readMat}{readMat[dep] parses the ALPHA dependency dep and returns its matrix 
+abstract syntax tree. To parse a parametric dependency such as (i,j$ \rightarrow $N),
+it is mandatory to supply the parameter domain 
+or the parameter names, e.g.:
+
+readMat["(i,j,N$ \rightarrow $i)"]
+ 
+readMat["(i,j$ \rightarrow $i)", \{"N"\}]
+
+readMat["(i,j$ \rightarrow $i)",domain[1,\{"N"\}, ...] ] .}{Alpha.m}{Alpha`}
+\index{readMat}
+
+\alphausage{save}{save[sys,filename] saves the standard notation pretty printed
+version of sys in file filename. Default value of sys is \$result.
+See also load, asave, saveLib, asaveLib.}{Alpha.m}{Alpha`}
+\index{save}
+
+\alphausage{saveLib}{savelib[lib,filename] saves all systems contained in library lib
+in file filename in standard notation.}{Alpha.m}{Alpha`}
+\index{saveLib}
+
+\alphausage{show}{show[var] pretty-prints the program, the domain, the matrix or 
+the schedule contained in symbol var. Default value of var is 
+\$result. show[var, p] pretty prints the domain or the matrix 
+contained in symbol var taking parameter domain p into account. 
+var and p should be abstract syntax trees.}{Alpha.m}{Alpha`}
+\index{show}
+
+\alphausage{showLib}{showLib[lib] prints all the systems of library lib in standard notation. 
+Default value of lib is \$library. Warning, currently does not 
+work in notebooks, use show[lib] instead}{Alpha.m}{Alpha`}
+\index{showLib}
+
+\alphausage{showMat}{showMat[m] pretty-prints the matrix m in Alpha format.}{Alpha.m}{Alpha`}
+\index{showMat}
+
+\alphausage{start}{start[] opens the Master Notebook.}{Alpha.m}{Alpha`}
+\index{start}
+
+\alphausage{systemNames}{systemNames[] returns the list of system names loaded in \$library.}{Alpha.m}{Alpha`}
+\index{systemNames}
+
+\alphausage{testFunction}{testFunction[expr,resOfExpr,message\_String] is used for building tests. It
+evaluates expr and compare it the resOfExpr, return True if the two are 
+equal, False otherwise and prints a standard message (using the information 
+of message: usually a test number to identify the test). This function is
+for developers.}{Alpha.m}{Alpha`}
+\index{testFunction}
+
+\alphausage{tests}{tests[PackageName] call the test procedure for the package 
+PackageName. tests[] calls the test procedure 
+for all \MMAlpha{} packages. Warning: a complete test takes a long time.}{Alpha.m}{Alpha`}
+\index{tests}
+
+\alphausage{varTypes}{varTypes[sys] lists the types of all variables of sys. Default value
+of sys is \$result.}{Alpha.m}{Alpha`}
+\index{varTypes}
+
+\alphausage{writeC}{writeC[sys,f,opts] generates C code from the system sys in file f.  
+Default value of sys is \$result and default value of f is "Alpha.c". 
+opts are options that are sent to the C generator. 
+Option "-p num1 num2 ..." sets Alpha parameters to value 
+num1, num2, etc. The C code is correct only if all Alpha parameters 
+are assigned values. The "-g" option provides a debug version, 
+where all equation calls are printed out. The "-s" option is for 
+the generation of C code to be interfaced with the Signal language. 
+WARNING: writeC does not work properly for systems with unbounded domains.}{Alpha.m}{Alpha`}
+\index{writeC}
+
+\alphausage{writeTex}{writeTex[sys,f] generates the Latex form of the program
+contained in symbol sys (default \$result) into file f 
+(default "Alpha.tex") of the current directory. 
+writeTex[...,"-a"] produces a program in array notation. 
+Warning: writeTex overwrites an already existing output f file.}{Alpha.m}{Alpha`}
+\index{writeTex}
+
+\alphanote{writeTex}{This function is available only on Unix, and seldom used. Its 
+output is not guaranteed.} 
+ 
+\alphausage{astQ}{astQ[exp] is True if expression exp is an AST, False otherwise.}{Alpha.m}{Alpha`}
+\index{astQ}
+
+\alphausage{fileName}{fileName[\{\_\_String\}] returns the path expression corresponding to the
+file according to the operating system in use. Actually, this function 
+is not necessary, since Mathematica converts all pathnames from the 
+Unix form.}{Alpha.m}{Alpha`}
+\index{fileName}
+
+\alphausage{openTemporary}{openTemporary[] works as the Mathematica function OpenTemporary, but
+opens the file in the \$tmpDirectory and return the corresponding 
+stream. The command Close[openTemporary[] returns the name of 
+the temporary file (warning: there is an inconsistency in this 
+function due to Mathematica between the Unix version and the WindowsNT 
+version: on Unix, the full name returned is ("/tmp/...") while 
+on WindowsNT, only the name of the file is returned. Please use 
+getTemporaryName[] to get the name of a temporary file instead.}{Alpha.m}{Alpha`}
+\index{openTemporary}
+
+\alphausage{getTemporaryName}{getTemporaryFile[] returns the full name of a new temporary file. 
+It is equivalent to Close[OpenTemporary[]] on a unix plateform and 
+it has the same behaviour on other plateforms.}{Alpha.m}{Alpha`}
+\index{getTemporaryName}
+
+\alphausage{demoLink}{demoLink[demo] creates an hyperlink button aiming at the Alpha 
+demo notebook "demo.nb". This button may then be cut and pasted anywhere. 
+Example:
+
+demoLink["Fir"]
+
+creates a button aiming at the demo notebook Fir.nb 
+placed in directory \$MMALPHA/demos/NOTEBOOKS/Fir.
+
+demoLink[d,demo] creates an hyperlink button aiming at notebook 
+demo.nb in directory d of \$MMALPHA/demos/NOTEBOOKS.}{Alpha.m}{Alpha`}
+\index{demoLink}
+
+\alphausage{docLink}{docLink[file] creates an hyperlink button
+aiming at the Alpha documentation notebook "file.nb". This button may then be
+cut-and-pasted anywhere. docLink[d:\_String, file:\_String] creates an
+hyperlink button aiming at notebook file.nb in directory d of
+\$MMALPHA/doc/packages.}{Alpha.m}{Alpha`}
+\index{docLink}
+
+\alphausage{link}{link[file] creates an hyperlink button aiming at the Alpha
+notebook "file.nb" in directory \$myNotebooks. This button may then
+be cut-and-pasted anywhere. link[d, file] creates an
+hyperlink button aiming at notebook "file.nb" in directory d of
+\$myNotebooks.}{Alpha.m}{Alpha`}
+\index{link}
+
+\alphausage{exportAlphaFunctions}{exportAlphaFunctions[] writes DeclarePackage commands for all functions 
+of the \MMAlpha{} standard packages. This function is automatically executed
+when loading Alpha.m (see after the EndPackage instruction) whenever the
+autoload.m does not exists, and creates this file. The autoload.m file 
+is located in the Alpha directory. Each time you want to add a new package
+to \MMAlpha{}, add an entry in the local variable "contexts" of Alpha.m, then 
+remove the autoload.m file: a new one will be created.}{Alpha.m}{Alpha`}
+\index{exportAlphaFunctions}
+
+\alphausage{setMMADir}{setMMADir[List[\_\_\_String]] does the SetDirectory[] function work, but 
+the path is specified as a list of strings and hence is valid on 
+different plateforms (Windows, Unix).}{Alpha.m}{Alpha`}
+\index{setMMADir}
+
+\alphanote{setMMADir}{Actually this function is not
+needed as Mathematica changes on the fly the path names depending on 
+the platform.} 
+ 
+\alphausage{wrap}{wrap[exp,contextFile,result] evaluates the expression exp in the
+context given in the file contextFile, and returns the result in 
+the file result. This function is not currently finished.}{Alpha.m}{Alpha`}
+\index{wrap}
+
+\alphanote{wrap}{wrap is used for running examples in separate sessions
+of Mathematica, for example, using a remote \MMAlpha{} installation. The
+idea would be to control the execution, and to use only one licence
+to run these examples. The price to pay would be the start time of 
+Mathematica.} 
+ 
+\alphausage{enTete}{enTete[symb1\_] prints out the standard skeleton for
+programming a new function named symb1 in \MMAlpha{} (for developper use
+only).}{Alpha.m}{Alpha`}
+\index{enTete}
+
+\alphausage{mute}{mute is an option (Boolean). If True, function prints absolutely no information.}{Alpha.m}{Alpha`}
+\index{mute}
+
+\alphausage{test1}{test1[] executes part 1 of tests. See documentation in doc/Tests.}{Alpha.m}{Alpha`}
+\index{test1}
+
+\alphausage{test2}{test2[] executes part 2 of tests. See documentation in doc/Tests.}{Alpha.m}{Alpha`}
+\index{test2}
+
+\alphausage{test3}{test3[] executes part 3 of tests. See documentation in doc/Tests.}{Alpha.m}{Alpha`}
+\index{test3}
+
+\alphausage{test4}{test4[] executes part 4 of tests. See documentation in doc/Texts.}{Alpha.m}{Alpha`}
+\index{test4}
+

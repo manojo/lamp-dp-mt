@@ -1,0 +1,16 @@
+system delayline :{N | 1<=N}
+                 (in : {t | 0<=t} of boolean)
+       returns   (out : {t | N<=t} of boolean);
+var
+  inputs : {t,k | k<=t; 0<=k<=N} of boolean;
+  outXregister1 : {t,k | 1<=t; 0<=k<=N} of boolean;
+let
+  inputs[t,k] = 
+      case
+        { | k=0} : in[t];
+        { | k=1} : outXregister1[t,k-1];
+        { | 2<=k} : outXregister1[t,k-1];
+      esac;
+  out[t] = { | N+1<=t} : outXregister1[t,N];
+  outXregister1[t,k] = inputs[t-1,k];
+tel;

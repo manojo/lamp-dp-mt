@@ -1,0 +1,33 @@
+%
+% File created on {2007, 11, 15, 17, 10, 20.779597} by makeDoc.
+%
+% Section header
+\section{The Alpha`Vhdl2` package } 
+\label{label:Alpha`Vhdl2`}
+\alphausage{Vhdl2}{Alpha`Vhdl2` contains the Vhdl generator. The main function is a2v.}{Alpha/Vhdl2.m}{Alpha`Vhdl2`}
+\index{Vhdl2}
+
+\alphausage{\$vhdlCurrent}{vhdlCurrent is a global variable owned by Vhdl, which contains the  current program}{Alpha/Vhdl2.m}{Alpha`Vhdl2`}
+\index{\$vhdlCurrent}
+
+\alphausage{\$vhdlOutputFile}{}{Alpha/Vhdl2.m}{Alpha`Vhdl2`}
+\index{\$vhdlOutputFile}
+
+\alphausage{a2v}{a2v[] translates in Vhdl all the files contained in \$library.  a2v[lib] translates in Vhdl all the files contained in library lib. a2v[sys] translates in Vhdl the system sys. a2v has many  options (see Options[a2v]). a2v[elem,tinit] runs a2v on library or system elem, and fixes the initial value of the time to the integer value tinit.}{Alpha/Vhdl2.m}{Alpha`Vhdl2`}
+\index{a2v}
+
+\alphausage{bitWidth}{bitWidth[sys,var] gives the bit width of variable var. Default  value of sys is \$result.}{Alpha/Vhdl2.m}{Alpha`Vhdl2`}
+\index{bitWidth}
+
+\alphausage{bitWidthOfExpr}{bitWidth[sys,expr] gives the bit width of an expression. Default of sys is \$result.}{Alpha/Vhdl2.m}{Alpha`Vhdl2`}
+\index{bitWidthOfExpr}
+
+\alphausage{getVhdlType}{getVhdlType[sys,var] return the vhdl type of the element of array var}{Alpha/Vhdl2.m}{Alpha`Vhdl2`}
+\index{getVhdlType}
+
+\alphausage{showVhdl}{showVhdl[] prints the Vhdl generated for the system in \$result.  showVhdl[s] show the content of the file s.vhd.}{Alpha/Vhdl2.m}{Alpha`Vhdl2`}
+\index{showVhdl}
+
+\alphausage{stim}{stim[] post processes all the simuli files (replace blanks by zeros).  These files are generated from a C code in hexadecimal and there is no  format in C to write zeros in for the first digits.}{Alpha/Vhdl2.m}{Alpha`Vhdl2`}
+\index{stim}
+

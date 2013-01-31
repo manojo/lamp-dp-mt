@@ -1,0 +1,898 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     13629,        571]*)
+(*NotebookOutlinePosition[     17000,        674]*)
+(*  CellTagsIndexPosition[     16493,        655]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The \"Pipeline\" package", "Title",
+  FontColor->RGBColor[1, 0, 0],
+  CellTags->"firstcell"],
+
+Cell["The Alpha team", "Subsubtitle"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042, Rennes Cedex, France
+alpha@irisa.fr\
+\>", "SmallText"],
+
+Cell["July 2003", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[" Execute this cell, to redefine the current directory", "Subsubsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(SetDirectory[
+      Environment["\<MMALPHA\>"] <> "\</doc\>" <> "\</Packages/\>" <> \
+"\<PipeControl\>"]\)], "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1. Introduction", "Section",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"Introduction"],
+
+Cell[BoxData[
+    \(\(?pipeline\)\)], "Input"],
+
+Cell["This package contains functions for pipelining expressions.", "Text",
+  TextAlignment->Left,
+  TextJustification->1]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2. Content", "Section",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->{"Content", "content"}],
+
+Cell[CellGroupData[{
+
+Cell["pipeinfo", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"domExplode"],
+
+Cell[BoxData[
+    \(\(load["\<fir4b.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(pipeall[{}, "\<H.(t,n->n)\>", "\<Hpipe.(t,n->t+1,n)\>", 
+        debug \[Rule] True];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(ashow[];\)\)], "Input"],
+
+Cell[BoxData[
+    \(pipeInfo[debug \[Rule] False, execute \[Rule] False]\)], "Input"],
+
+Cell[BoxData[
+    \(analyze[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(load["\<MV1Sched.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(pipeInfo[debug \[Rule] True]\)], "Input"],
+
+Cell[BoxData[
+    \(\(pipeall["\<C\>", {6, 1, 2, 1, 2, 2, 3, 3}, "\<pipeB.(i,j->i+1,j)\>", 
+        debug \[Rule] True];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(load["\<MV1.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(p1 = 
+        pipeall["\<C\>", "\<b.(i,j->j)\>", "\<BB.(i,j->i+1,j)\>"];\)\)], \
+"Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["pipall", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"domExplode"],
+
+Cell[BoxData[
+    \(\(load["\<fir4b.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(pipeall[{}, "\<H.(t,n->n)\>", "\<Hpipe.(t,n->t+1,n)\>", 
+        debug \[Rule] True];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(ashow[];\)\)], "Input"],
+
+Cell[BoxData[
+    \(pipeInfo[debug \[Rule] False, execute \[Rule] False]\)], "Input"],
+
+Cell[BoxData[
+    \(analyze[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["pipall", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"domExplode"],
+
+Cell[BoxData[
+    \(\(load["\<fir4b.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(pipeall[{"\<Y\>", "\<Z\>"}, "\<x.(t,n->t-n-1)\>", \
+"\<Xpipe.(t,n->t+1,n+1)\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(analyze[]\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["pipall", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"domExplode"],
+
+Cell[BoxData[
+    \(\(load["\<fir4b.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(pipeall[{"\<Y\>", "\<Z\>"}, "\<x.(t,n->t-n-1)\>", \
+"\<Xpipe.(t,n->t+1,n+1)\>", "\<{t,n|n>=0}\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(analyze[]\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["findPipeControl (PipeControl)", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"findPipeControl"],
+
+Cell[TextData[ButtonBox["Back to content",
+  ButtonData:>"content",
+  ButtonStyle->"Hyperlink"]], "SmallText"],
+
+Cell[BoxData[
+    \(\(?findPipeControl\)\)], "Input"],
+
+Cell[BoxData[
+    \(FileNames[]\)], "Input"],
+
+Cell[BoxData[{
+    \(\(load["\<MV6.alpha\>"];\)\), "\n", 
+    \(p1 = findPipeControl["\<loadC\>"]\)}], "Input"],
+
+Cell[BoxData[
+    \(Map[show, p1]\)], "Input"],
+
+Cell[BoxData[
+    \(findPipeControl["\<B1\>"]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["findSepHalfSpace (PipeControl)", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"findSepHalfSpace"],
+
+Cell[TextData[ButtonBox["Back to content",
+  ButtonData:>"content",
+  ButtonStyle->"Hyperlink"]], "SmallText"],
+
+Cell[BoxData[
+    \(\(?findSepHalfSpace\)\)], "Input"],
+
+Cell[BoxData[
+    \(findSepHalfSpace["\<case {i|i=1}:A;{i|i>=2}:B; esac\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(s2 = 
+      findSepHalfSpace["\<case {i|i<=1;i>=-4}:A;{i|i>=2}:B;esac\>"]\)], \
+"Input"],
+
+Cell[BoxData[
+    \(Map[show, s2]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["pipeControl (PipeControl)", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"pipeControl"],
+
+Cell[TextData[ButtonBox["Back to content",
+  ButtonData:>"content",
+  ButtonStyle->"Hyperlink"]], "SmallText"],
+
+Cell[BoxData[
+    \(\(?pipeControl\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(load["\<MV6.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(pipeControl["\<loadC\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["pipeAllControl (PipeControl)", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"pipeControl"],
+
+Cell[TextData[ButtonBox["Back to content",
+  ButtonData:>"content",
+  ButtonStyle->"Hyperlink"]], "SmallText"],
+
+Cell[BoxData[
+    \(\(?pipeAllControl\)\)], "Input"],
+
+Cell[BoxData[{
+    \(\(load["\<MV6.alpha\>"];\)\), "\n", 
+    \(\(p1\  = \ pipeAllControl[{verbose -> True}];\)\)}], "Input"],
+
+Cell[BoxData[
+    \(\(\(\ \)\(pipeAllControl[{verbose -> True}];\)\)\)], "Input"],
+
+Cell["\<\
+Note that the following function have been used for uniformization, \
+a more complete uniformization procedure is provided with the package \
+Uniformization.m\
+\>", "Text"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["pipeInfo (PipeControl)", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"pipeInfo"],
+
+Cell[TextData[ButtonBox["Back to content",
+  ButtonData:>"content",
+  ButtonStyle->"Hyperlink"]], "SmallText"],
+
+Cell[BoxData[
+    \(\(?pipeInfo\)\)], "Input"],
+
+Cell[BoxData[
+    \(load["\<nonuniform.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(occ = getOccurs[$result, "\<x.(i,j->i,i)\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(pipeInfo[occ[\([1]\)], verbose -> True]\)], "Input"],
+
+Cell[BoxData[
+    \(pipeInfo[]\)], "Input"],
+
+Cell[BoxData[
+    \(load["\<matmat.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(occ = getOccurs[$result, "\<b.(i,j,k->k,j)\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(\(pipeInfo[occ[\([1]\)], verbose -> True];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(pipeline[occ[\([1]\)], "\<B.(i,j,k->i+1,j,k)\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["report", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"uniformizeInfo\.02\.02"],
+
+Cell[BoxData[
+    \(\(?report\)\)], "Input"],
+
+Cell[BoxData[
+    \(load["\<nonuniform.alpha\>"]; ashow[]\)], "Input"],
+
+Cell["The result is going to be in file \"current.report\"", "Text"],
+
+Cell[BoxData[
+    \(\(?report\)\)], "Input"],
+
+Cell["report[verbose->False,position->True]", "Input"],
+
+Cell["The result is going to be in file \"uniform.report\"", "Text"],
+
+Cell[BoxData[
+    \(report[verbose \[Rule] False]\)], "Input"],
+
+Cell["report[\"nonuniform\",verbose->False,position->True]", "Input"],
+
+Cell[BoxData[
+    \(load["\<firAlpha0.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(schematics[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["uniformizeOccur", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"uniformizeOccur"],
+
+Cell[TextData[ButtonBox["Back to content",
+  ButtonData:>"content",
+  ButtonStyle->"Hyperlink"]], "SmallText"],
+
+Cell[BoxData[
+    \(\(?uniformizeOccur\)\)], "Input"],
+
+Cell[BoxData[
+    \(load["\<nonuniform.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(getOccurs["\<x.(i,j->1,j)\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(show[uniformizeOccur[{6, 1, 2, 1, 1, 2}]]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["uniformizeMatrix", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"uniformizeMatrix"],
+
+Cell[TextData[ButtonBox["Back to content",
+  ButtonData:>"content",
+  ButtonStyle->"Hyperlink"]], "SmallText"],
+
+Cell[BoxData[
+    \(\(?uniformizeMatrix\)\)], "Input",
+  CellTags->"uniformizeMatrix"],
+
+Cell[TextData[{
+  "In the following example, we uniformize the matrix ",
+  StyleBox["(i,j->i,i)", "Input"],
+  " in the context where ",
+  StyleBox["i = j", "Input"],
+  "."
+}], "Text"],
+
+Cell[BoxData[
+    \(show[
+      uniformizeMatrix[readMat["\<(i,j->i,i)\>"], 
+        readDom["\<{i,j|i=j}\>"]]]\)], "Input"],
+
+Cell["If the matrix is already uniform, it is simply returned:", "Text"],
+
+Cell[BoxData[
+    \(uniformizeMatrix[readMat["\<(i,j->i,j)\>"], 
+      readDom["\<{i,j|i=j}\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(uniformizeMatrix[readMat["\<(i,j->i,2j)\>"], 
+      readDom["\<{i,j|i=j}\>"]]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["constantizeOccur", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"constantizeOccur"],
+
+Cell[TextData[ButtonBox["Back to content",
+  ButtonData:>"content",
+  ButtonStyle->"Hyperlink"]], "SmallText"],
+
+Cell[BoxData[
+    \(\(?constantizeOccur\)\)], "Input"],
+
+Cell[BoxData[
+    \(load["\<nonuniform.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(getOccurs["\<x.(i,j->i,i-1)\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(constantizeOccur[{6, 1, 2, 1, 2, 2}]\)], "Input"],
+
+Cell[BoxData[
+    \(show[%]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["constantizeMatrix", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"constantizeMatrix"],
+
+Cell[TextData[ButtonBox["Back to content",
+  ButtonData:>"content",
+  ButtonStyle->"Hyperlink"]], "SmallText"],
+
+Cell[BoxData[
+    \(\(?constantizeMatrix\)\)], "Input"],
+
+Cell["This function is called by constantizeOccur.", "Text"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Some bugs... ", "Subsection",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->"constantizeMatrix"],
+
+Cell[BoxData[
+    \(\(load["\<temp02bis.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(report[]\)], "Input"],
+
+Cell[BoxData[
+    \(pipeInfo[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(normalize0[];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[$result[\([6, 6]\)]]\)], "Input"],
+
+Cell[BoxData[
+    \($result[\([6, 6]\)]\)], "Input"],
+
+Cell[BoxData[
+    \(\(pipeControl["\<expr4\>", debug \[Rule] True, 
+        verbose \[Rule] True];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(pipeControl["\<expr3\>", debug \[Rule] True, 
+        verbose \[Rule] True];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(simplifySystem[alphaFormat \[Rule] Alpha0];\)\)], "Input"],
+
+Cell[BoxData[
+    \(tests["\<Pipeline\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(testFunction[load["\<MV1Sched.alpha\>"]; 
+      pipeall["\<C\>", \ {6, \ 1, \ 2, \ 1, \ 2, \ 2, \ 3, \ 3}, \ 
+        affine[var["\<pipeCb19\>"], \ 
+          matrix[4, \ 
+            4, \ {"\<t\>", \ "\<p\>", \ "\<N\>"}, \ {{1, \ 0, \ 0, \ 
+                0}, \ {0, \ 1, \ 0, \ 1}, \ {0, \ 0, \ 1, \ 0}, \ {0, \ 0, \ 
+                0, \ 1}}]]], << Test25.ast, "\<pipall 25\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(testFunction[load["\<MV1Sched.alpha\>"]; 
+      pipeall["\<C\>", \ {6, \ 1, \ 2, \ 1, \ 2, \ 2, \ 3, \ 
+          3}, \ "\<pipeCb19.(t,p->t,p+1)\>"], << 
+        Test25.ast, "\<pipall 26\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(testFunction[
+      Check[load["\<MV1Sched.alpha\>"]; 
+        pipeInfo[execute \[Rule] True], $Failed], 
+      Null, "\<pipeInfo1\>"]\)], "Input"]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2. Tests", "Section",
+  FontColor->RGBColor[0, 0, 1],
+  CellTags->{"Content", "content"}],
+
+Cell[BoxData[
+    \(tests["\<PipeControl\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(tests["\<Pipeline\>"]\)], "Input"]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1440}, {0, 837}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+WindowSize->{878, 691},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+PrintingCopies->1,
+PrintingPageRange->{1, Automatic},
+ShowSelection->True,
+Magnification->1.5,
+StyleDefinitions -> "Default.nb"
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{
+  "firstcell"->{
+    Cell[1776, 53, 98, 2, 132, "Title",
+      CellTags->"firstcell"]},
+  "Introduction"->{
+    Cell[2383, 80, 94, 2, 104, "Section",
+      CellTags->"Introduction"]},
+  "Content"->{
+    Cell[2688, 94, 97, 2, 104, "Section",
+      CellTags->{"Content", "content"}],
+    Cell[13389, 559, 95, 2, 104, "Section",
+      CellTags->{"Content", "content"}]},
+  "content"->{
+    Cell[2688, 94, 97, 2, 104, "Section",
+      CellTags->{"Content", "content"}],
+    Cell[13389, 559, 95, 2, 104, "Section",
+      CellTags->{"Content", "content"}]},
+  "domExplode"->{
+    Cell[2810, 100, 88, 2, 53, "Subsection",
+      CellTags->"domExplode"],
+    Cell[3793, 144, 86, 2, 39, "Subsection",
+      CellTags->"domExplode"],
+    Cell[4286, 167, 86, 2, 39, "Subsection",
+      CellTags->"domExplode"],
+    Cell[4724, 190, 86, 2, 39, "Subsection",
+      CellTags->"domExplode"]},
+  "findPipeControl"->{
+    Cell[5180, 213, 114, 2, 39, "Subsection",
+      CellTags->"findPipeControl"]},
+  "findSepHalfSpace"->{
+    Cell[5771, 240, 116, 2, 39, "Subsection",
+      CellTags->"findSepHalfSpace"]},
+  "pipeControl"->{
+    Cell[6345, 265, 106, 2, 39, "Subsection",
+      CellTags->"pipeControl"],
+    Cell[6866, 291, 109, 2, 39, "Subsection",
+      CellTags->"pipeControl"]},
+  "pipeInfo"->{
+    Cell[7577, 318, 100, 2, 39, "Subsection",
+      CellTags->"pipeInfo"]},
+  "uniformizeInfo\.02\.02"->{
+    Cell[8513, 359, 98, 2, 39, "Subsection",
+      CellTags->"uniformizeInfo\.02\.02"]},
+  "uniformizeOccur"->{
+    Cell[9271, 392, 100, 2, 39, "Subsection",
+      CellTags->"uniformizeOccur"]},
+  "uniformizeMatrix"->{
+    Cell[9792, 415, 102, 2, 39, "Subsection",
+      CellTags->"uniformizeMatrix"],
+    Cell[10010, 423, 86, 2, 39, "Input",
+      CellTags->"uniformizeMatrix"]},
+  "constantizeOccur"->{
+    Cell[10746, 453, 102, 2, 39, "Subsection",
+      CellTags->"constantizeOccur"]},
+  "constantizeMatrix"->{
+    Cell[11310, 479, 104, 2, 39, "Subsection",
+      CellTags->"constantizeMatrix"],
+    Cell[11685, 495, 100, 2, 39, "Subsection",
+      CellTags->"constantizeMatrix"]}
+  }
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{
+  {"firstcell", 14412, 593},
+  {"Introduction", 14503, 596},
+  {"Content", 14594, 599},
+  {"content", 14778, 604},
+  {"domExplode", 14965, 609},
+  {"findPipeControl", 15293, 618},
+  {"findSepHalfSpace", 15400, 621},
+  {"pipeControl", 15503, 624},
+  {"pipeInfo", 15676, 629},
+  {"uniformizeInfo\.02\.02", 15782, 632},
+  {"uniformizeOccur", 15894, 635},
+  {"uniformizeMatrix", 16001, 638},
+  {"constantizeOccur", 16187, 643},
+  {"constantizeMatrix", 16297, 646}
+  }
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 98, 2, 132, "Title",
+  CellTags->"firstcell"],
+Cell[1877, 57, 37, 0, 45, "Subsubtitle"],
+Cell[1917, 59, 98, 3, 62, "SmallText"],
+Cell[2018, 64, 25, 0, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[2068, 68, 110, 1, 41, "Subsubsection"],
+Cell[2181, 71, 165, 4, 62, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2383, 80, 94, 2, 104, "Section",
+  CellTags->"Introduction"],
+Cell[2480, 84, 46, 1, 39, "Input"],
+Cell[2529, 87, 122, 2, 47, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2688, 94, 97, 2, 104, "Section",
+  CellTags->{"Content", "content"}],
+
+Cell[CellGroupData[{
+Cell[2810, 100, 88, 2, 53, "Subsection",
+  CellTags->"domExplode"],
+Cell[2901, 104, 61, 1, 39, "Input"],
+Cell[2965, 107, 122, 2, 39, "Input"],
+Cell[3090, 111, 45, 1, 39, "Input"],
+Cell[3138, 114, 85, 1, 39, "Input"],
+Cell[3226, 117, 42, 1, 39, "Input"],
+Cell[3271, 120, 64, 1, 39, "Input"],
+Cell[3338, 123, 61, 1, 39, "Input"],
+Cell[3402, 126, 135, 2, 39, "Input"],
+Cell[3540, 130, 40, 1, 39, "Input"],
+Cell[3583, 133, 59, 1, 39, "Input"],
+Cell[3645, 136, 111, 3, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[3793, 144, 86, 2, 39, "Subsection",
+  CellTags->"domExplode"],
+Cell[3882, 148, 61, 1, 39, "Input"],
+Cell[3946, 151, 122, 2, 39, "Input"],
+Cell[4071, 155, 45, 1, 39, "Input"],
+Cell[4119, 158, 85, 1, 39, "Input"],
+Cell[4207, 161, 42, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4286, 167, 86, 2, 39, "Subsection",
+  CellTags->"domExplode"],
+Cell[4375, 171, 61, 1, 39, "Input"],
+Cell[4439, 174, 40, 1, 39, "Input"],
+Cell[4482, 177, 117, 2, 39, "Input"],
+Cell[4602, 181, 42, 1, 39, "Input"],
+Cell[4647, 184, 40, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4724, 190, 86, 2, 39, "Subsection",
+  CellTags->"domExplode"],
+Cell[4813, 194, 61, 1, 39, "Input"],
+Cell[4877, 197, 40, 1, 39, "Input"],
+Cell[4920, 200, 135, 2, 62, "Input"],
+Cell[5058, 204, 42, 1, 39, "Input"],
+Cell[5103, 207, 40, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5180, 213, 114, 2, 39, "Subsection",
+  CellTags->"findPipeControl"],
+Cell[5297, 217, 110, 2, 40, "SmallText"],
+Cell[5410, 221, 53, 1, 39, "Input"],
+Cell[5466, 224, 44, 1, 39, "Input"],
+Cell[5513, 227, 111, 2, 62, "Input"],
+Cell[5627, 231, 46, 1, 39, "Input"],
+Cell[5676, 234, 58, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5771, 240, 116, 2, 39, "Subsection",
+  CellTags->"findSepHalfSpace"],
+Cell[5890, 244, 110, 2, 40, "SmallText"],
+Cell[6003, 248, 54, 1, 39, "Input"],
+Cell[6060, 251, 88, 1, 39, "Input"],
+Cell[6151, 254, 108, 3, 39, "Input"],
+Cell[6262, 259, 46, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[6345, 265, 106, 2, 39, "Subsection",
+  CellTags->"pipeControl"],
+Cell[6454, 269, 110, 2, 40, "SmallText"],
+Cell[6567, 273, 49, 1, 39, "Input"],
+Cell[6619, 276, 59, 1, 39, "Input"],
+Cell[6681, 279, 40, 1, 39, "Input"],
+Cell[6724, 282, 62, 1, 39, "Input"],
+Cell[6789, 285, 40, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[6866, 291, 109, 2, 39, "Subsection",
+  CellTags->"pipeControl"],
+Cell[6978, 295, 110, 2, 40, "SmallText"],
+Cell[7091, 299, 52, 1, 39, "Input"],
+Cell[7146, 302, 125, 2, 62, "Input"],
+Cell[7274, 306, 81, 1, 39, "Input"],
+Cell[7358, 309, 182, 4, 73, "Text"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[7577, 318, 100, 2, 39, "Subsection",
+  CellTags->"pipeInfo"],
+Cell[7680, 322, 110, 2, 40, "SmallText"],
+Cell[7793, 326, 46, 1, 39, "Input"],
+Cell[7842, 329, 70, 1, 39, "Input"],
+Cell[7915, 332, 77, 1, 39, "Input"],
+Cell[7995, 335, 72, 1, 39, "Input"],
+Cell[8070, 338, 43, 1, 39, "Input"],
+Cell[8116, 341, 66, 1, 39, "Input"],
+Cell[8185, 344, 79, 1, 39, "Input"],
+Cell[8267, 347, 77, 1, 39, "Input"],
+Cell[8347, 350, 86, 1, 39, "Input"],
+Cell[8436, 353, 40, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[8513, 359, 98, 2, 39, "Subsection",
+  CellTags->"uniformizeInfo\.02\.02"],
+Cell[8614, 363, 44, 1, 39, "Input"],
+Cell[8661, 366, 70, 1, 32, "Input"],
+Cell[8734, 369, 68, 0, 40, "Text"],
+Cell[8805, 371, 44, 1, 39, "Input"],
+Cell[8852, 374, 54, 0, 38, "Input"],
+Cell[8909, 376, 68, 0, 47, "Text"],
+Cell[8980, 378, 62, 1, 39, "Input"],
+Cell[9045, 381, 69, 0, 38, "Input"],
+Cell[9117, 383, 69, 1, 39, "Input"],
+Cell[9189, 386, 45, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[9271, 392, 100, 2, 39, "Subsection",
+  CellTags->"uniformizeOccur"],
+Cell[9374, 396, 110, 2, 40, "SmallText"],
+Cell[9487, 400, 53, 1, 39, "Input"],
+Cell[9543, 403, 70, 1, 39, "Input"],
+Cell[9616, 406, 62, 1, 39, "Input"],
+Cell[9681, 409, 74, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[9792, 415, 102, 2, 39, "Subsection",
+  CellTags->"uniformizeMatrix"],
+Cell[9897, 419, 110, 2, 40, "SmallText"],
+Cell[10010, 423, 86, 2, 39, "Input",
+  CellTags->"uniformizeMatrix"],
+Cell[10099, 427, 183, 6, 47, "Text"],
+Cell[10285, 435, 124, 3, 62, "Input"],
+Cell[10412, 440, 72, 0, 47, "Text"],
+Cell[10487, 442, 109, 2, 39, "Input"],
+Cell[10599, 446, 110, 2, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[10746, 453, 102, 2, 39, "Subsection",
+  CellTags->"constantizeOccur"],
+Cell[10851, 457, 110, 2, 40, "SmallText"],
+Cell[10964, 461, 54, 1, 39, "Input"],
+Cell[11021, 464, 70, 1, 39, "Input"],
+Cell[11094, 467, 64, 1, 39, "Input"],
+Cell[11161, 470, 69, 1, 39, "Input"],
+Cell[11233, 473, 40, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[11310, 479, 104, 2, 39, "Subsection",
+  CellTags->"constantizeMatrix"],
+Cell[11417, 483, 110, 2, 40, "SmallText"],
+Cell[11530, 487, 55, 1, 39, "Input"],
+Cell[11588, 490, 60, 0, 47, "Text"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[11685, 495, 100, 2, 39, "Subsection",
+  CellTags->"constantizeMatrix"],
+Cell[11788, 499, 65, 1, 39, "Input"],
+Cell[11856, 502, 40, 1, 39, "Input"],
+Cell[11899, 505, 41, 1, 39, "Input"],
+Cell[11943, 508, 43, 1, 39, "Input"],
+Cell[11989, 511, 50, 1, 39, "Input"],
+Cell[12042, 514, 59, 1, 39, "Input"],
+Cell[12104, 517, 52, 1, 39, "Input"],
+Cell[12159, 520, 113, 2, 39, "Input"],
+Cell[12275, 524, 113, 2, 32, "Input"],
+Cell[12391, 528, 80, 1, 32, "Input"],
+Cell[12474, 531, 54, 1, 39, "Input"],
+Cell[12531, 534, 413, 7, 147, "Input"],
+Cell[12947, 543, 223, 4, 85, "Input"],
+Cell[13173, 549, 167, 4, 62, "Input"]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[13389, 559, 95, 2, 104, "Section",
+  CellTags->{"Content", "content"}],
+Cell[13487, 563, 57, 1, 39, "Input"],
+Cell[13547, 566, 54, 1, 32, "Input"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

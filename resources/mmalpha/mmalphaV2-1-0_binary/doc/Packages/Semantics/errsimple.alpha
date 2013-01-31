@@ -1,0 +1,12 @@
+system err     (x :  boolean)
+       returns (r :  boolean);
+var
+  V : {i,j | 1<=i<=20; 1<=j<=10} of boolean;
+let
+  V[i,j] = 
+      case
+        { | i=j; 1<=j<=10} : x[];
+        { | i=2j; 1<=j<=10} : x[];
+      esac;
+  r[] = V[20,10];
+tel;

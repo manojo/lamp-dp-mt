@@ -1,0 +1,11 @@
+system caller :{N | 1<=N}
+               (v : {i | 1<=i<=N} of integer)
+       returns (w : {i | 1<=i<=N} of integer);
+var
+  in : {i | 1<=i<=N} of integer;
+  out : {i | 1<=i<=N} of integer;
+let
+  in[i] = v;
+  out[i] = 2[] + in[i];
+  w[i] = out;
+tel;

@@ -1,0 +1,7 @@
+system fullAdder: {Tinit, Duration | Tinit>=0; Duration>=1} 
+(AIn,BIn,DIn : {t|Tinit<= t<= Tinit+Duration-1} of boolean)
+returns (SOut,DOut : {t|Tinit<= t<= Tinit+Duration-1} of boolean);
+let 
+       	SOut[t] = AIn[t] xor BIn[t] xor DIn[t];
+	DOut[t] = ( AIn[t] and BIn[t] ) or ( AIn[t] and DIn[t] ) or ( DIn[t] and BIn[t] );
+tel;

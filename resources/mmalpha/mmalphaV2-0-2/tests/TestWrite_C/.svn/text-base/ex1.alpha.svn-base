@@ -1,0 +1,5 @@
+system simple  ( )
+       returns (X : {i | 0<=i} of integer);
+let
+  X[i] = 0[];
+tel;

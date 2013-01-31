@@ -1,0 +1,42 @@
+system matmult : {M |M>1} 
+  (a,b : {i,j | 1<=i,j<=M} of integer)
+returns
+  (c : {i,j | 1<=i,j<=M } of integer);
+var
+  C : {i,j,k | 1<=i,j<=M; 0<=k<=M} of integer; 
+let
+  c[i,j] = C[i,j,M];
+  C[i,j,k] = case
+        {|k=0} : 0[];
+        {|1<=k<=M} : C[i,j,k-1]+a[i,k]*b[k,j];
+  esac;
+tel;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

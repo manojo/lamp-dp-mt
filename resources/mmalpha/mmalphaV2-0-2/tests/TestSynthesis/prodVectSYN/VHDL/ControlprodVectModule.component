@@ -1,0 +1,10 @@
+
+COMPONENT ControlprodVectModule
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  CXctl1 : OUT STD_LOGIC
+);
+END COMPONENT;
+

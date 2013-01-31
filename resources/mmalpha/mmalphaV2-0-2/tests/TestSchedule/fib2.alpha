@@ -1,0 +1,18 @@
+system Fibonacci (a:integer )
+       returns   (fib : {i | 0<=i<=10} of integer; b: integer);
+var
+  dum : {i | 0<=i<=10} of integer;
+let
+	
+	b =a ;
+
+  dum[i] = 
+      case
+        {| i<=1} : 1[];
+        {| 2<=i} : dum[i-1] + dum[i-2];
+      esac;
+  fib[i] = dum;
+tel;
+
+
+

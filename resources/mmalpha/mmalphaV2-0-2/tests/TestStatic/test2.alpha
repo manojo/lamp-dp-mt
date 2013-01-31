@@ -1,0 +1,16 @@
+
+system ZeroColumn : {N,K | 1<=K<=N}  
+                    (A: {i,j | 1<=i,j<=N} of real)
+            returns (Ar: {i,j | 1<=i,j<=N} of real);
+let
+  Ar[i,j] = 
+   case
+     {| i<=K; 1<=j<=N} : A[i,j];
+     {| i>K; j<=K}     : 0[];
+     {| i>K; j>K}      : A[i,j] - A[i,j]*A[i,j]/A[K,K];
+  esac;
+tel;
+
+
+
+

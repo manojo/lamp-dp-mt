@@ -1,0 +1,15 @@
+
+COMPONENT callfifo
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  busin : IN  SIGNED (15 DOWNTO 0);
+  op1 : IN  STD_LOGIC;
+  op2 : IN  STD_LOGIC;
+  full : OUT  STD_LOGIC;
+  empty : OUT  STD_LOGIC;
+  wordout : OUT  SIGNED (15 DOWNTO 0)
+);
+END COMPONENT;
+

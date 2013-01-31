@@ -1,0 +1,20 @@
+%
+% File created on {2008, 3, 11, 16, 16, 25.838607} by makeDoc.
+%
+% Section header
+\section{The Alpha`Visual` package } 
+\label{label:Alpha`Visual`}
+\alphanote{Visual}{Documentation revised on August 10, 2004} 
+ 
+\alphausage{Visual}{The Alpha`Visual` packages contains a few functions to visualize 1D or 2D domains. The main function is showDomain. Function getBoundingBox is also used in some other packages, as well as function bbDomain,  which is poorly written.}{Alpha/Visual.m}{Alpha`Visual`}
+\index{Visual}
+
+\alphausage{bbDomain}{bbDomain[d] returns a list representing the bounding box of domain d. This has the form \{\{xmin,xmax\},\{ymin,ymax\},\{xneg,xpos\}, \{yneg,ypos\}\} where \{xmin,xmax\},\{ymin,ymax\} is the bounding box of the vertices, \{xneg,xpos\}, \{yneg,ypos\} indicate that the domain is infinite in one of these directions. If xneg and xpos are 0, no rays. If xneg is 1, negative ray, if yneg is 1, positive ray.  Same for yneg and ypos}{Alpha/Visual.m}{Alpha`Visual`}
+\index{bbDomain}
+
+\alphausage{getBoundingBox}{getBoundingBox[dom] gives the bounds of the smallest rectangle containing dom. This function is temporary, in particular it does not handle domains that are union of polyhedra (in fact it work only on convex polyhedra. It should be reimplemented using DomProject).}{Alpha/Visual.m}{Alpha`Visual`}
+\index{getBoundingBox}
+
+\alphausage{showDomain}{showDomain[d] displays a plot of any 1D or 2D domain or any list of 1D or 2D domains. showDomain[d, name] displays d with the title name specified.}{Alpha/Visual.m}{Alpha`Visual`}
+\index{showDomain}
+

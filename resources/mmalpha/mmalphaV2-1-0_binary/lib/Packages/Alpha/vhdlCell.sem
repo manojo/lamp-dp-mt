@@ -1,0 +1,1023 @@
+BeginPackage["Alpha`vhdlCell`",{"Alpha`",
+                                "Alpha`Domlib`",
+                                "Alpha`Tables`",
+                                "Alpha`Matrix`", 
+                                "Alpha`Options`", 
+                                "Alpha`Vhdl2`", 
+                                "Alpha`Visual`",
+                                "Alpha`VertexSchedule`",
+                                "Alpha`Semantics`",
+                                "Alpha`Synthesis`",
+                                "Alpha`Substitution`",
+                                "Alpha`Static`"}];
+
+(* Standard head for CVS
+
+	$Author: quinton $
+	$Date: 2009/05/22 10:24:36 $
+	$Source: /local/chroot/cvsroot/irisa/mmalpha/lib/Packages/Alpha/vhdlCell.sem,v $
+*)
+(*
+	Semantics of the vhdlCell
+*)
+
+VhdlCell::usage = 
+"Alpha`VhdlCell` is the package that contains the Vhdl translator
+for cells.";
+
+vhdlCell::usage = 
+"vhdlCell[sys] generates Vhdl code for a system sys which
+is supposed to model a cell. Default value of sys is $result."; 
+
+vhdlCell::note = 
+"vhdlCell is called by the function a2v of the Alpha`Vhdl2` package.";
+
+semFuncCell::usage = 
+"is the semantics function associated with vhdlCell.m. If the pattern Truncate_XSB is encountered a procedure is called ie. Truncate_LSB(input,output);";
+
+Begin["`Private`"];
+
+(* This is a "global" variable which stores the uses *)
+Clear[useList];
+(* This is going to be the label number of the generates *)
+Clear[labelNumberCell];
+
+(* Get a new label *)
+Clear[getLabelCell];
+getLabelCell[name:_String]:="G"<>ToString[labelNumberCell+=1];
+
+(*
+   This is the name of the function, as called by MMAlpha
+*)
+Clear[vhdlCell];
+vhdlCell[opts:___Rule] := vhdlCell[$result,opts];
+vhdlCell[sys:_system, opts:___Rule]:=
+Module[ { msg, error, lib, skipl, compactify, dbg, clken, stdl, lyr, vhdlp },
+
+  lib = vhdlLibrary/.{opts}/.Options[ a2v ];
+  skipl = skipLines/.{opts}/.Options[ a2v ];
+  compactify = compactCode/.{opts}/.Options[ a2v ];
+  dbg = debug/.{opts}/.Options[ a2v ];
+  clkEn = clockEnable/.{opts}/.Options[ a2v ];
+  stdl = stdLogic/.{opts}/.Options[ a2v ];
+  lyr = lyrtech/.{opts}/.Options[ a2v ];
+   (* Get the vhdlPatterns option *)
+   vhdlp = vhdlPatterns/.{opts}/.Options[ a2v ];
+
+  If[dbg, Print["Options in vhdlCell :", {opts}]];
+
+  (* Clear label number *)
+  labelNumberCell = 0;
+
+  (* Clear use list *)
+  useList = {};
+
+  vrb = verbose/.{opts}/.Options[ a2v ];
+
+  Catch[
+    (* Call the translater *)
+    vhdlCellTranslateSYSTEMDECLARATION[sys, opts]
+  ]
+];
+vhdlCell[___]:=Message[vhdlCell::params];
+vhdlCell::emptybody = "Warning: the body of this cell is empty...";
+vhdlCell::confid = 
+"WARNING: Some variable identifiers may be confused by Vhdl which is not
+case sensitive. Please, check and modify your Alpha program."; 
+
+Clear[ semFuncCell ]; 
+
+(* 
+	System 
+*)
+semFuncCell[ "system", 
+         systemName:_String,  (* The name of the system *)
+         indecls:_,  (* The translation of its input declarations *)
+         outdecls:_,  (* The translation of its output declarations *)
+         locdecls:_,  (* The translation of its local declarations *)
+         equations:_,  (* The translation of the equations *)
+         opts:___Rule ]:=
+Module[{ dbg, optTempFile, vrb, head, entity, component, 
+         componentsUsed, declarations, tempdecl1, 
+         tempdecl2, declReplace, lyr, compactify, lib, clkEn, stdl, skipl, optMute,
+         eqs, vhdlp },
+Catch[
+
+  (* A priori, no components used in a cell *)
+  componentsUsed = {};  
+
+  (* Get lyrtech option *)
+  compactify = compactCode/.{opts}/.Options[ a2v ];
+  dbg = debug /.{opts}/.Options[ a2v ];
+  lyr = lyrtech/.{opts}/.Options[ a2v ];
+  lib = vhdlLibrary/.{opts}/.Options[ a2v ];
+  skipl = skipLines/.{opts}/.Options[ a2v ];
+  clkEn = clockEnable/.{opts}/.Options[ a2v ];
+  stdl = stdLogic/.{opts}/.Options[ a2v ];
+  optMute = mute/.{opts}/.Options[ a2v ];
+  vhdlp = vhdlPatterns/.{opts}/.Options[ a2v ];
+
+  (* Generates the header of the Vhdl module *)
+  (* Calls the vhdlHeader function *)
+  head = Check[vhdlHeader[ systemName ], Throw[Null] ]; 
+
+  (* We compute the union of the declarations *)
+  tempdecl1 = Join[ indecls, locdecls, outdecls];
+
+  (* Before going further, we check that there is no
+     confusion because of the case insensitiveness of Vhdl *)
+  tempdecl1 = Map[First, tempdecl1];
+  tempdecl2 = Map[ToLowerCase,tempdecl1];
+  If[Length[Union[tempdecl2]]<Length[tempdecl2], Print[ vhdlCell::confid ] ];
+  
+  (* Also, it is necessary to check that no out or in exist  
+     in the declarations *)
+  If[ MemberQ[ tempdecl2, "in" ] || MemberQ[ tempdecl2, "out" ],
+    vhdlCell::inout = 
+      "WARNING: your cell contains a variable named \"in\" or \"out\""<>
+      " which may produce incorrect Vhdl code.";
+    Print[ vhdlCell::inout ] ];
+
+  (* Generates the entity part of the Vhdl code*)
+  (* We use outdecls, the list of output declarations *)
+
+  If[ dbg, Print[" lyrtech : ", lyr ] ];
+
+  (* Auxiliary function *)
+  entity = 
+  StringJoin[ 
+             "\nENTITY ",
+             systemName,
+             " IS\n",
+    "PORT(\n  clk: IN STD_LOGIC;\n",
+    If[ clkEn, "  CE : IN STD_LOGIC;\n", "" ],
+    If[ lyr, "  Rst : IN STD_LOGIC_VECTOR (0 DOWNTO 0)", "  Rst : IN STD_LOGIC" ],
+             Map[
+               ";"<>Alpha`Vhdl2`vhdlDeclEnt[#,"IN",opts]&,
+               indecls
+             ],
+             Map[
+               ";"<>Alpha`Vhdl2`vhdlDeclEnt[#,"OUT",opts]&,
+               outdecls
+             ],
+             "\n);\nEND ",
+             systemName,
+             ";\n"
+             ];
+
+  If[ dbg, Print[ entity ] ];
+
+  component = 
+  StringJoin[ 
+             "\nCOMPONENT ",
+             systemName,
+             "\n",
+    "PORT(\n  clk: IN STD_LOGIC;\n",
+    If[ clkEn, "  CE : IN STD_LOGIC;\n", "" ],
+    If[ lyr, "  Rst : IN STD_LOGIC_VECTOR (0 DOWNTO 0)", "  Rst : IN STD_LOGIC" ],
+             Map[
+               ";"<>Alpha`Vhdl2`vhdlDeclEnt[#,"IN",opts]&,
+               indecls
+             ],
+             Map[
+               ";"<>Alpha`Vhdl2`vhdlDeclEnt[#,"OUT",opts]&,
+               outdecls
+             ],
+             "\n);\nEND COMPONENT",
+             ";\n"
+             ];
+
+  If[ dbg, Print[ component ] ];
+
+  (* Generate the architecture part of the Vhdl code *)
+  (* If the vhdlPattern option is set, then one insert in the declaration *)
+  (* Declarations *)
+  declarations = 
+  StringJoin[
+             "\nARCHITECTURE behavioural OF ",
+             systemName,
+             " IS\n",
+             Map[
+               Alpha`Vhdl2`vhdlDeclArc[#,opts]&,
+               locdecls
+             ],
+  If[ vhdlp, "\n  -- $MissingDeclarations$\n", "" ],
+  "\n\n  -- Insert missing components here!---------\n\n-- $MissingComponents$\n"
+  ];
+
+  If[ dbg, Print[ declarations ] ];
+
+
+  (* Body *)
+  (* Remove empty branches of equations *)
+  eqs = Select[ equations, (# =!= "")&];
+
+  body = 
+    If[ eqs === {}, 
+        Message[ vhdlCell::emptybody ];"",
+        "BEGIN"<>If[compactify,"","\n"]<>
+        Apply[ StringJoin, 
+          Table[ eqs[[i]]<>";"<>If[compactify,"","\n"], 
+                 {i,1,Length[eqs]} ]
+        ]<>
+        If[ vhdlp, "\n    -- $AdditionalCode$\n", ""] <>
+        "\nEND behavioural;\n"
+    ];
+
+  If[ dbg, Print[ "body ",  body ] ];
+
+  (* Getting the components *)
+  Module[ {modules,cc},
+    modules = systemNames[];
+    If[ (cc = Complement[ useList, modules ]) === {}, 
+        If[ !optMute, Print["All modules are known..."] 
+      ]
+    , 
+      If[ !optMute, 
+        Print["-------------------- WARNING! "];
+        Print["The following subsystems are not in $library: "];
+        Print[cc]; 
+        Print["Insert their component description in the VHDL code."]
+      ]
+    ] 
+  ];
+
+  (* List of called components *)
+  componentsUsed = useList;
+
+  If[ dbg, Print[ componentsUsed ] ];
+
+  If[ dbg, Print[ "head : ", head ] ];
+  If[ dbg, Print[ "lib : ", lib ] ];
+
+  (* Returns the vhdl code *)
+  {head<>"\n"<>lib<>entity<>declarations<>body, component, componentsUsed}
+
+  ] (* Catch *)
+
+];
+
+(* 
+  This covers the case of a register equation 
+*)
+semFuncCell[ 
+  "equation", lhs:_, affine[ var[ v:_], m:_matrix ], {"register"}, 
+             opts:___Rule ]:=
+Module[{ r },
+
+  r = If[identityQ[m], 0, -matrixTransPart[m][[1]]];
+  "\n"<>
+  Which[ 
+    r === 0, "    "<>lhs<>" <= "<>v<>"", 
+    r === 1, 
+    StringJoin[
+      "    PROCESS(clk) BEGIN IF (clk = '1' AND clk'EVENT) THEN",
+      If[ clkEn, 
+      "\n      IF CE='1' THEN "<>lhs<>" <= "<>v<>"; END IF;\n"<>
+      "                END IF;\n    END PROCESS", 
+                 " "<>lhs<>" <= "<>v<>"; END IF; END PROCESS"] 
+    ],
+    r == 2, 
+    Module[{type},
+      type = getVhdlType[ $vhdlCurrent, lhs, opts ];
+      StringJoin[
+      "    PROCESS(clk) VARIABLE temp: ",
+      type<>";\n    BEGIN\n",
+      "      IF (clk = '1' AND clk'EVENT) THEN\n",
+      "        "<>"IF CE='1' THEN "<>lhs<>" <= temp; temp := "<>v<>"; END IF;\n      END IF;\n    END PROCESS"
+      ]
+    ],
+    True, "    "<>lhs<>" <= "<>v<>"[["<>ToString[ r ]<>"]]"
+  ]
+];
+
+(* 
+  valueOfConstant[v,t] returns as a string the Vhdl value corresponding
+  to Alpha value v, for type t 
+*)
+Clear[valueOfConstant];
+valueOfConstant[ v:_, type:_, opts:___Rule ] :=
+Module[ {value, stdl, integerSize, signed}, 
+  (* Get stdlogic option *)
+  stdl = stdLogic/.{opts}/.Options[ a2v ];
+
+  value = 
+  Switch[ v, 
+
+   (* value is integer *)
+    _Integer, 
+    Which[
+      (* Type is also an integer, and stdlogic required *)      
+      (type === integer || MatchQ[ type, integer[_,_] ])&&stdl, 
+        If[ type === integer, 
+          signed = True; integerSize = 16,
+          signed = (type[[1]] === "S"); integerSize = type[[2]]
+        ];
+        If[ v<0&&!signed, 
+          vhdlCell::cstneg = 
+            "assignment of negative constant to unsigned integer `1`";
+          Message[ vhdlCell::cstneg, lhs ] ];
+        If[ v>=0, 
+          converted = IntegerDigits[ v, 2, integerSize ],
+          converted = IntegerDigits[ 2^integerSize+v, 2, integerSize ]
+        ];
+        "\""<>Apply[ StringJoin, Map [ ToString, converted ] ]<>"\"",
+      type === integer || MatchQ[ type, integer[_,_] ], ToString[v],
+      type === boolean, ToString[v],
+      True, Print[ v, type ];
+        Print[ "There is an error" ];"**** Error *****";
+    ],
+    false, "'0'",
+    true, "'1'",
+    _, ToString[v]<>"****** Error *********"
+  ]; (* Switch *)
+
+  value
+];
+valueOfConstant::params = "wrong parameters";
+valueOfConstant[___] := Message[ valueOfConstant::params ];
+
+(* 
+   Translation of a constant expression, which looks like a 
+   register, but is not a register... 
+
+   Here, it is necessary to cover the case of the std_logic 
+   case, by reading the declaration of the lhs...
+
+*)
+semFuncCell[ 
+  "equation", lhs:_, const[v:_] | affine[ const[ v:_], m:_matrix ], 
+  {"register"}, opts:___Rule ]:=
+Module[{ r, stdl, decl, type, converted, value, signe },
+  stdl = stdLogic/.{opts}/.Options[ a2v ];
+
+  Check[ 
+    decl = getDeclaration[ Alpha`Vhdl2`$vhdlCurrent, lhs ],
+    vhdlCell::declerr = "could not read the declaration of `1`";
+    Message[ vhdlCell::declerr, lhs ]
+  ];
+
+  type = decl[[2]];
+
+  value = valueOfConstant[ v, type, opts ];
+
+  (* Return the result *)
+  "\n"<>"    "<>lhs<>" <= "<>value
+];
+
+(* Translation of a call *)
+semFuncCell[
+  "equation", lhs:_, rhs:_call, {"expression"}, opts:___Rule ]:=
+  "\n    "<>semFuncCell[ "call", lhs, rhs, opts ];
+
+(* Translation of an expression *)
+semFuncCell[
+  "equation", lhs:_, rhs:_, {"expression"}, opts:___Rule ]:=
+  "\n    "<>lhs<>" <= "<>semFuncCell[ "expression", lhs, rhs, opts ];
+
+(*
+Call translation for a procedure Truncate_LSB or _MSB
+*)
+
+(* Not good
+semFuncCell[ "call", lhs_, call[funcName:_String,  opListAst:_]/;StringMatchQ[funcName,"Truncate*",IgnoreCase -> True], opts:___Rule ]:=  
+Module[{stringArg,res},
+	stringArg=semFuncCell["expression", lhs, opListAst , opts];
+  (* if we just need a procedure *)
+	Print["Gone through Procedure Call with funcName=",funcName];
+	If[ StringMatchQ[funcName,"Truncate*"],
+		res=funcName<>"("<>stringArg<>", "<>lhs<>")";Print["True pourtant.."],		
+		res="\n    "<>lhs<>" <= "<>funcName<>"("<>stringArg<>")"] ;		
+  res
+];
+*)
+
+(*
+    Standard Call translation 
+*) 
+semFuncCell[ "call", lhs_, call["extend",  opListAst:_], opts:___Rule ]:=  
+Catch[
+  Module[ { listArg, stringArg, res, lhsType, rhsType, rhs },
+    If[ !MatchQ[ opListAst, {var[_String]} ], Throw[ res = "Error in the extension definition of "<>lhs ] ];
+
+    lhsType = expType[ lhs ];
+    rhs = First[ First[ opListAst ] ];
+    rhsType = expType[ rhs ];
+
+    Which[ 
+      (* lhs and rhs have the same type, just add a connexion *)
+      lhsType === rhsType
+    , 
+      res = "    "<>lhs<>" <= "<>rhs
+    , 
+      MatchQ[ lhsType, integer[ "S", _Integer ] ] &&
+      MatchQ[ rhsType, integer[ "S", _Integer ] ]
+    ,
+      Module[ { lgLhs, lgRhs },
+        lgLhs = lhsType[[2]]; 
+        lgRhs = rhsType[[2]]; 
+
+        If[ lgLhs > lgRhs, 
+          res = lhs<>"("<>ToString[lgLhs-1]<>" DOWNTO "<>ToString[lgRhs]<>
+                ") <= (OTHERS => "<>rhs<>"("<>ToString[lgRhs-1]<>"));\n    "<>
+                lhs<>"("<>ToString[lgRhs-1]<>" DOWNTO 0) <= "<>rhs;
+        ]
+      ]
+    ,
+      True
+    ,
+      res = "xxxx"<>"("<>rhs<>")"
+    ];
+
+    res
+  ]
+];
+
+semFuncCell[ "call", lhs_, call[funcName:_String,  opListAst:_], opts:___Rule ]:=  
+Module[{listArg,stringArg,res},
+(*	Print["Gone through Std Call with funcName=",funcName];    *)
+	listArg=Map[semFuncCell["expression", lhs, # , opts] &,opListAst];
+	stringArg=Map[StringJoin[#,","] &,listArg];
+	stringArg=Apply[StringJoin,stringArg];
+	stringArg=StringDrop[stringArg,-1]; (*remove last comma *) 
+  (* if we just need a function  	
+	res=funcName<>"("<>stringArg<>")" ;*)
+	(* Ed modif: Truncate will be interpret as a Procedure in VHDL *)
+	Which[ 
+		StringMatchQ[funcName,"Truncate*",IgnoreCase -> True],
+		 res="\n    "<>funcName<>"("<>stringArg<>", "<>lhs<>")",		
+		StringMatchQ[funcName,"Procedure*",IgnoreCase -> True],
+		 res="\n    "<>StringReplace[funcName,"Procedure"->"",IgnoreCase -> True]
+			     <>"("<>stringArg<>", "<>lhs<>")",		
+		True,
+		 res="\n    "<>lhs<>" <= "<>funcName<>"("<>stringArg<>")"
+	] ;(*every procedure called ProcedureSomething would have its prefix Procedure removed *)
+	   (*for instance: g=ProcedureReduce_MSB(f) will be transformed has  *)
+	   (*   Reduce_MSB(f, g)   *)
+  res
+];
+
+
+
+(*
+  A var expression
+*)
+semFuncCell[ 
+ "expression", lhs:_, var[ id:_ ]|affine[var[id:_],_], opts:___Rule ]:= 
+((* Print["Expression var. lhs : ", lhs, " rhs: ", id]; 
+Print[ "Type of lhs: ", expType[ lhs ] ];
+Print[ "Type of rhs: ", expType[ id ] ]; *)
+id); 
+
+(*
+  Binary operators
+*)
+semFuncCell[ 
+ "expression", lhs:_, binop[optype:add|sub|mul|div|or|and|xor|mod, op1:_, op2:_], opts:___Rule ]:=
+  StringJoin[
+    "(",
+    semFuncCell["expression", lhs, op1, opts],
+    Switch[ optype, 
+      add, " + ",
+      mul, " * ",
+      sub, " - ",
+      div, " / ",
+      or, " OR ",
+      and, " AND ",
+      xor, " XOR ",
+      mod, " MOD "
+    ],
+    semFuncCell["expression", lhs, op2, opts],
+    ")"
+  ];
+
+
+
+(*  
+  varNameInExpr returns the list of all variables involved in an 
+  expression containing only ops and var should be used to build the
+  sensivity list of the Processes 
+*)
+Clear[varNameInExpr];
+varNameInExpr[var[varName:_String]]:={varName};
+varNameInExpr[const[varName_]]:={};
+varNameInExpr[binop[op1_,var1:_,var2_]]:=
+	Join[ varNameInExpr[var1], varNameInExpr[var2]];
+varNameInExpr[unop[op1_,var1:_]]:= varNameInExpr[var1];
+varNameInExpr[l1:_List]:= Flatten[Map[varNameInExpr,l1]];
+varNameInExpr[affine[exp1:_,mat1:_]]:= varNameInExpr[exp1];
+varNameInExpr[call[exp1:_,exp2:_]]:= varNameInExpr[exp2];
+varNameInExpr[Null]:= {};
+ 
+varNameInExpr::wrongArg="wrong Argument for function varNameInExpr : `1` ";
+varNameInExpr[a:___]:=Message[varNameInExpr::wrongArg,Print[FullForm[{a}]]];
+
+
+(*
+	Old Version to delete
+   truncateLSB takes the Most Significant bits of the expression
+   enclosed, implemented with a process along the following model: 
+   --  Yloc1 <= (W_reg7 * XNloc2);
+   process(Y_reg6, W_reg7, XNloc2)
+ 
+   variable temp : integer range -1073741824 to +1073741823 :=0;
+   variable temp4 : integer range   -32768 To 32767 :=0;
+   variable temp1, temp2 : signed(31 downto  0);
+   begin
+     temp  :=  (W_reg7 * XNloc2);
+     temp1 :=  to_signed(temp,32);
+     temp2 :=  shift_right(temp1, 15);
+     temp4 :=  to_integer(temp2(15 downto 0));
+     Yloc1 <=  temp4 ;
+*)
+semFuncCell[ "call", name:"truncateLSB", 
+    opListTranslated:_, opListAst:_, opts:___Rule ]:=  
+
+Module[{curAlphaSystem,PosArg,newName,
+  LHSVarName,LHSVarPos,bitWidthExpr,
+  bitWidthLHS,shift,comment,declOfExprResult,
+  declOfExprTrunc,declOfSignedExpr,
+  trExprResult,trExprTrunc,
+  trExprTrunc2,trSignedExpr,trSignalEq,varNames,
+  sensitivityList
+  },
+
+  curAlphaSystem=$vhdlCurrent;
+
+  (* Finding back the LHS (we need its bit width) *)
+  PosArg=Position[curAlphaSystem,opListAst];
+  If[ PosArg==={},
+    (* LHS not found *)
+    newName=getNewName[curAlphaSystem,"Trunc"];
+    LHSVarName="varNotFound",
+    (* else *) 
+    LHSVarPos=Append[Take[First[PosArg],2],1];
+    LHSVarName=getPart[curAlphaSystem, LHSVarPos];
+    newName=getNewName[curAlphaSystem,LHSVarName<>"Exp"]
+  ];
+
+  (* Getting the real bit width of the expression *)
+  bitWidthExpr = bitWidthOfExpr[opListAst];
+  (* Apparently VHDL integers are limited to 32 bits for 
+	         synthesis *)
+  If[ bitWidthExpr>32, bitWidthExpr=32];
+
+  bitWidthLHS=bitWidthOfExpr[LHSVarName];
+  shift = bitWidthExpr-bitWidthLHS-1;
+
+  (* Building decl, same as model above except that I have 
+    changed the numbering of the temp variables  *)
+
+  comment="-- truncation of equation "<>LHSVarName<>" <= "<>
+  opListTranslated<>"\n"; 
+
+  (*  Variable temp : integer 
+     range -1073741824 to +1073741823 :=0; *)
+  declOfExprResult="      "<>"variable "<>
+  newName<>"1 : integer range   "<>
+  ToString[-Power[2,bitWidthExpr-2]]<>" to  "<>
+  ToString[Power[2,bitWidthExpr-2]-1]<>" :=0;\n";
+
+  (* Variable temp4 : integer range   -32768 To 32767 :=0; *)
+  declOfExprTrunc="      "<>"variable "<>
+    newName<>"2 : integer range   "<>
+     ToString[-Power[2,bitWidthLHS-1]]<>" to  "<>
+     ToString[Power[2,bitWidthLHS-1]-1]<>" :=0;\n";
+
+  (* Variables temp1, temp2 : signed(31 downto  0); *)
+  declOfSignedExpr = "      "<>"variable "<>newName<>"3, "<>
+     newName<>"4: signed("<>ToString[bitWidthExpr-1]<>
+     " downto 0);\n";
+
+  (* temp  :=  (W_reg7 * XNloc2); *)
+  trExprResult="      "<>newName<>"1"<>" := "<>opListTranslated<>";\n";
+
+  (* temp1 :=  to_signed(temp,32); *)
+  trExprTrunc="      "<>newName<>"3"<>
+       " := to_signed("<>newName<>"1,"<>
+       ToString[bitWidthExpr]<>");\n";
+
+  (* temp2 :=  shift_right(temp1, 15); *)
+  trExprTrunc2="      "<>newName<>"4"<>
+       " := shift_right("<>newName<>"3,"<>ToString[shift]<>");\n";
+
+  (*  temp4 :=  to_integer(temp2(15 downto 0)); *)
+  trSignedExpr = "      "<>newName<>"2"<>
+       " := to_integer("<>newName<>"4("<>
+       ToString[bitWidthLHS-1]<>" downto 0));\n";
+
+  (* Yloc1 <=  temp4 ; *)
+  trSignalEq = "      "<>LHSVarName<>" <= "<>newName<>"2;\n";
+
+  (* creating the sensitivity list of the process *)
+  varNames=varNameInExpr[opListAst];
+  sensitivityList=LHSVarName;
+
+  Do[sensitivityList=sensitivityList<>","<>varNames[[i]],
+    {i,1,Length[varNames]}
+  ];
+		
+  (* String Join of the whole process *)
+  process= comment<>"    Process("<>ToString[sensitivityList]<>
+    ")\n"<>declOfExprResult<>declOfExprTrunc<>
+       declOfSignedExpr<>"    "<>"begin\n"<>
+       trExprResult<> trExprTrunc<>trExprTrunc2<>
+       trSignedExpr<>trSignalEq<>"    "<>"end Process";
+
+  process
+];
+
+
+(* callPortMap means that the call is of the form 
+   x=call[...], it is translated as a portMap with x as last argument *)
+
+semFuncCell[ "callPortMap", leftHandSide:_String,
+		call[funcName:_String,  opListAst:_], opts:___Rule ]:=  
+Module[{listArg,stringArg,res},
+	useList = Append[useList, funcName]; (* add the component to the 
+						component list *)
+	listArg=Map[semFuncCell["expression", lhs, # , opts] &,opListAst];
+	stringArg=Map[StringJoin[#,","] &,listArg];
+	stringArg=Apply[StringJoin,stringArg];
+	stringArg=StringJoin[stringArg,leftHandSide]; (*result is the last port *)
+	(* If we need a port map, but this has
+		 to be detected before equation *)
+  res= "\n   "<>getLabelCell[$vhdlCurrent[[1]]]<>" : "<>funcName<>
+    " PORT MAP "<>If[ clkEn,"(clk, CE, Rst, ","(clk, Rst, "]<>
+  stringArg<>")"; 
+  (* if we just need a function 
+	res=funcName<>"("<>stringArg<>")" ; *) 
+  res
+];
+
+
+
+(* Logical operators *)
+semFuncCell[ 
+ "expression", lhs:_, binop[optype:eq|ne|le|ge|gt|lt, op1:_, op2:_], opts:___Rule ]:=
+  StringJoin[
+    " '1' WHEN ",
+    semFuncCell["expression", lhs, op1, opts],
+    Switch[ optype, 
+      eq, " = ",
+      ne, " != ",
+      le, " <= ",
+      ge, " >= ",
+      lt, " < ",
+      gt, " > "
+    ],
+    semFuncCell["expression", lhs, op2, opts],
+    " ELSE '0'"
+  ];
+
+(* ?????????? 
+semFuncCell[ "binop", minus, op1:_, op2:_, opts:___Rule ]:=
+  " '0' WHEN "<>ToString[op1]<>" - "<>ToString[op2]<>" ELSE '1'";
+*)
+
+(* Min operator *)
+semFuncCell[ 
+ "expression", lhs:_, binop[min, op1:_, op2:_], opts:___Rule ]:=
+With[ {trop1 = semFuncCell["expression", lhs, op1, opts],
+       trop2 = semFuncCell["expression", lhs, op1, opts]},
+  StringJoin[
+    trop1
+    " WHEN ",
+    trop1,
+    " < ",
+    trop2,
+    " ELSE ",
+    trop2
+  ]
+];
+
+(* Max operator *)
+semFuncCell[ 
+ "expression", lhs:_, binop[max, op1:_, op2:_], opts:___Rule ]:=
+With[ {trop1 = semFuncCell["expression", lhs, op1, opts],
+       trop2 = semFuncCell["expression", lhs, op2, opts]},
+  StringJoin[
+    trop1,
+    " WHEN ",
+    trop1,
+    " > ",
+    trop2,
+    " ELSE ",
+    trop2
+  ]
+];
+
+(* 
+  Unary operators 
+*)
+(* 
+  Special case of a constant 
+*)
+semFuncCell[ 
+ "expression", lhs:_, unop[ neg , const[v:_Integer] ], opts:___Rule ]:=
+semFuncCell[ "expression", lhs, const[ -v ], opts ];
+
+semFuncCell[ 
+ "expression", lhs:_, unop[ neg , affine[ const[v:_Integer],_] ], opts:___Rule ]:=
+semFuncCell[ "expression", lhs, const[ -v ], opts ];
+
+(* Other cases *)
+semFuncCell[ 
+ "expression", lhs:_, unop[ optype:abs|not|sqrt|neg, op:_], opts:___Rule ]:=
+  StringJoin[
+    Switch[ optype,
+      abs, " ABS( ",
+      not, " NOT( ",
+      neg, " - (",
+      sqrt, 
+        semFuncCell::sqrtinex = "sqrt operator not translated in Vhdl";
+        Message[ semFuncCell::sqrtinex ]; " sqrt ( "
+      ],
+    semFuncCell["expression", lhs, op, opts],
+    " )"
+  ];
+
+(* 
+  Constants
+*)
+semFuncCell[ 
+ "expression", lhs:_, const[ c:_]|affine[ const[ c:_], _] , opts:___Rule ]:=
+Module[{ r, stdl, decl, type, converted, value, signe },
+
+  (* Get stdlogic option *)
+  stdl = stdLogic/.{opts}/.Options[ a2v ];
+
+  Check[ 
+    decl = getDeclaration[ Alpha`Vhdl2`$vhdlCurrent, lhs ],
+    vhdlCell::declerr = "could not read the declaration of `1`";
+    Message[ vhdlCell::declerr, lhs ]
+  ];
+
+  type = decl[[2]];
+
+  value = valueOfConstant[ c, type, opts ];
+
+  (* Return the result *)
+  value
+];
+
+
+(*  Case expressions appear in two flavour: with one or two
+    branches *)
+semFuncCell[ "equation", lhs:_, 
+  case[
+    {
+     restrict[d1:_domain,if1:_],
+     restrict[d2:_domain,if2:_]
+    }
+  ], 
+{"casemux"}, opts:___Rule ] :=
+Catch[
+Module[{alt1, alt2, cond},
+    (* Each one of the alternatives should be a if statement *)
+    If[ (Length[if1]!=3) || (Length[if2]!=3), 
+      Throw[ Message[ semFuncCell::wrgcase2, exp ];"\n"]];
+    alt1 = semFuncCell[ "expression", lhs, if1[[2]], opts ];
+    cond = semFuncCell[ "expression", lhs, if1[[1]], opts ];
+    alt2 = semFuncCell[ "expression", lhs, if2[[3]], opts ];
+    "\n    "<>lhs<>" <= "<>alt1<>" WHEN "<>cond<>" = '1' ELSE "<>alt2
+] (* Module *)
+]; (* Catch *)
+
+(* Second type of multiplexer: an if expression; 
+   There may be a case expression inside, or not.
+   If there is a case inside, exp1 and exp2 are the
+   translation of the branches of the case expression. 
+   If not, they are just the arguments of the if.
+   cond is the condition of the if
+ *)
+semFuncCell[ "equation", lhs:_, if[ cond:_, exp1:_case, exp2:_case], 
+  {"ifmux"}, opts:___Rule ] :=
+Module[ {alt1, alt2, c},
+  alt1 = exp1[[1]];
+  alt2 = exp2[[1]];
+  alt1 = semFuncCell[ "expression", lhs, exp1, 1, opts ];
+  alt2 = semFuncCell[ "expression", lhs, exp2, 1, opts ];
+  c = semFuncCell[ "expression", lhs, cond, opts ];
+  "\n    "<>lhs<>" <= "<>alt1<>" WHEN "<>c<>" = '1' ELSE "<>alt2
+];
+semFuncCell::wrgcase1 = "case expression:\n`1`\ndoes not have 2 branches";
+semFuncCell::wrgcase2 = 
+  "branches of case expression:\n`1`\nare not if expressions";
+
+(* 
+  Simple if
+*)
+semFuncCell[ "equation", lhs:_, if[ cond:_, exp1:_, exp2:_], {"ifmux"}, 
+ opts:___Rule ] :=
+Module[ {alt1, alt2, c},
+(*
+  Print["exp1: ", exp1];
+  Print["exp2: ", exp2];
+  Print["Calling alt1"];
+*)
+  alt1 = semFuncCell[ "expression", lhs, exp1, opts ];
+(*
+  Print[alt1];
+*)
+  alt2 = semFuncCell[ "expression", lhs, exp2, opts ];
+(*
+  Print["alt2 : ", alt2 ];
+*)
+  c = semFuncCell[ "expression", lhs, cond, opts ];
+  "\n    "<>lhs<>" <= "<>alt1<>" WHEN "<>c<>" = '1' ELSE "<>alt2
+];
+semFuncCell::wrgcase1 = "case expression:\n`1`\ndoes not have 2 branches";
+semFuncCell::wrgcase2 = 
+  "branches of case expression:\n`1`\nare not if expressions";
+
+(*  *)
+semFuncCell[ "expression", lhs:_, 
+  case[
+    {
+     restrict[_,alt1:_],
+     restrict[_,alt2:_]
+    }], 
+  n:_Integer,
+  opts:___Rule ] :=
+semFuncCell[ "expression", lhs, If[ n===1, alt1, alt2 ], opts ];
+
+(*
+  Generation of a use statement
+*)
+semFuncCell[ "use", 
+  id:_String, 
+  extension:_domain, 
+  paramAssign:_, 
+  inputList:_, 
+  idList:_, opts:___Rule] :=
+Catch[
+  Module[{ decList, res, vhdlp, placeHolder, ids, reset, clockenable, ident },
+
+    (* Get the vhdlPatterns option *)
+    vhdlp = vhdlPatterns/.{opts}/.Options[ a2v ];
+
+    (* Add use to list of components *)
+    useList = Append[useList, id];
+
+    ids = id;
+
+    (* Initialize place holder *)
+    placeHolder = "";
+
+    (* If vhdlPatterns option is true, the reset and the clockenable 
+       are patterns *)
+    If[ vhdlp, 
+      clockenable = "$CE"<>ToString[ Length[ useList ] ]<>"$";
+      reset = "$Rst"<>ToString[ Length[ useList ] ]<>"$",
+      clockenable = "CE"; reset = "Rst"
+    ];
+
+    (* If vhdlPatterns option is true, do not generate components that 
+      are defined as patterns, but instead, introduce a place-holder 
+      (the name, enclosed in $ signs) *)
+    If[ vhdlp && (id === "ROM" || id === "PeriodicEnable" || 
+      id === "ModuloAddress" || id === "FSM" || id === "register" || id === "registerFile" ), 
+      ids = ToString[ id ]<>ToString[ Length[ useList ] ] ];
+
+    (* For overSampling and underSampling, that's it *)
+    If[ vhdlp && (id === "overSampling" || id === "underSampling"), 
+      Return[
+        "\n    "<>"-- "<>ToString[ id ]<>"\n    "<>
+        Which[ 
+          MatchQ[ idList, {_String} ], 
+          First[ idList ], 
+          MatchQ[ idList, {var[_String]} ], 
+          First[ First[ idList ] ],
+          True,
+          "**** Wrong overSampling ****"
+        ]<>" <= "<>
+        Which[ 
+          MatchQ[ inputList, {_String} ], 
+          First[ inputList ], 
+          MatchQ[ inputList, {var[_String]} ], 
+          First[ First[ inputList ] ],
+          True,
+          "**** Wrong overSampling ****"
+        ]
+      ]
+    ];
+
+    (* We append the inputs and the output lists. On the 
+       fly, we remove the var[...] wrapper of the inputs *)
+    decList = Join[ Map[First, inputList], idList ];
+
+    (* We assume here a use without extension 
+       (CheckCell should not accept use''s with extension) *)
+    (* In the case of a ROM, we do not put clk, rst and enable *)
+    Which[ 
+      StringMatchQ[ ids, "ROM*"]
+    ,
+      res = 
+      StringJoin[
+        "\n   ",
+        getLabelCell[$vhdlCurrent[[1]]],
+        " : ",
+        ids,
+        " PORT MAP ",
+        "(",
+        Table[decList[[i]]<>", ",{i,1,Length[decList]-1}],
+        Last[decList],
+        ")"
+      ]
+    ,
+      StringMatchQ[ ids, "register*"]
+    ,
+      (* We call the genVhdl function defined in Vhdl2.m. This function generates the code
+         for a register, with placeholders for the enable signal, the input and outputs
+         and a comment. The $size$ parameter should give the size of the register. 
+         Currently, only sizes up to 3 are allowed... 
+         Because I was pretty lazy. PQ. April 2009.
+      *)
+      Module[ {locsize, loclgreg},
+        (* Here, the size of the register is given in the assignment part of the
+          use, and as we assume that the parameters have been set, the assignement
+          matrix is simple : it should have the form matrix[2,1,{},{{n},{1}}] where
+          n is the size of the register file. *)
+        loclgreg = paramAssign[[4,1,1]];
+        If[ dbg, Print[ paramAssign, " ", loclgreg ] ];
+        If[ loclgreg === 1, 
+          res = "\n" <>
+            genVhdl[ "CallReg", 
+            "$enable$" -> clockenable, "$size$" -> loclgreg, "$lhs$" -> decList[[2]],
+            "$rhs$" -> decList[[1]], 
+            "$comment$" -> "Padding register(s) of size "<>ToString[loclgreg]<>
+              " for variable "<>decList[[2]] ],
+          res = 
+          StringJoin[
+            "\n   ",
+            getLabelCell[$vhdlCurrent[[1]]],
+            " : ",
+            ids,
+            " PORT MAP ",
+            "(clk, ", 
+            clockenable, ", ",
+            Table[decList[[i]]<>", ",{i,1,Length[decList]-1}],
+            Last[decList],
+            ")"
+          ]
+        ]
+      ]
+    ,
+      True
+    ,
+      res = 
+      StringJoin[
+        "\n   ",
+        getLabelCell[$vhdlCurrent[[1]]],
+        " : ",
+        ids,
+        " PORT MAP ",
+        If[ clkEn,"(clk, "<>clockenable<>", "<>reset<>", ","(clk, Rst, " ],
+        Table[decList[[i]]<>", ",{i,1,Length[decList]-1}],
+        Last[decList],
+        ")"
+      ];
+    ]; (* Which *)
+    placeHolder<>res
+  ]
+];
+vhdlCell::uselim = 
+  "The use statement `1` is not covered by the translater. Push Patrice Quinton to do it quickly!";
+
+(* This covers the case of a var[x] expression *)
+semFuncCell[ "equation", lhs:_, var[x:_String] , {"var"}, opts:___Rule ]:= 
+  ((* Print["equation2:",lhs, " ", x];*) 
+  "\n    "<>lhs<>" <= "<>x<>
+  If[ expType[lhs] =!= expType[x], " -- *** TYPE MISMATCH", ""]
+);
+
+semFuncCell[ "equation", lhs:_, rhsast:_ , rhs:_, opts:___Rule ]:= 
+  ( Print["equation3:",lhs, rhsast, rhs]; 
+  "\n    "<>lhs<>" <= "<>ToString[ rhs ]);
+
+semFuncCell[x:___]:= (Print[FullForm[{x}]];Message[ semFuncCell::params ]);
+
+(* --------------------------------------------------------------- *)
+Clear[vhdlHeader];
+vhdlHeader::usage = "vhdlHeader[id] creates the header of the vhd file. "; 
+vhdlHeader[idf_String]:= 
+Module[
+  { date, jj, mm, aa, hh, mn, ss },
+
+  jj=ToString[Date[][[3]]]; 
+  mm=ToString[Date[][[2]]]; 
+  aa=ToString[Date[][[1]]];
+  hh=ToString[Date[][[4]]]; 
+  mn=ToString[Date[][[5]]]; 
+  ss=ToString[Date[][[6]]];
+  date= StringJoin["-- ",jj,"/",mm,"/",aa," ",hh,":",mn,":",ss,"\n"];
+  StringJoin[
+    "-- VHDL Model Created for \"system ",idf,"\" \n",date,
+    "-- Alpha2Vhdl Version 0.9 "
+  ]
+];
+vhdlHeader[___] := Throw[Message[vhdlHeader::params]];
+
+End[];
+EndPackage[];

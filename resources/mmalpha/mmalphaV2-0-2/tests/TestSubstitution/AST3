@@ -1,0 +1,12 @@
+system["bidon", domain[0, {}, {pol[1, 1, 0, 0, {{1, 1}}, {{1, 1}}]}], 
+  {decl["a", integer, domain[0, {}, {pol[1, 1, 0, 0, {{1, 1}}, {{1, 1}}]}]]}, 
+  {}, {decl["A", integer, domain[1, {"i"}, 
+     {pol[2, 2, 0, 0, {{1, 1, 0}, {1, 0, 1}}, {{1, 1, 0}, {1, 0, 1}}]}]], 
+   decl["B", integer, domain[1, {"i"}, 
+     {pol[2, 2, 0, 0, {{1, 1, 0}, {1, 0, 1}}, {{1, 1, 0}, {1, 0, 1}}]}]]}, 
+  {equation["B", case[{restrict[domain[1, {"i"}, 
+        {pol[2, 1, 1, 0, {{0, 1, 0}, {1, 0, 1}}, {{1, 0, 1}}]}], var["A"]], 
+      restrict[domain[1, {"i"}, 
+        {pol[2, 2, 0, 0, {{1, 1, -1}, {1, 0, 1}}, {{1, 1, 0}, {1, 1, 1}}]}], 
+       binop[add, binop[add, var["A"], var["A"]], var["A"]]]}]], 
+   equation["A", var["a"]]}]

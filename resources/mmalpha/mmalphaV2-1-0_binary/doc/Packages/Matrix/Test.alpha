@@ -1,0 +1,11 @@
+system test (x : integer) returns (y : integer);
+var 
+    Z : {i,j | 0<=i<=10; 0<=j<=10; i<=j} | 
+        {i,j | 0<=i<=10; 0<=j<=10; i>j} of integer;
+    T : {i,j | 0<=i<=10; 0<=j<=10} of integer;
+    U : {i,j | 0<=i<=10; 0<=j<=10} of integer;
+let 
+  U = {i,j | 0<=i<=10; 0<=j<=10; i<=j} | 
+        {i,j | 0<=i<=10; 0<=j<=10; i>j+1}: Z;
+  T = {i,j|i>j}|{i,j|i<=j}: Z;
+tel;

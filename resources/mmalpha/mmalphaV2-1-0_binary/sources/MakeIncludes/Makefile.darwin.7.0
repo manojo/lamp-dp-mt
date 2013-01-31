@@ -1,0 +1,18 @@
+#-----------------------------------------------
+#  This defines where MATHLINK is for version 7.0 
+MATHLINK = /Applications/Mathematica-7.app/SystemFiles/Links/MathLink/DeveloperKit/CompilerAdditions
+
+#-----------------------------------------------
+#  This defines where mprep is. Almost always in MATHLINK, but sometimes not...
+MATHPREP	= $(MATHLINK)/mprep
+
+#-----------------------------------------------
+#  Defines the includes for compiling for Mathlink
+MATHINCLUDE	= -I$(MATHLINK)
+#  Defines the libraries to link with Mathlink
+MATHLIB		= -L$(MATHLINK)
+
+#  Notice that the load library is not the same as for other versions...
+MATHLOADLIB	= -lMLi3 -lm
+
+

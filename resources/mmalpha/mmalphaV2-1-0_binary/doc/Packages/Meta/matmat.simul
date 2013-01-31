@@ -1,0 +1,22 @@
+Begin["Alpha`Simul`matmat`"];
+Clear[ Alpha`Simul`matmat`a, Alpha`Simul`matmat`b, Alpha`Simul`matmat`c, Alpha`Simul`matmat`CC];
+
+    (* Definition of CC *)
+    Alpha`Simul`matmat`CC[i_, j_, k_, N_, f:(_Integer|_Symbol)...] := 
+      Which[
+        -1 + N >= 0 && k == 0
+      ,
+        If[ k == 0, 0, Message[ semanticFunction::undef ] ]
+      ,
+        -1 + i >= 0 && -1 + j >= 0 && -1 + k >= 0 && -i + N >= 0 && -j + N >= 0 && -k + N >= 0
+      ,
+        If[ k >= 0, Plus[ Alpha`Simul`matmat`CC[ i, j, -1 + k, N,f ], Times[ Alpha`Simul`matmat`a[ i, k, N,f ], Alpha`Simul`matmat`b[ k, j, N,f ] ] ], Message[ semanticFunction::undef ] ]
+      ,
+      True, Message[ semanticFunction::undef ]
+      ];
+    Alpha`Simul`matmat`CC[ ___ ] := Message[Alpha`Simul`matmat`CC::params ];
+
+    (* Definition of c *)
+    Alpha`Simul`matmat`c[i_, j_, N_, f:(_Integer|_Symbol)...] := Alpha`Simul`matmat`CC[ i, j, N, N,f ];
+    Alpha`Simul`matmat`c[ ___ ] := Message[Alpha`Simul`matmat`c::params ];
+End[];

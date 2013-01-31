@@ -1,0 +1,29 @@
+system SATZ: {M | M>1} 
+    (alpha_init : {j| 0<=j<=15 } of integer)
+returns (alpha_res  : {j,i |  0<=i<=M;  0<=j<=15} of integer);
+var
+Xeven  : {j,i |  0<=i<=M;  0<=j<=15} of integer;
+Xodd  : {j,i |  0<=i<=M;  0<=j<=15} of integer;
+res,alphaPplus1, alphaP  : {j,i | 0<=i<=M; 0<=j<=15} of integer;
+let
+Xeven = case 
+	{2j,i | 0<=j<=7; 0<=i<=M } :  alphaP.(j,i->j,i);
+	{2j+1,i | 0<=j<=7; 0<=i<=M } : alphaP.(j,i->j-1,i);
+        esac;
+Xodd = case 
+	{2j,i | } :  alphaP.(j,i->j+1,i);
+	{2j+1,i | } : alphaP.(j,i->j,i);
+        esac;
+res=max(Xeven,Xodd);
+alphaPplus1 = case
+	{4j,i | } : res.(j,i->j/4,i);
+	{4j+3,i | } : res.(j,i->(j-3)/4+1,i);
+	{4j+1,i | } : res.(j,i-> (j-1)/2+8,i);
+	{4j+2,i | } : res.(j,i-> (j-2)/2+9,i);
+       esac;
+alphaP=case
+	{j,i| i=0 }:alpha_init.(j,i->j);
+	{j,i| i>0 }:alphaPplus1.(j,i->j,i-1);
+	esac;
+alpha_res=alphaP;
+tel;

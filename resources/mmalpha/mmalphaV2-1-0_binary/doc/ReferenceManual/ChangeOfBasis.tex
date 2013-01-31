@@ -1,0 +1,20 @@
+%
+% File created on {2007, 11, 15, 17, 10, 18.848102} by makeDoc.
+%
+% Section header
+\section{The Alpha`ChangeOfBasis` package } 
+\label{label:Alpha`ChangeOfBasis`}
+\alphanote{ChangeOfBasis}{Documentation revised on August 3, 2004} 
+ 
+\alphausage{ChangeOfBasis}{The Alpha`Package` package contains the definition of the "change of basis" transformation (see changeOfBasis).}{Alpha/ChangeOfBasis.m}{Alpha`ChangeOfBasis`}
+\index{ChangeOfBasis}
+
+\alphausage{changeIndexes}{changeIndexes[ sys, var, rules ] replaces all indexes in the definition of var according to replacement rules. changeIndexes[ var, rules ] does the same on \$result. Remember that var names are strings. The declaration of var is  modified according to the rules. If var is the output of a use statement, all outputs of the use and the use itself are changed.}{Alpha/ChangeOfBasis.m}{Alpha`ChangeOfBasis`}
+\index{changeIndexes}
+
+\alphausage{changeOfBasis}{changeOfBasis[var.fn] returns a copy of \$result in which the variable var is reindexed by an unimodular affine function fn. The change of basis is specified as "B.(i,j,k $ \rightarrow $ i+1,j,k)" where B is the variable to be reindexed, and the change of basis matrix has the format of an Alpha dependence, with one difference: the index mapping function is understood as a mapping from initial to new position (and not the opposite). If it is square, this matrix should be unimodular. Non-square change of basis (also called generalized  change of basis) are allowed, in that case, the function should be called this way: changeOfBasis[var.fn, \{index, ...\}] applies a change of basis fn on variable var, except that the new indices of var are named according to the second argument.\\Example: \\changeOfBasis["B.(i,j $ \rightarrow $ 1,i,j)",\{"i1","j1","k1"\}]). \\changeOfBasis[sys,var.fn, \{index, ...\}]  applies a change of basis to system sys instead of \$result.  \\changeOfBasis["B.(i,j $ \rightarrow $ 1,i,j)", recurse$ \rightarrow $True]  recursively executes the change of basis on subsystem `subsys' called  with B as input or output. The recursive change of basis has  many restriction: as the semantics of the subsystem is modified,  we impose that there is only one occurence of subsys appearing  in the system. Moreover, the recursive change of basis can  modify only local indices (indices which are not extension  indices in the use of subsys) and must involve only local  indices and  parameter transmitted to the subsystem.  The  change of basis on the extension indices can be performed  with the function extDomainCOB[] (see ?extDomainCOB).}{Alpha/ChangeOfBasis.m}{Alpha`ChangeOfBasis`}
+\index{changeOfBasis}
+
+\alphausage{extDomainCOB}{extDomainCOB["subSysName.(j$ \rightarrow $g(j,N))"] applies the change of basis  to all the variables implied in the use of the subsystem subSysName  and change the extension domain accordingly. This change of basis  should be applied to a system where the following use appear:  \\use \{j$|$ ....\} subSysName[...] (...) returns (...) \\j are the extension indices, N are the parameter of the caller.  The change of basis must only depend on the extention indices and on the parameters as indicated here. The parameter assignement  function must be simple (i.e. each parameter of the subsystem is  assigned to a parameter of the caller, e.g. (N,M,P$ \rightarrow $P,N). This transformation should have no impact on the subsystems. }{Alpha/ChangeOfBasis.m}{Alpha`ChangeOfBasis`}
+\index{extDomainCOB}
+

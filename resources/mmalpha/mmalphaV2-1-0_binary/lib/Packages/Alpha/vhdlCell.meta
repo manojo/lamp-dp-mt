@@ -1,0 +1,435 @@
+{
+(*
+
+This file contains the syntax of AlpHard Cell's Abstract Syntax
+Tree. Once processed with the meta function, it produces a file named
+CheckCell.m which allows one to analyze an AST and check that this AST
+has the syntax of a Cell.  
+*)
+
+(*	
+	System declaration
+*)
+  SYSTEMDECLARATION ::= 
+    system[ systemName: _String, 
+            paramDecl: DOMAINPARAM, 
+            inputDeclList: {DECLARATION},
+            outputDeclList: {DECLARATION}, 
+            localDeclList: {DECLARATION}, 
+            equationBlock: {EQUATION}
+          ] 
+          :> semFuncCell[ 
+               "system", 
+               systemName, 
+               trinputDeclList, 
+               troutputDeclList, 
+               trlocalDeclList, 
+               trequationBlock,
+               opts
+             ]
+,
+
+  DECLARATION ::=
+    decl[ varName: _String, 
+          varType: _,
+          domain: DOMAIN 
+        ]
+        :> { varName, varType }
+(*
+  The semantics of a declaration is a pair formed by 
+  the name, and the type of the variable
+*)
+,
+
+  DOMAINPARAM ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> Null
+,
+  DOMAIN ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> Null
+,
+
+  POLYHEDRON ::= 
+    pol[ constraintsNum:_Integer,
+         generatorsNum:_Integer,
+         equationsNum:_Integer,
+         linesNum:_Integer,
+         constraintList: {CONSTRAINT},
+         generatorList: {GENERATOR}
+       ]
+       :> Null
+(* 	
+	Null result. We assume that the polyhedron is correct.
+*)
+,
+
+  CONSTRAINT ::= {_List -> List} (* OK *)
+,
+
+  GENERATOR ::= {_List -> List} (* OK *)
+,
+
+(* 	
+	An equation is either an assignment or a use
+*)
+  EQUATION ::= 
+    { equation[_,_call] -> CALLSTATEMENT,
+      _equation -> ASSIGNMENT,
+      _use -> USESTATEMENT  (* Not sure that we can have a use in a cell *)
+    }
+,
+    
+(* 	
+	An assignment
+*)
+  ASSIGNMENT ::= 
+    equation[ leftHandSide: _String, 
+              rightHandSide: ELEMENTS	
+            ] 
+            :> 
+  semFuncCell[ 
+    "equation", leftHandSide, rightHandSide, 
+    trrightHandSide,
+    opts ]
+
+  (* The semantics is to call a semantic function, with lhs, 
+     rhs, and the translation of the rhs. This translation 
+     will contain necessary information to identify the type
+     of expression
+  *)
+,
+
+(* 
+
+  Here, the syntax differs from a standard Alpha program. Only the
+  following types of assignments are allowed: multiplexers either in
+  form of case statements or if statements, affine expressions (X[t-k],
+  where k is a constant or cons[]), variables, constants, binary and
+  unary expression.
+
+*)
+  ELEMENTS ::= 
+    { 
+      _case-> CASEMUX,
+      _if -> IFMUX,
+      _affine -> AFFEXPE,
+      _binop -> BINEXPE,	
+      _unop -> UNEXPE, 
+      _var -> VAREXPE, 
+      _const -> CONSTEXPE
+  (*    _call -> CALLEXPE	  this should be unused 
+			because calls are recognised in equations*)
+ }
+(*
+  Warning: AFFEXPE, BINEXPE, UNEXPE, VAREXPE and CONSTEXT
+  represents rhs of equations, and have a different semantics
+  of AFFEXP, BINEXP, UNEXP, VAREXP and CONSTEXP
+*)
+, 
+
+(*	This represents a rhs of the form V[t] or V[t-1] or 1[] (constant) *)
+  AFFEXPE ::= 
+    affine[ 
+      affExpression: VAREXPORCONSTE,
+      affineFunction: MATRIX 
+          ] 
+          :> { "register" }
+(*
+  The semantics is a 3-uple consisting of the keyword "register", 
+  the translation of the affineExpression, and the affineFunction. 
+*)
+,
+
+  MATRIX ::= 
+    matrix[ 
+      d1:_Integer, 
+      d2:_Integer, 
+      indexes:{___String}, 
+      mmaMatrix:MATRIXNUM
+          ]
+          :> Null
+,
+
+  MATRIXNUM ::= {_List -> {List}}
+,
+
+  BINEXPE ::= 
+    binop[ 
+          binaryOp: ( add | sub |  mul | div | or | and | xor | 
+                      min | max | eq | ne | le | lt | ge | gt | 
+		      minus | div | mod ), 
+    (* "mul" ou "mult"   et les operateurs : + | - | * | / | ...... ???  *)
+          operand1: SUBEXPRESSION, 
+          operand2: SUBEXPRESSION 
+         ] 
+         :> 
+    { "expression" }
+(*
+  Here, the semantics is a pair {"expression", x}, where x is 
+  the translation of the rhs expression, through a call to 
+  semFuncCell
+*)
+,
+
+  BINEXP ::= 
+    binop[ 
+          binaryOp: ( add | sub |  mul | div | or | and | xor | 
+                      min | max | eq | ne | le | lt | ge | gt | 
+		      minus | mod ), 
+    (* "mul" ou "mult"   et les operateurs : + | - | * | / | ...... ???  *)
+          operand1: SUBEXPRESSION, 
+          operand2: SUBEXPRESSION 
+         ] 
+         :> { "expression" }
+(*
+  The semantics here is just a call to semFuncCell, which will
+  return the translation into Vhdl of the expression
+*)
+,
+
+  UNEXPE ::= 
+    unop[ 
+          unaryOp: ( neg | not | sqrt | abs ),
+          operand: SUBEXPRESSION
+         ] 
+         :> { "expression" }
+(* 
+  Just as BINEXPE
+*)
+,
+
+  UNEXP ::= 
+    unop[ 
+          unaryOp: ( neg | not | sqrt | abs ),
+          operand: SUBEXPRESSION
+         ] 
+         :> { "expression" }
+(*
+  Just as BINEXP
+*)
+,
+
+  VAREXPORCONSTE ::= 
+	{ _var -> VAREXPE,
+	  _const -> CONSTEXPE
+	}
+
+,
+  VAREXPE ::= 
+    var[ 
+         identifier: _String 
+       ] 
+    :> { "var" }
+(*
+  The semantics is just the subtree
+*)
+,
+
+  CONSTEXPE ::= 
+    const[ 
+         constant: ( _Integer | _Real | True | False ) 
+         ] 
+         :> { "const" }
+(*
+  The semantics is just the subtree
+*)
+
+,
+
+  VAREXP ::= 
+    var[ 
+         identifier: _String 
+       ] 
+    :> { "var" }
+(*
+  The semantics is the identifier
+*)
+,
+
+  CONSTEXP ::= 
+    const[ 
+         constant: ( _Integer | _Real | True | False ) 
+         ] 
+         :> { "const" }
+(*
+  The semantics is just the constant
+*)
+,
+
+(*  
+	Expression. Used in the binary or unary expressions. 
+        Notice that we have AFFEXP (different of AFFEXPE) etc..
+*)
+  SUBEXPRESSION ::=
+    {
+      _affine -> AFFEXP,
+      _binop -> BINEXP,
+      _unop -> UNEXP,
+      _var -> VAREXP,
+      _const -> CONSTEXP,
+      _call -> CALLEXP
+
+ }
+,
+
+  AFFEXP ::= 
+    affine[ 
+      affExpression: VAREXPORCONST,
+      affineFunction: MATRIX 
+          ] 
+          :> { "affine" }
+(*
+  Here, the semantics is simply the translation of the 
+  expression, which can only be a constant or a simple var
+*)
+,
+
+  VAREXPORCONST ::= 
+	{ _var -> VAREXP,
+	  _const -> CONSTEXP
+	}
+,
+(* 	First type of mux *)
+  CASEMUX ::= 
+    case[ 
+         expressionList: {RESTEXP}	
+        ] 
+        :> { "casemux" }
+(*
+  Here, I assume a very restricted case of multiplexer: only two branches 
+*)
+,
+  RESTEXP ::= 
+    restrict[ 
+         domain: DOMAIN, 
+         ifExpression: IFEXP 
+         ] 
+         :> { "rest" }
+, 
+
+  IFEXP ::=
+    if[
+       ifCondition: CONTROLEXPRESSION,	
+       alt1: SUBEXPRESSION,
+       alt2: SUBEXPRESSION
+      ]
+      :> { "ifexp" }
+,
+
+(* 	Control expression *)
+  CONTROLEXPRESSION ::= 
+    {
+      (* Either a var or an affine expression *)
+      _affine -> AFFEXP,
+      _var -> VAREXP
+    }
+,
+(*	Second type of mux: an If with possibly a case inside *)
+  IFMUX ::=
+    if[
+       ifCondition: CONTROLEXPRESSION,  
+       alt1: SUBMUX2,	
+       alt2: SUBMUX2
+      ]
+      :> {"ifmux"}
+(*
+  The semantics is the same as that of CASEMUX
+*)
+,
+
+  SUBMUX2 ::=
+    {
+      (* A case expression is not mandatory *)
+      _case -> CASEXP,	
+      _affine -> AFFEXP,
+      _binop -> BINEXP,
+      _unop -> UNEXP,
+      _var -> VAREXP,
+      _const -> CONSTEXP
+ }
+, 
+
+(* 
+	This is a case inside a If multiplexer. Only a restricted expression
+	can appear
+*)
+  CASEXP ::= 
+    case[ 
+         expressionList: {RESTEXPMUX2}	
+        ] 
+        :> {}
+,
+
+  RESTEXPMUX2 ::= 
+    restrict[ 
+         domain: DOMAIN, 
+         restExpression: SUBEXPRESSION	
+         ] 
+         :> {}
+, 
+(* Use statements are translated as port maps  (they must be pointwise use)
+   If they are not pointwise use, their translation is in developpement *) 
+  USESTATEMENT ::= 
+    use[ id: _String, 
+         domainExtension: DOMAIN,
+         paramAssign: MATRIX,
+         inputList: {VAREXP},
+	 idList: {___String}
+       ]
+       :> semFuncCell[ 
+            "use" , 
+            id, 
+            domainExtension, 
+            paramAssign, 
+            inputList, 
+            idList,
+            opts
+          ]
+,
+(* call expressions  are translated as port maps if they are understood 
+	as element (i.e. x=call[f,{ops}]) if they are understood as 
+	subexpression (i.e. x=y+call[f,{ops}]), they are treated in 
+	the CALLEXP. here the arguments are not subexpressions but 
+	just variables (I don't need expression as input to port maps)*) 
+
+  CALLSTATEMENT ::= 
+    equation[ leftHandSide: _String, 
+              funcCall: CALLEXP
+            ]
+	:> semFuncCell[ "equation", leftHandSide, funcCall ,trfuncCall,  opts]  
+
+,
+
+(*
+Added by Tanguy 
+*)
+
+
+  CALLEXP ::= 
+    call[ 
+         funcName: _String,
+	 funcOps: {SUBEXPRESSION} 
+         ] 
+         :> { "expression" }
+
+(*  semFuncCell[ "call", funcName,  funcOps, opts]  *)
+
+(* ,
+
+
+  CALLEXPE ::= 
+    call[ 
+         funcName: _String,
+	 funcOps: {SUBEXPRESSION} 
+         ] 
+         :> semFuncCell[ "call", funcName,  funcOps, opts]  *)
+
+
+}

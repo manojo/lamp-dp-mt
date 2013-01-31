@@ -1,0 +1,6 @@
+/Applications/Mathematica\ 5.2.app/AddOns/MathLink/DeveloperKit/MacOSX-x86/CompilerAdditions/mprep domlib.tm >Obj.darwin/domlibtm.c
+#gcc -c -g -DLINEAR_VALUE_IS_LONGLONG -DUNIX -I/Applications/Mathematica\ 5.2.app/AddOns/MathLink/DeveloperKit/MacOSX-x86/CompilerAdditions -I/Users/quinton/mmalpha/sources/Polylib/include -o Obj.darwin/domlibtm.o Obj.darwin/domlibtm.c
+#gcc -c -g -DLINEAR_VALUE_IS_LONGLONG -DUNIX -I/Applications/Mathematica\ 5.2.app/AddOns/MathLink/DeveloperKit/MacOSX-x86/CompilerAdditions -I/Users/quinton/mmalpha/sources/Polylib/include -o Obj.darwin/domlib.o domlib.c
+#gcc -g -DLINEAR_VALUE_IS_LONGLONG Obj.darwin/domlibtm.o Obj.darwin/domlib.o -L/Applications/Mathematica\ 5.2.app/AddOns/MathLink/DeveloperKit/MacOSX-x86/CompilerAdditions -L/Users/quinton/mmalpha/lib.darwin -lpoly -lML -lm -o Obj.darwin/domlib -v
+# /usr/libexec/gcc/i686-apple-darwin8/4.0.1/collect2 -dynamic -arch i386 -weak_reference_mismatches non-weak -o Obj.darwin/domlib -lcrt1.o -L/Applications/Mathematica 5.2.app/AddOns/MathLink/DeveloperKit/MacOSX-x86/CompilerAdditions -L/Users/quinton/mmalpha/lib.darwin -L/usr/lib/gcc/i686-apple-darwin8/4.0.1 -L/usr/lib/gcc/i686-apple-darwin8/4.0.1 -L/usr/lib/gcc/i686-apple-darwin8/4.0.1/../../.. Obj.darwin/domlibtm.o Obj.darwin/domlib.o -lpoly -lML -lm -lgcc -lSystem
+#cp Obj.darwin/domlib /Users/quinton/mmalpha/bin.darwin/domlib

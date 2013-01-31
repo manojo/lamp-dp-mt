@@ -1,0 +1,95 @@
+Reporting on system: emitter1
+  System was in $result  
+25/4/2009 -- 18h 9mn 1.675829s
+
+System:
+system emitter1 :{KD | 1<=KD}
+                (data : {i | 0<=i} of integer[S,2])
+       returns  (sd : {i | 1<=i} of integer[S,4]);
+var
+  dataMirr : {i | 0<=i} of integer[S,2];
+  dataReg : {i | 0<=i} of integer[S,2];
+  ssdata : {i | 0<=i} of integer[S,2];
+  ovsfDataAddress : {i | 0<=i} of integer[S,8];
+  ovsfDataCode : {i | 0<=i} of integer[S,2];
+  spdata : {i | 0<=i} of integer[S,4];
+let
+  dataMirr[i] = data;
+  use  register[] (dataMirr) returns  (dataReg) ;
+  use  overSampling[4] (dataReg) returns  (ssdata) ;
+  use  ROM[KD] (ovsfDataAddress) returns  (ovsfDataCode) ;
+  use  ModuloAddress[KD] () returns  (ovsfDataAddress) ;
+  spdata[i] = ovsfDataCode[i] * ssdata[i];
+  sd[i] = spdata;
+tel;
+
+-- Equation: 
+    dataMirr = data;
+  ** Declaration: 
+    dataMirr : {i,KD | 0<=i} of integer[S,2]
+  ** Type is: integer[S, 2]
+  ** Input equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    spdata = ovsfDataCode.(i,KD->i,KD) * ssdata.(i,KD->i,KD);
+  ** Declaration: 
+    spdata : {i,KD | 0<=i} of integer[S,4]
+  ** Type is: integer[S, 4]
+  ** Local equation
+  ** Indexes: {i}
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: ovsfDataCode.(i,KD->i,KD)
+     Occurrence: {6, 6, 2, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: ssdata.(i,KD->i,KD)
+     Occurrence: {6, 6, 2, 3}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    sd = spdata;
+  ** Declaration: 
+    sd : {i,KD | 1<=i} of integer[S,4]
+  ** Type is: integer[S, 4]
+  ** Output equation
+  ** Indexes: {i}
+  ** Identity equation
+  ** Mirror equation
+  ** This equation can be interpreted as hardware
+
+---- These equations cannot be translated to hardware:
+spdata = ovsfDataCode.(i,KD->i,KD) * ssdata.(i,KD->i,KD);
+
+
+---- Use statements:
+
+  ** Use statement:
+    ** name: register
+    ** extension domain {KD | 1<=KD}
+    ** results: {dataReg}
+
+  ** Use statement:
+    ** name: overSampling
+    ** extension domain {KD | 1<=KD}
+    ** results: {ssdata}
+
+  ** Use statement:
+    ** name: ROM
+    ** extension domain {KD | 1<=KD}
+    ** results: {ovsfDataCode}
+
+  ** Use statement:
+    ** name: ModuloAddress
+    ** extension domain {KD | 1<=KD}
+    ** results: {ovsfDataAddress}
+
+
+------
+  **** Resources used:
+  0 integer or floating-point mux
+  0 multipliers 
+  0 adders/subtracters 
+  ** Analysis of operators

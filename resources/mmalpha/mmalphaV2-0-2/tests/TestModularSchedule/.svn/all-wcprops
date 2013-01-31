@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestModularSchedule
+END
+test1.pipres
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestModularSchedule/test1.pipres
+END
+fail.pip
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestModularSchedule/fail.pip
+END
+test2.pipres
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestModularSchedule/test2.pipres
+END
+TestPip.m
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestModularSchedule/TestPip.m
+END
+toto.pipres
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestModularSchedule/toto.pipres
+END
+fail.pipres
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestModularSchedule/fail.pipres
+END
+TestModuleSchedule.m
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestModularSchedule/TestModuleSchedule.m
+END

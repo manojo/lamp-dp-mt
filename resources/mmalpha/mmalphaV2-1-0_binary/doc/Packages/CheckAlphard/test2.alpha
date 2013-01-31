@@ -1,0 +1,5 @@
+system test2 (a, b: {i| i>=10} of integer)
+returns (c: {j|j<=20} of integer);
+let
+  c[i] = a[i] + b[3i+2];
+tel;

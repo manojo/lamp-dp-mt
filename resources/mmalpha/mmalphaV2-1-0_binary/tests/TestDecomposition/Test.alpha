@@ -1,0 +1,12 @@
+system test    (x :  integer)
+       returns (y :  integer);
+var
+  Z : {i | 1>=0} of integer;
+let
+  Z[i] = 
+      case
+        { | i=0} : x[];
+        { | 1<=i} : Z[i+2] + x[];
+        { | i<=-1} : Z[i+1];
+      esac;
+tel;

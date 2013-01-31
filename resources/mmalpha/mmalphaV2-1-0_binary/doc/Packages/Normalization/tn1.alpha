@@ -1,0 +1,14 @@
+system bidon   (a :  integer)
+       returns ( );
+var
+  A : {i | 5<=i} of integer;
+  B : {i | 0<=i} of integer;
+let
+  B[i] = 
+      case
+        { | i=0} : A;
+        { | 1<=i} : A + A + A;
+      esac;
+  A[i] = A + A + A + (A + A + A) + (A + A + A) + (A + A + A + (A + A + A) + (A + A + A)) + (A + A + A + (A + A + A) + (A + A + A)) + (A + A + A + (A + A + A) + (A + A + A) + (A + A + A + (A + A + A) + (A + A + A)) + (A + A + A + (A + A + A) + (A + A + A)))
+       + (A + A + A + (A + A + A) + (A + A + A) + (A + A + A + (A + A + A) + (A + A + A)) + (A + A + A + (A + A + A) + (A + A + A)));
+tel;

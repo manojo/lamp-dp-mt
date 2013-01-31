@@ -1,0 +1,13 @@
+
+COMPONENT cellprodVectModule1
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  bXMirr1 : IN  SIGNED (15 DOWNTO 0);
+  aReg2 : IN  SIGNED (15 DOWNTO 0);
+  CXctl1XIn : IN  STD_LOGIC;
+  C : OUT  SIGNED (15 DOWNTO 0)
+);
+END COMPONENT;
+

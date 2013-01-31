@@ -1,0 +1,352 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage,epic,eepic,epsfig,makeidx,color,graphicx,moreverb,boxedminipage,version}
+\sloppy
+
+
+%\usepackage{fullpage,verbatim,vrbinput,vrbtabs,psfig,version,epic,eepic}
+\usepackage{makeidx}
+%\usepackage{french}
+%\usepackage{mathematica}
+
+\newcommand{\mmalpha}{{\sc mmalpha}}
+\excludeversion{corrige}
+\excludeversion{maversion}
+\makeindex
+\begin{document}
+
+
+\title{The Meta Package}
+\author{Patrice Quinton}
+\date{Version of \today}
+\maketitle
+\abstract{This document presents the \texttt{Meta} package of \mmalpha{}. This
+package allows one to define quickly translators for Mathematica expressions, in 
+particular, \mmalpha{} Abstract Syntax Trees. Translators are specified by a set of rules
+which are translated as a Mathematica package. When loaded, together with a 
+separate semantic file, one gets a translator. The \texttt{meta} package is used in \mmalpha{}
+to produce VHDL code. }
+
+\section{Introduction}
+The 
+\texttt{meta}
+ package allows one to define a set of meta rules for the translation of
+ a Mathematica expression, and to translate these rules as a Mathematica
+ package.
+ The functions of this package can then be applied to an expression, in
+ order to translate this expression into something useful.
+ In the following, we explain how this meta translator operates, and we
+ illustrate this by means of a few examples.
+This package is used in various parts of \mmalpha{}. 
+
+Briefly speaking, creating a translator consists in:
+\begin{enumerate}
+\item writing a set of meta-rules in a \texttt{.meta} file,
+\item writing a semantic file in a \texttt{.sem} file (not mandatory, but often convenient),
+\item evaluating the \texttt{.meta} file with the \texttt{meta} function. This creates
+a \texttt{.m} Mathematica package which contains the translator,
+\item load the translator which then becomes available.
+\end{enumerate}
+
+The organization of this document is as follows. Section~\ref{define} presents
+the syntax of meta-rules. In Section~\ref{using}, the use of the \texttt{meta} package is described. 
+Options of the \texttt{meta} function are explained in Section~\ref{options}. Section~\ref{translation}
+explains how meta-rules are translated. An example of translator is shown in 
+Section~\ref{example}. The meta code and the semantic file of this translator are 
+shown in Appendix~\ref{checkCellmeta} and Appendix~\ref{checkCellSem} respectively.
+
+Directory \texttt{\$MMALPHA/doc/Packages/Meta} contains a notebook with 
+examples. In particular, there is a nice translator of (a part of) Alpha to Mathematica.
+
+You may access this notebook from the master notebook of 
+\mmalpha{}\footnote{
+Recall that the master notebook may be loaded by means of the command 
+\texttt{on[]} from the Mathematica front-end.}
+or by evaluating the expression
+\begin{verbatim}
+docLink["Meta"]
+\end{verbatim}
+in any notebook. This evaluation produces a button which opens the 
+notebook.
+
+
+\section{How to define meta rules}
+\label{define}
+The input file contains a list of meta-rules.
+ Let 
+\texttt{myTranslator.meta}
+ be this file.
+ A meta rule has the following syntax (in BNF form):
+\verbatiminput{bnfMeta.tex}
+
+A rule therefore describe a so-called 
+{\em abstract node}, or a 
+{\em switch rule}.
+ 
+\subsection{Abstract nodes}
+Abstract nodes represent expressions which correspond to an internal node
+ of the abstract syntax tree.
+ For example, the first level of an Alpha program has the form 
+\texttt{system[n,p,id,od,ld,e]}, where 
+\texttt{system} is the head, 
+\texttt{n} is a string representing the name of the system, 
+\texttt{p} is the parameter, 
+\texttt{id} is the list of input variable declarations, 
+\texttt{od} is the list of output variable declaration, 
+\texttt{ld} the local declarations, and 
+\texttt{e} the list of equations.
+Such a node is described by the following meta-rule: 
+\begin{verbatim}
+SYSTEM ::= 
+  system[ n:_String, p:DOMAIN, id:{DECLARATION}, od:{DECLARATION}, 
+  ld:{DECLARATION}, e:{EQUATION} ] :> semantics...
+\end{verbatim}
+The left-hand-side of the rule, 
+\texttt{system}, is the name of the rule.
+ Following the 
+\texttt{::=}, is the pattern which describes the form of the abstract node, followed,
+ after the symbol 
+\texttt{:>} by the semantics associated to this node.
+
+The first argument of this pattern, 
+\texttt{n:\_String}, has the form 
+\texttt{<symbol>:<pattern>}.
+ This pattern will be used to check that the corresponding terminal element
+ in the AST is a string.
+ If not, an error message will be issued.
+ The 
+\texttt{n} symbol names the argument which matches this position, and can be used
+ in the semantics of the rule as explained later.
+
+The second argument, 
+\texttt{p:DOMAIN}, has the form 
+\texttt{<symbol>:<rule name>}.
+ It generates recursively a call to the meta-rule 
+\texttt{DOMAIN.}
+The subexpression which matches this second position is named 
+\texttt{p}.
+ The next argument, 
+\texttt{id:{DECLARATION}}, is treated in a similar way, except that one expect a list of expressions
+ matching the 
+\texttt{DECLARATION} meta-rule.
+ 
+\subsection{Switch rules}
+\label{switchrules}
+Switch rules allow alternate abstract rules to be called, depending on a
+ pattern.
+ For example, the following meta-rule is used to select the various forms
+ of Alpha expressions:
+\begin{verbatim}
+EXPRESSION ::= 
+  {_binop -> BINOP, 
+   _var -> VAR, 
+   _affine -> AFFINE, 
+   _restrict -> RESTRICT 
+  }
+\end{verbatim}
+
+The arguments of this rule are particular cases of Mathematica patterns,
+ namely, 
+\texttt{<typed\_blanks>}.
+ What we call here a typed\_blank is a Mathematica expression of the form
+ \texttt{\_type}, which matches any Mathematica expression whose head is 
+\texttt{type}.
+ 
+This rule can be read as follows: if the head of the current expression
+ is 
+\texttt{binop}, then apply meta-rule 
+\texttt{BINOP}, if it is 
+\texttt{var}, then apply meta-rule 
+\texttt{VAR}, etc.
+
+\subsection{Arguments}
+\subsubsection{Arguments of abstract nodes}
+
+The form of arguments depends on the type of subtree which is expected in
+ the AST.
+ If the subtree simply consists of a terminal element, a simple pattern
+ is used, for example, 
+\texttt{name:\_String}.
+
+For non terminal subtrees, arguments of the form 
+\texttt{<symbol>:<symbol>} or 
+\texttt{<symbol>:{<symbol>}} are used.
+ The latter form allows a list of expressions to be described.
+ Finally, an argument of the form 
+\texttt{<symbol>:{List}} generates a call to a particular function which expects a (Mathematica)
+ list of objects, and returns this list unchanged.
+ 
+\subsubsection{Switch arguments}
+
+A switch argument has the form 
+\texttt{\_Symbol -> <rule name>} or 
+\texttt{\_Symbol -> {<rule name>}} .
+ The 
+\texttt{<rule name>} is the name of a rule which is selected by the head of the node, as specified
+ by the pattern.
+ As an example: 
+\texttt{\_var -> varexpression} describes an alternative where the 
+\texttt{varexpression} rule is called, when the head of the node is 
+\texttt{var}.
+ 
+\subsection{Semantic expressions}
+
+The semantic part of a meta-rule is a Mathematica expression, involving
+ symbols which name either arguments in the right-hand side part of the
+ meta-rule, or results of the translation of these arguments by the semantic
+ functions associated to the meta-rules.
+ 
+Let us explain this on an example.
+Consider the meta-rule:
+\begin{verbatim}
+EQUATION::= equation[c:_String, e:EXPRESSION] :> 
+    semanticFunction[ equation, {c, tre} ] 
+\end{verbatim}
+
+The above rule describes the abstract node 
+\texttt{EQUATION}.
+ We expect this expression to contain a string, then an 
+\texttt{EXPRESSION}, the latter being described by the 
+\texttt{EXPRESSION} meta-rule.
+ The string, when found, will be named 
+\texttt{c}.
+ The equation is named 
+\texttt{e}.
+ By convention, the result of the call to function 
+\texttt{translateEXPRESSION} applied to 
+\texttt{e} is named 
+\texttt{tre} and can be used in the semantic part.
+ The semantic expression, 
+\texttt{semanticFunction[ equation, {c, tre} ]}, is a call to a function defined in a separate file, called the semantic
+ file.
+ There are absolutely no constraints in the way the semantic expression
+ is defined.
+ In this example, I choosed to name the functions I use 
+\texttt{semanticFunction}, whose first parameter is the head of the expression, and the second one
+ is the list formed by 
+\texttt{c} and by the translation of the 
+\texttt{EXPRESSION}.
+ 
+
+\subsubsection*{Warning}
+Although one can put any Mathematica expression as the semantic part of
+ a meta-rule, calling a semantic function is a good way to avoid trouble.
+ Indeed, when the meta translator reads the meta-rules, it uses the Mathematica
+ interpreter which evaluates as many expressions as possible.
+ Therefore, the result of the semantic expression might be very surprising.
+ For example, lets assume that you write the semantic part
+\texttt{c === "blabla"}
+expecting the semantic of your rule to be 
+\texttt{True} if 
+\texttt{c} is equal to the string 
+\texttt{"blabla"}, and 
+\texttt{False} otherwise.
+When the Mathematica parser reads this expression, it evaluates it, and
+ the result of this evaluation is 
+\texttt{False}, as the symbol 
+\texttt{c} is different from the string 
+\texttt{"blabla"}. The problem comes from the fact that we expected this
+evaluation to happen later...
+There are probably ways to avoid this kind of problem using complex Mathematica tricks (avoiding
+Mathematica to evaluate an expression is sometimes hard...)
+
+\section{Using Meta}
+\label{using}
+Assume you want to write a translator called 
+\texttt{myTranslator}.
+\begin{enumerate}
+\item Write the meta-rules in a file named 
+\texttt{myTranslator.meta}.
+\item Write semantic functions (if needed) in a separate package named 
+\texttt{myTranslator.sem} .
+ This package should follow some rules which are described in appendix
+\ref{checkCellSem}.
+\item Load the \texttt{Meta.m} package (if it is not already loaded).
+\item Evaluate the expression
+\newline 
+\texttt{meta[ "myTranslator", debug->True ]}
+\item 
+Load the file 
+\texttt{myTranslator.m} which was created by 
+\texttt{meta}.
+\item To translate an expression \texttt{expr} of type 
+\texttt{EXPRESSION}, evaluate
+\newline 
+\texttt{myTranslatorTranslateEXPRESSION[expr]}. 
+Another better way is to introduce in the semantic package the function
+ which you want to call to activate your translator on a tree. 
+ See for example the semantic file given as an example in section \ref{checkCellSem}: 
+ the semantic file contains the definition of a \texttt{checkCell} function.
+\end{enumerate}
+
+\section{Options of \texttt{meta}}
+\label{options}
+\begin{itemize}
+\item \texttt{verbose}: if \texttt{True}, gives some information. Default value is 
+\texttt{False}.
+\item \texttt{debug}: if \texttt{True}, gives a lot of information. Default value is 
+\texttt{False}.
+\item \texttt{check}: if \texttt{True}, calls to functions are generated inside
+a \texttt{Check} statement. This may help debugging the translator. Default value is 
+\texttt{False}.
+\item \texttt{directory}: gives the directory where the semantic file is to be
+found and read. If \texttt{Null}, this directory is \texttt{\$MMALPHA/lib/Packages/Alpha}.
+Default value is \texttt{Null}. 
+\end{itemize}
+
+\section{How meta-rules are translated}
+\label{translation}
+A meta rule named 
+\texttt{RULE} is translated as a function 
+\texttt{myTranslatorTranslateRULE}.
+ This function is put in a package called 
+\texttt{Alpha`myTranslator`}.
+ In such a way, it is not possible to create conflicting names, provided
+ the name of the translator is different from the names of the MMAlpha packages.
+
+The package is equipped with a symbol called 
+\texttt{myTranslatorDebug}, whose initial value is 
+\texttt{False}.
+ This symbol can be used as a debug flag by the semantic functions, in order
+ to debug the translator.
+
+The package 
+\texttt{myTranslator.m} loads automatically the semantic file 
+\texttt{myTranslator.sem} when it is itself loaded.
+
+\section{An example}
+\label{example}
+Appendix \ref{checkCellmeta}
+ shows the meta-rules for a program, named 
+\texttt{checkCell}, which analyzes an Alpha 
+program which can be interpreted as a 
+\texttt{AlphHard} 
+"cell", and reports errors if not.
+A so-called cell is basically an Alpha program which describes a Register-Trans
+fer-Level description of a piece of hardware (see
+\cite{patricia}
+ for details).
+
+The meta-rules read an AST and check that this AST represents a cell.
+ For example, such a program cannot contain use statements, etc.
+ etc.
+
+Appendix \ref{checkCellsem}
+ presents the semantic file CheckCell.sem which is associated with the previous
+ file.
+
+\appendix
+
+
+%\chapter{Appendix}
+
+
+\section{Meta-rules for the checkCell translator\label{checkCellmeta}}
+
+\verbatiminput{CheckCell.meta}
+
+\section{Semantic file for the checkCell translator (part of)
+\label{checkCellSem}}
+
+\verbatiminput{CheckCell.sem}
+
+\end{document}

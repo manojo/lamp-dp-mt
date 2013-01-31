@@ -1,0 +1,19 @@
+system testSchedule2 :{N,M | 1<=N; 2<=M}
+                     (x : {i | 1<=i<=M} of integer)
+       returns       (y : {i | 1<=i<=M} of integer);
+var
+  A : {i | 1<=i<=M} of integer;
+  B : {i,j | 1<=i<=M; 1<=j<=N} of integer;
+let
+  A[i] = 
+      case
+        { | i=1} : x[i];
+        { | 2<=i} : x[i] + B[i-1,N];
+      esac;
+  B[i,j] = 
+      case
+        { | j=1} : A[i];
+        { | 2<=j} : B[i,j-1] + x[i];
+      esac;
+  y[i] = A[i];
+tel;

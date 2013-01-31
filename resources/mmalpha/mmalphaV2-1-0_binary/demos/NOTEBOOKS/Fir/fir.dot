@@ -1,0 +1,19 @@
+digraph fir {
+	node [shape=ellipse color = "blue"]; x; w
+	node [shape=ellipse color = "green"]; y
+	node [shape=rectangle color = "black"]; equ1; equ2
+	node [shape = ellipse  color = "red" ]
+
+	w [label = "w : k + K"];
+	x [label = "x : 2 + i"];
+	y [label = "y : 2 + i + K"];
+	YLOC [label = "YLOC : 1 + i + k"];
+	equ1 -> YLOC
+	w -> equ1
+	x -> equ1
+	YLOC -> equ1
+	equ2 -> y
+	YLOC -> equ2
+	label = "\n\nRDG of Alpha program\nfir\n as produced by MMAlpha"
+	fontsize=15
+}

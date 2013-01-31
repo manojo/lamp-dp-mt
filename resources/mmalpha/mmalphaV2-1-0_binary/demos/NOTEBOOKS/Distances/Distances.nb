@@ -1,0 +1,779 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 6.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[     21377,        770]
+NotebookOptionsPosition[     15661,        588]
+NotebookOutlinePosition[     17060,        636]
+CellTagsIndexPosition[     16957,        630]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Distances", "Title",
+ FontColor->RGBColor[1, 0, 0],
+ CellTags->"firstcell"],
+
+Cell["", "Text"],
+
+Cell[CellGroupData[{
+
+Cell["P. Quinton", "Section"],
+
+Cell["\<\
+October 2001 - January 2008. Checked April 2010. The only bug is in the Vhdl \
+generation, as a2v does not accept the abs function...\
+\>", "Text",
+ CellChangeTimes->{{3.480994811398665*^9, 3.480994842387639*^9}}],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+quinton@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+ Evaluate this cell, before you execute any other cell in this notebook.\
+\>", "Subsubsection",
+ InitializationCell->True,
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+  "SetDirectory", "[", 
+   "\"\</Users/patricequinton/mmalpha/demos/NOTEBOOKS/Distances\>\"", "]"}], 
+  ";"}]], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{{3.450366449674801*^9, 3.4503664505852222`*^9}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["All at once...", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Introduction"],
+
+Cell["\<\
+Using the syn command, one is able to generate a Vhdl file directly from this \
+example. Do not forget to add the parameter definitions as an option to the \
+syn command, otherwise no Vhdl is generated. See the documentation to be \
+done...\
+\>", "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"syn", "[", 
+   RowBox[{"\"\<distances.alpha\>\"", ",", 
+    RowBox[{"parameterRules", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"\"\<N\>\"", "\[Rule]", "10"}], ",", 
+       RowBox[{"\"\<M\>\"", "\[Rule]", "50"}]}], "}"}]}], ",", 
+    RowBox[{"schedMethod", "\[Rule]", "vertex"}], ",", 
+    RowBox[{"verbose", "\[Rule]", "True"}]}], "]"}], ";"}]], "Input"],
+
+Cell["The old method...", "Text"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"load", "[", "\"\<distances.alpha\>\"", "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"inlineAll", "[", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"removeIdEqus", "[", 
+   RowBox[{
+    RowBox[{"inputEquations", "\[Rule]", "True"}], ",", 
+    RowBox[{"norm", "\[Rule]", "True"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"simplifySystem", "[", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"pipeVars", "[", "]"}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ StyleBox[
+  RowBox[{
+   RowBox[{"scd", "[", 
+    RowBox[{
+     RowBox[{"durations", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{
+       "0", ",", "1", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", 
+        "0", ",", "1", ",", "0", ",", "0", ",", "0"}], "}"}]}], ",", 
+     RowBox[{"addConstraints", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{
+       "\"\<TdescriptorD1==1\>\"", ",", "\"\<TimageD1==1\>\"", ",", 
+        "\"\<TdescriptorD2==0\>\"", ",", "\"\<TimageD2==1\>\"", ",", 
+        "\"\<TdD1\[Equal]1\>\"", ",", "\"\<TdD2\[Equal]1\>\"", ",", 
+        "\"\<TtempD2\[Equal]1\>\""}], "}"}]}]}], "]"}], ";"}],
+  FontColor->RGBColor[1, 0, 0]], "\[IndentingNewLine]", 
+ StyleBox[
+  RowBox[{
+   RowBox[{"appSched", "[", "]"}], ";"}],
+  FontColor->RGBColor[1, 0, 0]], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"toAlpha0v2", "[", 
+   RowBox[{
+    RowBox[{"debug", "\[Rule]", "False"}], ",", 
+    RowBox[{"verbose", "\[Rule]", "True"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"simplifySystem", "[", 
+   RowBox[{"alphaFormat", "\[Rule]", "Alpha0"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"alpha0ToAlphard", "[", 
+   RowBox[{
+    RowBox[{"verbose", "\[Rule]", "True"}], ",", 
+    RowBox[{"debug", "\[Rule]", "False"}], ",", 
+    RowBox[{"mergeDomains", "\[Rule]", "True"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"removeSystem", "[", "\"\<distance\>\"", "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<N\>\"", ",", "10"}], "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<M\>\"", ",", "50"}], "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"a2v", "[", "]"}], Cell[";"]}]}], "Input",
+ CellChangeTimes->{{3.480994500679039*^9, 3.480994526778841*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Load program", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Introduction"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<distances.alpha\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"depGraphViz", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Check", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Introduction"],
+
+Cell["Full analysis of the program.", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"analyze", "[", 
+   RowBox[{
+    RowBox[{"recurse", "\[Rule]", "True"}], ",", 
+    RowBox[{"scalarTypeCheck", "\[Rule]", "False"}]}], "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Flatten program", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Introduction"],
+
+Cell["This step is needed. ", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"inlineAll", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<distanceInlined.alpha\>\"", "]"}], 
+  ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Remove useless variable", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Introduction"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<distanceInlined.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"removeIdEqus", "[", 
+   RowBox[{
+    RowBox[{"inputEquations", "\[Rule]", "True"}], ",", 
+    RowBox[{"norm", "\[Rule]", "True"}]}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"simplifySystem", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ashow", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<distancesInl.alpha\>\"", "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Pipe and place", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Introduction"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"show", "[", 
+  RowBox[{"dep", "[", "]"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"pipeVars", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<distancesPlaced.alpha\>\"", "]"}], 
+  ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Schedule", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Introduction"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<distancesPlaced.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell["To see the dependence graph. ", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"depGraph", "[", "]"}], ";"}]], "Input"],
+
+Cell["See the dependence table. ", "Text"],
+
+Cell[BoxData[
+ RowBox[{"show", "[", 
+  RowBox[{"dep", "[", "]"}], "]"}]], "Input"],
+
+Cell["Schedule the program. ", "Text"],
+
+Cell[BoxData[
+ RowBox[{"schedule", "[", 
+  RowBox[{"addConstraints", "\[Rule]", 
+   RowBox[{"{", 
+    RowBox[{
+    "\"\<TimageD1==1\>\"", ",", "\"\<TimageD2==1\>\"", ",", 
+     "\"\<TdescriptorD1==1\>\"", ",", "\"\<TdescriptorD2==0\>\""}], "}"}]}], 
+  "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"scd", "[", 
+   RowBox[{
+    RowBox[{"durations", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+      "0", ",", "1", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", 
+       "0", ",", "1", ",", "0", ",", "0", ",", "0"}], "}"}]}], ",", 
+    RowBox[{"addConstraints", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+      "\"\<TdescriptorD1==1\>\"", ",", "\"\<TimageD1==1\>\"", ",", 
+       "\"\<TdescriptorD2==0\>\"", ",", "\"\<TimageD2==1\>\"", ",", 
+       "\"\<TdD1\[Equal]1\>\"", ",", "\"\<TdD2\[Equal]1\>\"", ",", 
+       "\"\<TtempD2\[Equal]1\>\""}], "}"}]}]}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.480994599258275*^9, 3.480994623422995*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"scd", "[", 
+   RowBox[{
+    RowBox[{"durations", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+      "0", ",", "1", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", 
+       "0", ",", "1", ",", "0", ",", "0", ",", "0"}], "}"}]}], ",", 
+    RowBox[{"addConstraints", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+      "\"\<TdescriptorD1==1\>\"", ",", "\"\<TimageD1==1\>\"", ",", 
+       "\"\<TdescriptorD2==0\>\"", ",", "\"\<TimageD2==1\>\""}], "}"}]}]}], 
+   "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.4809946398584337`*^9, 3.480994664204595*^9}}],
+
+Cell["See the schedule.", "Text"],
+
+Cell[BoxData[
+ RowBox[{"showSchedResult", "[", "]"}]], "Input"],
+
+Cell["Apply the schedule. ", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"appSched", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}], ";"}]], "Input"],
+
+Cell["Simplify the program. ", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<distancesScheduled.alpha\>\"", "]"}], 
+  ";"}]], "Input"],
+
+Cell["Check it. ", "Text"],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", 
+  RowBox[{"scalarTypeCheck", "\[Rule]", "False"}], "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Code generation (skip it)", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<distancesInl.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"schedule", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"Options", "[", "cGen", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"cGen", "[", 
+   RowBox[{"\"\<distances.c\>\"", ",", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"\"\<N\>\"", "\[Rule]", "10"}], ",", 
+      RowBox[{"\"\<M\>\"", "\[Rule]", "5"}]}], "}"}], ",", 
+    RowBox[{"debug", "\[Rule]", "False"}], ",", 
+    RowBox[{"rewrite", "\[Rule]", "True"}]}], "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Hardware generation", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Introduction"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<distancesScheduled.alpha\>\"", "]"}], 
+  ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"toAlpha0v2", "[", 
+   RowBox[{
+    RowBox[{"debug", "\[Rule]", "False"}], ",", 
+    RowBox[{"verbose", "\[Rule]", "True"}]}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"simplifySystem", "[", 
+   RowBox[{"alphaFormat", "\[Rule]", "Alpha0"}], "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"report", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<distances0.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["To Alphard", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<distances0.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"alpha0ToAlphard", "[", 
+   RowBox[{
+    RowBox[{"verbose", "\[Rule]", "True"}], ",", 
+    RowBox[{"debug", "\[Rule]", "False"}], ",", 
+    RowBox[{"mergeDomains", "\[Rule]", "True"}]}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", 
+  RowBox[{"recurse", "\[Rule]", "True"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asaveLib", "[", "\"\<distancesHard.alpha\>\"", "]"}], 
+  ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["To Vhdl", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<distancesHard.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell["Before generating Vhdl, this is needed... ", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<N\>\"", ",", "10"}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<M\>\"", ",", "50"}], "]"}], ";"}]], "Input"],
+
+Cell["Save the program.", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asaveLib", "[", "\"\<distancesFixed.alpha\>\"", "]"}], 
+  ";"}]], "Input"],
+
+Cell[TextData[StyleBox["Warning : there is a bug in a2v, it does not accept \
+the abs function... use distancesFixed1 instead...",
+ FontColor->RGBColor[1, 0, 1]]], "Text"],
+
+Cell["Generation of Vhdl, with integer option. ", "Text"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"systemNames", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getSystem", "[", "\"\<cellcomputeDistancesModule2\>\"", "]"}], 
+  ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"checkCell", "[", 
+  RowBox[{"$result", ",", 
+   RowBox[{"debug", "\[Rule]", "True"}]}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"a2v", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Cleaning the Directory", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["Used for CVS purpose: delete all temporary files", "Text"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"CopyFile", "[", 
+    RowBox[{"\"\<distances.alpha\>\"", ",", "\"\<temporaireMV\>\""}], "]"}], 
+   ";"}], "\n", 
+  RowBox[{"(*", "  ", 
+   RowBox[{
+    RowBox[{"if", " ", "ModelSim", " ", "was", " ", "used"}], " ", 
+    "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"DeleteDirectory", "[", 
+      RowBox[{"\"\<work\>\"", ",", 
+       RowBox[{"DeleteContents", "\[Rule]", "True"}]}], "]"}], ";"}]}], " ", 
+   "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"DeleteDirectory", "[", 
+   RowBox[{"\"\<ComputeDistancesSYN\>\"", ",", " ", 
+    RowBox[{"DeleteContents", "\[Rule]", "True"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<*.alpha\>\"", "]"}], "]"}], "\n", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<*.vhd\>\"", "]"}], "]"}], "\n", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<*.c\>\"", "]"}], "]"}], "\n", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<*.txt\>\"", "]"}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<MVModule*\>\"", "]"}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<MV1_stim*\>\"", "]"}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<*.component\>\"", "]"}], "]"}], "\n", 
+ RowBox[{
+  RowBox[{"CopyFile", "[", 
+   RowBox[{"\"\<temporaireMV\>\"", ",", "\"\<distances.alpha\>\""}], "]"}], 
+  ";"}], "\n", 
+ RowBox[{"DeleteFile", "[", "\"\<temporaireMV\>\"", "]"}]}], "Input"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"]
+}, Open  ]]
+}, Open  ]]
+},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+WindowSize->{1108, 668},
+WindowMargins->{{63, Automatic}, {Automatic, 19}},
+DockedCells->FEPrivate`FrontEndResource[
+ "FEExpressions", "CompatibilityToolbar"],
+PrintingCopies->1,
+PrintingPageRange->{1, Automatic},
+ShowSelection->True,
+Magnification:>FEPrivate`If[
+  FEPrivate`Equal[FEPrivate`$VersionNumber, 6.], 1.5, 1.5 Inherited],
+FrontEndVersion->"7.0 for Mac OS X x86 (32-bit) (February 18, 2009)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{
+ "firstcell"->{
+  Cell[567, 22, 81, 2, 114, "Title",
+   CellTags->"firstcell"]},
+ "Introduction"->{
+  Cell[1539, 64, 91, 2, 100, "Section",
+   CellTags->"Introduction"],
+  Cell[4856, 163, 89, 2, 100, "Section",
+   CellTags->"Introduction"],
+  Cell[5176, 178, 82, 2, 100, "Section",
+   CellTags->"Introduction"],
+  Cell[5537, 194, 92, 2, 100, "Section",
+   CellTags->"Introduction"],
+  Cell[5950, 215, 100, 2, 100, "Section",
+   CellTags->"Introduction"],
+  Cell[6704, 248, 91, 2, 100, "Section",
+   CellTags->"Introduction"],
+  Cell[7252, 275, 85, 2, 100, "Section",
+   CellTags->"Introduction"],
+  Cell[10750, 404, 96, 2, 100, "Section",
+   CellTags->"Introduction"]}
+ }
+*)
+(*CellTagsIndex
+CellTagsIndex->{
+ {"firstcell", 16280, 607},
+ {"Introduction", 16364, 610}
+ }
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[567, 22, 81, 2, 114, "Title",
+ CellTags->"firstcell"],
+Cell[651, 26, 16, 0, 39, "Text"],
+Cell[CellGroupData[{
+Cell[692, 30, 29, 0, 100, "Section"],
+Cell[724, 32, 223, 4, 39, "Text"],
+Cell[950, 38, 99, 3, 49, "SmallText"],
+Cell[CellGroupData[{
+Cell[1074, 45, 163, 4, 36, "Subsubsection",
+ InitializationCell->True],
+Cell[1240, 51, 250, 7, 40, "Input",
+ InitializationCell->True]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[1539, 64, 91, 2, 100, "Section",
+ CellTags->"Introduction"],
+Cell[1633, 68, 309, 7, 62, "Text"],
+Cell[1945, 77, 409, 10, 64, "Input"],
+Cell[2357, 89, 33, 0, 39, "Text"],
+Cell[2393, 91, 2426, 67, 409, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4856, 163, 89, 2, 100, "Section",
+ CellTags->"Introduction"],
+Cell[4948, 167, 129, 3, 40, "Input"],
+Cell[5080, 172, 59, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5176, 178, 82, 2, 100, "Section",
+ CellTags->"Introduction"],
+Cell[5261, 182, 45, 0, 39, "Text"],
+Cell[5309, 184, 191, 5, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5537, 194, 92, 2, 100, "Section",
+ CellTags->"Introduction"],
+Cell[5632, 198, 37, 0, 39, "Text"],
+Cell[5672, 200, 75, 2, 40, "Input"],
+Cell[5750, 204, 53, 1, 40, "Input"],
+Cell[5806, 207, 107, 3, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5950, 215, 100, 2, 100, "Section",
+ CellTags->"Introduction"],
+Cell[6053, 219, 103, 2, 40, "Input"],
+Cell[6159, 223, 53, 1, 40, "Input"],
+Cell[6215, 226, 191, 5, 40, "Input"],
+Cell[6409, 233, 80, 2, 40, "Input"],
+Cell[6492, 237, 71, 2, 40, "Input"],
+Cell[6566, 241, 101, 2, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6704, 248, 91, 2, 100, "Section",
+ CellTags->"Introduction"],
+Cell[6798, 252, 53, 1, 40, "Input"],
+Cell[6854, 255, 82, 2, 40, "Input"],
+Cell[6939, 259, 56, 1, 40, "Input"],
+Cell[6998, 262, 107, 3, 40, "Input"],
+Cell[7108, 267, 107, 3, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[7252, 275, 85, 2, 100, "Section",
+ CellTags->"Introduction"],
+Cell[7340, 279, 103, 2, 40, "Input"],
+Cell[7446, 283, 53, 1, 40, "Input"],
+Cell[7502, 286, 45, 0, 39, "Text"],
+Cell[7550, 288, 74, 2, 40, "Input"],
+Cell[7627, 292, 42, 0, 39, "Text"],
+Cell[7672, 294, 82, 2, 40, "Input"],
+Cell[7757, 298, 38, 0, 39, "Text"],
+Cell[7798, 300, 268, 7, 64, "Input"],
+Cell[8069, 309, 694, 16, 87, "Input"],
+Cell[8766, 327, 591, 15, 87, "Input"],
+Cell[9360, 344, 33, 0, 39, "Text"],
+Cell[9396, 346, 63, 1, 40, "Input"],
+Cell[9462, 349, 36, 0, 39, "Text"],
+Cell[9501, 351, 111, 3, 40, "Input"],
+Cell[9615, 356, 38, 0, 39, "Text"],
+Cell[9656, 358, 112, 3, 40, "Input"],
+Cell[9771, 363, 110, 3, 40, "Input"],
+Cell[9884, 368, 26, 0, 39, "Text"],
+Cell[9913, 370, 107, 2, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[10057, 377, 75, 1, 100, "Section"],
+Cell[10135, 380, 100, 2, 40, "Input"],
+Cell[10238, 384, 56, 1, 40, "Input"],
+Cell[10297, 387, 63, 1, 40, "Input"],
+Cell[10363, 390, 350, 9, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[10750, 404, 96, 2, 100, "Section",
+ CellTags->"Introduction"],
+Cell[10849, 408, 109, 3, 40, "Input"],
+Cell[10961, 413, 53, 1, 40, "Input"],
+Cell[11017, 416, 184, 5, 40, "Input"],
+Cell[11204, 423, 162, 4, 40, "Input"],
+Cell[11369, 429, 54, 1, 40, "Input"],
+Cell[11426, 432, 99, 2, 40, "Input"],
+Cell[11528, 436, 55, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[11620, 442, 60, 1, 100, "Section"],
+Cell[11683, 445, 98, 2, 40, "Input"],
+Cell[11784, 449, 244, 6, 40, "Input"],
+Cell[12031, 457, 98, 2, 40, "Input"],
+Cell[12132, 461, 108, 3, 40, "Input"],
+Cell[12243, 466, 53, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[12333, 472, 57, 1, 100, "Section"],
+Cell[12393, 475, 101, 2, 40, "Input"],
+Cell[12497, 479, 53, 1, 40, "Input"],
+Cell[12553, 482, 58, 0, 39, "Text"],
+Cell[12614, 484, 116, 3, 40, "Input"],
+Cell[12733, 489, 116, 3, 40, "Input"],
+Cell[12852, 494, 33, 0, 39, "Text"],
+Cell[12888, 496, 109, 3, 40, "Input"],
+Cell[13000, 501, 171, 2, 39, "Text"],
+Cell[13174, 505, 57, 0, 39, "Text"],
+Cell[13234, 507, 53, 1, 40, "Input"],
+Cell[13290, 510, 59, 1, 40, "Input"],
+Cell[13352, 513, 117, 3, 40, "Input"],
+Cell[13472, 518, 128, 3, 40, "Input"],
+Cell[13603, 523, 53, 1, 40, "Input"],
+Cell[13659, 526, 51, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[13747, 532, 72, 1, 100, "Section"],
+Cell[13822, 535, 64, 0, 39, "Text"],
+Cell[13889, 537, 57, 1, 40, "Input"],
+Cell[13949, 540, 1624, 41, 318, "Input"],
+Cell[15576, 583, 57, 1, 40, "Input"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

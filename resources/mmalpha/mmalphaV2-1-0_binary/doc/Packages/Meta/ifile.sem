@@ -1,0 +1,185 @@
+Clear[ dom2cond ]; 
+dom2cond[ d:_domain]:= 
+Module[ { dm, pol, index, equals, inequals }, 
+  index = d[[2]]; 
+  pol = d[[3]][[1]][[5]]; 
+With[{
+  equals = Map[ Drop[#,1]&, Select[ pol, First[#]==0& ] ],
+  inequals = Map[ Drop[#,1]&, Select[ pol, First[#]==1& ] ]
+  },
+  Function[ x , 
+    ToString[
+      Apply[ And, 
+        Complement[ 
+          Union[
+            Map[ ToString[ #.Append[ x,1 ] ] <>" == 0"&, equals ],
+            Map[ ToString[ #.Append[ x,1 ] ] <>" >= 0"&, inequals ]
+          ],
+         {"1 >= 0"}
+        ] (* Complement *)
+      ] (* Apply *)
+    ] (* ToString *)
+  ] (* Function *)
+] (* With *)
+]; (* Module *)
+dom2cond[ ___ ] := Message[ dom2cond::params ]; 
+
+Clear[ semanticFunction ]; 
+semanticFunction[ system, x:{n:_, p:_, id:_, od:_, ld:_, e:_} ] := 
+Module[{ of, lid, lod, lld, allvars, allvarsC, ww },
+    (* Name of the output file *)
+    of = n<>".simul";
+    (* Get the list of inputs *)
+    lid = Map[ ToString[ First [#] ]&, id ]; 
+    (* Get the list of outputs *)
+    lod = Map[ ToString[ First [#] ]&, od ]; 
+    (* Get the list of locals *)
+    lld = Map[ ToString[ First [#] ]&, ld ]; 
+    (* All variables *)
+    allvars = Union[ lid, lod, lld ];
+(*
+    allvarsC = Map[ n<>"`"<>ToString[#]&, allvars ];
+    lodC = Map[ n<>"`"<>ToString[#]&, lod ]; 
+*)
+ 
+    Print[ "Translated input will be in file ", of ]; 
+    (* Open output file *)
+    OpenWrite[ of ];
+    (* Write the BeginPackage statement *)
+    WriteString[ of, "BeginPackage[\"Alpha`Simul`" <> n <>"`\"];\n" ];
+    (* Export variables *)
+    Map[
+      WriteString[ of, #<>"::usage = \"\";\n" ]&, allvars
+    ];
+    (* Write Private statement *)
+    WriteString[ of, "Begin[\"`Private`\"];\n" ];
+    (* Prepare the global Clear *)
+    temp = Table[ allvars[[ i ]] <> ", ", {i, 1, Length[ allvars ] } ];
+    temp = Append[ temp, Last[ allvars ] ];
+    (* Write the Clear *)
+    WriteString[ 
+      of, 
+      "Clear[ " <> 
+      temp <>
+      "];\n" 
+    ];
+
+    Map[ WriteString[ of, # ]&, e ];
+    (* Write the End and EndPackage statement *)
+    WriteString[ of, "End[];\n" ];
+    WriteString[ of, "EndPackage[];\n" ];
+    (* Close output file *)
+    Close[ of ];
+  ];
+
+(* Equation *)
+semanticFunction[ equation, {c:_, tre:_}] := 
+  Module[{d, indexes, parameters},
+    (* Get the declaration of variable c *)
+    d = getDeclaration[ c ]; 
+    (* Get the indexes of c in the declaration *)
+    indexes = d[[3]][[2]]; 
+    (* Transform the index into parameters for the c function *)
+    parameters = Map[ #<>"_"&, indexes];
+    (* Generate the definition of c, followed by the type error case *)
+    "    "<>ToString[ Apply[ ToString[c]<>"[f:__]", parameters ]] <>" := " <> ToString[ tre[ indexes ] ] 
+       <> ";\n"<>
+    "    "<>c<>"[ ___ ][ ___ ] := Message["<>ToString[ c ]<>"::params ];\n"
+  ];
+
+(* 
+   binop returns a function, which can then be applied to the 
+   index list of the lhs of the equation. 
+*)
+semanticFunction[ binop, {op:_, trop1:_, trop2:_} ] := 
+  Module[{opmma},
+  With[{
+    opmma = 
+    Switch[ op,
+      add, "Plus", 
+      mul, "Times",
+      or, "Or",
+      and, "And",
+      xor, "Xor",
+      _, Print[ op, " is an unknown operator "]; ToString[ op ]
+    ]},
+    Function[x, opmma<>"[ "<> ToString[ trop1[x] ] <>
+              ", " <> ToString[ trop2[x] ] <> " ]" 
+    ]
+  ] (* End With *)
+  ]; (* Module *)
+
+(* 
+   Affine returns a function, which can then be applied to the 
+   index list of the lhs of the equation. This function will return
+   v[ xxx ], where xxx will be filled when the index list is known.
+*)
+semanticFunction[ affine, {var[v1:_String], m:_} ] := 
+  Function[x, 
+    v1<> 
+    "[f][ "<>
+    ToString[ 
+      If[ x==={}, "", 
+          StringDrop[
+            StringDrop[
+              ToString[ Drop[(m. Append[x,1]), -1 ] ], -1 ],
+            1 ] 
+      ] 
+    ]<>
+    " ]" 
+  ] (* End function *)
+
+(* 
+   Case of a constant in an affine expression 
+*)
+semanticFunction[ affine, {const[c:_], m:_} ] := 
+  Function[x, c];
+
+(* 
+   var returns a function, which can then be applied to the 
+   index list of the lhs of the equation. This function will return
+   v[ xxx ], where xxx will be filled when the index list is known.
+*)
+semanticFunction[ var, v:_ ] := 
+  Function[x, 
+    ToString[ Apply[ ToString[v]<>"[f]", x ] ]
+  ]; (* End function *)
+
+(* 
+   restrict returns a function, which can then be applied to the 
+   index list of the lhs of the equation. 
+*)
+semanticFunction[ restrict, {d:_, tre:_} ] :=
+With[{  f = dom2cond[ d ] },
+  Function[x, 
+    "If[ "<>
+     ToString[ f[ x ] ]<> ",\n"<>"    "<>
+     ToString[ tre[ x ] ]<> ",\n"<>"    "<>
+     "Message[ semanticFunction::undef ] ]"
+  ] (* End function *)
+] (* With *)
+(* Error case *)
+semanticFunction::undef = "trying to evaluate an undefined variable instance.";
+semanticFunction[x:___] := 
+  (Print["semanticFunction applied to ", x ];Message[ semanticFunction::params ]);
+
+(* *)
+semanticFunction[ case, e:_, tre:_ ] :=
+Module[{d,w}, 
+  Check[ d = Map[ Alpha`Semantics`expDomain, e ], 
+         Throw[ Message[ semanticFunction::caseerr, d ] ] ];
+  With[
+    {d = Flatten[ Transpose[ {Map[ dom2cond [#]&, d ], tre} ] ]},
+    Function[x, 
+      "Which[\n"<>
+      Apply[ StringJoin, Map[ #<>",\n"&, Map[ #[x]&, d ] ] ]<>
+      "True, Message[ semanticFunction::undef ]\n];"
+    ]
+  ]
+]; (* Module *)
+(* Error case *)
+General::undef = "trying to evaluate an undefined variable instance.";
+semanticFunction[x:___] := 
+  (Print["semanticFunction applied to ", x ];Message[ semanticFunction::params ]);
+
+

@@ -1,0 +1,12 @@
+
+COMPONENT mux
+PORT(
+  Ck: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  ctl : IN  STD_LOGIC;
+  input : IN  SIGNED (15 DOWNTO 0);
+  output : OUT  SIGNED (15 DOWNTO 0)
+);
+END COMPONENT;
+

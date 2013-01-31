@@ -1,0 +1,900 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 4.0,
+MathReader 4.0, or any compatible application. The data for the notebook 
+starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     13338,        607]*)
+(*NotebookOutlinePosition[     14791,        657]*)
+(*  CellTagsIndexPosition[     14716,        651]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The \"Matrix\" package", "Title",
+  FontColor->RGBColor[1, 0, 0],
+  CellTags->"firstcell"],
+
+Cell["The Alpha Team", "Subsubtitle"],
+
+Cell["July 1999, Revised Dec. 2002", "Text"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+alpha@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell["Cr\[EAcute]dits", "Subsubsection",
+  FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+      Zbigniew Chamski 
+      Catherine Dezan 
+      Florent Dupont de Dinechin 
+      Patricia Le Mo\[EDoubleDot]nner 
+      Herv\[EAcute] Le Verge 
+      Christophe Mauras 
+      Patrice Quinton 
+      Fabien Quillere
+      Sanjay Rajopadhye 
+      Sophie Robert 
+      Tanguy Risset 
+      Doran Wilde \
+\>", "SmallText"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[" Open and Execute this cell, to go in the right directory", \
+"Subsubsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(setMMADir[{"\<doc\>", "\<packages\>", "\<Matrix\>"}]\)], "Input",
+  InitializationCell->True]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["1. Introduction", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+  "The ",
+  StyleBox["Matrix",
+    FontColor->RGBColor[1, 0, 0]],
+  " package contains functions related to matrix operations. "
+}], "Text",
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[BoxData[
+    \(\(?Matrix\)\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2. Content", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell["nullSpaceVectors", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?nullSpaceVectors\)\)], "Input"],
+
+Cell[BoxData[
+    \(nullSpaceVectors[readMat["\<(i,j,k->i)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(nullSpaceVectors[readMat["\<(i,j,k->i,j,k+2)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(nullSpaceVectors[2]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["translationMatrix", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?translationMatrix\)\)], "Input"],
+
+Cell[BoxData[
+    \(m1 = translationMatrix[{"\<i\>", "\<j\>"}, {1, 2}]\)], "Input"],
+
+Cell[BoxData[
+    \(show[m1]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["composeAffines", "Subsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(\(?composeAffines\)\)], "Input"],
+
+Cell["Warning: composeAffines does not accept string input form.", "Text"],
+
+Cell[BoxData[
+    \(mm = 
+      composeAffines[readMat["\<(i,j->j,i)\>"], 
+        readMat["\<(i,j->j+1,i+3)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[mm]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["unimodularQ", "Subsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(\(?unimodularQ\)\)], "Input"],
+
+Cell[BoxData[
+    \(unimodularQ[readMat["\<(i,j->j,i+1)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(unimodularQ[readMat["\<(i,j->j,2i)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(unimodularQ[readMat["\<(i,j->j)\>"]]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["inverseMatrix", "Subsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(\(?inverseMatrix\)\)], "Input"],
+
+Cell[BoxData[
+    \(ii = inverseMatrix[readMat["\<(i,j->i+1,j+1)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(show[ii]\)], "Input"],
+
+Cell[BoxData[
+    \(ii = inverseMatrix[readMat["\<(i,j->i+1)\>"]]\)], "Input"],
+
+Cell["Warning, there is a bug here: ", "Text"],
+
+Cell[BoxData[
+    \(ii = inverseMatrix[readMat["\<(i,j->i+1,2j)\>"]]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["identityQ", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?identityQ\)\)], "Input"],
+
+Cell[BoxData[
+    \(identityQ[readMat["\<(i,j->i,j)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(identityQ[readMat["\<(i,j->i,j+1)\>"]]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["translationQ", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?translationQ\)\)], "Input"],
+
+Cell[BoxData[
+    \(translationQ[readMat["\<(i,j->i,j+1)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(translationQ[readMat["\<(i,j->i,2j+1)\>"]]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["convexize", "Subsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(\(?convexize\)\)], "Input"],
+
+Cell[BoxData[
+    \(cc = 
+      convexize[
+        readDom["\<{i,j|0<=i<=10;0<=j<=10;i<=j}|{i,j|0<=i<=10;0<=j<=10;i>j}\>\
+"]]\)], "Input"],
+
+Cell[BoxData[
+    \(show[cc]\)], "Input"],
+
+Cell[BoxData[
+    \(cc = 
+      convexize[
+        readDom["\<{i,j|0<=i<=10;0<=j<=10;i<=j}|{i,j|0<=i<=10;0<=j<=10;i>j+1}\
+\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(show[cc]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["convexizeAll", "Subsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell["", "Text"],
+
+Cell[BoxData[
+    \(\(?convexizeAll\)\)], "Input"],
+
+Cell[BoxData[
+    \(load["\<Test.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(convexizeAll[]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \($result = << RTest1; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(load["\<Test.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(convexizeAll[];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \($result[\([6]\)] === \((<< RTest1)\)[\([6]\)]\)], "Input"],
+
+Cell[BoxData[
+    \(\((<< RTest1)\)[\([5, 2]\)]\)], "Input"],
+
+Cell[BoxData[
+    \($result[\([5, 2]\)]\)], "Input"],
+
+Cell[BoxData[
+    \($result >> "\<RR\>"\)], "Input"],
+
+Cell[BoxData[
+    \(analyze[]\)], "Input"],
+
+Cell[BoxData[{
+    \(\(load["\<Test.alpha\>"];\)\), "\[IndentingNewLine]", 
+    \(testFunction[convexizeAll[], << RTest1, "\<Matrix 24\>"]\)}], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \($result === << RTest1\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["convHull", "Subsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(This\ function\ is\ bugged\)], "Input"],
+
+Cell[BoxData[
+    \(\(?convHull\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(cc = 
+        convHull[{readDom["\<{i|i<=10}\>"], 
+            readDom["\<{i|20>i>10}\>"]}];\)\)], "Input"],
+
+Cell[BoxData[
+    \(cc\)], "Input"],
+
+Cell["???", "Text",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(show[cc]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["translationVector", "Subsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell["Could be easily generalized to a non square matrix...", "Text"],
+
+Cell[BoxData[
+    \(\(?getTranslationVector\)\)], "Input"],
+
+Cell[BoxData[
+    \(getTranslationVector[readMat["\<(i,j,k->i+1,j+2,k-3)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(getTranslationVector[readMat["\<(i,j,k->i+1,2j+2,k-3)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(getTranslationVector[readMat["\<(i,j,k->i+1,2j+2)\>"]]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["nullLinearPartQ", "Subsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell["Could be easily generalized to a non square matrix...", "Text",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(\(?nullLinearPartQ\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(?isNullLinearPart\)\)], "Input"],
+
+Cell[BoxData[
+    \(isNullLinearPart[readMat["\<(i,j,k->1,2,3)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(nullLinearPartQ[readMat["\<(i,j,k->1,2,3)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(nullLinearPartQ[readMat["\<(i,j,k->i+1,j+2,k-3)\>"]]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["idMatrix", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?idMatrix\)\)], "Input"],
+
+Cell[BoxData[
+    \(ii = idMatrix[{"\<i\>", "\<j\>"}, {"\<j\>", "\<i\>"}]\)], "Input"],
+
+Cell[BoxData[
+    \(show[ii]\)], "Input"],
+
+Cell[BoxData[
+    \(ii = idMatrix[{"\<i\>", "\<j\>", "\<k\>"}, {"\<i\>", "\<k\>"}]\)], 
+  "Input"],
+
+Cell[BoxData[
+    \(show[ii]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["inverseInContext", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?inverseInContext\)\)], "Input"],
+
+Cell[TextData[{
+  "This example shows an application of this function. The function ",
+  StyleBox["(i,j->i)", "Input"],
+  " has no inverse:"
+}], "Text"],
+
+Cell[BoxData[
+    \(inverseMatrix[readMat["\<(i,j->i)\>"]]\)], "Input"],
+
+Cell[TextData[{
+  "but it has one inverse (at least) when one assumes that ",
+  StyleBox["i=j", "Input"],
+  ":"
+}], "Text"],
+
+Cell[BoxData[
+    \(inverseInContext[readMat["\<(i,j->i)\>"], readDom["\<{i,j|i=j}\>"]]\)], 
+  "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["unimodularCompletion", "Subsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(\(?unimodularCompletion\)\)], "Input"],
+
+Cell[BoxData[
+    \(unimodularCompletion[{1, 1, 1}]\)], "Input"],
+
+Cell[BoxData[
+    \(unimodularCompletion[22]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["unimodCompl", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?unimodCompl\)\)], "Input"],
+
+Cell[BoxData[
+    \(readMat["\<(i,j->2i)\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(unimodCompl[readMat["\<(i,j->2i)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(NullSpace[{{2, 0, 0}, {0, 0, 1}}]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["smithNormalForm", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?smithNormalForm\)\)], "Input"],
+
+Cell[BoxData[
+    \(smithNormalForm[{{1, 2, 1}}]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["hermite", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?hermite\)\)], "Input"],
+
+Cell[BoxData[
+    \(Map[show, hermite[readMat["\<(i,j,k->i+2j+3k,2i+j,k)\>"]]]\)], "Input"],
+
+Cell[BoxData[
+    \(hermite[readMat["\<(i,j,k->i+2j+3k,2i+j,k)\>"]]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["hermiteL", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?hermiteL\)\)], "Input"],
+
+Cell[BoxData[
+    \(hermiteL[{{1, 1, 0}}]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["hermiteR", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?hermiteR\)\)], "Input"],
+
+Cell[BoxData[
+    \(hermiteR[{{1, 1, 0}}]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["solveDiophantine", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?solveDiophantine\)\)], "Input"],
+
+Cell[TextData[{
+  "Here is the solution of ",
+  StyleBox["i = 2j +1", "Input"],
+  ", ",
+  StyleBox["i = 3k", "Input"],
+  " : "
+}], "Text"],
+
+Cell[BoxData[
+    \(solveDiophantine[{{1, \(-2\), 0}, {1, 0, \(-3\)}}, {1, 0}]\)], "Input"],
+
+Cell["The solution is x = 6t + 3, j = 3t + 1, and k = 2 t + 1.", "Text"],
+
+Cell["Other examples : ", "Text"],
+
+Cell[BoxData[
+    \(solveDiophantine[{{0}, {1}, {0}}, {0, 2, 0}]\)], "Input"],
+
+Cell[BoxData[
+    \(solveDiophantine[{{0}, {2}, {0}}, {0, 1, 0}]\)], "Input"],
+
+Cell[BoxData[
+    \(solveDiophantine[{{0}, {2}, {0}}, {0, 2, 0}]\)], "Input"],
+
+Cell["Here is an example.", "Text"],
+
+Cell[BoxData[{
+    \(\(a = {{1, 1, 2, 1}, {0, 1, 0, 0}, {1, 1, 2, 
+            1}};\)\), "\[IndentingNewLine]", 
+    \(\(b = {0, 2, 0};\)\)}], "Input"],
+
+Cell[BoxData[
+    \(s = solveDiophantine[a, b, debug \[Rule] False]\)], "Input"],
+
+Cell["We check the result : ", "Text"],
+
+Cell[BoxData[
+    \(s[\([1]\)] + s[\([3]\)] . {i, j}\)], "Input"],
+
+Cell[BoxData[
+    \(a . {j, 2, i, \(-2\) - 2\ i - j} - b\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["squareMatrixQ", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?squareMatrixQ\)\)], "Input"],
+
+Cell[BoxData[
+    \(squareMatrixQ[readMat["\<(i,j->i,j)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(squareMatrixQ[readMat["\<(i,j->i)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(squareMatrixQ[22]\)], "Input"]
+}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["3. Test", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(tests["\<Matrix\>"]\)], "Input"]
+}, Closed]]
+}, Open  ]]
+},
+FrontEndVersion->"4.0 for Microsoft Windows",
+ScreenRectangle->{{0, 1024}, {0, 692}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+WindowSize->{1012, 629},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+PrintingCopies->1,
+PrintingPageRange->{1, 9999},
+PageHeaders->{{Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"], Inherited, Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"]}, {Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"], Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"]}},
+PrintingOptions->{"PaperSize"->{612, 792},
+"PaperOrientation"->"Portrait",
+"FirstPageHeader"->False,
+"FirstPageFooter"->False,
+"FacingPages"->True,
+"Magnification"->1},
+Magnification->1.5,
+StyleDefinitions -> "Default.nb"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{
+  "firstcell"->{
+    Cell[1739, 51, 96, 2, 155, "Title",
+      CellTags->"firstcell"]}
+  }
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{
+  {"firstcell", 14620, 644}
+  }
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1739, 51, 96, 2, 155, "Title",
+  CellTags->"firstcell"],
+Cell[1838, 55, 37, 0, 78, "Subsubtitle"],
+Cell[1878, 57, 44, 0, 47, "Text"],
+Cell[1925, 59, 97, 3, 62, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2047, 66, 72, 1, 61, "Subsubsection"],
+Cell[2122, 69, 334, 13, 282, "SmallText"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[2493, 87, 116, 2, 38, "Subsubsection"],
+Cell[2612, 91, 113, 2, 42, "Input",
+  InitializationCell->True]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[2762, 98, 66, 1, 47, "Section"],
+Cell[2831, 101, 203, 7, 47, "Text"],
+Cell[3037, 110, 44, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[3118, 116, 61, 1, 47, "Section"],
+
+Cell[CellGroupData[{
+Cell[3204, 121, 70, 1, 68, "Subsection"],
+Cell[3277, 124, 54, 1, 42, "Input"],
+Cell[3334, 127, 76, 1, 42, "Input"],
+Cell[3413, 130, 82, 1, 42, "Input"],
+Cell[3498, 133, 52, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[3587, 139, 71, 1, 42, "Subsection"],
+Cell[3661, 142, 55, 1, 42, "Input"],
+Cell[3719, 145, 83, 1, 42, "Input"],
+Cell[3805, 148, 41, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[3883, 154, 68, 1, 42, "Subsection"],
+Cell[3954, 157, 52, 1, 42, "Input"],
+Cell[4009, 160, 74, 0, 47, "Text"],
+Cell[4086, 162, 126, 3, 42, "Input"],
+Cell[4215, 167, 42, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4294, 173, 65, 1, 42, "Subsection"],
+Cell[4362, 176, 49, 1, 42, "Input"],
+Cell[4414, 179, 73, 1, 42, "Input"],
+Cell[4490, 182, 72, 1, 42, "Input"],
+Cell[4565, 185, 69, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4671, 191, 67, 1, 42, "Subsection"],
+Cell[4741, 194, 51, 1, 42, "Input"],
+Cell[4795, 197, 82, 1, 42, "Input"],
+Cell[4880, 200, 41, 1, 42, "Input"],
+Cell[4924, 203, 78, 1, 42, "Input"],
+Cell[5005, 206, 46, 0, 47, "Text"],
+Cell[5054, 208, 81, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5172, 214, 63, 1, 42, "Subsection"],
+Cell[5238, 217, 47, 1, 42, "Input"],
+Cell[5288, 220, 69, 1, 42, "Input"],
+Cell[5360, 223, 71, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5468, 229, 66, 1, 42, "Subsection"],
+Cell[5537, 232, 50, 1, 42, "Input"],
+Cell[5590, 235, 74, 1, 42, "Input"],
+Cell[5667, 238, 75, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5779, 244, 63, 1, 42, "Subsection"],
+Cell[5845, 247, 47, 1, 42, "Input"],
+Cell[5895, 250, 138, 4, 68, "Input"],
+Cell[6036, 256, 41, 1, 42, "Input"],
+Cell[6080, 259, 140, 4, 94, "Input"],
+Cell[6223, 265, 41, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[6301, 271, 66, 1, 42, "Subsection"],
+Cell[6370, 274, 16, 0, 47, "Text"],
+Cell[6389, 276, 50, 1, 42, "Input"],
+Cell[6442, 279, 64, 1, 42, "Input"],
+Cell[6509, 282, 56, 1, 42, "Input"],
+Cell[6568, 285, 61, 1, 42, "Input"],
+Cell[6632, 288, 60, 1, 42, "Input"],
+Cell[6695, 291, 52, 1, 42, "Input"],
+Cell[6750, 294, 40, 1, 42, "Input"],
+Cell[6793, 297, 78, 1, 42, "Input"],
+Cell[6874, 300, 60, 1, 42, "Input"],
+Cell[6937, 303, 52, 1, 42, "Input"],
+Cell[6992, 306, 52, 1, 42, "Input"],
+Cell[7047, 309, 42, 1, 42, "Input"],
+Cell[7092, 312, 152, 2, 61, "Input"],
+Cell[7247, 316, 40, 1, 42, "Input"],
+Cell[7290, 319, 54, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[7381, 325, 62, 1, 42, "Subsection"],
+Cell[7446, 328, 59, 1, 42, "Input"],
+Cell[7508, 331, 46, 1, 42, "Input"],
+Cell[7557, 334, 129, 3, 42, "Input"],
+Cell[7689, 339, 35, 1, 42, "Input"],
+Cell[7727, 342, 51, 1, 47, "Text"],
+Cell[7781, 345, 41, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[7859, 351, 71, 1, 42, "Subsection"],
+Cell[7933, 354, 69, 0, 47, "Text"],
+Cell[8005, 356, 58, 1, 42, "Input"],
+Cell[8066, 359, 90, 1, 42, "Input"],
+Cell[8159, 362, 91, 1, 42, "Input"],
+Cell[8253, 365, 87, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[8377, 371, 69, 1, 42, "Subsection"],
+Cell[8449, 374, 101, 1, 47, "Text"],
+Cell[8553, 377, 53, 1, 42, "Input"],
+Cell[8609, 380, 54, 1, 42, "Input"],
+Cell[8666, 383, 80, 1, 42, "Input"],
+Cell[8749, 386, 79, 1, 42, "Input"],
+Cell[8831, 389, 85, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[8953, 395, 62, 1, 42, "Subsection"],
+Cell[9018, 398, 46, 1, 42, "Input"],
+Cell[9067, 401, 86, 1, 42, "Input"],
+Cell[9156, 404, 41, 1, 42, "Input"],
+Cell[9200, 407, 98, 2, 42, "Input"],
+Cell[9301, 411, 41, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[9379, 417, 70, 1, 42, "Subsection"],
+Cell[9452, 420, 54, 1, 42, "Input"],
+Cell[9509, 423, 152, 4, 48, "Text"],
+Cell[9664, 429, 71, 1, 42, "Input"],
+Cell[9738, 432, 123, 4, 48, "Text"],
+Cell[9864, 438, 103, 2, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[10004, 445, 74, 1, 42, "Subsection"],
+Cell[10081, 448, 58, 1, 42, "Input"],
+Cell[10142, 451, 64, 1, 42, "Input"],
+Cell[10209, 454, 57, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[10303, 460, 65, 1, 42, "Subsection"],
+Cell[10371, 463, 49, 1, 42, "Input"],
+Cell[10423, 466, 57, 1, 42, "Input"],
+Cell[10483, 469, 70, 1, 42, "Input"],
+Cell[10556, 472, 66, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[10659, 478, 69, 1, 42, "Subsection"],
+Cell[10731, 481, 53, 1, 42, "Input"],
+Cell[10787, 484, 61, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[10885, 490, 61, 1, 42, "Subsection"],
+Cell[10949, 493, 45, 1, 42, "Input"],
+Cell[10997, 496, 91, 1, 42, "Input"],
+Cell[11091, 499, 80, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[11208, 505, 62, 1, 42, "Subsection"],
+Cell[11273, 508, 46, 1, 42, "Input"],
+Cell[11322, 511, 54, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[11413, 517, 62, 1, 42, "Subsection"],
+Cell[11478, 520, 46, 1, 42, "Input"],
+Cell[11527, 523, 54, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[11618, 529, 70, 1, 42, "Subsection"],
+Cell[11691, 532, 54, 1, 42, "Input"],
+Cell[11748, 535, 138, 6, 48, "Text"],
+Cell[11889, 543, 91, 1, 42, "Input"],
+Cell[11983, 546, 72, 0, 47, "Text"],
+Cell[12058, 548, 33, 0, 47, "Text"],
+Cell[12094, 550, 77, 1, 42, "Input"],
+Cell[12174, 553, 77, 1, 42, "Input"],
+Cell[12254, 556, 77, 1, 42, "Input"],
+Cell[12334, 559, 35, 0, 47, "Text"],
+Cell[12372, 561, 151, 3, 68, "Input"],
+Cell[12526, 566, 80, 1, 42, "Input"],
+Cell[12609, 569, 38, 0, 47, "Text"],
+Cell[12650, 571, 65, 1, 42, "Input"],
+Cell[12718, 574, 69, 1, 42, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[12824, 580, 67, 1, 42, "Subsection"],
+Cell[12894, 583, 51, 1, 42, "Input"],
+Cell[12948, 586, 73, 1, 42, "Input"],
+Cell[13024, 589, 71, 1, 42, "Input"],
+Cell[13098, 592, 50, 1, 42, "Input"]
+}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[13197, 599, 58, 1, 47, "Section"],
+Cell[13258, 602, 52, 1, 42, "Input"]
+}, Closed]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

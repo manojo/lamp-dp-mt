@@ -1,0 +1,234 @@
+system mouv :  {N,M,P | 3<=N; 3<=M; 3<=P}
+               (Ix : {i,j | 1<=i<=N; 1<=j<=M; 3<=N; 3<=M; 3<=P} of real; 
+                Iy : {i,j | 1<=i<=N; 1<=j<=M; 3<=N; 3<=M; 3<=P} of real; 
+                It : {i,j | 1<=i<=N; 1<=j<=M; 3<=N; 3<=M; 3<=P} of real; 
+                coef :  real)
+       returns (u : {i,j | 1<=i<=N; 1<=j<=M; 3<=N; 3<=M; 3<=P} of real; 
+                v : {i,j | 1<=i<=N; 1<=j<=M; 3<=N; 3<=M; 3<=P} of real);
+var
+  PipeIOvt : {t,i,j | P+1<=t<=i+P; i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of integer;
+  PipeIOut : {t,i,j | P+1<=t<=i+P; i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of integer;
+  PipeIOIt : {t,i,j | i-M+1<=t<=(1,i); 0<=i; 1<=j<=N; 3<=N; 3<=M; 3<=P} of integer;
+  PipeIOIy : {t,i,j | i-M+1<=t<=(1,i); 0<=i; 1<=j<=N; 3<=N; 3<=M; 3<=P} of integer;
+  PipeIOIx : {t,i,j | i-M+1<=t<=(1,i); 0<=i; 1<=j<=N; 3<=N; 3<=M; 3<=P} of integer;
+  PipeIt : {t,i,j | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  PipeIy : {t,i,j | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  PipeIx : {t,i,j | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  ut : {t,i,j | 2<=t<=P+1; 0<=i<=M+1; 0<=j<=N+1; 3<=N; 3<=M; 3<=P} of real;
+  vt : {t,i,j | 2<=t<=P+1; 0<=i<=M+1; 0<=j<=N+1; 3<=N; 3<=M; 3<=P} of real;
+  ub : {t,i,j | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  vb : {t,i,j | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  Ecm : {t,i,j | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  auxcoef : {t,i,j | t=0; 1<=i<=N; 1<=j<=M; 3<=N; 3<=M; 3<=P} of real;
+  Beta1 : {t,i,j | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  Beta2 : {t,i,j | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  Beta3 : {t,i,j | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  Beta4 : {t,i,j | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  SommeBeta : {t,i,j | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  Delta : {t,i,j | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of real;
+  loadPipeIOvt : {t,i,j | P+1<=t<=i+P; i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of boolean;
+  loadPipeIOut : {t,i,j | P+1<=t<=i+P; i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of boolean;
+  loadPipeIt : {t,i,j | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of boolean;
+  loadPipeIy : {t,i,j | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of boolean;
+  loadPipeIx : {t,i,j | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} of boolean;
+  loadut : {t,i,j | 2<=t<=P+1; 0<=i<=M+1; 0<=j<=N+1; 3<=N; 3<=M; 3<=P} of boolean;
+  loadvt : {t,i,j | 2<=t<=P+1; 0<=i<=M+1; 0<=j<=N+1; 3<=N; 3<=M; 3<=P} of boolean;
+let
+  PipeIOvt[t,i,j] = 
+      case
+        { | P+1<=t<=i+P; 2<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=P+1; 2<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (loadPipeIOvt) then vt else True[];
+             { | P+2<=t<=i+P; i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (not loadPipeIOvt) then PipeIOvt[t-1,i-1,j] else False[];
+           esac;
+        { | t=P+1; i=1; 1<=j<=N; 3<=N; 3<=M; 3<=P} : vt;
+      esac;
+  loadPipeIOvt[t,i,j] = 
+      case
+        { | P+1<=t<=i+P; i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : True[];
+             { | P+2<=t<=i+P; i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : False[];
+           esac;
+      esac;
+  PipeIOut[t,i,j] = 
+      case
+        { | P+1<=t<=i+P; 2<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=P+1; 2<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (loadPipeIOut) then ut else True[];
+             { | P+2<=t<=i+P; i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (not loadPipeIOut) then PipeIOut[t-1,i-1,j] else False[];
+           esac;
+        { | t=P+1; i=1; 1<=j<=N; 3<=N; 3<=M; 3<=P} : ut;
+      esac;
+  loadPipeIOut[t,i,j] = 
+      case
+        { | P+1<=t<=i+P; i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : True[];
+             { | P+2<=t<=i+P; i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : False[];
+           esac;
+      esac;
+  PipeIOIt[t,i,j] = 
+      case
+        { | -M+1<=t<=0; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : It[j,-t+i+1];
+        { | i-M+1<=t<=1; 1<=i; 1<=j<=N; 3<=N; 3<=M; 3<=P} : PipeIOIt[t-1,i-1,j];
+      esac;
+  PipeIOIy[t,i,j] = 
+      case
+        { | -M+1<=t<=0; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : Iy[j,-t+i+1];
+        { | i-M+1<=t<=1; 1<=i; 1<=j<=N; 3<=N; 3<=M; 3<=P} : PipeIOIy[t-1,i-1,j];
+      esac;
+  PipeIOIx[t,i,j] = 
+      case
+        { | -M+1<=t<=0; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : Ix[j,-t+i+1];
+        { | i-M+1<=t<=1; 1<=i; 1<=j<=N; 3<=N; 3<=M; 3<=P} : PipeIOIx[t-1,i-1,j];
+      esac;
+  PipeIt[t,i,j] = 
+      case
+        { | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (loadPipeIt) then PipeIOIt else True[];
+             { | 2<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (not loadPipeIt) then PipeIt[t-1,i,j] else False[];
+           esac;
+      esac;
+  loadPipeIt[t,i,j] = 
+      case
+        { | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : True[];
+             { | 2<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : False[];
+           esac;
+      esac;
+  PipeIy[t,i,j] = 
+      case
+        { | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (loadPipeIy) then PipeIOIy else True[];
+             { | 2<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (not loadPipeIy) then PipeIy[t-1,i,j] else False[];
+           esac;
+      esac;
+  loadPipeIy[t,i,j] = 
+      case
+        { | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : True[];
+             { | 2<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : False[];
+           esac;
+      esac;
+  PipeIx[t,i,j] = 
+      case
+        { | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (loadPipeIx) then PipeIOIx else True[];
+             { | 2<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (not loadPipeIx) then PipeIx[t-1,i,j] else False[];
+           esac;
+      esac;
+  loadPipeIx[t,i,j] = 
+      case
+        { | 1<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : True[];
+             { | 2<=t<=P; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : False[];
+           esac;
+      esac;
+  auxcoef[t,i,j] = coef[];
+  Delta[t,i,j] = 1[] / (1[] + 3[] * (PipeIx[t-1,i,j] * ut[t,i,j] + PipeIy[t-1,i,j] * vt[t,i,j] + PipeIt[t-1,i,j]) * (PipeIx[t-1,i,j] * ut[t,i,j] + PipeIy[t-1,i,j] * vt[t,i,j] + PipeIt[t-1,i,j]));
+  Beta1[t,i,j] = 1[] / (1[] + 3[] * ((ut[t,i,j] - ut[t,i,j-1]) * (ut[t,i,j] - ut[t,i,j-1]) + (vt[t,i,j] - vt[t,i,j-1]) * (vt[t,i,j] - vt[t,i,j-1])));
+  Beta2[t,i,j] = 1[] / (1[] + 3[] * ((ut[t,i,j] - ut[t,i,j+1]) * (ut[t,i,j] - ut[t,i,j+1]) + (vt[t,i,j] - vt[t,i,j+1]) * (vt[t,i,j] - vt[t,i,j+1])));
+  Beta3[t,i,j] = 1[] / (1[] + 3[] * ((ut[t,i,j] - ut[t,i-1,j]) * (ut[t,i,j] - ut[t,i-1,j]) + (vt[t,i,j] - vt[t,i-1,j]) * (vt[t,i,j] - vt[t,i-1,j])));
+  Beta4[t,i,j] = 1[] / (1[] + 3[] * ((ut[t,i,j] - ut[t,i+1,j]) * (ut[t,i,j] - ut[t,i+1,j]) + (vt[t,i,j] - vt[t,i+1,j]) * (vt[t,i,j] - vt[t,i+1,j])));
+  SommeBeta[t,i,j] = Beta1[t,i,j] + Beta2[t,i,j] + Beta3[t,i,j] + Beta4[t,i,j];
+  ub[t,i,j] = (Beta1[t,i,j] * ut[t,i,j-1] + Beta2[t,i,j] * ut[t,i,j+1] + Beta3[t,i,j] * ut[t,i-1,j] + Beta4[t,i,j] * ut[t,i+1,j]) / SommeBeta[t,i,j];
+  vb[t,i,j] = (Beta1[t,i,j] * vt[t,i,j-1] + Beta2[t,i,j] * vt[t,i,j+1] + Beta3[t,i,j] * vt[t,i-1,j] + Beta4[t,i,j] * vt[t,i+1,j]) / SommeBeta[t,i,j];
+  Ecm[t,i,j] = Delta[t,i,j] * (PipeIx[t-1,i,j] * ub[t,i,j] + PipeIy[t-1,i,j] * vb[t,i,j] + PipeIt[t-1,i,j]) / (auxcoef[0,j,i] * SommeBeta[t,i,j] + Delta[t,i,j] * (PipeIx[t-1,i,j] * PipeIx[t-1,i,j] + PipeIy[t-1,i,j] * PipeIy[t-1,i,j]));
+  ut[t,i,j] = 
+      case
+        { | 2<=t<=P+1; i=M+1; 1<=j<=N+1; 3<=N; 3<=M; 3<=P} | { | 2<=t<=P+1; 0<=i<=M+1; j=N+1; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2} : 0[];
+           esac;
+        { | 2<=t<=P+1; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : if (loadut) then 0[] else True[];
+             { | 3<=t<=P+1; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : if (not loadut) then 0[] else False[];
+           esac;
+        { | 2<=t<=P+1; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (loadut) then 0[] else True[];
+             { | 3<=t<=P+1; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (not loadut) then 0[] else False[];
+           esac;
+        { | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (loadut) then 0[] else True[];
+             { | 3<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (not loadut) then ub[t-1,i,j] - PipeIx[t-1,i,j] * Ecm[t-1,i,j] else False[];
+           esac;
+      esac;
+  loadut[t,i,j] = 
+      case
+        { | 2<=t<=P+1; i=M+1; 1<=j<=N+1; 3<=N; 3<=M; 3<=P} | { | 2<=t<=P+1; 0<=i<=M+1; j=N+1; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2} : True[];
+           esac;
+        { | 2<=t<=P+1; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : True[];
+             { | 3<=t<=P+1; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : False[];
+           esac;
+        { | 2<=t<=P+1; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : True[];
+             { | 3<=t<=P+1; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : False[];
+           esac;
+        { | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : True[];
+             { | 3<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : False[];
+           esac;
+      esac;
+  vt[t,i,j] = 
+      case
+        { | 2<=t<=P+1; i=M+1; 1<=j<=N+1; 3<=N; 3<=M; 3<=P} | { | 2<=t<=P+1; 0<=i<=M+1; j=N+1; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2} : 0[];
+           esac;
+        { | 2<=t<=P+1; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : if (loadvt) then 0[] else True[];
+             { | 3<=t<=P+1; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : if (not loadvt) then 0[] else False[];
+           esac;
+        { | 2<=t<=P+1; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (loadvt) then 0[] else True[];
+             { | 3<=t<=P+1; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (not loadvt) then 0[] else False[];
+           esac;
+        { | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (loadvt) then 0[] else True[];
+             { | 3<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : if (not loadvt) then vb[t-1,i,j] - PipeIy[t-1,i,j] * Ecm[t-1,i,j] else False[];
+           esac;
+      esac;
+  loadvt[t,i,j] = 
+      case
+        { | 2<=t<=P+1; i=M+1; 1<=j<=N+1; 3<=N; 3<=M; 3<=P} | { | 2<=t<=P+1; 0<=i<=M+1; j=N+1; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2} : True[];
+           esac;
+        { | 2<=t<=P+1; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : True[];
+             { | 3<=t<=P+1; 0<=i<=M+1; j=0; 3<=N; 3<=M; 3<=P} : False[];
+           esac;
+        { | 2<=t<=P+1; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : True[];
+             { | 3<=t<=P+1; i=0; 1<=j<=N; 3<=N; 3<=M; 3<=P} : False[];
+           esac;
+        { | 2<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : 
+           case
+             { | t=2; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : True[];
+             { | 3<=t<=P+1; 1<=i<=M; 1<=j<=N; 3<=N; 3<=M; 3<=P} : False[];
+           esac;
+      esac;
+  u[i,j] = { | 1<=i<=N; 1<=j<=M; 3<=N; 3<=M; 3<=P} : PipeIOut[-j+M+P+1,M,i];
+  v[i,j] = { | 1<=i<=N; 1<=j<=M; 3<=N; 3<=M; 3<=P} : PipeIOvt[-j+M+P+1,M,i];
+tel;

@@ -1,0 +1,22 @@
+system FullAdder (A,B,Cin : integer)
+	returns (X, Cout : integer);
+let
+X = A + B + Cin;
+Cout = (A*B) + (B*Cin) + (Cin * A);
+tel;
+
+system Plus: {W | W>1} (A,B : {2b | 0<=b<=W} of integer)
+	returns (S: {2b | 0<=b<=W} of integer);
+var
+	Cin,Cout,X : {2b | 0<=b<=W} of integer;
+let
+	Cin = case
+		{ 2b | b=0} : 0.(b->);
+		{ 2b | b>0} : Cout.(b->b-2);
+	      esac;
+	use { 2b | 0<=b<=W} FullAdder.(b->) (A,B,Cin) returns (X,Cout);
+	S = case
+		{ 2b | b<W} : X;
+		{ 2b | b=W} : Cout.(b->b-2);
+	    esac;
+tel;

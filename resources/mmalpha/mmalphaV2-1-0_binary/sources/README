@@ -1,0 +1,46 @@
+Problems and modifications (April 30, 2005)
+
+(Additional note (January 8, 2007). This file was written while creating
+a version for Mac OS X with PowerPC. Now, with Intel processors, it would
+be needed to recompile everything and put this in a binary file that
+would be for example, bin.darwin-intel. This has to be done.)
+
+I modified Makefile in order to compile Pretty which was added
+to the distribution, otherwise, Write_Alpha does not compile.
+
+When running make clean, there is an infinite loop, and the program stops
+only for lack of resources. The problem appears whenever one of the target
+directory does not exist. 
+
+Another problem is that lib.darwin or lib.whatever, should be created 
+manually. No rule is available either to remove them, nor to create them
+(I guess). Therefore, these directories should be created or copied 
+manually.
+
+Makefile.linux and Makefile.darwin are very close, and only one of
+them would be needed. The main difference is in the definition of
+the position of mprep.
+
+code_gen, read_alpha and write_alpha compile now normally. domlib also, 
+but I know that the resulting binary does not work... pip does not 
+compile yet.
+
+Content (April 22, 2005)
+
+Files with * should be examined for modifications
+
+*d Code_Gen. Was checked. See README inside
+*d Domlib. Was checked. See README inside
+*d MakeIncludes. Was checked. See README inside
+*Makefile  --> Different from Bigmess Makefile
+*d MathLink. Was checked. No modification. But need to remove mathlink1 
+inside, and not sure that this directory is useful.
+*d Pip. Was checked. Makefile is different from version of MMAlphaBigmess, but
+seems to be normal. New version contains piplib-1.3.3, which does not compile
+on darwin
+d Polylib. Was not checked yet. 
+d Read_Alpha. Was checked. No modification
+d Sed. Was checked. No modification
+*d Write_Alpha. Was checked. Makefile was modified. See README inside
+
+

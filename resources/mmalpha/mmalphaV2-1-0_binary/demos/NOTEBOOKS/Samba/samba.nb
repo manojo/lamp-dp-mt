@@ -1,0 +1,493 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 6.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[     13267,        484]
+NotebookOptionsPosition[      9975,        377]
+NotebookOutlinePosition[     10499,        398]
+CellTagsIndexPosition[     10456,        395]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[" Automatic derivation of the Samba Architecture", "Title",
+ TextAlignment->Center,
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[TextData[{
+ "P. Quinton, Tanguy Risset \nProject Cosi (Irisa, Rennes)\n",
+ StyleBox["http://www.irisa.fr/cosi/ALPHA\nChecked April 2010",
+  FontColor->RGBColor[0, 0, 1]]
+}], "Subsubtitle",
+ CellChangeTimes->{{3.480994408596176*^9, 3.480994412969737*^9}},
+ TextAlignment->Center],
+
+Cell[CellGroupData[{
+
+Cell[" Execute this cell, to go in the right directory", "Subsection",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"setMMADir", "[", 
+   RowBox[{"{", 
+    RowBox[{"\"\<demos\>\"", ",", "\"\<NOTEBOOKS\>\"", ",", "\"\<Samba\>\""}],
+     "}"}], "]"}], ";"}]], "Input",
+ InitializationCell->True]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["1. All at once", "Section"],
+
+Cell["The modern method...", "Text"],
+
+Cell[BoxData[
+ RowBox[{"syn", "[", 
+  RowBox[{"\"\<samba.alpha\>\"", ",", 
+   RowBox[{"parameterRules", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"\"\<X\>\"", "\[Rule]", "10"}], ",", 
+      RowBox[{"\"\<Y\>\"", "\[Rule]", "100"}]}], "}"}]}]}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"statScheduleConstraints", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.453133629721089*^9, 3.453133648994553*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ddd", "=", 
+  RowBox[{"AbsoluteTiming", "[", 
+   RowBox[{"scdConsToDomain", "[", "]"}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.453133616273775*^9, 3.453133625905695*^9}, {
+  3.453133665323934*^9, 3.453133673004496*^9}}],
+
+Cell["\<\
+The old method... But here, the projection is probably different...\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{"Timing", "[", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"load", "[", "\"\<samba.alpha\>\"", "]"}], ";", 
+   "\[IndentingNewLine]", 
+   RowBox[{"scd", "[", "]"}], ";", "\[IndentingNewLine]", 
+   RowBox[{"appSched", "[", 
+    RowBox[{"projMatrix", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"1", ",", "0", ",", "0", ",", "0"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", "0", ",", "1", ",", "0"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", "0", ",", "0", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+   ";", "\[IndentingNewLine]", 
+   RowBox[{"pipeVars", "[", "]"}], ";", "\[IndentingNewLine]", 
+   RowBox[{"toAlpha0v2", "[", "]"}], ";", "\[IndentingNewLine]", 
+   RowBox[{"alpha0ToAlphard", "[", "]"}], ";", 
+   RowBox[{"fixParameter", "[", 
+    RowBox[{"\"\<X\>\"", ",", "10"}], "]"}], ";", 
+   RowBox[{"fixParameter", "[", 
+    RowBox[{"\"\<Y\>\"", ",", "100"}], "]"}], ";", 
+   RowBox[{"a2v", "[", "]"}]}], "\[IndentingNewLine]", "]"}]], "Input",
+ CellChangeTimes->{{3.454147939087688*^9, 3.454147939906488*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Step by step", "Section"],
+
+Cell[CellGroupData[{
+
+Cell["Loading the program", "Subsection"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<samba.alpha\>\"", "]"}], ";", " ", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", 
+  RowBox[{"verbose", "\[Rule]", "False"}], "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Scheduling 1", "Subsection"],
+
+Cell["Simplest schedule : ", "Text"],
+
+Cell[BoxData[
+ RowBox[{"scd", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"showSchedResult", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"appSched", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell["\<\
+Unfortunately, this method gives one processor for each element of the \
+database, which may not be reasonable...\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<samba.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.480994051809474*^9, 3.48099406106846*^9}, {
+  3.480994209348838*^9, 3.4809942105696383`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"scd", "[", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.480994295455772*^9, 3.480994301486416*^9}}],
+
+Cell[BoxData[
+ RowBox[{"Options", "[", "appSched", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"??", "projVector"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"appSched", "[", 
+   RowBox[{"projMatrix", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"1", ",", "0", ",", "0", ",", "0"}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "0", ",", "1", ",", "0"}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "0", ",", "0", ",", "1"}], "}"}]}], "}"}]}], "]"}], 
+  ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<samba-scheduled.alpha\>\"", "]"}], 
+  ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Pipeline of the inputs", "Subsection"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<samba-scheduled.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell["We choose that all inputs take place in the first processor:", "Text"],
+
+Cell[BoxData[
+ RowBox[{"pipeVars", "[", "]"}]], "Input"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"simplifySystem", "[", "]"}], ";"}], "\n", 
+ RowBox[{"ashow", "[", "]"}]}], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<samba-io-piped.alpha\>\"", "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Generation of RTL description", "Subsection"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<samba-io-piped.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ashow", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"splitMax", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{" ", 
+  RowBox[{
+   RowBox[{"toAlpha0v2", "[", "]"}], ";"}]}]], "Input"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"simplifySystem", "[", 
+   RowBox[{"alphaFormat", "->", "Alpha0"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"reuseCommonExpr", "[", "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"simplifySystem", "[", 
+   RowBox[{"alphaFormat", "->", "Alpha0"}], "]"}], ";"}]}], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<samba0.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Generation AlpHard", "Subsection"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<samba0.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"Options", "[", "alpha0ToAlphard", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"alpha0ToAlphard", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asaveLib", "[", "\"\<sambaHard.alpha\>\"", "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Generation de Vhdl", "Subsection"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<X\>\"", ",", "10"}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "100"}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"$library", "=", 
+   RowBox[{"Drop", "[", 
+    RowBox[{"$library", ",", 
+     RowBox[{"-", "1"}]}], "]"}]}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"a2v", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "\"\<*.vhd\>\"", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"showVhdl", "[", "\"\<cellsequenceModule2\>\"", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"showVhdl", "[", "\"\<sequenceModule\>\"", "]"}]], "Input"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Cleaning the Directory", "Subtitle",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["Used for CVS purpose: delete all temporary files", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"setMMADir", "[", 
+   RowBox[{"{", 
+    RowBox[{"\"\<demos\>\"", ",", "\"\<NOTEBOOKS\>\"", ",", "\"\<Samba\>\""}],
+     "}"}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"CopyFile", "[", 
+   RowBox[{"\"\<samba.alpha\>\"", ",", "\"\<temporaire\>\""}], "]"}], 
+  ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.alpha\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteDirectory", "[", 
+   RowBox[{
+    RowBox[{"FileNames", "[", "\"\<VHDL*\>\"", "]"}], ",", 
+    RowBox[{"DeleteContents", "\[Rule]", "True"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"DeleteDirectory", "[", 
+  RowBox[{
+   RowBox[{"FileNames", "[", "\"\<*SYN\>\"", "]"}], ",", 
+   RowBox[{"DeleteContents", "\[Rule]", "True"}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.vhd\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.c\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.component\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"CopyFile", "[", 
+   RowBox[{"\"\<temporaire\>\"", ",", "\"\<samba.alpha\>\""}], "]"}], 
+  ";"}], "\n", 
+ RowBox[{"DeleteFile", "[", "\"\<temporaire\>\"", "]"}]}], "Input"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"]
+}, Open  ]]
+}, Open  ]]
+},
+AutoGeneratedPackage->Automatic,
+WindowToolbars->"EditBar",
+WindowSize->{1147, 691},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+DockedCells->FEPrivate`FrontEndResource[
+ "FEExpressions", "CompatibilityToolbar"],
+ShowSelection->True,
+Magnification->1.5,
+FrontEndVersion->"7.0 for Mac OS X x86 (32-bit) (February 18, 2009)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[567, 22, 119, 2, 185, "Title"],
+Cell[689, 26, 283, 6, 116, "Subsubtitle"],
+Cell[CellGroupData[{
+Cell[997, 36, 101, 1, 51, "Subsection"],
+Cell[1101, 39, 211, 6, 58, "Input",
+ InitializationCell->True]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[1349, 50, 33, 0, 53, "Section"],
+Cell[1385, 52, 36, 0, 39, "Text"],
+Cell[1424, 54, 276, 7, 40, "Input"],
+Cell[1703, 63, 137, 2, 40, "Input"],
+Cell[1843, 67, 245, 5, 40, "Input"],
+Cell[2091, 74, 91, 2, 39, "Text"],
+Cell[2185, 78, 1110, 25, 202, "Input"],
+Cell[3298, 105, 53, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3388, 111, 31, 0, 100, "Section"],
+Cell[CellGroupData[{
+Cell[3444, 115, 41, 0, 51, "Subsection"],
+Cell[3488, 117, 130, 3, 40, "Input"],
+Cell[3621, 122, 99, 2, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3757, 129, 34, 0, 51, "Subsection"],
+Cell[3794, 131, 36, 0, 39, "Text"],
+Cell[3833, 133, 51, 1, 40, "Input"],
+Cell[3887, 136, 63, 1, 40, "Input"],
+Cell[3953, 139, 74, 2, 40, "Input"],
+Cell[4030, 143, 53, 1, 40, "Input"],
+Cell[4086, 146, 137, 3, 39, "Text"],
+Cell[4226, 151, 209, 4, 40, "Input"],
+Cell[4438, 157, 135, 3, 40, "Input"],
+Cell[4576, 162, 67, 1, 40, "Input"],
+Cell[4646, 165, 54, 1, 40, "Input"],
+Cell[4703, 168, 485, 14, 64, "Input"],
+Cell[5191, 184, 107, 3, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5335, 192, 44, 0, 51, "Subsection"],
+Cell[5382, 194, 103, 2, 40, "Input"],
+Cell[5488, 198, 76, 0, 39, "Text"],
+Cell[5567, 200, 56, 1, 40, "Input"],
+Cell[5626, 203, 119, 3, 64, "Input"],
+Cell[5748, 208, 107, 3, 40, "Input"],
+Cell[5858, 213, 103, 2, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5998, 220, 51, 0, 51, "Subsection"],
+Cell[6052, 222, 102, 2, 40, "Input"],
+Cell[6157, 226, 71, 2, 40, "Input"],
+Cell[6231, 230, 74, 2, 40, "Input"],
+Cell[6308, 234, 53, 1, 40, "Input"],
+Cell[6364, 237, 95, 3, 40, "Input"],
+Cell[6462, 242, 301, 8, 87, "Input"],
+Cell[6766, 252, 95, 2, 40, "Input"],
+Cell[6864, 256, 53, 1, 40, "Input"],
+Cell[6920, 259, 55, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[7012, 265, 40, 0, 51, "Subsection"],
+Cell[7055, 267, 94, 2, 40, "Input"],
+Cell[7152, 271, 74, 1, 40, "Input"],
+Cell[7229, 274, 81, 2, 40, "Input"],
+Cell[7313, 278, 53, 1, 40, "Input"],
+Cell[7369, 281, 101, 2, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[7507, 288, 40, 0, 51, "Subsection"],
+Cell[7550, 290, 116, 3, 40, "Input"],
+Cell[7669, 295, 117, 3, 40, "Input"],
+Cell[7789, 300, 159, 5, 40, "Input"],
+Cell[7951, 307, 51, 1, 40, "Input"],
+Cell[8005, 310, 74, 1, 40, "Input"],
+Cell[8082, 313, 87, 1, 40, "Input"],
+Cell[8172, 316, 82, 1, 40, "Input"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8303, 323, 73, 1, 69, "Subtitle"],
+Cell[8379, 326, 64, 0, 39, "Text"],
+Cell[8446, 328, 184, 5, 40, "Input"],
+Cell[8633, 335, 57, 1, 40, "Input"],
+Cell[8693, 338, 1194, 32, 225, "Input"],
+Cell[9890, 372, 57, 1, 40, "Input"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

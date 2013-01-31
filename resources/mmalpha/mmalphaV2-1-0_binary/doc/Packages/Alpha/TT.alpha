@@ -1,0 +1,24 @@
+system exemple5 (x : {t | 1>=0} of integer; 
+                 y : {t | 1>=0} of integer)
+       returns  (z : {t | 5<=t} of integer);
+var
+  S : {t | 5<=t} of integer;
+let
+  S = case
+        {t | t=1} : 0.(t->);
+        {t | 2<=t} : x.(t->t-1) + y.(t->t-1);
+      esac;
+  z = {t | 5<=t} : S.(t->t);
+tel;
+system exemple6 (x : {t | 1>=0} of integer; 
+                 y : {t | 1>=0} of integer)
+       returns  (z : {t | 5<=t} of integer);
+var
+  S : {t | 5<=t} of integer;
+let
+  S = case
+        {t | t=1} : 0.(t->);
+        {t | 2<=t} : x.(t->t-1) + y.(t->t-1);
+      esac;
+  z = {t | 5<=t} : S.(t->t);
+tel;

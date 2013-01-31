@@ -1,0 +1,77 @@
+%
+% File created on {2007, 11, 15, 17, 10, 18.455255} by makeDoc.
+%
+% Section header
+\section{The Alpha`Normalization` package } 
+\label{label:Alpha`Normalization`}
+\alphanote{Normalization}{Documentation revised on August 1, 2004} 
+ 
+\alphausage{Normalization}{Alpha`Normalization` is the package containing the definitions  of normalization rules along with basic  normalizing functions:  checkRestrictions, minRestrictInCtxt, normalize, normalize0,  normalizeDef, normalizeDef0, normalizeInCtxt, normalizeInCtxt0,  normalizeQ, normalize0Q, and simplifyInContext.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{Normalization}
+
+\alphausage{checkRestrictions}{checkRestrictions[ast] checks for redundant restrictions in a normalized  system. Default ast is Alpha`\$result.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{checkRestrictions}
+
+\alphanote{checkRestrictions}{This function is useful after normalizing a complete system, in order to remove redundant restrictions. It cannot be included in the set normalization rules because it needs contextual information wrt. the normalized expression (it requires the declaration of a variable).} 
+ 
+\alphausage{minRestrictInCtxt}{minRestrictInCtxt[ast,domain] simplifies all restrictions of a  program in the context of a specific domain. Returns the simplified  expression.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{minRestrictInCtxt}
+
+\alphausage{normalize}{normalize[option] normalizes program \$result with the given option. normalize[sys,option] normalizes ALPHA expression sys with the given option. The available option is indexnorm which should be set to True if normalization of index expressions is desired. The default option is False.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{normalize}
+
+\alphanote{normalize}{normalize[exp] computes the fixpoint of a set of normalization rules when applied to exp. The set of rules is contained in variable normalizationRules.} 
+ 
+\alphausage{normalize0}{normalize0[ast] normalizes an ALPHA expression ast wrt. Alpha0 rules  (allowing nested cases.) Default ast is Alpha`\$result.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{normalize0}
+
+\alphanote{normalize0}{normalize[exp] computes the fixpoint of a set of normalization rules when applied to exp. The set of rules is contained in variable normalizationRules0.} 
+ 
+\alphausage{normalizeDef}{normalizeDef[symbol] normalizes the definition of ALPHA variable symbol in \$result. normalizeDef[sys,symbol] normalizes the definition of ALPHA variable symbol in program sys. Variable symbol is a string.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{normalizeDef}
+
+\alphanote{normalizeDef}{normalizeDef[exp, var] computes the fixpoint of a set of normalization rules when applied to the definition of var in exp. The set of rules is contained in variable normalizationRules.} 
+ 
+\alphausage{normalizeDef0}{normalizeDef0[symbol] normalizes the definition of ALPHA variable symbol in \$result wrt. the rules of Alpha0 (allowing nested cases). normalizeDef0[sys,symbol]normalizes the definition of ALPHA variable symbol in program sys. Variable symbol is a string.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{normalizeDef0}
+
+\alphanote{normalizeDef0}{normalizeDef[exp, var] computes the fixpoint of a set of normalization rules when applied to the definition of var in exp. The set of rules is contained in variable normalizationRules0.} 
+ 
+\alphausage{normalizationRules}{Set (list) of rewrite rules specifying the normalization of an ALPHA expression towards the CRD (Case-Restriction-Dependence)  normal form.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{normalizationRules}
+
+\alphanote{normalizationRules}{normalizationRules can be extended by appending/prepending new rules to the initial list. The rules are named and have the form  name = exp1 :$>$ exp2.} 
+ 
+\alphausage{normalizationRules0}{Set (list) of rewrite rules specifying the normalization of an ALPHA expression towards the Alpha0 (NestedCase-Restriction-Dependence) normal form.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{normalizationRules0}
+
+\alphanote{normalizationRules0}{normalizationRules0 can be extended by modifying the value of the rule list. The rules are named and have the form name = exp1 :$>$ exp2. } 
+ 
+\alphausage{normalizeInCtxt}{normalizeInCtxt[ast,domain] returns a normalized and reduced form of the restriction of ast to domain.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{normalizeInCtxt}
+
+\alphanote{normalizeInCtxt}{'normalizeInCtxt' should perhaps operate in a more intelligent way.} 
+ 
+\alphausage{normalizeInCtxt0}{Function. Normalizes an expression in the context of a specific domain.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{normalizeInCtxt0}
+
+\alphanote{normalizeInCtxt0}{normalizeInCtxt0 should perhaps operate in a more intelligent way.} 
+ 
+\alphausage{normalizeQ}{normalizeQ[ast] returns True if ast is normalized, False otherwise. Default value for ast is Alpha`\$result.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{normalizeQ}
+
+\alphausage{normalize0Q}{normalize0Q[ast] returns True if ast is normalized, False otherwise. Default value for ast is Alpha`\$result.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{normalize0Q}
+
+\alphausage{correctMat}{ in test }{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{correctMat}
+
+\alphausage{correctAffineFunctions}{in test 2}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{correctAffineFunctions}
+
+\alphausage{simplifyInContext}{simplifyInContext[] simplifies and reduces the Alpha system  \$result in the following ways: simplifies restriction domains  in context of declaration, simplifies transformations in context  of declaration. It operates on normalized or unnormalized programs. simplifyInContext[sys] simplifies and reduces the Alpha system  sys and returns the simplified system. Does not change \$result. simplifyInContext[sys, exp] simplifies expression exp in the  context of sys and returns the simplified expression.}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{simplifyInContext}
+
+\alphausage{simplifySystem}{simplifySystem[] is just a shorthand for simplifyInContext[]; convexizeAll[];normalize[] (or normalize0 depending on the option).  simplifySystem[sys] return system sys modified without  modifying \$result}{Alpha/Normalization.m}{Alpha`Normalization`}
+\index{simplifySystem}
+

@@ -1,0 +1,464 @@
+Reporting on system: sequence
+  System was in $result  
+25/4/2010 -- 18h 24mn 57.696066s
+
+System:
+system sequence :{X,Y | 3<=X<=Y-1}
+                (QS : {i | 1<=i<=X} of integer; 
+                 DB : {j | 1<=j<=Y} of integer)
+       returns  (res : {j | 1<=j<=Y} of integer);
+var
+  DBXMirr1 : {t,p | 1<=t<=Y; p=0} of integer;
+  TSep7 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep6 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep5 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep4 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  TSep3 : {t,p | t=1; 1<=p<=X} of integer;
+  TSep2 : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  TSep1 : {t,p | 1<=t<=Y; 1<=p<=X} of boolean;
+  MReg2Xloc : {t,p | 1<=t<=Y+1; 1<=p<=X+1} of integer;
+  pipeCQS1Reg5 : {t,p | 2<=t<=Y; 1<=p<=X} of integer;
+  pipeCDB1Reg4 : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  MatchQReg3 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  MReg2 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  MReg1 : {t,p | 2<=t<=Y+1; 1<=p<=X} of integer;
+  MXctl2XIn : {t,p | 1<=t<=Y+1; 1<=p<=X} of boolean;
+  pipeCQS1Xctl1XIn : {t,p | 1<=t<=Y; 1<=p<=X} of boolean;
+  pipeCDB1 : {t,p | 1<=t<=Y; 0<=p<=X} of integer;
+  pipeCQS1 : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  M : {t,p | 1<=t<=Y+1; 0<=p<=X} of integer;
+  MatchQ : {t,p | 1<=t<=Y; 1<=p<=X} of integer;
+  MXctl2 : {t | 1<=t<=Y+1} of boolean;
+  pipeCQS1Xctl1 : {t | 1<=t<=Y} of boolean;
+let
+  DBXMirr1[t,p] = DB[t];
+  MReg2Xloc[t,p] = M[t,p-1];
+  MReg2[t,p] = MReg2Xloc[t-1,p];
+  pipeCQS1Reg5[t,p] = pipeCQS1[t-1,p];
+  pipeCDB1Reg4[t,p] = pipeCDB1[t,p-1];
+  MatchQReg3[t,p] = MatchQ[t-1,p];
+  MReg1[t,p] = M[t-1,p];
+  MXctl2XIn[t,p] = MXctl2[t];
+  pipeCQS1Xctl1XIn[t,p] = pipeCQS1Xctl1[t];
+  pipeCDB1[t,p] = 
+      case
+        { | p=0} : DBXMirr1;
+        { | 1<=p} : pipeCDB1Reg4;
+      esac;
+  pipeCQS1Xctl1[t] = 
+      case
+        case
+          { | t=1} : True[];
+          { | 2<=t} : False[];
+        esac;
+      esac;
+  TSep3[t,p] = QS[t+p-1];
+  pipeCQS1[t,p] = 
+      case
+        if (pipeCQS1Xctl1XIn) then 
+            case
+              { | t=1} : TSep3;
+              { | 2<=t} : 0[];
+            esac else 
+        case
+          { | t=1} : 0[];
+          { | 2<=t} : pipeCQS1Reg5;
+        esac;
+      esac;
+  MXctl2[t] = 
+      case
+        case
+          { | t=1} : True[];
+          { | 2<=t} : False[];
+        esac;
+      esac;
+  TSep4[t,p] = MReg1 - 8[];
+  TSep5[t,p] = MReg2 + MatchQReg3;
+  TSep6[t,p] = max(TSep4, TSep5);
+  TSep7[t,p] = max(0[], TSep6);
+  M[t,p] = 
+      case
+        { | p=0} : 0[];
+        { | 1<=p} : if (MXctl2XIn) then 
+               case
+                 { | t=1} : 0[];
+                 { | 2<=t} : 0[];
+               esac else 
+           case
+             { | t=1} : 0[];
+             { | 2<=t} : TSep7;
+           esac;
+      esac;
+  TSep1[t,p] = pipeCQS1 = pipeCDB1;
+  TSep2[t,p] = -12[];
+  MatchQ[t,p] = if (TSep1) then 15[] else TSep2;
+  res[j] = M[j+1,X];
+tel;
+
+-- Equation: 
+    DBXMirr1 = DB.(t,p,X,Y->t,X,Y);
+  ** Declaration: 
+    DBXMirr1 : {t,p,X,Y | 1<=t<=Y; p=0} of integer
+  ** Type is: integer
+  ** Input equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    MReg2Xloc = M.(t,p,X,Y->t,p-1,X,Y);
+  ** Declaration: 
+    MReg2Xloc : {t,p,X,Y | 1<=t<=Y+1; 1<=p<=X+1} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    MReg2 = MReg2Xloc.(t,p,X,Y->t-1,p,X,Y);
+  ** Declaration: 
+    MReg2 : {t,p,X,Y | 2<=t<=Y+1; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer Register
+  ** Valid from 2 <= t <= 1 + Y
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCQS1Reg5 = pipeCQS1.(t,p,X,Y->t-1,p,X,Y);
+  ** Declaration: 
+    pipeCQS1Reg5 : {t,p,X,Y | 2<=t<=Y; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer Register
+  ** Valid from 2 <= t <= Y
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCDB1Reg4 = pipeCDB1.(t,p,X,Y->t,p-1,X,Y);
+  ** Declaration: 
+    pipeCDB1Reg4 : {t,p,X,Y | 1<=t<=Y; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Connection
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    MatchQReg3 = MatchQ.(t,p,X,Y->t-1,p,X,Y);
+  ** Declaration: 
+    MatchQReg3 : {t,p,X,Y | 2<=t<=Y+1; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer Register
+  ** Valid from 2 <= t <= 1 + Y
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    MReg1 = M.(t,p,X,Y->t-1,p,X,Y);
+  ** Declaration: 
+    MReg1 : {t,p,X,Y | 2<=t<=Y+1; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** integer Register
+  ** Valid from 2 <= t <= 1 + Y
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    MXctl2XIn = MXctl2.(t,p,X,Y->t,X,Y);
+  ** Declaration: 
+    MXctl2XIn : {t,p,X,Y | 1<=t<=Y+1; 1<=p<=X} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: MXctl2.(t,p,X,Y->t,X,Y)
+     Occurrence: {6, 8, 2}
+    ** is not square
+    ** is not uniform
+    ** Possible pipeline: 
+     -> Execute the command: pipeall[ {}, {6, 8, 2}, affine[var["pipeCMXctl21"], matrix[5, 5, {"t", "p", "X", "Y"}, {{1, 0, 0, 0, 0}, {0, 1, 0, 0, 1}, {0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]],domain[4, {"t", "p", "X", "Y"}, {pol[2, 5, 0, 3, {{1, 0, 1, 0, 0, 0}, {1, 0, 0, 0, 0, 1}}, {{0, 1, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 1, 0}, {1, 0, 1, 0, 0, 0}, {1, 0, 0, 0, 0, 1}}]}]]
+
+
+-- Equation: 
+    pipeCQS1Xctl1XIn = pipeCQS1Xctl1.(t,p,X,Y->t,X,Y);
+  ** Declaration: 
+    pipeCQS1Xctl1XIn : {t,p,X,Y | 1<=t<=Y; 1<=p<=X} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** Dependency: pipeCQS1Xctl1.(t,p,X,Y->t,X,Y)
+     Occurrence: {6, 9, 2}
+    ** is not square
+    ** is not uniform
+    ** Possible pipeline: 
+     -> Execute the command: pipeall[ {}, {6, 9, 2}, affine[var["pipeCpipeCQS1Xctl11"], matrix[5, 5, {"t", "p", "X", "Y"}, {{1, 0, 0, 0, 0}, {0, 1, 0, 0, 1}, {0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]],domain[4, {"t", "p", "X", "Y"}, {pol[2, 5, 0, 3, {{1, 0, 1, 0, 0, 0}, {1, 0, 0, 0, 0, 1}}, {{0, 1, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 1, 0}, {1, 0, 1, 0, 0, 0}, {1, 0, 0, 0, 0, 1}}]}]]
+
+
+-- Equation: 
+    pipeCDB1 = 
+    case
+      {t,p,X,Y | p=0} : DBXMirr1;
+      {t,p,X,Y | 1<=p} : pipeCDB1Reg4;
+    esac;
+  ** Declaration: 
+    pipeCDB1 : {t,p,X,Y | 1<=t<=Y; 0<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+ spatial case   ** Spatial case equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCQS1Xctl1 = 
+    case
+      case
+        {t,X,Y | t=1} : True.(t,X,Y->);
+        {t,X,Y | 2<=t} : False.(t,X,Y->);
+      esac;
+    esac;
+  ** Declaration: 
+    pipeCQS1Xctl1 : {t,X,Y | 1<=t<=Y} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t}
+  ** Scheduled, one time dimension
+  ** Control equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep3 = QS.(t,p,X,Y->t+p-1,X,Y);
+  ** Declaration: 
+    TSep3 : {t,p,X,Y | t=1; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Input equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    pipeCQS1 = 
+    case
+      if (pipeCQS1Xctl1XIn) then 
+          case
+            {t,p,X,Y | t=1} : TSep3;
+            {t,p,X,Y | 2<=t} : 0.(t,p,X,Y->);
+          esac else 
+      case
+        {t,p,X,Y | t=1} : 0.(t,p,X,Y->);
+        {t,p,X,Y | 2<=t} : pipeCQS1Reg5;
+      esac;
+    esac;
+  ** Declaration: 
+    pipeCQS1 : {t,p,X,Y | 1<=t<=Y; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** No dependency
+
+
+-- Equation: 
+    MXctl2 = 
+    case
+      case
+        {t,X,Y | t=1} : True.(t,X,Y->);
+        {t,X,Y | 2<=t} : False.(t,X,Y->);
+      esac;
+    esac;
+  ** Declaration: 
+    MXctl2 : {t,X,Y | 1<=t<=Y+1} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t}
+  ** Scheduled, one time dimension
+  ** Control equation
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep4 = MReg1 - 8.(t,p,X,Y->);
+  ** Declaration: 
+    TSep4 : {t,p,X,Y | 2<=t<=Y+1; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {sub}
+  ** Unops: {}
+  ** Valid from 2 <= t <= 1 + Y
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep5 = MReg2 + MatchQReg3;
+  ** Declaration: 
+    TSep5 : {t,p,X,Y | 2<=t<=Y+1; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {add}
+  ** Unops: {}
+  ** Valid from 2 <= t <= 1 + Y
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep6 = max(TSep4, TSep5);
+  ** Declaration: 
+    TSep6 : {t,p,X,Y | 2<=t<=Y+1; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {max}
+  ** Unops: {}
+  ** Valid from 2 <= t <= 1 + Y
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep7 = max(0.(t,p,X,Y->), TSep6);
+  ** Declaration: 
+    TSep7 : {t,p,X,Y | 2<=t<=Y+1; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {max}
+  ** Unops: {}
+  ** Valid from 2 <= t <= 1 + Y
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    M = case
+      {t,p,X,Y | p=0} : 0.(t,p,X,Y->);
+      {t,p,X,Y | 1<=p} : if (MXctl2XIn) then 
+             case
+               {t,p,X,Y | t=1} : 0.(t,p,X,Y->);
+               {t,p,X,Y | 2<=t} : 0.(t,p,X,Y->);
+             esac else 
+         case
+           {t,p,X,Y | t=1} : 0.(t,p,X,Y->);
+           {t,p,X,Y | 2<=t} : TSep7;
+         esac;
+    esac;
+  ** Declaration: 
+    M : {t,p,X,Y | 1<=t<=Y+1; 0<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** No dependency
+
+
+-- Equation: 
+    TSep1 = pipeCQS1 = pipeCDB1;
+  ** Declaration: 
+    TSep1 : {t,p,X,Y | 1<=t<=Y; 1<=p<=X} of boolean
+  ** Type is: boolean
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {eq}
+  ** Unops: {}
+  ** Valid from 1 <= t <= Y
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    TSep2 = -12.(t,p,X,Y->);
+  ** Declaration: 
+    TSep2 : {t,p,X,Y | 1<=t<=Y; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** Combinatorial logic
+  ** Binops: {}
+  ** Unops: {neg}
+  ** Valid from 1 <= t <= Y
+  ** This equation can be interpreted as hardware
+
+-- Equation: 
+    MatchQ = if (TSep1) then 15.(t,p,X,Y->) else TSep2;
+  ** Declaration: 
+    MatchQ : {t,p,X,Y | 1<=t<=Y; 1<=p<=X} of integer
+  ** Type is: integer
+  ** Local equation
+  ** Indexes: {t, p}
+  ** Scheduled and allocated, one time dimension and one space dimension
+  ** This equation cannot be interpreted as hardware
+  ** No dependency
+
+
+-- Equation: 
+    res = M.(j,X,Y->j+1,X,X,Y);
+  ** Declaration: 
+    res : {j,X,Y | 1<=j<=Y} of integer
+  ** Type is: integer
+  ** Output equation
+  ** Indexes: {j}
+  ** Mirror equation
+  ** This equation can be interpreted as hardware
+
+---- These equations cannot be translated to hardware:
+MXctl2XIn = MXctl2.(t,p,X,Y->t,X,Y);
+pipeCQS1Xctl1XIn = pipeCQS1Xctl1.(t,p,X,Y->t,X,Y);
+pipeCQS1 = 
+    case
+      if (pipeCQS1Xctl1XIn) then 
+          case
+            {t,p,X,Y | t=1} : TSep3;
+            {t,p,X,Y | 2<=t} : 0.(t,p,X,Y->);
+          esac else 
+      case
+        {t,p,X,Y | t=1} : 0.(t,p,X,Y->);
+        {t,p,X,Y | 2<=t} : pipeCQS1Reg5;
+      esac;
+    esac;
+M = case
+      {t,p,X,Y | p=0} : 0.(t,p,X,Y->);
+      {t,p,X,Y | 1<=p} : if (MXctl2XIn) then 
+             case
+               {t,p,X,Y | t=1} : 0.(t,p,X,Y->);
+               {t,p,X,Y | 2<=t} : 0.(t,p,X,Y->);
+             esac else 
+         case
+           {t,p,X,Y | t=1} : 0.(t,p,X,Y->);
+           {t,p,X,Y | 2<=t} : TSep7;
+         esac;
+    esac;
+MatchQ = if (TSep1) then 15.(t,p,X,Y->) else TSep2;
+
+
+---- Use statements:
+
+
+------
+  **** Resources used:
+  4 integer registers
+  0 integer or floating-point mux
+  0 multipliers 
+  2 adders/subtracters 
+  ** Analysis of operators
+  sub from 2 to 1 + Y
+  add from 2 to 1 + Y
+  max from 2 to 1 + Y
+  max from 2 to 1 + Y
+  eq from 1 to Y
+  neg from 1 to Y

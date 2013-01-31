@@ -1,0 +1,109 @@
+%postcript file in $MMALPHA/doc/tutorial/QuickStart.ps
+\documentclass[12pt]{article}
+\usepackage{fullpage,epic,eepic,epsfig,makeidx,color,graphicx,moreverb,boxedminipage,version}
+\sloppy
+
+\excludeversion{tobedone}
+
+\newcommand{\C}{\texttt{C}}
+\newcommand{\gpl}{Gnu Public License}
+\newcommand{\pip}{PiP}
+\newcommand{\lpsolve}{LP-Solve}
+
+\newcommand{\sitemmalfa}
+{\texttt{{http://www.irisa.fr/cosi/ALPHA}}}
+\newcommand{\emailmmalfa}{\texttt{alpha@irisa.fr}}
+
+\newcommand{\Alpha}{{\sc Alpha}}
+\newcommand{\AlpHard}{{\sc AlpHard}}
+\newcommand{\MMA}{{\sc MMAlpha}}
+\newcommand{\api}{{\sc api}}
+\newcommand{\irisa}{ Irisa}
+\newcommand{\vlsi}{{\sc vlsi}}
+\newcommand{\vhdl}{{\sc vhdl}}
+\newcommand{\alfa}{\Alpha}
+\newcommand{\mmalfa}{\MMA}
+\newcommand{\MMAlfa}{\MMA}
+\newcommand{\mmalpha}{\MMA}
+\newcommand{\mma}{{Mathematica}}
+\newcommand{\polylib}{{\sc polylib}}
+\newcommand{\Opt}[1]{{\rm\sl [} #1 {\rm\sl ]}}
+\newcommand{\Group}[1]{{\rm\sl (} #1 {\rm\sl )}}
+\newcommand{\Alt}{$\mid$}
+\newcommand{\Program}{{\sl Program\ }}
+\newcommand{\PDecl}{{\sl PDecl\ }}
+\newcommand{\PointwiseDecl}{{\sl PointwiseDecl\ }}
+\newcommand{\SystemDecl}{{\sl SystemDecl\ }}
+\newcommand{\Name}{{\sl Name\ }}
+\newcommand{\ScalarInDeclList}{{\sl ScalarInDeclList\ }}
+\newcommand{\ScalarOutDecl}{{\sl ScalarOutDecl\ }}
+\newcommand{\ScalarLocDeclList}{{\sl ScalarLocDeclList\ }}
+\newcommand{\ScalarVarDecl}{{\sl ScalarVarDecl\ }}
+\newcommand{\ScalarDeclList}{{\sl ScalarDeclList\ }}
+\newcommand{\InputDeclList}{{\sl InputDeclList\ }}
+\newcommand{\OutputDeclList}{{\sl OutputDeclList\ }}
+\newcommand{\LocalDeclList}{{\sl LocalDeclList\ }}
+\newcommand{\VarDeclList}{{\sl VarDeclList\ }}
+\newcommand{\EquationBlock}{{\sl Equationblock\ }}
+\newcommand{\ParamDecl}{{\sl ParamDecl\ }}
+\newcommand{\VarDeclaration}{{\sl VarDeclaration\ }}
+\newcommand{\Domain}{{\sl Domain\ }}
+\newcommand{\IdentifierList}{{\sl IdentifierList\ }}
+\newcommand{\Identifier}{{\sl Identifier\ }}
+\newcommand{\ScalarType}{{\sl ScalarType\ }}
+\newcommand{\IndexList}{{\sl IndexList\ }}
+\newcommand{\ConstraintList}{{\sl ConstraintList\ }}
+\newcommand{\AffineFunction}{{\sl AffineFunction\ }}
+\newcommand{\Constraint}{{\sl Constraint\ }}
+\newcommand{\IncreasingSeq}{{\sl IncreasingSeq\ }}
+\newcommand{\DecreasingSeq}{{\sl DecreasingSeq\ }}
+\newcommand{\EqualitySeq}{{\sl EqualitySeq\ }}
+\newcommand{\IndexExpList}{{\sl IndexExpList\ }}
+\newcommand{\EquationList}{{\sl EquationList\ }}
+\newcommand{\Equation}{{\sl Equation\ }}
+\newcommand{\ParamAssignation}{{\sl ParamAssignation\ }}
+\newcommand{\InputList}{{\sl InputList\ }}
+\newcommand{\ExtParamAssgn}{{\sl ExtParamAssgn\ }}
+\newcommand{\ExtensionDomain}{{\sl ExtensionDomain\ }}
+\newcommand{\ExpressionList}{{\sl ExpressionList\ }}
+\newcommand{\Expression}{{\sl Expression\ }}
+\newcommand{\Constant}{{\sl Constant\ }}
+\newcommand{\IntegerConstant}{{\sl IntegerConstant\ }}
+\newcommand{\RealConstant}{{\sl RealConstant\ }}
+\newcommand{\BooleanConstant}{{\sl BooleanConstant\ }}
+\newcommand{\BinaryOp}{{\sl BinaryOp\ }}
+\newcommand{\CommutativeOp}{{\sl CommutativeOp\ }}
+\newcommand{\RelativeOp}{{\sl RelativeOp\ }}
+\newcommand{\UnaryOp}{{\sl UnaryOp\ }}
+\newcommand{\IndexExpression}{{\sl IndexExpression\ }}
+\newcommand{\IndexTerm}{{\sl IndexTerm\ }}
+\newcommand{\Number}{{\sl Number\ }}
+\newcommand{\Digit}{{\sl Digit\ }}
+\newcommand{\Letter}{{\sl Letter\ }}
+%\newcommand{\}{{\sl \ }}
+
+\newcommand {\setn}   {\hbox{\it I\hskip -2pt N}}     % ensemble N
+\newcommand {\setz}   {\hbox{\it Z\hskip -4pt Z}}     %ensemble Z
+\newcommand {\setq}   {\hbox{\it Q\hskip -6pt {\it l}\hskip 4pt}}     % ensemble Q
+
+\newcounter{Nex}
+
+\newtheorem{ex}{Exemple}[section]
+%\newenvironment{ex}
+%{\vspace{0.5cm} \refstepcounter{Nex} {\bf Example ${\theNex}$:}
+%\begin{quotation}}
+%{\end{quotation}}
+
+\makeindex
+
+\begin{document}
+
+\title{How to Install and Use \mmalfa{} Version 2.1}
+\author{Tanguy Risset and Patrice Quinton
+\\Revision of \today{}}
+\date{April 2010}
+\maketitle
+
+\input{How-to-install}
+
+\end{document}

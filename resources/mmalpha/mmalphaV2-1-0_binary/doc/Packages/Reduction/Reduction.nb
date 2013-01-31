@@ -1,0 +1,462 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      6710,        303]*)
+(*NotebookOutlinePosition[      8045,        347]*)
+(*  CellTagsIndexPosition[      8001,        343]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The \"Reduction\" package", "Title",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell["Patrice Quinton", "Subsubtitle"],
+
+Cell["\<\
+July 1999 - Revision in 2006. Incomplete package... work in progress\
+\>", "Text"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+alpha@irisa.fr\
+\>", "SmallText"],
+
+Cell[" Execute this cell, to redefine the current directory", "Subsubsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[CellGroupData[{
+
+Cell["1. Introduction", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+This package contains functions operating on reductions. Here is the current \
+list.\
+\>", "Text"],
+
+Cell[BoxData[
+    \(<< Alpha/SystemProgramming.m\)], "Input"],
+
+Cell[BoxData[
+    \(SymbolsInContext["\<Alpha`Reduction`\>"]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell["isolateOneReduction", "Subsection"],
+
+Cell[BoxData[
+    \(\(load["\<red2.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[
+      isolateOneReduction[{6, 1, 2, 3}, debug \[Rule] False]]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["isolateReductions", "Subsection"],
+
+Cell[BoxData[
+    \(\(load["\<red2.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(isolateReductions[verbose \[Rule] True, 
+        debug \[Rule] False];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["serializeReduce", "Subsection"],
+
+Cell[BoxData[
+    \(\(?serializeReduce\)\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell["Example 1", "Subsubsection"],
+
+Cell[BoxData[
+    \(\(load["\<red1.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(serializeReduce["\<y\>", "\<Y.(i->i-1)\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(normalize[]; ashow[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Example 3", "Subsubsection"],
+
+Cell[BoxData[
+    \(\(load["\<red3.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(analyze[]\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(isolateReductions[debug \[Rule] False];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(serializeReduce["\<redy3\>", "\<V.(i,j->i,j+1)\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(schedule[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Example with the FIR filter", "Subsubsection"],
+
+Cell[BoxData[
+    \(\(load["\<fir.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(Options[serializeReduce]\)], "Input"],
+
+Cell[BoxData[
+    \(\(serializeReduce["\<res\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(load["\<fir.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(serializeReduce["\<res\>", invert \[Rule] True];\)\)], "Input"],
+
+Cell[BoxData[
+    \(simplifySystem[]; ashow[]\)], "Input"]
+}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["splitReduction (in progress)", "Subsection"],
+
+Cell[BoxData[
+    \(\(load["\<red5.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(splitReduction["\<z\>", debug \[Rule] True]\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(rr = readMat["\<(i,j,k->i+j,j+k)\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(hermite[rr]\)], "Input"],
+
+Cell[BoxData[
+    \(Map[ashow, hermite[rr]]\)], "Input"],
+
+Cell[BoxData[
+    \(nullSpaceVectors[rr]\)], "Input"],
+
+Cell[BoxData[
+    \(\(rr1 = readMat["\<(i,j,k->i+j)\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(hermite[rr1]\)], "Input"],
+
+Cell[BoxData[
+    \(Map[ashow, hermite[rr1]]\)], "Input"],
+
+Cell[BoxData[
+    \(nullSpaceVectors[rr1]\)], "Input"],
+
+Cell[BoxData[
+    \(\(?composeAffines\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(hermite[rr1]\)[\([1]\)]\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[
+      composeAffines[readMat["\<(i,j,k->i,j)\>"], 
+        readMat["\<(i,j,k->i+j,i,j)\>"]]]\)], "Input"],
+
+Cell[BoxData[
+    \(\(?hermite\)\)], "Input"],
+
+Cell[BoxData[
+    \(analyze[]\)], "Input"],
+
+Cell[BoxData[
+    \(\(serializeReduce["\<y\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(<< Alpha/Reduction.m\)], "Input"],
+
+Cell[BoxData[
+    \(splitReduction["\<w\>", debug \[Rule] True]\)], "Input"],
+
+Cell[BoxData[
+    \(u = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}\)], "Input"],
+
+Cell[BoxData[
+    \(l = Transpose[Append[IdentityMatrix[4 - 1], {0, 0, 0}]]\)], "Input"],
+
+Cell[BoxData[
+    \(l . u\)], "Input"],
+
+Cell[BoxData[
+    \(IdentityMatrix[4 - 1]\)], "Input"],
+
+Cell[BoxData[
+    \(\(?Append\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(?Inverse\)\)], "Input"],
+
+Cell[BoxData[
+    \(l . IdentityMatrix[4]\)], "Input"],
+
+Cell[BoxData[
+    \(IdentityMatrix[4]\)], "Input"]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2. Tests", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["No tests available...", "Text"],
+
+Cell[BoxData[
+    \(tests["\<Reduction\>"]\)], "Input"]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1440}, {0, 837}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+WindowSize->{1013, 664},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+PrintingCopies->1,
+PrintingPageRange->{1, 9999},
+PageHeaders->{{Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"], Inherited, Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"]}, {Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"], Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"]}},
+PrintingOptions->{"PaperSize"->{612, 792},
+"PaperOrientation"->"Portrait",
+"FirstPageHeader"->False,
+"FirstPageFooter"->False,
+"FacingPages"->True,
+"Magnification"->1},
+ShowSelection->True,
+Magnification->1.5,
+StyleDefinitions -> "Default.nb"
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 74, 1, 132, "Title"],
+Cell[1853, 56, 38, 0, 45, "Subsubtitle"],
+Cell[1894, 58, 92, 2, 47, "Text"],
+Cell[1989, 62, 97, 3, 62, "SmallText"],
+Cell[2089, 67, 110, 1, 41, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[2224, 72, 66, 1, 104, "Section"],
+Cell[2293, 75, 108, 3, 47, "Text"],
+Cell[2404, 80, 61, 1, 39, "Input"],
+Cell[2468, 83, 73, 1, 39, "Input"],
+
+Cell[CellGroupData[{
+Cell[2566, 88, 41, 0, 53, "Subsection"],
+Cell[2610, 90, 60, 1, 39, "Input"],
+Cell[2673, 93, 40, 1, 39, "Input"],
+Cell[2716, 96, 101, 2, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[2854, 103, 39, 0, 39, "Subsection"],
+Cell[2896, 105, 60, 1, 39, "Input"],
+Cell[2959, 108, 107, 2, 39, "Input"],
+Cell[3069, 112, 40, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[3146, 118, 37, 0, 39, "Subsection"],
+Cell[3186, 120, 53, 1, 39, "Input"],
+
+Cell[CellGroupData[{
+Cell[3264, 125, 34, 0, 41, "Subsubsection"],
+Cell[3301, 127, 60, 1, 39, "Input"],
+Cell[3364, 130, 40, 1, 39, "Input"],
+Cell[3407, 133, 80, 1, 39, "Input"],
+Cell[3490, 136, 53, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[3580, 142, 34, 0, 30, "Subsubsection"],
+Cell[3617, 144, 60, 1, 39, "Input"],
+Cell[3680, 147, 42, 1, 39, "Input"],
+Cell[3725, 150, 40, 1, 39, "Input"],
+Cell[3768, 153, 76, 1, 39, "Input"],
+Cell[3847, 156, 40, 1, 39, "Input"],
+Cell[3890, 159, 83, 1, 39, "Input"],
+Cell[3976, 162, 43, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4056, 168, 52, 0, 30, "Subsubsection"],
+Cell[4111, 170, 59, 1, 39, "Input"],
+Cell[4173, 173, 40, 1, 39, "Input"],
+Cell[4216, 176, 57, 1, 39, "Input"],
+Cell[4276, 179, 64, 1, 39, "Input"],
+Cell[4343, 182, 40, 1, 39, "Input"],
+Cell[4386, 185, 59, 1, 39, "Input"],
+Cell[4448, 188, 40, 1, 39, "Input"],
+Cell[4491, 191, 85, 1, 39, "Input"],
+Cell[4579, 194, 58, 1, 39, "Input"]
+}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4686, 201, 50, 0, 39, "Subsection"],
+Cell[4739, 203, 60, 1, 39, "Input"],
+Cell[4802, 206, 40, 1, 39, "Input"],
+Cell[4845, 209, 76, 1, 32, "Input"],
+Cell[4924, 212, 40, 1, 39, "Input"],
+Cell[4967, 215, 74, 1, 39, "Input"],
+Cell[5044, 218, 44, 1, 39, "Input"],
+Cell[5091, 221, 56, 1, 39, "Input"],
+Cell[5150, 224, 53, 1, 39, "Input"],
+Cell[5206, 227, 71, 1, 39, "Input"],
+Cell[5280, 230, 45, 1, 39, "Input"],
+Cell[5328, 233, 57, 1, 39, "Input"],
+Cell[5388, 236, 54, 1, 39, "Input"],
+Cell[5445, 239, 52, 1, 39, "Input"],
+Cell[5500, 242, 58, 1, 39, "Input"],
+Cell[5561, 245, 132, 3, 62, "Input"],
+Cell[5696, 250, 45, 1, 39, "Input"],
+Cell[5744, 253, 42, 1, 39, "Input"],
+Cell[5789, 256, 62, 1, 39, "Input"],
+Cell[5854, 259, 53, 1, 39, "Input"],
+Cell[5910, 262, 76, 1, 39, "Input"],
+Cell[5989, 265, 93, 1, 39, "Input"],
+Cell[6085, 268, 88, 1, 39, "Input"],
+Cell[6176, 271, 38, 1, 39, "Input"],
+Cell[6217, 274, 54, 1, 39, "Input"],
+Cell[6274, 277, 44, 1, 39, "Input"],
+Cell[6321, 280, 45, 1, 39, "Input"],
+Cell[6369, 283, 54, 1, 39, "Input"],
+Cell[6426, 286, 50, 1, 39, "Input"]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6525, 293, 59, 1, 104, "Section"],
+Cell[6587, 296, 37, 0, 47, "Text"],
+Cell[6627, 298, 55, 1, 39, "Input"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

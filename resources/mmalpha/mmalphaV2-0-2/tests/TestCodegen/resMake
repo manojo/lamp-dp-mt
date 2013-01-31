@@ -1,0 +1,198 @@
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+1,15c1,15
+< a[1]?a[2]?a[3]?b[1, 0]?b[1, 1]?b[1, 2]?b[1, 3]?b[1, 4]?b[2, 0]?b[2, 1]?b[2, 2]?b[2, 3]?b[2, 4]?b[3, 0]?b[3, 1]?b[3, 2]?b[3, 3]?b[3, 4]?c[1, 0]=2
+< c[1, 1]=2
+< c[1, 2]=2
+< c[1, 3]=2
+< c[1, 4]=2
+< c[2, 0]=2
+< c[2, 1]=2
+< c[2, 2]=2
+< c[2, 3]=2
+< c[2, 4]=2
+< c[3, 0]=2
+< c[3, 1]=2
+< c[3, 2]=2
+< c[3, 3]=2
+< c[3, 4]=2
+---
+> 2
+> 2
+> 2
+> 2
+> 2
+> 2
+> 2
+> 2
+> 2
+> 2
+> 2
+> 2
+> 2
+> 2
+> 2
+C/Lx.exe <testFile/Lx.in >xyz
+diff  testFile/Lx.out xyz
+C/Lx.exe <testFile/Lx.in >xyz
+diff  testFile/Lx.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx.in >xyz
+diff  testFile/lx.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/lx.c -o C/lx.exe
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+C/lx.exe <testFile/lx1.in >xyz
+diff  testFile/lx1.out xyz
+gcc  C/simple0.c -o C/simple0.exe
+C/simple0.exe <testFile/simple0.in >xyz
+diff  testFile/simple0.out xyz
+gcc  C/simple1.c -o C/simple1.exe
+C/simple1.exe <testFile/simple1.in >xyz
+diff  testFile/simple1.out xyz
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe
+gcc  C/lx.c -o C/lx.exe
+gcc  C/simple0.c -o C/simple0.exe
+gcc  C/simple1.c -o C/simple1.exe

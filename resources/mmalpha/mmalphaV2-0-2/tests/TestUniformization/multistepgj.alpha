@@ -1,0 +1,32 @@
+system MultiStepGaussJordon :{N | 4<=N}
+                      (a : {i,j | 1<=i<=N; 1<=j<=N} of integer; 
+                       b : {i | 1<=i<=N} of integer)
+       returns        (x : {i | 1<=i<=N} of integer);
+var
+  A : {i,j,k | k<=i<=k+N-1; k<=j<=N+1; 1<=k<=N} of integer;
+  Ain : {i,j,k | 1<=i<=N; 1<=j<=N+1; k=0} of integer;
+let
+  A[i,j,k] = 
+      case
+        {| N+1<=i<=k+N-2; k<=j<=N+1; k<=N} : A[i,j,k-1] - A[i,k,k-1] / A[k,k,k-1] * A[k,j,k-1]
+        ;
+        {| i=k+N-1; k<=j<=N+1; 2<=k<=N} : A[i-N,j,k-1] - A[i-N,k,k-1] / A[k,k,k-1] * A[k,j,k-1]
+        ;
+        {| i=k; k<=j<=N+1; 2<=k<=N} : A[i,j,k-1] / A[k,k,k-1];
+        {| i=1; 1<=j<=N+1; k=1; 1<=N} : Ain[i,j,k-1] / Ain[k,k,k-1];
+        {| k+1<=i<=N; k<=j<=N+1; 2<=k} : A[i,j,k-1] - A[i,k,k-1] / A[k,k,k-1] * A[k,j,k-1]
+        ;
+        {| 2<=i<=N; 1<=j<=N+1; k=1} : Ain[i,j,k-1] - Ain[i,k,k-1] / Ain[k,k,k-1] * Ain[k,j,k-1]
+        ;
+      esac;
+  Ain[i,j,k] = 
+      case
+        {| 1<=i<=N; 1<=j<=N; k=0} : a[i,j];
+        {| 1<=i<=N; j=N+1; k=0} : b[i];
+      esac;
+  x[i] = 
+      case
+        {| 1<=i<=N-1} : A[i+N,N+1,N];
+        {| i=N; 1<=N} : A[i,N+1,N];
+      esac;
+tel;

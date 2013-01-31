@@ -1,0 +1,6 @@
+-- can it handle undeclared variables...
+system foobug () returns ();
+var A:boolean;
+let 
+   A = a;
+tel;

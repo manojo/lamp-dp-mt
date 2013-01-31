@@ -1,0 +1,374 @@
+\documentclass[11pt]{article}
+\begin{document}
+
+\newcommand{\mmalpha}{{\sc Mmalpha}}
+\newcommand{\vhdl}{{\sc vhdl}}
+\newcommand{\alfa}{{\sc alpha}}
+
+\title{Periodic System Generation in \mmalpha{}}
+\author{Anne-Marie Chana \and Patrice Quinton}
+\date{Version of \today}
+\maketitle
+
+\tableofcontents
+
+\section*{To do list}
+\begin{itemize}
+\item Separate the types in a separate component
+\item Assign values to the coefficients of the filter
+\item Infer le type de ovsfaddress etc... from that of the ROM
+\item Before step 1, check that the system is well-formed
+\item Step 2 assumes that there are no registers in the code, so check this...
+\item During Step 3, we assume that the delay of a component is given by the schedule of
+its first input, which is not necessarily the case... Check this and make an extension.
+\end{itemize}
+
+
+\section{Introduction}
+This document presents the current state of development
+of an extension of \mmalpha{} to generate multi-dimensional 
+periodic systems. The theory underlying this work is described in~\cite{quinton-asap04}. 
+
+\section{The \texttt{synPeriodic} function}
+This function is located in the \texttt{Synthesis.m} package. Its goal is to analyze a 
+data-flow periodic systems and to find out the periods of each one of its components. 
+It also generates \vhdl{} files for such a system.
+
+Recall that such a system is a special case of \alfa{} system where all variables
+are indexed with an infinite first dimension. This means that all variables of such
+a system have a domain of the form \texttt{$\{ i, j, k ... | 0 \leq i , ... \}$}. The first
+index, $i$, is considered as a time index.
+It also uses subsystems, which have all 
+the property that all their variables are also
+indexed with a first infinite dimension.
+
+Now the time dimension of each variable may be {\em stretched} or 
+{\em contracted} depending on a fixed period. This means that for
+some variables, the first index $i$ is in fact an affine function $a t + b$ of
+an underlying, commun time clock, $t$. For another variable, this 
+affine function might be of the form $c t + d$, where $c$ and $d$
+are different from $a$ and $b$.
+
+Some particular subsystems are oversamplers and undersamplers. They have
+the property of changing the rate of the time dimension, i.e., the values of 
+the periods $a$ or $c$ of the variables.
+
+All other subsystems have the property of being {\em monochronous}: all
+their variables have the same period. We expect these subsystems to represent
+hardware components that may be run at various periods, depending on the 
+way they are instanciated (we shall return to this point later on.)
+
+In~\cite{quinton-asap04}, it is shown how one can compute the value of 
+the periods of each individual signal or component of such a periodic
+system, and from there, if a solution to this problem exists, to schedule in
+detail the full system. 
+
+
+The \texttt{synPeriodic} function analyzes the graph of the \mmalpha{} data-flow system, 
+and from its dependencies, it groups signals that have the same period (returned as 
+list of list). Each one of the groups has un period, say $\lambda_i$, which is calculated
+by this function. It then schedules the full system, and generates the \vhdl{} components
+of it. We describe hereafter how this is done.
+
+
+\section{Generation of \vhdl{} Programs}
+\subsection{Generalities}
+The generation of \vhdl{} programs is implemented as the 
+\texttt{synPeriodic} \mmalpha{} function
+of the \texttt{Synthesis.m} package. 
+
+The parameters of this function are not fully determined yet. 
+\begin{verbatim}
+synPeriodic[]
+\end{verbatim}
+generates a \vhdl{} file in the directory \texttt{\$MMALPHA/VHDL} and provides some
+other results.
+
+This function makes use of the \texttt{genVhdl} function, included in the 
+\texttt{Vhdl2.m} package, and that we describe in appendix~\ref{genvhdl}.
+
+Its operations are currently as follows:
+\begin{description}
+\item[Step 1:] Built the graph of periods, and solve the balance equations of this graph.
+\item[Step 2:] Schedule the whole system, by injecting the value of the periods in the schedule
+patterns of each component.
+\item[Step 3:] Generate the delayed enable signals.
+\item[Step 4:] Generate the enable signals.
+\item[Step 5:] Generate the FSM that controls the periodic system.
+\item[Step 6:] Generate the \vhdl{} code for the called systems.
+\item[Step 7:] Generate the \vhdl{} code for the calling system.
+\end{description}
+
+We consider successively each one of these steps.
+
+\subsection{How to Write a Periodic System}
+Recall that all signals that are manipulated by periodic systems have a domain
+whose first index is an infinite half-line. The other indexe can be anything 
+(provided this matches the type of the subsystems). 
+
+A periodic system is made out of either:
+\begin{itemize}
+\item Connexions between periodic signals.
+\begin{verbatim}
+A = B;
+\end{verbatim}
+\item Combinatorial elements.
+\begin{verbatim}
+A = B + (C * D);
+\end{verbatim}
+\item Over-samplers.
+\begin{verbatim}
+use overSampling[6] (A) returns (B);
+\end{verbatim}
+The number inside brackets is the over-sampling factor. It is a fixed integer. 
+Variable \texttt{A} is the input, and variable \texttt{B} is the output. 
+\item Under-samplers.
+\begin{verbatim}
+use underSampling[6] (A) returns (B);
+\end{verbatim}
+Same remark as for the over-samplers.  
+\item Calls to monochronous subsystems, among which, ROM and address generators.
+\begin{verbatim}
+use subsystem[ pm ] (A, B, etc.) returns (X, Y, etc.)
+\end{verbatim}
+\end{itemize}
+
+\subsection{Step 1: Solve the Balance Equations}
+Each variable and each component are assigned a period which is computed
+by solving the so-called {\em balance equations}. The rules that are applied are
+the following ones:
+\begin{itemize}
+\item Connected signals have the same period.
+\item Inputs and outputs of a subsystem have the same period (subsystems are
+assumed to be monochronous).
+\item The period of the output of an over-sampler is equal to \texttt{x} times
+that of its input, where \texttt{x} is the sampling factor.
+\item The opposite is true for an under-sampler.
+\end{itemize}
+The algorithm consists in finding out the connected 
+components of the dependence graph (whose elements have necessarily the same
+period), and solve the balance equations. This returns one or several solutions.
+Currently, only the case of one single solution is handled properly.
+
+\subsection{Step 2: Schedule the System}
+We assume that each subsystem has a parameterized schedule, which is put
+in the schedule library. Building a parameterized schedule is explained in 
+Appendix~\ref{paramschedule}. 
+
+Then, step 2 consists in scheduling the whole system. 
+
+\appendix
+\section{The \texttt{genVhdl} Function}
+\label{genvhdl}
+The \texttt{genVhdl} functions allows one to generate component parts and 
+architecture parts of several elements needed for the generation of 
+periodic systems. Currently, this function allows the generation of:
+\begin{itemize}
+\item read-only memories,
+\item finite-state machines,
+\item periodic enable signals.
+\end{itemize}
+
+The principle of the generation is in all cases the same: it is made from \texttt{vhdl} pattern files
+available in \texttt{\$MMALPHA/VHDL}. Place-holder are filled by the parameters given to 
+\texttt{genVhdl}, depending on the type of \vhdl{} program to be generated. Place-holders
+are character strings of the form \texttt{\$string\$}.
+
+\section{Read-only Memories}
+\label{gen-Rom}
+Although this \vhdl{} element is not specific to periodic systems, we describe here the
+use of \texttt{genVhdl} to generate a read-only memory.
+\begin{verbatim}
+ genVhdl["ROM" , "$wordLength$" -> "5",
+             "$name$" -> "kasami", "$size$" -> "7",
+             "$comment$" -> "Memory for Kasami coefficients",
+             "$values$" -> "{1,1,0,0,1,8,2}"];
+\end{verbatim}
+The first parameter, \texttt{"ROM"}, identifies the type of block generated. Other parameters
+are given as string replacement rules. The second parameter, gives the number of bits
+of the words of the memory (it is mandatory). The third (mandatory) parameter is the name
+given to the element. The fourth (mandatory) parameter is the number of words of 
+the memory. A comment place-holder allows one to add a comment to 
+the produced program. 
+Finally, the last parameter is the values assigned to each word of the memory.
+Its number should be equal to the size. There exist another place-holder in the 
+ROM, namely, to define the address size, but it is computed automatically by the generator. 
+
+String rewriting rules can be given in any order. 
+
+This command, when executed, returns a list of 2 strings: the first one is the 
+component corresponding to the ROM, and the second one is its architecture. 
+
+\begin{figure}[htbp]
+\begin{verbatim}
+COMPONENT kasami IS
+  PORT 
+  (
+    address : IN  STD_LOGIC_VECTOR(3 DOWNTO 0);
+    data : OUT STD_LOGIC_VECTOR(5 DOWNTO 0)
+  );
+END COMPONENT;
+\end{verbatim}
+\caption{Component of a ROM, as generated by the \texttt{genVhdl} 
+command of~\ref{gen-Rom}.\label{figRom}}
+\end{figure}
+
+Figure~\ref{figRom} gives an example of memory generated. 
+
+\section{Periodic enable signals}
+\label{gen-enable}
+In periodic systems, each component is driven by a \texttt{clock-enable} signal
+that controls its execution. The \texttt{genVhdl} function allows one to produce
+a \vhdl{} component that generates a periodic signal that can be used to 
+control such components. 
+\begin{verbatim}
+genVhdl[ "PeriodicEnable" ,  "$name$" -> "genEnable10",
+     "$period$" -> "10",
+     "$comment$" -> "Periodic enable generator with period 7"];
+\end{verbatim}
+The first component identifies the type of block produced. The second one, 
+gives the name of the generated component. The third one gives the period
+of the corresponding clock. Finally, the last one gives a comment. 
+
+Fig.~\ref{enable} shows an example of component for a 10 period enable.
+Notice that this component has 3 inputs: the basic clock of the system, \texttt{clk}, 
+a reset signal \texttt{rst}, and a {\em global enable} signal, \texttt{ceGen}. 
+This signal, when false, has the effect of {\em freezing} the generation of 
+the periodic enable during at least one \texttt{clk} clock cycle. 
+\begin{figure}[htbp]
+\begin{verbatim}
+--
+-- Component for a periodic enable of period 10
+-- 
+
+COMPONENT genEnable10 IS  
+  PORT(
+    clk : IN STD_LOGIC;
+    rst : IN STD_LOGIC;
+    ceGen : IN STD_LOGIC;
+    periodicGe : OUT STD_LOGIC
+  );
+END COMPONENT;
+
+\end{verbatim}
+\caption{Component of a periodic enable signal generator, as produced by the
+\texttt{genVhdl} command in~\ref{gen-enable}.\label{enable}}
+\end{figure}
+
+\section{Finite-state machine}
+\label{gen-fsm}
+The third element that the \texttt{genVhdl} function allows one to generate is 
+a finite-state machine. Fig.~\ref{command-fsm} displays the form of the
+\texttt{genVhdl} command to produce a finite-state machine. The first three 
+parameters are position parameters: the first one identifies the type of block
+generated, the second one gives the list (of strings) of the outputs of the 
+fsm. The type of these outputs are assumed to be \texttt{STD\_LOGIC}. The 
+third parameter describes the fsm. It is a list, the element of which are made
+of an integer and a string. The integer gives the time when a given action
+happens, and the string presents this action, in \texttt{vhdl} code. Usually, this
+action involves setting values to the outputs. 
+
+The first element of this list should always be \texttt{\{ 0, "action" \}}, as
+the initial state of the fsm is always named \texttt{state0}. 
+\begin{figure}[t]
+\begin{verbatim}
+genVhdl[ "Fsm" ,
+     {"fifo1_Out","fifo2_Out"},
+     {
+      {0,"BEGIN fifo1_Out <= '0'; fifo2_Out <= '1' END"},
+      {4,"BEGIN fifo1_Out <= '1'; fifo2_Out <= '0' END"},
+      {7,"BEGIN fifo1_Out <= '0'; fifo2_Out <= '1' END"},
+      {22,"BEGIN fifo1_Out <= '1'; fifo2_Out <= '0' END"}
+     },
+     "$name$" -> "myFsm",
+     "$comment$" -> "This is a Fsm"];
+\end{verbatim}             
+\caption{Command for generating a finite-state machine.\label{command-fsm}}
+\end{figure}             
+
+Fig.~\ref{fsm} displays the component generated for a finite-state machine.
+Notice that this fsm is controlled by a reset signal \texttt{rst} and a general
+clock-enable signal \texttt{CE\_gen}. 
+\begin{figure}[htbp]
+\begin{verbatim}
+--                                                                                 
+-- This is a Fsm                                                                   
+--                                                                                 
+COMPONENT myFsm IS
+  PORT(
+    clk : IN STD_LOGIC;
+    rst : IN STD_LOGIC;
+    CE_gen : IN STD_LOGIC;
+    fifo1_Out : OUT STD_LOGIC;
+    fifo2_Out : OUT STD_LOGIC
+  );
+END myFsm;
+\end{verbatim}
+\caption{Component of a periodic enable signal generator, as produced by the
+\texttt{genVhdl} command in Fig.~\ref{command-fsm}.\label{fsm}}
+\end{figure}
+
+\section{The FIR Filter}
+The filter was generated using \mmalpha{}. It consists of a controller, a module
+that instanciates three types of cells. 
+
+\subsection{The Module}
+It has 6 parameters: the clock (\texttt{clk}), the clock-enable signal (\texttt{CE}), 
+the reset signal (\texttt{Rst}), the coefficients (\texttt{wXMirr1In}), the x input (\texttt{xXMirr1In})
+and the outputs (\texttt{Yout}). 
+
+Note: separate the package from the remaining of the filter.
+Insert a return before the components...
+
+The Module calls the controller, \texttt{ControlfirModule}. This controller has the
+same signals (clock, clock-enable and reset) as the Module, and it returns a control
+signal called \texttt{pipeCw7ctl1PXInit}.
+
+It calls three types of cells. The simplest one is \texttt{cellfirModule4}, which 
+does almost nothing: initialize the value of \texttt{Y} -- bounded to \texttt{Y4(0)} in the
+call -- to 0, and transmits the
+value of X (in the output signal \texttt{pipeCx5}, bounded to \texttt{pipeCx54(0)} in the
+call.
+
+The second cell is \texttt{cellfirModule1}. Besides the control signals (clock, clock-enable and
+reset), it has four input signals: 
+\begin{itemize}
+\item the w coefficient (\texttt{wXMirr1}, binded to \texttt{wXMirr1(1)}),
+\item the X input (\texttt{pipeCx5Reg3Xloc}), binded to \texttt{pipeCx5Reg3Xloc(1)}),
+\item the Y input (\texttt{YReg5Xloc}) binded to \texttt{YReg5Xloc(1)}),
+\item and
+the pipe signal (\texttt{pipeCw7Xctl1PXInitXIn} binded to \texttt{pipeCw7Xctl1PXInitXIn(1)}).
+\end{itemize}
+It outputs similar signals:
+\begin{itemize}
+\item the w coefficient (\texttt{pipeCw7Xctl1P}, binded to \texttt{pipeCw7Xctl1P1(1)}),
+\item the X output (\texttt{pipeCx5}), binded to \texttt{pipeCx51(1)}),
+\item the pipe output signal (\texttt{pipeIOCw9} binded to \texttt{pipeIOCw91(1)}).
+\item and the Y output (\texttt{Y}) binded to \texttt{Y1(1)}),
+\end{itemize}
+
+The second cell is \texttt{cellfirModule3}. Besides the control signals (clock, clock-enable and
+reset), it has four input signals: 
+\begin{itemize}
+\item the w coefficient (\texttt{pipeCw7Xctl1PReg2Xloc}, binded to \texttt{pipeCw7Xctl1PReg2Xloc(p)}),
+\item the X input (\texttt{pipeCx5Reg3Xloc}), binded to \texttt{pipeCx5Reg3Xloc(1)}),
+\item the Y input (\texttt{YReg5Xloc}) binded to \texttt{YReg5Xloc(p)}),
+\item and
+the pipe signal (\texttt{pipeIOCw9Reg4Xloc} binded to \texttt{pipeIOCw9Reg4Xloc(p)}).
+\end{itemize}
+It outputs similar signals:
+\begin{itemize}
+\item the w coefficient (\texttt{pipeCw7Xctl1P}, binded to \texttt{pipeCw7Xctl1P1(1)}),
+\item the X output (\texttt{pipeCx5}), binded to \texttt{pipeCx53(p)}),
+\item and
+the pipe output signal (\texttt{pipeIOCw9} binded to \texttt{pipeIOCw93(p)}), and
+\item the Y output (\texttt{Y}) binded to \texttt{Y3(p)}).
+\end{itemize}
+
+\subsection{The Controller}
+At reset time (reset is active at value 0), the controller initializes a counter to value $-1$, and enters state
+\texttt{initState}. It remains in this state until the counter reaches the value
+34. During the first 35 cycles, the output of the pipe signal is 0. It gets the 
+value 1 during cycle 36 (when the counter reaches the value 34). 
+             
+\end{document}

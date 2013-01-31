@@ -1,0 +1,23 @@
+system firr :  {N,M,D | 3<=N<=(D-1,M-D-1)}
+               (x : {n | 1<=n<=M} of integer; 
+                d : {n | N<=n<=M} of integer)
+       returns (res : {n | N<=n<=M} of integer);
+var
+  outres : {t,p | t=2p; N<=p<=M; 3<=N<=(D-1,M-D-1)} of integer;
+  W : {t,p | 2p-2N<=t<=2p-N-1; N<=p<=M} of integer;
+  Y : {t,p | 2p-N-1<=t<=2p-1; N<=p<=M} of integer;
+  E : {t,p | t=2p+1; N<=p<=M} of integer;
+let
+  W[t,p] = 
+      case
+        { | p<=N+D-1} : 0[];
+        { | N+D<=p} : W[t-2,p-1] + E[2p-2D+1,p-D] * x[t-p+N-D+1];
+      esac;
+  Y[t,p] = 
+      case
+        { | t=2p-N-1} : 0[];
+        { | 2p-N<=t} : Y[t-1,p] + W[-t+4p-2N-1,p] * x[-t+3p-N];
+      esac;
+  E[t,p] = (d[p] - outres[2p,p]) / 32[];
+  outres[t,p] = Y[2p-1,p];
+tel;

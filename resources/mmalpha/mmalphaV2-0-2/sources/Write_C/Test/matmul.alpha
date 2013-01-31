@@ -1,0 +1,14 @@
+system MatMul :{N | 2<=N}
+               (A : {i,j | 1<=i<=N; 1<=j<=N} of real; 
+                B : {i,j | 1<=i<=N; 1<=j<=N} of real)
+       returns (C : {i,j | 1<=i<=N; 1<=j<=N} of real);
+var
+  AccC : {i,j,k | 1<=i<=N; 1<=j<=N; 0<=k<=N} of real;
+let
+  AccC[i,j,k] = 
+      case
+        {| k=0} : 0[];
+        {| 1<=k} : AccC[i,j,k-1] + A[i,k] * B[k,j];
+      esac;
+  C[i,j] = AccC[i,j,N];
+tel;

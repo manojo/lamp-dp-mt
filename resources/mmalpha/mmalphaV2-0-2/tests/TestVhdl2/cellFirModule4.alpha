@@ -1,0 +1,68 @@
+system cellFirModule4 :{p,N,M | p=1; 2<=N<=M-1}
+  (Y_reg7loc : {t | 2<=t<=-N+M+2; p=1; 2<=N<=M-1} of integer;
+   xPipe_reg5loc : {t | 1<=t<=-N+M; p=1; 2<=N} of integer; 
+   HPipeES_reg4loc : {t | -N<=t<=-1; p=1; 2<=N<=M-1} of integer;
+   xPipeES_reg3loc : {t | -N+1<=t<=1; p=1; 2<=N<=M-1} | 
+                     {t | 1<=t<=-N+M; p=1; 2<=N} of integer;
+   HPipe_ctl1P_Init_In : {t | 1<=t<=-N+M+1; p=1; 2<=N<=M-1} of boolean;
+   xPipe_ctl2P_Init_In : {t | 2<=t<=-N+M+2; p=1; 2<=N<=M-1} of boolean
+  )
+returns        
+  (Y : {t | 3<=t<=-N+M+3; p=1; 2<=N<=M-1} of integer; 
+   xPipe : {t | 2<=t<=-N+M+2; p=1; 2<=N<=M-1} of integer; 
+   HPipeES : {t | -N+2<=t<=1; p=1; 2<=N<=M-1} of integer; 
+   xPipeES : {t | -N+3<=t<=2; p=1; 2<=N<=M-1} of integer; 
+   xPipe_ctl2P : {t | 2<=t<=-N+M+2; p=1; 2<=N<=M-1} of boolean;
+   HPipe_ctl1P : {t | 1<=t<=-N+M+1; p=1; 2<=N<=M-1} of boolean
+  );
+var
+  HPipe_ctl1Ploc6 : {t | 1<=t<=-N+M+1; p=1; 2<=N<=M-1} of boolean;
+  xPipe_ctl2Ploc5 : {t | 2<=t<=-N+M+2; p=1; 2<=N<=M-1} of boolean;
+  xPipeESloc4 : {t | -N+3<=t<=2; p=1; 2<=N<=M-1} of integer;
+  HPipeESloc3 : {t | -N+2<=t<=1; p=1; 2<=N<=M-1} of integer;
+  xPipeloc2 : {t | 2<=t<=-N+M+2; p=1; 2<=N<=M-1} of integer;
+  HPipe : {t | 1<=t<=-N+M+1; p=1; 2<=N<=M-1} of integer;
+  HPipe_ctl1 : {t | 1<=t<=-N+M+1; p=1; 2<=N<=M-1} of boolean;
+  HPipeES_reg4 : {t | -N+2<=t<=1; p=1; 2<=N<=M-1} of integer;
+  HPipe_reg6 : {t | 2<=t<=-N+M+1; p=1; 2<=N} of integer;
+  HPipe_reg8 : {t | 3<=t<=-N+M+3; p=1; 2<=N<=M-1} of integer;
+  xPipe_ctl2 : {t | 2<=t<=-N+M+2; p=1; 2<=N<=M-1} of boolean;
+  xPipeES_reg3 : {t | -N+3<=t<=2; p=1; 2<=N<=M-1} of integer;
+  xPipe_reg5 : {t | 3<=t<=-N+M+2; p=1; 2<=N} of integer;
+  xPipe_reg9 : {t | 3<=t<=-N+M+3; p=1; 2<=N<=M-1} of integer;
+  Y_reg7 : {t | 3<=t<=-N+M+3; p=1; 2<=N<=M-1} of integer;
+let
+  HPipe_ctl1P[t] = HPipe_ctl1Ploc6[t];
+  xPipe_ctl2P[t] = xPipe_ctl2Ploc5[t];
+  xPipeES[t] = xPipeESloc4[t];
+  HPipeES[t] = HPipeESloc3[t];
+  xPipe[t] = xPipeloc2[t];
+  Y_reg7[t] = Y_reg7loc[t-1];
+  xPipe_reg5[t] = xPipe_reg5loc[t-2];
+  HPipeES_reg4[t] = HPipeES_reg4loc[t-2];
+  xPipeES_reg3[t] = xPipeES_reg3loc[t-2];
+  xPipe_reg9[t] = xPipeloc2[t-1];
+  HPipe_reg8[t] = HPipe[t-2];
+  HPipe_reg6[t] = HPipe[t-1];
+  xPipeESloc4[t] = xPipeES_reg3[t];
+  HPipeESloc3[t] = HPipeES_reg4[t];
+  xPipe_ctl2Ploc5[t] = xPipe_ctl2P_Init_In[t];
+  xPipe_ctl2[t] = xPipe_ctl2Ploc5[t];
+  xPipeloc2[t] = 
+      case
+        {| t=2; p=1; 2<=N<=M-1} : if (xPipe_ctl2[t]) then xPipeESloc4[t] else 
+               0[];
+        {| 3<=t<=-N+M+2; p=1; 2<=N} : if (xPipe_ctl2[t]) then 0[] else xPipe_reg5[t]
+        ;
+      esac;
+  HPipe_ctl1Ploc6[t] = HPipe_ctl1P_Init_In[t];
+  HPipe_ctl1[t] = HPipe_ctl1Ploc6[t];
+  HPipe[t] = 
+      case
+        {| t=1; p=1; 2<=N<=M-1} : if (HPipe_ctl1[t]) then HPipeESloc3[t] else 
+               0[];
+        {| 2<=t<=-N+M+1; p=1; 2<=N} : if (HPipe_ctl1[t]) then 0[] else HPipe_reg6[t]
+        ;
+      esac;
+  Y[t] = Y_reg7[t] + HPipe_reg8[t] * xPipe_reg9[t];
+tel;

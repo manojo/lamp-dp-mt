@@ -1,0 +1,574 @@
+Reporting on system: mouv
+  System was in $result  
+29/12/2007 -- 14h 39mn 41.040678s
+
+-- Equation: 
+    expr5 = 
+    case
+      {t,p1,p2,N,M,P | t=p1+2; p2=1} : 0.(t,p1,p2,N,M,P->);
+      {t,p1,p2,N,M,P | t=3p2+N+1; p1=p2+N+1; 2<=p2} : 0.(t,p1,p2,N,M,P->);
+      {t,p1,p2,N,M,P | t=3p2; p1=p2; 2<=p2} : 0.(t,p1,p2,N,M,P->);
+      {t,p1,p2,N,M,P | p2+1<=p1<=p2+N; 2<=p2} : 0.(t,p1,p2,N,M,P->);
+    esac;
+  ** type is: integer
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** No dependency
+
+
+-- Equation: 
+    expr4 = 
+    case
+      case
+        {t,p1,p2,N,M,P | t=p1+2p2} : True.(t,p1,p2,N,M,P->);
+        {t,p1,p2,N,M,P | p1+2p2+1<=t} : False.(t,p1,p2,N,M,P->);
+      esac;
+    esac;
+  ** type is: boolean
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** No dependency
+
+
+-- Equation: 
+    expr3 = 
+    case
+      case
+        {t,p1,p2,N,M,P | t=p1+2p2+M+1} : True.(t,p1,p2,N,M,P->);
+        {t,p1,p2,N,M,P | t<=p1+2p2+M} : False.(t,p1,p2,N,M,P->);
+      esac;
+    esac;
+  ** type is: boolean
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** No dependency
+
+
+-- Equation: 
+    expr2 = vt2.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 5 <= t <= 2 + M + N + 3 P
+  ** Dependency: vt2.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P)
+     Occurrence: {6, 4, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    expr1 = ut2.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 5 <= t <= 2 + M + N + 3 P
+  ** Dependency: ut2.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P)
+     Occurrence: {6, 5, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    vt4_WS = expr2.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 8 <= t <= 3 + M + N + 3 P
+  ** Dependency: expr2.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P)
+     Occurrence: {6, 6, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    vt3_WS = vt3_W.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 6 <= t <= 1 + M + N + 3 P
+  ** Dependency: vt3_W.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P)
+     Occurrence: {6, 7, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    vt3_W = 
+    case
+      if (expr4) then 
+          case
+            {t,p1,p2,N,M,P | t=p1+2p2} : expr5.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P);
+            {t,p1,p2,N,M,P | p1+2p2+1<=t} : 0.(t,p1,p2,N,M,P->);
+          esac else 
+      case
+        {t,p1,p2,N,M,P | t=p1+2p2} : 0.(t,p1,p2,N,M,P->);
+        {t,p1,p2,N,M,P | p1+2p2+1<=t} : expr2;
+      esac;
+    esac;
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** Dependency: expr5.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P)
+     Occurrence: {6, 8, 2, 1, 1, 2, 1, 1, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    vt2_S = vt2.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 7 <= t <= 2 + M + N + 3 P
+  ** Dependency: vt2.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P)
+     Occurrence: {6, 9, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    vt1_WWS = vt1_WW.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 7 <= t <= 2 + M + N + 3 P
+  ** Dependency: vt1_WW.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P)
+     Occurrence: {6, 10, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    vt1_WW = expr2.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 6 <= t <= 1 + M + N + 3 P
+  ** Dependency: expr2.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P)
+     Occurrence: {6, 11, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    ut4_WS = expr1.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 8 <= t <= 3 + M + N + 3 P
+  ** Dependency: expr1.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P)
+     Occurrence: {6, 12, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    ut3_WS = ut3_W.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 6 <= t <= 1 + M + N + 3 P
+  ** Dependency: ut3_W.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P)
+     Occurrence: {6, 13, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    ut3_W = 
+    case
+      if (expr4) then 
+          case
+            {t,p1,p2,N,M,P | t=p1+2p2} : expr5.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P);
+            {t,p1,p2,N,M,P | p1+2p2+1<=t} : 0.(t,p1,p2,N,M,P->);
+          esac else 
+      case
+        {t,p1,p2,N,M,P | t=p1+2p2} : 0.(t,p1,p2,N,M,P->);
+        {t,p1,p2,N,M,P | p1+2p2+1<=t} : expr1;
+      esac;
+    esac;
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** Dependency: expr5.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P)
+     Occurrence: {6, 14, 2, 1, 1, 2, 1, 1, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    ut2_S = ut2.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 7 <= t <= 2 + M + N + 3 P
+  ** Dependency: ut2.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P)
+     Occurrence: {6, 15, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    ut1_WWS = ut1_WW.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 7 <= t <= 2 + M + N + 3 P
+  ** Dependency: ut1_WW.(t,p1,p2,N,M,P->t-1,p1,p2-1,N,M,P)
+     Occurrence: {6, 16, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    ut1_WW = expr1.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** real Register
+  ** Valid from 6 <= t <= 1 + M + N + 3 P
+  ** Dependency: expr1.(t,p1,p2,N,M,P->t-1,p1-1,p2,N,M,P)
+     Occurrence: {6, 17, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    PipeIt = 
+    case
+      {t,p1,p2,N,M,P | p2=2} : It.(t,p1,p2,N,M,P->p1-2,t-p1-4,N,M,P);
+      {t,p1,p2,N,M,P | 3<=p2} : PipeIt.(t,p1,p2,N,M,P->t-3,p1-1,p2-1,N,M,P);
+    esac;
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** Dependency: It.(t,p1,p2,N,M,P->p1-2,t-p1-4,N,M,P)
+     Occurrence: {6, 18, 2, 1, 1, 2}
+    ** is not square
+    ** is not uniform
+    ** No possible pipeline
+  ** Dependency: PipeIt.(t,p1,p2,N,M,P->t-3,p1-1,p2-1,N,M,P)
+     Occurrence: {6, 18, 2, 1, 2, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    PipeIy = 
+    case
+      {t,p1,p2,N,M,P | p2=2} : Iy.(t,p1,p2,N,M,P->p1-2,t-p1-4,N,M,P);
+      {t,p1,p2,N,M,P | 3<=p2} : PipeIy.(t,p1,p2,N,M,P->t-3,p1-1,p2-1,N,M,P);
+    esac;
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** Dependency: Iy.(t,p1,p2,N,M,P->p1-2,t-p1-4,N,M,P)
+     Occurrence: {6, 19, 2, 1, 1, 2}
+    ** is not square
+    ** is not uniform
+    ** No possible pipeline
+  ** Dependency: PipeIy.(t,p1,p2,N,M,P->t-3,p1-1,p2-1,N,M,P)
+     Occurrence: {6, 19, 2, 1, 2, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    PipeIx = 
+    case
+      {t,p1,p2,N,M,P | p2=2} : Ix.(t,p1,p2,N,M,P->p1-2,t-p1-4,N,M,P);
+      {t,p1,p2,N,M,P | 3<=p2} : PipeIx.(t,p1,p2,N,M,P->t-3,p1-1,p2-1,N,M,P);
+    esac;
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** Dependency: Ix.(t,p1,p2,N,M,P->p1-2,t-p1-4,N,M,P)
+     Occurrence: {6, 20, 2, 1, 1, 2}
+    ** is not square
+    ** is not uniform
+    ** No possible pipeline
+  ** Dependency: PipeIx.(t,p1,p2,N,M,P->t-3,p1-1,p2-1,N,M,P)
+     Occurrence: {6, 20, 2, 1, 2, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    auxcoef = coef.(t,p1,p2,N,M,P->N,M,P);
+  ** type is: real
+  ** Input equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** Dependency: coef.(t,p1,p2,N,M,P->N,M,P)
+     Occurrence: {6, 21, 2}
+    ** is not square
+    ** is not uniform
+    ** Possible pipeline: 
+     -> Execute the command: pipeline[{6, 21, 2}, {"pipeCcoef2", {0, 0, 1, 0, 0, 0}}]
+
+
+-- Equation: 
+    ub = (ut1_WWS.(t,p1,p2,N,M,P->t-1,p1,p2,N,M,P) + ut2_S.(t,p1,p2,N,M,P->t-1,p1,p2,N,M,P) + ut3_WS.(t,p1,p2,N,M,P->t-2,p1,p2,N,M,P) + ut4_WS.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)) / 4.(t,p1,p2,N,M,P->);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** Combinatorial logic
+  ** Binops: {add, add, add, div}
+  ** Unops: {}
+  ** Valid from 8 <= t <= 3 + M + N + 3 P
+  ** Dependency: ut1_WWS.(t,p1,p2,N,M,P->t-1,p1,p2,N,M,P)
+     Occurrence: {6, 22, 2, 2, 2, 2, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: ut2_S.(t,p1,p2,N,M,P->t-1,p1,p2,N,M,P)
+     Occurrence: {6, 22, 2, 2, 2, 2, 3}
+    ** is square
+    ** is uniform
+  ** Dependency: ut3_WS.(t,p1,p2,N,M,P->t-2,p1,p2,N,M,P)
+     Occurrence: {6, 22, 2, 2, 2, 3}
+    ** is square
+    ** is uniform
+  ** Dependency: ut4_WS.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 22, 2, 2, 3}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    vb = (vt1_WWS.(t,p1,p2,N,M,P->t-1,p1,p2,N,M,P) + vt2_S.(t,p1,p2,N,M,P->t-1,p1,p2,N,M,P) + vt3_WS.(t,p1,p2,N,M,P->t-2,p1,p2,N,M,P) + vt4_WS.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)) / 4.(t,p1,p2,N,M,P->);
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** Combinatorial logic
+  ** Binops: {add, add, add, div}
+  ** Unops: {}
+  ** Valid from 8 <= t <= 3 + M + N + 3 P
+  ** Dependency: vt1_WWS.(t,p1,p2,N,M,P->t-1,p1,p2,N,M,P)
+     Occurrence: {6, 23, 2, 2, 2, 2, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: vt2_S.(t,p1,p2,N,M,P->t-1,p1,p2,N,M,P)
+     Occurrence: {6, 23, 2, 2, 2, 2, 3}
+    ** is square
+    ** is uniform
+  ** Dependency: vt3_WS.(t,p1,p2,N,M,P->t-2,p1,p2,N,M,P)
+     Occurrence: {6, 23, 2, 2, 2, 3}
+    ** is square
+    ** is uniform
+  ** Dependency: vt4_WS.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 23, 2, 2, 3}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    Ecm = (PipeIx.(t,p1,p2,N,M,P->t,p1,p2,N,M,P) * ub.(t,p1,p2,N,M,P->t,p1,p2,N,M,P) + PipeIy.(t,p1,p2,N,M,P->t,p1,p2,N,M,P) * vb.(t,p1,p2,N,M,P->t,p1,p2,N,M,P) + PipeIt.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)) / 
+    (auxcoef.(t,p1,p2,N,M,P->t-3,p1-1,p2-1,N,M,P) + PipeIx.(t,p1,p2,N,M,P->t,p1,p2,N,M,P) * PipeIx.(t,p1,p2,N,M,P->t,p1,p2,N,M,P) + PipeIy.(t,p1,p2,N,M,P->t,p1,p2,N,M,P) * PipeIy.(t,p1,p2,N,M,P->t,p1,p2,N,M,P));
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** Combinatorial logic
+  ** Binops: {mul, mul, add, add, mul, add, mul, add, div}
+  ** Unops: {}
+  ** Valid from 8 <= t <= 3 + M + N + 3 P
+  ** Dependency: PipeIx.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 24, 2, 2, 2, 2, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: ub.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 24, 2, 2, 2, 2, 3}
+    ** is square
+    ** is uniform
+  ** Dependency: PipeIy.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 24, 2, 2, 2, 3, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: vb.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 24, 2, 2, 2, 3, 3}
+    ** is square
+    ** is uniform
+  ** Dependency: PipeIt.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 24, 2, 2, 3}
+    ** is square
+    ** is uniform
+  ** Dependency: auxcoef.(t,p1,p2,N,M,P->t-3,p1-1,p2-1,N,M,P)
+     Occurrence: {6, 24, 2, 3, 2, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: PipeIx.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 24, 2, 3, 2, 3, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: PipeIx.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 24, 2, 3, 2, 3, 3}
+    ** is square
+    ** is uniform
+  ** Dependency: PipeIy.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 24, 2, 3, 3, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: PipeIy.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 24, 2, 3, 3, 3}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    ut2 = 
+    case
+      {t,p1,p2,N,M,P | p2=1} : 0.(t,p1,p2,N,M,P->);
+      {t,p1,p2,N,M,P | p1=p2+N+1; 2<=p2} : 0.(t,p1,p2,N,M,P->);
+      {t,p1,p2,N,M,P | p1=p2; 2<=p2} : 0.(t,p1,p2,N,M,P->);
+      {t,p1,p2,N,M,P | p2+1<=p1<=p2+N; 2<=p2} : if (expr3) then 
+             case
+               {t,p1,p2,N,M,P | t=p1+2p2+M+1} : 0.(t,p1,p2,N,M,P->);
+               {t,p1,p2,N,M,P | t<=p1+2p2+M} : 0.(t,p1,p2,N,M,P->);
+             esac else 
+         case
+           {t,p1,p2,N,M,P | t=p1+2p2+M+1} : 0.(t,p1,p2,N,M,P->);
+           {t,p1,p2,N,M,P | t<=p1+2p2+M} : ub.(t,p1,p2,N,M,P->t,p1,p2,N,M,P) - PipeIx.(t,p1,p2,N,M,P->t,p1,p2,N,M,P) * Ecm.(t,p1,p2,N,M,P->t,p1,p2,N,M,P);
+         esac;
+    esac;
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** Combinatorial logic
+  ** Binops: {mul, sub}
+  ** Unops: {}
+  ** Valid from 4 <= t <= 2 + M + N + 3 P
+  ** Dependency: ub.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 25, 2, 1, 4, 2, 3, 1, 2, 2, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: PipeIx.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 25, 2, 1, 4, 2, 3, 1, 2, 2, 3, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: Ecm.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 25, 2, 1, 4, 2, 3, 1, 2, 2, 3, 3}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    vt2 = 
+    case
+      {t,p1,p2,N,M,P | p2=1} : 0.(t,p1,p2,N,M,P->);
+      {t,p1,p2,N,M,P | p1=p2+N+1; 2<=p2} : 0.(t,p1,p2,N,M,P->);
+      {t,p1,p2,N,M,P | p1=p2; 2<=p2} : 0.(t,p1,p2,N,M,P->);
+      {t,p1,p2,N,M,P | p2+1<=p1<=p2+N; 2<=p2} : if (expr3) then 
+             case
+               {t,p1,p2,N,M,P | t=p1+2p2+M+1} : 0.(t,p1,p2,N,M,P->);
+               {t,p1,p2,N,M,P | t<=p1+2p2+M} : 0.(t,p1,p2,N,M,P->);
+             esac else 
+         case
+           {t,p1,p2,N,M,P | t=p1+2p2+M+1} : 0.(t,p1,p2,N,M,P->);
+           {t,p1,p2,N,M,P | t<=p1+2p2+M} : vb.(t,p1,p2,N,M,P->t,p1,p2,N,M,P) - PipeIy.(t,p1,p2,N,M,P->t,p1,p2,N,M,P) * Ecm.(t,p1,p2,N,M,P->t,p1,p2,N,M,P);
+         esac;
+    esac;
+  ** type is: real
+  ** Local equation
+  ** Indexes: {t, p1, p2}
+  ** Scheduled and not allocated, one time dimension
+  ** Combinatorial logic
+  ** Binops: {mul, sub}
+  ** Unops: {}
+  ** Valid from 4 <= t <= 2 + M + N + 3 P
+  ** Dependency: vb.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 26, 2, 1, 4, 2, 3, 1, 2, 2, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: PipeIy.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 26, 2, 1, 4, 2, 3, 1, 2, 2, 3, 2}
+    ** is square
+    ** is uniform
+  ** Dependency: Ecm.(t,p1,p2,N,M,P->t,p1,p2,N,M,P)
+     Occurrence: {6, 26, 2, 1, 4, 2, 3, 1, 2, 2, 3, 3}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    u = ut2.(i,j,N,M,P->i+j+3P,i+P,P,N,M,P);
+  ** type is: real
+  ** Output equation
+  ** Indexes: {i, j}
+  ** Dependency: ut2.(i,j,N,M,P->i+j+3P,i+P,P,N,M,P)
+     Occurrence: {6, 27, 2}
+    ** is not square
+    ** is not uniform
+    ** No possible pipeline
+
+
+-- Equation: 
+    v = vt2.(i,j,N,M,P->i+j+3P,i+P,P,N,M,P);
+  ** type is: real
+  ** Output equation
+  ** Indexes: {i, j}
+  ** Dependency: vt2.(i,j,N,M,P->i+j+3P,i+P,P,N,M,P)
+     Occurrence: {6, 28, 2}
+    ** is not square
+    ** is not uniform
+    ** No possible pipeline
+
+  **** Resources used:
+      12 floating-point registers
+      0 integer or floating-point mux
+      6 multipliers 
+      6 adders/subtracters 
+      add from 8 to 3 + M + N + 3 P
+      add from 8 to 3 + M + N + 3 P
+      add from 8 to 3 + M + N + 3 P
+      div from 8 to 3 + M + N + 3 P
+      add from 8 to 3 + M + N + 3 P
+      add from 8 to 3 + M + N + 3 P
+      add from 8 to 3 + M + N + 3 P
+      div from 8 to 3 + M + N + 3 P
+      mul from 8 to 3 + M + N + 3 P
+      mul from 8 to 3 + M + N + 3 P
+      add from 8 to 3 + M + N + 3 P
+      add from 8 to 3 + M + N + 3 P
+      mul from 8 to 3 + M + N + 3 P
+      add from 8 to 3 + M + N + 3 P
+      mul from 8 to 3 + M + N + 3 P
+      add from 8 to 3 + M + N + 3 P
+      div from 8 to 3 + M + N + 3 P
+      mul from 4 to 2 + M + N + 3 P
+      sub from 4 to 2 + M + N + 3 P
+      mul from 4 to 2 + M + N + 3 P
+      sub from 4 to 2 + M + N + 3 P

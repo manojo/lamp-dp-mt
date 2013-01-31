@@ -1,0 +1,14 @@
+system add :   {N | 1<=N}
+               (a : {k | 1<=k<=N} of integer; 
+                b : {k | 1<=k<=N} of integer)
+       returns (c : {k | 1<=k<=N} of integer);
+let
+  c[k] = a + b;
+tel;
+
+system testscd3 :{M | 1<=M}
+                (in : {k,i | 1<=k<=M; 1<=i<=10} of integer)
+       returns  (out : {k,i | 1<=k<=M; 1<=i<=10} of integer);
+let
+  use {i|1<=i<=10} add[M] (in, in) returns  (out) ;
+tel;

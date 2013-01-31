@@ -1,0 +1,10 @@
+
+COMPONENT ControlsequenceModule
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  expr2 : OUT STD_LOGIC
+);
+END COMPONENT;
+

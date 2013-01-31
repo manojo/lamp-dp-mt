@@ -1,0 +1,236 @@
+system ControlfirrModule ( )
+       returns           (W_ctl1P_Init : 
+                          {t | 0<=t<=17} | {t | 18<=t<=34} of boolean);
+let
+  W_ctl1P_Init[t] = 
+      case
+        { | t<=17} : True[];
+        { | 18<=t} : False[];
+      esac;
+tel;
+
+system cellfirrModule1 :{p | 1<=p<=15}
+                       (Y_reg8loc : {t | p<=t<=p+34; 1<=p<=15} of integer; 
+                        XN_reg4loc : {t | p-1<=t<=p+33; 1<=p<=15} | 
+                        {t | 2p-17<=t<=p-2; 1<=p} of integer; 
+                        XDN_reg3loc : {t | p+16<=t<=p+32; 1<=p<=15} | 
+                        {t | 2p<=t<=p+15; 1<=p} of integer; 
+                        ED_reg2loc : {t | p+16<=t<=p+32; 1<=p<=15} of integer
+                        ; 
+                        W_ctl1P_reg1loc : {t | p-1<=t<=p+16; 1<=p<=15} | 
+                        {t | p+17<=t<=p+33; 1<=p<=15} of boolean)
+       returns         (Y : {t | p+1<=t<=p+35; 1<=p<=15} of integer; 
+                        XN : {t | p<=t<=p+34; 1<=p<=15} | 
+                        {t | 2p-15<=t<=p-1; 1<=p} of integer; 
+                        XDN : {t | p+17<=t<=p+33; 1<=p<=15} | 
+                        {t | 2p+2<=t<=p+16; 1<=p} of integer; 
+                        ED : {t | p+17<=t<=p+33; 1<=p<=15} of integer; 
+                        W_ctl1P : {t | p<=t<=p+17; 1<=p<=15} | 
+                        {t | p+18<=t<=p+34; 1<=p<=15} of boolean);
+var
+  W_ctl1Ploc5 : 
+  {t | p<=t<=p+17; 1<=p<=15} | {t | p+18<=t<=p+34; 1<=p<=15} of boolean;
+  EDloc4 : {t | p+17<=t<=p+33; 1<=p<=15} of integer;
+  XDNloc3 : 
+  {t | p+17<=t<=p+33; 1<=p<=15} | {t | 2p+2<=t<=p+16; 1<=p} of integer;
+  XNloc2 : {t | p<=t<=p+34; 1<=p<=15} | {t | 2p-15<=t<=p-1; 1<=p} of integer;
+  ED_reg2 : {t | p+17<=t<=p+33; 1<=p<=15} of integer;
+  ED_reg6 : {t | p+18<=t<=p+34; 1<=p<=15} of integer;
+  expr1 : {t | p+1<=t<=p+35; 1<=p<=15} of integer;
+  TSep1 : {t | p+18<=t<=p+34; 1<=p<=15} of integer;
+  W : {t | p<=t<=p+34; 1<=p<=15} of integer;
+  W_ctl1 : 
+  {t | p<=t<=p+17; 1<=p<=15} | {t | p+18<=t<=p+34; 1<=p<=15} of boolean;
+  W_ctl1P_reg1 : {t | p<=t<=p+34; 1<=p<=15} of boolean;
+  XDN_reg3 : {t | 2p+2<=t<=p+33; 1<=p<=15} of integer;
+  XDN_reg7 : {t | p+18<=t<=p+34; 1<=p<=15} of integer;
+  XN_reg10 : {t | p+1<=t<=p+35; 1<=p<=15} of integer;
+  XN_reg4 : {t | 2p-15<=t<=p+34; 1<=p<=15} of integer;
+  Y_reg8 : {t | p+1<=t<=p+35; 1<=p<=15} of integer;
+let
+  W_ctl1P[t] = W_ctl1Ploc5[t];
+  ED[t] = EDloc4[t];
+  XDN[t] = XDNloc3[t];
+  XN[t] = XNloc2[t];
+  expr1[t] = W[t-1];
+  Y_reg8[t] = Y_reg8loc[t-1];
+  XN_reg4[t] = XN_reg4loc[t-2];
+  XDN_reg3[t] = XDN_reg3loc[t-2];
+  ED_reg2[t] = ED_reg2loc[t-1];
+  W_ctl1P_reg1[t] = W_ctl1P_reg1loc[t-1];
+  XN_reg10[t] = XNloc2[t-1];
+  XDN_reg7[t] = XDNloc3[t-1];
+  ED_reg6[t] = EDloc4[t-1];
+  EDloc4[t] = ED_reg2[t];
+  XDNloc3[t] = XDN_reg3[t];
+  XNloc2[t] = XN_reg4[t];
+  W_ctl1Ploc5[t] = W_ctl1P_reg1[t];
+  W_ctl1[t] = W_ctl1Ploc5[t];
+  TSep1[t] = expr1[t] + ED_reg6[t] * XDN_reg7[t];
+  W[t] = 
+      case
+        { | t<=p+17; 1<=p<=15} : if (W_ctl1[t]) then 0[] else 0[];
+        { | p+18<=t; 1<=p<=15} : if (W_ctl1[t]) then 0[] else TSep1[t];
+      esac;
+  Y[t] = Y_reg8[t] + expr1[t] * XN_reg10[t];
+tel;
+
+system cellfirrModule2 :{p | p=0}
+                       (res_mirr1 : {t | 17<=t<=33; p=0} of integer; 
+                        d_mirr1 : {t | 17<=t<=33; p=0} of integer; 
+                        x_mirr2 : {t | -15<=t<=34; p=0} of integer; 
+                        x_mirr1 : {t | 2<=t<=33; p=0} of integer; 
+                        Y_reg8loc : {t | 0<=t<=34; p=0} of integer; 
+                        W_ctl1P_Init_In : {t | 0<=t<=34; p=0} of boolean)
+       returns         (Y : {t | 1<=t<=35; p=0} of integer; 
+                        XN : {t | 0<=t<=34; p=0} | {t | -15<=t<=-1; p=0} of
+                         integer; 
+                        XDN : 
+                        {t | 17<=t<=33; p=0} | {t | 2<=t<=16; p=0} of integer
+                        ; 
+                        ED : {t | 17<=t<=33; p=0} of integer; 
+                        W_ctl1P : 
+                        {t | 0<=t<=17; p=0} | {t | 18<=t<=34; p=0} of boolean)
+;
+var
+  W_ctl1Ploc5 : {t | 0<=t<=17; p=0} | {t | 18<=t<=34; p=0} of boolean;
+  EDloc4 : {t | 17<=t<=33; p=0} of integer;
+  XDNloc3 : {t | 17<=t<=33; p=0} | {t | 2<=t<=16; p=0} of integer;
+  XNloc2 : {t | 0<=t<=34; p=0} | {t | -15<=t<=-1; p=0} of integer;
+  ED_reg6 : {t | 18<=t<=34; p=0} of integer;
+  expr1 : {t | 1<=t<=35; p=0} of integer;
+  TSep1 : {t | 18<=t<=34; p=0} of integer;
+  W : {t | 0<=t<=34; p=0} of integer;
+  W_ctl1 : {t | 0<=t<=17; p=0} | {t | 18<=t<=34; p=0} of boolean;
+  XDN_reg7 : {t | 18<=t<=34; p=0} of integer;
+  XN_reg10 : {t | 1<=t<=35; p=0} of integer;
+  Y_reg8 : {t | 1<=t<=35; p=0} of integer;
+let
+  W_ctl1P[t] = W_ctl1Ploc5[t];
+  ED[t] = EDloc4[t];
+  XDN[t] = XDNloc3[t];
+  XN[t] = XNloc2[t];
+  expr1[t] = W[t-1];
+  Y_reg8[t] = Y_reg8loc[t-1];
+  XN_reg10[t] = XNloc2[t-1];
+  XDN_reg7[t] = XDNloc3[t-1];
+  ED_reg6[t] = EDloc4[t-1];
+  EDloc4[t] = d_mirr1[t] - res_mirr1[t];
+  XDNloc3[t] = x_mirr1[t];
+  XNloc2[t] = x_mirr2[t];
+  W_ctl1Ploc5[t] = W_ctl1P_Init_In[t];
+  W_ctl1[t] = W_ctl1Ploc5[t];
+  TSep1[t] = expr1[t] + ED_reg6[t] * XDN_reg7[t];
+  W[t] = 
+      case
+        { | t<=17; p=0} : if (W_ctl1[t]) then 0[] else 0[];
+        { | 18<=t; p=0} : if (W_ctl1[t]) then 0[] else TSep1[t];
+      esac;
+  Y[t] = Y_reg8[t] + expr1[t] * XN_reg10[t];
+tel;
+
+system cellfirrModule4 :{p | p=-1}
+                       ( )
+       returns         (Y : {t | 0<=t<=34; p=-1} of integer);
+let
+  Y[t] = 0[];
+tel;
+
+system firrModule (res_mirr1In : {t,p | 17<=t<=33; p=0} of integer; 
+                   d_mirr1In : {t,p | 17<=t<=33; p=0} of integer; 
+                   x_mirr2In : {t,p | -15<=t<=34; p=0} of integer; 
+                   x_mirr1In : {t,p | 2<=t<=33; p=0} of integer)
+       returns    (YOut : {t,p | p+1<=t<=p+35; -1<=p<=15} of integer);
+var
+  W_ctl1P_Init : {t | 0<=t<=34} of boolean;
+  Y : {t,p | p+1<=t<=p+35; -1<=p<=15} of integer;
+  Y1 : {t,p | p+1<=t<=p+35; 1<=p<=15} of integer;
+  Y_reg8loc : {t,p | p<=t<=p+34; 0<=p<=16} of integer;
+  XN1 : {t,p | 2p-15<=t<=p+34; 1<=p<=15} of integer;
+  XN_reg4loc : 
+  {t,p | p-1<=t<=p+33; 1<=p<=16} | {t,p | 2p-17<=t<=p-2; 1<=p} of integer;
+  XDN1 : {t,p | 2p+2<=t<=p+33; 1<=p<=15} of integer;
+  XDN_reg3loc : 
+  {t,p | p+16<=t<=p+32; 1<=p<=16} | {t,p | 2p<=t<=p+15; 1<=p} of integer;
+  ED1 : {t,p | p+17<=t<=p+33; 1<=p<=15} of integer;
+  ED_reg2loc : {t,p | p+16<=t<=p+32; 1<=p<=16} of integer;
+  W_ctl1P1 : {t,p | p<=t<=p+34; 1<=p<=15} of boolean;
+  W_ctl1P_reg1loc : 
+  {t,p | p-1<=t<=p+16; 1<=p<=16} | {t,p | p+17<=t<=p+33; 1<=p<=16} of boolean;
+  res_mirr1 : {t,p | 17<=t<=33; p=0} of integer;
+  d_mirr1 : {t,p | 17<=t<=33; p=0} of integer;
+  x_mirr2 : {t,p | -15<=t<=34; p=0} of integer;
+  x_mirr1 : {t,p | 2<=t<=33; p=0} of integer;
+  Y2 : {t,p | 1<=t<=35; p=0} of integer;
+  XN2 : {t,p | -15<=t<=34; p=0} of integer;
+  XDN2 : {t,p | 2<=t<=33; p=0} of integer;
+  ED2 : {t,p | 17<=t<=33; p=0} of integer;
+  W_ctl1P2 : {t,p | 0<=t<=34; p=0} of boolean;
+  W_ctl1P_Init_In : {t,p | 0<=t<=34; p=0} of boolean;
+  Y4 : {t,p | 0<=t<=34; p=-1} of integer;
+let
+  d_mirr1[t,p] = d_mirr1In[t,p];
+  ED_reg2loc[t,p] = 
+      case
+        { | p+16<=t<=p+32; 2<=p<=16} : ED1[t,p-1];
+        { | 17<=t<=33; p=1} : ED2[t,p-1];
+      esac;
+  res_mirr1[t,p] = res_mirr1In[t,p];
+  W_ctl1P_Init_In[t,p] = W_ctl1P_Init[t];
+  W_ctl1P_reg1loc[t,p] = 
+      case
+        { | p-1<=t<=p+33; 2<=p<=16} : W_ctl1P1[t,p-1];
+        { | 0<=t<=34; p=1} : W_ctl1P2[t,p-1];
+      esac;
+  XDN_reg3loc[t,p] = 
+      case
+        { | 2p<=t<=p+32; 2<=p<=16} : XDN1[t,p-1];
+        { | 2<=t<=33; p=1} : XDN2[t,p-1];
+      esac;
+  x_mirr1[t,p] = x_mirr1In[t,p];
+  x_mirr2[t,p] = x_mirr2In[t,p];
+  XN_reg4loc[t,p] = 
+      case
+        { | 2p-17<=t<=p+33; 2<=p<=16} : XN1[t,p-1];
+        { | -15<=t<=34; p=1} : XN2[t,p-1];
+      esac;
+  Y[t,p] = 
+      case
+        { | p+1<=t<=p+35; 1<=p<=15} : Y1[t,p];
+        { | 1<=t<=35; p=0} : Y2[t,p];
+        { | 0<=t<=34; p=-1} : Y4[t,p];
+      esac;
+  YOut[t,p] = Y[t,p];
+  Y_reg8loc[t,p] = 
+      case
+        { | p<=t<=p+34; 2<=p<=16} : Y1[t,p-1];
+        { | 1<=t<=35; p=1} : Y2[t,p-1];
+        { | 0<=t<=34; p=0} : Y4[t,p-1];
+      esac;
+  use  ControlfirrModule[] () returns  (W_ctl1P_Init) ;
+  use {p | 1<=p<=15} cellfirrModule1[p] 
+        (Y_reg8loc, XN_reg4loc, XDN_reg3loc, ED_reg2loc, W_ctl1P_reg1loc) 
+        returns  (Y1, XN1, XDN1, ED1, W_ctl1P1) ;
+  use {p | p=0} cellfirrModule2[p] 
+        (res_mirr1, d_mirr1, x_mirr2, x_mirr1, Y_reg8loc, W_ctl1P_Init_In) 
+        returns  (Y2, XN2, XDN2, ED2, W_ctl1P2) ;
+  use {p | p=-1} cellfirrModule4[p] () returns  (Y4) ;
+tel;
+
+system firr    (x : {n | 1<=n<=50} of integer; 
+                d : {n | 16<=n<=50} of integer)
+       returns (res : {n | 16<=n<=50} of integer);
+var
+  res_mirr1 : {t,p | 17<=t<=33; p=0} of integer;
+  d_mirr1 : {t,p | 17<=t<=33; p=0} of integer;
+  x_mirr2 : {t,p | -15<=t<=34; p=0} of integer;
+  x_mirr1 : {t,p | 2<=t<=33; p=0} of integer;
+  Y : {t,p | p+1<=t<=p+35; -1<=p<=15} of integer;
+let
+  res_mirr1[t,p] = res[t-1];
+  d_mirr1[t,p] = d[t-1];
+  x_mirr2[t,p] = x[t+16];
+  x_mirr1[t,p] = x[t-1];
+  res[n] = Y[n,15];
+  use  firrModule[] (res_mirr1, d_mirr1, x_mirr2, x_mirr1) returns  (Y) ;
+tel;

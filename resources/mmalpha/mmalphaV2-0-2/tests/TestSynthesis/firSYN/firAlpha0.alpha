@@ -1,0 +1,41 @@
+system fir :   {N,M | 3<=N<=M-1}
+               (x : {i | 1<=i<=M} of integer; 
+                H : {n | 0<=n<=N-1} of integer)
+       returns (res : {i | N<=i<=M} of integer);
+var
+  HXMirr1 : {t,p | M+1<=t<=N+M; N<=p<=M} of integer;
+  xXMirr1 : {t,p | M+1<=t<=N+M; N<=p<=M} of integer;
+  TSep2 : {t,p | M+1<=t<=N+M; N<=p<=M} of integer;
+  TSep1 : {t,p | M+1<=t<=N+M; N<=p<=M} of integer;
+  ser1Reg1 : {t,p | M+1<=t<=N+M; N<=p<=M} of integer;
+  ser1Xctl1XIn : {t,p | M<=t<=N+M; N<=p<=M} of boolean;
+  ser1 : {t,p | M<=t<=N+M; N<=p<=M} of integer;
+  ser1Xctl1 : {t | M<=t<=N+M} of boolean;
+let
+  HXMirr1[t,p] = H[t-M-1];
+  xXMirr1[t,p] = x[-t+p+M+1];
+  ser1Reg1[t,p] = ser1[t-1,p];
+  ser1Xctl1XIn[t,p] = ser1Xctl1[t];
+  ser1Xctl1[t] = 
+      case
+        case
+          { | t=M} : True[];
+          { | M+1<=t} : False[];
+        esac;
+      esac;
+  TSep1[t,p] = HXMirr1 * xXMirr1;
+  TSep2[t,p] = ser1Reg1 + TSep1;
+  ser1[t,p] = 
+      case
+        if (ser1Xctl1XIn) then 
+            case
+              { | t=M} : 0[];
+              { | M+1<=t} : 0[];
+            esac else 
+        case
+          { | t=M} : 0[];
+          { | M+1<=t} : TSep2;
+        esac;
+      esac;
+  res[i] = ser1[N+M,i];
+tel;

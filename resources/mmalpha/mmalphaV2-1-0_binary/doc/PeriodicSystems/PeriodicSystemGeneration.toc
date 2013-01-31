@@ -1,0 +1,14 @@
+\contentsline {section}{\numberline {1}Introduction}{2}
+\contentsline {section}{\numberline {2}The \texttt {synPeriodic} function}{2}
+\contentsline {section}{\numberline {3}Generation of {\sc vhdl}{} Programs}{3}
+\contentsline {subsection}{\numberline {3.1}Generalities}{3}
+\contentsline {subsection}{\numberline {3.2}How to Write a Periodic System}{3}
+\contentsline {subsection}{\numberline {3.3}Step 1: Solve the Balance Equations}{4}
+\contentsline {subsection}{\numberline {3.4}Step 2: Schedule the System}{5}
+\contentsline {section}{\numberline {A}The \texttt {genVhdl} Function}{5}
+\contentsline {section}{\numberline {B}Read-only Memories}{5}
+\contentsline {section}{\numberline {C}Periodic enable signals}{6}
+\contentsline {section}{\numberline {D}Finite-state machine}{7}
+\contentsline {section}{\numberline {E}The FIR Filter}{7}
+\contentsline {subsection}{\numberline {E.1}The Module}{8}
+\contentsline {subsection}{\numberline {E.2}The Controller}{10}

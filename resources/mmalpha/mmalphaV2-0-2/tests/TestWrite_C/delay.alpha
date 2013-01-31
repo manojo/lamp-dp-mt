@@ -1,0 +1,5 @@
+system Delay (in : {t| t >= 0} of boolean)
+  returns (out : {t | t >= 1} of boolean);
+let
+  out[i] = in[i-1];
+tel;

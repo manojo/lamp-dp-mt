@@ -1,0 +1,45 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:596: checking host system type
+configure:617: checking target system type
+configure:635: checking build system type
+configure:661: checking for gcc
+configure:774: checking whether the C compiler (gcc  ) works
+configure:790: gcc -o conftest    conftest.c  1>&5
+configure:816: checking whether the C compiler (gcc  ) is a cross-compiler
+configure:821: checking whether we are using GNU C
+configure:830: gcc -E conftest.c
+configure:849: checking whether gcc accepts -g
+configure:881: checking whether ln -s works
+configure:904: checking for ranlib
+configure:932: checking whether make sets ${MAKE}
+configure:961: checking for cd
+configure:999: checking for a BSD compatible install
+configure:1053: checking for working const
+configure:1107: gcc -c -g -O2  conftest.c 1>&5
+configure:1128: checking how to run the C preprocessor
+configure:1149: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1208: checking for ANSI C header files
+configure:1221: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1288: gcc -o conftest -g -O2   conftest.c  1>&5
+configure: In function 'main':
+configure:1283: warning: incompatible implicit declaration of built-in function 'exit'
+configure:1312: checking for size_t
+configure:1349: checking for ANSI C header files
+configure:1474: checking size of int
+configure:1493: gcc -o conftest -g -O2   conftest.c  1>&5
+configure: In function 'main':
+configure:1487: warning: incompatible implicit declaration of built-in function 'exit'
+configure:1513: checking size of long long int
+configure:1532: gcc -o conftest -g -O2   conftest.c  1>&5
+configure: In function 'main':
+configure:1526: warning: incompatible implicit declaration of built-in function 'exit'
+configure:1664: checking whether gmp works
+configure:1673: checking for gmp.h
+configure:1683: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1679:17: error: gmp.h: No such file or directory
+configure: failed program was:
+#line 1678 "configure"
+#include "confdefs.h"
+#include <gmp.h>

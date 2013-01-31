@@ -1,0 +1,105 @@
+system matmult :{M | 2<=M}
+               (a : {i,j | 1<=i<=M; 1<=j<=M} of integer; 
+                b : {i,j | 1<=i<=M; 1<=j<=M} of integer)
+       returns (c : {i,j | 1<=i<=M; 1<=j<=M} of integer);
+var
+  aXMirr1 : {t,p1,p2 | p2+2<=t<=p2+M+1; p1=1; 1<=p2<=M; 2<=M} of integer;
+  TSep1 : {t,p1,p2 | t=p1+p2+1; 1<=p1<=M; 1<=p2<=M; 2<=M} of integer;
+  pipeCb61Xctl1PReg4Xloc : {t,p1,p2 | p1+p2<=t<=p1+p2+M-1; 1<=p1<=M; 2<=p2<=M+1; 2<=M} of boolean;
+  pipeCb61Xctl1PPReg5Xloc : {t,p1,p2 | p1+1<=t<=p1+M; 2<=p1<=M+1; p2=1; 2<=M} of boolean;
+  pipeCa11Reg2Xloc : {t,p1,p2 | p1+p2<=t<=p1+p2+M-1; 2<=p1<=M+1; 1<=p2<=M; 2<=M} of integer;
+  CReg1Xloc : {t,p1,p2 | p1+p2<=t<=p1+p2+M-1; 1<=p1<=M; 1<=p2<=M+1} of integer;
+  pipeCb61Xctl1PPReg5 : {t,p1,p2 | p1+2<=t<=p1+M+1; 2<=p1<=M; p2=1} of boolean;
+  pipeCb61Xctl1PReg4 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 2<=p2<=M} of boolean;
+  pipeCb61Reg3 : {t,p1,p2 | p1+p2+2<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M} of integer;
+  pipeCa11Reg2 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 2<=p1<=M; 1<=p2<=M} of integer;
+  CReg1 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} of integer;
+  pipeCb61Xctl1PPXInitXIn : {t,p1,p2 | 3<=t<=M+2; p1=1; p2=1; 2<=M} of boolean;
+  pipeCb61Xctl1PPXInit : {t | 3<=t<=M+2; 2<=M} of boolean;
+  pipeCb61Xctl1PP : {t,p1,p2 | p1+2<=t<=p1+M+1; 1<=p1<=M; p2=1; 2<=M} of boolean;
+  pipeCb61Xctl1P : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} of boolean;
+  pipeCb61 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} of integer;
+  pipeCa11 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} of integer;
+  C : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 0<=p2<=M} of integer;
+  pipeCb61Xctl1 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} of boolean;
+  pipeCb61Xctl1 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} of boolean;
+  pipeCb61Xctl1PPXInitXctl1 : {t | 3<=t<=M+2; 2<=M} of boolean;
+let
+  aXMirr1[t,p1,p2] = a[t-p1-p2,p2];
+  CReg1Xloc[t,p1,p2] = C[t,p1,p2-1];
+  CReg1[t,p1,p2] = CReg1Xloc[t-1,p1,p2];
+  pipeCa11Reg2Xloc[t,p1,p2] = pipeCa11[t,p1-1,p2];
+  pipeCa11Reg2[t,p1,p2] = pipeCa11Reg2Xloc[t-1,p1,p2];
+  pipeCb61Xctl1PPReg5Xloc[t,p1,p2] = pipeCb61Xctl1PP[t,p1-1,p2];
+  pipeCb61Xctl1PPReg5[t,p1,p2] = pipeCb61Xctl1PPReg5Xloc[t-1,p1,p2];
+  pipeCb61Xctl1PReg4Xloc[t,p1,p2] = pipeCb61Xctl1P[t,p1,p2-1];
+  pipeCb61Xctl1PReg4[t,p1,p2] = pipeCb61Xctl1PReg4Xloc[t-1,p1,p2];
+  pipeCb61Reg3[t,p1,p2] = pipeCb61[t-1,p1,p2];
+  pipeCb61Xctl1PPXInitXIn[t,p1,p2] = pipeCb61Xctl1PPXInit[t];
+  pipeCb61Xctl1PPXInitXctl1[t] = 
+      case
+        { | 3<=t<=M+2; 2<=M} : 
+           case
+             { | t=3; 2<=M} : True[];
+             { | 4<=t<=M+2} : False[];
+           esac;
+      esac;
+  pipeCb61Xctl1PPXInit[t] = 
+      case
+        { | 3<=t<=M+2; 2<=M} : { | 3<=t<=M+2; 2<=M} : if (pipeCb61Xctl1PPXInitXctl1) then 
+                  case
+                    { | t=3; 2<=M} : True[];
+                    { | 4<=t<=M+2} : False[];
+                  esac else 
+              case
+                { | t=3; 2<=M} : False[];
+                { | 4<=t<=M+2} : False[];
+              esac;
+      esac;
+  pipeCb61Xctl1PP[t,p1,p2] = 
+      case
+        { | 3<=t<=M+2; p1=1; p2=1; 2<=M} : pipeCb61Xctl1PPXInitXIn[t,p1,p2];
+        { | p1+2<=t<=p1+M+1; 2<=p1<=M; p2=1} : pipeCb61Xctl1PPReg5;
+      esac;
+  pipeCb61Xctl1P[t,p1,p2] = 
+      case
+        { | p1+2<=t<=p1+M+1; 1<=p1<=M; p2=1; 2<=M} : pipeCb61Xctl1PP;
+        { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 2<=p2<=M} : pipeCb61Xctl1PReg4;
+      esac;
+  pipeCb61Xctl1[t,p1,p2] = 
+      case
+        { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : pipeCb61Xctl1P;
+      esac;
+  TSep1[t,p1,p2] = b[p2,p1];
+  pipeCb61Xctl1[t,p1,p2] = 
+      case
+        { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : 
+           case
+             { | t=p1+p2+1; 1<=p1<=M; 1<=p2<=M; 2<=M} : True[];
+             { | p1+p2+2<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M} : False[];
+           esac;
+      esac;
+  pipeCb61[t,p1,p2] = 
+      case
+        { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : if (pipeCb61Xctl1) then 
+                  case
+                    { | t=p1+p2+1; 1<=p1<=M; 1<=p2<=M; 2<=M} : if (pipeCb61Xctl1) then TSep1 else 0[];
+                    { | p1+p2+2<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M} : 0[];
+                  esac else 
+              case
+                { | t=p1+p2+1; 1<=p1<=M; 1<=p2<=M; 2<=M} : 0[];
+                { | p1+p2+2<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M} : if (pipeCb61Xctl1) then 0[] else pipeCb61Reg3;
+              esac;
+      esac;
+  pipeCa11[t,p1,p2] = 
+      case
+        { | p2+2<=t<=p2+M+1; p1=1; 1<=p2<=M; 2<=M} : aXMirr1;
+        { | p1+p2+1<=t<=p1+p2+M; 2<=p1<=M; 1<=p2<=M} : pipeCa11Reg2;
+      esac;
+  c[i,j] = C[i+j+M,j,M];
+  C[t,p1,p2] = 
+      case
+        { | p1+1<=t<=p1+M; 1<=p1<=M; p2=0; 2<=M} : 0[];
+        { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : CReg1 + pipeCa11 * pipeCb61;
+      esac;
+tel;

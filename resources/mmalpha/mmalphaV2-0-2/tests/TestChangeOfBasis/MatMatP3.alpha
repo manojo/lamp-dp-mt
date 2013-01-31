@@ -1,0 +1,37 @@
+system mult    (a :  real; 
+                b :  real)
+       returns (c :  real);
+let
+  c[] = a * b;
+tel;
+system mult2  :{M | 2<=M}   (a : {i | 1<=i<=M} of  real; 
+                b :  {i | 1<=i<=M} of real)
+       returns (c : {i | 1<=i<=M} of  real);
+let
+  c[i] = a * b;
+tel;
+
+system MatVect :{N,M | 2<=N; 2<=M}
+               (A : {i,j | 1<=i<=N; 1<=j<=M} of real; 
+                b : {i | 1<=i<=M} of real)
+       returns (c : {i | 1<=i<=N} of real);
+var
+  bIN : {i,j | 1<=i<=N; 1<=j<=M; 2<=N; 2<=M} of real;
+  bIN2 : {i,j | 1<=i<=N; 1<=j<=M; 2<=N; 2<=M} of real;
+  A2 : {i,j | 1<=i<=N; 1<=j<=M; 2<=N; 2<=M} of real;
+  C : {i,j | 1<=i<=N; 0<=j<=M} of real;
+  mul : {i,j | 1<=i<=N; 1<=j<=M} of real;
+  mul2 : {i,j | 1<=i<=N; 1<=j<=M} of real;
+let
+  bIN[i,j] = b[j];
+  bIN2[i,j]=bIN;
+  A2[i,j]=A;
+  use {i,j | 1<=i<=N; 1<=j<=M} mult[] (A, bIN) returns  (mul) ;
+  use {j |  1<=j<=M} mult2[N] (A2, bIN2) returns  (mul2) ;
+  C[i,j] = 
+      case
+        { | j=0} : 0[];
+        { | 1<=j} : C[i,j-1] + mul;
+      esac;
+  c[i] = C[i,M];
+tel;

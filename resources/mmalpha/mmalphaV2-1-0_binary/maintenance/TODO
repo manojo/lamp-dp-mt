@@ -1,0 +1,263 @@
+April 2005
+Pip does not work (looks for a sed file that does not exist...)
+
+
+November 19, 2004
+Looking at Domlib. Additional information. 
+Install["Domlib"] currently does the work. It is called by Domlib.m
+which is in $MMALPHA/lib/Packages/Alpha. When you start Mathematica, 
+the init.m file Domlib is called...
+Domlib.exe is in file $MMALPHA/bin.cygwin or $MMALPHA/bin.cygwin32
+(I don't know which one). I don't understand how MMA finds out where
+this file is, as $Path does not seem to contain this directory...
+
+Domlib is currently in file $MMALPHA/sources/ZDomlib. In this directory, 
+there is a README file that explains how to compile Domlib for both
+cygwin or Linux. 
+
+File domlib.tm contains the patterns for the functions to be interfaced
+with MMA. Starts with BeginPackage, then declares successively 
+:Function:	ML_LatticeHnf
+:Pattern:	Alpha`Domlib`LatticeHermiteC[m1_Alpha`matrix]
+
+:Function:	ML_LatticeIntersection
+:Pattern:	Alpha`Domlib`LatticeIntersectionC[m1_Alpha`matrix, m2_Alpha`matrix]
+
+:Function:	ML_LatticeDifference
+:Pattern:	Alpha`Domlib`LatticeDifferenceC[m1_Alpha`matrix, m2_Alpha`matrix]
+
+:Function:	ML_LatticeImage
+:Pattern:	Alpha`Domlib`LatticeImageC[m1_Alpha`matrix, m2_Alpha`matrix]
+
+:Function:	ML_LatticePreimage
+:Pattern:	Alpha`Domlib`LatticePreimageC[m1_Alpha`matrix, m2_Alpha`matrix]
+
+:Function:	ML_Intersection
+:Pattern:	Alpha`Domlib`DomIntersectionC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_ZZ_Intersection
+:Pattern:	Alpha`Domlib`DomZZIntersectionC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_ZP_Intersection
+:Pattern:	Alpha`Domlib`DomZPIntersectionC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_PZ_Intersection
+:Pattern:	Alpha`Domlib`DomPZIntersectionC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_Union
+:Pattern:	Alpha`Domlib`DomUnionC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_ZZ_Union
+:Pattern:	Alpha`Domlib`DomZZUnionC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_PZ_Union
+:Pattern:	Alpha`Domlib`DomPZUnionC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_ZP_Union
+:Pattern:	Alpha`Domlib`DomZPUnionC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_Difference
+:Pattern:	Alpha`Domlib`DomDifferenceC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_ZZ_Difference
+:Pattern:	Alpha`Domlib`DomZZDifferenceC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_ZP_Difference
+:Pattern:	Alpha`Domlib`DomZPDifferenceC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_PZ_Difference
+:Pattern:	Alpha`Domlib`DomPZDifferenceC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:      ML_Simplify
+:Pattern:       Alpha`Domlib`DomSimplifyC[d1_Alpha`domain, d2_Alpha`domain]
+
+:Function:	ML_Convex
+:Pattern:	Alpha`Domlib`DomConvex[d_Alpha`domain]
+
+:Function:	ML_Image
+:Pattern:	Alpha`Domlib`DomImageC[d_Alpha`domain, m_Alpha`matrix]
+
+:Function:	ML_ZImage
+:Pattern:	Alpha`Domlib`DomZImageC[d_Alpha`domain, m_Alpha`matrix]
+
+:Function:	ML_ZPImage
+:Pattern:	Alpha`Domlib`DomZPImageC[d_Alpha`domain, m_Alpha`matrix]
+
+:Function:	ML_Preimage
+:Pattern:	Alpha`Domlib`DomPreimageC[d_Alpha`domain, m_Alpha`matrix]
+
+:Function:	ML_ZPPreimage
+:Pattern:	Alpha`Domlib`DomZPPreimageC[d_Alpha`domain, m_Alpha`matrix]
+
+:Function:	ML_ZPreimage
+:Pattern:	Alpha`Domlib`DomZPreimageC[d_Alpha`domain, m_Alpha`matrix]
+
+:Function:	ML_ZEmptyQ
+:Pattern:	Alpha`Domlib`DomZEmptyQC[d_Alpha`domain]
+
+:Function:      ML_Constraints
+:Pattern:       Alpha`Domlib`DomConstraints[m_Alpha`matrix]
+
+:Function:      ML_Rays
+:Pattern:       Alpha`Domlib`DomRays[m_Alpha`matrix]
+
+:Function:      ML_Cost
+:Pattern:       Alpha`Domlib`DomCost[d_Alpha`domain, c_List]
+
+:Function:      ML_RightHermite
+:Pattern:       Alpha`Domlib`DomRightHermite[m_Alpha`matrix]
+
+:Function:      ML_LeftHermite
+:Pattern:       Alpha`Domlib`DomLeftHermite[m_Alpha`matrix]
+
+:Function:      ML_MatrixBasis
+:Pattern:       Alpha`Domlib`DomBasis[m_Alpha`matrix]
+
+:Function:      ML_MatrixSimplify
+:Pattern:       Alpha`Domlib`DomMatrixSimplifyC[m1_Alpha`matrix,m2_Alpha`matrix]
+
+:Function:      ML_DomAddRays
+:Pattern:       Alpha`Domlib`DomAddRaysC[d1_Alpha`domain,m2_Alpha`matrix]
+
+:Function:      ML_DomPrint
+:Pattern:       Alpha`Domlib`DomPrint[d1_Alpha`domain,d2_Alpha`domain]
+
+:Function:      ML_DomLTQ
+:Pattern:       Alpha`Domlib`DomLTQ[d1_Alpha`domain,d2_Alpha`domain,idx_Integer,pdim_Integer]
+
+:Function:      ML_DomSort
+:Pattern:       Alpha`Domlib`DomSort[dl:{__Alpha`domain}, idx_Integer, pdim_Integer, time:True|False]
+
+:Function:      ML_DomIntEmptyQ
+:Pattern:       Alpha`Domlib`DomIntEmptyQ[d1_Alpha`domain,d2_Alpha`domain]
+
+:Function:      ML_findV
+:Pattern:       Alpha`Domlib`Private`findV[m:{_Integer,_Integer,lm_/;MatrixQ[lm]},
+
+In Domlib.c, one finds the domlib files. Conditional indexes are UNIX, 
+MATHLINK
+Defines structs Domain, Mat, ZDomain, then either main (for Unix) or
+WinMain (for Windows), then errormsg, trace, errormsg1, errormsg1, 
+errormsg3, GetFunction, MLGetValue, MLPutValue, MLGetDomain, 
+MLPutDomain, MLGetMatrix, MLPutMatrix, ML_Intersection, ML_Union,
+int ML_Difference (alink)
+int ML_Simplify (alink)
+int ML_Convex (alink)
+int ML_Image (alink)
+int ML_Preimage (alink)
+int ML_Constraints (alink)
+int ML_Rays (alink)
+int ML_Cost (alink)
+int ML_RightHermite (alink)
+int ML_LeftHermite (alink)
+int ML_MatrixBasis (alink)
+int ML_MatrixSimplify (alink)
+int ML_DomAddRays (alink)
+int ML_DomPrint (alink)
+int ML_DomLTQ (alink)
+int ML_DomSort (alink)
+int ML_DomIntEmptyQ (alink)
+int ML_findV(alink)
+int ML_ZZ_Intersection (MLINK alink)
+int ML_ZP_Intersection (MLINK alink)
+int ML_PZ_Intersection (MLINK alink)
+int ML_ZZ_Union (MLINK alink)
+int ML_ZP_Union (MLINK alink)
+int ML_PZ_Union (MLINK alink)
+int ML_ZZ_Difference (MLINK alink)
+int ML_ZP_Difference (MLINK alink)
+int ML_PZ_Difference (MLINK alink)
+int ML_ZImage (MLINK alink)
+int ML_ZPImage (MLINK alink)
+int ML_ZPPreimage (MLINK alink)
+int ML_ZPreimage (MLINK alink)
+int ML_ZEmptyQ (MLINK alink)
+int ML_LatticeHnf (MLINK alink)
+int ML_LatticeIntersection (MLINK alink)
+int ML_LatticeDifference (MLINK alink)
+int ML_LatticeImage (MLINK alink)
+int ML_LatticePreimage (MLINK alink)
+
+Compiling the Domlib
+Use Makefile.Visual or Makefile.linux, depending on environment variable
+OSTYPE
+MMALPHA
+
+Analysis of the Makefile.visual
+Includes the Makefile.config in the directory MMALPHA/sources/MakeIncludes
+Defines CC (?), LD (?), POLYLIB (source files of PolyLib), CFLAGS
+LFLAGS, which depend on
+MATHINCLUDE
+POLYINCLUDE
+MATHLINK
+
+Then BIN defines the domlib.exe binary file
+OBJ defines the object files, depending on OBJDIR
+DEPOBJ defines the objects codes of matrix, vector, 
+polyhedron, etc...
+
+Rules 
+all: depend on BIN
+BIN: depend on OBJ, DEPOBJ -> echo then ? link edit?
+
+Makefile.config
+SHELL
+LDLIB
+
+18 November, 2004. 
+- Created a file CopyMMA.m in alpha_beta. This file has to be put either
+as a function, or as a utilitary.
+- Moved welcome.html in Mathematica. Has to be committed.
+- Moved alpha.gif in directory Doc. Has to be committed. Change 
+some html files accordingly. To be committed.
+
+June 10, 2004.
+
+- Latex the AlphaStart.tex file in doc/sources/Quickstart/ directory,
+generate ps, and pdf, and put pdf file in doc/tutorial/AlphaStart.pdf
+- Check the how to use and installation procedure on Unix.
+- Update version, and go to the /udd/alpha/ directory, and run 
+cvs update *. 
+
+Currently. 
+December 6, 2003. 
+1/ Updated the html documentation, especially in the doc
+directory.
+2/ See the MakeDoc package (myStart file, see at the end). 
+3/ See the $MMALPHA/Mathematica/lib/Packages/Alpha/modifications.txt
+file.
+
+	
+Done (nov. 11, 2002): 
+1/ Created a directory alpha_beta_removed, where all that is 
+not really necessary was put. 
+	- bin.cygwin32
+	- bin.sunos4
+	- config/emacs, and config/tex
+	- demos/BINMULT, ESTIMATION, FIR, INIT, NANA, PORTRAIT, 
+SCHEDULE, VHDL, ZPOL. These demos should be put in notebooks...
+	- doc/man
+	- examples. These examples should be worked out, and incorporated
+into demos
+
+Things to do... (as of Nov. 11, 2002)
+1/ Integrate examples and demos
+2/ The install page seems to be obsolete. 
+4/ A FAQ would probably be a good idea...
+5/ Install a mailbox for all bugs...
+
+etc... 
+
+As of March 2005
+
+MMAlpha lipForge is in /Users/quinton/MMAlpha
+Ma version PC is in /Users/quinton/alpha_beta
+Il faut trouver comment positionner MMALPHA de facon permanente
+Voir comment pouvoir disposer du clavier normal sous emacs...
+Voir si dos2unix marche sur le Mac...
+
+Editer et corriger Alpha.m
+Compiler WriteAlpha
+
+Running MMAlpha on darwin
+- add an alias to mma...

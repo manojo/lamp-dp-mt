@@ -1,0 +1,214 @@
+{
+(*=================================================================*)
+(*                Meta-Syntax for Syntax tree (AST)                *)
+(*                       in  AlpHard Program                       *)
+(*                                                                 *)
+(*Comments :                                                      *)
+(*	- In AlpHard program there is 3 types of sub-systems       *)
+(*		- Interface, Module, Controller and Cells          *)
+(*                                                                 *)
+(*                                                                 *)
+(*=================================================================*)
+
+(* 1. Library *)
+
+  LIBRARY ::= { _List -> {SYSTEMDECLARATION} }
+,
+
+(* 2. Systems *)
+
+
+  SYSTEMDECLARATION ::= 
+    system[ name: _String, 
+            paramDecl: DOMAIN, 
+            inputDeclList: {DECLARATION},
+            outputDeclList: {DECLARATION}, 
+            localDeclList: {DECLARATION}, 
+            equationBlock: {EQUATION}
+          ] 
+          :> {name, paramDecl, inputDeclList, outputDeclList, localDeclList,
+              equationBlock}
+,
+
+(* 3. Declarations of variables *)
+
+  DECLARATION ::=
+    decl[ varName: _String, 
+          type: _Symbol,  
+          domain: DOMAIN 
+        ]
+        :> {varName, type, trdomain}
+
+,
+
+(* 4. Domains *)
+
+  DOMAIN ::= 
+    domain[ dimension: _Integer, 
+            indexList: {___String}, 
+            polyedronList: {POLYHEDRON}
+          ] 
+          :> { dimension, indexList, polyedronList }
+,
+
+  POLYHEDRON ::= 
+    pol[ constraintsNum:_Integer,
+         generatorsNum:_Integer,
+         equationsNum:_Integer,
+         linesNum:_Integer,
+         constraintList: {CONSTRAINT},
+         generatorList: {GENERATOR}
+       ]
+
+       :> { constraintsNum, generatorsNum, equationsNum, linesNum,
+            constraintList, generatorList } 
+
+,
+
+  CONSTRAINT ::= {_List -> List} 
+	(* The first element of the list should be 0 or 1 *)
+,
+
+  GENERATOR ::= {_List -> List} 
+	(* The first element of the list should be 0 or 1 *)
+
+(* 5. Equations *)
+,
+
+  EQUATION ::= 
+    { _equation -> ASSIGNMENT,
+      _use -> USESTATEMENT
+    }
+,
+    
+  ASSIGNMENT ::= 
+    equation[ leftHandSide: _String, 
+              rightHandSide: EXPRESSION
+            ] 
+            :> {leftHandSide, rightHandSide}
+,
+
+(*===========================================================*)
+
+  USESTATEMENT ::= 
+    use[ id: _String, 
+         extension: DOMAIN,
+         paramAssign: MATRIX,
+         inputList: {EXPRESION},
+	 idList: {___String}
+       ]
+       :> {id, extension, paramAssign, expList, idList}
+,
+
+(*===========================================================*)
+
+(* 6. Expressions *)
+
+  EXPRESSION ::= 
+    { 
+      _case-> CASEXP, 
+      _restrict -> RESTEXP, 
+      _if -> IFEXP,
+      _affine -> AFFEXP,
+      _binop -> BINEXP,
+      _unop -> UNEXP,
+      _reduce -> REDEXP,
+      _var -> VAREXP, 
+      _const -> CONSTEXP
+ }, 
+
+  CASEXP ::= 
+    case[ 
+         expressionList: {EXPRESSION} 
+        ] 
+        :> expressionList
+,
+
+  RESTEXP ::= 
+    restrict[ 
+         domain: DOMAIN, 
+         expression: EXPRESSION 
+         ] 
+         :> { domain, expression }
+, 
+
+  IFEXP ::=
+    if[
+       condition: EXPRESSION,
+       alt1: EXPRESSION,
+       alt2: EXPRESSION
+      ]
+      :> { condition, alt1, alt2 }
+,
+
+  AFFEXP ::= 
+    affine[ 
+      expression: EXPRESSION,
+      affineFunction: MATRIX 
+          ] 
+          :> {expression, affineFunction}
+,
+
+  MATRIX ::= 
+    matrix[ 
+      d1:_Integer, 
+      d2:_Integer, 
+      in:{___String}, 
+      mmaMatrix:MATRIXNUM
+          ]
+          :> mmaMatrix
+,
+
+  MATRIXNUM ::= {_List -> {List}}	
+	(* One could also use the Mathematica Matrix type *)
+,
+
+(* Binary expression. "mul" ou "mult" et les operateurs : + |
+           - | * | / | ...... ???  *)
+  BINEXP ::= 
+    binop[ 
+          binaryOp: ( add | sub |  mul | div | or | and | xor | 
+                      min | max | eg | ne | le | lt | gt | 
+		      minus | div | mod ), 
+          operand1: EXPRESSION, 
+          operand2: EXPRESSION 
+         ] 
+         :> {operand1, binaryOp, operand2} 
+
+,
+
+(* Unary expression *)
+  UNEXP ::= 
+    unop[ 
+          unaryOp: ( minus | not | sqrt ),
+          operand: EXPRESSION
+         ] 
+         :> {unaryOp, operand} 
+,
+
+(* Reduction expression *)
+  REDEXP ::= 
+    red[
+         commutativeOp: ( add | mult | or | xor | and | min | max ),
+         affineExp: AFFEXP,
+         expression: EXPRESSION
+       ]
+       :> { commutativeOp, affineExp, expression }
+,
+
+(* Variable expression *)
+  VAREXP ::= 
+    var[ 
+         identifier: _String 
+       ] 
+    :> identifier
+,
+
+(* Constant expression *)
+  CONSTEXP ::= 
+    const[ 
+         constant: ( _Integer | _Real | True | False ) 
+         ] 
+         :> constant
+
+}

@@ -1,0 +1,7 @@
+system test3 (x: {i|} of integer)
+returns (y: integer);
+var Y : {i,j | 1 <= i,j <= 10}Êof integer;
+let
+  Y[i,j] = {| i = 1}: x[i];
+  y = Y[10,10];
+tel;

@@ -1,0 +1,291 @@
+\chapter{The {\alfhard} language}
+\label{chapalfhard}
+
+{\sc Version of \today}
+
+In this chapter, we describe the {\alfhard} language. We also 
+ describe the {\vhdl} generator. 
+
+
+\section{\AlpHard}
+\label{alphard}
+The main goal of \alfa{} is to allow someone to produce 
+a hardware implementation for an \alfa{} specification. To this
+end, a subset of \alfa{}, called \AlpHard{}, is defined. 
+We quickly introduce this language. 
+
+\subsection{Basic concepts}
+
+{\AlpHard} is a subset of the {\Alpha} language that enables a
+structural definition of a regular architecture (systolic arrays,
+etc.) to be given. 
+
+{\AlpHard} is intended to meet two important goals.  First, {\AlpHard}
+programs are obtained by automatic transformation of {\Alpha}
+programs, and hence, \AlpHard{} it must be a coherent subset of
+{\Alpha}. Second, the architectural description given by {\AlpHard}
+must:
+ \begin{itemize}
+ \item Provide {\em structuring} because complex design process must be
+   hierarchical.
+ \item Provide {\em genericity} in order to allow component reuse.
+ \item Allow {\em regularity} to be described, in order to reuse hardware
+   descriptions and simplify the design process.
+\end{itemize}
+
+Thus, {\AlpHard} is hierarchical.  At the lowest level of description
+  one has {\em cells} consisting of combinational circuits, registers,
+  multiplexors, etc.  A cell may also contain other cells.  At the
+  same level in the hierarchy, we may also have {\em controllers}
+  responsible for initialization\footnote{In systolic arrays, the
+  control signals are themselves distributed in a regular fashion, and
+  their data-path can also be described in terms of cells.}.  At this
+  point we have a description of a piece of circuit that has no
+  ``spatial dimension'': it represents a single processing element
+  which may later be instantiated at multiple spatial locations (like
+  the full adder presented in section~\ref{sectstruct}).
+
+The next level of the hierarchy is the {\em module} which allows the
+user to specify how different cells are assembled regularly in one or
+more spatial dimensions. This is achieved by {\em instantiating}
+previously declared cells. Typically, controllers are instantiated
+only once with no spatial replication. The separation of temporal and
+spatial aspects is also reflected by the fact that the equations
+describing the behavior of cells have only one local index variable
+(time), and in the equations for modules, the {\em dependencies} have
+only spatial indices, indicating pure (delay-less) interconnections
+(thus all registers are viewed as part of the cells).
+
+
+
+\subsection{A small example}
+
+These ideas are illustrated in figure~\ref{figstupid}
+and~\ref{figstupid2}, which show a three-cell module, where each cell
+is a simple register-inverter. The {\AlpHard} code corresponding to
+the {\em cell} definition is in figure~\ref{figstupid2}. 
+The 
+system {\tt RegInvCell} has two parameters (lines 1) corresponding
+to its start time and its duration.  Lines 3-5 are the declaration of
+input and output signals of the cell, the {\em domain} between the
+braces represents the lifetime of signals {\tt A1} and {\tt B1}.  The
+equation defining {\tt B1} (line 7) consists of an
+inverter combined with a delay {\tt A1[t-1]} which 
+represents a register.  Notice that the only index appearing in the
+equations is the time, {\tt t}.
+{\small
+\begin{figure}[h]
+\begin{verbatim}
+system                                                          -- 1  
+RegInvCell:{Tinit,Duration| Tinit,Duration >= 0}                -- 2  
+           (A1 : {t | Tinit<=t<=Tinit+Duration} of boolean)     -- 3  
+    returns                                                     -- 4  
+           (B1 : {t | Tinit+1<=t<=Tinit+Duration+1} of boolean);-- 5  
+let                                                             -- 6  
+        B1[t] = not A1[t-1];                                    -- 7 
+tel;                                                            -- 8 
+
+\end{verbatim}
+
+\begin{verbatim}
+system
+RegInvModule:{Tinit,Duration,Size| Tinit,Duration, Size > 0}     -- 9  
+	(a: {t|  Tinit<=t<=Tinit+Duration} of boolean)           -- 10
+   returns                                                       -- 11  
+	(b: {t|  Tinit+Size<=t<=Tinit+Duration+Size} of boolean);-- 12
+var                                                             
+A : {t,p | Tinit+p-1<=t<=Tinit+Duration+p-1; 1<= p <= Size}  of boolean;  
+B : {t,p |  Tinit+p<=t<=Tinit+Duration+p; 1<= p <= Size}  of boolean;
+let
+use {p | 1<= p <= Size} RegInvCell[Tinit+p-1,Duration]           -- 17
+                        (A) returns (B);                         -- 18
+A[t,p] = case                                                    -- 19   
+      {| p=1}: a[t];                                             -- 20   
+      {| p>1}: B[t,p-1];                                         -- 21   
+      esac;                                                      -- 22   
+b[t]=B[t,Size];                                                  -- 23
+tel;                                       
+\end{verbatim}
+\caption{An {\AlpHard} program describing a simple cell, ({\tt
+    RegInvCell}), and instantiation of {\tt Size} copies of it in a module
+({\tt regInvModule}).
+  Note how {\tt p} is used to specify the value {\tt Tinit} for each instance
+  (the {\tt p}-th cell starts {\tt p-1} cycles after the first one).}
+\label{figstupid}
+\end{figure}
+}
+
+The {\tt RegInvModule} system is a {\em module} which uses the cell
+ {\tt RegInvCell} .  Multiple copies are instantiated by means of the
+construct,
+\verb.use {p|1<=p<=Size}..  Such a multiple instantiation also means that the
+variables {\tt A} and {\tt B} will have two indices, {\tt t}
+(inherited from the {\tt RegInvCell} definition) and {\tt p} (from the
+multiple use in line 17).  We also see that the value of the {\tt Tinit}
+parameter is instantiated as a function of {\tt p} so that the cells start at
+different instants of time. Lines 19-22 specify the connections between the
+input/output of the cells in the module.  Notice that the constraints in
+the {\tt case} involve only spatial indices (if it had involved temporal 
+indices --i.e. {\tt t}--, we would need some additional control hardware not described here).  Also note that the time index,
+{\tt t}, is the same on both sides of the equation (no register outside the cells). 
+
+
+\begin{figure}[ht]
+$$\includegraphics{figures/stupid1}$$
+\caption{A simple architecture consisting of three identical cells}
+\label{figstupid2}
+\end{figure}
+
+
+For more information on {\AlpHard} see~\cite{Patricia96}
+\cite{Lemoenne} and there are 
+example of Alphard programs in the the directory 
+{\tt \$MMALPHA/examples/Alphard}
+
+To have information on
+the {\vhdl} generator, see the notebooks: 
+\begin{itemize}
+\item matvect demonstration,
+\item Fir demonstration,
+\item Vhdl.
+\end{itemize}
+They are all available as hyperlinks in the \texttt{master.nb}
+that you can start using the command \texttt{on[]} or
+\texttt{start[]}.
+
+\section{generating {\vhdl} from {\AlpHard}}
+The {\AlpHard} format was conceived by P. Le Moënner together
+with the translator to {\vhdl}. The targeted {\vhdl} is 
+{\em synthetizable \vhdl}, it has been tested on commercial tools like
+ Compass, Synopsis,\ldots. Currently, the {\vhdl} translator allows
+to generate {\vhdl} code from {\AlpHard} programs which represent
+ linear systolic arrays. The reason why we cannot generate code for 
+2-dimensional arrays is that the {\em synthesizable  \vhdl 
+subset}~\cite{VHDLSynth} does not allow nested {\tt generate} instructions\footnote{The {\vhdl}  {\tt generate} instruction is used for expressing the 
+repetitive use of a cell in an array}. 
+
+\subsection{Setting up the translation}
+the only operation  that have to be done before translating 
+{\AlpHard} code is to affect the parameters value in the module and the controler
+(we cannot
+described arrays with parametric size in {\vhdl}). As the current {\AlpHard}
+program is a library, this process may be a little complicated (you have 
+to ensure that the parameter instantiations between the caller and the 
+called program is respected). Currently this can be done with
+ {\tt assignParameterValue} function. this function assign the parameter value 
+in one system ({\tt \$result}), if you want to recursively assign the parameter 
+value to the systems called by {\tt \$result}, you can use the
+ {\tt fixParameter} function which assigns a value to a given parameter for 
+all systems in {\tt \$library}\footnote{You have to ensure that this parameter 
+has indeed exactly the same value in all systems of the library, this is not the case for {\tt Tinit} in our example}. In the example of figure~\ref{figstupid}, 
+you can use the following commands:\\
+\begin{verbatim}
+ assignParameterValue["Size",10];
+assignParameterValue["Tinit",0];
+assignParameterValue["Duration",100]
+\end{verbatim}
+The resulting program is shown in figure~\ref{figstupid3}. The command
+{\tt alphardToVHDL[]} will generate one file per system of the library.
+Here, one file for the cell (named
+{\tt regInvCell.vhd}) and one file for the module (named
+{\tt regInvModule.vhd}). The {\vhdl} code for the
+cell {\tt RegInvCell}  and the module {\tt RegInvModule}  are
+ shown in figure~\ref{figVH1} and~\ref{figVHD2} 
+
+
+
+{\small
+\begin{figure}[h]
+\begin{verbatim}
+system RegInvCell :{Tinit,Duration | 0<=Tinit; 0<=Duration}
+                  (A1 : {t | Tinit<=t<=Tinit+Duration} of boolean)
+       returns    (B1 : {t | Tinit+1<=t<=Tinit+Duration+1} of boolean);
+var
+  A2 : {t | Tinit+1<=t<=Tinit+Duration+1; 0<=Tinit} of boolean;
+let
+  A2[t] = A1[t-1];
+  B1[t] = not A2;
+tel;
+\end{verbatim}
+\begin{verbatim}
+system RegInvModule (a : {t | 0<=t<=100} of boolean)
+       returns      (b : {t | 10<=t<=110} of boolean);
+var
+  A : {t,p | p-1<=t<=p+99; 1<=p<=10} of boolean;
+  B : {t,p | p<=t<=p+100; 1<=p<=10} of boolean;
+let
+  use {p | 1<=p<=10} RegInvCell[p-1,100] (A) returns  (B) ;
+  A[t,p] = 
+      case
+        {| p=1} : a[t];
+        {| 2<=p} : B[t,p-1];
+      esac;
+  b[t] = B[t,10];
+tel;
+\end{verbatim}
+\caption{The  {\AlpHard} program of figure~\ref{figstupid} with particular 
+value for the parameters of the module. Note that the cell is still parameterized.}
+\label{figstupid3}
+\end{figure}
+}
+ 
+
+{\small
+\begin{figure}[h]
+\begin{verbatim}
+-- VHDL Model Created for "system RegInvCell" 
+ --  20/5/1999 11:27:36
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+library COMPASS_LIB;
+ use COMPASS_LIB.STDCOMP.all;
+library COMPASS_LIB; 
+ use COMPASS_LIB.COMPASS.all;
+  
+entity RegInvCell is
+      Port ( Ck : In std_logic;
+      A1 : In std_logic;
+      B1 : Out std_logic );
+end RegInvCell;
+
+
+architecture Behavioral of RegInvCell is
+
+  signal A2 : std_logic;
+
+begin
+
+
+  process(ck)
+  begin
+    if (ck='1' AND ck'event) then
+        A2 <= A1;
+    end if;
+  end process;
+
+  B1 <= ( not A2);
+
+
+end Behavioral;
+\end{verbatim}
+\caption{{\vhdl} code generated from  the {\tt RegInvCell} cell of figure~\ref{figstupid3}}
+\label{figVHD1}
+\end{figure}
+} 
+
+
+{\small
+\begin{figure}[h]
+\begin{verbatim}
+todo
+\end{verbatim}
+\caption{{\vhdl} code generated from  the {\tt RegInvModule} cell of 
+figure~\ref{figstupid3}}
+\label{figVHD2}
+\end{figure}
+} 
+
+\subsection{Description of the generated \vhdl}
+{\tt todo:} describe the translation of operators, registers, multiplexer,
+controler, cells, modules.

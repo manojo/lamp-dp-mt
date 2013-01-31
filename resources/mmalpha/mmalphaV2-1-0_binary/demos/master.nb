@@ -1,0 +1,934 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 6.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[     26610,        925]
+NotebookOptionsPosition[     21177,        729]
+NotebookOutlinePosition[     22529,        783]
+CellTagsIndexPosition[     22433,        777]
+WindowFrame->Normal
+ContainsDynamic->False*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.43211404658317*^9, 3.432114051462291*^9}}],
+
+Cell[CellGroupData[{
+
+Cell["Introduction to MMAlpha V2", "Title",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell["\<\
+Last revision: March 11, 2002 and May 30, 2006.
+Current version: July 2008, under progress. The idea is to introduce directly \
+vhdl synthesis of programs...\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell["Credits", "Subsubsection",
+ FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+      Zbigniew Chamski 
+      Catherine Dezan 
+      Florent Dupont de Dinechin 
+      Anne-Claire Guillou
+      Patricia Le Mo\[EDoubleDot]nner 
+      Herv\[EAcute] Le Verge 
+      Christophe Mauras 
+      Patrice Quinton 
+      Fabien Quillere
+      Sanjay Rajopadhye 
+      Sophie Robert 
+      Tanguy Risset 
+      Doran Wilde \
+\>", "SmallText"]
+}, Closed]],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042, Rennes Cedex, France
+quinton@irisa.fr\
+\>", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+ This cell is automatically evaluated.\
+\>", "Subsubsection",
+ CellChangeTimes->{{3.43955173645478*^9, 3.439551738162024*^9}},
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"setMMADir", "[", 
+  RowBox[{"{", 
+   RowBox[{"\"\<demos\>\"", ",", "\"\<NOTEBOOKS\>\""}], "}"}], "]"}]], "Input",\
+
+ InitializationCell->True],
+
+Cell[BoxData["\<\"/Users/patricequinton/mmalpha/demos/NOTEBOOKS\"\>"], \
+"Output",
+ CellChangeTimes->{3.440091679361293*^9, 3.442055447138887*^9}]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Welcome !", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+Welcome to MMAlpha V2. The V2 version is simply a cleaner version of MMalpha \
+where only the kernel transformations are installed . You are in the master \
+notebook. From here on, you may load all the tutorials and demonstration \
+notebooks available.\
+\>", "Text",
+ TextJustification->1],
+
+Cell[TextData[{
+ "If this is your first contact with MMAlpha, read the \"Getting started with \
+ALPHA\" document, which is available in ",
+ StyleBox["$MMALPHA/doc/tutorial/QuickIntro.pdf ",
+  FontWeight->"Bold"],
+ ". You can also open this file from the welcome.html page available in the \
+MMAlpha\ndirectory. Read this document while executing the ",
+ Cell[BoxData[
+  ButtonBox["\<\"Getting-started\"\>",
+   Active->True,
+   ButtonFunction:>NotebookOpen[
+     StringJoin[$demoDirectory, 
+      "NOTEBOOKS/Getting-started/Getting-started.nb"]]]]],
+ " notebook available here."
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[TextData[{
+ "The demos notebooks are executed in the directories of ",
+ StyleBox["$MMALPHA/demos/NOTEBOOKS, ", "Subsubsection"],
+ StyleBox["where", "Subsubsection",
+  FontWeight->"Plain",
+  FontVariations->{"CompatibilityType"->0}],
+ StyleBox[" $MMALPHA ", "Subsubsection"],
+ "is the environment variable which gives the path of MMAlpha (evaluate ",
+ StyleBox["Environment[\"MMALPHA\"]", "Input"],
+ " to get its value). As these directories are protected, you cannot save \
+files in them. Moreover, when you close the notebooks, ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " asks you whether you want to save the changes: just answer no. If you want \
+to execute these notebooks in your own workspace, copy the directory. See \
+also \"Creating a link to your own master notebook\" in the \"More\" section \
+of this notebook."
+}], "Text",
+ TextJustification->1,
+ CellTags->"truc"],
+
+Cell[TextData[{
+ "The documentation notebooks are in ",
+ StyleBox["$MMALPHA/demos/", "Subsubsection"],
+ StyleBox["packages",
+  FontWeight->"Bold"],
+ ". "
+}], "Text",
+ TextJustification->1,
+ CellTags->"truc"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["New : synthesis notebooks !", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+ "In this directory, you will find examples of direct Vhdl synthesis using \
+the syn command. If you only want to have a look at the possibilities of \
+MMAlpha, start here and click on this button (",
+ StyleBox["if this does not work properly, re-evaluate the demoLink \
+command...)",
+  FontColor->RGBColor[0.5, 0, 0.5]]
+}], "Text",
+ CellChangeTimes->{{3.439535223388748*^9, 3.439535253739399*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"demoLink", "[", "\"\<Synthesis\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.433227925915576*^9, 3.433227934033798*^9}}],
+
+Cell[BoxData["\<\"NOTEBOOKS/Synthesis/Synthesis.nb\"\>"], "Print",
+ CellChangeTimes->{3.440091679503107*^9, 3.442056120777528*^9}],
+
+Cell[BoxData[
+ ButtonBox["\<\"Synthesis\"\>",
+  Appearance->Automatic,
+  ButtonFrame->"DialogBox",
+  ButtonFunction:>NotebookOpen[
+    StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$43690]],
+  Evaluator->Automatic,
+  Method->"Preemptive"]], "Output",
+ CellChangeTimes->{3.440091679552888*^9, 3.442056120814568*^9}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Introduction notebooks", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell["Getting started", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"demoLink", "[", "\"\<Getting-started\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.4395351364236803`*^9, 3.439535146335887*^9}}],
+
+Cell[BoxData["\<\"NOTEBOOKS/Getting-started/Getting-started.nb\"\>"], "Print",
+ CellChangeTimes->{3.442055447268403*^9}],
+
+Cell[BoxData[
+ ButtonBox["\<\"Getting-started\"\>",
+  Appearance->Automatic,
+  ButtonFrame->"DialogBox",
+  ButtonFunction:>NotebookOpen[
+    StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$754]],
+  Evaluator->Automatic,
+  Method->"Preemptive"]], "Output",
+ CellChangeTimes->{3.442055447269848*^9}]
+}, Open  ]],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"Getting-started\"\>",
+   Appearance->Automatic,
+   ButtonFrame->"DialogBox",
+   ButtonFunction:>NotebookOpen[
+     StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$869]],
+   Evaluator->Automatic,
+   Method->"Preemptive"]],
+  CellChangeTimes->{3.437563107762025*^9}],
+ " notebook presents a short introduction to MMalpha. It should be used while \
+reading the getting started document, located in $MMALPHA/doc/users/..."
+}], "Text",
+ CellChangeTimes->{{3.437563111957491*^9, 3.43756312724858*^9}},
+ TextAlignment->Left,
+ TextJustification->1]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Introduction to Mathematica", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"demoLink", "[", "\"\<Introduction-MMA\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.44012604243398*^9, 3.440126045788772*^9}}],
+
+Cell[BoxData["\<\"NOTEBOOKS/Introduction-MMA/Introduction-MMA.nb\"\>"], \
+"Print",
+ CellChangeTimes->{3.442055457022277*^9}],
+
+Cell[BoxData[
+ ButtonBox["\<\"Introduction-MMA\"\>",
+  Appearance->Automatic,
+  ButtonFrame->"DialogBox",
+  ButtonFunction:>NotebookOpen[
+    StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$758]],
+  Evaluator->Automatic,
+  Method->"Preemptive"]], "Output",
+ CellChangeTimes->{3.442055457023518*^9}]
+}, Open  ]],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"Introduction-MMA\"\>",
+   Appearance->Automatic,
+   ButtonFrame->"DialogBox",
+   ButtonFunction:>NotebookOpen[
+     StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$912]],
+   Evaluator->Automatic,
+   Method->"Preemptive"]],
+  CellChangeTimes->{3.437563224845737*^9, 3.4375636113175583`*^9}],
+ " package presents an introduction to ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ ", and illustrates how MMAlpha is implemented."
+}], "Text",
+ CellChangeTimes->{3.4375636267698*^9},
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{"The", 
+  StyleBox[
+   ButtonBox["\<\"Introduction\"\>",
+    Appearance->Automatic,
+    ButtonFrame->"DialogBox",
+    ButtonFunction:>NotebookOpen[
+      StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$883]],
+    Evaluator->Automatic,
+    Method->"Preemptive"],
+   FontFamily->"Courier"], "package", " ", "presents", " ", "a", " ", "rapid",
+   " ", "introction", " ", "to", " ", "Alpha", " ", "programs", "  ", 
+  "illustrates", " ", "basic", " ", "operations", " ", "in", " ", 
+  RowBox[{"Alpha", "."}]}]], "Text",
+ CellChangeTimes->{3.437563600799459*^9},
+ FontFamily->"Times New Roman"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Simple examples", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell["Note", "Subsection"],
+
+Cell[TextData[{
+ "If you are not using your own version of MMAlpha (for example, if MMAlpha \
+has been installed in a common space), you may not be able to use some of the \
+commands of the demo notebooks, in particular, those which save files in the \
+current directory such as ",
+ StyleBox["save", "Input"],
+ ", or ",
+ StyleBox["a2v", "Input"],
+ ". To avoid this problem, copy the directory containing the demonstration in \
+your own space before executing it. The demo notebooks are in directory \
+$MMALPHA/demos/NOTEBOOKS. After copying the demo directory, start the \
+notebook demo.nb in the copied directory, and modify the red cell which is \
+automatically evaluated at the beginning of it: replace the ",
+ StyleBox["setMMADir", "Input"],
+ " statement by ",
+ StyleBox["SetDirectory[\"path\"]", "Input"],
+ " where path is the path of your new demo directory."
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Matrix vector multiplication", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"demoLink", "[", "\"\<Matvect\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.439365448396201*^9, 3.439365457843904*^9}}],
+
+Cell[BoxData["\<\"NOTEBOOKS/Matvect/Matvect.nb\"\>"], "Print",
+ CellChangeTimes->{3.44205547146177*^9}],
+
+Cell[BoxData[
+ ButtonBox["\<\"Matvect\"\>",
+  Appearance->Automatic,
+  ButtonFrame->"DialogBox",
+  ButtonFunction:>NotebookOpen[
+    StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$762]],
+  Evaluator->Automatic,
+  Method->"Preemptive"]], "Output",
+ CellChangeTimes->{3.442055471495707*^9}]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"NotebookOpen", "[", 
+   RowBox[{
+    RowBox[{"Environment", "[", "\"\<MMALPHA\>\"", "]"}], "<>", 
+    "\"\</demos/NOTEBOOKS/Matvect/Matvect.nb\>\""}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.439477523687785*^9, 3.439477641848337*^9}, 
+   3.439477684827725*^9}],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"matvect\"\>",
+   Appearance->Automatic,
+   ButtonFrame->"DialogBox",
+   ButtonFunction:>NotebookOpen[
+     StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$885]],
+   Evaluator->Automatic,
+   Method->"Preemptive"]],
+  CellChangeTimes->{3.437563261355999*^9}],
+ " notebook presents a demonstration based on the matrix vector algorithm. "
+}], "Text",
+ CellChangeTimes->{3.4375632681810617`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Matrix matrix multiplication", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"demoLink", "[", "\"\<Matmult\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.439477721016369*^9, 3.439477730547999*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"NotebookOpen", "[", 
+   RowBox[{
+    RowBox[{"Environment", "[", "\"\<MMALPHA\>\"", "]"}], "<>", 
+    "\"\</demos/NOTEBOOKS/Matmult/Matmult.nb\>\""}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.439477748752749*^9, 3.439477760515688*^9}}],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"matmult\"\>",
+   Appearance->Automatic,
+   ButtonFrame->"DialogBox",
+   ButtonFunction:>NotebookOpen[
+     StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$887]],
+   Evaluator->Automatic,
+   Method->"Preemptive"]],
+  CellChangeTimes->{3.437563293142536*^9}],
+ " notebook presents a demonstration based on the matrix multiplication \
+algorithm. "
+}], "Text",
+ CellChangeTimes->{{3.437563305246439*^9, 3.437563305730734*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Fir", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"demoLink", "[", "\"\<Fir\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.4395264220414658`*^9, 3.439526428330652*^9}}],
+
+Cell[BoxData["\<\"NOTEBOOKS/Fir/Fir.nb\"\>"], "Print",
+ CellChangeTimes->{3.442056447597691*^9}],
+
+Cell[BoxData[
+ ButtonBox["\<\"Fir\"\>",
+  Appearance->Automatic,
+  ButtonFrame->"DialogBox",
+  ButtonFunction:>NotebookOpen[
+    StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$112789]],
+  Evaluator->Automatic,
+  Method->"Preemptive"]], "Output",
+ CellChangeTimes->{3.442056447640731*^9}]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"The", 
+  StyleBox[
+   ButtonBox["\<\"Fir\"\>",
+    Appearance->Automatic,
+    ButtonFrame->"DialogBox",
+    ButtonFunction:>NotebookOpen[
+      StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$889]],
+    Evaluator->Automatic,
+    Method->"Preemptive"],
+   FontFamily->"Courier"], "notebook", " ", "presents", " ", "a", " ", 
+  "demonstration", " ", "based", " ", "on", " ", "the", " ", "finite", " ", 
+  "impulse", " ", "response", " ", 
+  RowBox[{"(", "Fir", ")"}], " ", 
+  RowBox[{"filter", "."}]}]], "Text",
+ CellChangeTimes->{3.43756333751042*^9},
+ FontFamily->"Times New Roman"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Advanced examples", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["The Dlms demonstration",
+ FontColor->GrayLevel[0.500008]]], "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"DLMS\"\>",
+   Appearance->Automatic,
+   ButtonFrame->"DialogBox",
+   ButtonFunction:>NotebookOpen[
+     StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$901]],
+   Evaluator->Automatic,
+   Method->"Preemptive"]],
+  CellChangeTimes->{3.437563466428553*^9}],
+ " notebook presents a demonstration of MMAlpha on a Delayed Least Mean \
+Square adaptive filter."
+}], "Text",
+ CellChangeTimes->{3.4375634947569847`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["The Samba architecture for DNA sequencing",
+ FontColor->GrayLevel[0.500008]]], "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"Samba\"\>",
+   Appearance->Automatic,
+   ButtonFrame->"DialogBox",
+   ButtonFunction:>NotebookOpen[
+     StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$899]],
+   Evaluator->Automatic,
+   Method->"Preemptive"]],
+  CellChangeTimes->{3.437563430634098*^9}],
+ " notebook presents a demonstration of MMAlpha on a DNA sequence alignment \
+program."
+}], "Text",
+ CellChangeTimes->{{3.437563438883087*^9, 3.4375634392950487`*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Distances", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ ButtonBox["\<\"Distances\"\>",
+  Appearance->Automatic,
+  ButtonFrame->"DialogBox",
+  ButtonFunction:>NotebookOpen[
+    StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$897]],
+  Evaluator->Automatic,
+  Method->"Preemptive"]], "Output",
+ CellChangeTimes->{3.437563410108478*^9}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["More examples", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell["Domlib", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"Domlib\"\>",
+   Active->True,
+   ButtonFunction:>NotebookOpen[
+     StringJoin["/Users/quinton/mmalpha/doc/packages/Domlib/Domlib.nb"]]]]],
+ " notebook provides an introduction to the domain calculus of MMAlpha."
+}], "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Z Domlib (not avaiable)", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"ZDomlib\"\>",
+   Active->True,
+   ButtonFunction:>NotebookOpen[
+     StringJoin[$demoDirectory, "NOTEBOOKS/ZDomlib/ZDomlib.nb"]]]]],
+ " notebook provides an introduction to Z Domlib. Z-Polyhedra are images of \
+polyhedra by affine mappings. Such domains allow sparse polyhedra to be \
+described. Unfortunately, MMAlpha has not been extended to handle \
+Z-Polyhedra..."
+}], "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The structured scheduler", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"StructuredScheduler\"\>",
+   Appearance->Automatic,
+   ButtonFrame->"DialogBox",
+   ButtonFunction:>NotebookOpen[
+     StringJoin[Alpha`$demoDirectory, Alpha`Private`fullname$914]],
+   Evaluator->Automatic,
+   Method->"Preemptive"]]],
+ " shows how to use the structured scheduler on the matrix multiplication \
+algorithm."
+}], "Text",
+ CellChangeTimes->{{3.4375636818005*^9, 3.437563681800569*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["A binary multiplier (not available yet)",
+ FontColor->GrayLevel[0.500008]]], "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"docLink", "[", "\"\<binMult\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.4375636975566673`*^9, 3.437563698804967*^9}}],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"binMult\"\>",
+   Active->True,
+   ButtonFunction:>NotebookOpen[
+     StringJoin[$demoDirectory, "NOTEBOOKS\\binMult\\binMult.nb"]]]]],
+ " notebook presents the design of a binary multiplier."
+}], "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Delay line (not available yet)", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"demoLink", "[", "\"\<DelayLine\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.4375637072214193`*^9, 3.437563710078949*^9}}],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"DelayLine\"\>",
+   Active->True,
+   ButtonFunction:>NotebookOpen[
+     StringJoin[$demoDirectory, "NOTEBOOKS/DelayLine/DelayLine.nb"]]]]],
+ " notebook presents a demonstration of MMAlpha on a delay line. This \
+demonstration is not currently available... Sorry."
+}], "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Fifo", "Subsection",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"demoLink", "[", "\"\<Fifo\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.437563722664857*^9, 3.437563734646686*^9}}],
+
+Cell[TextData[{
+ "The ",
+ Cell[BoxData[
+  ButtonBox["\<\"Fifo\"\>",
+   Active->True,
+   ButtonFunction:>NotebookOpen[
+     StringJoin[$demoDirectory, "NOTEBOOKS/Fifo/Fifo.nb"]]]]],
+ " notebook presents a demonstration of MMAlpha on a Fifo."
+}], "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Creating a link to your own master notebook", "Subsection",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"createlink"],
+
+Cell[TextData[{
+ "Much as the ",
+ StyleBox["start[]", "Input"],
+ " command allowed you to open this master notebook, you may find it \
+convenient to locate all your own notebooks in a directory, and call your own \
+examples from a notebook that you create and modify yourself. Say all your \
+notebooks are located in subdirectories of a common directory whose absolute \
+path is ",
+ StyleBox["C:/myNotebooks", "Input"],
+ ". In the init.m file which you must have created in your homedir, add the \
+following command:\n",
+ StyleBox["$myNotebooks = \"C:/myNotebooks\";\n$myMasterNotebook = \
+\"myMaster.nb\";", "Input"],
+ "\nwhich sets the value of the ",
+ StyleBox["$myNotebooks", "Input"],
+ " and of the ",
+ StyleBox["$myMasterNotebook", "Input"],
+ " variables. Then create a notebook ",
+ StyleBox["myMaster.nb", "Input"],
+ " in the ",
+ StyleBox["myNotebooks", "Input"],
+ " directory. Once ",
+ StyleBox["MMAlpha", "Input"],
+ " has been restarted (so that the init.m file is re-evaluated), executing \
+the command ",
+ StyleBox["myStart[]", "Input"],
+ " will open your master directory."
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[TextData[{
+ "Now, suppose you want to work on an example, say ",
+ StyleBox["myExample", "Input"],
+ ". Create a subdirectory ",
+ StyleBox["myExample", "Input"],
+ " in ",
+ StyleBox["C:/myNotebooks", "Input"],
+ ", and add a notebook named ",
+ StyleBox["myExample.nb", "Input"],
+ " in the ",
+ StyleBox["myExample", "Input"],
+ " directory. Then, evaluating the command \n",
+ StyleBox["link[\"myExample\"]", "Input"],
+ "\nin any notebook will create a button link to ",
+ StyleBox["myExample.nb", "Input"],
+ " . "
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Tests  (not available yet on V2)", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+ "Tests for a large part of the MMAlpha packages are available here: ",
+ Cell[BoxData[
+  ButtonBox["\<\"Tests\"\>",
+   Appearance->Automatic,
+   ButtonFrame->"DialogBox",
+   ButtonFunction:>NotebookOpen[Alpha`Private`fullname$895],
+   Evaluator->Automatic,
+   Method->"Preemptive"]],
+  CellChangeTimes->{3.437563371701024*^9}],
+ "."
+}], "Text",
+ CellChangeTimes->{3.437563386664747*^9}]
+}, Open  ]]
+}, Open  ]]
+},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+WindowSize->{1255, 727},
+WindowMargins->{{75, Automatic}, {Automatic, 0}},
+DockedCells->FEPrivate`FrontEndResource[
+ "FEExpressions", "CompatibilityToolbar"],
+PrintingPageRange->{Automatic, Automatic},
+PageHeaders->{{
+   Cell[
+    TextData[{
+      CounterBox["Page"]}], "PageNumber"], Inherited, 
+   Cell[
+    TextData[{
+      ValueBox["FileName"]}], "Header"]}, {
+   Cell[
+    TextData[{
+      ValueBox["FileName"]}], "Header"], Inherited, 
+   Cell[
+    TextData[{
+      CounterBox["Page"]}], "PageNumber"]}},
+PrintingOptions->{"FacingPages"->True,
+"FirstPageFooter"->False,
+"FirstPageHeader"->False,
+"Magnification"->1,
+"PaperOrientation"->"Portrait",
+"PaperSize"->{612, 792}},
+ShowSelection->True,
+DelimiterFlashTime->0,
+Magnification->1.5,
+FrontEndVersion->"6.0 for Mac OS X x86 (32-bit) (June 19, 2007)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{
+ "truc"->{
+  Cell[3099, 116, 893, 19, 70, "Text",
+   CellTags->"truc"],
+  Cell[3995, 137, 207, 8, 70, "Text",
+   CellTags->"truc"]},
+ "createlink"->{
+  Cell[18776, 651, 121, 2, 51, "Subsection",
+   CellTags->"createlink"]}
+ }
+*)
+(*CellTagsIndex
+CellTagsIndex->{
+ {"truc", 22197, 766},
+ {"createlink", 22336, 771}
+ }
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[568, 21, 91, 1, 40, "Input"],
+Cell[CellGroupData[{
+Cell[684, 26, 74, 1, 114, "Title"],
+Cell[761, 29, 186, 4, 49, "SmallText"],
+Cell[CellGroupData[{
+Cell[972, 37, 63, 1, 37, "Subsubsection"],
+Cell[1038, 40, 360, 14, 70, "SmallText"]
+}, Closed]],
+Cell[1413, 57, 104, 3, 47, "Subsubsection"],
+Cell[CellGroupData[{
+Cell[1542, 64, 167, 4, 26, "Subsubsection"],
+Cell[CellGroupData[{
+Cell[1734, 72, 166, 5, 70, "Input",
+ InitializationCell->True],
+Cell[1903, 79, 146, 2, 70, "Output"]
+}, Open  ]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[2098, 87, 59, 1, 53, "Section"],
+Cell[2160, 90, 299, 6, 70, "Text"],
+Cell[2462, 98, 634, 16, 70, "Text"],
+Cell[3099, 116, 893, 19, 70, "Text",
+ CellTags->"truc"],
+Cell[3995, 137, 207, 8, 70, "Text",
+ CellTags->"truc"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[4239, 150, 77, 1, 53, "Section"],
+Cell[4319, 153, 414, 8, 62, "Text"],
+Cell[CellGroupData[{
+Cell[4758, 165, 143, 2, 40, "Input"],
+Cell[4904, 169, 130, 1, 30, "Print"],
+Cell[5037, 172, 323, 8, 61, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5409, 186, 72, 1, 100, "Section"],
+Cell[CellGroupData[{
+Cell[5506, 191, 68, 1, 51, "Subsection"],
+Cell[CellGroupData[{
+Cell[5599, 196, 151, 2, 40, "Input"],
+Cell[5753, 200, 120, 1, 30, "Print"],
+Cell[5876, 203, 305, 8, 61, "Output"]
+}, Open  ]],
+Cell[6196, 214, 605, 16, 83, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6838, 235, 80, 1, 51, "Subsection"],
+Cell[CellGroupData[{
+Cell[6943, 240, 149, 2, 40, "Input"],
+Cell[7095, 244, 124, 2, 30, "Print"],
+Cell[7222, 248, 306, 8, 61, "Output"]
+}, Open  ]],
+Cell[7543, 259, 592, 18, 60, "Text"],
+Cell[8138, 279, 620, 15, 41, "Text"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8807, 300, 65, 1, 100, "Section"],
+Cell[CellGroupData[{
+Cell[8897, 305, 26, 0, 51, "Subsection"],
+Cell[8926, 307, 922, 19, 152, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[9885, 331, 81, 1, 51, "Subsection"],
+Cell[CellGroupData[{
+Cell[9991, 336, 141, 2, 40, "Input"],
+Cell[10135, 340, 103, 1, 30, "Print"],
+Cell[10241, 343, 297, 8, 61, "Output"]
+}, Open  ]],
+Cell[10553, 354, 301, 7, 40, "Input"],
+Cell[10857, 363, 455, 13, 60, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[11349, 381, 81, 1, 51, "Subsection"],
+Cell[11433, 384, 141, 2, 40, "Input"],
+Cell[11577, 388, 275, 6, 40, "Input"],
+Cell[11855, 396, 487, 14, 60, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[12379, 415, 56, 1, 51, "Subsection"],
+Cell[CellGroupData[{
+Cell[12460, 420, 139, 2, 40, "Input"],
+Cell[12602, 424, 96, 1, 30, "Print"],
+Cell[12701, 427, 296, 8, 61, "Output"]
+}, Open  ]],
+Cell[13012, 438, 614, 16, 41, "Text"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[13675, 460, 67, 1, 100, "Section"],
+Cell[CellGroupData[{
+Cell[13767, 465, 128, 2, 51, "Subsection"],
+Cell[13898, 469, 474, 14, 60, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[14409, 488, 147, 2, 51, "Subsection"],
+Cell[14559, 492, 488, 14, 60, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[15084, 511, 62, 1, 51, "Subsection"],
+Cell[15149, 514, 299, 8, 61, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[15497, 528, 63, 1, 100, "Section"],
+Cell[CellGroupData[{
+Cell[15585, 533, 59, 1, 51, "Subsection"],
+Cell[15647, 536, 281, 8, 54, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[15965, 549, 80, 1, 51, "Subsection"],
+Cell[16048, 552, 437, 11, 77, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[16522, 568, 77, 1, 51, "Subsection"],
+Cell[16602, 571, 455, 13, 60, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[17094, 589, 145, 2, 51, "Subsection"],
+Cell[17242, 593, 142, 2, 40, "Input"],
+Cell[17387, 597, 260, 8, 54, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[17684, 610, 83, 1, 51, "Subsection"],
+Cell[17770, 613, 145, 2, 40, "Input"],
+Cell[17918, 617, 331, 9, 54, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[18286, 631, 57, 1, 51, "Subsection"],
+Cell[18346, 634, 138, 2, 40, "Input"],
+Cell[18487, 638, 252, 8, 54, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[18776, 651, 121, 2, 51, "Subsection",
+ CellTags->"createlink"],
+Cell[18900, 655, 1142, 29, 70, "Text"],
+Cell[20045, 686, 568, 18, 70, "Text"]
+}, Closed]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[20662, 710, 82, 1, 100, "Section"],
+Cell[20747, 713, 402, 12, 60, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

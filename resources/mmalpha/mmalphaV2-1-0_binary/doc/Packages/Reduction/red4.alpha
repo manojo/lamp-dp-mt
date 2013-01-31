@@ -1,0 +1,13 @@
+system red4: {N| N>0} 
+  (x: {i,j,k,l| 0<=i,j,k,l<N } of integer) 
+returns (y: integer);
+var
+  z: {i| 0<=i<N} of integer;
+  t: {i,j| 0<=i,j<N} of integer;
+  w: {i,j,k| 0<=i,j,k<N} of integer;
+let
+  z[i] = reduce( +, (i,j,k,l->i), x);
+  t[i,j] = reduce( +, (i,j,k,l->i,j), x);
+  w[i,j,k] = reduce( +, (i,j,k,l->i,j,k), x);
+  y[] = reduce(+, (i,j,k,l->), x);
+tel;

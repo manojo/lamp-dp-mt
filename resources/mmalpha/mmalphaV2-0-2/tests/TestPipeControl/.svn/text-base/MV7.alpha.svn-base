@@ -1,0 +1,41 @@
+system prodVect (a : {i,j | 1<=i<=4; 1<=j<=4} of boolean; 
+                 b : {i | 1<=i<=4} of boolean)
+       returns  (c : {i | 1<=i<=4} of boolean);
+var
+  loadCPipe : {t,p | p<=t<=p+4; 1<=p<=4} of boolean;
+  B1 : {t,p | p+1<=t<=p+4; 1<=p<=4} of boolean;
+  A : {t,p | p+1<=t<=p+4; 1<=p<=4} of boolean;
+  C : {t,p | p<=t<=p+4; 1<=p<=4} of boolean;
+  loadC : {t,p | p<=t<=p+4; 1<=p<=4} of boolean;
+  B1reg1 : {t,p | p<=t<=p+3; 2<=p<=4} of boolean;
+  loadCPipereg1 : {i1,i2 | i2-1<=i1<=i2+3; 2<=i2<=4} of boolean;
+let
+  B1reg1[t,p] = B1[t,p-1];
+  B1[t,p] = 
+      case
+        {| 2<=t<=5; p=1} : b[t-p];
+        {| p+1<=t<=p+4; 2<=p<=4} : B1reg1[t-1,p];
+      esac;
+  A[t,p] = a[p,t-p];
+  C[t,p] = 
+      case
+        {| p<=t<=p+4; 1<=p<=4} : (
+           case
+             {| t=p; 1<=p<=4} : (if (loadCPipe) then False[] else True[]);
+             {| p+1<=t<=p+4; 1<=p<=4} : (if (not loadCPipe) then 
+                    C[t-1,p] + A[t,p] * B1[t,p] else False[]);
+           esac);
+      esac;
+  loadCPipereg1[i1,i2] = loadCPipe[i1,i2-1];
+  loadCPipe[t,p] = 
+      case
+        {| 1<=t<=5; p=1} : (
+           case
+             {| t=p; 1<=p<=4} : True[];
+             {| p+1<=t<=p+4; 1<=p<=4} : False[];
+           esac);
+        {| p<=t<=p+4; 2<=p<=4} : loadCPipereg1[t-1,p];
+      esac;
+  loadC[t,p] = loadCPipe;
+  c[i] = C[i+4,i];
+tel;

@@ -1,0 +1,129 @@
+system matvect1 :{K | 2<=K}
+                (a : {i,j | 1<=i<=K; 1<=j<=K} of integer; 
+                 v : {k,j | k=1; 1<=j<=K} of integer)
+       returns  (c : {k,j | 1<=k<=K; j=K} of integer);
+var
+  C : {i,j | 1<=i<=K; 0<=j<=K} of integer;
+  element : {i,j | 1<=i<=K; 1<=j<=K} of integer;
+let
+  element[i,j] = if (v[1,j] = 0[]) then 0[] else if (v[1,j] = 1[]) then a[i,j] else -a[i,j];
+  C[i,j] = 
+      case
+        { | j=0} : 0[];
+        { | 1<=j} : C[i,j-1] + element[i,j];
+      esac;
+  c[k,j] = C[k,j];
+tel;
+
+system matvect2 :{K | 2<=K}
+                (a : {i,j | 1<=i<=K; 1<=j<=K} of integer; 
+                 v : {k,j | k=1; 1<=j<=K} of integer)
+       returns  (c : {k,j | 1<=k<=K; j=K} of integer);
+var
+  C : {i,j | 1<=i<=K; 0<=j<=K} of integer;
+  element : {i,j | 1<=i<=K; 1<=j<=K} of integer;
+let
+  element[i,j] = if (v[1,j] = 0[]) then 0[] else if (v[1,j] = 1[]) then a[i,j] else -a[i,j];
+  C[i,j] = 
+      case
+        { | j=0} : 0[];
+        { | 1<=j} : C[i,j-1] + element[i,j];
+      esac;
+  c[k,j] = C[k,j];
+tel;
+
+system matvect3 :{K | 2<=K}
+                (a : {i,j | 1<=i<=K; 1<=j<=K} of integer; 
+                 v : {k,j | k=1; 1<=j<=K} of integer)
+       returns  (c : {k,j | 1<=k<=K; j=K} of integer);
+var
+  C : {i,j | 1<=i<=K; 0<=j<=K} of integer;
+  element : {i,j | 1<=i<=K; 1<=j<=K} of integer;
+let
+  element[i,j] = if (v[1,j] = 0[]) then 0[] else if (v[1,j] = 1[]) then a[i,j] else -a[i,j];
+  C[i,j] = 
+      case
+        { | j=0} : 0[];
+        { | 1<=j} : C[i,j-1] + element[i,j];
+      esac;
+  c[k,j] = C[k,j];
+tel;
+
+system oneStage :{K | 2<=K}
+                (L : {k,j | 1<=k<=K; 1<=j<=K} of integer; 
+                 C : {k,j | 1<=k<=K; 1<=j<=K} of integer; 
+                 LH : {k,j | 1<=k<=K; 1<=j<=K} of integer; 
+                 y0 : {k,j | k=1; 1<=j<=K} of integer; 
+                 dhatprevious : {k,j | k=1; 1<=j<=K} of integer; 
+                 dhat : {k,j | k=1; 1<=j<=K} of integer; 
+                 dhatnext : {k,j | k=1; 1<=j<=K} of integer)
+       returns  (dhatNew : {k,j | 1<=k<=K; j=K} of integer);
+var
+  dhatpreviousIN : {k,j | k=1; 1<=j<=K} of integer;
+  dhatIN : {k,j | k=1; 1<=j<=K} of integer;
+  dhatnextIN : {k,j | k=1; 1<=j<=K} of integer;
+  vLH : {k,j | 1<=k<=K; j=K} of integer;
+  vC : {k,j | 1<=k<=K; j=K} of integer;
+  vL : {k,j | 1<=k<=K; j=K} of integer;
+  y : {k,j | 1<=k<=K; j=K} of integer;
+  dhatNewMirr : {k,j | 1<=k<=K; j=K} of integer;
+let
+  dhatpreviousIN[k,j] = dhatprevious[k,j];
+  dhatIN[k,j] = dhat[k,j];
+  dhatnextIN[k,j] = dhatnext[k,j];
+  use  matvect1[K] (LH, dhatnextIN) returns  (vLH) ;
+  use  matvect2[K] (C, dhatIN) returns  (vC) ;
+  use  matvect3[K] (L, dhatpreviousIN) returns  (vL) ;
+  y[k,j] = y0[1,k] - vL[k,j] - vC[k,j] - vLH[k,j];
+  dhatNewMirr[k,j] = if (y[k,j]>=0[]) then 1[] else -1[];
+  dhatNew[k,j] = dhatNewMirr[k,j];
+tel;
+
+system PIC :   {K,D,M | 2<=K; 2<=D; 2<=M}
+               (L : {k,j | 1<=k<=K; 1<=j<=K} of integer; 
+                LH : {k,j | 1<=k<=K; 1<=j<=K} of integer; 
+                C : {k,j | 1<=k<=K; 1<=j<=K} of integer; 
+                y0 : {k,i | 1<=k<=K; 1<=i<=D} of integer)
+       returns (d : {k,i | 1<=k<=K; 1<=i<=D} of integer);
+var
+  dhatnextIN : {k,j,i,l | k=1; 1<=j<=K; 1<=i<=D; 1<=l<=M} of integer;
+  dhatDupIN : {k,j,i,l | k=1; 1<=j<=K; 1<=i<=D; 1<=l<=M} of integer;
+  dhatpreviousIN : {k,j,i,l | k=1; 1<=j<=K; 1<=i<=D; 1<=l<=M} of integer;
+  y0DupIN : {k,j,i,l | k=1; 1<=j<=K; 1<=i<=D; 1<=l<=M} of integer;
+  LDup : {k,j,i,l | 1<=k<=K; 1<=j<=K; 1<=i<=D; 1<=l<=M} of integer;
+  LHDup : {k,j,i,l | 1<=k<=K; 1<=j<=K; 1<=i<=D; 1<=l<=M} of integer;
+  CDup : {k,j,i,l | 1<=k<=K; 1<=j<=K; 1<=i<=D; 1<=l<=M} of integer;
+  dhatprevious : {k,j,i,l | k=1; 1<=j<=K; 1<=i<=D; 1<=l<=M} of integer;
+  dhatnext : {k,j,i,l | k=1; 1<=j<=K; 1<=i<=D; 1<=l<=M} of integer;
+  dhatDup : {k,j,i,l | k=1; 1<=j<=K; 1<=i<=D; 1<=l<=M} of integer;
+  dhatNew : {k,j,i,l | 1<=k<=K; j=K; 1<=i<=D; 1<=l<=M} of integer;
+  y0Dup : {k,j,i,l | k=1; 1<=j<=K; 1<=i<=D; 1<=l<=M} of integer;
+  dhat : {k,j,i,l | k=1; 1<=j<=K; 1<=i<=D; 0<=l<=M} of integer;
+let
+  dhatnextIN[k,j,i,l] = dhatnext[k,j,i,l];
+  dhatDupIN[k,j,i,l] = dhatDup[k,j,i,l];
+  dhatpreviousIN[k,j,i,l] = dhatprevious[k,j,i,l];
+  y0DupIN[k,j,i,l] = y0Dup[k,j,i,l];
+  dhatprevious[k,j,i,l] = 
+      case
+        { | i=1} : 0[];
+        { | 2<=i} : dhat[k,j,i-1,l-1];
+      esac;
+  dhatnext[k,j,i,l] = 
+      case
+        { | i<=D-1} : dhat[k,j,i+1,l-1];
+        { | i=D} : 0[];
+      esac;
+  dhatDup[k,j,i,l] = dhat[k,j,i,l-1];
+  LDup[k,j,i,l] = L[k,j];
+  LHDup[k,j,i,l] = LH[k,j];
+  CDup[k,j,i,l] = C[k,j];
+  y0Dup[k,j,i,l] = y0[k+j-1,i];
+  use {i,l | 1<=i<=D; 1<=l<=M} oneStage[K] (LDup, LHDup, CDup, y0DupIN, dhatpreviousIN, dhatDupIN, dhatnextIN) returns  (dhatNew) ;
+  dhat[k,j,i,l] = 
+      case
+        { | l=0} : if (y0[k+j-1,i]>=1[]) then 1[] else -1[];
+        { | 1<=l} : dhatNew[k+j-1,K,i,l];
+      esac;
+  d[k,i] = dhat[1,k,i,M];
+tel;

@@ -1,0 +1,97 @@
+system total   (Ilam1 : {t,p | 0<=t<=5; p=1} of integer; 
+                Ilam2 : {t,p | 0<=t<=5; p=1} of integer; 
+                Ix1 : {t,p | 0<=t<=5; p=1} of integer; 
+                Ix2 : {t,p | 0<=t<=5; p=1} of integer; 
+                Iy1 : {t,p | 0<=t<=5; p=1} of integer; 
+                Iy2 : {t,p | 0<=t<=5; p=1} of integer; 
+                ck2 : {t,p | 2<=t<=5; p=1} of boolean; 
+                Redu : {t,p | 0<=t<=5; p=1} of boolean; 
+                Iinit : {t,p | 0<=t<=5; p=1} of boolean; 
+                Iend : {t,p | 0<=t<=5; p=1} of boolean)
+       returns (Sl1 : {t,p | 10<=t<=13; p=5} of integer; 
+                Sl2 : {t,p | 10<=t<=13; p=5} of integer; 
+                Sx : {t,p | 10<=t<=13; p=5} of integer; 
+                Sy : {t,p | 10<=t<=13; p=5} of integer; 
+                Ss : {t,p | 10<=t<=13; p=5} of boolean; 
+                Send : {t,p | 5<=t<=10; p=5} of boolean; 
+                Sendsort : {t,p | 9<=t<=14; p=5} of boolean; 
+                Sinit : {t,p | 9<=t<=14; p=5} of boolean);
+var
+  Ol1 : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Ol2 : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Ox : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Oy : {t,p | 2p<=t<=2p+3; 2<=p<=5} of integer;
+  Os : {t,p | 2p<=t<=2p+3; 2<=p<=5} of boolean;
+  Oend : {t,p | p<=t<=p+5; 2<=p<=5} of boolean;
+  Oendsort : {t,p | 2p-1<=t<=2p+4; 2<=p<=5} of boolean;
+  Oinit : {t,p | 2p-1<=t<=2p+4; 2<=p<=5} of boolean;
+  OOl1 : {t,p | 2<=t<=5; p=1} of integer;
+  OOl2 : {t,p | 2<=t<=5; p=1} of integer;
+  OOx : {t,p | 2<=t<=5; p=1} of integer;
+  OOy : {t,p | 2<=t<=5; p=1} of integer;
+  OOs : {t,p | 2<=t<=5; p=1} of boolean;
+  OOinit : {t,p | 1<=t<=6; p=1} of boolean;
+  OOend : {t,p | 1<=t<=6; p=1} of boolean;
+  OOendsort : {t,p | 1<=t<=6; p=1} of boolean;
+  IIl1 : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  IIl2 : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  IIx : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  IIy : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of integer;
+  IIs : {t,p | 2p-2<=t<=2p+1; 2<=p<=5} of boolean;
+  IIend : {t,p | p-1<=t<=p+4; 2<=p<=5} of boolean;
+  IIendsort : {t,p | 2p-3<=t<=2p+2; 2<=p<=5} of boolean;
+  IIinit : {t,p | 2p-3<=t<=2p+2; 2<=p<=5} of boolean;
+let
+  use {p | p=1} cell1b[0,6] (Ilam1, Ilam2, Ix1, Ix2, Iy1, Iy2, ck2, Redu, Iinit, Iend) returns  (OOl1, OOl2, OOx, OOy, OOs, OOinit, OOend, OOendsort) ;
+  
+  IIl1[t,p] = 
+      case
+        {| p=2} : OOl1[t,p-1];
+        {| 3<=p<=5} : Ol1[t,p-1];
+      esac;
+  IIl2[t,p] = 
+      case
+        {| p=2} : OOl2[t,p-1];
+        {| 3<=p<=5} : Ol2[t,p-1];
+      esac;
+  IIx[t,p] = 
+      case
+        {| p=2} : OOx[t,p-1];
+        {| 3<=p<=5} : Ox[t,p-1];
+      esac;
+  IIy[t,p] = 
+      case
+        {| p=2} : OOy[t,p-1];
+        {| 3<=p<=5} : Oy[t,p-1];
+      esac;
+  IIs[t,p] = 
+      case
+        {| p=2} : OOs[t,p-1];
+        {| 3<=p<=5} : Os[t,p-1];
+      esac;
+  IIend[t,p] = 
+      case
+        {| p=2} : OOend[t,p-1];
+        {| 3<=p<=5} : Oend[t,p-1];
+      esac;
+  IIendsort[t,p] = 
+      case
+        {| p=2} : OOendsort[t,p-1];
+        {| 3<=p<=5} : Oendsort[t,p-1];
+      esac;
+  IIinit[t,p] = 
+      case
+        {| p=2} : OOinit[t,p-1];
+        {| 3<=p<=5} : Oinit[t,p-1];
+      esac;
+  use {p | 2<=p<=5} sortcell[2p-3,p-1,4] (IIl1, IIl2, IIx, IIy, IIs, IIend, IIendsort, IIinit) returns  (Ol1, Ol2, Ox, Oy, Os, Oend, Oendsort, Oinit) ;
+  
+  Sl1[t,p] = Ol1[t,p];
+  Sl2[t,p] = Ol2[t,p];
+  Sx[t,p] = Ox[t,p];
+  Sy[t,p] = Oy[t,p];
+  Ss[t,p] = Os[t,p];
+  Send[t,p] = Oend[t,p];
+  Sendsort[t,p] = Oendsort[t,p];
+  Sinit[t,p] = Oinit[t,p];
+tel;

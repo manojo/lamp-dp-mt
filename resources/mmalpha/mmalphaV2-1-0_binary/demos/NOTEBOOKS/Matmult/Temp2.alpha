@@ -1,0 +1,64 @@
+system matmult :{M | 2<=M}
+               (a : {i,j | 1<=i<=M; 1<=j<=M} of integer; 
+                b : {i,j | 1<=i<=M; 1<=j<=M} of integer)
+       returns (c : {i,j | 1<=i<=M; 1<=j<=M} of integer);
+var
+  pipeCb57 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} of integer;
+  pipeCa7 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} of integer;
+  C : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 0<=p2<=M} of integer;
+  pipeCb57Xctl1 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} of boolean;
+  pipeCb57Xctl1 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} of boolean;
+  pipeCb57Xctl1Xctl1 : {t,p1,p2 | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} of boolean;
+let
+  pipeCb57Xctl1Xctl1[t,p1,p2] = 
+      case
+        { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : 
+           case
+             { | t=p1+p2+1; 1<=p1<=M; 1<=p2<=M; 2<=M} : True[];
+             { | p1+p2+2<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M} : False[];
+           esac;
+      esac;
+  pipeCb57Xctl1[t,p1,p2] = 
+      case
+        { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : if (pipeCb57Xctl1Xctl1) then 
+                  case
+                    { | t=p1+p2+1; 1<=p1<=M; 1<=p2<=M; 2<=M} : True[];
+                    { | p1+p2+2<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M} : False[];
+                  esac else 
+              case
+                { | t=p1+p2+1; 1<=p1<=M; 1<=p2<=M; 2<=M} : False[];
+                { | p1+p2+2<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M} : False[];
+              esac;
+      esac;
+  pipeCb57Xctl1[t,p1,p2] = 
+      case
+        { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : 
+           case
+             { | t=p1+p2+1; 1<=p1<=M; 1<=p2<=M; 2<=M} : True[];
+             { | p1+p2+2<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M} : False[];
+           esac;
+      esac;
+  pipeCb57[t,p1,p2] = 
+      case
+        { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : if (pipeCb57Xctl1) then 
+                  case
+                    { | t=p1+p2+1; 1<=p1<=M; 1<=p2<=M; 2<=M} : if (pipeCb57Xctl1) then b[p2,p1] else 0[];
+                    { | p1+p2+2<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M} : 0[];
+                  esac else 
+              case
+                { | t=p1+p2+1; 1<=p1<=M; 1<=p2<=M; 2<=M} : 0[];
+                { | p1+p2+2<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M} : if (pipeCb57Xctl1) then 0[] else pipeCb57[t-1,p1,p2];
+              esac;
+      esac;
+  pipeCa7[t,p1,p2] = 
+      case
+        { | p2+2<=t<=p2+M+1; p1=1; 1<=p2<=M; 2<=M} : a[t-p1-p2,p2];
+        { | p1+p2+1<=t<=p1+p2+M; 2<=p1<=M; 1<=p2<=M} : pipeCa7[t-1,p1-1,p2];
+      esac;
+  c[i,j] = C[i+j+M,j,M];
+  C[t,p1,p2] = 
+      case
+        { | p1+1<=t<=p1+M; 1<=p1<=M; p2=0; 2<=M} : 0[];
+        { | p1+p2+1<=t<=p1+p2+M; 1<=p1<=M; 1<=p2<=M; 2<=M} : C[t-1,p1,p2-1] + pipeCa7 * pipeCb57;
+      esac;
+tel;

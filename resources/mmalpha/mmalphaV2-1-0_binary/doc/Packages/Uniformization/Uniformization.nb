@@ -1,0 +1,866 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     24160,        660]*)
+(*NotebookOutlinePosition[     25118,        695]*)
+(*  CellTagsIndexPosition[     25043,        689]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The \"Uniformization\" package", "Subsubtitle",
+  FontColor->RGBColor[1, 0, 0],
+  CellTags->"firstcell"],
+
+Cell["Manlu Manjunathaiah and Tanguy Risset", "Subsubtitle"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+alpha@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell[" Execute this cell, to redefine the current directory", "SmallText",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(setMMADir[{"\<doc\>", "\<packages\>", "\<Uniformization\>"}]\)], "Input",\
+
+  InitializationCell->True],
+
+Cell[BoxData[
+    \("/Users/quinton/mmalpha/doc/Packages/Uniformization"\)], "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell["\<\
+The Uniformization Package has been written by Manjunathaiah from \
+the Pedal group at the university of Reading. This work was supported by the \
+SARACEN project and the Alliance project REMIT.  The work implemented here is \
+taken from the paper of P. Quintand and V. Van Dogen \"Uniformizing...\" and \
+G. Megson \"...\" . Uniformization applies on fully indexed systems (all \
+local variables have the same number of indices), hence it assumes that the \
+user have aligned input and output in a common space . Currently, no \
+optimization strategy are implemented, the uniformization only checks that \
+the dependence cone is always pointed in order t be able to schedule with a \
+unique linear part at the end of the process.\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell["A first automatic uniformization", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+The Arma filter can be written in Alpha with the following program \
+(notice that the input have been aligned so as to have a fully indexed \
+program)\
+\>", "Text"],
+
+Cell[BoxData[
+    \(<< Alpha/SystemProgramming.m\)], "Input"],
+
+Cell[BoxData[
+    \(<< Alpha/Uniformization.m\)], "Input"],
+
+Cell[BoxData[
+    \(asave["\<parma.alpha\>"]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(load["\<parma.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("[ArmaFilter]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("system ArmaFilter :{N,M | 2<=N<=M}\n                  (x : {i | \
+1<=i<=M} of integer; \n                   p : {i | 1<=i<=N} of integer; \n    \
+               q : {i | 1<=i<=N} of integer)\n       returns    (y : {i | \
+1<=i<=M} of integer);\nvar\n  Y : {i,j | 1<=i<=M; 1<=j<=N+1} of integer;\n  P \
+: {i,j | i=0; 1<=j<=N} of integer;\n  Q : {i,j | i=0; 1<=j<=N} of integer;\n  \
+X : {i,j | 1<=i<=M-1; j=0} of integer;\nlet\n  P = {i,j,i,j | i=0; 1<=j<=N} : \
+p.(i,j->j);\n  Q = {i,j,i,j | i=0; 1<=j<=N} : q.(i,j->j);\n  X = {i,j,i,j | \
+1<=i<=M-1; j=0} : x.(i,j->i);\n  Y = case\n        {i,j | 1<=i<=M; j=N+1} : \
+0.(i,j->);\n        {i,j | 1<=i<=(M,j); j<=N} : Y.(i,j->i,j+1);\n        {i,j \
+| j+1<=i<=M; 1<=j<=N} : Y.(i,j->i,j+1) + P.(i,j->0,j) + X.(i,j->i-j,0) + \
+Q.(i,j->0,j) + Y.(i,j->i-j,1);\n      esac;\n  y = Y.(i->i,1);\ntel;"\)], \
+"Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(pipeInfo[]\)], "Input"],
+
+Cell[BoxData[
+    \(DomEqualities::"singular" \(\(:\)\(\ \)\) 
+      "Matrix is singular"\)], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(Part::"partd"\), \(\(:\)\(\ \)\), "\<\"Part specification \
+\\!\\(Null \[LeftDoubleBracket] 4 \[RightDoubleBracket]\\) is longer than \
+depth of object. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::partd\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(Drop::"normal"\), \(\(:\)\(\ \)\), "\<\"Nonatomic expression \
+expected at position \\!\\(1\\) in \\!\\(Drop[\\(\\(Null, \
+\\(\\(-1\\)\\)\\)\\)]\\). \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::normal\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(Drop::"normal"\), \(\(:\)\(\ \)\), "\<\"Nonatomic expression \
+expected at position \\!\\(1\\) in \\!\\(Drop[\\(\\(4, \
+\\(\\(-1\\)\\)\\)\\)]\\). \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::normal\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(Part::"pspec"\), \(\(:\)\(\ \)\), "\<\"Part specification \
+\\!\\(Drop[\\(\\(4, \\(\\(-1\\)\\)\\)\\)]\\) is neither an integer nor a list \
+of integers. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::pspec\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    \(pipeInfo::"mbUnion" \(\(:\)\(\ \)\) 
+      "could not run DomEqualities properly. Does not apply to unions of \
+domains."\)], "Message"],
+
+Cell[BoxData[
+    \(DomEqualities::"singular" \(\(:\)\(\ \)\) 
+      "Matrix is singular"\)], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(Part::"partd"\), \(\(:\)\(\ \)\), "\<\"Part specification \
+\\!\\(Null \[LeftDoubleBracket] 4 \[RightDoubleBracket]\\) is longer than \
+depth of object. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::partd\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(Drop::"normal"\), \(\(:\)\(\ \)\), "\<\"Nonatomic expression \
+expected at position \\!\\(1\\) in \\!\\(Drop[\\(\\(Null, \
+\\(\\(-1\\)\\)\\)\\)]\\). \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::normal\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"stop"\), \(\(:\)\(\ \)\), "\<\"Further output of \
+\\!\\(Drop :: \\\"normal\\\"\\) will be suppressed during this calculation. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    RowBox[{\(Part::"pspec"\), \(\(:\)\(\ \)\), "\<\"Part specification \
+\\!\\(Drop[\\(\\(4, \\(\\(-1\\)\\)\\)\\)]\\) is neither an integer nor a list \
+of integers. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::pspec\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    \(pipeInfo::"mbUnion" \(\(:\)\(\ \)\) 
+      "could not run DomEqualities properly. Does not apply to unions of \
+domains."\)], "Message"],
+
+Cell[BoxData[
+    \(DomEqualities::"singular" \(\(:\)\(\ \)\) 
+      "Matrix is singular"\)], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"stop"\), \(\(:\)\(\ \)\), "\<\"Further output of \
+\\!\\(DomEqualities :: \\\"singular\\\"\\) will be suppressed during this \
+calculation. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(Part::"partd"\), \(\(:\)\(\ \)\), "\<\"Part specification \
+\\!\\(Null \[LeftDoubleBracket] 4 \[RightDoubleBracket]\\) is longer than \
+depth of object. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::partd\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"stop"\), \(\(:\)\(\ \)\), "\<\"Further output of \
+\\!\\(Part :: \\\"partd\\\"\\) will be suppressed during this calculation. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    RowBox[{\(Part::"pspec"\), \(\(:\)\(\ \)\), "\<\"Part specification \
+\\!\\(Drop[\\(\\(4, \\(\\(-1\\)\\)\\)\\)]\\) is neither an integer nor a list \
+of integers. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::pspec\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"stop"\), \(\(:\)\(\ \)\), "\<\"Further output of \
+\\!\\(Part :: \\\"pspec\\\"\\) will be suppressed during this calculation. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    \(pipeInfo::"mbUnion" \(\(:\)\(\ \)\) 
+      "could not run DomEqualities properly. Does not apply to unions of \
+domains."\)], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"stop"\), \(\(:\)\(\ \)\), "\<\"Further output of \
+\\!\\(pipeInfo :: \\\"mbUnion\\\"\\) will be suppressed during this \
+calculation. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    \("----> Execute the command: "\)], "Print"],
+
+Cell[BoxData[
+    \("----> Execute the command: "\)], "Print"],
+
+Cell[BoxData[
+    \("----> Execute the command: "\)], "Print"],
+
+Cell[BoxData[
+    \("----> Execute the command: "\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Operations to perform:\n"\[InvisibleSpace]{"pipeall[ \
+{}, {6, 4, 2, 1, 3, 2, 2, 2, 2, 3}, affine[var[\"pipeCP1\"], matrix[5, 5, \
+{\"i\", \"j\", \"N\", \"M\"}, {{1, 0, 0, 0, 1}, {0, 1, 0, 0, 0}, {0, 0, 1, 0, \
+0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]]]", 
+          "pipeall[ {}, {6, 4, 2, 1, 3, 2, 2, 2, 3}, affine[var[\"pipeCX1\"], \
+matrix[5, 5, {\"i\", \"j\", \"N\", \"M\"}, {{1, 0, 0, 0, 1}, {0, 1, 0, 0, 1}, \
+{0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]]]", 
+          "pipeall[ {}, {6, 4, 2, 1, 3, 2, 2, 3}, affine[var[\"pipeCQ1\"], \
+matrix[5, 5, {\"i\", \"j\", \"N\", \"M\"}, {{1, 0, 0, 0, 1}, {0, 1, 0, 0, 0}, \
+{0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]]]", 
+          "pipeall[ {}, {6, 4, 2, 1, 3, 2, 3}, affine[var[\"pipeCY1\"], \
+matrix[5, 5, {\"i\", \"j\", \"N\", \"M\"}, {{1, 0, 0, 0, 1}, {0, 1, 0, 0, 1}, \
+{0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]]]"}\),
+      SequenceForm[ 
+      "Operations to perform:\n", {
+        "pipeall[ {}, {6, 4, 2, 1, 3, 2, 2, 2, 2, 3}, \
+affine[var[\"pipeCP1\"], matrix[5, 5, {\"i\", \"j\", \"N\", \"M\"}, {{1, 0, \
+0, 0, 1}, {0, 1, 0, 0, 0}, {0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, \
+1}}]]]", "pipeall[ {}, {6, 4, 2, 1, 3, 2, 2, 2, 3}, affine[var[\"pipeCX1\"], \
+matrix[5, 5, {\"i\", \"j\", \"N\", \"M\"}, {{1, 0, 0, 0, 1}, {0, 1, 0, 0, 1}, \
+{0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]]]", 
+        "pipeall[ {}, {6, 4, 2, 1, 3, 2, 2, 3}, affine[var[\"pipeCQ1\"], \
+matrix[5, 5, {\"i\", \"j\", \"N\", \"M\"}, {{1, 0, 0, 0, 1}, {0, 1, 0, 0, 0}, \
+{0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]]]", 
+        "pipeall[ {}, {6, 4, 2, 1, 3, 2, 3}, affine[var[\"pipeCY1\"], \
+matrix[5, 5, {\"i\", \"j\", \"N\", \"M\"}, {{1, 0, 0, 0, 1}, {0, 1, 0, 0, 1}, \
+{0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]]]"}],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \({"pipeall[ {}, {6, 4, 2, 1, 3, 2, 2, 2, 2, 3}, affine[var[\"pipeCP1\"], \
+matrix[5, 5, {\"i\", \"j\", \"N\", \"M\"}, {{1, 0, 0, 0, 1}, {0, 1, 0, 0, 0}, \
+{0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]]]", 
+      "pipeall[ {}, {6, 4, 2, 1, 3, 2, 2, 2, 3}, affine[var[\"pipeCX1\"], \
+matrix[5, 5, {\"i\", \"j\", \"N\", \"M\"}, {{1, 0, 0, 0, 1}, {0, 1, 0, 0, 1}, \
+{0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]]]", 
+      "pipeall[ {}, {6, 4, 2, 1, 3, 2, 2, 3}, affine[var[\"pipeCQ1\"], \
+matrix[5, 5, {\"i\", \"j\", \"N\", \"M\"}, {{1, 0, 0, 0, 1}, {0, 1, 0, 0, 0}, \
+{0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]]]", 
+      "pipeall[ {}, {6, 4, 2, 1, 3, 2, 3}, affine[var[\"pipeCY1\"], matrix[5, \
+5, {\"i\", \"j\", \"N\", \"M\"}, {{1, 0, 0, 0, 1}, {0, 1, 0, 0, 1}, {0, 0, 1, \
+0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}}]]]"}\)], "Output"]
+}, Closed]],
+
+Cell["As you might have noticed, this program is not uniform:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(uniformQ[]\)], "Input"],
+
+Cell[BoxData[
+    \(False\)], "Output"]
+}, Open  ]],
+
+Cell["The automatic uniformization can be done by:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(callUniformize["\<parma.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("[ArmaFilter]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    RowBox[{\(Union::"heads"\), \(\(:\)\(\ \)\), "\<\"Heads \\!\\(List\\) and \
+\\!\\(Alpha`Uniformization`Private`getVertices\\) at positions \\!\\(2\\) and \
+\\!\\(1\\) are expected to be the same. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::heads\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    RowBox[{\(Union::"heads"\), \(\(:\)\(\ \)\), "\<\"Heads \\!\\(List\\) and \
+\\!\\(Alpha`Uniformization`Private`getVertices\\) at positions \\!\\(2\\) and \
+\\!\\(1\\) are expected to be the same. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::heads\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    RowBox[{\(Union::"heads"\), \(\(:\)\(\ \)\), "\<\"Heads \\!\\(List\\) and \
+\\!\\(Alpha`Uniformization`Private`getVertices\\) at positions \\!\\(2\\) and \
+\\!\\(1\\) are expected to be the same. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::heads\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"stop"\), \(\(:\)\(\ \)\), "\<\"Further output of \
+\\!\\(Union :: \\\"heads\\\"\\) will be suppressed during this calculation. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], \
+"Message"]
+}, Open  ]],
+
+Cell["This program is now uniform", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(uniformQ[]\)], "Input"],
+
+Cell[BoxData[
+    \(False\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Of course, you can have the informations of the uniformization process \
+running: \
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(callUniformize["\<parma.alpha\>", verbose -> True];\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Decomposition of the unifomization process", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+If you want to proceed step by step you have access to the \
+following functions\
+\>", "Text"],
+
+Cell["initUniformization", "Subsubsection"],
+
+Cell[TextData[{
+  StyleBox["initUniformization[]",
+    FontFamily->"Courier"],
+  " initialize the dependence cone of the current system. This step is \
+mandatory to any uniformization, otherwise, the uniformizer cannot check that \
+the cone is still pointed after unfimormization. This function affects a \
+gloval variables named ",
+  StyleBox["$depCone.",
+    FontFamily->"Courier"]
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(load["\<parma.alpha\>"]; initUniformization[]\)], "Input"],
+
+Cell[BoxData[
+    \("[ArmaFilter]? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? \
+bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\
+\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r \
+(octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \
+\r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad \
+char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? \
+bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\
+\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r \
+(octal=13)\n? bad char: \r (octal=13)\n"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \(initUniformization[]\)], "Output"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(show[$depCone]\)], "Input"],
+
+Cell[BoxData[
+    \(show::"empty" \(\(:\)\(\ \)\) "empty object to show"\)], "Message"],
+
+Cell[BoxData[
+    \({}\)], "Print"]
+}, Open  ]],
+
+Cell["getDependences[]", "Subsubsection"],
+
+Cell[TextData[{
+  StyleBox["getDependences[",
+    FontFamily->"Courier"],
+  "] select the non uniform dependencies, they will be used in the ",
+  StyleBox["uniformize[]",
+    FontFamily->"Courier"],
+  " function. You have to \nadd the dtable prefix if you want to visualize \
+the dependencies. "
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(depList = getDependences[]; show[dtable[depList]]\)], "Input"],
+
+Cell[BoxData[
+    \(show::"empty" \(\(:\)\(\ \)\) "empty object to show"\)], "Message"],
+
+Cell[BoxData[
+    \({}\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(depList\)], "Input"],
+
+Cell[BoxData[
+    \(getDependences[]\)], "Output"]
+}, Open  ]],
+
+Cell["whichRule[]", "Subsubsection"],
+
+Cell[TextData[{
+  StyleBox["whichRule[dep]",
+    FontFamily->"Courier"],
+  " take as input a non uniform dependence and returns an information about \
+how to unifomize it."
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(whichRule[depList[\([1]\)]]\)], "Input"],
+
+Cell[BoxData[
+    \("Rule3 : Pipeline the dependence"\)], "Print"],
+
+Cell[BoxData[
+    \(3\)], "Output"]
+}, Open  ]],
+
+Cell["uniformize[]", "Subsubsection"],
+
+Cell[TextData[{
+  StyleBox["uniformize[dep]",
+    FontFamily->"Courier"],
+  " takes as input a non uniform dependence and uniformize the dependence in \
+",
+  StyleBox["$result",
+    FontFamily->"Courier"],
+  " (you can use it with a different system from ",
+  StyleBox["$result",
+    FontFamily->"Courier"],
+  " as argument of course)."
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(uniformize[depList[\([1]\)], verbose -> True]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("Pipelining dependence "\)], "Print"],
+
+Cell[BoxData[
+    \("{i,j,N,M | j+1<=i<=M; 1<=j<=N} : Y[i,j,N,M] -> P[0,j,N,M]"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\(" with vector "\[InvisibleSpace]{1, 0, 0, 0}\),
+      SequenceForm[ " with vector ", {1, 0, 0, 0}],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("system ArmaFilter :{N,M | 2<=N<=M}\n                  (x : {i | \
+1<=i<=M} of integer; \n                   p : {i | 1<=i<=N} of integer; \n    \
+               q : {i | 1<=i<=N} of integer)\n       returns    (y : {i | \
+1<=i<=M} of integer);\nvar\n  P15 : {i,j | j+1<=i<=M; 1<=j<=N; 2<=N<=M} of \
+integer;\n  Y : {i,j | 1<=i<=M; 1<=j<=N+1} of integer;\n  P : {i,j | i=0; \
+1<=j<=N} of integer;\n  Q : {i,j | i=0; 1<=j<=N} of integer;\n  X : {i,j | \
+1<=i<=M-1; j=0} of integer;\nlet\n  P15[i,j] = \n      case\n        { | \
+i=j+1; 1<=j<=(M-1,N); 2<=N<=M} : P[0,j];\n        { | j+2<=i<=M; 1<=j<=N; \
+2<=N<=M} : P15[i-1,j];\n      esac;\n  P[i,j] = { | i=0; 1<=j<=N} : p[j];\n  \
+Q[i,j] = { | i=0; 1<=j<=N} : q[j];\n  X[i,j] = { | 1<=i<=M-1; j=0} : x[i];\n  \
+Y[i,j] = \n      case\n        { | 1<=i<=M; j=N+1} : 0[];\n        { | \
+1<=i<=(M,j); j<=N} : Y[i,j+1];\n        { | j+1<=i<=M; 1<=j<=N} : \n          \
+ Y[i,j+1] + P15 + X[i-j,0] + Q[0,j] + Y[i-j,1];\n      esac;\n  y[i] = \
+Y[i,1];\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell["Putting it together", "Subsubsection"],
+
+Cell[TextData[{
+  "One easy way to combine all that is to use ",
+  StyleBox["Map[]",
+    FontFamily->"Courier"],
+  ":"
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(load["\<parma.alpha\>"]; \nMap[uniformize, getDependences[]]; 
+    ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("[ArmaFilter]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("system ArmaFilter :{N,M | 2<=N<=M}\n                  (x : {i | \
+1<=i<=M} of integer; \n                   p : {i | 1<=i<=N} of integer; \n    \
+               q : {i | 1<=i<=N} of integer)\n       returns    (y : {i | \
+1<=i<=M} of integer);\nvar\n  Y9 : {i,j | j+1<=i<=M; 1<=j<=N; 2<=N<=M} of \
+integer;\n  Q16 : {i,j | j+1<=i<=M; 1<=j<=N; 2<=N<=M} of integer;\n  X9 : \
+{i,j | j+1<=i<=M; 1<=j<=N; 2<=N<=M} of integer;\n  P17 : {i,j | j+1<=i<=M; \
+1<=j<=N; 2<=N<=M} of integer;\n  Y : {i,j | 1<=i<=M; 1<=j<=N+1} of integer;\n \
+ P : {i,j | i=0; 1<=j<=N} of integer;\n  Q : {i,j | i=0; 1<=j<=N} of integer;\
+\n  X : {i,j | 1<=i<=M-1; j=0} of integer;\nlet\n  Y9[i,j] = \n      case\n   \
+     { | 2<=i<=M; j=1; 2<=N<=M} : Y[i-j,1];\n        { | j+1<=i<=M; 2<=j<=N; \
+N<=M} : Y9[i-1,j-1];\n      esac;\n  Q16[i,j] = \n      case\n        { | \
+i=j+1; 1<=j<=(M-1,N); 2<=N<=M} : Q[0,j];\n        { | j+2<=i<=M; 1<=j<=N; \
+2<=N<=M} : Q16[i-1,j];\n      esac;\n  X9[i,j] = \n      case\n        { | \
+2<=i<=M; j=1; 2<=N<=M} : X[i-j,0];\n        { | j+1<=i<=M; 2<=j<=N; N<=M} : \
+X9[i-1,j-1];\n      esac;\n  P17[i,j] = \n      case\n        { | i=j+1; \
+1<=j<=(M-1,N); 2<=N<=M} : P[0,j];\n        { | j+2<=i<=M; 1<=j<=N; 2<=N<=M} : \
+P17[i-1,j];\n      esac;\n  P[i,j] = { | i=0; 1<=j<=N} : p[j];\n  Q[i,j] = { \
+| i=0; 1<=j<=N} : q[j];\n  X[i,j] = { | 1<=i<=M-1; j=0} : x[i];\n  Y[i,j] = \n\
+      case\n        { | 1<=i<=M; j=N+1} : 0[];\n        { | 1<=i<=(M,j); \
+j<=N} : Y[i,j+1];\n        { | j+1<=i<=M; 1<=j<=N} : Y[i,j+1] + P17 + X9 + \
+Q16 + Y9;\n      esac;\n  y[i] = Y[i,1];\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell[".... And continue until it is not uniform ....", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(\tIf\ [\(! uniformQ[]\), \n\t\t\t\tMap[uniformize, getDependences[]], 
+      \n\tPrint["\<Pass 1: The system is uniform\>"]]; \n
+    If\ [\(! uniformQ[]\), \n\t\t\t\tMap[uniformize, getDependences[]], \n\t
+      Print["\<Pass 2: The system is uniform\>"]]; \n
+    If\ [\(! uniformQ[]\), \n\t\t\t\tMap[uniformize, getDependences[]], \n\t
+      Print["\<Pass 3: The system is uniform\>"]]; \)\)], "Input"],
+
+Cell[BoxData[
+    \("Pass 3: The system is uniform"\)], "Print"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Lower level function", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+You can control the process at a lower level by using the following \
+functions: \
+\>", "Text"],
+
+Cell[TextData[{
+  StyleBox["getPipeVecs[dep]",
+    FontFamily->"Courier"],
+  " and",
+  StyleBox[" getRouteVecs[dep]",
+    FontFamily->"Courier"],
+  " give information about the different possibilities to uniformize a \
+dependence. ",
+  StyleBox["pipeDep[dep,pipe]",
+    FontFamily->"Courier"],
+  ", ",
+  StyleBox["routeDep[dep,route]",
+    FontFamily->"Courier"],
+  " perform the uniformization using  one of these possibilities. you can \
+also check other possibilities with the function",
+  StyleBox[" verifyPipe[dep,pipe]",
+    FontFamily->"Courier"],
+  " or ",
+  StyleBox["verifyRoute[dep,route]",
+    FontFamily->"Courier"],
+  "."
+}], "Text"]
+}, Closed]]
+},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1440}, {0, 834}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+Evaluator->"Local",
+CellGrouping->Manual,
+WindowSize->{854, 455},
+WindowMargins->{{23, Automatic}, {Automatic, 133}},
+PrintingCopies->1,
+PrintingPageRange->{Automatic, Automatic},
+Magnification->1.5
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{
+  "firstcell"->{
+    Cell[1776, 53, 110, 2, 45, "Subsubtitle",
+      CellTags->"firstcell"]}
+  }
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{
+  {"firstcell", 24941, 682}
+  }
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 110, 2, 45, "Subsubtitle",
+  CellTags->"firstcell"],
+Cell[1889, 57, 60, 0, 45, "Subsubtitle"],
+Cell[1952, 59, 97, 3, 62, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2074, 66, 106, 1, 40, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2205, 71, 123, 3, 39, "Input",
+  InitializationCell->True],
+Cell[2331, 76, 86, 1, 70, "Output"]
+}, Open  ]]
+}, Closed]],
+Cell[2444, 81, 754, 11, 222, "Text"],
+
+Cell[CellGroupData[{
+Cell[3223, 96, 83, 1, 104, "Section"],
+Cell[3309, 99, 174, 4, 73, "Text"],
+Cell[3486, 105, 61, 1, 39, "Input"],
+Cell[3550, 108, 58, 1, 39, "Input"],
+Cell[3611, 111, 57, 1, 39, "Input"],
+
+Cell[CellGroupData[{
+Cell[3693, 116, 65, 1, 39, "Input"],
+Cell[3761, 119, 47, 1, 34, "Print"],
+Cell[3811, 122, 50, 1, 34, "Print"],
+Cell[3864, 125, 878, 12, 538, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4779, 142, 43, 1, 39, "Input"],
+Cell[4825, 145, 104, 2, 30, "Message"],
+Cell[4932, 149, 345, 5, 30, "Message"],
+Cell[5280, 156, 342, 5, 49, "Message"],
+Cell[5625, 163, 339, 5, 49, "Message"],
+Cell[5967, 170, 345, 5, 49, "Message"],
+Cell[6315, 177, 156, 3, 49, "Message"],
+Cell[6474, 182, 104, 2, 30, "Message"],
+Cell[6581, 186, 345, 5, 30, "Message"],
+Cell[6929, 193, 342, 5, 49, "Message"],
+Cell[7274, 200, 330, 5, 49, "Message"],
+Cell[7607, 207, 345, 5, 49, "Message"],
+Cell[7955, 214, 156, 3, 49, "Message"],
+Cell[8114, 219, 104, 2, 30, "Message"],
+Cell[8221, 223, 341, 5, 49, "Message"],
+Cell[8565, 230, 345, 5, 30, "Message"],
+Cell[8913, 237, 329, 5, 49, "Message"],
+Cell[9245, 244, 345, 5, 49, "Message"],
+Cell[9593, 251, 329, 5, 49, "Message"],
+Cell[9925, 258, 156, 3, 49, "Message"],
+Cell[10084, 263, 335, 5, 49, "Message"],
+Cell[10422, 270, 62, 1, 34, "Print"],
+Cell[10487, 273, 62, 1, 34, "Print"],
+Cell[10552, 276, 62, 1, 34, "Print"],
+Cell[10617, 279, 62, 1, 34, "Print"],
+Cell[10682, 282, 1876, 28, 418, "Print"],
+Cell[12561, 312, 873, 12, 400, "Output"]
+}, Closed]],
+Cell[13449, 327, 71, 0, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[13545, 331, 43, 1, 39, "Input"],
+Cell[13591, 334, 39, 1, 40, "Output"]
+}, Open  ]],
+Cell[13645, 338, 60, 0, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[13730, 342, 75, 1, 39, "Input"],
+Cell[13808, 345, 47, 1, 34, "Print"],
+Cell[13858, 348, 50, 1, 34, "Print"],
+Cell[13911, 351, 380, 6, 49, "Message"],
+Cell[14294, 359, 380, 6, 49, "Message"],
+Cell[14677, 367, 380, 6, 49, "Message"],
+Cell[15060, 375, 330, 5, 49, "Message"]
+}, Open  ]],
+Cell[15405, 383, 43, 0, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[15473, 387, 43, 1, 39, "Input"],
+Cell[15519, 390, 39, 1, 40, "Output"]
+}, Open  ]],
+Cell[15573, 394, 106, 3, 47, "Text"],
+Cell[15682, 399, 88, 1, 39, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[15807, 405, 93, 1, 104, "Section"],
+Cell[15903, 408, 104, 3, 47, "Text"],
+Cell[16010, 413, 43, 0, 41, "Subsubsection"],
+Cell[16056, 415, 395, 9, 99, "Text"],
+
+Cell[CellGroupData[{
+Cell[16476, 428, 78, 1, 39, "Input"],
+Cell[16557, 431, 684, 9, 1138, "Print"],
+Cell[17244, 442, 50, 1, 34, "Print"],
+Cell[17297, 445, 54, 1, 40, "Output"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[17388, 451, 47, 1, 32, "Input"],
+Cell[17438, 454, 87, 1, 30, "Message"],
+Cell[17528, 457, 35, 1, 34, "Print"]
+}, Open  ]],
+Cell[17578, 461, 41, 0, 41, "Subsubsection"],
+Cell[17622, 463, 307, 8, 99, "Text"],
+
+Cell[CellGroupData[{
+Cell[17954, 475, 82, 1, 39, "Input"],
+Cell[18039, 478, 87, 1, 30, "Message"],
+Cell[18129, 481, 35, 1, 34, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[18201, 487, 40, 1, 39, "Input"],
+Cell[18244, 490, 50, 1, 40, "Output"]
+}, Open  ]],
+Cell[18309, 494, 36, 0, 41, "Subsubsection"],
+Cell[18348, 496, 184, 5, 73, "Text"],
+
+Cell[CellGroupData[{
+Cell[18557, 505, 60, 1, 39, "Input"],
+Cell[18620, 508, 66, 1, 34, "Print"],
+Cell[18689, 511, 35, 1, 40, "Output"]
+}, Open  ]],
+Cell[18739, 515, 37, 0, 41, "Subsubsection"],
+Cell[18779, 517, 348, 11, 73, "Text"],
+
+Cell[CellGroupData[{
+Cell[19152, 532, 87, 1, 39, "Input"],
+Cell[19242, 535, 57, 1, 34, "Print"],
+Cell[19302, 538, 92, 1, 34, "Print"],
+Cell[19397, 541, 171, 3, 34, "Print"],
+Cell[19571, 546, 1036, 14, 706, "Print"]
+}, Open  ]],
+Cell[20622, 563, 44, 0, 60, "Subsubsection"],
+Cell[20669, 565, 130, 5, 46, "Text"],
+
+Cell[CellGroupData[{
+Cell[20824, 574, 107, 2, 62, "Input"],
+Cell[20934, 578, 47, 1, 34, "Print"],
+Cell[20984, 581, 50, 1, 33, "Print"],
+Cell[21037, 584, 1623, 21, 1138, "Print"]
+}, Open  ]],
+Cell[22675, 608, 62, 0, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[22762, 612, 425, 6, 223, "Input"],
+Cell[23190, 620, 64, 1, 34, "Print"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[23315, 628, 71, 1, 104, "Section"],
+Cell[23389, 631, 105, 3, 46, "Text"],
+Cell[23497, 636, 647, 21, 121, "Text"]
+}, Closed]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

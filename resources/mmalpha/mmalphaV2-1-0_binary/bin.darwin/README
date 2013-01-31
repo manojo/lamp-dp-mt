@@ -1,0 +1,15 @@
+This directory contains binary files for Mac OS X. For the moment, these
+binary files were NOT compiled using the source files which are in 
+$MMALPHA/sources, as should happen if you run make all in this directory. 
+
+Content (April 2005)
+
+code_gen	This binary was compiled after some modifications of the 
+makefiles which have not been reported in LipForge yet
+domlib		This binary was compiled by me using another method. 
+index.html
+pip		This binary was compiled from an older version of Pip, as
+the current one does not compile on darwin
+read_alpha	Same as code_gen
+write_alpha	Same as code_gen
+write_c		Same as code_gen

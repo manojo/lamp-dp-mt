@@ -1,0 +1,19 @@
+system Test1:{N| N>=1} 
+()
+returns ();
+var
+c :  { i,j | 1<=i<=N; 1<=j<=N } of integer;
+A:{i,j|  1<=i<=N; 1<=j<=N} of integer;
+B:{i,j|  1<=i<=N; 1<=j<=N} of integer;
+let
+
+ c = case
+	{i,j|i=1} : 1.(i,j->);
+	{i,j|i>1;j=1} : 0.(i,j->);
+	{i,j|i>1;j>1} : c.(i,j->i-1,j-1);
+     esac ;
+A=c.(i,j->N,N);
+B=c;
+tel;
+										     
+										     

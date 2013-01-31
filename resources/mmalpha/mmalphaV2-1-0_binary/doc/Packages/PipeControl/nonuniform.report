@@ -1,0 +1,52 @@
+Reporting on system: nonuniform
+  System was in $result  
+29/12/2007 -- 14h 37mn 28.595430s
+
+-- Equation: 
+    Y = case
+      {i,j | i=1} : x.(i,j->1,j);
+      {i,j | i=j; 2<=j} : x.(i,j->i,i-1);
+      {i,j | (2,j+1)<=i} : x.(i,j->i,i);
+      {i,j | 2<=i<=j-1} : x.(i,j->i,j);
+    esac;
+  ** type is: integer
+  ** Local equation
+  ** Indexes: {i, j}
+  ** Dependency: x.(i,j->1,j)
+     Occurrence: {6, 1, 2, 1, 1, 2}
+    ** is square
+    ** is not uniform
+    ** No possible pipeline
+  ** Dependency: x.(i,j->i,i-1)
+     Occurrence: {6, 1, 2, 1, 2, 2}
+    ** is square
+    ** is not uniform
+    ** No possible pipeline
+  ** Dependency: x.(i,j->i,i)
+     Occurrence: {6, 1, 2, 1, 3, 2}
+    ** is square
+    ** is not uniform
+    ** Possible pipeline: 
+     -> Execute the command: pipeall[ {}, {6, 1, 2, 1, 3, 2}, affine[var["pipeCx23"], matrix[3, 3, {"i", "j"}, {{1, 0, 0}, {0, 1, 1}, {0, 0, 1}}]]]
+  ** Dependency: x.(i,j->i,j)
+     Occurrence: {6, 1, 2, 1, 4, 2}
+    ** is square
+    ** is uniform
+
+
+-- Equation: 
+    y = Y.(->10,10);
+  ** type is: integer
+  ** Output equation
+  ** Indexes: {}
+  ** Scalar
+  ** Dependency: Y.(->10,10)
+     Occurrence: {6, 2, 2}
+    ** is not square
+    ** is not uniform
+    ** No possible pipeline
+
+  **** Resources used:
+      0 integer or floating-point mux
+      0 multipliers 
+      0 adders/subtracters 

@@ -1,0 +1,38 @@
+--
+-- This VHDL Pattern allows a sequence of registers to be generated
+-- The parameters are the name, the size of the elements, and
+-- the number of registers
+--
+-- $comment$
+--
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_signed.all;
+use IEEE.numeric_std.all;
+
+ENTITY $name$ IS  
+  PORT(
+    clk : IN STD_LOGIC;         -- global clock
+    enable : IN STD_LOGIC;      -- clock enable
+    inReg : IN STD_LOGIC;          -- input
+    outReg : OUT STD_LOGIC         -- output
+  );
+END $name$;
+ 
+ARCHITECTURE archiOf$name$ OF $name$ IS
+  SIGNAL regfile: $type$;
+  BEGIN
+        
+  PROCESS(clk, enable)
+  BEGIN
+    IF rising_edge(clk) THEN
+      IF enable = '1' THEN 
+        $def$;
+      END IF;
+    END IF;
+  END PROCESS;             
+
+  outReg <= $output$;   
+
+END archiOf$name$;

@@ -1,0 +1,64 @@
+%
+% File created on {2008, 3, 11, 16, 16, 25.865821} by makeDoc.
+%
+% Section header
+\section{The Alpha`SubSystems` package } 
+\label{label:Alpha`SubSystems`}
+\alphanote{SubSystems}{Documentation revised on August 10, 2004} 
+ 
+\alphanote{SubSystems}{Bugs: test[SubSystems] fails. inlineAll should test  that \$result contains a system.} 
+ 
+\alphausage{SubSystems}{The Alpha`SubSystems` package contains functions to operate on  Alpha subsystems. These functions are  assignParameterValue, assignParameterValueLib, fixParameterValue, inlineAll, inlineSubSystem, spread, removeIdEqus, simplifyUseInputs, substDom, subSystemUsedBy, and topoSort.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{SubSystems}
+
+\alphausage{addParameterId}{function externalized for debugging purposes.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{addParameterId}
+
+\alphausage{affExtHom}{function externalized for debugging purposes.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{affExtHom}
+
+\alphausage{assignParameterValue}{assignParameterValue[param,v,sys] gives the value v to the parameter param in the Alpha system sys and returns the modified system. param is a string, and v an integer. Default value of sys is \$result.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{assignParameterValue}
+
+\alphausage{assignParameterValueLib}{see fixParameter.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{assignParameterValueLib}
+
+\alphausage{fixParameter}{fixParameter[param,v,systName] gives the value v to a parameter param in an Alpha system of name "systName" and in the call to "systName"  in \$library. It returns the new library (list of Alpha systems) and  modifies \$library (except if \$library is explicitely specified as the  4th parameter). If the system name is ommited, the function sets the  parameter in all the programs of \$library and in \$result.  WARNING: currently, this function supposes that the parameter "param" has the same value everywhere, you also have to ensure that \$result is the top calling system of the library (i.e. the module in an AlpHard program).}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{fixParameter}
+
+\alphausage{inlineAll}{inlineAll[options] inlines all the subsystems of system \$result. Options are rename, renameCounter, verbose, caller, library, and current. (see Options[inLineAll] for default values).}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{inlineAll}
+
+\alphausage{inliningRenameCounter}{Variable. Holds the counter value used to avoid name conflicts  while renaming the variables.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{inliningRenameCounter}
+
+\alphausage{inlineSubsystem}{inlineSubsystem[name,options] searches the current system (see option : caller) for a use statement of the subsystem name, and replaces this use statement with its definition extracted from  \$library, with proper variable renaming and parameter instanciation. Returns the modified system if no error, the caller otherwise.  Side effect: if the "current" option is set, it sets \$program to the previous Alpha`\$result and sets \$result to the returned value. Options are occurence, rename, renameCounter, verbose, caller, library,  undescore, and current (default options in Options[inlineSubsystem]).}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{inlineSubsystem}
+
+\alphausage{library}{library is an option of inlineAll and inlineSubsystem.   library $ \rightarrow $ list of systems (default \$library) specifies the  list of systems to search for a subsystem. When more than one  declaration of the same system appear in the library, the first  one is inlined.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{library}
+
+\alphausage{occurence}{}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{occurence}
+
+\alphausage{underscore}{option of inlineSubsystem and inlineAll (Boolean). When True (default), new identifier separator is \_, whereas it is X otherwise.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{underscore}
+
+\alphausage{spread}{spread[ var, index ] replaces var in system \$result by a set of variables varI, where I is in the range of index of var. This  function is not completed and should not be used.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{spread}
+
+\alphausage{removeIdEqus}{removeIdEqus[sys] removes in sys the equations of the form A=B as introduced for example by the inlineSubsystem and inlineAll  transformations.\\ Warning, this function does not normalize the resulting system, unless option norm $ \rightarrow $ True is used. removeIdEqus has options norm, allLibrary and inputEquations.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{removeIdEqus}
+
+\alphausage{simplifyUseInputs}{simplifyUseInputs[sys] adds local buffer variables for each input which  is not already a simple variable (input to a use may be any expression). The new variable is defined on the 'real domain' of the expression: its  context domain intersected with its use domain.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{simplifyUseInputs}
+
+\alphausage{substDom}{substDom[ dom, extDom, paramAssign, nbparams] computes the transformation of a domain dom in a subsystem inlining. For internal use only.}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{substDom}
+
+\alphausage{subSystemUsedBy}{subSystemUsedBy[sys] returns the list of names of subsystems used by  system sys (default \$result).}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{subSystemUsedBy}
+
+\alphausage{topoSort}{topoSort[lib] returns the list of system names of library  lib, sorted in the reverse hierachical order, i.e. if a system A  uses a system B and a system C, topoSort returns \{B, C, A\} or \{C, B, A\}}{Alpha/SubSystems.m}{Alpha`SubSystems`}
+\index{topoSort}
+

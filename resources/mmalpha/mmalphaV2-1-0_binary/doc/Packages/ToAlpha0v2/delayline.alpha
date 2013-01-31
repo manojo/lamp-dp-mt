@@ -1,0 +1,23 @@
+--
+--
+-- Designed by P. Quinton, july 2001
+--
+system register (in: {t|t>=0} of boolean) returns (out: {t|t>=1} of boolean);
+let
+  out[t] = in[t-1];
+tel;
+system delayline: {N|N>=1}  (in: {t|t>=0} of boolean)
+returns   (out: {t|t>=N+1} of boolean);
+var 
+  inputs: {t,k|0<=k<=N;t>=0} of boolean;
+  outputs: {t,k|0<=k<=N;t>=1} of boolean;
+let
+  inputs[t,k] = 
+  case
+    {|k=0}: in[t];
+    {|k>0;t=0}: false[];
+    {|k>0;t>0}: outputs[t,k-1];
+  esac;
+  out[t] = outputs[t,N];
+  use {k|0<=k<=N} register (inputs) returns (outputs);
+tel;

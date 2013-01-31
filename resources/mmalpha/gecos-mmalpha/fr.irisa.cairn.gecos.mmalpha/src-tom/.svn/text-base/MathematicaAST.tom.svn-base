@@ -1,0 +1,225 @@
+ 
+ 
+%include { int.tom } 
+%include { float.tom } 
+%include { double.tom } 
+%include { string.tom }
+%include { List.tom }
+  
+ %typeterm Node {
+    implement { Node }  
+    // How to check the sort 
+    is_sort(c) { (c instanceof Node) } 
+    // How to check the equality between two terms of sort Car
+    equals(c1,c2) { c1.equals(c2) }
+  }
+ 
+  %op Node Set(left:Node, right:Node) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { isBuiltIn(c,"Set") }
+    // Get the slot name 'seats'
+    get_slot(left,c) { ((BuiltInNode)c).getChildren().get(0) }
+    get_slot(right,c) { ((BuiltInNode)c).getChildren().get(1) }
+    // For the ` (backquote) construct
+    make(s,c)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("Set",s,c)
+    } 
+  }
+ 
+  %op Node MessageName(left:Node, right:Node) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { isBuiltIn(c,"MessageName") }
+    // Get the slot name 'seats'
+    get_slot(left,c) { ((BuiltInNode)c).getChildren().get(0) }
+    get_slot(right,c) { ((BuiltInNode)c).getChildren().get(1) }
+    // For the ` (backquote) construct
+    make(s,c)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("MessageName",s,c)
+    } 
+  }
+
+  %op Node Clear(left:Node) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { isBuiltIn(c,"Clear") }
+    // Get the slot name 'seats'
+    get_slot(left,c) { ((BuiltInNode)c).getChildren().get(0) }
+    // For the ` (backquote) construct
+    make(s)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("Clear",s)
+    } 
+  }
+ 
+  %op Node Blank(left:Node) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { isBuiltIn(c,"Blank") }
+    // Get the slot name 'seats'
+    get_slot(left,c) { ((BuiltInNode)c).getChildren().get(0) }
+    // For the ` (backquote) construct
+    make(s)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("Blank",s)
+    } 
+  }
+
+  %op Node Return(left:Node) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { isBuiltIn(c,"Return") }
+    // Get the slot name 'seats'
+    get_slot(left,c) { ((BuiltInNode)c).getChildren().get(0) }
+    // For the ` (backquote) construct
+    make(s)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("Return",s)
+    } 
+  }
+
+  %op Node Not(left:Node) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { isBuiltIn(c,"Not") }
+    // Get the slot name 'seats'
+    get_slot(left,c) { ((BuiltInNode)c).getChildren().get(0) }
+    // For the ` (backquote) construct
+    make(s)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("Not",s)
+    } 
+  }
+
+  %op Node Int(value:int) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { (c instanceof IntLeaf) }
+    // Get the slot name 'seats'
+    get_slot(value,c) { ((IntLeaf)c).getValue() }
+    // For the ` (backquote) construct
+    make(s)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeInt(s)
+    } 
+  }
+
+  %op Node Float(value:double) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { (c instanceof FloatLeaf) }
+    // Get the slot name 'seats'
+    get_slot(value,c) { ((FloatLeaf)c).getValue() }
+    // For the ` (backquote) construct
+    make(s)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeFloat(s);
+    } 
+  }
+
+  %op Node Str(value:String) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { (c instanceof StringLeaf) }
+    // Get the slot name 'seats'
+    get_slot(value,c) { ((StringLeaf)c).getValue() }
+    // For the ` (backquote) construct
+    make(s)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeString(s)
+    } 
+  }
+
+
+  %op Node Sym(value:String) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { (c instanceof SymbolLeaf) }
+    // Get the slot name 'seats'
+    get_slot(value,c) { ((SymbolLeaf)c).getValue() }
+    // For the ` (backquote) construct
+    make(s)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeSymbol(s)
+    } 
+  }
+
+
+   %op Node SetDelayed(left:Node, right:Node) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { isBuiltIn(c,"SetDelayed") }
+    // Get the slot name 'seats'
+    get_slot(left,c) { ((BuiltInNode)c).getChildren().get(0) }
+    get_slot(right,c) { ((BuiltInNode)c).getChildren().get(1) }
+    // For the ` (backquote) construct
+    make(s,c)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("SetDelayed",s,c)
+    } 
+  }
+
+  %op Node SameQ(left:Node, right:Node) {
+    // Is the head symbol of the tested term a car ?
+    is_fsym(c)        { isBuiltIn(c,"SameQ") }
+    // Get the slot name 'seats'
+    get_slot(left,c) { ((BuiltInNode)c).getChildren().get(0) }
+    get_slot(right,c) { ((BuiltInNode)c).getChildren().get(1) }
+    // For the ` (backquote) construct
+    make(s,c)         { 
+    	fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("SameQ",s,c)
+    } 
+  }
+
+
+  %oparray Node List(Node* ) {
+    is_fsym(c)        	{ isBuiltIn(c,"List") }
+	make_empty(n)     	{ fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("List") }
+	make_append(e,l) 	{ TomUtils.add(l,e) }
+	get_element(l,n) 	{ ((BuiltInNode) l).getChildren().get(n) }
+	get_size(l) 		{ ((BuiltInNode) l).getChildren().size() }
+  }
+
+  %oparray Node CompoundExpression(Node* ) {
+    is_fsym(c)        	{ isBuiltIn(c,"CompoundExpression") }
+	make_empty(n)     	{ fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("CompoundExpression") }
+	make_append(e,l) 	{ TomUtils.add(l,e) }
+	get_element(l,n) 	{ ((BuiltInNode) l).getChildren().get(n) }
+	get_size(l) 		{ ((BuiltInNode) l).getChildren().size() }
+  }
+
+  %oparray Node Module(Node* ) {
+    is_fsym(c)        	{ isBuiltIn(c,"Module") }
+	make_empty(n)     	{ fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("Module") }
+	make_append(e,l) 	{ TomUtils.add(l,e) }
+	get_element(l,n) 	{ ((BuiltInNode) l).getChildren().get(n) }
+	get_size(l) 		{ ((BuiltInNode) l).getChildren().size() }
+  }
+
+  %oparray Node If(Node* ) {
+    is_fsym(c)        	{ isBuiltIn(c,"If") }
+	make_empty(n)     	{ fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("If") }
+	make_append(e,l) 	{ TomUtils.add(l,e) }
+	get_element(l,n) 	{ ((BuiltInNode) l).getChildren().get(n) }
+	get_size(l) 		{ ((BuiltInNode) l).getChildren().size() }
+  }
+
+  %oparray Node Do(Node* ) {
+    is_fsym(c)        	{ isBuiltIn(c,"Do") }
+	make_empty(n)     	{ fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("Do") }
+	make_append(e,l) 	{ TomUtils.add(l,e) }
+	get_element(l,n) 	{ ((BuiltInNode) l).getChildren().get(n) }
+	get_size(l) 		{ ((BuiltInNode) l).getChildren().size() }
+  }
+
+ %oparray Node Print(Node* ) {
+    is_fsym(c)        	{ isBuiltIn(c,"Print") }
+	make_empty(n)     	{ fr.irisa.cairn.gecos.bindings.mathematica.TomFactory.makeBuiltInNode("Print") }
+	make_append(e,l) 	{ TomUtils.add(l,e) }
+	get_element(l,n) 	{ ((BuiltInNode) l).getChildren().get(n) }
+	get_size(l) 		{ ((BuiltInNode) l).getChildren().size() }
+  }
+
+
+  /* "Module" | 
+  "List" | 
+  "Clear" | 
+  "CompundExpression" | 
+  "BeginPackage" | 
+  "Set" | 
+  "SetDelayed" | 
+  "Message" | 
+  "MessageName" | 
+  "Pattern" | 
+  "Rule" | 
+  "RuleDelayed" | 
+  "With" | 
+  "Blank" | 
+  "ReplaceAll" | 
+  "Map" | 
+  "Length" | 
+  "Protect" | 
+  "Union" | 
+  "Plus" | 
+  "Times"; */

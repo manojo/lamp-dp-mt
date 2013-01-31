@@ -1,0 +1,7 @@
+Begin["Alpha`Simul`FullAdder`"];
+Clear[ Alpha`Simul`FullAdder`A, Alpha`Simul`FullAdder`B, Alpha`Simul`FullAdder`Cin, Alpha`Simul`FullAdder`Cout, Alpha`Simul`FullAdder`X];
+    Alpha`Simul`FullAdder`X[f:(_Integer|_Symbol)...] := Xor[ Xor[ A[f], B[f] ], Cin[f] ];
+    Alpha`Simul`FullAdder`X[ ___ ] := Message[Alpha`Simul`FullAdder`X::params ];
+    Alpha`Simul`FullAdder`Cout[f:(_Integer|_Symbol)...] := Or[ Or[ And[ A[f], B[f] ], And[ A[f], Cin[f] ] ], And[ B[f], Cin[f] ] ];
+    Alpha`Simul`FullAdder`Cout[ ___ ] := Message[Alpha`Simul`FullAdder`Cout::params ];
+End[];

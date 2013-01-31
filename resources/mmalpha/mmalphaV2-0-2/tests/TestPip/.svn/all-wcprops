@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestPip
+END
+test1.pipres
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestPip/test1.pipres
+END
+fail.pip
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestPip/fail.pip
+END
+test2.pipres
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestPip/test2.pipres
+END
+TestPip.m
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestPip/TestPip.m
+END
+toto.pipres
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestPip/toto.pipres
+END
+fail.pipres
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestPip/fail.pipres
+END

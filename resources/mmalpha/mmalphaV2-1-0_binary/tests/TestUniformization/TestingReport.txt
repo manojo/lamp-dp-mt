@@ -1,0 +1,117 @@
+------> Testing: UniformizationTools
+Date: Tue 23 Feb 2010 14:34:14
+Calling TestUniformizationTools.m
+****** > test findHermiteBasis1 was wrong
+****** > test findHermiteBasis2 was wrong
+****** > test findHermiteBasis3 was wrong
+****** > test findHermiteBasis4 was wrong
+****** > test findHermiteBasis5 was wrong
+****** > test findHermiteBasis6 was wrong
+****** > test findHermiteBasis7 was wrong
+****** > test findHermiteBasis8 was wrong
+****** > test findHermiteBasis9 was wrong
+****** > test findHermiteBasis10 was wrong
+****** > test vecInBasis 2 was wrong
+****** > test properSubspaceQ 1 was wrong
+****** > test intersectionBasisQ 1 was wrong
+****** > test intersectionBasisQ 2 was wrong
+****** > test intersectionBasis 1 was wrong
+****** > test intersectionBasis 2 was wrong
+****** > test intersectionBasis 3 was wrong
+****** > test domainBasis 1 was wrong
+End of test
+------> Testing: VertexSchedule
+Date: Tue 23 Feb 2010 14:34:21
+Calling TestVertexSchedule.m
+****** > test VertexSchedule 1-1 was wrong
+****** > test VertexSchedule 2-1 was wrong
+End of test
+------> Testing: Vhdl2
+Date: Tue 23 Feb 2010 14:34:28
+Calling TestVhdl2.m
+****** > test Vhdl 1 was wrong
+****** > test Vhdl 2 was wrong
+****** > test Vhdl 3 was wrong
+****** > test Vhdl 4 was wrong
+****** > test Vhdl 5 was wrong
+****** > test Vhdl 6 was wrong
+****** > test Vhdl 7 was wrong
+****** > test Vhdl 8 was wrong
+****** > test Vhdl 9 was wrong
+****** > test Vhdl 11 was wrong
+****** > test Vhdl 18 was wrong
+****** > test Vhdl 19 was wrong
+****** > test Vhdl 14 was wrong
+****** > test Vhdl 15 was wrong
+****** > test Vhdl 12 was wrong
+****** > test Vhdl 13 was wrong
+****** > test Vhdl 16 was wrong
+****** > test Vhdl 17 was wrong
+End of test
+------> Testing: Vhdl
+Date: Tue 23 Feb 2010 14:34:38
+Calling TestVhdl.m
+****** > test vhdl 2 was wrong
+End of test
+------> Testing: UniformizationTools
+Date: Fri 23 Apr 2010 14:36:20
+Calling TestUniformizationTools.m
+****** > test findHermiteBasis1 was wrong
+****** > test findHermiteBasis2 was wrong
+****** > test findHermiteBasis3 was wrong
+****** > test findHermiteBasis4 was wrong
+****** > test findHermiteBasis5 was wrong
+****** > test findHermiteBasis6 was wrong
+****** > test findHermiteBasis7 was wrong
+****** > test findHermiteBasis8 was wrong
+****** > test findHermiteBasis9 was wrong
+****** > test findHermiteBasis10 was wrong
+****** > test vecInBasis 2 was wrong
+****** > test properSubspaceQ 1 was wrong
+****** > test intersectionBasisQ 1 was wrong
+****** > test intersectionBasisQ 2 was wrong
+****** > test intersectionBasis 1 was wrong
+****** > test intersectionBasis 2 was wrong
+****** > test intersectionBasis 3 was wrong
+****** > test domainBasis 1 was wrong
+End of test
+------> Testing: Vhdl2
+Date: Fri 23 Apr 2010 14:36:38
+Calling TestVhdl2.m
+****** > test Vhdl 1 was wrong
+****** > test Vhdl 2 was wrong
+****** > test Vhdl 3 was wrong
+****** > test Vhdl 4 was wrong
+****** > test Vhdl 5 was wrong
+****** > test Vhdl 6 was wrong
+****** > test Vhdl 7 was wrong
+****** > test Vhdl 8 was wrong
+****** > test Vhdl 9 was wrong
+****** > test Vhdl 11 was wrong
+****** > test Vhdl 18 was wrong
+****** > test Vhdl 19 was wrong
+****** > test Vhdl 14 was wrong
+****** > test Vhdl 15 was wrong
+****** > test Vhdl 12 was wrong
+****** > test Vhdl 13 was wrong
+****** > test Vhdl 16 was wrong
+****** > test Vhdl 17 was wrong
+End of test
+------> Testing: Vhdl
+Date: Fri 23 Apr 2010 14:36:57
+Calling TestVhdl.m
+****** > test vhdl 2 was wrong
+End of test
+------> Testing: Visual
+Date: Fri 23 Apr 2010 14:37:05
+Calling TestVisual.m
+------------- > Test for Visual was passed successfully.
+End of test
+------> Testing: Visual
+Date: Fri 23 Apr 2010 14:37:15
+Calling TestVisual.m
+------------- > Test for Visual was passed successfully.
+End of test
+------> Testing: WriteC
+Date: Fri 23 Apr 2010 14:37:22------> Testing: Zpol
+Date: Fri 23 Apr 2010 14:37:31

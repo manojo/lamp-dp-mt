@@ -1,0 +1,10 @@
+system bidon (a:integer) returns ();
+var 
+   A,B: {i|i>=0} of integer;
+let
+   B[i] = case
+           {|i=0}: A;
+           {|i>0}: A + A + A;
+          esac;
+   A[i] = {|i>0}:B;
+tel;

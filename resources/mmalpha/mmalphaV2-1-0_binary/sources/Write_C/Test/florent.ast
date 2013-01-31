@@ -1,0 +1,330 @@
+(* ALPHA Tree produced by read_alpha v.3.3.4 (Doran) *){
+Alpha`system["add",
+    (* parameter space *)
+    Alpha`domain[0, {}, {
+        Alpha`pol[1, 1, 0, 0, {
+            {1, 1}},{
+            {1, 1}}]}],
+    { (* input variables *)
+    Alpha`decl["in", Alpha`real, 
+        Alpha`domain[1, {"arg"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -1},
+                {1, -1, 2}},{
+                {1, 1, 1},
+                {1, 2, 1}}]}]]},
+    { (* output variables *)
+    Alpha`decl["out", Alpha`real, 
+        Alpha`domain[1, {"arg"}, {
+            Alpha`pol[2, 1, 1, 0, {
+                {0, 1, -1},
+                {1, 0, 1}},{
+                {1, 1, 1}}]}]]},
+    { (* local variables *)},
+    { (* let *)
+    Alpha`equation["out", 
+        Alpha`binop[Alpha`add, 
+            Alpha`affine[Alpha`var["in"], 
+                Alpha`matrix[2, 2, {"arg"}, {
+                    {1, 0},
+                    {0, 1}}]], 
+            Alpha`affine[Alpha`var["in"], 
+                Alpha`matrix[2, 2, {"arg"}, {
+                    {1, 1},
+                    {0, 1}}]]]]}]
+, 
+Alpha`system["mul",
+    (* parameter space *)
+    Alpha`domain[0, {}, {
+        Alpha`pol[1, 1, 0, 0, {
+            {1, 1}},{
+            {1, 1}}]}],
+    { (* input variables *)
+    Alpha`decl["in", Alpha`real, 
+        Alpha`domain[1, {"arg"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -1},
+                {1, -1, 2}},{
+                {1, 1, 1},
+                {1, 2, 1}}]}]]},
+    { (* output variables *)
+    Alpha`decl["out", Alpha`real, 
+        Alpha`domain[1, {"arg"}, {
+            Alpha`pol[2, 1, 1, 0, {
+                {0, 1, -1},
+                {1, 0, 1}},{
+                {1, 1, 1}}]}]]},
+    { (* local variables *)},
+    { (* let *)
+    Alpha`equation["out", 
+        Alpha`binop[Alpha`mul, 
+            Alpha`affine[Alpha`var["in"], 
+                Alpha`matrix[2, 2, {"arg"}, {
+                    {1, 0},
+                    {0, 1}}]], 
+            Alpha`affine[Alpha`var["in"], 
+                Alpha`matrix[2, 2, {"arg"}, {
+                    {1, 1},
+                    {0, 1}}]]]]}]
+, 
+Alpha`system["addmul",
+    (* parameter space *)
+    Alpha`domain[0, {}, {
+        Alpha`pol[1, 1, 0, 0, {
+            {1, 1}},{
+            {1, 1}}]}],
+    { (* input variables *)
+    Alpha`decl["in", Alpha`real, 
+        Alpha`domain[1, {"arg"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -1},
+                {1, -1, 3}},{
+                {1, 1, 1},
+                {1, 3, 1}}]}]]},
+    { (* output variables *)
+    Alpha`decl["out", Alpha`real, 
+        Alpha`domain[1, {"arg"}, {
+            Alpha`pol[2, 1, 1, 0, {
+                {0, 1, -1},
+                {1, 0, 1}},{
+                {1, 1, 1}}]}]]},
+    { (* local variables *)
+    Alpha`decl["aux1", Alpha`real, 
+        Alpha`domain[1, {"arg"}, {
+            Alpha`pol[2, 1, 1, 0, {
+                {0, 1, -1},
+                {1, 0, 1}},{
+                {1, 1, 1}}]}]], 
+    Alpha`decl["aux2", Alpha`real, 
+        Alpha`domain[1, {"arg"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -1},
+                {1, -1, 2}},{
+                {1, 1, 1},
+                {1, 2, 1}}]}]]},
+    { (* let *)
+    Alpha`use["mul", 
+        (* extension domain *)  
+        Alpha`domain[0, {}, {
+            Alpha`pol[1, 1, 0, 0, {
+                {1, 1}},{
+                {1, 1}}]}], 
+        (* parameter assignments *)  
+        Alpha`matrix[1, 1, {}, {
+            {1}}], 
+        (* input arguments *)
+        {
+        Alpha`restrict[
+            Alpha`domain[1, {"arg"}, {
+                Alpha`pol[2, 2, 0, 0, {
+                    {1, 1, -1},
+                    {1, -1, 2}},{
+                    {1, 1, 1},
+                    {1, 2, 1}}]}], 
+            Alpha`affine[Alpha`var["in"], 
+                Alpha`matrix[2, 2, {"arg"}, {
+                    {1, 1},
+                    {0, 1}}]]]}, 
+        (* return variables *)  {"aux1"}], 
+    Alpha`equation["aux2", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[1, {"arg"}, {
+                    Alpha`pol[2, 1, 1, 0, {
+                        {0, 1, -1},
+                        {1, 0, 1}},{
+                        {1, 1, 1}}]}], Alpha`var["in"]], 
+            Alpha`restrict[
+                Alpha`domain[1, {"arg"}, {
+                    Alpha`pol[2, 1, 1, 0, {
+                        {0, 1, -2},
+                        {1, 0, 1}},{
+                        {1, 2, 1}}]}], 
+                Alpha`affine[Alpha`var["aux1"], 
+                    Alpha`matrix[2, 2, {"arg"}, {
+                        {1, -1},
+                        {0, 1}}]]]}]], 
+    Alpha`use["add", 
+        (* extension domain *)  
+        Alpha`domain[0, {}, {
+            Alpha`pol[1, 1, 0, 0, {
+                {1, 1}},{
+                {1, 1}}]}], 
+        (* parameter assignments *)  
+        Alpha`matrix[1, 1, {}, {
+            {1}}], 
+        (* input arguments *)
+        {Alpha`var["aux2"]}, 
+        (* return variables *)  {"out"}]}]
+, 
+Alpha`system["dotprod1",
+    (* parameter space *)
+    Alpha`domain[1, {"N"}, {
+        Alpha`pol[2, 2, 0, 0, {
+            {1, 1, -1},
+            {1, 0, 1}},{
+            {1, 1, 0},
+            {1, 1, 1}}]}],
+    { (* input variables *)
+    Alpha`decl["in", Alpha`real, 
+        Alpha`domain[3, {"arg", "i", "N"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0, -2},
+                {1, -1, 0, 0, 3},
+                {1, 0, 1, 0, -1},
+                {1, 0, -1, 1, 0}},{
+                {1, 0, 0, 1, 0},
+                {1, 0, 1, 1, 0},
+                {1, 2, 1, 1, 1},
+                {1, 3, 1, 1, 1}}],
+            Alpha`pol[4, 3, 1, 0, {
+                {0, 0, 1, 0, -1},
+                {1, 1, 0, 0, -1},
+                {1, -1, 0, 0, 3},
+                {1, 0, 0, 1, -1}},{
+                {1, 0, 0, 1, 0},
+                {1, 3, 1, 1, 1},
+                {1, 1, 1, 1, 1}}]}]]},
+    { (* output variables *)
+    Alpha`decl["out", Alpha`real, 
+        Alpha`domain[3, {"arg", "i", "N"}, {
+            Alpha`pol[3, 2, 2, 1, {
+                {0, 1, 0, 0, -1},
+                {0, 0, 1, -1, -1},
+                {1, 0, 0, 0, 1}},{
+                {0, 0, 1, 1, 0},
+                {1, 1, 0, -1, 1}}]}]]},
+    { (* local variables *)
+    Alpha`decl["aux0", Alpha`real, 
+        Alpha`domain[3, {"arg", "i", "N"}, {
+            Alpha`pol[4, 4, 0, 0, {
+                {1, 1, 0, 0, -2},
+                {1, -1, 0, 0, 3},
+                {1, 0, 1, 0, -1},
+                {1, 0, -1, 1, 0}},{
+                {1, 0, 0, 1, 0},
+                {1, 0, 1, 1, 0},
+                {1, 2, 1, 1, 1},
+                {1, 3, 1, 1, 1}}],
+            Alpha`pol[4, 3, 1, 0, {
+                {0, 0, 1, 0, -1},
+                {1, 1, 0, 0, -1},
+                {1, -1, 0, 0, 3},
+                {1, 0, 0, 1, -1}},{
+                {1, 0, 0, 1, 0},
+                {1, 3, 1, 1, 1},
+                {1, 1, 1, 1, 1}}],
+            Alpha`pol[4, 3, 1, 0, {
+                {0, 1, 0, 0, -1},
+                {1, 0, 1, 0, -2},
+                {1, 0, -1, 1, 0},
+                {1, 0, 0, 0, 1}},{
+                {1, 0, 0, 1, 0},
+                {1, 0, 1, 1, 0},
+                {1, 1, 2, 2, 1}}]}]], 
+    Alpha`decl["aux1", Alpha`real, 
+        Alpha`domain[3, {"arg", "i", "N"}, {
+            Alpha`pol[4, 3, 1, 0, {
+                {0, 1, 0, 0, -1},
+                {1, 0, 1, 0, -1},
+                {1, 0, -1, 1, 0},
+                {1, 0, 0, 0, 1}},{
+                {1, 0, 0, 1, 0},
+                {1, 0, 1, 1, 0},
+                {1, 1, 1, 1, 1}}]}]], 
+    Alpha`decl["aux2", Alpha`real, 
+        Alpha`domain[3, {"arg", "i", "N"}, {
+            Alpha`pol[4, 3, 1, 0, {
+                {0, 1, 0, 0, -1},
+                {1, 0, 1, 0, -2},
+                {1, 0, -1, 1, 1},
+                {1, 0, 0, 0, 1}},{
+                {1, 0, 0, 1, 0},
+                {1, 0, 1, 1, 0},
+                {1, 1, 2, 1, 1}}]}]], 
+    Alpha`decl["recinter", Alpha`real, 
+        Alpha`domain[3, {"arg", "i", "N"}, {
+            Alpha`pol[4, 3, 1, 0, {
+                {0, 1, 0, 0, -1},
+                {1, 0, 1, 0, -2},
+                {1, 0, -1, 1, 0},
+                {1, 0, 0, 0, 1}},{
+                {1, 0, 0, 1, 0},
+                {1, 0, 1, 1, 0},
+                {1, 1, 2, 2, 1}}]}]]},
+    { (* let *)
+    Alpha`equation["aux0", 
+        Alpha`case[{
+            Alpha`restrict[
+                Alpha`domain[3, {"arg", "i", "N"}, {
+                    Alpha`pol[4, 4, 0, 0, {
+                        {1, 1, 0, 0, -2},
+                        {1, -1, 0, 0, 3},
+                        {1, 0, 1, 0, -1},
+                        {1, 0, -1, 1, 0}},{
+                        {1, 0, 0, 1, 0},
+                        {1, 0, 1, 1, 0},
+                        {1, 2, 1, 1, 1},
+                        {1, 3, 1, 1, 1}}],
+                    Alpha`pol[4, 3, 1, 0, {
+                        {0, 0, 1, 0, -1},
+                        {1, 1, 0, 0, -1},
+                        {1, -1, 0, 0, 3},
+                        {1, 0, 0, 1, -1}},{
+                        {1, 0, 0, 1, 0},
+                        {1, 3, 1, 1, 1},
+                        {1, 1, 1, 1, 1}}]}], Alpha`var["in"]], 
+            Alpha`restrict[
+                Alpha`domain[3, {"arg", "i", "N"}, {
+                    Alpha`pol[4, 3, 1, 0, {
+                        {0, 1, 0, 0, -1},
+                        {1, 0, 1, 0, -2},
+                        {1, 0, -1, 1, 0},
+                        {1, 0, 0, 0, 1}},{
+                        {1, 0, 0, 1, 0},
+                        {1, 0, 1, 1, 0},
+                        {1, 1, 2, 2, 1}}]}], Alpha`var["recinter"]]}]], 
+    Alpha`use["addmul", 
+        (* extension domain *)  
+        Alpha`domain[2, {"i", "N"}, {
+            Alpha`pol[3, 3, 0, 0, {
+                {1, 1, 0, -1},
+                {1, -1, 1, 0},
+                {1, 0, 0, 1}},{
+                {1, 0, 1, 0},
+                {1, 1, 1, 0},
+                {1, 1, 1, 1}}]}], 
+        (* parameter assignments *)  
+        Alpha`matrix[1, 3, {"i", "N"}, {
+            {0, 0, 1}}], 
+        (* input arguments *)
+        {Alpha`var["aux0"]}, 
+        (* return variables *)  {"aux1"}], 
+    Alpha`equation["aux2", 
+        Alpha`affine[Alpha`var["aux1"], 
+            Alpha`matrix[4, 4, {"arg", "i", "N"}, {
+                {1, 0, 0, 0},
+                {0, 1, 0, -1},
+                {0, 0, 1, 0},
+                {0, 0, 0, 1}}]]], 
+    Alpha`equation["recinter", 
+        Alpha`restrict[
+            Alpha`domain[3, {"arg", "i", "N"}, {
+                Alpha`pol[4, 3, 1, 0, {
+                    {0, 1, 0, 0, -1},
+                    {1, 0, 1, 0, -2},
+                    {1, 0, -1, 1, 0},
+                    {1, 0, 0, 0, 1}},{
+                    {1, 0, 0, 1, 0},
+                    {1, 0, 1, 1, 0},
+                    {1, 1, 2, 2, 1}}]}], Alpha`var["aux2"]]], 
+    Alpha`equation["out", 
+        Alpha`restrict[
+            Alpha`domain[3, {"arg", "i", "N"}, {
+                Alpha`pol[3, 2, 2, 1, {
+                    {0, 1, 0, 0, -1},
+                    {0, 0, 1, -1, -1},
+                    {1, 0, 0, 0, 1}},{
+                    {0, 0, 1, 1, 0},
+                    {1, 1, 0, -1, 1}}]}], Alpha`var["aux2"]]]}]
+}

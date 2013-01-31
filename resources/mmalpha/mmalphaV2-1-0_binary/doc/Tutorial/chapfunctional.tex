@@ -1,0 +1,241 @@
+\chapter{The Alpha Language and System -- Another point of view}
+\label{chapfunctional}
+\section{Introduction}
+
+\begin{tobedone}
+The last figure is garbage. The psfig inside has been commented out. 
+See reference document in old pdf turorial.
+\end{tobedone}
+Alpha is a functional language, based on recurrence
+equations\index{recurrence equation}.  All variables are type-declared
+at the beginning of a program, and represent multidimensional arrays,
+whose shapes can be arbitrary polyhedra.  For example, the declaration
+\verb!A: {i,j| 0<j<i<=N} of real!, specifies a (strictly) lower
+triangular, real matrix\index{lower triangular linear system}.  To
+introduce the main features of the language, consider the problem of
+solving a system of linear inequalities, $Ax=b$, where $A$ is a lower
+triangular, $n\times n$ matrix with unit diagonal.  It is well known
+that this can be solved using forward substitution\index{forward
+substitution}, as given by the following formula.  \[\mbox{for } i =
+1\ldots n,~~x_i = b_i - \sum_{j=1}^{i-1} A_{i,j} x_j\]
+
+\begin{figure}[tb]
+%\htmlimage{scale=\myscale}
+\setlength{\unitlength}{10mm}
+\begin{center}
+%\begin{picture}(16,2.5)
+%\thicklines
+%\put(-0.1,-0.7){\framebox(16.2,3.7){}}
+%\begin{boxedminipage}[b]{16cm}
+%{\footnotesize
+\begin{verbatim}
+system ForwardSubstitution : { N | N>1 }       -- comments are like this
+                 ( A : { i,j | 0<j<i<=N } of real;    -- a 2D input variable
+                   B : { i   | 0<i<=N } of real)      -- a 1D input variable
+         returns ( X : { i   | 0<i<=N } of real );    -- a 1D output variable
+  let
+    X[i] = B[i] - reduce(+, (i,j -> i), A * X.(i,j->j))[i]
+  tel;
+\end{verbatim}
+%\end{boxedminipage}
+%\end{picture}
+\end{center}
+%\vspace*{-0.8cm}
+\caption{Alpha program for the forward substitution algorithm}
+\label{fig-fs}
+\end{figure}
+
+  The corresponding Alpha program (Fig.~\ref{fig-fs}) is identical, except for
+syntactic sugar.  The first line names the system and declares that it has a
+positive integer parameter, {\tt N}.  The next three lines are declarations of
+the input and output variables of the system.  Note how each variable is
+defined over a certain range of indices, specified by a set of linear
+inequalities.  This defines a polyhedron, called its {\em domain}.  For
+example, the domain of {\tt A} is triangular, while {\tt B} and {\tt X} are
+one dimensional vectors.  Variables declared before the ``{\tt returns}''
+keyword are input variables, and those after it are outputs.  Although our
+example does not illustrate it, a system may also have local variables, which
+are declared after the system header, using the keyword {\tt var}.  The body
+of the program is a number of equations delineated by the {\tt let} and {\tt
+tel} keywords.  Here, we have a single equation corresponding to the above
+formula, which specifies that we compute {\tt X[i]} by performing a reduction
+(any associative and commutative binary operator may be used; here we have
+{\tt +}).  The {\tt (i,j->i)} specifies a projection of a two dimensional
+index space to one dimension.  Intuitively, it states that within the body of
+the {\tt reduce}, we have two index variables, {\tt i} and {\tt j}, but the
+latter is not visible outside the scope of the {\tt reduce}.  The body of the
+{\tt reduce} is the expression, {\tt A * X.(i,j->j)}, where {\tt (i,j->j)}, is
+a {\em dependency}. It denotes the fact that to compute the body at index
+point, {\tt [i,j]}, we need the value of {\tt X} at index point {\tt j} (the
+dependency of {\tt A} is not explicitly written---it is the identity).
+Dependencies are an important aspect of Alpha.  They describe ``indexing
+functions'' and have the syntax,
+ \verb! (idx, idx, ...  -> i-expr, i-expr, ...)!, where each {\tt idx} is an
+index name, and {\tt i-expr} is an {\em affine} expression of the system
+parameters and the {\tt idx}'s.  The Alpha system uses this syntax for
+specifying a multidimensional affine function in many different contexts.
+
+\section{Polyhedra and affine functions}
+  Alpha imposes the restriction that all variable domains are polyhedral, and
+all dependencies are {\em affine} functions.  Although this may constrain our
+expressive power, it is a conscious choice that was made for many reasons.  A
+large number of linear algebra and DSP and image processing algorithms fall
+within these limitations.  It is also known 
+%\cite{feautrier91}, 
+that any
+nested loop program (in a conventional language) that satisfies certain
+constraints (loop bounds are affine functions of the parameters and outer
+indices, and the body contains only assignments to array variables which are
+accessed using only affine functions of the loop indices) can be modeled by a
+formalism that is similar to an Alpha program.  Such assumptions are made in
+many techniques used in parallelizing compilers.  By concentrating explicitly
+on this subset of programs, we can make use of powerful static analysis and
+optimization tools based on polyhedra and linear programming (implemented in
+our {\bf polyhedral library}.
+%\cite{wilde93-poly}).  
+Finally, it is precisely
+these restrictions that interact coherently and form the foundation of our
+transformational system.  They also ensure that all Alpha programs can be put
+into a ``normal'' form, and in fact, all examples that we use here have been
+so normalized.
+
+\section{Transformations in Alpha}
+
+  We now introduce some of the Alpha transformations used in converting our
+program into a single assignment C program.  
+\subsection{Serialization}
+The first one is used to {\bf
+serialize} the reduction operation, and requires two parameters: the
+``direction'' in which we accumulate the partial sums, and the name of the
+temporary variable.  For our example, if we choose to accumulate in the {\em
+increasing} direction of {\tt j} (specified as ``{\tt (i,j->i,j+1)}'') and
+name the new variable, {\tt f}, we obtain the Alpha program shown in
+Fig.~\ref{fig-serial}.  We also see two new syntactic constructs, the {\em
+case} (which has the usual meaning), and the {\em restrict}, which has the
+syntax,
+ \verb!<polyhedron>: <expr>!, and denotes the expression, {\tt <expr>} but
+restricted to the subset of index points in {\tt <polyhedron>}.
+
+  Observe that the domain of {\tt f} is \verb!{i,j| 0<=j<i; 2<=i<=N}! (a
+``nearly triangular'' trapezium defined by the points {\tt [2,0]} {\tt [2,1]}
+{\tt [N,N-1]} and {\tt [N,0]}).  Also note that the equation for {\tt X} now
+has the expression {\tt f[i,i-1]} replacing the reduction, and the new
+equation for {\tt f} consists of an initialization at the boundary, and an
+accumulation using the {\em body of the original reduction}.  All this is
+automatically determined by the system, using the polyhedral library.
+
+\begin{figure}[tb]
+%\htmlimage{scale=\myscale}
+\setlength{\unitlength}{10mm}
+\begin{center}
+\begin{picture}(16,5.7)
+\thicklines
+\put(-0.1,-0.7){\framebox(16.2,6.7){}}
+\put(11,0.5){\framebox{The domain of {\tt f}.}}
+\put(11,1.3){\begin{picture}(6,3)
+              \put(0,0){\includegraphics{figures/domain-f.pdf}}
+              \put(-0.3,3.2){$i$}
+              \put(0.5,3.6){$j$}
+              \put(-1,2.7){\small\tt [2,0]}
+              \put(1,2.7){\small\tt [2,1]}
+              \put(-1,0){\small\tt [N,0]}
+              \put(3.4,0){\small\tt [N,N-1]}
+              \end{picture}}
+\begin{boxedminipage}[b]{16cm}
+\hspace*{2cm}$\vdots$\small
+\begin{verbatim}
+var
+  f : {i,j | (2,j+1)<=i<=N; 0<=j} of real;
+let
+  f[i,j] = case
+        {| j=0} : 0[];
+        {| 1<=j} : f[i,j-1] + A * X[j];
+           esac;
+  X[i] = case
+        {| 2<=i} : B[i] - f[i,i-1];
+        {| i=1} : B[i];
+         esac;
+tel;
+\end{verbatim}
+\end{boxedminipage}
+\end{picture}
+\end{center}
+\vspace*{-0.8cm}
+\caption{The forward substitution program after serialization}
+\label{fig-serial}
+\end{figure}
+
+\subsection{Change of basis}
+  Perhaps the most important transformation in the Alpha system is the {\bf
+change of basis}.  The intuition behind it is as follows.  Since an Alpha
+variable can be viewed as a multidimensional array defined over a polyhedral
+domain, we should be able to ``move'' (or otherwise change the ``shape'' of)
+its domain and construct an equivalent program.  For example, suppose we want
+to rotate the domain of {\tt f} in Fig.~\ref{fig-serial} counterclockwise
+by $45^\circ$, i.e., we desire to map the point {\tt [1,0]} to {\tt [1,1]},
+and {\tt [1,1]} to {\tt [0,1]} (this makes a vertical line diagonal, and a
+diagonal one horizontal).  It is easy to verify that the mapping
+ \verb!(i,j -> i-j,i)! achieves this; the resulting program and transformed
+domain are shown in Fig.~\ref{fig-transf} (the changes are highlighted).  In
+general, when variable {\tt V} is transformed, the system must determine: (i)
+its new domain, (ii) the new case structure of its equation, (iii) the new
+dependencies for the uses of {\em all} variables in the equation for {\tt V},
+and (iv) the new dependencies for {\em uses} of {\tt V} (in all other
+equations).  All of this is done automatically using the polyhedral library,
+and relies on the fact that the language allows a coherent interaction among
+the domains, the dependencies and the (normal form) structure of the programs.
+
+\begin{figure}[tb]
+%\htmlimage{scale=\myscale}
+\setlength{\unitlength}{10mm}
+\begin{center}
+\begin{picture}(16,5)
+\thicklines
+\put(-0.1,-0.7){\framebox(16.2,6.3){}}
+%\put(3.4,4.5){\oval(4.7,0.5)}
+%\put(2.5,3){\oval(2.2,0.9)}
+%\put(6.9,2.8){\oval(5.9,0.5)}
+%\put(5.5,1.55){\oval(1.4,0.5)}
+\put(11,1){\begin{picture}(6,3)
+             \put(0,0){\includegraphics{figures/rot-f}}
+             \put(-0.3,3){$i$}
+             \put(0.5,3.6){$j$}
+             \put(0.3,2.3){\small\tt [2,2]}
+             \put(0.8,3.5){\small\tt [1,2]}
+             \put(3,3.5){\small\tt [0,N]}
+             \put(2.5,-0.3){\small\tt [N,N]}
+              \end{picture}}
+\begin{minipage}[b]{16cm}
+\hspace*{2cm}$\vdots$\small
+\begin{verbatim}
+  f : {i,j | 1<=i<=j; 2<=j<=N} of real;
+let
+  f[i,j] = case
+        {| i=j}    : 0[];
+        {| i<=j-1} : f[i+1,j] + A[j,-i+j] * X[-i+j];
+           esac;
+  X[i] = case
+        {| 2<=i} : B[i] - f[1,i];
+        {| i=1} : B[i] - 0[];
+         esac;
+tel;
+\end{verbatim}
+\end{minipage}
+\end{picture}
+\end{center}
+\vspace*{-0.8cm}
+\caption{The transformed program and the new domain of {\tt f}}
+\label{fig-transf}
+\end{figure}
+
+The syntax for the affine mapping in a change of basis
+transformation is the same as for dependencies, but there is a subtle
+difference.  We should be able to transform the variable in any
+(affine) manner, but we must always ensure that the {\em number} of
+index points remains invariant.  For this, the affine change of basis
+must admit an integral inverse (i.e., be {\em unimodular}).  We have
+also developed a {\em generalized change of basis}, which allows
+``non-square'' mappings (non-unimodular transformations are encoded as
+a special case of this).
+
+

@@ -1,0 +1,66 @@
+%
+% File created on {2007, 11, 15, 17, 10, 20.544242} by makeDoc.
+%
+% Section header
+\section{The Alpha`ScheduleTools` package } 
+\label{label:Alpha`ScheduleTools`}
+\alphausage{applySchedule}{applySchedule[] applies the schedule \$schedule to \$result. The resulting system is the original one where all the change of basis in \$schedule have been performed and where the first index can interpreted as the time everywhere except for the input and output variables.  applySchedule[sys\_Alpha`system] applies the schedule \$schedule to system `sys'.  applySchedule[sys\_Alpha`system, sched\_Alpha`Schedule] applies the schedult `sched' to system `sys'. See also: schedule, \$schedule.}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{applySchedule}
+
+\alphausage{showSchedResult}{showSchedResult[sched1\_Alpha`ScheduleResult] pretty prints the schedule sched1, equivalent to show[sched1]}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{showSchedResult}
+
+\alphausage{other}{other is an option of appSched which means for other variables}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{other}
+
+\alphausage{renameIndices}{renameIndices[sys:Alpha`system,indiceList:\{\_\_\_String\}] rename the indices of all the local variables of the system `sys' according to the list given `indiceList' (including the output of `use'). renameIndices[sys:Alpha`system,indiceList:\{\_\_\_String\},var:(\_String$|$\{\_\_String\})] rename the change the name in only one variable `var' (or a list of given variable)}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{renameIndices}
+
+\alphausage{appSched}{appSched[ sys, sch, options ] returns a scheduled system, according to  sch. appSched[ sch, options ] applies schedule sch to \$result.  appSched[ options ] applies schedule \$schedule to \$result. appSched is equivalent to ApplySchedule but works for  multidimensionnal scheduling. The projection direction is  chosen automatically by \MMAlpha{}, but if necessary, it can be chosen  using the projMatrix or the projVector options. See ?appSchedOptions for more informations.}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{appSched}
+
+\alphausage{appSchedOptions}{appSched chooses automatically the projection direction for variables,  and this sometimes may not be convenient. There are several ways to specify more precisely the schedule. Option projVector allows a  projection vector to be specified. For example, projVector $ \rightarrow $ \{1,0,0\} would say that the first component of all variables will be replaced by the time given by the schedule, in a 3-dimensional space. However, this option can be used only if all variables of the system are already  placed in the same space, which may not be the case. Similarly, one can specify the projection matrix, using the projMatrix option. For example, projMatrix $ \rightarrow $ \{\{1,0,0\},\{0,0,1\}\} will project all variables on components 1 and 3. Again, this may not be convenient if all variables are not in the same space. Another way of specifying the projection is to use the timeDimensions option. Specifying timeDimensions $ \rightarrow $ \{2\}  says that the component of all variables that will be replaced by  the time is the second dimension. This is equivalent to the option projVector $ \rightarrow $ \{0,1,0\}, but less dependant on the dimension of the  variables. Moreover, one can specify the time dimensions variable by variable, using the variables option. This option may take several forms. variables $ \rightarrow $ varlist, where varlist is a list of local variables, restricts appSched to be applied to only variables in varlist.  variables $ \rightarrow $ \{\{ var, timeDimensions \}, ... \} allows the value of option  timeDimensions to be attached to each individual variable. For example, variables $ \rightarrow $ \{\{ "A", \{2\} \}, \{ "B", \{1\} \}\} says that for variable  A, the time dimensions is 2, and for variable B, it is 1. One can also factorize this list as in variables $ \rightarrow $\{\{\{"A","C"\}, \{2\},  \{"B", \{1\}\}\}, and also use the keyword other to specify the  time dimensions for all remaining variables, as in  variables $ \rightarrow $ \{\{ "A", \{2\} \}, \{ "B", \{1\} \}, \{ other, \{3\} \}\}. Notice that timeDimensions is a list of dimensions: this is a provision for a multi-dimensional schedule, but this has not been tested yet. Also, remember that no garantee is given that these options provide a possible projection, as this depends on the existence of a unimodular transformation combining the schedule and the projection. In other words, appSched may fail sometimes. A final warning: projection vector or  matrices should include the parameters' dimensions.}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{appSchedOptions}
+
+\alphausage{timeDimensions}{timeDimensions is an option of appSched and appVarSched that gives the  list of dimensions that are to be assigned to time. This option  gives a hint to appSched. Say a variable has indexes i,j,k (including parameters), then timeDimensions$ \rightarrow $\{2\} means that index j is going to be replaced by the time and thus, indexes i and k will become  processors. This hint may not always work. See also ?appSchedOptions.}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{timeDimensions}
+
+\alphausage{variables}{option of appSched. It gives the list of variables for which the schedule must be applied. Default value is Null, and means all variables. See also ?appSchedOptions for the exact syntax of this option.}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{variables}
+
+\alphausage{appVarSched}{appVarSched[sys:\_system,var\_String,time\_Matrix,options] apply a single COB to a variable,  the schedule is to be given as a Mathematica matrix (List of List of integer). This function  is for internal use }{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{appVarSched}
+
+\alphausage{convertSchedule}{convertSchedule[sch:\_scheduleResult]. Takes a schedule table and returns an equivalent time functions table. This format is used by lifetime, appSched, and other functions}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{convertSchedule}
+
+\alphausage{identitySchedule}{identitySchedule[sys,dim] build the identity schedule of dimension `dim` dor system sys. The identity schedule simply consist of the lexicographic order  on the `dim`first indices (i.e. the program is already scheduled }{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{identitySchedule}
+
+\alphausage{isScheduledQ}{isScheduleQ[sys,dim] check whether the sys is scheduled or not (with a schedule of dimension dim. isScheduledQ[sys] assumes a linear schedule}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{isScheduledQ}
+
+\alphausage{testSched}{testSched[sys:\_system, sch:\_scheduleResult] tests the the schedule for the given system. When flow dependencies are not satisfied, it prints messages and returns False.  testSched[sys:\_system, sch:\_scheduleResult, var:\_String] test schedule for var only. Param sys may be a dependencies table.  Default: testSched[] test \$result with \$schedule.}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{testSched}
+
+\alphausage{equationOrderQ}{equationOrderQ[sys] checks if the equations are correctly ordered to generate code with a schedule with duration of 0 for some equation (i.e. graph of dependencies internal to te loop nest is topologicaly sorted; If the answer is Yes, the function returns True otherwise it attempts to find a permutation of the equations that is correct(returns a list of integer). This function does not take into account dependencies involving input or output variables WARNING, this function is temporarily disable because of an internal bug (TopologicalSort)}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{equationOrderQ}
+
+\alphausage{reorderEquations}{ reorderEquations[sys,permutation] reorder the equation of system sys according to the permutation given (which only concern the local variables, see the function equationOrderQ). The output equation are put at the end of the program.}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{reorderEquations}
+
+\alphausage{buildPseudoAlpha}{buildPseudoAlpha[sys\_] returns a system `sys2' in which all the subsystems called by `sys' have been replaced by equations on the output variables of the sub-system use. This function is used in order to be able schedule a structured system. buildPseudoAlpha[] is by default applied to \$result }{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{buildPseudoAlpha}
+
+\alphausage{buildSchedConstraints}{buildSchedConstraints[sys\_,List[sched\_scheduleResult]] builds a list of constraints (strings) that correspond to the schedules given as second argument for all the subsystem called in `sys'. buildSchedConstraints[] calls the function buildSchedConstraints[\$result,\$scheduleLibrary]}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{buildSchedConstraints}
+
+\alphausage{buildSchedConstraintForUse}{buildSchedConstraintForUse[sys\_,use1\_use,sched\_SchedulResult] build a list of constraints (strings) that correspond to the schedule given in sched of the subsystem used in `use1' which is part of `sys'}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{buildSchedConstraintForUse}
+
+\alphausage{isReducibleQ}{isReducibleQ[sys] checks wether a structured Alpha program is `reducible' in the sens described in Irisa research report PI1140: the dependency between output and input of a subsystems have identity on the extension part}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{isReducibleQ}
+
+\alphausage{addBufferVars}{addBufferVars[sys:\_Alpha`system] adds systematically a  local `buffer' variables  for each input and each output of each use of subsystems in `sys' (warning, if the input is not a simple variable, the function fails, this function is to be for internal use, please refer to simplifyUseInputs[])}{Alpha/ScheduleTools.m}{Alpha`ScheduleTools`}
+\index{addBufferVars}
+

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+LIB_DIR=$MMALPHA/bin.$OSTYPE
+
+# Compilation
+echo "Compilation de "$1.c" en "$1"..."
+gcc -g -c $1.c -I$LIB_DIR -o tmp.o	
+gcc tmp.o $LIB_DIR/bitTrueOps.o -I$LIB_DIR -lm -o $1
+
+# Nettoyage des fichiers temporaires
+rm -f ./tmp.o
+

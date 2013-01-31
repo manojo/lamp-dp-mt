@@ -1,0 +1,120 @@
+system ControlprodVectModule ( )
+       returns               (C_ctl1_Init : {t | t=1} | {t | 2<=t<=11} of boolean);
+let
+  C_ctl1_Init[t] = 
+      case
+        {| t=1} : True[];
+        {| 2<=t<=11} : False[];
+      esac;
+tel;
+system cellprodVectModule1 :{p | p=1}
+                           (b_mirr1 : {t | 1<=t<=10; p=1} of integer; 
+                            C_ctl1_Init_In : {t | 1<=t<=11; p=1} of boolean; 
+                            A : {t | 1<=t<=10; p=1} of integer)
+       returns             (B1 : {t | 1<=t<=10; p=1} of integer; 
+                            C_ctl1 : {t | t=1; p=1} | {t | 2<=t<=11; p=1} of boolean
+                            ; 
+                            C : {t | 1<=t<=11; p=1} of integer);
+var
+  Cloc3 : {t | 1<=t<=11; p=1} of integer;
+  C_ctl1loc2 : {t | t=1; p=1} | {t | 2<=t<=11; p=1} of boolean;
+  B1loc1 : {t | 1<=t<=10; p=1} of integer;
+  A_reg4 : {t | 2<=t<=11; p=1} of integer;
+  B1_reg5 : {t | 2<=t<=11; p=1} of integer;
+  C_reg3 : {t | 2<=t<=11; p=1} of integer;
+let
+  C[t] = Cloc3[t];
+  C_ctl1[t] = C_ctl1loc2[t];
+  B1[t] = B1loc1[t];
+  B1_reg5[t] = B1loc1[t-1];
+  A_reg4[t] = A[t-1];
+  C_reg3[t] = Cloc3[t-1];
+  B1loc1[t] = b_mirr1[t];
+  C_ctl1loc2[t] = C_ctl1_Init_In[t];
+  Cloc3[t] = 
+      case
+        {| t=1; p=1} : (if (C_ctl1loc2[t]) then 0[] else 0[]);
+        {| 2<=t<=11; p=1} : (if (C_ctl1loc2[t]) then 0[] else C_reg3[t] + A_reg4[t] * B1_reg5[t])
+        ;
+      esac;
+tel;
+system cellprodVectModule2 :{p | 2<=p<=10}
+                           (B1_reg2loc : {t | p-1<=t<=p+8; 2<=p<=10} of integer
+                            ; 
+                            C_ctl1_reg1loc : {t | t=p-1; 2<=p<=10} | {t | p<=t<=p+9; 2<=p<=10} of boolean
+                            ; 
+                            A : {t | p<=t<=p+9; 2<=p<=10} of integer)
+       returns             (B1 : {t | p<=t<=p+9; 2<=p<=10} of integer; 
+                            C_ctl1 : {t | t=p; 2<=p<=10} | {t | p+1<=t<=p+10; 2<=p<=10} of boolean
+                            ; 
+                            C : {t | p<=t<=p+10; 2<=p<=10} of integer);
+var
+  Cloc3 : {t | p<=t<=p+10; 2<=p<=10} of integer;
+  C_ctl1loc2 : {t | t=p; 2<=p<=10} | {t | p+1<=t<=p+10; 2<=p<=10} of boolean;
+  B1loc1 : {t | p<=t<=p+9; 2<=p<=10} of integer;
+  A_reg4 : {t | p+1<=t<=p+10; 2<=p<=10} of integer;
+  B1_reg2 : {t | p<=t<=p+9; 2<=p<=10} of integer;
+  B1_reg5 : {t | p+1<=t<=p+10; 2<=p<=10} of integer;
+  C_ctl1_reg1 : {t | p<=t<=p+10; 2<=p<=10} of boolean;
+  C_reg3 : {t | p+1<=t<=p+10; 2<=p<=10} of integer;
+let
+  C[t] = Cloc3[t];
+  C_ctl1[t] = C_ctl1loc2[t];
+  B1[t] = B1loc1[t];
+  B1_reg2[t] = B1_reg2loc[t-1];
+  C_ctl1_reg1[t] = C_ctl1_reg1loc[t-1];
+  B1_reg5[t] = B1loc1[t-1];
+  A_reg4[t] = A[t-1];
+  C_reg3[t] = Cloc3[t-1];
+  B1loc1[t] = B1_reg2[t];
+  C_ctl1loc2[t] = C_ctl1_reg1[t];
+  Cloc3[t] = 
+      case
+        {| t=p; 2<=p<=10} : (if (C_ctl1loc2[t]) then 0[] else 0[]);
+        {| p+1<=t<=p+10; 2<=p<=10} : (if (C_ctl1loc2[t]) then 0[] else C_reg3[t] + A_reg4[t] * B1_reg5[t])
+        ;
+      esac;
+tel;
+system prodVectModule (b_mirr1In : {t,p | 1<=t<=10; p=1} of integer; 
+                       AIn : {t,p | p<=t<=p+9; 1<=p<=10} of integer)
+       returns        (COut : {t,p | p<=t<=p+10; 1<=p<=10} of integer);
+var
+  C_ctl1_Init : {t | 1<=t<=11} of boolean;
+  b_mirr1 : {t,p | 1<=t<=10; p=1} of integer;
+  B11 : {t,p | 1<=t<=10; p=1} of integer;
+  B1_reg2loc : {t,p | p-1<=t<=p+8; 2<=p<=11} of integer;
+  C_ctl11 : {t,p | 1<=t<=11; p=1} of boolean;
+  C_ctl1_reg1loc : {t,p | p-1<=t<=p+9; 2<=p<=11} of boolean;
+  C_ctl1_Init_In : {t,p | 1<=t<=11; p=1} of boolean;
+  A : {t,p | p<=t<=p+9; 1<=p<=10} of integer;
+  C : {t,p | p<=t<=p+10; 1<=p<=10} of integer;
+  C1 : {t,p | 1<=t<=11; p=1} of integer;
+  B12 : {t,p | p<=t<=p+9; 2<=p<=10} of integer;
+  C_ctl12 : {t,p | p<=t<=p+10; 2<=p<=10} of boolean;
+  C2 : {t,p | p<=t<=p+10; 2<=p<=10} of integer;
+let
+  A[t,p] = AIn[t,p];
+  B1_reg2loc[t,p] = 
+      case
+        {| 1<=t<=10; p=2} : B11[t,p-1];
+        {| p-1<=t<=p+8; 3<=p<=11} : B12[t,p-1];
+      esac;
+  b_mirr1[t,p] = b_mirr1In[t,p];
+  C[t,p] = 
+      case
+        {| 1<=t<=11; p=1} : C1[t,p];
+        {| p<=t<=p+10; 2<=p<=10} : C2[t,p];
+      esac;
+  C_ctl1_Init_In[t,p] = C_ctl1_Init[t];
+  C_ctl1_reg1loc[t,p] = 
+      case
+        {| 1<=t<=11; p=2} : C_ctl11[t,p-1];
+        {| p-1<=t<=p+9; 3<=p<=11} : C_ctl12[t,p-1];
+      esac;
+  COut[t,p] = C[t,p];
+  use  ControlprodVectModule () returns  (C_ctl1_Init) ;
+  use {p | p=1} cellprodVectModule1[p] (b_mirr1, C_ctl1_Init_In, A) returns  (B11, C_ctl11, C1) ;
+  
+  use {p | 2<=p<=10} cellprodVectModule2[p] (B1_reg2loc, C_ctl1_reg1loc, A) returns  (B12, C_ctl12, C2) ;
+  
+tel;

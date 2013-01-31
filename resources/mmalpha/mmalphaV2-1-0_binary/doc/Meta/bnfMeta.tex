@@ -1,0 +1,12 @@
+<metarule> ::= <rule name> "::=" <abstract node> ":>" <semantics>
+                       | <rule name> "::=" <switch_rule> ":>" <semantics>
+<rule name> := <MMAsymbol>
+<abstract node> ::= <MMAsymbol> "[" <list of arguments> "]"
+<switch_rule> ::= <MMAsymbol> ":>" <list of switch arguments>
+<semantics> ::= a call to a semantic function (*)
+<argument> ::= <symbol> ":" <pattern>
+                        | <MMAsymbol> ":" <rule name>
+                        | <MMAsymbol> ":" "{" <rule name> "}"
+<switch argument> ::= "_" <MMAsymbol> "->" <rule name>
+						| <MMAsymbol> "->" "{" <rule name> "}"
+<pattern> ::= any Mathematica pattern

@@ -1,0 +1,109 @@
+#-------------------------
+# This rule gives the dependencies of the final binary and where to copy it from
+$(BINDIR)/$(NAME) : $(OBJDIR)/$(NAME) $(NEEDOBJDIR) $(MAKEFILES)
+	cp $(OBJDIR)/$(NAME)$(SUFFIX) $@$(SUFFIX)
+
+#-------------------------
+# This rule gives the dependency of the binary in OBJDIR and calls the loader
+$(OBJDIR)/$(NAME) : $(OBJS) $(LIBS) $(NEEDOBJDIR) $(MAKEFILES)
+	$(LD) $(LDFLAGS) $(OBJS) $(LOADLIBES) -o $@$(SUFFIX)
+
+#-------------------------
+# This rule gives the dependencies of the object files in OBJDIR and calls the c compiler
+$(OBJDIR)/%.o: %.c $(NEEDOBJDIR) $(MAKEFILES)
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(DEFINES) $< -o $@
+
+#-------------------------
+# This rule gives the dependencies in the polydir, and call the c compiler. Do not know
+# why this rule is not contained in the previous one?
+$(OBJDIR)/%.o: $(POLYDIR)/source/kernel/%.c $(NEEDOBJDIR) $(MAKEFILES)
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(DEFINES) $< -o $@
+
+#-------------------------
+# This rule gives the dependencies with some c files in the POLYLIB. Same remark
+# as above
+$(OBJDIR)/%.o: $(POLYDIR)/source/arith/%.c $(NEEDOBJDIR) $(MAKEFILES)
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(DEFINES) $< -o $@
+
+#-------------------------
+# This rule creates BINDIR if needed. Check that BINDIR and
+# NEEDBINDIR are set, and possibly creates the binary directory
+$(NEEDBINDIR) :
+	@if [ "$(BINDIR)" = "" ]; then echo "variable BINDIR is not set"; false; fi
+	@if [ "$(NEEDBINDIR)" = "" ]; then echo "variable NEEDBINDIR is not set"; false; fi
+	@if [ ! -d $(BINDIR) ]; then mkdir $(BINDIR); fi
+	@touch $@
+
+#-------------------------
+# This rule creates LIBDIR if needed. 
+$(NEEDLIBDIR) :
+	@if [ "$(LIBDIR)" = "" ]; then echo "variable LIBDIR is not set"; false; fi
+	@if [ "$(NEEDLIBDIR)" = "" ]; then echo "variable NEEDLIBDIR is not set"; false; fi
+	@if [ ! -d $(LIBDIR) ]; then mkdir $(LIBDIR); fi
+	@touch $@
+
+#-------------------------
+# This rule creates OBJDIR if needed. 
+$(NEEDOBJDIR) :
+	@if [ "$(OBJDIR)" = "" ]; then echo "variable OBJDIR is not set"; false; fi
+	@if [ "$(NEEDOBJDIR)" = "" ]; then echo "variable NEEDOBJDIR is not set"; false; fi
+	@if [ ! -d $(OBJDIR) ]; then mkdir $(OBJDIR); fi
+	@touch $@
+
+#-------------------------
+# Clean object directory and files put in variable DUMMY
+clean:
+	rm -rf $(OBJDIR) $(DUMMY)
+
+#-------------------------
+# Clean lib directory 
+cleanlib:
+	rm -rf $(LIBDIR)/*.o  $(LIBDIR)/*.a
+
+test:	
+	(cd Test; make)
+
+#-------------------------
+# Rule to get libpoly.a
+$(LIBDIR)/libpoly.a : $(POLYOBJS)
+	$(LDLIB) $(LDFLAGS) $(POLYOBJS) $(LOADLIBES) -o $@
+
+#-------------------------
+# This rule was removed (PQ April 2010), since I do not know what it is for...
+#
+#$(LIBDIR)/libpolyx.a : $(POLYOBJS) $(POLYXOBJS)
+#	$(LDLIB) $(LDFLAGS) $(POLYOBJS) $(POLYXOBJS) -o $@
+
+$(LIBDIR)/libpolymsg.a : $(POLYMSG)
+	$(LDLIB) $(POLYMSG) -o $@
+
+$(LIBDIR)/polylib.%.o : $(POLYDIR)/source/%.c $(NEEDLIBDIR)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+$(LIBDIR)/polylib.%.o : $(POLYDIR)/ArithLib/%.c $(NEEDLIBDIR)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+#-------------------------
+$(LIBDIR)/libcodegen.a : $(CODEGENOBJS)
+	$(LDLIB) $(CODEGENOBJS) -o $@
+
+$(LIBDIR)/codegen.%.o : $(CODEGENDIR)/%.c $(NEEDLIBDIR)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+#-------------------------
+$(LIBDIR)/libpretty.a : $(PRETTYOBJS)
+	$(LDLIB) $(PRETTYOBJS) -o $@
+
+$(LIBDIR)/pretty.%.o : $(PRETTYDIR)/%.c $(NEEDLIBDIR)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+#-------------------------
+$(LIBDIR)/liblpk.a :
+	(cd $(LPSOLVEDIR); $(MAKE) liblpk.a; cp $(LPSOLVEDIR)/liblpk.a $(LIBDIR))
+
+#-------------------------
+$(OBJDIR)/bfunctions.o :$(OBJDIR)/bfunctions.c $(NEEDOBJDIR)
+	@(CC) -c $(CFLAGS) $(OBJDIR)/bfunctions.c -o $@
+
+$(OBJDIR)/bfunctions.c : $(NEEDOBJDIR)
+	@echo "void bzero(char* b, int n) {   memset(b, 0, n);} void bcopy(char* s, char* d, int n) {  memcpy(s, d, n);}" > $(OBJDIR)/bfunctions.c

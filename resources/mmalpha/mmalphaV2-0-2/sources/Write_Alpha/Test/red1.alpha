@@ -1,0 +1,6 @@
+system test :  {N | 2<=N}
+               (a : {i,j | 1<=i<=N; 1<=j<=N} of integer)
+       returns (b : {i | 1<=i<=N} of integer);
+let
+  b[i] = reduce(+, (i,j->j), a[i,j]);
+tel;

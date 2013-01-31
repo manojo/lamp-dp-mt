@@ -1,0 +1,13 @@
+system prodVect (a : {i,j|1 <= i,j <= 8} of boolean; 
+                b : {i|1 <= i <= 8} of boolean)
+       returns (c : {i|1 <= i <= 8} of boolean);
+  var 
+	C :  {i,j|1 <= i <= 8; 0<= j <=8} of boolean;
+  let
+	C[i,j] = case
+		{|j=0} : false.(i,j-> );
+		{|j>=1} : C[i,j-1] + a[i,j] * b[j];
+		esac;
+	c[i]=C[i,8];
+  tel;   
+

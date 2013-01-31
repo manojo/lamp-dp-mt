@@ -1,0 +1,6 @@
+system test1   (a :  integer; 
+                b :  integer)
+       returns (c :  integer);
+let
+  c[] = a + b;
+tel;

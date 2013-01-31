@@ -1,0 +1,8 @@
+{"use IEEE.std_logic_1164.all;", "use IEEE.std_logic_signed.all;", 
+ "use IEEE.numeric_std.all;", "ENTITY mux IS", "PORT(", 
+ "  Ck: IN STD_LOGIC;", "  CE : IN STD_LOGIC;", "  Rst : IN STD_LOGIC;", 
+ "  ctl : IN  STD_LOGIC;", "  input : IN  INTEGER RANGE -32768 TO 32767;", 
+ "  output : OUT  INTEGER RANGE -32768 TO 32767", ");", "END mux;", 
+ "ARCHITECTURE behavioural OF mux IS", 
+ "  -- Insert missing components here!---------", "BEGIN", 
+ "    output <= input WHEN ctl = '1' ELSE 0;", "END behavioural;"}

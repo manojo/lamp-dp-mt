@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Pretty
+END
+writeitem.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Pretty/writeitem.h
+END
+lex.l
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Pretty/lex.l
+END
+item.h
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Pretty/item.h
+END
+itemprocs.c
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Pretty/itemprocs.c
+END
+writeitem.c
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Pretty/writeitem.c
+END
+itemprocs.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Pretty/itemprocs.h
+END
+readitem.c
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Pretty/readitem.c
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Pretty/Makefile
+END

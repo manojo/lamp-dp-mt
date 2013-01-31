@@ -1,0 +1,22 @@
+(* ALPHA Tree produced by read_alpha v.3 *)
+Alpha`system["foo",
+    (* parameter space *)
+    Alpha`domain[0, {}, {
+        Alpha`pol[1, 1, 0, 0, {
+            {1, 1}},{
+            {1, 1}}]}],
+    { (* input variables *)},
+    { (* output variables *)},
+    { (* local variables *)
+    Alpha`decl["A", Alpha`integer, 
+        Alpha`domain[0, {}, {
+            Alpha`pol[1, 1, 0, 0, {
+                {1, 1}},{
+                {1, 1}}]}]]},
+    { (* let *)
+    Alpha`equation["A", 
+        Alpha`unop[Alpha`neg, 
+            Alpha`affine[Alpha`const[2], 
+                Alpha`matrix[1, 1, {}, {
+                    {1}}]]]]}]
+

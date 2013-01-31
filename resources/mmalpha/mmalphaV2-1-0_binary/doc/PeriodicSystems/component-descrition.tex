@@ -1,0 +1,170 @@
+\documentclass[11pt]{article}
+
+\usepackage{makeidx,fancyvrb,graphicx}
+
+\begin{document}
+
+\newcommand{\vhdl}{\textsc{vhdl}}
+\title{Description of the \vhdl{} Library}
+\author{}
+\date{}
+\maketitle
+
+\newcommand{\rom}{{\texttt{ROM}}}
+\section{The \rom{} Component}
+
+\subsection{Component Description}
+The \rom{} component is a combinatorial read-only
+memory. It returns a data, as a signed number with
+a specified length, specified by an integer address.
+
+\subsection{Generation Process}
+Use \texttt{genVhdl[ "ROM" ]} function in package \texttt{Vhdl2.m}.
+
+\subsection{Files}
+\begin{description}
+\item[\texttt{ROM.vhdx}:] the architecture description of the ROM (see \ref{romarchi}).
+\item[\texttt{ComponentOfROM.vhdx}:] the component description of the ROM (see \ref{romcomp}).
+\end{description}
+
+\newcommand{\sizeparam}{\texttt{\$size\$}}
+\newcommand{\commentparam}{\texttt{\$comment\$}}
+\newcommand{\wlmunparam}{\texttt{\$wordLengthMun\$}}
+\newcommand{\nameparam}{\texttt{\$name\$}}
+\newcommand{\valuesparam}{\texttt{\$values\$}}
+
+\subsection{Parameters}
+\begin{description}
+\item[\sizeparam{}: ] the size of the read-only memory, in words.
+\item[\commentparam{}: ] a comment.
+\item[\valuesparam{}: ] the values associated to the ROM. This parameter is not
+mandatory, and if not supplied, 0 values are assumed.
+\item[\nameparam{}: ] the name assigned to the component.
+\item[\wlmunparam{}: ] the word length (minus one) of the values in the ROM. 
+\end{description}
+
+\subsection{Example}
+
+\begin{verbatim}
+--
+-- Component for a combinatoric ROM
+-- ROM of size 32 and of word length 2
+--
+
+COMPONENT ROM3 IS
+  PORT 
+  (
+    address : IN INTEGER RANGE 0 TO 31;
+    data : OUT SIGNED (1 DOWNTO 0)
+  );
+END COMPONENT;
+\end{verbatim}
+
+\newcommand{\moduloaddress}{\texttt{moduloAddress}}
+\section{The \moduloaddress{} Component}
+
+\subsection{Component Description}
+The \moduloaddress{} component is a component that generates...
+
+\subsection{Generation Process}
+Use \texttt{genVhdl[ "moduloaddress" ]} function in package \texttt{Vhdl2.m}.
+
+\subsection{Files}
+\begin{description}
+\item[\texttt{ModuloAddress.vhdx}:] the architecture description of the modulo address generator (see \ref{romarchi}).
+\item[\texttt{ComponentOfModuloAddress.vhdx}:] the component description of the modulo address generator (see \ref{romcomp}).
+\end{description}
+
+\newcommand{\periodparam}{\texttt{\$period\$}}
+\newcommand{\periodmunparam}{\texttt{\$periodMun\$}}
+
+\subsection{Parameters}
+\begin{description}
+\item[\periodparam{}: ] the period of the modulo generator.
+\item[\commentparam{}: ] a comment.
+\item[\periodmunparam{}: ] perion minus one. This is generated automatically by the
+VHDL generator.
+\item[\nameparam{}: ] the name assigned to the component.
+\end{description}
+
+\newpage
+\appendix
+
+\section{The ROM}
+\subsection{Architecture}
+\label{romarchi}
+\VerbatimInput{../../VHDL/ROM.vhdx}
+
+\subsection{Component}
+\label{romcomp}
+\VerbatimInput{../../VHDL/ComponentOfROM.vhdx}
+
+\newpage
+\section{The Modulo Address Generator}
+\subsection{Architecture}
+\label{modumloaddressarchi}
+\VerbatimInput{../../VHDL/ModuloAddress.vhdx}
+
+\subsection{Component}
+\label{modulocompcomp}
+\VerbatimInput{../../VHDL/ComponentOfModuloAddress.vhdx}
+
+
+\newpage
+\section{The Registers}
+\subsection{Architecture}
+\label{romarchi}
+\VerbatimInput{../../VHDL/Registers.vhdx}
+
+\subsection{Component}
+\label{romcomp}
+\VerbatimInput{../../VHDL/ComponentOfRegisters.vhdx}
+
+
+\newpage
+\section{The FSM component}
+\subsection{Architecture}
+\label{romarchi}
+\VerbatimInput{../../VHDL/Fsm.vhdx}
+
+\subsection{Component}
+\label{romcomp}
+\VerbatimInput{../../VHDL/ComponentOfFsm.vhdx}
+
+\subsection{Call}
+\label{romarchi}
+\VerbatimInput{../../VHDL/CallFsm.vhdx}
+
+
+\newpage
+\section{The Call reg component}
+\subsection{Architecture}
+\label{romarchi}
+\VerbatimInput{../../VHDL/CallReg.vhdx}
+
+\section{The Call registers component}
+\subsection{Architecture}
+\label{romarchi}
+\VerbatimInput{../../VHDL/CallRegisters.vhdx}
+
+\newpage
+\section{The PeriodicEnable component}
+\subsection{Architecture}
+\label{romarchi}
+\VerbatimInput{../../VHDL/PeriodicEnable.vhdx}
+
+\subsection{Component}
+\label{romcomp}
+\VerbatimInput{../../VHDL/ComponentOfPeriodicEnable.vhdx}
+
+\subsection{Call}
+\label{romarchi}
+\VerbatimInput{../../VHDL/CallPeriodicEnable.vhdx}
+
+
+
+
+
+
+
+\end{document}

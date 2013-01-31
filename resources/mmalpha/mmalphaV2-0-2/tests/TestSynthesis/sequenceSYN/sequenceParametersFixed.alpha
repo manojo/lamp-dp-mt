@@ -1,0 +1,97 @@
+system ControlsequenceModule ( )
+       returns               (MXctl2 : {t | t=1} | {t | 2<=t<=101} of boolean);
+let
+  MXctl2[t] = 
+      case
+        { | t=1} : True[];
+        { | 2<=t} : False[];
+      esac;
+tel;
+
+system cellsequenceModule1 :{p | p=0}
+                           ( )
+       returns             (M : {t | 1<=t<=101} of integer);
+let
+  M[t] = 0[];
+tel;
+
+system cellsequenceModule2 :{p | 1<=p<=20}
+                           (DBXMirr1 : {t | 1<=t<=100} of integer; 
+                            QSXMirr1 : {t | 1<=t<=100} of integer; 
+                            MReg2Xloc : {t | 1<=t<=101} of integer; 
+                            MXctl2XIn : {t | 1<=t<=101} of boolean)
+       returns             (M : {t | 1<=t<=101} of integer);
+var
+  Mloc1 : {t | 1<=t<=101} of integer;
+  MatchQ : {t | 1<=t<=100} of integer;
+  MatchQReg3 : {t | 2<=t<=101} of integer;
+  MReg1 : {t | 2<=t<=101} of integer;
+  MReg2 : {t | 2<=t<=101} of integer;
+  TSep1 : {t | 1<=t<=100} of boolean;
+  TSep2 : {t | 1<=t<=100} of integer;
+  TSep3 : {t | 2<=t<=101} of integer;
+  TSep4 : {t | 2<=t<=101} of integer;
+  TSep5 : {t | 2<=t<=101} of integer;
+  TSep6 : {t | 2<=t<=101} of integer;
+let
+  M[t] = Mloc1[t];
+  MReg2[t] = MReg2Xloc[t-1];
+  MatchQReg3[t] = MatchQ[t-1];
+  MReg1[t] = Mloc1[t-1];
+  TSep3[t] = MReg1[t] - 8[];
+  TSep4[t] = MReg2[t] + MatchQReg3[t];
+  TSep5[t] = max(TSep3[t], TSep4[t]);
+  TSep6[t] = max(0[], TSep5[t]);
+  Mloc1[t] = 
+      case
+        { | t=1} : if (MXctl2XIn[t]) then 0[] else 0[];
+        { | 2<=t} : if (MXctl2XIn[t]) then 0[] else TSep6[t];
+      esac;
+  TSep1[t] = QSXMirr1[t] = DBXMirr1[t];
+  TSep2[t] = -12[];
+  MatchQ[t] = if (TSep1[t]) then 15[] else TSep2[t];
+tel;
+
+system sequenceModule (DBXMirr1In : {t,p | 1<=t<=100; 1<=p<=20} of integer; 
+                       QSXMirr1In : {t,p | 1<=t<=100; 1<=p<=20} of integer)
+       returns        (MOut : {t,p | 1<=t<=101; 0<=p<=20} of integer);
+var
+  MXctl2 : {t | 1<=t<=101} of boolean;
+  M1 : {t,p | 1<=t<=101; p=0} of integer;
+  MReg2Xloc : {t,p | 1<=t<=101; 1<=p<=21} of integer;
+  DBXMirr1 : {t,p | 1<=t<=100; 1<=p<=20} of integer;
+  QSXMirr1 : {t,p | 1<=t<=100; 1<=p<=20} of integer;
+  M2 : {t,p | 1<=t<=101; 1<=p<=20} of integer;
+  MXctl2XIn : {t,p | 1<=t<=101; 1<=p<=20} of boolean;
+let
+  DBXMirr1[t,p] = DBXMirr1In[t,p];
+  MOut[t,p] = 
+      case
+        { | p=0} : M1[t,p];
+        { | 1<=p} : M2[t,p];
+      esac;
+  MReg2Xloc[t,p] = 
+      case
+        { | p=1} : M1[t,p-1];
+        { | 2<=p} : M2[t,p-1];
+      esac;
+  MXctl2XIn[t,p] = MXctl2[t];
+  QSXMirr1[t,p] = QSXMirr1In[t,p];
+  use  ControlsequenceModule[] () returns  (MXctl2) ;
+  use {p | p=0} cellsequenceModule1[p] () returns  (M1) ;
+  use {p | 1<=p<=20} cellsequenceModule2[p] (DBXMirr1, QSXMirr1, MReg2Xloc, MXctl2XIn) returns  (M2) ;
+tel;
+
+system sequence (QS : {i | 1<=i<=20} of integer; 
+                 DB : {j | 1<=j<=100} of integer)
+       returns  (res : {j | 1<=j<=100} of integer);
+var
+  DBXMirr1 : {t,p | 1<=t<=100; 1<=p<=20} of integer;
+  QSXMirr1 : {t,p | 1<=t<=100; 1<=p<=20} of integer;
+  M : {t,p | 1<=t<=101; 0<=p<=20} of integer;
+let
+  DBXMirr1[t,p] = DB[t];
+  QSXMirr1[t,p] = QS[p];
+  res[j] = M[j+1,20];
+  use  sequenceModule[] (DBXMirr1, QSXMirr1) returns  (M) ;
+tel;

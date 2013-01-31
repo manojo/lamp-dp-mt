@@ -1,0 +1,4 @@
+scheduleResult["testscd1", {{"A", {"k", "M"}, sched[{1, 0}, -1]}, 
+  {"adaptIn21", {"k", "M"}, sched[{1, 0}, 0]}, {"adaptIn22", {"k", "M"}, 
+   sched[{1, 0}, 0]}, {"in", {"k", "M"}, sched[{1, 0}, -2]}, 
+  {"out", {"k", "M"}, sched[{1, 0}, 1]}}, {1, 1}]

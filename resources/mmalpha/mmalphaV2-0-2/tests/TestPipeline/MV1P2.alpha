@@ -1,0 +1,26 @@
+system prodVect :{N | 2<=N}
+                (a : {i,j | 1<=i<=N; 1<=j<=N} of boolean; 
+                 b : {i | 1<=i<=N} of boolean)
+       returns  (c : {i | 1<=i<=N} of boolean);
+var
+  B2 : {i,j | j-N+1<=i<=(1,j); 0<=j; 2<=N} of integer;
+  B1 : {i,j | 1<=i<=N; 1<=j<=N; 2<=N} of boolean;
+  C : {i,j | 1<=i<=N; 0<=j<=N} of boolean;
+let
+  B2[i,j] = 
+      case
+        { | -N+1<=i<=0; j=0; 2<=N} : b[-i+j+1];
+        { | j-N+1<=i<=1; 1<=j; 2<=N} : B2[i-1,j-1];
+      esac;
+  B1[i,j] = 
+      case
+        { | i=1; 1<=j<=N; 2<=N} : B2;
+        { | 2<=i<=N; 1<=j<=N} : B1[i-1,j];
+      esac;
+  C[i,j] = 
+      case
+        { | j=0} : False[];
+        { | 1<=j} : C[i,j-1] + a[i,j] * B1;
+      esac;
+  c[i] = C[i,N];
+tel;

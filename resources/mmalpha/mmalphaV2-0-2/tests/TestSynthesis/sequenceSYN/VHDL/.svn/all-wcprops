@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL
+END
+ControlsequenceModule.vhd
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL/ControlsequenceModule.vhd
+END
+cellsequenceModule1.vhd
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL/cellsequenceModule1.vhd
+END
+sequenceModule.component
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL/sequenceModule.component
+END
+ControlsequenceModule.component
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL/ControlsequenceModule.component
+END
+cellsequenceModule1.component
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL/cellsequenceModule1.component
+END
+cellsequenceModule2.vhd
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL/cellsequenceModule2.vhd
+END
+cellsequenceModule2.component
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL/cellsequenceModule2.component
+END
+definition.vhd
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL/definition.vhd
+END
+sequence.vhd
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL/sequence.vhd
+END
+sequence.component
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL/sequence.component
+END
+sequenceModule.vhd
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestSynthesis/sequenceSYN/VHDL/sequenceModule.vhd
+END

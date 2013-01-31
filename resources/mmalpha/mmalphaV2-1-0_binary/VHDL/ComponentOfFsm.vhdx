@@ -1,0 +1,12 @@
+--
+-- $comment$
+--
+COMPONENT $name$ IS
+  PORT(
+    clk : IN STD_LOGIC;
+    CE_gen : IN STD_LOGIC;
+    rst : IN STD_LOGIC;
+$outputs$
+  );
+END COMPONENT;
+

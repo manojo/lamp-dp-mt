@@ -1,0 +1,121 @@
+# always has this line (shared config)
+include ../MakeIncludes/Makefile.config
+
+# flags to pass to the compiler (e.g. include paths)
+CPPFLAGS	= -I$(POLYDIR)  -g
+
+# flags to pass to the linker (e.g. library path) 
+
+# library to link again
+LOADLIBES	=  # -lgmp -lpoly -lpolymsg
+
+# files to remove when making clean
+DUMMY		= pretty lex.c *.o
+
+# name of the executable
+NAME		= pretty
+
+# local components of the program
+OBJS		= $(OBJDIR)/writeitem.o \
+		  $(OBJDIR)/itemprocs.o 
+
+# libraries to link again, same as above (these are for make dependencies)
+#LIBS		= $(LIBDIR)/libpoly.a \
+#		  # $(LIBDIR)/libpolymsg.a
+
+# always has this line, this the default target (the rule is defined
+# in ../MakeIncludes/Makefile.rules)
+$(NAME) : $(BINDIR)/$(NAME)
+	@# gnu-make needs this empty line to avoid implicit rules
+
+# special rules or dependencies for .o files (default is defined in
+# ../MakeIncludes/Makefile.rules)
+
+# Dependency between read_alpha.o, the c files and the header files
+$(OBJDIR)/pretty : item.h readitem.c $(OBJS) 
+
+# Dependency between yacc.c and yacc.y
+yacc.c : yacc.y
+
+# Dependency between lex.c and lex.l
+$(OBJ_DIR)/lex.c: $(OBJ_DIR)/lex.l
+
+#always has this line (default rules)
+include ../MakeIncludes/Makefile.rules
+
+#  Checks and lists variables
+.phony: checkvars
+checkvars: 
+	@echo "----- CC = "$(CC);
+	@if [ "$(CC)" = "" ]; then echo "*** Variable CC is not set"; fi
+	@echo "----- DBG = "$(DBG);
+#
+# Check value of MMALPHA. Checks if there exists a Domlib directory in it
+	@echo "----- MMALPHA = "$(MMALPHA);
+	@if [ ! -d $(MMALPHA)/sources/Domlib ]; then echo "***MMALPHA is probably wrong."; fi
+#
+# Check value of CC
+	@echo "----- CC = "$(CC);
+	@if [ "$(CC)" = "" ]; then echo "*** Variable CC is not set"; fi
+	@echo "----- BINDIR = "$(BINDIR);
+	@if [ "$(BINDIR)" = "" ]; then echo "*** Variable BINDIR is not set"; fi
+	@if [ ! -d $(BINDIR) ]; then echo "*** Binary directory does not exist."; fi
+	@echo "----- LIBDIR = "$(LIBDIR);
+	@if [ "$(LIBDIR)" = "" ]; then echo "*** Variable LIBDIR is not set"; fi
+	@if [ ! -d $(LIBDIR) ]; then echo "*** Library directory does not exist."; fi
+	@echo "----- OBJDIR = "$(OBJDIR);
+	@if [ "$(OBJDIR)" = "" ]; then echo "*** Variable OBJDIR is not set"; fi
+	@if [ ! -d $(OBJDIR) ]; then echo "***OBJDIR was not created. Please, create it."; fi
+	@echo "----- POLYDIR = "$(POLYDIR);
+	@if [ "$(POLYDIR)" = "" ]; then echo "*** Variable POLYDIR is not set"; fi
+	@if [ ! -d $(POLYDIR) ]; then echo "***Directory POLYDIR does not exist."; fi
+	@echo "----- POLYOBJS = "$(POLYOBJS);
+	@if [ "$(POLYOBJS)" = "" ]; then echo "*** Variable POLYOBJS is not set"; fi
+	@echo "----- POLYINCLUDE = "$(POLYINCLUDE);
+	@if [ "$(POLYINCLUDE)" = "" ]; then echo "*** Variable POLYINCLUDE is not set"; fi
+	@if [ ! -d $(POLYINCLUDE) ]; then echo "***Directory POLYINCLUDE does not exist."; fi
+	@echo "----- POLYLIB-LIB = "$(POLYLIB-LIB);
+	@if [ "$(POLYLIB-LIB)" = "" ]; then echo "*** Variable POLYLIB-LIB is not set"; fi
+	@if [ ! -d $(POLYLIB-LIB) ]; then echo "***Directory POLYLIB-LIB does not exist."; fi
+	@echo "----- MATHLINK = "$(MATHLINK);
+	@if [ "$(MATHLINK)" = "" ]; then echo "*** Variable MATHLINK is not set"; fi
+	@if [ ! -d $(MATHLINK) ]; then echo "MATHLINK does not correspond to a knwown directory"; fi
+	@echo "----- MATHPREP = "$(MATHPREP);
+	@if [ "$(MATHPREP)" = "" ]; then echo "*** Variable MATHPREP is not set"; fi
+	@if [ ! -d $(MATHLINK) ]; then echo "MATHPREP file does not exist"; fi
+	@echo "----- MATHLIB = "$(MATHLIB);
+	@if [ "$(MATHLIB)" = "" ]; then echo "*** Variable MATHLIB is not set"; fi
+	@echo "----- MMAVERSION = "$(MMAVERSION)
+	@if [ "$(MMAVERSION)" = "" ]; then echo "*** Variable MMAVERSION is not set"; fi
+	@echo "----- NEEDOBJDIR = "$(NEEDOBJDIR)
+	@if [ "$(NEEDOBJDIR)" = "" ]; then echo "*** Variable NEEDOBJDIR is not set"; fi
+	@echo "----- MAKEFILES = "$(MAKEFILES)
+	@echo "----- LD = "$(LD)
+	@echo "----- LDFLAGS = "$(LDFLAGS)
+	@echo "----- OBJS = "$(OBJS)
+	@echo "----- SUFFIX = "$(SUFFIX)
+	@echo "----- DEFINES = "$(DEFINES)
+
+	@echo "----- SHELL = "$(SHELL);
+	@echo "----- CFLAGS = "$(CFLAGS);
+	@echo "----- CODEGENDIR = "$(CODEGENDIR);
+	@echo "----- CODEGENOBJS = "$(CODEGENOBJS);
+	@echo "----- CPPFLAGS = "$(CPPFLAGS);
+	@echo "----- LFFLAGS = "$(LDFLAGS);
+	@echo "----- LOADLIBES = "$(LOADLIBES);
+	@echo "----- CXX = "$(CXX)
+
+.phony:
+
+# Do not know what it is
+t1:	t1.c
+	gcc -c   t1.c -o t1.o
+	gcc   -mwindows -o t1 t1.o
+
+# apparently unused
+test:  virtual
+#	cd test;make;cd ..
+
+virtual:	
+
+.phony: 

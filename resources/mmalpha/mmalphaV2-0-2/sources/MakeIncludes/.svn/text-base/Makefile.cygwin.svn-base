@@ -1,0 +1,25 @@
+#----------------------------------------------
+#   Special configuration file for cygwin
+SHELL	= bash
+MMALPHA = ../..
+
+#----------------------------------------------
+#   This variable may be also set as an environment variable, but
+#   for the case of Windows, the current MMA version is 4.2
+MMAVERSION=4.2
+SUFFIX  = .exe
+DEFINES      = -DWINDOWSNT
+#-----------------------------------------------
+LD = gcc
+PRECISIONFLAG=-DLINEAR_VALUE_IS_INT
+LDFLAGS		= -L$(LIBDIR) -mi386pe 
+
+#-----------------------------------------------
+#   Include special definitions for Mathlink depending on the version.
+#   Note that we are not in this directory...
+include ../Makeincludes/Makefile.cygwin.$(MMAVERSION)
+
+#----------------------------------------------
+#   Where Omaga is
+OMEGADIR     =
+

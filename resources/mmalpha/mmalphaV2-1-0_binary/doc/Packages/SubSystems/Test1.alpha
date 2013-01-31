@@ -1,0 +1,12 @@
+system exemple (x : {i,j | 1<=i<=10; 1<=j<=10} of integer)
+       returns (z :  integer);
+var
+  Y1 : {i,j | 1<=i<=10; 1<=j<=10} of integer;
+  Y2 : {i,j | 1<=i<=10; 1<=j<=10} of integer;
+  Y3 : {i,j | 1<=i<=10; 1<=j<=10} of integer;
+let
+  Y1[i,j] = x;
+  Y2[i,j] = Y1;
+  Y3[i,j] = Y2[i,j];
+  z[] = Y3[10,10];
+tel;

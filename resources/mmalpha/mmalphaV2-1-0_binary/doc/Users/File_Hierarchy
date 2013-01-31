@@ -1,0 +1,127 @@
+Directory naming conventions
+----------------------------
+New version: 15 Nov 1994
+------------------------
+
+
+
+
+File hierarchy
+--------------
+
+Two main directories are used for alpha: ALPHA and ALPHA_BETA, sharing the
+same internal structure. The modules under development will be
+installed in ALPHA_BETA and developed in this directory until they are
+bug-free.  All file names in all modules must be relative to the root of the
+directory hierarchy of the distribution, stored in the environment variable
+"MMALPHA".  In order to use the MmAlpha implementation of ALPHA, the user
+has to set the value of this variable in his environment (see file
+"How-to-install".)
+
+The ALPHA file hierarchy is then:
+
+udd/
+ |
+ |
+ +--- alpha/
+ | 	|
+ |	+--- Mathematica/
+ |      |
+ | 	+--- centaur/
+ |      |
+ | 	...
+ | 
+ |
+ +--- alpha_beta/
+ |	|
+...	+--- Mathematica/
+	|
+	...
+
+
+
+In the Mathematica subdirectory ($MMALPHA) The files are split
+into several directories. The different directories will be:
+
+bin		executable binaries (parsers, external type-checkers ...)
+man		user's guides to the different parts of the system
+doc             reference documentation for the users or developers of ALPHA 
+examples	examples, demos ...
+lib		various library (Mma Package...)
+sources		sources of all compiled modules/programs/documentations.
+bugs		Repports on bugs found
+
+   Subdirectories of this structure are as follows:
+
+$MMALPHA/
+ |
+ +--- bin/			binaries (runable commands)
+ |
+ +--- man/			user's guide structured as standard Unix man.
+ |
+ +--- doc/			technical reference...
+ |	|
+ |	+-- developer/		...  for admin and developers only 
+ |	|  			
+ |	+-- user/		...  for users
+ |	|
+ |	+-- install/		... for installation (user/developper/admin)
+ |	|
+ |	+-- tutorial/		learning by example (to come REAL-SOON-NOW)
+ |
+ +--- examples/			the name says it all, a separate subdir for
+ |	|			  each example
+ |	|
+ | 	+--- matprod/		matrix multiplication (what else?)
+ |      |
+ |     	...
+ |	
+ |
+ +--- lib/			libraries, Mathematica packages and so on
+ |	|
+ |	+---Packages/		Mathematica packages in general
+ |      |      |
+ |	...    +--- Alpha/      MmAlpha packages
+ |	       |      | 	  
+ |             |      +--- Pprint.m	pretty-printer
+ | 	       |      |
+ | 	       |      +--- Visual.m	domain visualisation
+ | 	       |      |
+ | 	       |      +--- ...          coming soon ...
+ | 	       |
+ | 	       +--- Alpha.m	basic definitions package
+ |	 
+ +--- sources/			sources to all compiled parts of the
+ |      |			  distribution; so there are
+ |   	+--- bin/		sources of binaries
+ |	|
+ |	+--- doc/		sources of LaTeX/PostScript doc files
+ |	|	
+ |	+--- lib/		sources of compiled libraries
+ |
+ |
+ +--- config/
+ |	| 	       
+ |	+--- setup.m		configuration file
+ |	|
+ |	+--- init.m		MmAlpha-wide default initializations	 
+ |      |
+ |      +--- emacs/		Emacs modes for running Mathematica and
+ |      |       |  		editing Mathematica programs
+ |	|	+-- lisp/		corresponding Emacs Lisp code
+ |      |  
+ |	+--- tex/		TeX/LaTeX styles and others (if needed)
+ |             |
+ |	       +--- macros/	Mostly the "unixman.sty" document style 
+ |
+ |
+ +--- bugs/			shoud be empty
+
+
+Symbol naming conventions
+-------------------------
+
+All symbols related to MmAlpha must appear in the context "Alpha`".
+Subcontexts of "Alpha`" may be used to hold symbols peculiar to certain
+particular applications (as the pretty-printer, see file
+"$MMALPHA/lib/Mathematica/Pprint/MetaPprint.m".)

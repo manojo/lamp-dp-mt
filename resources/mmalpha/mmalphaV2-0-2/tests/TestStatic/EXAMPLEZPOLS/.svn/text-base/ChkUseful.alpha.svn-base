@@ -1,0 +1,11 @@
+system ChkUseful :{N,M | 2<=N<=M-1}
+               (x : {i,2j | 0<=i<=N; 0<=j<=N} of integer)
+       returns (res : {i | 0<=i<=N} of integer);
+var
+YY : {i,3j | 0<=i<=N; 0<=j<=N} of integer;
+ZZ : {i,j | 0<=i<=N; 0<=j<=N} of integer;
+let
+ZZ= YY.(i,j->i,3j);
+YY= {i,3j | 0<=i<=N; 0<=j<=N} : x.(i,j->i,2j/3);
+res = x.(i->i,2i);
+tel;

@@ -1,0 +1,27 @@
+-- P. Quinton, February 1995
+-- This example shows the operation of a linear array
+-- for matrix multiplication
+-- 
+system matligne ()
+returns ( filea:{t|1 <= t <= 9} of integer;
+fileb:{t,p|1<=p<=3;p<= t <=p+8 } of integer;
+A,B,C:{i,j|1 <= i,j <= 3} of integer);
+var
+--  A,B:{i,j| 1<=i,j<=9} of integer;
+--  filea:{t|1 <= t <= 9} of integer;
+--  fileb:{t,p|1<=p<=3; p<=t<=p+8} of integer;
+  -- registre d'accumulation du processeur
+  regc:{t,p|1 <=p <=3;t>=0} of integer;
+  -- registre pour le signal raz
+  regraz:{t,p|1 <=p <=3;t>=0} of boolean;
+  -- registre pour les coefficients A
+  rega:{t,p|1 <=p <=3;t>=0} of integer;
+let
+  regc[t,p] = case
+               {|1<=t<=9}:if regraz[t,p] then 0[] else regc[t-1,p] + 
+                rega[t,p]*fileb[t,p];
+               {|t=0}|{|t>=10}:-1[];
+  esac;
+tel;
+  
+

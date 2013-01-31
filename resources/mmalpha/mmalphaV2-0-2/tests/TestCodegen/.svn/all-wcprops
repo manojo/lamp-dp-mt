@@ -1,0 +1,83 @@
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen
+END
+TestCodeGen.m
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/TestCodeGen.m
+END
+TMP_RESTR.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/TMP_RESTR.alpha
+END
+TMP_CONTROL.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/TMP_CONTROL.alpha
+END
+TMP_SORTED.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/TMP_SORTED.alpha
+END
+TMP_JOINR.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/TMP_JOINR.alpha
+END
+errMake
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/errMake
+END
+resMake
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/resMake
+END
+compile
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/compile
+END
+tempcGen2.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/tempcGen2.alpha
+END
+resTest
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/resTest
+END
+temp.alpha
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/temp.alpha
+END
+xyz
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/xyz
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/Makefile
+END

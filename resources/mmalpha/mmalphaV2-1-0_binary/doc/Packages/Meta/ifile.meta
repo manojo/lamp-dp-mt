@@ -1,0 +1,38 @@
+{
+  domain[ d:_Integer, i:{___String}, p:{pol}] :> Null
+,
+  system[ n:_String, p:domain, id:{declaration}, 
+          od:{declaration}, ld:{declaration}
+,
+  e:{equation}] :> semanticFunction[ system , {n, p, id, od, ld, tre} ]
+,
+  pol[a:_Integer,b:_Integer,c:_Integer,d:_Integer,co:{constraint},
+      ge:{generators}]:>
+     pol[ tra, trb, trc, trd, trco, trge ]
+, 
+  constraint :> {_List}
+,
+  generators :> {_List}
+,
+  equation[c:_String, e:expression] :> semanticFunction[ equation, {c, tre} ]
+,
+  expression :> { _binop, _var, _affine, _restrict, _case, _const }
+, 
+  binop[ op:_Symbol, op1:expression, op2:expression ] :> 
+    semanticFunction[ binop, {op, trop1, trop2} ]
+,
+  var[ v:_String ] :> semanticFunction[ var, v ]
+,
+  affine[ e:expressionaffine, m:matrix ] :> semanticFunction[ affine, {e, trm} ]
+,
+  expressionaffine :> { _var, _const }
+,
+  matrix[ d1:_Integer, d2:_Integer, in:{___String}, m:_ ]:> m
+,
+  restrict[ d:domain, e:expression ] :> semanticFunction[ restrict, {d, tre} ]
+, 
+  case[ e:{expression} ] :> semanticFunction[ case, e, tre ]
+,
+  const[ c:_ ] :> c
+}
+

@@ -1,0 +1,14 @@
+system fir :   {N,M | 3<=N<=M-1}
+               (x : {i | 1<=i<=M} of integer; 
+                H : {n | 0<=n<=N-1} of integer)
+       returns (res : {i | N<=i<=M} of integer);
+var
+  ser1 : {t,p | M-1<=t<=N+M-1; N<=p<=M} of integer;
+let
+  ser1[t,p] = 
+      case
+        { | t=M-1} : 0[];
+        { | M<=t} : ser1[t-1,p] + H[t-M] * x[-t+p+M];
+      esac;
+  res[i] = ser1[N+M-1,i];
+tel;

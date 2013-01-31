@@ -1,0 +1,93 @@
+system firModule (H_mirr1In : {t,p | -5<=t<=-1; p=0} of integer; 
+                  x_mirr1In : {t,p | -4<=t<=5; p=0} of integer)
+       returns   (YOut : {t,p | p+2<=t<=p+7; 0<=p<=5} of integer);
+var
+  HPipe_ctl1P_Init : {t | 1<=t<=6} of boolean;
+  xPipe_ctl2P_Init : {t | 2<=t<=7} of boolean;
+  H_mirr1 : {t,p | -5<=t<=-1; p=0} of integer;
+  x_mirr1 : {t,p | -4<=t<=5; p=0} of integer;
+  Y : {t,p | p+2<=t<=p+7; 0<=p<=5} of integer;
+  Y1 : {t,p | 2<=t<=7; p=0} of integer;
+  Y_reg7loc : {t,p | p+1<=t<=p+6; 1<=p<=6} of integer;
+  xPipe1 : {t,p | 1<=t<=5; p=0} of integer;
+  xPipe_reg5loc : {t,p | p<=t<=(2p+3,p+5); 1<=p<=6} of integer;
+  HPipeES1 : {t,p | -5<=t<=-1; p=0} of integer;
+  HPipeES_reg4loc : {t,p | 2p-7<=t<=(p-1,2p-3); 1<=p} of integer;
+  xPipeES1 : {t,p | -4<=t<=5; p=0} of integer;
+  xPipeES_reg3loc : {t,p | 2p-6<=t<=p; 1<=p} | {t,p | 1<=t<=5; p=1} of integer
+  ;
+  Y3 : {t,p | p+2<=t<=p+7; 2<=p<=5} of integer;
+  xPipe3 : {t,p | p+1<=t<=p+6; 2<=p<=5} of integer;
+  HPipeES3 : {t,p | 2p-5<=t<=p; 2<=p} of integer;
+  xPipeES3 : {t,p | 2p-4<=t<=p+1; 2<=p} of integer;
+  xPipe_ctl2P3 : {t,p | p+1<=t<=p+6; 2<=p<=5} of boolean;
+  xPipe_ctl2P_reg2loc : {t,p | p<=t<=p+5; 2<=p<=6} of boolean;
+  HPipe_ctl1P3 : {t,p | p<=t<=p+5; 2<=p<=5} of boolean;
+  HPipe_ctl1P_reg1loc : {t,p | p-1<=t<=p+4; 2<=p<=6} of boolean;
+  Y4 : {t,p | 3<=t<=8; p=1} of integer;
+  xPipe4 : {t,p | 2<=t<=7; p=1} of integer;
+  HPipeES4 : {t,p | -3<=t<=1; p=1} of integer;
+  xPipeES4 : {t,p | -2<=t<=2; p=1} of integer;
+  xPipe_ctl2P4 : {t,p | 2<=t<=7; p=1} of boolean;
+  HPipe_ctl1P4 : {t,p | 1<=t<=6; p=1} of boolean;
+  HPipe_ctl1P_Init_In : {t,p | 1<=t<=6; p=1} of boolean;
+  xPipe_ctl2P_Init_In : {t,p | 2<=t<=7; p=1} of boolean;
+let
+  H_mirr1[t,p] = H_mirr1In[t,p];
+  HPipe_ctl1P_Init_In[t,p] = HPipe_ctl1P_Init[t];
+  HPipe_ctl1P_reg1loc[t,p] = 
+      case
+        { | p-1<=t<=p+4; 3<=p<=6} : HPipe_ctl1P3[t,p-1];
+        { | 1<=t<=6; p=2} : HPipe_ctl1P4[t,p-1];
+      esac;
+  HPipeES_reg4loc[t,p] = 
+      case
+        { | -5<=t<=-1; p=1} : HPipeES1[t,p-1];
+        { | 2p-7<=t<=p-1; 3<=p} : HPipeES3[t,p-1];
+        { | -3<=t<=1; p=2} : HPipeES4[t,p-1];
+      esac;
+  x_mirr1[t,p] = x_mirr1In[t,p];
+  xPipe_ctl2P_Init_In[t,p] = xPipe_ctl2P_Init[t];
+  xPipe_ctl2P_reg2loc[t,p] = 
+      case
+        { | p<=t<=p+5; 3<=p<=6} : xPipe_ctl2P3[t,p-1];
+        { | 2<=t<=7; p=2} : xPipe_ctl2P4[t,p-1];
+      esac;
+  xPipeES_reg3loc[t,p] = 
+      case
+        { | -4<=t<=5; p=1} : xPipeES1[t,p-1];
+        { | 2p-6<=t<=p; 3<=p} : xPipeES3[t,p-1];
+        { | -2<=t<=2; p=2} : xPipeES4[t,p-1];
+      esac;
+  xPipe_reg5loc[t,p] = 
+      case
+        { | 1<=t<=5; p=1} : xPipe1[t,p-1];
+        { | p<=t<=p+5; 3<=p<=6} : xPipe3[t,p-1];
+        { | 2<=t<=7; p=2} : xPipe4[t,p-1];
+      esac;
+  Y[t,p] = 
+      case
+        { | 2<=t<=7; p=0} : Y1[t,p];
+        { | p+2<=t<=p+7; 2<=p<=5} : Y3[t,p];
+        { | 3<=t<=8; p=1} : Y4[t,p];
+      esac;
+  YOut[t,p] = Y[t,p];
+  Y_reg7loc[t,p] = 
+      case
+        { | 2<=t<=7; p=1} : Y1[t,p-1];
+        { | p+1<=t<=p+6; 3<=p<=6} : Y3[t,p-1];
+        { | 3<=t<=8; p=2} : Y4[t,p-1];
+      esac;
+  use  ControlfirModule[5,10] () 
+        returns  (HPipe_ctl1P_Init, xPipe_ctl2P_Init) ;
+  use {p | p=0} cellfirModule1[p,5,10] (H_mirr1, x_mirr1) 
+        returns  (Y1, xPipe1, HPipeES1, xPipeES1) ;
+  use {p | 2<=p<=5} cellfirModule3[p,5,10] (Y_reg7loc, xPipe_reg5loc, 
+          HPipeES_reg4loc, xPipeES_reg3loc, xPipe_ctl2P_reg2loc, 
+          HPipe_ctl1P_reg1loc) returns  
+        (Y3, xPipe3, HPipeES3, xPipeES3, xPipe_ctl2P3, HPipe_ctl1P3) ;
+  use {p | p=1} cellfirModule4[p,5,10] (Y_reg7loc, xPipe_reg5loc, 
+          HPipeES_reg4loc, xPipeES_reg3loc, HPipe_ctl1P_Init_In, 
+          xPipe_ctl2P_Init_In) returns  
+        (Y4, xPipe4, HPipeES4, xPipeES4, xPipe_ctl2P4, HPipe_ctl1P4) ;
+tel;

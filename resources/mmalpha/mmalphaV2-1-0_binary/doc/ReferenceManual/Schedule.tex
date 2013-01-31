@@ -1,0 +1,27 @@
+%
+% File created on {2007, 11, 15, 17, 10, 20.532490} by makeDoc.
+%
+% Section header
+\section{The Alpha`Schedule` package } 
+\label{label:Alpha`Schedule`}
+\alphausage{Schedule}{Package.  Schedule for  alpha program The only function used is : schedule[]}{Alpha/Schedule.m}{Alpha`Schedule`}
+\index{Schedule}
+
+\alphausage{structSched}{structSched[] tries to find a structured scheduling for \$result, using \$scheduleLibrary for schedule of subsystems. The default mode is linear, i.e. no dimension is added for  subsystems. By setting the option structSchedType to multi, the schedule of the subsystems will be in an additionnal dimension. Warning, in that case, you MUST set the depth of the schedule expected with the multSchedDepth options. Example: structSched[structSchedType$ \rightarrow $multi,multiSchedDepth$ \rightarrow $2] finds the schedule of \$result and puts}{Alpha/Schedule.m}{Alpha`Schedule`}
+\index{structSched}
+
+\alphausage{schedule}{schedule[] finds the schedule of \$result and puts the result in \$schedule. schedule[sys\_Alpha`system], finds the schedule of alpha system `sys' and puts the result in \$schedule (affine by variable by default).  schedule[sys\_Alpha`system, options] calls schedule with non default options. Options[schedule] provides   the options of schedule, and ?opt1 provides information on option   opt1.  ?\$schedule provides info on the output format of the schedule.   The schedule computation may take a long time    (2 minutes for 20 instructions). More information is available in the file   \$MMALPHA/doc/user/<=Scheduler\_user\_manual.ps.}{Alpha/Schedule.m}{Alpha`Schedule`}
+\index{schedule}
+
+\alphausage{checkOptions}{checkOption[sys\_Alpha`system,options\_\_\_Rule] check that the set of option of schedule is coherent, returned a new set of option in which some option have been changed by default to cope with incoherent options if possible}{Alpha/Schedule.m}{Alpha`Schedule`}
+\index{checkOptions}
+
+\alphausage{benchSched}{benchSched[f] runs the scheduler on alpha file f, or on  list of alpha files f.}{Alpha/Schedule.m}{Alpha`Schedule`}
+\index{benchSched}
+
+\alphausage{farkas}{option of benchSched}{Alpha/Schedule.m}{Alpha`Schedule`}
+\index{farkas}
+
+\alphausage{vertex}{option of benchSched}{Alpha/Schedule.m}{Alpha`Schedule`}
+\index{vertex}
+

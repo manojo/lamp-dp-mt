@@ -1,0 +1,16 @@
+system fir4b (x: {t|t>=0} of integer;H:{n|0<=n<4} of integer)
+returns (y:{t|t>=4} of integer);
+var
+   Y,Z:{t,n|t>=4;-1<=n<4} of integer; 
+let
+   y[t] = Y[t,3];
+   Y[t,n] = case
+         {|n=-1}:0[];
+         {|n>-1}:Y[t,n-1]+ H[n]*x[t-n-1];
+         esac;
+   Z[t,n] = case
+         {|n=-1}:0[];
+         {|n>-1}:Z[t,n-1]+ H[n]*x[t-n-1];
+         esac;
+tel;
+

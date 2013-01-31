@@ -1,0 +1,74 @@
+-- 
+-- N is the size of the Fifo
+-- Rin is the i-th register
+-- Tin is the status of the i-th register, True if
+--   first available register
+-- busin is the input bus
+-- op1 True when entering a data
+-- op2 True when reading a data
+--
+system fifo :  {N | 3<=N}
+               (Rin : {i | 1<=i<=N} of integer; 
+                Tin : {i | 0<=i<=N} of boolean; 
+                busin :  integer; 
+                op1 :  boolean; 
+                op2 :  boolean)
+       returns (Rout : {i | 1<=i<=N} of integer; 
+                Tout : {i | 0<=i<=N} of boolean);
+let
+  -- Define value of Rout
+  Rout[i] = if (op1[]) then 
+          case
+            { | 2<=i} : Rin[i-1];
+            { | i=1} : Rin[i];
+          esac else if (op2[] and Tin[i]) then busin[] else Rin[i];
+  -- Define value of Tin
+  Tout[i] = if (op1[]) then 
+          case
+            { | 1<=i} : Tin[i-1];
+            { | i=0} : False[];
+          esac else if (op1[] and Tin[i]) then 
+          case
+            { | i<=N-1} : Tin[i+1];
+            { | i=N} : False[];
+          esac else Tin[i];
+tel;
+--
+--  Instanciate a fifo
+--  N should be >= 3 for all transformations to succeed
+--  inputs: busin, op1, op2
+--  outputs: wordout is the last register, full and empty 
+--    indicate the status of the fifo
+--
+system callfifo :{N | 3<=N}
+                (busin : {t | 0<=t} of integer; 
+                 op1 : {t | 0<=t} of boolean; 
+                 op2 : {t | 0<=t} of boolean)
+       returns  (full : {t | 0<=t} of boolean; 
+                 empty : {t | 0<=t} of boolean; 
+                 wordout : {t | 0<=t} of integer);
+var
+  Rin : {i,t | 1<=i<=N; 0<=t} of integer;
+  Tin : {i,t | 0<=i<=N; 0<=t} of boolean;
+  Rout : {i,t | 1<=i<=N; 0<=t} of integer;
+  Tout : {i,t | 0<=i<=N; 0<=t} of boolean;
+let
+  -- instanciate one fifo, for all values of time
+  use {t | 0<=t} fifo[N] (Rin, Tin, busin, op1, op2) returns  (Rout, Tout) ;
+  -- define value of Rin 
+  Rin[i,t] = 
+      case
+        { | t=0} : 0[];
+        { | 1<=t} : Rout[i,t-1];
+      esac;
+  -- define value of Tin
+  Tin[i,t] = 
+      case
+        { | i<=N-1; t=0} : False[]; -- initial value
+        { | i=N; t=0} : True[];     -- initial value
+        { | 1<=t} : Tout[i,t-1];    
+      esac;
+  wordout[t] = Rout[N,t];
+  full[t] = Tout[0,t];
+  empty[t] = Tout[N,t];
+tel;

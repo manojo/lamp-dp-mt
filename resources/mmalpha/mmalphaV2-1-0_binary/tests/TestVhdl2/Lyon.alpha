@@ -1,0 +1,205 @@
+system fullAdder :{Tinitf | 0<=Tinitf}
+                 (AIn : {t | Tinitf<=t<=Tinitf+10} of boolean; 
+                  BIn : {t | Tinitf<=t<=Tinitf+10} of boolean; 
+                  DIn : {t | Tinitf<=t<=Tinitf+10} of boolean)
+       returns   (SOut : {t | Tinitf<=t<=Tinitf+10} of boolean; 
+                  DOut : {t | Tinitf<=t<=Tinitf+10} of boolean);
+let
+  SOut[t] = AIn[t] and not BIn[t] and not DIn[t] or 
+      not AIn[t] and BIn[t] and not DIn[t] or 
+      not AIn[t] and not BIn[t] and DIn[t] or AIn[t] and BIn[t] and DIn[t];
+  DOut[t] = AIn[t] and BIn[t] or AIn[t] and DIn[t] or BIn[t] and DIn[t];
+tel;
+
+system cellMultLyon1 :{Tinit1,Tinit2 | (0,Tinit2-9)<=Tinit1<=Tinit2}
+                     (YIn : {t | Tinit1<=t<=Tinit1+9} of boolean; 
+                      XIn : {t | Tinit2<=t<=Tinit2+10} of boolean; 
+                      RIn : {t | Tinit2<=t<=Tinit2+11} of boolean; 
+                      PsIn : {t | Tinit2+2<=t<=Tinit2+12} of boolean)
+       returns       (YOut : {t | Tinit1+1<=t<=Tinit1+10} of boolean; 
+                      XOut : {t | Tinit2+2<=t<=Tinit2+12} of boolean; 
+                      ROut : {t | Tinit2+2<=t<=Tinit2+13} of boolean; 
+                      PsOut : {t | Tinit2+4<=t<=Tinit2+14} of boolean);
+var
+  CarryBis : {t | Tinit2+1<=t<=Tinit2+11} of boolean;
+  YMux : {t | Tinit2+1<=t<=Tinit2+11} of boolean;
+  YReg : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  mult : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  FA : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  Carry : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  RLoc : {t | Tinit2+1<=t<=Tinit2+12} of boolean;
+  CReg : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  PsMux : {t | Tinit2+3<=t<=Tinit2+13} of boolean;
+  YOutLoc : {t | Tinit1+1<=t<=Tinit1+10} of boolean;
+  YOutCopie : {t | Tinit1+1<=t<=Tinit1+10} of boolean;
+  PsOutCopie : {t | Tinit2+4<=t<=Tinit2+14} of boolean;
+  XOutCopie : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  ROutCopie : {t | Tinit2+2<=t<=Tinit2+13} of boolean;
+  TRLoc : {t | Tinit2+1<=t<=Tinit2+12} of boolean;
+let
+  RLoc[t] = RIn[t-1];
+  YOutLoc[t] = YOutCopie[t];
+  TRLoc[t] = not RLoc[t];
+  YMux[t] = if (TRLoc[t]) then 
+          case
+            { | t=Tinit2+1} : YOutLoc[t];
+            { | Tinit2+2<=t<=Tinit2+11} : False[];
+          esac else 
+      case
+        { | t=Tinit2+1} : False[];
+        { | Tinit2+2<=t<=Tinit2+11} : YReg[t];
+      esac;
+  YReg[t] = YMux[t-1];
+  mult[t] = YReg[t] and XOutCopie[t];
+  CarryBis[t] = if (TRLoc[t]) then 
+          case
+            { | t=Tinit2+1} : RLoc[t];
+            { | Tinit2+2<=t<=Tinit2+11} : False[];
+          esac else 
+      case
+        { | t=Tinit2+1} : False[];
+        { | Tinit2+2<=t<=Tinit2+11} : Carry[t];
+      esac;
+  CReg[t] = CarryBis[t-1];
+  use  fullAdder[Tinit2+2] (mult, PsIn, CReg) returns  (FA, Carry) ;
+  PsMux[t] = if (ROutCopie[t]) then 
+          case
+            { | Tinit2+3<=t<=Tinit2+12} : FA[t];
+            { | t=Tinit2+13} : False[];
+          esac else 
+      case
+        { | Tinit2+3<=t<=Tinit2+12} : False[];
+        { | t=Tinit2+13} : PsOutCopie[t];
+      esac;
+  YOutCopie[t] = YIn[t-1];
+  PsOutCopie[t] = PsMux[t-1];
+  XOutCopie[t] = XIn[t-2];
+  ROutCopie[t] = RLoc[t-1];
+  XOut[t] = XOutCopie[t];
+  YOut[t] = YOutCopie[t];
+  ROut[t] = ROutCopie[t];
+  PsOut[t] = PsOutCopie[t];
+tel;
+
+system cellMultLyon2 :{Tinit1,Tinit2 | (0,Tinit2-9)<=Tinit1<=Tinit2}
+                     (YIn : {t | Tinit1<=t<=Tinit1+9} of boolean; 
+                      XIn : {t | Tinit2<=t<=Tinit2+10} of boolean; 
+                      RIn : {t | Tinit2<=t<=Tinit2+11} of boolean; 
+                      PsIn : {t | Tinit2+2<=t<=Tinit2+12} of boolean)
+       returns       (YOut : {t | Tinit1+1<=t<=Tinit1+10} of boolean; 
+                      XOut : {t | Tinit2+2<=t<=Tinit2+12} of boolean; 
+                      ROut : {t | Tinit2+2<=t<=Tinit2+13} of boolean; 
+                      PsOut : {t | Tinit2+3<=t<=Tinit2+12} of boolean);
+var
+  YMux : {t | Tinit2+1<=t<=Tinit2+11} of boolean;
+  CarryBis : {t | Tinit2+1<=t<=Tinit2+11} of boolean;
+  RLoc : {t | Tinit2+1<=t<=Tinit2+12} of boolean;
+  YReg : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  mult : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  CReg : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  PsInNot : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  Carry : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  FA : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  YOutLoc : {t | Tinit1+1<=t<=Tinit1+10} of boolean;
+  YOutCopie : {t | Tinit1+1<=t<=Tinit1+10} of boolean;
+  XOutCopie : {t | Tinit2+2<=t<=Tinit2+12} of boolean;
+  TRLoc : {t | Tinit2+1<=t<=Tinit2+12} of boolean;
+let
+  PsInNot[t] = not PsIn[t];
+  RLoc[t] = RIn[t-1];
+  YOutLoc[t] = YOutCopie[t];
+  TRLoc[t] = not RLoc[t];
+  YMux[t] = if (TRLoc[t]) then 
+          case
+            { | t=Tinit2+1} : YOutLoc[t];
+            { | Tinit2+2<=t<=Tinit2+11} : False[];
+          esac else 
+      case
+        { | t=Tinit2+1} : False[];
+        { | Tinit2+2<=t<=Tinit2+11} : YReg[t];
+      esac;
+  YReg[t] = YMux[t-1];
+  mult[t] = YReg[t] and XOutCopie[t];
+  CarryBis[t] = if (TRLoc[t]) then 
+          case
+            { | t=Tinit2+1} : RLoc[t];
+            { | Tinit2+2<=t<=Tinit2+11} : False[];
+          esac else 
+      case
+        { | t=Tinit2+1} : False[];
+        { | Tinit2+2<=t<=Tinit2+11} : Carry[t];
+      esac;
+  CReg[t] = CarryBis[t-1];
+  use  fullAdder[Tinit2+2] (mult, PsInNot, CReg) returns  (FA, Carry) ;
+  YOutCopie[t] = YIn[t-1];
+  XOutCopie[t] = XIn[t-2];
+  XOut[t] = XOutCopie[t];
+  YOut[t] = YOutCopie[t];
+  ROut[t] = RLoc[t-1];
+  PsOut[t] = not FA[t];
+tel;
+
+system controlMultLyon ( )
+       returns         (RInit : {t | 0<=t<=11} of boolean);
+let
+  RInit[t] = 
+      case
+        { | t=0} : False[];
+        { | 1<=t<=10} : True[];
+        { | t=11} : False[];
+      esac;
+tel;
+
+system moduleMultLyon (Y : {t,p | 0<=t<=9; p=1} of boolean; 
+                       X : {t,p | 0<=t<=10; p=1} of boolean)
+       returns        (P : {t,p | 21<=t<=30; p=10} of boolean);
+var
+  YIn1 : {t,p | p-1<=t<=p+8; 1<=p<=9} of boolean;
+  YOut1 : {t,p | p<=t<=p+9; 1<=p<=9} of boolean;
+  YIn2 : {t,p | 9<=t<=18; p=10} of boolean;
+  YOut2 : {t,p | 10<=t<=19; p=10} of boolean;
+  RInit : {t | 0<=t<=11} of boolean;
+  RIn1 : {t,p | 2p-2<=t<=2p+9; 1<=p<=9} of boolean;
+  ROut1 : {t,p | 2p<=t<=2p+11; 1<=p<=9} of boolean;
+  RIn2 : {t,p | 18<=t<=29; p=10} of boolean;
+  ROut2 : {t,p | 20<=t<=30; p=10} of boolean;
+  XIn1 : {t,p | 2p-2<=t<=2p+8; 1<=p<=9} of boolean;
+  XOut1 : {t,p | 2p<=t<=2p+10; 1<=p<=9} of boolean;
+  XIn2 : {t,p | 18<=t<=28; p=10} of boolean;
+  XOut2 : {t,p | 20<=t<=30; p=10} of boolean;
+  PsIn1 : {t,p | 2p<=t<=2p+10; 1<=p<=9} of boolean;
+  PsOut1 : {t,p | 2p+2<=t<=2p+12; 1<=p<=9} of boolean;
+  PsIn2 : {t,p | 20<=t<=30; p=10} of boolean;
+  PsOut2 : {t,p | 21<=t<=30; p=10} of boolean;
+let
+  use  controlMultLyon[] () returns  (RInit) ;
+  use {p | 1<=p<=9} cellMultLyon1[p-1,2p-2] (YIn1, XIn1, RIn1, PsIn1) 
+        returns  (YOut1, XOut1, ROut1, PsOut1) ;
+  use {p | p=10} cellMultLyon2[p-1,2p-2] (YIn2, XIn2, RIn2, PsIn2) 
+        returns  (YOut2, XOut2, ROut2, PsOut2) ;
+  RIn1[t,p] = 
+      case
+        { | p=1} : RInit[t];
+        { | 2<=p<=9} : ROut1[t,p-1];
+      esac;
+  RIn2[t,p] = ROut1[t,p-1];
+  XIn1[t,p] = 
+      case
+        { | p=1} : X[t,p];
+        { | 2<=p<=9} : XOut1[t,p-1];
+      esac;
+  YIn1[t,p] = 
+      case
+        { | p=1} : Y[t,p];
+        { | 2<=p<=9} : YOut1[t,p-1];
+      esac;
+  PsIn1[t,p] = 
+      case
+        { | p=1} : False[];
+        { | 2<=p<=9} : PsOut1[t,p-1];
+      esac;
+  XIn2[t,p] = XOut1[t,p-1];
+  YIn2[t,p] = YOut1[t,p-1];
+  PsIn2[t,p] = PsOut1[t,p-1];
+  P[t,p] = PsOut2[t,p];
+tel;

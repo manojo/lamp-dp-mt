@@ -1,0 +1,26 @@
+system prodVect :{N | 2<=N}
+                (a : {i,j| 1<=i<=N; 1<=j<=N} of integer; 
+                 b : {i,j| 1<=i<=N; 1<=j<=N} of integer)
+       returns  (c : {i,j| 1<=i<=N; 1<=j<=N} of integer);
+var
+  B : {i,j,k | 1<=i<=N; 1<=j,k<=N} of integer;
+  A : {i,j,k | 1<=i<=N; 1<=j,k<=N} of integer;
+  C : {i,j,k | 1<=i,j<=N; 0<=k<=N} of integer;
+let
+  B[i,j,k] = 
+      case
+        {| i=1 } : b[k,j];
+        {| 2<=i<=N} : B[i-1,j,k];
+      esac;
+  A[i,j,k] = 
+      case
+        {| j=1 } : a[i,k];
+        {| 2<=j<=N} : A[i,j-1,k];
+      esac;
+  C[i,j,k] = 
+      case
+        {| k=0} : 0[];
+        {| 1<=k} : C[i,j,k-1] + A[i,j,k] * B[i,j,k];
+      esac;
+  c[i,j] = C[i,j,N];
+tel;

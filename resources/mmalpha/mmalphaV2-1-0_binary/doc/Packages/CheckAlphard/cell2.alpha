@@ -1,0 +1,13 @@
+system cell2 : {p | 2<=p<=10}
+               (c : {t | 1<=t} of boolean; 
+                B : {t | 1<=t} of integer)
+       returns (D : {t | 1<=t} of integer);
+var
+  Cloc : {t | 1<=t} of integer;
+let
+  Cloc[t] = 
+      case
+        { | t=p} : if (c[t]) then 0[] else 0[];
+        { | p+1<=t} : if (c[t]) then 0[] else B[t] * B[t-1];
+      esac;
+tel;

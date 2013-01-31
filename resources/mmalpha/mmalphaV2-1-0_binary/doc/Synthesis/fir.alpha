@@ -1,0 +1,14 @@
+system fir :   {K,M | 3<=K<=M-1}
+               (x : {i | 0<=i<=M} of integer; 
+                w : {k | 1<=k<=K} of integer)
+       returns (y : {i | K<=i<=M} of integer);
+var 
+  Y: {i,k | K<=i<=M; 0<=k<=K} of integer;
+let
+  Y[i,k] = 
+    case
+      {| k = 0 }: 0[];
+      {| k > 0 }: Y[i,k-1] + w[k]*x[i-k];
+    esac;
+  y[i] = Y[i,K];
+tel;

@@ -1,0 +1,33 @@
+system 	Acs  :	-- N : nombre d'états de l'automate d'états finis
+		-- divisé par deux. 2N=64.
+		-- T : taille (en temps) de la fenètre de calcul. T=7.
+		{N,T| 1<=N ; 1<=T}
+		(-- pm_av : "path metric" avant calcul
+		 pm_av : {j|0<=j<=2N-1} of integer ;
+		 bm1, bm2, bm3, bm4 : {i|0<=i<=T-1} of integer)
+	returns (-- pm_ap : "path metric" après calcul
+		 pm_ap :{j|0<=j<=2N-1} of integer );
+var	-- Aux : variable auxiliaire permettant d'avoir le polyhèdre à trous
+ 	Aux: {i,j,k|1<=i<=T;0<=j<=2N-1;0<=k<=N-1}  of integer;
+	-- pm : valeur des pm, tenant compte du temps.
+	pm: {i,j|0<=i<=T; 0<=j<=2N-1} of integer ;
+let
+  Aux[i,j,k]= 
+    case
+	{|2k=j}: min ((pm[i-1,k]+bm1[i-1]),(pm[i-1,k+N]+bm3[i-1]));
+	{|2k+1=j}: min ((pm[i-1,k]+bm2[i-1]),(pm[i-1,k+N]+bm4[i-1]));
+	{|2k+1<j}: 0[];
+	{|2k>j}: 0[];
+    esac;
+  pm[i,j] = 
+    case
+	{|i=0}: pm_av[j];
+	{|i>0}: reduce (+, (i,j,k->i,j), Aux.(i,j,k->i,j,k));
+    esac;
+  pm_ap[j]=pm[T,j];
+tel;
+
+-- In[57]:= serializeReduce[getOccurs[_reduce][[1]],"p.(i,j,k->i,j,k-1)"]; 
+-- In[58]:= writeC["acs.c","-p 4 3"];
+-- In[59]:= !cc -o acs acs.c
+-- In[59]:= !./acs

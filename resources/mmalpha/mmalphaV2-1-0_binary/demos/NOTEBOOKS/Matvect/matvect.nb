@@ -1,0 +1,619 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 6.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[     17460,        610]
+NotebookOptionsPosition[     13463,        480]
+NotebookOutlinePosition[     14094,        507]
+CellTagsIndexPosition[     14022,        502]
+WindowFrame->Normal
+ContainsDynamic->False*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Matrix-vector product", "Title",
+ FontColor->RGBColor[1, 0, 0],
+ CellTags->"firstcell"],
+
+Cell["The Alpha Team", "Subsubtitle"],
+
+Cell["\<\
+January 1998, Revised March 11 2004, May 30, 2006 and July 2008\
+\>", "Text"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+alpha@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+ Execute this cell, to go in the matrix-vector demo directory. \
+\>", "Subsubsection",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"setMMADir", "[", 
+   RowBox[{"{", 
+    RowBox[{
+    "\"\<demos\>\"", ",", "\"\<NOTEBOOKS\>\"", ",", "\"\<Matvect\>\""}], 
+    "}"}], "]"}], ";"}]], "Input",
+ InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["All at once", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["Load the program and see it.", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<MV1.alpha\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell["\<\
+Old method... Type directly the list of commands that allow the program to be \
+synthesized.\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{"Timing", "[", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"load", "[", "\"\<MV1.alpha\>\"", "]"}], ";", 
+   "\[IndentingNewLine]", 
+   RowBox[{"schedule", "[", 
+    RowBox[{
+     RowBox[{"scheduleType", "->", "sameLinearPart"}], ",", 
+     RowBox[{"addConstraints", "\[Rule]", 
+      RowBox[{"{", "\"\<TCD1==1\>\"", "}"}]}]}], "]"}], ";", 
+   "\[IndentingNewLine]", 
+   RowBox[{"appSched", "[", "]"}], ";", "\[IndentingNewLine]", 
+   RowBox[{"pipeVars", "[", "]"}], ";", "\[IndentingNewLine]", 
+   RowBox[{"ashow", "[", "]"}], ";", 
+   RowBox[{"asave", "[", "\"\<temp.alpha\>\"", "]"}], ";", 
+   "\[IndentingNewLine]", 
+   RowBox[{"toAlpha0v2", "[", 
+    RowBox[{"verbose", "\[Rule]", "True"}], "]"}], ";", "\n", 
+   RowBox[{"simplifySystem", "[", 
+    RowBox[{"alphaFormat", "->", "Alpha0"}], "]"}], ";", "\n", 
+   RowBox[{"alpha0ToAlphard", "[", 
+    RowBox[{"debug", "\[Rule]", "False"}], "]"}], ";", "\n", 
+   RowBox[{"fixParameter", "[", 
+    RowBox[{"\"\<N\>\"", ",", "10"}], "]"}], ";", "\n", 
+   RowBox[{"a2v", "[", 
+    RowBox[{"stdLogic", "\[Rule]", "True"}], "]"}]}], "\[IndentingNewLine]", 
+  "]"}]], "Input"],
+
+Cell["\<\
+New method... Just use the syn command. Add values for the parameters, \
+otherwise, no Vhdl is generated.\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"syn", "[", 
+   RowBox[{"\"\<MV1.alpha\>\"", ",", 
+    RowBox[{"parameterRules", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"\"\<N\>\"", "->", "5"}], "}"}]}], ",", 
+    RowBox[{"verbose", "\[Rule]", "True"}]}], 
+   RowBox[{"(*", 
+    RowBox[{",", 
+     RowBox[{"pipeInputOutputs", "\[Rule]", "True"}]}], "*)"}], "]"}], 
+  ";"}]], "Input",
+ CellChangeTimes->{{3.4333798144620857`*^9, 3.433379827539995*^9}, {
+  3.4394771848424063`*^9, 3.4394771907443247`*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Loading the initial program", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<MV1.alpha\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell["\<\
+Analysis can be done all along the process, as transformations that we apply \
+may alter the analysis.\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["C code generation", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{"schedule", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"cGen", "[", 
+   RowBox[{"\"\<matvec.c\>\"", ",", 
+    RowBox[{"{", 
+     RowBox[{"\"\<N\>\"", "\[Rule]", "2"}], "}"}]}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"Directory", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.439536106020637*^9, 3.439536108415563*^9}}],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.439536112125358*^9, 3.439536115104752*^9}}],
+
+Cell[BoxData[
+ RowBox[{"FilePrint", "[", "\"\<matvec.c\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.439536087963323*^9, 3.4395361202612257`*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Scheduling", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+We have a uniform program we will search a schedule with the same linear part \
+ for all the variables of the program\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"schedule", "[", 
+   RowBox[{
+    RowBox[{"scheduleType", "->", "sameLinearPart"}], ",", 
+    RowBox[{"addConstraints", "\[Rule]", 
+     RowBox[{"{", "\"\<TCD1==1\>\"", "}"}]}]}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"scd", "[", 
+  RowBox[{
+   RowBox[{"scheduleType", "\[Rule]", "sameLinearPart"}], ",", 
+   RowBox[{"addConstraints", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"TD1", "\[Equal]", "1"}], "}"}]}]}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"showSchedResult", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Change of basis (mapping)", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+We apply the corresponding change of basis, notice that dependencies between \
+local variables are now lexicographically positive\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"appSched", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<matvectPlaced.alpha\>\"", "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Pipelining", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<matvectPlaced.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"pipeVars", "[", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.439477285827335*^9, 3.439477293723688*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<matvectPiped.alpha\>\"", "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Downto Alpha0", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+ "Alpha0 is a subset of Alpha which describes hardware in a non-structured \
+manner, Here we present the automatic derivation of Alpha0 from the scheduled \
+program. The function ",
+ StyleBox["toAlpha0v2",
+  FontFamily->"Courier"],
+ " performs the following treatments generation of control signals, pipeline \
+of control signals, decomposition in simple expressions. "
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<matvectPiped.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"toAlpha0v2", "[", 
+   RowBox[{
+    RowBox[{"verbose", "\[Rule]", "True"}], ",", 
+    RowBox[{"debug", "\[Rule]", "False"}]}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"simplifySystem", "[", 
+   RowBox[{"alphaFormat", "->", "Alpha0"}], "]"}], ";"}]}], "Input",
+ CellChangeTimes->{{3.439477354050688*^9, 3.439477354967185*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<matvect0.alpha\>\"", "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Translation in AlpHard", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+ "the translation to Alphard allow us to obtain a structured version of the \
+architectural description with the function ",
+ StyleBox["alpha0ToAlphard[]",
+  FontFamily->"Courier"],
+ ". Structuring is automatically detected by domain analysis (identifying  \
+processors with similar behaviour), then the Alpha0 program is structured \n\
+in an interface and a module which contains cells and a controler. "
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<matvect0.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.439365979013605*^9, 3.43936598083115*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"alpha0ToAlphard", "[", 
+   RowBox[{"mute", "\[Rule]", "True"}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.439366034768188*^9, 3.439366035354065*^9}, {
+   3.439366359983512*^9, 3.439366360960539*^9}, {3.4393738019357967`*^9, 
+   3.439373802460808*^9}, {3.439374029048155*^9, 3.439374029887882*^9}, {
+   3.439381599737413*^9, 3.43938160395012*^9}, {3.439391392124782*^9, 
+   3.439391392680653*^9}, {3.439391785056817*^9, 3.439391787984441*^9}, {
+   3.439391835568507*^9, 3.439391838701605*^9}, {3.439397308825622*^9, 
+   3.4393973134381657`*^9}, {3.439397524170021*^9, 3.439397524847703*^9}, 
+   3.439477417113913*^9}],
+
+Cell[BoxData[
+ RowBox[{"systemNames", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.43939087122927*^9, 3.439390874034058*^9}}],
+
+Cell["The new program in $result is", "Text"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell["Mail calling system", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getSystem", "[", "\"\<prodVectModule\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell["The first cell is special, the N-1 other are identical", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getSystem", "[", "\"\<cellprodVectModule1\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getSystem", "[", "\"\<prodVect\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getSystem", "[", "\"\<ControlprodVectModule\>\"", "]"}], 
+  ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getSystem", "[", "\"\<cellprodVectModule1\>\"", "]"}], 
+  ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getSystem", "[", "\"\<prodVect\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asaveLib", "[", "\"\<matvectHard.alpha\>\"", "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Generation of VHDL", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+For the generation of VHDL, we need to affect the parameters to given values. \
+\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<matvectHard.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell["Fix N parameter", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<N\>\"", ",", "10"}], "]"}], ";"}]], "Input"],
+
+Cell["Save", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asaveLib", "[", "\"\<prodVectHard10.alpha\>\"", "]"}], 
+  ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<prodVectHard10.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell["Generate Vhdl.", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"a2v", "[", 
+   RowBox[{"stdLogic", "\[Rule]", "True"}], "]"}], ";"}]], "Input"],
+
+Cell["To see the resulting VHDL code: ", "Text"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"showVhdl", "[", "\"\<cellprodVectModule2\>\"", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Cleaning the Directory", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["Used for CVS purpose: delete all temporary files", "Text"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"CopyFile", "[", 
+    RowBox[{"\"\<MV1.alpha\>\"", ",", "\"\<temporaireMV\>\""}], "]"}], ";"}], 
+  "\n", 
+  RowBox[{"(*", "  ", 
+   RowBox[{
+   "if", " ", "ModelSim", " ", "was", " ", "used", " ", "\[IndentingNewLine]",
+     
+    RowBox[{
+     RowBox[{"DeleteDirectory", "[", 
+      RowBox[{"\"\<work\>\"", ",", 
+       RowBox[{"DeleteContents", "\[Rule]", "True"}]}], "]"}], ";"}]}], " ", 
+   "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"DeleteDirectory", "[", 
+   RowBox[{"\"\<prodVectSYN\>\"", ",", " ", 
+    RowBox[{"DeleteContents", "\[Rule]", "True"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<*.alpha\>\"", "]"}], "]"}], "\n", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<*.vhd\>\"", "]"}], "]"}], "\n", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<*.c\>\"", "]"}], "]"}], "\n", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<*.txt\>\"", "]"}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<MVModule*\>\"", "]"}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<MV1_stim*\>\"", "]"}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<*.component\>\"", "]"}], "]"}], "\n", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<*.report\>\"", "]"}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"CopyFile", "[", 
+   RowBox[{"\"\<temporaireMV\>\"", ",", "\"\<MV1.alpha\>\""}], "]"}], 
+  ";"}], "\n", 
+ RowBox[{"DeleteFile", "[", "\"\<temporaireMV\>\"", "]"}]}], "Input",
+ CellChangeTimes->{{3.433379948804265*^9, 3.4333799556947317`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"]
+}, Open  ]]
+}, Open  ]]
+},
+AutoGeneratedPackage->Automatic,
+WindowToolbars->"EditBar",
+WindowSize->{722, 794},
+WindowMargins->{{16, Automatic}, {0, Automatic}},
+DockedCells->FEPrivate`FrontEndResource[
+ "FEExpressions", "CompatibilityToolbar"],
+ShowSelection->True,
+Magnification->1.5,
+FrontEndVersion->"6.0 for Mac OS X x86 (32-bit) (June 19, 2007)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{
+ "firstcell"->{
+  Cell[590, 23, 93, 2, 114, "Title",
+   CellTags->"firstcell"]}
+ }
+*)
+(*CellTagsIndex
+CellTagsIndex->{
+ {"firstcell", 13934, 496}
+ }
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[590, 23, 93, 2, 114, "Title",
+ CellTags->"firstcell"],
+Cell[686, 27, 37, 0, 39, "Subsubtitle"],
+Cell[726, 29, 87, 2, 39, "Text"],
+Cell[816, 33, 97, 3, 49, "SmallText"],
+Cell[CellGroupData[{
+Cell[938, 40, 127, 3, 37, "Subsubsection"],
+Cell[1068, 45, 218, 7, 40, "Input",
+ InitializationCell->True]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[1323, 57, 61, 1, 100, "Section"],
+Cell[1387, 60, 44, 0, 39, "Text"],
+Cell[1434, 62, 123, 3, 40, "Input"],
+Cell[1560, 67, 116, 3, 62, "Text"],
+Cell[1679, 72, 1147, 26, 317, "Input"],
+Cell[2829, 100, 129, 3, 62, "Text"],
+Cell[2961, 105, 495, 13, 64, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3493, 123, 77, 1, 100, "Section"],
+Cell[3573, 126, 123, 3, 40, "Input"],
+Cell[3699, 131, 126, 3, 62, "Text"],
+Cell[3828, 136, 55, 1, 40, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[3920, 142, 67, 1, 53, "Section"],
+Cell[3990, 145, 56, 1, 40, "Input"],
+Cell[4049, 148, 179, 5, 40, "Input"],
+Cell[4231, 155, 123, 2, 40, "Input"],
+Cell[4357, 159, 123, 2, 40, "Input"],
+Cell[4483, 163, 145, 2, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4665, 170, 60, 1, 100, "Section"],
+Cell[4728, 173, 141, 3, 62, "Text"],
+Cell[4872, 178, 237, 6, 64, "Input"],
+Cell[5112, 186, 236, 6, 64, "Input"],
+Cell[5351, 194, 63, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5451, 200, 75, 1, 100, "Section"],
+Cell[5529, 203, 153, 3, 62, "Text"],
+Cell[5685, 208, 111, 3, 40, "Input"],
+Cell[5799, 213, 102, 2, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5938, 220, 60, 1, 100, "Section"],
+Cell[6001, 223, 101, 2, 40, "Input"],
+Cell[6105, 227, 140, 3, 40, "Input"],
+Cell[6248, 232, 101, 2, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6386, 239, 63, 1, 100, "Section"],
+Cell[6452, 242, 442, 10, 129, "Text"],
+Cell[6897, 254, 100, 2, 40, "Input"],
+Cell[7000, 258, 53, 1, 40, "Input"],
+Cell[7056, 261, 361, 9, 64, "Input"],
+Cell[7420, 272, 53, 1, 40, "Input"],
+Cell[7476, 275, 97, 2, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[7610, 282, 72, 1, 100, "Section"],
+Cell[7685, 285, 478, 10, 129, "Text"],
+Cell[8166, 297, 96, 2, 40, "Input"],
+Cell[8265, 301, 118, 2, 40, "Input"],
+Cell[8386, 305, 655, 11, 40, "Input"],
+Cell[9044, 318, 124, 2, 40, "Input"],
+Cell[9171, 322, 45, 0, 39, "Text"],
+Cell[9219, 324, 53, 1, 40, "Input"],
+Cell[9275, 327, 35, 0, 39, "Text"],
+Cell[9313, 329, 133, 3, 40, "Input"],
+Cell[9449, 334, 70, 0, 39, "Text"],
+Cell[9522, 336, 138, 3, 40, "Input"],
+Cell[9663, 341, 95, 2, 40, "Input"],
+Cell[9761, 345, 111, 3, 40, "Input"],
+Cell[9875, 350, 53, 1, 40, "Input"],
+Cell[9931, 353, 109, 3, 40, "Input"],
+Cell[10043, 358, 53, 1, 40, "Input"],
+Cell[10099, 361, 95, 2, 40, "Input"],
+Cell[10197, 365, 103, 2, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[10337, 372, 68, 1, 100, "Section"],
+Cell[10408, 375, 104, 3, 39, "Text"],
+Cell[10515, 380, 99, 2, 40, "Input"],
+Cell[10617, 384, 31, 0, 39, "Text"],
+Cell[10651, 386, 116, 3, 40, "Input"],
+Cell[10770, 391, 20, 0, 39, "Text"],
+Cell[10793, 393, 109, 3, 40, "Input"],
+Cell[10905, 398, 102, 2, 40, "Input"],
+Cell[11010, 402, 30, 0, 39, "Text"],
+Cell[11043, 404, 114, 3, 40, "Input"],
+Cell[11160, 409, 48, 0, 39, "Text"],
+Cell[11211, 411, 57, 1, 40, "Input"],
+Cell[11271, 414, 87, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[11395, 420, 72, 1, 100, "Section"],
+Cell[11470, 423, 64, 0, 39, "Text"],
+Cell[11537, 425, 57, 1, 40, "Input"],
+Cell[11597, 428, 1778, 45, 364, "Input"],
+Cell[13378, 475, 57, 1, 40, "Input"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

@@ -1,0 +1,16 @@
+system Zpol2 :{N,M | 2<=N<=M-1}
+               (x : {i | 0<=i<=N} of integer)
+       returns (res : {i | 0<=i<=N} of integer);
+var
+XX : {i,2j | 0<=i<=N; 0<=j<=N} of integer;
+YY : {i,3j | 0<=i<=N; 0<=j<=N} of integer;
+ZZ : {i,j | 0<=i<=N; 0<=j<=N} of integer;
+let
+ZZ=XX.(i,j->i,2j);
+XX= case
+	{i,4j| 0<=i<=N }: x.(i,j->i);
+	{i,4j+2| 0<=i<=N }: YY.(i,j->i,3j/2);   
+	esac;
+YY= {i,3j | 0<=i<=N; 0<=j<=N} : XX.(i,j->i,2j/3)+ZZ.(i,j->i,j/3);
+res[i] = XX[i,2i];
+tel;

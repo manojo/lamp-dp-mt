@@ -1,0 +1,13 @@
+system testSchedule2 :{N | 1<N}
+                     (x : {i | 1<=i<=N} of integer)
+       returns       (y : {i | 1<=i<=N} of integer);
+var
+  B : {i | 1<=i<=N} of integer;
+let
+  B[i] = 
+  case
+    {|i=1}: x[i];
+    {|i>1}: x[i] + y[i-1];
+  esac;
+  y = B;  
+tel;

@@ -1,0 +1,5 @@
+system exemple (x : {i,j | 1<=i<=10; 1<=j<=10} of integer)
+       returns (z :  integer);
+let
+  z[] = ({i,j | 1<=i<=10; 1<=j<=10} : ({i,j | 1<=i<=10; 1<=j<=10} : {i,j | 1<=i<=10; 1<=j<=10} : x).(i,j->i,j))[10,10];
+tel;

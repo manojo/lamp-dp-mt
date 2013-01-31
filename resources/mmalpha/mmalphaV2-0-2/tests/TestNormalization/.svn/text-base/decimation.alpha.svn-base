@@ -1,0 +1,19 @@
+system decimation : {N | N>1 }
+	( x : { i | i>=0 } of real;
+	  w : { i | N>i>=0 } of real)
+returns ( y : { i | i>=0 } of real);
+var
+X : { i,j | 0<=i+3j; 0<=j<=N-1 } of real;
+Y : { 3i,j | 0<=i+j; 0<=j<=N-1 } of real;
+let
+	X = case
+		{ i,j | -2N+2>i>=-3N+3 ; j=N-1 } : 0.(i,j->);
+		{ i,j | i>=-2N+2 ; j=N-1 } : x.(i,j->i+2N-2);
+		{ i,j | i+3j>=0 ; 0<=j<N-1 } : X.(i,j->i-2,j+1);
+	    esac;
+	Y = (case
+		{ i,j |j = N-1} : w.(i,j->j)*X.(i,j->3i,j);
+		{ i,j |j < N-1} : Y.(i,j->3i,j).(i,j->i-1,j+1) + w.(i,j->j)*X.(i,j->3i,j);
+	     esac).(i,j->i/3,j);
+	y = Y.(i,j->3i,j).(i->i,N-1);
+tel

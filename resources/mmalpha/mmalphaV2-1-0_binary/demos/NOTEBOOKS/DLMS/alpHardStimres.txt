@@ -1,0 +1,8 @@
+0	-- Time: 2, read : res[3] 
+0	-- Time: 3, read : res[4] 
+0	-- Time: 4, read : res[5] 
+-22500	-- Time: 5, read : res[6] 
+-15000	-- Time: 6, read : res[7] 
+10000	-- Time: 7, read : res[8] 
+27500	-- Time: 8, read : res[9] 
+-5332500	-- Time: 9, read : res[10] 

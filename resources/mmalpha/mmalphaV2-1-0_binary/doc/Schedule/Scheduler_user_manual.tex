@@ -1,0 +1,582 @@
+\documentclass[11pt,fullpage]{article}
+
+\usepackage{makeidx}
+\newcommand{\aalpha}{{\sc Alpha}}
+\newcommand{\ammalpha}{{\sc MmAlpha}}
+\newcommand{\err}{\top}
+\newcommand{\indef}{\bot}
+\newcommand{\mma}{{\sc Mathematica}}
+\makeindex
+
+\title{User manual of  the Alpha {\bf Scheduler}\\
+Version of \today{}}
+\author{Tanguy Risset and Patrice Quinton}
+\date{\today}
+
+\begin{document}
+%\bibliographystyle{plain}
+
+\maketitle
+\tableofcontents
+\newpage
+This documentation\footnote{It improves and replaces the previous 
+scheduler manual that was  called \texttt{docSched.tex}. Unfortunately, this documentation 
+in far from being complete.} provides some information regarding the {\aalpha} 
+schedulers. It is available in the file:\\
+{\tt \$MMALPHA/doc/Schedule/Scheduler\_user\_manual.pdf}
+
+Section~\ref{Introduction} describes the principles of the Farkas and
+the vertex schedulers. Section~\ref{sec2} presents the main utilization modes
+of the \texttt{schedule} function, 
+while section~\ref{sec3} describes the options of this function. 
+In section~\ref{Result}, the output format of 
+the scheduler is detailed. 
+Section~\ref{settings} describes briefly the \texttt{Schedule.m}
+package. A short example is shown in section~\ref{Examples}. 
+Troubles are described in section~\ref{troubles}.
+
+\section{Introduction}
+\label{Introduction}
+The scheduler is a package of {\ammalpha} that attempts 
+to find a schedule for a given {\aalpha} program. An {\aalpha} 
+program~\cite{Wilde93,Mauras89} has no sequential ordering: 
+any sequential or parallel ordering of the computations is semantically 
+valid provided it respects the data dependencies of the program.
+
+
+Scheduling an {\aalpha} program
+consists in giving a computation date for each variable of the
+program. The time is considered as a discrete
+single clock. The basic goal of the scheduler is to find a valid execution order
+that is {\em good} with respect to a particular criterion. The
+theoretical basis for the scheduling process is inherited from 
+research on
+systolic array synthesis and on automatic
+parallelization. Currently two techniques are implemented for
+the computation of a scheduling function, we will call them the {\em
+Farkas method}~\cite{Feautrier92aa} (method used by default), and the
+{\em vertex method}~\cite{MQRS90}. 
+
+
+
+In order to compute a schedule, the scheduler gathers all the constraints that
+the schedule must meet and builds a linear program (LP) which is then
+solved with a particular software.  
+The two implemented methods
+proceed differently but both give a {\em
+mono-dimensional affine by variable} schedule. They can also provide
+a {\em multi-dimensional affine by variable} schedule by changing the
+options of the schedule (see section~\ref{sec2}).
+
+A mono-dimensional affine by variable schedule assigns to each \aalpha{} equation of
+the form
+{\tt
+A[i,j] = \ldots }, an execution date $T_A(i,j)$  which 
+is given by an affine function of the indices
+($i,j$) and of the system parameters ($N$):
+$$T_{A}(i,j) = \tau^i_{A}
+i + \tau^j_{A} j+ \tau^N_{A} N + \alpha_{A} \quad .$$ 
+The vector $(\tau^i_{A} ,
+\tau^j_{A},\tau^N_{A})$ is called the {\em scheduling vector}.  For
+instance: $T_A(i,j) = 2i + j +3$ is a mono-dimensional affine schedule
+for variable $A$; Its corresponding scheduling vector is $(2,1)$.
+
+One important subset of mono-dimensional affine schedules are {\em  affine with
+constant linear part} schedules, where the value of the scheduling vector
+is  the same for each local variable of the program;
+In this case, all variables must have
+the same number of indices.
+
+Multidimensional schedules are used for programs that do not admit
+a linear execution time (for instance, if the execution time is
+$N^2$). In this case, the schedule function is a vector of linear
+functions and the order that is defined by the schedule 
+is the lexicographic order on the components
+(see~\cite{Feautrier92bb} for details).
+
+
+\section{The \ammalpha{} \texttt{schedule} function }
+\label{sec2} 
+The  function to be called  in order to schedule a program is
+ {\tt schedule[]}. Its effects is to schedule the {\aalpha} program contained in 
+ the 
+ {\tt \$result} \ammalpha{} variable,  and to put the result in 
+ the global variable {\tt \$schedule} (see section~\ref{sec5} for the structure of the
+resulting schedule). Options allow several parameters to be changed (see section~\ref{sec3}).
+
+The possible forms of the use of the function {\tt schedule} are:
+\begin{itemize}
+\item {\tt schedule[]}: finds an affine by variable schedule for {\tt
+\$result} which minimizes the global execution time of the system and assigns this schedule to
+{\tt \$schedule}.
+\item {\tt schedule[sys]}:
+finds an affine by variable schedule for the {\aalpha} system {\tt sys}; the schedule minimizes 
+the global execution time. The resulting schedule is assigned to
+{\tt \$schedule}
+\item {\tt
+schedule[option\_1->value\_1,\ldots,option\_n->value\_n]}:
+finds a schedule for {\tt \$result} which respects the chosen options and
+assign it to {\tt \$schedule}
+\item {\tt
+schedule[sys,option\_1->value\_1,\ldots,option\_n->value\_n]}\\
+find a schedule for the {\aalpha} system {\tt sys} which respects the chosen options and
+assigns it to {\tt \$schedule}.
+\end{itemize}
+
+\section{Options of the \texttt{schedule} function}
+\label{sec3}
+Options have default values indicated hereafter. To change these
+values, put one of the corresponding rules as a parameter to the {\tt
+schedule} function. 
+The Farkas method and the vertex method have
+completely different implementations, hence their options are sometimes
+different. Choosing between the Farkas method
+and the vertex method is done with the {\tt schedMethod} option. 
+\subsection{Main options}
+\subsubsection*{schedMethod }
+\label{schedMethod}
+This option\footnote{As of \today{}, this option does not work. To use the 
+vertex method, run the \texttt{scd[]} command.} allows one to switch from the Farkas method to the vertex
+method. Its type is symbolic. Changing the value of this option greatly
+influences the other options (for instance, it changes default values
+of some options: {\tt durationByEq},...), be sure to check the others
+options you use. The possible values are:
+\begin{itemize}
+\item {\tt schedMethod -> farkas} (default) selects the Farkas method.
+\item {\tt schedMethod -> vertex} selects the vertex method.   
+\end{itemize}
+One of the main differences between the two methods is that the Farkas
+method uses the \texttt{Pip} software to solve the LP while the vertex method
+uses the \mma{} linear solver.
+
+\subsubsection*{scheduleType}
+\label{schedType}\index{scheduleType}
+This option gives the type of schedule that \texttt{schedule} looks for.
+Its type is symbolic, and its possible values are:
+\begin{itemize}
+\item {\tt scheduleType -> affineByVar} (default): affine by variable schedule.
+\item {\tt scheduleType -> sameLinearPart}:   affine by variable scheduling with constant linear part. This option is often used for systolic designs. 
+\item {\tt scheduleType -> sameLinearPartExceptParam}:  affine by variable schedule with constant linear part except for the parameters.
+\end{itemize}
+The default option allows one to get any kind of affine schedule. Option \texttt{sameLinearPart}
+constraints the schedule to have all a common linear part. As a consequence, all variables
+must have the same dimension (not checked).
+
+\subsubsection*{multidimensional}
+\label{multiDimensional}\index{multidimensional}
+By default, the scheduler looks for a mono-dimensional schedule. If the
+\texttt{multidimensional} is set, the scheduler also looks for multi-dimensional 
+schedules. 
+This option is boolean, hence
+its possible values are:
+\begin{itemize}
+\item {\tt multidimensional -> False} (default): the schedule will be mono-dimensional.
+\item {\tt multiDimensional -> True}: the schedule will be
+multidimensional. If you set this options, be aware that it greatly
+influences the value of other options: {\tt addConstraints}, {\tt durations} 
+must be of type list of list (one list by schedule dimension, this means that you have to know the number of dimensions of the resulting schedule). Options {\tt optimizationTime} is automatically set to multi.
+\end{itemize}
+
+\subsubsection*{optimizationType}
+\label{optimizationType}\index{optimizationType}
+This option sets the objective function chosen. Its type is symbolic, and
+ its possible values are:
+\begin{itemize}
+\item {\tt optimizationType -> time} (default): the total latency is
+minimized (In the Farkas method, this minimization always correspond 
+to the lexicographic minimization of the coefficients of the global
+execution time which is an affine function of the parameters. In the
+vertex method the way this minimization is performed can be changed by
+the option {\tt objFunction}).
+\item {\tt optimizationType -> Null }: no objective function (the
+coefficients of the scheduling vectors are minimized in a
+lexicographic order)
+\item {\tt optimizationType -> delay}: tries to minimize the delays on
+the dependencies (not implemented currently).
+\item {\tt optimizationType -> multi} is for internal use, when a
+multidimensional scheduling is computed, just be aware that the three above values for this option are not compatible with 
+multi-dimensional scheduling.
+\end{itemize}
+
+%\subsubsection*{ratOrInt}
+%This option indicates whether the resolution of the LP by mppip is
+% done in integer mode (resulting scheudling vectors with integral
+% coefficients) or in rationnal mode (resulting scheduling vectors may contains
+% rationnal coefficients).  Its type is integer, the possible values
+% are:
+%\begin{itemize}
+%\item {\tt \{ratOrInt -> 0\} } : rationnal solution, in this case, the
+%scheduling function obtained by taking the floor of the scheduling
+%functions is valid (\cite{Feautrier92aa}).
+%\item {\tt \{ratOrInt ->  1\} } : (default) integer solution
+%\end{itemize}
+
+\subsubsection*{addConstraints}
+\label{addConstraints}\index{addConstraints}
+This option allows one to add some constraints to the generated LP.
+Adding constraints is very important if you want to control the
+resulting schedule.  The type of this option is a list of strings, each one of which
+represent a constraint. The type of constraints authorized are
+affine constraints on scheduling vectors.
+Constraints can have two forms: one can force the value of 
+a scheduling
+vector or one can force coefficients of schedule to meet some constraints:
+\begin{itemize}
+\item Forcing a  variable $A[i,j]$ to be scheduled at time $i+2j+2$ can be done 
+by the adding {\tt "TA[i,j]=i+2j+2"} to the constraints list.
+\item For more precise constraints,  one can directly access each component 
+of the schedule functions of each variable. For instance {\tt TAD2}
+represents coefficient $\tau_A^j$ of the schedule of $A$ and {\tt CA} represents
+the constant coefficient $\alpha_A$). With these names, one can add linear constraints 
+on these coefficients using operators {\tt ==} or {\tt >=}. For instance,\\
+{\tt \{"TAD1 == 1","TAD2 == 2", "CA >= 2" \} }\\is the same constraint
+as above except that the constant is allowed to be greater than two.
+\end{itemize}  
+These options can also be used during the search of a multi-dimensional schedule.
+In that case, its value is a list of lists of string, each
+list of strings corresponding to constraints imposed on a dimension of the schedule.
+Example of
+use for mono-dimensional scheduling:
+\begin{verbatim}
+schedule[addConstraints-> {"TA[i,j,N]=i+2j-2",
+    "T1D2==2","T1D1+2T1D3>=1"}]}
+\end{verbatim}
+
+\subsection*{durations}
+\label{durations}\index{durations}
+This option 
+allows the user to specify precisely the execution time for each equation
+or for each dependence. By default, each equation is assumed to need exactly
+one cycle to be evaluated. Sometimes, one want to be more precise, 
+especially when designing a circuit. For example, an equation of 
+the form \texttt{A = B} imposes that \texttt{A} be scheduled one cycle
+after \texttt{B}. 
+
+The type of this option is a
+list of integers. It may be affected by the value of the {\tt durationByEq}
+option.
+
+For the Farkas method, 
+the possible values of this option are:
+\begin{itemize}
+\item {\tt durations -> \{\}} (default): each equation 
+%(if durationByEq is True) 
+lasts one cycle.
+%(resp. each dependence is 1 if durationByEq is False),
+% whatever complex is the computation (default value).
+\item {\tt duration -> \{0,0,1,1,0,...0,3,1\}} (list of integers):
+\begin{itemize}
+\item If the \texttt{durationByEq} option is set to \texttt{True} (default in the Farkas
+method): integer number $i$ indicates the duration of the equation
+defining variable number $i$ of the Alpha program. The 
+variables are numbered in their order of declaration in the 
+\aalpha{} system:  input variables,
+then output variables, and finally local variables.
+\item If the \texttt{durationByEq} option is set to \texttt{False} (default in the vertex method),
+ integer number $i$ indicating the duration of dependence number $i$.  The 
+ dependencies are numbered in the order given by the \texttt{dep} function: to
+ get the list of dependences run the function \texttt{show[ dep[] ]}.
+\end{itemize}
+\end{itemize}
+\paragraph*{Note:} as of \today, I think that the option \texttt{durationByEq -> True} 
+is only valid for the Farkas method and the option \texttt{durationByEq -> False} is only valid
+for the vertex method. 
+
+
+\subsubsection*{outputForm}
+\label{outputForm}\index{outputForm}
+This options allows a non standard output to be obtained. The
+standard schedule output is described in section~\ref{sec5}. 
+One can
+also obtain as a result the linear program to be solved in various formats, or the
+schedule polytope, i.e. the polytope which contains all the valid
+solutions in the \aalpha{} format. The possible values of \texttt{outputForm} are:
+\begin{itemize}
+\item {\tt outputForm -> scheduleResult} (default): standard schedule
+output form (Alpha`ScheduleResult structure, see section~\ref{sec5}).
+\item {\tt outputForm -> lpSolve}: outputs in the format of the
+lp\_solve software,
+the linear programming
+problem to solve in order to find the schedule.
+\item {\tt outputForm -> lpMMA}: outputs the linear programming problem
+to solve in order top find the schedule in the format of the linear
+solver of Mathematica. Warning; as of \today{}, this option is not
+implemented.
+\item {\tt outputForm -> domain}: outputs the schedule polytope,
+i.e. the \aalpha{} domain which is composed of all the constraints of the LP
+to solve. WARNING, this works only for SMALL programs (~3 instructions), otherwise the domain is too big to be handled by polylib.
+\end{itemize}
+
+\subsubsection*{debug}
+\index{debug}\label{debug}
+Prints additional information and does not destroy the temporary files build
+for the interface with PIP. The type of this option is boolean, possible value are:
+\begin{itemize}
+\item  {\tt  debug -> False} (default):   debug mode not set.
+\item  {\tt  debug -> True }: debug mode set.
+\end{itemize}
+
+\subsubsection*{verbose}
+\index{verbose}\label{verbose}
+ If set, the scheduler returns additional information, otherwise, 
+ it returns only the result. 
+ This option is boolean, its possible values are:
+\begin{itemize}
+\item  {\tt  verbose -> True} (default): normal printing.
+\item  {\tt  verbose -> False}: nothing is printed out.
+\end{itemize}
+
+\subsection{Advanced options}
+These options are here for an advanced use of the schedule function.
+\subsubsection*{resolutionSoft}
+This function indicates which software will be used to solve the LP. Its type is symbolic, the possible values are: 
+\begin{itemize}
+\item {\tt resolutionSoft -> pip}: uses P. Feautrier's PIP software (only
+available for the Farkas method).
+\item {\tt resolutionSoft -> mma}: uses the \texttt{ConstrainedMin} function of
+\mma{} (only implemented in the vertex method).
+\item {\tt resolutionSoft -> lpSolve}: uses the {\tt lp\_solve} software(not implemented yet).
+\end{itemize}
+
+\subsubsection*{objFunction}
+\index{objFunction}
+This option is used to indicate how the minimization of the objective function 
+(which is usually a function of the parameters) is performed. 
+Its type is symbolic, the possible values are: 
+\begin{itemize}
+\item {\tt objFunction -> lexicographic}: minimizes   lexicographically 
+the coefficient  of this function in the order of
+the declaration of the corresponding parameters in the Alpha program (default in Fakas implementation).
+\item {\tt objFunction -> lexicographic["N","P","M"]}: (not implemented anywhere) 
+\item {\tt objFunction -> 2"N" + "P"} minimize 2 time the coefficient of parameter "N" plus one time the coefficient of parameter "P" (only implemented in the vertex resolution).
+\end{itemize}
+
+\subsubsection*{onlyVar}
+\index{onlyVar}
+Indicates which variables to schedule (useful if you have a very long program and which to schedule only part of it. Its type is a list of strings, the possible values are: 
+\begin{itemize}
+\item {\tt onlyVar -> all} (default value): schedules all the variables.
+\item {\tt onlyVar -> \{"a","B","c"\}} (list of strings): schedules only the specified variables,   Warning, if  some variables are
+   needed for the computation of the variables listed in the option,  the function will try to
+   find their execution dates in \$schedule (This feature is only implemented in the Farkas method).
+\end{itemize}
+
+\subsubsection*{onlyDep}
+\index{onlyDep}
+Indicates which dependences to schedule (used for multidimensional scheduling).
+Its type is a list of
+integers and its possible values are:
+\begin{itemize}
+\item {\tt onlyDep -> all} (default value): schedules all the dependencies.
+\item {\tt onlyDep -> \{1,4,5\}} (list of integers): schedules only the specified dependencies, the number correspond to their position in the list of dependencies which is returned by  the dep[] function (only implemented in the Farkas method).
+\end{itemize}
+
+\subsubsection*{subSystems}
+\index{subSystems}
+Indicates
+whether or not the schedule takes into account calls to other subsystems.
+\begin{itemize}
+\item {\tt subSystems -> False}: (default value).
+\item {\tt  subSystems -> True}.
+\end{itemize}
+In the Farkas method, the default value is not to consider subsystems, and if there
+are some calls, the method fails. Therefore, to schedule a structured system, one
+must run:
+\begin{verbatim}
+schedule[ subSystem -> True ]
+\end{verbatim}
+or equivalently:
+\begin{verbatim}
+structSched[]
+\end{verbatim}
+
+
+\subsubsection*{subSystemsSchedule}
+\index{subSystemsSchedule}
+Indicates where are the schedules of the subsystems used in the 
+system we schedule. Its type is a list of schedules (see the format in section~\ref{sec5}.
+\begin{itemize}
+\item {\tt subSystemsSchedule -> \$scheduleLibrary} (default value).
+\item {\tt  subSystemsSchedule -> List[schedule..]}.
+\end{itemize}
+Note that the scheduler automatically appends to \texttt{\$scheduleLibrary} 
+the schedules of all new systems that it schedules. 
+
+\section{Format of \texttt{schedule}'s results}
+\label{Result}
+\label{sec5}
+The result given by the function {\tt schedule} has a special form.
+Two new head names are
+introduced: {\tt Alpha`scheduleResult} and {\tt Alpha`sched}.  
+
+The
+outermost structure is  a structure starting with the head {\tt
+Alpha`ScheduleResult}, where the first argument is the name of the system
+(string)  and where the
+second argument is the schedule itself. 
+
+The Last argument of {\tt Alpha`scheduleResult} is for internal use.
+
+The syntax of this structure is
+described here.\\
+\begin{verbatim}
+<schedResult> = 
+  Alpha`ScheduleResult[ 
+    scheduleType_Integer, <sched3List>, objFunc_]
+    
+<sched3List> = { nameVar_String, indices_List, 
+  Alpha`sched[ tauVector_List, constCoef_Integer ] }
+\end{verbatim}
+Example: 
+\begin{verbatim}
+scheduleResult[ "test1",
+   {{"a", {"i", "k"}, sched[ {2, 2}, -4]}, 
+    {"b", {"j"}, sched[ {0}, 0]}, {"c", {"i"}, sched[{0}, 15 ]}, 
+    {"A", {"i", "k"}, sched[ {2, 2}, -3 ]}, 
+    {"C", {"i", "k"}, sched[ {2, 2}, -2 ]}}, {15} ]
+\end{verbatim}
+
+Other examples are given in section~\ref{Examples}.
+
+
+\section{Technical settings}
+\label{settings}
+The packages is called {\tt Schedule.m}. 
+It uses packages \\{\tt FarkasSchedule},
+{\tt VertexSchedule} and {\tt scheduleTools.m}. 
+
+The Farkas implementation
+uses the {\tt pip} software (version D.1~\cite{Feautrier88b}) which must be present in the 
+binary directory\footnote{Explain where...}.
+
+The communication between \mma{} and {\tt pip} is done by files. These
+files are written in the directory indicated by the \mma{} variable \texttt{\$tmpDirectory}.  
+Currently, all methods should work on Solaris, Windows and MacOS X plateforms.
+
+\section{Examples}
+\label{Examples} 
+Consider the program of Fig.~\ref{figureEx}. In the following, we
+give the result of the scheduler with different options.
+\begin{figure}[htbp]
+\begin{verbatim}
+system matmult : {M |M>1} 
+  (a,b : {i,j | 1<=i,j<=M} of real)
+returns
+  (c : {i,j | 1<=i,j<=M } of real);
+var
+  C : {i,j,k | 1<=i,j<=M; 0<=k<=M} of real; 
+let
+  c[i,j] = C[i,j,M];
+  C[i,j,k] = case
+        {|k=0} : 0[];
+        {|1<=k<=M} : C[i,j,k-1]+a[i,k]*b[k,j];
+  esac;
+tel;
+\end{verbatim}
+\caption{Matrix multiplication}
+\label{figureEx}
+\end{figure}
+
+\subsubsection*{Default use}
+If you type the following command (after loading the program of Fig.~\ref{figureEx}):\\
+{\tt schedule[]}\\
+the output written on the screen session should look like:
+\begin{small}
+\begin{verbatim}
+In[65]:=
+schedule[]
+Checking options...
+Dependence analysis...
+Building LP...
+LP: 92 variables, 80 Constraints
+Writing file for PIP....
+Solving the LP...
+Total execution Time: 1+M
+T_a{{i,j,M} = 0
+T_b{i,j,M} = 0
+T_c{i,j,M} = 1+M
+T_C{i,j,k,M} = k
+
+Out[65]=
+scheduleResult[matmult,{{a,{i,j,M},sched[{0,0,
+  0},0]},{b,{i,j,M},sched[{0,0,0},0]},{c,{i,j,M},sched[{0,0,1},1]},{
+      C,{i,j,k,M},sched[{0,0,1,0},0]}},{1,1}]
+\end{verbatim}
+\end{small}
+The first lines indicates which computations are performed. 
+% the lines starting by {\tt Version} are output by
+%Pip. 
+Then the result is printed on the screen. Here, for instance
+the schedule is affine by variable. {\tt c[i,j,k]} is computed at time
+{\tt 1+M}. The result (after {\tt Out[65]}) is the corresponding
+\mma{} structure assigned to {\tt \$schedule}.
+
+
+\subsubsection*{Adding a constraint}
+Suppose that we want to impose that variable {\tt C[i,j,k]} be
+schedule at time $2i+j+k+7$ and that $\tau_a^i=\tau_b^i=\tau_c^i$. 
+We have to add the two constraints: {\tt "TC[i,j,k]=2i+j+k+7"},
+{\tt "TaD1==TbD2"} and {\tt "TaD1==TcD2"}, hence the command is: 
+\begin{verbatim}
+In[15]:= schedule[addConstraints->{"TA[i,j,k]=2i+j+k+7",
+  "TaD1==TbD2", "TaD1==TcD1}]
+\end{verbatim}
+The result is 
+\begin{verbatim}
+T_a{i, j, N} = i
+T_b{i, j, N} = i
+T_c{i, j, N} = 8 + i + j + 2 M
+T_C{i, j, k, N} = 7 + 2i + j +  k
+\end{verbatim}
+Notice that in this schedule, \texttt{c} and \texttt{C} do not
+have the same $\tau^i$ coefficient. We may, if needed, fix this by adding the
+constraint \texttt{TcD1==TCD1}. 
+
+\section{Troubles}
+\label{troubles}
+\subsection*{No schedule is found}
+If no schedule is found, a message tells the user
+and there may be several reasons. 
+\begin{itemize}
+\item No schedule exists (no way of solving this problem). You should be aware that
+finding a schedule for a system of recurrence equations is in the general case undecidable.
+Finding out an affine schedule is decidable, but an absence of affine schedule does
+not guarantee that there does not exist a schedule. Most often, however, the scheduler
+fails because there is an error in the \aalpha{} program which contains a dependence
+cycle: the only solution is to check the program (use the \texttt{analyze} command, then 
+check your program "by hand"). 
+\item No schedule of the chosen type exists: try a multi-dimensional schedule, or
+try another type of schedule.
+%In this case, you can try
+% the old scheduler which was more powerful (ask a \aalpha
+% developer).
+\item There exists a schedule but the time is not bounded. 
+In this case try with the option {\tt objFunction} set to 1): this prevents the scheduler
+to try optimizing the total time of the algorithm. 
+\item  The program is not semantically correct: try the 
+\texttt{analyze} function.
+\end{itemize}
+
+\subsection*{An awful error message}
+In general, when something goes wrong during the scheduling, the error is captured correctly.
+Sometimes,
+the error may come with the following message:
+\begin{verbatim}
+General::aofil: /tmp/mat.tmp already open as /tmp/mat.tmp.
+OpenWrite::noopen: Cannot open /tmp/mat.tmp.
+General::stream: \$Failed is not a string, InputStream[ ], 
+or OutputStream[ ].
+\end{verbatim}
+This may come from the fact that you have interrupted the previous
+execution of the scheduler: \mma{} tries then to open a file which was
+not closed. You can close these files (here {\tt /tmp/mat.tmp}) by
+typing: 
+\begin{verbatim}
+Close["/tmp/mat.tmp"]
+\end{verbatim}
+In general it is not recommended to interrupt the evaluation of the schedule function.
+\bibliographystyle{alpha}
+\bibliography{biblio}
+\printindex
+
+\end{document}

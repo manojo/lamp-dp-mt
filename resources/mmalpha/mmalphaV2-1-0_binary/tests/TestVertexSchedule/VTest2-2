@@ -1,0 +1,6 @@
+scheduleResult["Plus", {{"A", {"b", "W"}, sched[{0, 0}, 0]}, 
+  {"B", {"b", "W"}, sched[{0, 0}, 0]}, {"S", {"b", "W"}, sched[{0, 3}, 0]}, 
+  {"Cin", {"b", "W"}, sched[{3, 0}, 0]}, {"Cout", {"b", "W"}, 
+   sched[{3, 0}, 2]}, {"X", {"b", "W"}, sched[{3, 0}, 2]}, 
+  {"adaptIn11", {"b", "W"}, sched[{3, 0}, 1]}, {"adaptIn12", {"b", "W"}, 
+   sched[{3, 0}, 1]}, {"adaptIn13", {"b", "W"}, sched[{3, 0}, 1]}}, {3, 0}]

@@ -1,0 +1,18 @@
+
+COMPONENT cellsequenceModule2
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  expr1 : IN SIGNED (15 DOWNTO 0);
+  MXctl2PReg5Xloc : IN STD_LOGIC;
+  pipeCDB9Reg6Xloc : IN SIGNED (15 DOWNTO 0);
+  pipeCQS9Xctl1PReg8Xloc : IN STD_LOGIC;
+  TSep3 : IN SIGNED (15 DOWNTO 0);
+  M : OUT SIGNED (15 DOWNTO 0);
+  MXctl2P : OUT STD_LOGIC;
+  pipeCDB9 : OUT SIGNED (15 DOWNTO 0);
+  pipeCQS9Xctl1P : OUT STD_LOGIC
+);
+END COMPONENT;
+

@@ -1,0 +1,12 @@
+Loading MMAlpha...
+Installing domlib
+domlib is : LinkObject[Domlib, 2, 2]
+Windows NT version 
+$TemporaryPrefix was set to : C:/Temp/
+Alpha v1.0 Initialization
+The Documentation can be found in C:\alpha_beta\Mathematica/doc/user
+Current version in C:\alpha_beta\Mathematica
+Current directory=C:\Program Files\Wolfram Research\Mathematica\4.0
+ 
+If you use the notebook interface,  you can open the master notebook by
+ typing: start[].

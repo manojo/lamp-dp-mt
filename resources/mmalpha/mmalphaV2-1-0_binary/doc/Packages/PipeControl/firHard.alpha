@@ -1,0 +1,167 @@
+system ControlfirModule :{N,M | 3<=N<=M-1}
+                        ( )
+       returns          (pipeCH2_ctl1P_Init : {t | t=N+1; 3<=N<=M-1} | {t | N+2<=t<=M+1; 3<=N} of boolean);
+let
+  pipeCH2_ctl1P_Init[t] = 
+      case
+        { | t=N+1; 3<=N<=M-1} : True[];
+        { | N+2<=t<=M+1; 3<=N} : False[];
+      esac;
+tel;
+
+system cellfirModule1 :{p,N,M | p=0; 3<=N<=M-1}
+                      (H_mirr1 : {t | 2<=t<=N+1; p=0; 3<=N<=M-1} of integer; 
+                       x_mirr1 : {t | 2<=t<=M+1; p=0; 3<=N<=M-1} of integer; 
+                       ser3_reg5_loc : {t | N<=t<=M; p=0; 3<=N<=M-1} of integer; 
+                       pipeCH2_ctl1P_Init_In : {t | N+1<=t<=M+1; p=0; 3<=N<=M-1} of boolean)
+       returns        (ser3 : {t | N+1<=t<=M+1; p=0; 3<=N<=M-1} of integer; 
+                       pipeCx1 : {t | 2<=t<=M+1; p=0; 3<=N<=M-1} of integer; 
+                       HPipeES : {t | 2<=t<=N+1; p=0; 3<=N<=M-1} of integer; 
+                       pipeCH2_ctl1P : {t | N+1<=t<=M+1; p=0; 3<=N<=M-1} of boolean);
+var
+  pipeCH2_ctl1Ploc4 : {t | N+1<=t<=M+1; p=0; 3<=N<=M-1} of boolean;
+  HPipeESloc3 : {t | 2<=t<=N+1; p=0; 3<=N<=M-1} of integer;
+  pipeCx1loc2 : {t | 2<=t<=M+1; p=0; 3<=N<=M-1} of integer;
+  pipeCH2 : {t | N+1<=t<=M+1; p=0; 3<=N<=M-1} of integer;
+  pipeCH2_ctl1 : {t | N+1<=t<=M+1; p=0; 3<=N<=M-1} of boolean;
+  pipeCH2_reg3 : {t | N+2<=t<=M+1; p=0; 3<=N} of integer;
+  ser3_reg5 : {t | N+1<=t<=M+1; p=0; 3<=N<=M-1} of integer;
+let
+  pipeCH2_ctl1P[t] = pipeCH2_ctl1Ploc4[t];
+  HPipeES[t] = HPipeESloc3[t];
+  pipeCx1[t] = pipeCx1loc2[t];
+  ser3_reg5[t] = ser3_reg5_loc[t-1];
+  pipeCH2_reg3[t] = pipeCH2[t-1];
+  HPipeESloc3[t] = H_mirr1[t];
+  pipeCx1loc2[t] = x_mirr1[t];
+  pipeCH2_ctl1Ploc4[t] = pipeCH2_ctl1P_Init_In[t];
+  pipeCH2_ctl1[t] = pipeCH2_ctl1Ploc4[t];
+  pipeCH2[t] = 
+      case
+        { | t=N+1; p=0; 3<=N<=M-1} : if (pipeCH2_ctl1[t]) then HPipeESloc3[t] else 0[];
+        { | N+2<=t<=M+1; p=0; 3<=N} : if (pipeCH2_ctl1[t]) then 0[] else pipeCH2_reg3[t];
+      esac;
+  ser3[t] = ser3_reg5[t] + pipeCH2[t] * pipeCx1loc2[t];
+tel;
+
+system cellfirModule2 :{p,N,M | 1<=p<=N-1; 3<=N<=M-1}
+                      (ser3_reg5_loc : {t | p+N<=t<=p+M; 1<=p<=N-1; 3<=N<=M-1} of integer; 
+                       pipeCx1_reg4_loc : {t | 2p<=t<=p+M; 1<=p<=N-1; 3<=N<=M-1} of integer; 
+                       HPipeES_reg2_loc : {t | 2p<=t<=p+N; 1<=p<=N-1; 3<=N<=M-1} of integer; 
+                       pipeCH2_ctl1P_reg1_loc : {t | p+N<=t<=p+M; 1<=p<=N-1; 3<=N<=M-1} of boolean)
+       returns        (ser3 : {t | p+N+1<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of integer; 
+                       pipeCx1 : {t | 2p+2<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of integer; 
+                       HPipeES : {t | 2p+2<=t<=p+N+1; 1<=p; 3<=N<=M-1} of integer; 
+                       pipeCH2_ctl1P : {t | p+N+1<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of boolean);
+var
+  pipeCH2_ctl1Ploc4 : {t | p+N+1<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of boolean;
+  HPipeESloc3 : {t | 2p+2<=t<=p+N+1; 1<=p; 3<=N<=M-1} of integer;
+  pipeCx1loc2 : {t | 2p+2<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of integer;
+  HPipeES_reg2 : {t | 2p+2<=t<=p+N+1; 1<=p; 3<=N<=M-1} of integer;
+  pipeCH2 : {t | p+N+1<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of integer;
+  pipeCH2_ctl1 : {t | p+N+1<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of boolean;
+  pipeCH2_ctl1P_reg1 : {t | p+N+1<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of boolean;
+  pipeCH2_reg3 : {t | p+N+2<=t<=p+M+1; 1<=p<=N-1; 3<=N} of integer;
+  pipeCx1_reg4 : {t | 2p+2<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of integer;
+  ser3_reg5 : {t | p+N+1<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of integer;
+let
+  pipeCH2_ctl1P[t] = pipeCH2_ctl1Ploc4[t];
+  HPipeES[t] = HPipeESloc3[t];
+  pipeCx1[t] = pipeCx1loc2[t];
+  ser3_reg5[t] = ser3_reg5_loc[t-1];
+  pipeCx1_reg4[t] = pipeCx1_reg4_loc[t-2];
+  HPipeES_reg2[t] = HPipeES_reg2_loc[t-2];
+  pipeCH2_ctl1P_reg1[t] = pipeCH2_ctl1P_reg1_loc[t-1];
+  pipeCH2_reg3[t] = pipeCH2[t-1];
+  HPipeESloc3[t] = HPipeES_reg2[t];
+  pipeCx1loc2[t] = pipeCx1_reg4[t];
+  pipeCH2_ctl1Ploc4[t] = pipeCH2_ctl1P_reg1[t];
+  pipeCH2_ctl1[t] = pipeCH2_ctl1Ploc4[t];
+  pipeCH2[t] = 
+      case
+        { | t=p+N+1; 1<=p<=N-1; 3<=N<=M-1} : if (pipeCH2_ctl1[t]) then HPipeESloc3[t] else 0[];
+        { | p+N+2<=t<=p+M+1; 1<=p<=N-1; 3<=N} : if (pipeCH2_ctl1[t]) then 0[] else pipeCH2_reg3[t];
+      esac;
+  ser3[t] = ser3_reg5[t] + pipeCH2[t] * pipeCx1loc2[t];
+tel;
+
+system cellfirModule4 :{p,N,M | p=-1; 3<=N<=M-1}
+                      ( )
+       returns        (ser3 : {t | N<=t<=M; p=-1; 3<=N<=M-1} of integer);
+let
+  ser3[t] = 0[];
+tel;
+
+system firModule :{N,M | 3<=N<=M-1}
+                 (H_mirr1In : {t,p | 2<=t<=N+1; p=0; 3<=N<=M-1} of integer; 
+                  x_mirr1In : {t,p | 2<=t<=M+1; p=0; 3<=N<=M-1} of integer)
+       returns   (ser3Out : {t,p | p+N+1<=t<=p+M+1; -1<=p<=N-1} of integer);
+var
+  pipeCH2_ctl1P_Init : {t | N+1<=t<=M+1; 3<=N<=M-1} of boolean;
+  H_mirr1 : {t,p | 2<=t<=N+1; p=0; 3<=N<=M-1} of integer;
+  x_mirr1 : {t,p | 2<=t<=M+1; p=0; 3<=N<=M-1} of integer;
+  ser31 : {t,p | N+1<=t<=M+1; p=0; 3<=N<=M-1} of integer;
+  ser3_reg5_loc : {t,p | p+N<=t<=p+M; 0<=p<=N} of integer;
+  pipeCx11 : {t,p | 2<=t<=M+1; p=0; 3<=N<=M-1} of integer;
+  pipeCx1_reg4_loc : {t,p | 2p<=t<=p+M; 1<=p<=N} of integer;
+  HPipeES1 : {t,p | 2<=t<=N+1; p=0; 3<=N<=M-1} of integer;
+  HPipeES_reg2_loc : {t,p | 2p<=t<=p+N; 1<=p} of integer;
+  pipeCH2_ctl1P1 : {t,p | N+1<=t<=M+1; p=0; 3<=N<=M-1} of boolean;
+  pipeCH2_ctl1P_reg1_loc : {t,p | p+N<=t<=p+M; 1<=p<=N; 3<=N<=M-1} of boolean;
+  pipeCH2_ctl1P_Init_In : {t,p | N+1<=t<=M+1; p=0; 3<=N<=M-1} of boolean;
+  ser32 : {t,p | p+N+1<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of integer;
+  pipeCx12 : {t,p | 2p+2<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of integer;
+  HPipeES2 : {t,p | 2p+2<=t<=p+N+1; 1<=p; 3<=N<=M-1} of integer;
+  pipeCH2_ctl1P2 : {t,p | p+N+1<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of boolean;
+  ser34 : {t,p | N<=t<=M; p=-1; 3<=N<=M-1} of integer;
+let
+  H_mirr1[t,p] = H_mirr1In[t,p];
+  HPipeES_reg2_loc[t,p] = 
+      case
+        { | 2<=t<=N+1; p=1; 3<=N<=M-1} : HPipeES1[t,p-1];
+        { | 2p<=t<=p+N; 2<=p; 3<=N<=M-1} : HPipeES2[t,p-1];
+      esac;
+  pipeCH2_ctl1P_Init_In[t,p] = pipeCH2_ctl1P_Init[t];
+  pipeCH2_ctl1P_reg1_loc[t,p] = 
+      case
+        { | N+1<=t<=M+1; p=1; 3<=N<=M-1} : pipeCH2_ctl1P1[t,p-1];
+        { | p+N<=t<=p+M; 2<=p<=N; 3<=N<=M-1} : pipeCH2_ctl1P2[t,p-1];
+      esac;
+  pipeCx1_reg4_loc[t,p] = 
+      case
+        { | 2<=t<=M+1; p=1; 3<=N<=M-1} : pipeCx11[t,p-1];
+        { | 2p<=t<=p+M; 2<=p<=N; 3<=N<=M-1} : pipeCx12[t,p-1];
+      esac;
+  ser3Out[t,p] = 
+      case
+        { | N+1<=t<=M+1; p=0; 3<=N<=M-1} : ser31[t,p];
+        { | p+N+1<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} : ser32[t,p];
+        { | N<=t<=M; p=-1; 3<=N<=M-1} : ser34[t,p];
+      esac;
+  ser3_reg5_loc[t,p] = 
+      case
+        { | N+1<=t<=M+1; p=1; 3<=N<=M-1} : ser31[t,p-1];
+        { | p+N<=t<=p+M; 2<=p<=N; 3<=N<=M-1} : ser32[t,p-1];
+        { | N<=t<=M; p=0; 3<=N<=M-1} : ser34[t,p-1];
+      esac;
+  x_mirr1[t,p] = x_mirr1In[t,p];
+  use  ControlfirModule[N,M] () returns  (pipeCH2_ctl1P_Init) ;
+  use {p | p=0; 3<=N<=M-1} cellfirModule1[p,N,M] (H_mirr1, x_mirr1, ser3_reg5_loc, pipeCH2_ctl1P_Init_In) returns  (ser31, pipeCx11, HPipeES1, pipeCH2_ctl1P1) ;
+  use {p | 1<=p<=N-1; 3<=N<=M-1} cellfirModule2[p,N,M] (ser3_reg5_loc, pipeCx1_reg4_loc, HPipeES_reg2_loc, pipeCH2_ctl1P_reg1_loc) returns  (ser32, pipeCx12, HPipeES2, pipeCH2_ctl1P2) ;
+  use {p | p=-1; 3<=N<=M-1} cellfirModule4[p,N,M] () returns  (ser34) ;
+tel;
+
+system fir :   {N,M | 3<=N<=M-1}
+               (x : {i | 1<=i<=M} of integer; 
+                H : {n | 0<=n<=N-1} of integer)
+       returns (res : {i | N<=i<=M} of integer);
+var
+  H_mirr1 : {t,p | 2<=t<=N+1; p=0; 3<=N<=M-1} of integer;
+  x_mirr1 : {t,p | 2<=t<=M+1; p=0; 3<=N<=M-1} of integer;
+  ser3 : {t,p | p+N+1<=t<=p+M+1; -1<=p<=N-1} of integer;
+let
+  H_mirr1[t,p] = H[-t+N+1];
+  x_mirr1[t,p] = x[t-1];
+  res[i] = ser3[i+N,N-1];
+  use  firModule[N,M] (H_mirr1, x_mirr1) returns  (ser3) ;
+tel;

@@ -1,0 +1,600 @@
+system sortcell:{Tinit, Tinit2 ,Duration| Tinit>=0; Tinit2>=0; Tinit>=Tinit2; Duration > 2} (
+		Il1 : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+		Il2 : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+		Ix : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+		Iy : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+		Isign : {t | Tinit+1<=t<=Tinit+Duration} of boolean;
+		Iend : {t | Tinit2<=t<=Tinit2+Duration+1} of boolean;
+		Iendsort : {t | Tinit<=t<=Tinit+Duration+1} of boolean;
+		Iinit : {t | Tinit<=t<=Tinit+Duration+1} of boolean)
+returns         (
+		Ol1 : {t | Tinit+3<=t<=Tinit+Duration+2} of integer;
+		Ol2 : {t | Tinit+3<=t<=Tinit+Duration+2} of integer;
+		Ox : {t | Tinit+3<=t<=Tinit+Duration+2} of integer;
+		Oy : {t | Tinit+3<=t<=Tinit+Duration+2} of integer;
+		Os : {t | Tinit+3<=t<=Tinit+Duration+2} of boolean;
+		Oend : {t | Tinit2+1<=t<=Tinit2+Duration+2} of boolean;
+		Oendsort : {t | Tinit+2<=t<=Tinit+Duration+3} of boolean;
+		Oinit : {t | Tinit+2<=t<=Tinit+Duration+3} of boolean);
+var
+
+-- Declaration des registres
+-- Les valeurs "in" sont les valeurs en entree du latch de rebouclage du
+-- multiplexeur tandis que les autres valeurs sont en sortie du latch
+		Rl1 : {t | Tinit+2<=t<=Tinit+Duration+1} of integer;
+		Rl1in : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+		Rl2 : {t | Tinit+1<=t<=Tinit+Duration+1} of integer;
+		Rl2in : {t | Tinit<=t<=Tinit+Duration} of integer;
+		Rx : {t | Tinit+2<=t<=Tinit+Duration+1} of integer;
+		Rxin : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+		Ry : {t | Tinit+2<=t<=Tinit+Duration+1} of integer;
+		Ryin : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+		Rs : {t | Tinit+1<=t<=Tinit+Duration+1} of boolean;
+		Rsa : {t | Tinit+1<=t<=Tinit+Duration} of boolean;	
+		Rsb : {t | Tinit+1<=t<=Tinit+Duration} of boolean;	
+		Rsin : {t | Tinit<=t<=Tinit+Duration} of boolean;
+		Rend : {t | Tinit+1<=t<=Tinit+Duration+1} of boolean;
+		Rendin : {t | Tinit<=t<=Tinit+Duration} of boolean;
+		Renda : {t | Tinit+1<=t<=Tinit+Duration+1} of boolean;
+
+-- Declaration des entrees de latches pour les signaux de sortie
+		Ol1in : {t | Tinit+2<=t<=Tinit+Duration+1} of integer;
+		Ol2in : {t | Tinit+2<=t<=Tinit+Duration+1} of integer;
+		Oxin : {t | Tinit+2<=t<=Tinit+Duration+1} of integer;
+		Oyin : {t | Tinit+2<=t<=Tinit+Duration+1} of integer;
+		Osin : {t | Tinit+2<=t<=Tinit+Duration+1} of boolean;
+		Oendin : {t | Tinit2<=t<=Tinit2+Duration+1} of boolean;
+		Oendsortin : {t | Tinit+1<=t<=Tinit+Duration+2} of boolean;
+		Oendsortinin : {t | Tinit<=t<=Tinit+Duration+1} of boolean;
+		Oinitin : {t | Tinit+1<=t<=Tinit+Duration+2} of boolean;
+		Oinitinin : {t | Tinit<=t<=Tinit+Duration+1} of boolean;
+
+-- variables annexes
+		Initp : {t | Tinit+1<=t<=Tinit+Duration+2} of boolean;
+		Ol1a : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Ol1b : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Ol1c : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Ol1d : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Ol2a : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Ol2b : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Ol2c : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Ol2d : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Oxa : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Oxb : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Oxc : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Oxd : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Oya : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Oyb : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Oyc : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Oyd : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Osa : {t | Tinit+2<=t<=Tinit+Duration} of boolean;
+		Osb : {t | Tinit+2<=t<=Tinit+Duration} of boolean;
+		Osc : {t | Tinit+2<=t<=Tinit+Duration} of boolean;
+		Osd : {t | Tinit+2<=t<=Tinit+Duration} of boolean;
+		Ose : {t | Tinit+2<=t<=Tinit+Duration} of boolean;
+		Rl1a : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+		Rl1b : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Rl2s : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+		Rl2a : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Rl2b : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Rl2c : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Rxa : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+		Rxb : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		Rya : {t | Tinit+1<=t<=Tinit+Duration} of integer;
+		Ryb : {t | Tinit+2<=t<=Tinit+Duration} of integer;
+		cmpsup : {t | Tinit+2<=t<=Tinit+Duration} of boolean;
+		cmpinf : {t | Tinit+2<=t<=Tinit+Duration} of boolean;
+		cmpeq : {t | Tinit+2<=t<=Tinit+Duration} of boolean;
+
+-- Extension de la variable Iend pour instancier le faux
+
+		Iendbis : {t | Tinit<=t<=Tinit+Duration+1} of boolean;
+
+let
+
+-- Latchage des registres
+Rl1[t] =  Rl1in[t-1];
+Rl2[t] =  Rl2in[t-1];
+Rx[t] =   Rxin[t-1];
+Ry[t] =   Ryin[t-1];
+Rs[t] = Rsin[t-1];
+Rend[t] = Rendin[t-1];
+-- Latchage des sorties
+Ol1[t] = Ol1in[t-1];
+Ol2[t] = Ol2in[t-1];
+Ox[t] = Oxin[t-1];
+Oy[t] = Oyin[t-1];
+Os[t] = Osin[t-1];
+Oend[t] = Oendin[t-1];
+Oendsort[t] = Oendsortin[t-1];
+Oendsortin[t] = Oendsortinin[t-1];
+Oinit[t] = Oinitin[t-1];
+Oinitin[t] = Oinitinin[t-1];
+
+-- Extension du signal d'entree Iend
+Iendbis[t] = 
+	if (True[]) then
+		case
+			{|t>Tinit2+Duration+1} : False[];
+			{|t<=Tinit2+Duration+1} : Iend[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : False[];
+		esac;
+
+-- Partie combinatoire des sorties
+Ol1in[t] =
+	if (Iendsort[t]) then
+		case
+			{|t<Tinit+Duration+1} : False[];
+			{|t=Tinit+Duration+1} : Rl1[t];
+		esac
+	else
+		case
+			{|t=Tinit+Duration+1} : False[];
+			{|t<Tinit+Duration+1} : Ol1a[t];
+		esac;
+Ol1a[t] =
+	if (Iendbis[t] or Rend[t]) then
+		case
+			{|t>=Tinit} : Il1[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : Ol1b[t];
+		esac;
+Ol1b[t] =
+	if (Isign[t] and Rs[t]) then
+		case
+			{|t>=Tinit} : Ol1c[t];
+		esac		
+	else
+		case
+			{|t>=Tinit}: 0[];
+		esac;
+Ol1c[t] =
+	if (cmpsup[t]) then
+		case
+			{|t>=Tinit} : Il1[t];
+		esac		
+	else
+		case
+			{|t>=Tinit} : Ol1d[t];
+		esac;
+Ol1d[t] =
+	if (cmpinf[t]) then
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Rl1[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : 0[];
+		esac;
+Ol2in[t] =
+	if (Iendsort[t]) then
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Rl2[t];
+		esac
+	else
+		case
+			{|t=Tinit+Duration+1} : False[];
+			{|t<Tinit+Duration+1} : Ol2a[t];
+		esac;
+Ol2a[t] =
+	if (Iendbis[t] or Rend[t]) then
+		case
+			{|t>=Tinit} : Il2[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : Ol2b[t];
+		esac;
+Ol2b[t] =
+	if (Isign[t] and Rs[t]) then
+		case
+			{|t>=Tinit} : Ol2c[t];
+		esac		
+	else
+		case
+			{|t>=Tinit}: 0[];
+		esac;
+Ol2c[t] =
+	if (cmpsup[t]) then
+		case
+			{|t>=Tinit} : Il2[t];
+		esac		
+	else
+		case
+			{|t>=Tinit} : Ol2d[t];
+		esac;
+Ol2d[t] =
+	if (cmpinf[t]) then
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Rl2[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : 0[];
+		esac;
+Oxin[t] =
+	if (Iendsort[t]) then
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Rx[t];
+		esac
+	else
+		case
+			{|t=Tinit+Duration+1} : False[];
+			{|t<Tinit+Duration+1} : Oxa[t];
+		esac;
+Oxa[t] =
+	if (Iendbis[t] or Rend[t]) then
+		case
+			{|t>=Tinit} : Ix[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : Oxb[t];
+		esac;
+Oxb[t] =
+	if (Isign[t] and Rs[t]) then
+		case
+			{|t>=Tinit} : Oxc[t];
+		esac
+	else
+		case
+			{|t>=Tinit}: 0[];
+		esac;
+Oxc[t] =
+	if (cmpsup[t]) then
+		case
+			{|t>=Tinit} : Ix[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : Oxd[t];
+		esac;
+Oxd[t] =
+	if (cmpinf[t]) then
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Rx[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : 0[];
+		esac;
+Oyin[t] =
+	if (Iendsort[t]) then
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Ry[t];
+		esac
+	else
+		case
+			{|t=Tinit+Duration+1} : False[];
+			{|t<Tinit+Duration+1} : Oya[t];
+		esac;
+Oya[t] =
+	if (Iendbis[t] or Rend[t]) then
+		case
+			{|t>=Tinit} : Iy[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : Oyb[t];
+		esac;
+Oyb[t] =
+	if (Isign[t] and Rs[t]) then
+		case
+			{|t>=Tinit} : Oyc[t];
+		esac
+	else
+		case
+			{|t>=Tinit}: 0[];
+		esac;
+Oyc[t] =
+	if (cmpsup[t]) then
+		case
+			{|t>=Tinit} : Iy[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : Oyd[t];
+		esac;
+Oyd[t] =
+	if (cmpinf[t]) then
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Ry[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : 0[];
+		esac;
+Osin[t] = 
+	if (Iendsort[t]) then
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Rs[t];
+		esac
+	else
+		case
+			{|t=Tinit+Duration+1} : False[];
+			{|t<Tinit+Duration+1} : Osa[t];
+		esac;
+Osa[t] =
+	if (Iendbis[t] or Rend[t]) then
+		case
+			{|t>=Tinit} : Isign[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : Osb[t];
+		esac;
+Osb[t] =
+	if (not(Isign[t])) then
+		case
+			{|t>=Tinit} : False[];
+		esac
+	else
+		case
+			{|t>=Tinit} : Osc[t];
+		esac;
+Osc[t] =
+	if (Rs[t]) then
+		case
+			{|t>=Tinit} : Osd[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : False[];
+		esac;
+Osd[t] =
+	if (cmpsup[t]) then
+		case
+			{|t>=Tinit} : Isign[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : Ose[t];
+		esac;
+Ose[t] =
+	if (cmpinf[t]) then
+		case
+			{|t>=Tinit} : True[];
+		esac
+	else
+		case
+			{|t>=Tinit} : False[];
+		esac;
+Oendin[t] = Iend[t];
+Oendsortinin[t] = Iendsort[t];
+Oinitinin[t] = Iinit[t];
+Initp[t] = Iinit[t-1];
+
+-- Combinatoire de chargement des registres
+
+Rl1in[t] =
+	if (Iendbis[t] or Rend[t]) then
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Rl1[t];
+		esac
+	else
+		case
+			{|t>=Tinit+1} : Rl1a[t];
+		esac;
+Rl1a[t]=
+	if (Isign[t] and not(Rs[t])) then
+		case
+			{|t>=Tinit+1} : Il1[t];
+		esac
+	else
+		case
+			{|t=Tinit+1} : False[];
+			{|t>Tinit+1} : Rl1b[t];
+		esac;
+Rl1b[t] =
+	if (Isign[t] and Rs[t] and cmpinf[t]) then
+		case
+			{|Tinit+Duration>=t>=Tinit} : Il1[t];
+		esac
+	else
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Rl1[t];
+		esac;
+Rl2in[t] =
+	if (Iinit[t]) then
+		case
+			{|t>=Tinit} : 0[];
+		esac
+	else
+		case
+			{|Tinit=t} : False[];
+			{|t>=Tinit+1} : Rl2s[t];
+		esac;
+Rl2s[t] =
+	if (Initp[t]) then
+		case
+			{|t=Tinit+1} : Rl2[t];
+			{|t>=Tinit+2} : False[];
+		esac
+	else
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} :  Rl2a[t];
+		esac;
+Rl2a[t] =
+	if (Iendbis[t] or Rend[t]) then
+		case
+			{|t>=Tinit} : Rl2[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : Rl2b[t];
+		esac;
+Rl2b[t] =
+	if (not(Iendbis[t]) and not(Rend[t]) and not(Iendsort[t]) and Isign[t] and Rs[t] and cmpeq[t]) then
+		case
+			{|t>=Tinit} : Il1[t];
+		esac
+	else
+		case
+			{|t>=Tinit+1} : Rl2c[t];
+		esac;
+Rl2c[t] =
+	if (Isign[t] and Rs[t] and cmpinf[t]) then
+		case
+			{|Tinit+Duration>=t>=Tinit} : Il2[t];
+		esac
+	else
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Rl2[t];
+		esac;
+Rxin[t] =
+	if (Iendbis[t] or Rend[t]) then
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Rx[t];
+		esac
+	else
+		case
+			{|t>=Tinit+1} : Rxa[t];
+		esac;
+Rxa[t] =
+	if (Isign[t] and not(Rs[t])) then
+		case
+			{|t>=Tinit} : Ix[t];
+		esac
+	else
+		case
+			{|t=Tinit+1} : False[];
+			{|t>Tinit+1} : Rxb[t];
+		esac;
+Rxb[t] =
+	if (Isign[t] and Rs[t] and cmpinf[t]) then
+		case
+			{|t>=Tinit} : Ix[t];
+		esac
+	else
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Rx[t];
+		esac;
+Ryin[t] =
+	if (Iendbis[t] or Rend[t]) then
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Ry[t];
+		esac
+	else
+		case
+			{|t>=Tinit+1} : Rya[t];
+		esac;
+Rya[t] =
+	if (Isign[t] and not(Rs[t])) then
+		case
+			{|t>=Tinit} : Iy[t];
+		esac
+	else
+		case
+			{|t=Tinit+1} : False[];
+			{|t>Tinit+1} : Ryb[t];
+		esac;
+Ryb[t] =
+	if (Isign[t] and Rs[t] and cmpinf[t]) then
+		case
+			{|t>=Tinit} : Iy[t];
+		esac
+	else
+		case
+			{|t=Tinit+1} : False[];
+			{|t>=Tinit+2} : Ry[t];
+		esac;
+Rendin[t] =
+	if (Iinit[t]) then
+		case
+			{|t=Tinit} : False[];
+			{|t>=Tinit+1} : False[];
+		esac
+	else
+		case
+			{|t=Tinit} : False[];
+			{|t>=Tinit+1} : Renda[t];
+		esac;
+Renda[t] =
+	if (Rend[t] or Iendbis[t]) then
+		case
+			{|t>=Tinit} : True[];
+		esac
+	else
+		case
+			{|t>=Tinit} : False[];
+		esac;
+Rsin[t] = if (Iinit[t]) then
+		case
+			{|t=Tinit} : False[];
+			{|t>=Tinit+1} : False[];
+		esac
+	else
+		case
+			{|t=Tinit} : False[];
+			{|t>=Tinit+1} : Rsa[t];	
+		esac;
+Rsa[t] =
+	if  (Iendbis[t] or Rend[t]) then
+		case
+			{|t>=Tinit} : Rs[t];
+		esac
+	else
+		case
+			{|t>=Tinit} : Rsb[t];
+		esac;
+Rsb[t] =if (not(Iendbis[t]) and not(Rend[t]) and
+	 not(Iendsort[t]) and Isign[t] and not(Rs[t])) 
+	then
+		case
+			{|t>=Tinit} : True[];
+		esac
+	else
+		case
+			{|t>=Tinit} : Rs[t];
+		esac;
+cmpsup[t] =
+        if (Rx[t]>Ix[t]) or ((Ix[t]=Rx[t]) and (Ry[t]>Iy[t])) then
+                case
+                {|t>=Tinit} : True[];
+                esac
+        else
+                case
+                {|t>=Tinit} : False[];
+                esac;
+		
+cmpinf[t] =
+        if (Rx[t]<Ix[t]) or ((Ix[t]=Rx[t]) and (Ry[t]<Iy[t])) then
+                case
+                {|t>=Tinit} : True[];
+                esac
+        else
+                case
+                {|t>=Tinit} : False[];
+                esac;
+		
+cmpeq[t] =
+        if ((Ix[t]=Rx[t]) and (Ry[t]=Iy[t])) then
+                case
+                {|t>=Tinit} : True[];
+                esac
+        else
+                case
+                {|t>=Tinit} : False[];
+                esac;
+		
+tel;

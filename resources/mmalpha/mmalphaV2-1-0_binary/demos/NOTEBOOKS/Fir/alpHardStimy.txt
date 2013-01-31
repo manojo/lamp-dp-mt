@@ -1,0 +1,8 @@
+7	-- Time: 7, read : y[3] 
+4	-- Time: 8, read : y[4] 
+-1	-- Time: 9, read : y[5] 
+-2	-- Time: 10, read : y[6] 
+-3	-- Time: 11, read : y[7] 
+-4	-- Time: 12, read : y[8] 
+-3	-- Time: 13, read : y[9] 
+2	-- Time: 14, read : y[10] 

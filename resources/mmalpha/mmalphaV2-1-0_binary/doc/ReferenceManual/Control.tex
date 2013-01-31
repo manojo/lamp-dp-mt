@@ -1,0 +1,42 @@
+%
+% File created on {2007, 11, 15, 17, 10, 19.976122} by makeDoc.
+%
+% Section header
+\section{The Alpha`Control` package } 
+\label{label:Alpha`Control`}
+\alphausage{Control}{Package. Contains the definition of functions related to control signal generation: temporalCaseQ[], spatialCaseQ[], spaceTimeCase[], spaceTimeDecomposition[], needsMuxQ[], makeMuxControl[], makeAllMuxControl[], isControlEquQ[], controlVars[].}{Alpha/Control.m}{Alpha`Control`}
+\index{Control}
+
+\alphausage{makeOneMuxControl}{makeOneMuxControl[sys, tpos, spos, var, options] generates a multiplexer for the definition of var.}{Alpha/Control.m}{Alpha`Control`}
+\index{makeOneMuxControl}
+
+\alphausage{makeAllMuxControl}{makeAllMuxControl[sys, tpos, spos, options] generates multiplexers  and their control variables for all the variables in the system sys  needing it. The system sys must be in space/time form  (see spaceTimeDecomposition). The modified system is returned. makeAllMuxControl[tpos, spos, options], applies to \$result  and modifies it.}{Alpha/Control.m}{Alpha`Control`}
+\index{makeAllMuxControl}
+
+\alphausage{temporalCaseQ}{temporalCaseQ[sys, expr, post, poss] checks whether or  not the case expression expr of sys is a temporal case  (all alternatives are defined over the same spatial domain.)  post is the list of positions of temporal indices and poss is  the list of positions of spatial indices. WARNING: This function checks pure temporal case (no condition  involving space can change in the branches of the case)}{Alpha/Control.m}{Alpha`Control`}
+\index{temporalCaseQ}
+
+\alphausage{spatialCaseQ}{spatialCaseQ[sys, expr, post, poss] checks whether or not the case expression expr of sys is a spatial case (i.e., can be rewritten using conditions on spatial indices only).  post is the list of positions of temporal indices, and poss is the list of positions of spatial indices.}{Alpha/Control.m}{Alpha`Control`}
+\index{spatialCaseQ}
+
+\alphausage{spaceTimeCase}{spaceTimeCase[sys, varname, tpos, spos] unrolls the normalized  case-based definition of local variable varname to a double case  spatial then temporal. spaceTimeCase[varname, tpos, spos] applies to  \$result and modifies it.}{Alpha/Control.m}{Alpha`Control`}
+\index{spaceTimeCase}
+
+\alphausage{spaceTimeDecomposition}{spaceTimeDecomposition[sys,  tpos, spos] transforms all the local  variables of sys into their space-time case form. spaceTimeDecomposition[varname, tpos, spos] applies to \$result and modifies it.}{Alpha/Control.m}{Alpha`Control`}
+\index{spaceTimeDecomposition}
+
+\alphausage{needsMuxQ}{needsMuxQ[exp] returns True if expr of \$result needs a multiplexer,  False otherwise.}{Alpha/Control.m}{Alpha`Control`}
+\index{needsMuxQ}
+
+\alphausage{makeMuxControl}{makeMuxControl[var, ctrlVar, tpos, spos] builds the mux control variables for variable var. It is restricted to cases with two branches.  WARNING: DOES not check that the temporal cases are binary.}{Alpha/Control.m}{Alpha`Control`}
+\index{makeMuxControl}
+
+\alphausage{isControlEquQ}{isControlEquQ[equation] checks that equation is a controler equation.}{Alpha/Control.m}{Alpha`Control`}
+\index{isControlEquQ}
+
+\alphausage{controlVars}{controlVars[sys] returns the list of control variables in system sys. controlVars[] applies to \$result. A control variable is defined by a space/time case with two time branches equal to True and False.}{Alpha/Control.m}{Alpha`Control`}
+\index{controlVars}
+
+\alphausage{makeBinaryCases}{makeBinaryCases[ sys, var, opts ] replaces in the definition of  var, all case statements with more than 2 branches by binary  cases. makeBinaryCases[ var, opts ] does the same to \$result.}{Alpha/Control.m}{Alpha`Control`}
+\index{makeBinaryCases}
+

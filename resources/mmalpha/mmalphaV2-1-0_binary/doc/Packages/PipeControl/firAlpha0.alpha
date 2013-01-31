@@ -1,0 +1,82 @@
+system fir :   {N,M | 3<=N<=M-1}
+               (x : {i | 1<=i<=M} of integer; 
+                H : {n | 0<=n<=N-1} of integer)
+       returns (res : {i | N<=i<=M} of integer);
+var
+  H_mirr1 : {t,p | 2<=t<=N+1; p=0; 3<=N<=M-1} of integer;
+  x_mirr1 : {t,p | 2<=t<=M+1; p=0; 3<=N<=M-1} of integer;
+  pipeCH2_ctl1P_reg1_loc : {t,p | p+N<=t<=p+M; 1<=p<=N; 3<=N<=M-1} of boolean;
+  HPipeES_reg2_loc : {t,p | 2p<=t<=p+N; 1<=p} of integer;
+  pipeCx1_reg4_loc : {t,p | 2p<=t<=p+M; 1<=p<=N} of integer;
+  ser3_reg5_loc : {t,p | p+N<=t<=p+M; 0<=p<=N} of integer;
+  ser3_reg5 : {t,p | p+N+1<=t<=p+M+1; 0<=p<=N-1; 3<=N<=M-1} of integer;
+  pipeCx1_reg4 : {t,p | 2p+2<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of integer;
+  pipeCH2_reg3 : {t,p | p+N+2<=t<=p+M+1; 0<=p<=N-1; 3<=N} of integer;
+  HPipeES_reg2 : {t,p | 2p+2<=t<=p+N+1; 1<=p; 3<=N<=M-1} of integer;
+  pipeCH2_ctl1P_reg1 : {t,p | p+N+1<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} of boolean;
+  pipeCH2_ctl1P_Init_In : {t,p | N+1<=t<=M+1; p=0; 3<=N<=M-1} of boolean;
+  pipeCH2_ctl1P_Init : {t | N+1<=t<=M+1; 3<=N<=M-1} of boolean;
+  pipeCH2_ctl1P : {t,p | p+N+1<=t<=p+M+1; 0<=p<=N-1; 3<=N<=M-1} of boolean;
+  HPipeES : {t,p | 2p+2<=t<=p+N+1; 0<=p} of integer;
+  pipeCH2 : {t,p | p+N+1<=t<=p+M+1; 0<=p<=N-1} of integer;
+  pipeCx1 : {t,p | 2p+2<=t<=p+M+1; 0<=p<=N-1} of integer;
+  ser3 : {t,p | p+N+1<=t<=p+M+1; -1<=p<=N-1} of integer;
+  pipeCH2_ctl1 : {t,p | p+N+1<=t<=p+M+1; 0<=p<=N-1; 3<=N<=M-1} of boolean;
+let
+  H_mirr1[t,p] = H[-t+N+1];
+  x_mirr1[t,p] = x[t-1];
+  ser3_reg5_loc[t,p] = ser3[t,p-1];
+  ser3_reg5[t,p] = ser3_reg5_loc[t-1,p];
+  pipeCx1_reg4_loc[t,p] = pipeCx1[t,p-1];
+  pipeCx1_reg4[t,p] = pipeCx1_reg4_loc[t-2,p];
+  HPipeES_reg2_loc[t,p] = HPipeES[t,p-1];
+  HPipeES_reg2[t,p] = HPipeES_reg2_loc[t-2,p];
+  pipeCH2_ctl1P_reg1_loc[t,p] = pipeCH2_ctl1P[t,p-1];
+  pipeCH2_ctl1P_reg1[t,p] = pipeCH2_ctl1P_reg1_loc[t-1,p];
+  pipeCH2_reg3[t,p] = pipeCH2[t-1,p];
+  pipeCH2_ctl1P_Init_In[t,p] = pipeCH2_ctl1P_Init[t];
+  pipeCH2_ctl1P_Init[t] = 
+      case
+        case
+          { | t=N+1; 3<=N<=M-1} : True[];
+          { | N+2<=t<=M+1; 3<=N} : False[];
+        esac;
+      esac;
+  HPipeES[t,p] = 
+      case
+        { | 2<=t<=N+1; p=0; 3<=N<=M-1} : H_mirr1;
+        { | 2p+2<=t<=p+N+1; 1<=p; 3<=N<=M-1} : HPipeES_reg2;
+      esac;
+  pipeCx1[t,p] = 
+      case
+        { | 2<=t<=M+1; p=0; 3<=N<=M-1} : x_mirr1;
+        { | 2p+2<=t<=p+M+1; 1<=p<=N-1; 3<=N<=M-1} : pipeCx1_reg4;
+      esac;
+  pipeCH2_ctl1P[t,p] = 
+      case
+        { | N+1<=t<=M+1; p=0; 3<=N<=M-1} : pipeCH2_ctl1P_Init_In[t,p];
+        { | p+N+1<=t; 1<=p} : pipeCH2_ctl1P_reg1;
+      esac;
+  pipeCH2_ctl1[t,p] = 
+      case
+        { | p+N+1<=t<=p+M+1; 0<=p<=N-1; 3<=N<=M-1} : pipeCH2_ctl1P;
+      esac;
+  pipeCH2[t,p] = 
+      case
+        { | p+N+1<=t<=p+M+1; 0<=p<=N-1; 3<=N<=M-1} : if (pipeCH2_ctl1) then 
+               case
+                 { | t=p+N+1; 0<=p<=N-1; 3<=N<=M-1} : HPipeES;
+                 { | p+N+2<=t<=p+M+1; 0<=p<=N-1; 3<=N} : 0[];
+               esac else 
+           case
+             { | t=p+N+1; 0<=p<=N-1; 3<=N<=M-1} : 0[];
+             { | p+N+2<=t<=p+M+1; 0<=p<=N-1; 3<=N} : pipeCH2_reg3;
+           esac;
+      esac;
+  ser3[t,p] = 
+      case
+        { | N<=t<=M; p=-1; 3<=N<=M-1} : 0[];
+        { | p+N+1<=t<=p+M+1; 0<=p<=N-1; 3<=N<=M-1} : ser3_reg5 + pipeCH2 * pipeCx1;
+      esac;
+  res[i] = ser3[i+N,N-1];
+tel;

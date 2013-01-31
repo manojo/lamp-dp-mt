@@ -1,0 +1,22 @@
+system matmat (a,b:{i,j|1<=i,j<=10} of integer)
+returns (c:{i,j|1<=i<=10} of integer);
+var 
+   C:{i,j,k|1<=i,j<=10;0<=k<=10} of integer;
+   A:{i,j,k|0<=j<=10;1<=i,k<=10} of integer;
+   B:{i,j,k|0<=i<=10;1<=j,k<=10} of integer;
+let
+   C[i,j,k]=case
+      {|k=0}:0[];
+      {|k>=0}: C[i,j,k-1]+A[i,j,k]*B[i,j,k];
+   esac;
+   A[i,j,k]=case
+      {|j=0}:a[i,k];
+      {|j>=0}: A[i,j-1,k];
+   esac;
+   B[i,j,k]=case
+      {|i=0}:b[k,j];
+      {|i>=0}: B[i-1,j,k];
+   esac;
+tel;
+
+

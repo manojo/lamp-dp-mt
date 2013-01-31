@@ -1,0 +1,22 @@
+system computeDistances :{N,M | 1<=N; 2<=M}
+                        (descriptor : {i | 0<=i<=N-1} of integer[S,15]; 
+                         image : {i,j | 0<=i<=N-1; 0<=j<=M-1} of integer[S,15])
+       returns          (distances : {j | 0<=j<=M-1} of integer[S,15]);
+var
+  temp : {i,j | 0<=i<=N-1; 0<=j<=M-1} of integer[S,15];
+  d : {j | 0<=j<=M-1} of integer[S,15];
+  dloc : {i,j | -1<=i<=N-1; 0<=j<=M-1} of integer[S,15];
+  diff : {i,j | 0<=i<=N-1; 0<=j<=M-1} of integer[S,15];
+  absValue : {i,j | 0<=i<=N-1; 0<=j<=M-1} of integer[S,15];
+let
+  temp[i,j] = descriptor[i];
+  diff[i,j] = image[i,j] - temp[i,j];
+  absValue[i,j] = if (diff[i,j]>0[]) then diff[i,j] else -diff[i,j];
+  dloc[i,j] = 
+      case
+        { | i=-1} : 0[];
+        { | 0<=i} : dloc[i-1,j] + absValue[i,j];
+      esac;
+  d[j] = dloc[N-1,j];
+  distances[j] = d;
+tel;

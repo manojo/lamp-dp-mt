@@ -1,0 +1,833 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 6.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[     21319,        824]
+NotebookOptionsPosition[     15605,        638]
+NotebookOutlinePosition[     16238,        665]
+CellTagsIndexPosition[     16166,        660]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Getting started", "Title",
+ FontColor->RGBColor[1, 0, 0],
+ CellTags->"firstcell"],
+
+Cell["Patrice Quinton and Tanguy Risset", "Subsubtitle"],
+
+Cell["\<\
+Last revision: March 11, 2002 and May 30, 2006. Checked April 2010. \
+\>", "SmallText",
+ CellChangeTimes->{{3.4809368414754343`*^9, 3.480936848136154*^9}}],
+
+Cell[CellGroupData[{
+
+Cell["Credits", "Subsubsection",
+ FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+      Zbigniew Chamski 
+      Catherine Dezan 
+      Florent Dupont de Dinechin 
+      Anne-Claire Guillou
+      Patricia Le Mo\[EDoubleDot]nner 
+      Herv\[EAcute] Le Verge 
+      Christophe Mauras 
+      Patrice Quinton 
+      Fabien Quillere
+      Sanjay Rajopadhye 
+      Sophie Robert 
+      Tanguy Risset 
+      Doran Wilde \
+\>", "SmallText"]
+}, Closed]],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042, Rennes Cedex, France
+quinton@irisa.fr\
+\>", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[" This cell is automatically evaluated.", "Subsubsection",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"setMMADir", "[", 
+  RowBox[{"{", 
+   RowBox[{
+   "\"\<demos\>\"", ",", "\"\<NOTEBOOKS\>\"", ",", 
+    "\"\<Getting-started\>\""}], "}"}], "]"}]], "Input",
+ InitializationCell->True],
+
+Cell[BoxData["\<\"/Users/patricequinton/mmalpha/demos/NOTEBOOKS/Getting-\
+started\"\>"], "Output",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4395352720119047`*^9, 3.439535807360408*^9, 
+  3.439535912649387*^9, 3.4809366275266113`*^9}],
+
+Cell[BoxData["\<\"/Users/quinton/mmalpha/demos/NOTEBOOKS/Getting-started\"\>"]\
+, "Output",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4395352720119047`*^9, 3.439535807360408*^9, 
+  3.439535912649387*^9}],
+
+Cell[BoxData["\<\"/Users/quinton/mmalpha/demos/NOTEBOOKS/Getting-started\"\>"]\
+, "Output",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4395352720119047`*^9, 3.439535807360408*^9}],
+
+Cell[BoxData["\<\"/Users/quinton/mmalpha/demos/NOTEBOOKS/Getting-started\"\>"]\
+, "Output",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{3.4395352720119047`*^9}],
+
+Cell[BoxData["\<\"C:\\\\alpha_beta\\\\Mathematica\\\\demos\\\\NOTEBOOKS\\\\\
+Getting-started\"\>"], "Output",
+ GeneratedCell->False,
+ CellAutoOverwrite->False]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Basic operations on Alpha programs", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell["Loading and viewing a program ", "Subsection"],
+
+Cell[TextData[{
+ "Matrix-vector multiplication, the ",
+ StyleBox["prodVect.alpha",
+  FontFamily->"Courier"],
+ " file is in the current directory:"
+}], "Text"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<prodVect.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell["\<\
+The array notation is a more intuitive notation for Alpha program (but it \
+cannot always be used)\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{"?", "show"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"show", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Saving", "Subsection"],
+
+Cell[TextData[{
+ "You can save the current version of the program at anytime with the command \
+",
+ StyleBox["asave:",
+  FontFamily->"Courier"]
+}], "Text"],
+
+Cell[BoxData[
+ RowBox[{"asave", "[", "\"\<myFile.alpha\>\"", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Analyzing", "Subsection"],
+
+Cell["\<\
+Static analysis checks that the single assignement is respected::\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Simulating (has to be checked...)", "Subsection",
+ CellChangeTimes->{{3.480936701967216*^9, 3.480936710733111*^9}}],
+
+Cell[TextData[{
+ "To simulate (i.e. execute) this program, you have to translate it into C \
+code, and while doing that you must choose a value for the parameter ",
+ StyleBox["N",
+  FontFamily->"Courier"],
+ ":"
+}], "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"schedule", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"cGen", "[", 
+   RowBox[{"\"\<prodVect.c\>\"", ",", 
+    RowBox[{"{", 
+     RowBox[{"\"\<N\>\"", "\[Rule]", "2"}], "}"}]}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.439535463791567*^9, 3.439535464868903*^9}}],
+
+Cell["To see the generated code :", "Text",
+ CellChangeTimes->{{3.439535497749824*^9, 3.439535501659779*^9}}],
+
+Cell[BoxData[
+ RowBox[{"FilePrint", "[", "\"\<prodvect.c\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.4395355950950336`*^9, 3.439535642016589*^9}}],
+
+Cell[BoxData[
+ RowBox[{"Directory", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.439535356146082*^9, 3.43953535882366*^9}}],
+
+Cell[BoxData[
+ RowBox[{"Run", "[", "\"\<gcc -o prodvec prodvect.c\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.439535657103994*^9, 3.439535678458131*^9}}],
+
+Cell[TextData[{
+ "Try the simulation by typing ",
+ StyleBox["./prodvect", "Input"],
+ " in a shell. "
+}], "Text",
+ CellChangeTimes->{{3.439535497749824*^9, 3.439535501659779*^9}, {
+  3.439535817408094*^9, 3.439535839734017*^9}}]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Scheduling", "Subsection"],
+
+Cell["Plain schedule.", "Text"],
+
+Cell[BoxData[
+ RowBox[{"schedule", "[", "]"}]], "Input"],
+
+Cell["To visualize the schedule : ", "Text"],
+
+Cell[BoxData[
+ RowBox[{"showSchedResult", "[", "]"}]], "Input"],
+
+Cell[TextData[{
+ "If you want a single linear part schedule and that the input ",
+ StyleBox["a[i,j]",
+  FontFamily->"Courier"],
+ " is scheduled at step",
+ StyleBox[" i+j",
+  FontFamily->"Courier"],
+ ", you can get it : "
+}], "Text"],
+
+Cell[BoxData[
+ RowBox[{"schedule", "[", 
+  RowBox[{"addConstraints", "->", 
+   RowBox[{"{", 
+    RowBox[{"\"\<Ta[i,j,N]=i+j\>\"", ",", "\"\<Tb[i,N]=i\>\""}], "}"}]}], 
+  "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"schedule", "[", 
+  RowBox[{"durations", "->", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "0", ",", "19", ",", "7"}], "}"}]}], "]"}]], "Input"],
+
+Cell["\<\
+To see the dependence graph. A red vertex means that there is a self \
+dependency.\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"depGraph", "[", "]"}], ";"}], " ", 
+  RowBox[{"(*", " ", 
+   RowBox[{"not", " ", "working", " ", "on", " ", "V2"}], " ", 
+   "*)"}]}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Mapping", "Subsection"],
+
+Cell["To allocate the calculation:", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<prodVect.alpha\>\"", "]"}], ";", 
+  RowBox[{"schedule", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"appSched", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Generating Hardware", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell["Transformation to Alpha0", "Subsection"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<prodVect.alpha\>\"", "]"}], ";", 
+  RowBox[{"schedule", "[", 
+   RowBox[{"verbose", "\[Rule]", "False"}], "]"}], ";", 
+  RowBox[{"appSched", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"toAlpha0v2", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"simplifySystem", "[", 
+   RowBox[{"alphaFormat", "\[Rule]", "Alpha0"}], "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Transformation to AlpHard", "Subsection"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"alpha0ToAlphard", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashowLib", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asaveLib", "[", "\"\<prodVectHard.alpha\>\"", "]"}], 
+  ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Fix the parameter value", "Subsection"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<N\>\"", ",", "10"}], "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Generate Vhdl code", "Subsection"],
+
+Cell[BoxData[
+ RowBox[{"a2v", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"!!", 
+  RowBox[{"prodVectModule", ".", "vhd"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"showVhdl", "[", "\"\<prodVectModule\>\"", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Some other manipulations", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell["Pipelining b", "Subsection"],
+
+Cell[TextData[{
+ "Here we indicate to pipeline the expression ",
+ StyleBox["b[j]",
+  FontFamily->"Courier"],
+ " (which is, in standard notation ",
+ StyleBox["b.(i,j->j))",
+  FontFamily->"Courier"],
+ " along the direction (0,1) (i.e. ",
+ StyleBox["(i,j->i+1,j)",
+  FontFamily->"Courier"],
+ ") and the name of the new pipelining variable will be ",
+ StyleBox["B1",
+  FontFamily->"Courier"]
+}], "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<prodVect.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"pipeall", "[", 
+   RowBox[{
+   "\"\<C\>\"", ",", "\"\<b.(i,j->j)\>\"", ",", "\"\<B1.(i,j->i+1,j)\>\""}], 
+   "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Change of basis ", "Subsection"],
+
+Cell["\<\
+A possible change of basis (the matrix of the change of basis application is \
+unimodular):\
+\>", "Text",
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<prodVect.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"changeOfBasis", "[", "\"\<C.(i,j->i+j,j)\>\"", "]"}], 
+  ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell["Not that the domains of C is no more a rectangle. ", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<prodVect.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"pipeall", "[", 
+   RowBox[{
+   "\"\<C\>\"", ",", "\"\<b.(i,j->j)\>\"", ",", "\"\<B1.(i,j->i+1,j)\>\""}], 
+   "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"changeOfBasis", "[", 
+   RowBox[{"\"\<C.(i,j->i,j,1)\>\"", ",", 
+    RowBox[{"{", 
+     RowBox[{"\"\<i\>\"", ",", "\"\<j\>\"", ",", "\"\<k\>\""}], "}"}]}], 
+   "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"normalize", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Substitution", "Subsection"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<prodVect.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<c\>\"", ",", "\"\<C\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}], ";"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Normalization", "Subsection"],
+
+Cell[TextData[{
+ "Normalization of the previous program is not spectacular, as the program is \
+already normalized... However, you can use the ",
+ StyleBox["simplifySystem[]",
+  FontFamily->"Courier"],
+ " function which performs the normalization plus the reduction of redundant \
+constraints in the domains, now the program is easier to read:"
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"]
+}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Structured programs", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+A binary adder which adds two W-bits vectors using a full adder:\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<binaryAdder.alpha\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell["\<\
+If you want to see the full adder, you will have to get it from the library \
+to $result:\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getSystem", "[", "\"\<FullAdder\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[TextData[{
+ "Notice that each instanc of ",
+ StyleBox["FullAdder",
+  FontFamily->"Courier"],
+ " takes boolean as input but the ",
+ StyleBox["use",
+  FontFamily->"Courier"],
+ " construct in system ",
+ StyleBox["Plus",
+  FontFamily->"Courier"],
+ " takes vectors of boolean as input, it corresponds to ",
+ StyleBox["W",
+  FontFamily->"Courier"],
+ " independent use of system ",
+ StyleBox["FullAdder.",
+  FontFamily->"Courier"]
+}], "Text"],
+
+Cell["We can set the parameter to a particular value:", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getSystem", "[", "\"\<Plus\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell["We can set the parameter to a particular value:", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"assignParameterValue", "[", 
+   RowBox[{"\"\<W\>\"", ",", "8"}], "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell["\<\
+And we can inline the use if we want (for instance to simulate it)\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"inlineAll", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"removeIdEqus", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"schedule", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"cGen", "[", 
+   RowBox[{"\"\<fa.c\>\"", ",", 
+    RowBox[{"{", "}"}]}], "]"}], ";"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Cleaning the Directory", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["Used for CVS purpose: delete all temporary files", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"setMMADir", "[", 
+   RowBox[{"{", 
+    RowBox[{
+    "\"\<demos\>\"", ",", "\"\<NOTEBOOKS\>\"", ",", 
+     "\"\<Getting-Started\>\""}], "}"}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"CopyFile", "[", 
+   RowBox[{"\"\<prodVect.alpha\>\"", ",", "\"\<temporaire1\>\""}], "]"}], 
+  ";"}], "\n", 
+ RowBox[{
+  RowBox[{"CopyFile", "[", 
+   RowBox[{"\"\<binaryAdder.alpha\>\"", ",", "\"\<temporaire2\>\""}], "]"}], 
+  ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.alpha\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.vhd\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.c\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.component\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"CopyFile", "[", 
+   RowBox[{"\"\<temporaire1\>\"", ",", "\"\<prodVect.alpha\>\""}], "]"}], 
+  ";"}], "\n", 
+ RowBox[{
+  RowBox[{"CopyFile", "[", 
+   RowBox[{"\"\<temporaire2\>\"", ",", "\"\<binaryAdder.alpha\>\""}], "]"}], 
+  ";"}], "\n", 
+ RowBox[{"DeleteFile", "[", 
+  RowBox[{"FileNames", "[", "\"\<temporaire*\>\"", "]"}], "]"}]}], "Input"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"]
+}, Open  ]]
+}, Open  ]]
+},
+AutoGeneratedPackage->None,
+WindowToolbars->"EditBar",
+WindowSize->{1015, 664},
+WindowMargins->{{124, Automatic}, {Automatic, 38}},
+DockedCells->FEPrivate`FrontEndResource[
+ "FEExpressions", "CompatibilityToolbar"],
+ShowSelection->True,
+Magnification->1.5,
+FrontEndVersion->"7.0 for Mac OS X x86 (32-bit) (February 18, 2009)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{
+ "firstcell"->{
+  Cell[567, 22, 87, 2, 114, "Title",
+   CellTags->"firstcell"]}
+ }
+*)
+(*CellTagsIndex
+CellTagsIndex->{
+ {"firstcell", 16078, 654}
+ }
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[567, 22, 87, 2, 114, "Title",
+ CellTags->"firstcell"],
+Cell[657, 26, 56, 0, 39, "Subsubtitle"],
+Cell[716, 28, 165, 3, 31, "SmallText"],
+Cell[CellGroupData[{
+Cell[906, 35, 63, 1, 36, "Subsubsection"],
+Cell[972, 38, 360, 14, 456, "SmallText"]
+}, Closed]],
+Cell[1347, 55, 104, 3, 45, "Subsubsection"],
+Cell[CellGroupData[{
+Cell[1476, 62, 94, 1, 25, "Subsubsection"],
+Cell[CellGroupData[{
+Cell[1595, 67, 205, 6, 60, "Input",
+ InitializationCell->True],
+Cell[1803, 75, 263, 5, 70, "Output"],
+Cell[2069, 82, 232, 5, 60, "Output"],
+Cell[2304, 89, 207, 4, 60, "Output"],
+Cell[2514, 95, 185, 4, 60, "Output"],
+Cell[2702, 101, 159, 3, 60, "Output"]
+}, Open  ]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[2910, 110, 84, 1, 53, "Section"],
+Cell[CellGroupData[{
+Cell[3019, 115, 52, 0, 51, "Subsection"],
+Cell[3074, 117, 158, 5, 39, "Text"],
+Cell[3235, 124, 57, 1, 40, "Input"],
+Cell[3295, 127, 96, 2, 40, "Input"],
+Cell[3394, 131, 53, 1, 40, "Input"],
+Cell[3450, 134, 122, 3, 39, "Text"],
+Cell[3575, 139, 47, 1, 40, "Input"],
+Cell[3625, 142, 52, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3714, 148, 28, 0, 51, "Subsection"],
+Cell[3745, 150, 155, 5, 39, "Text"],
+Cell[3903, 157, 77, 1, 40, "Input"],
+Cell[3983, 160, 57, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4077, 166, 31, 0, 51, "Subsection"],
+Cell[4111, 168, 89, 2, 39, "Text"],
+Cell[4203, 172, 55, 1, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4295, 178, 121, 1, 51, "Subsection"],
+Cell[4419, 181, 222, 6, 62, "Text"],
+Cell[4644, 189, 74, 2, 40, "Input"],
+Cell[4721, 193, 247, 6, 40, "Input"],
+Cell[4971, 201, 109, 1, 39, "Text"],
+Cell[5083, 204, 147, 2, 40, "Input"],
+Cell[5233, 208, 122, 2, 40, "Input"],
+Cell[5358, 212, 154, 2, 40, "Input"],
+Cell[5515, 216, 227, 6, 39, "Text"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[5779, 227, 32, 0, 37, "Subsection"],
+Cell[5814, 229, 31, 0, 39, "Text"],
+Cell[5848, 231, 56, 1, 40, "Input"],
+Cell[5907, 234, 44, 0, 39, "Text"],
+Cell[5954, 236, 63, 1, 40, "Input"],
+Cell[6020, 239, 232, 8, 39, "Text"],
+Cell[6255, 249, 186, 5, 40, "Input"],
+Cell[6444, 256, 163, 4, 40, "Input"],
+Cell[6610, 262, 106, 3, 39, "Text"],
+Cell[6719, 267, 191, 6, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6947, 278, 29, 0, 51, "Subsection"],
+Cell[6979, 280, 44, 0, 39, "Text"],
+Cell[7026, 282, 136, 3, 40, "Input"],
+Cell[7165, 287, 106, 3, 40, "Input"]
+}, Open  ]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[7320, 296, 69, 1, 53, "Section"],
+Cell[CellGroupData[{
+Cell[7414, 301, 46, 0, 51, "Subsection"],
+Cell[7463, 303, 221, 5, 40, "Input"],
+Cell[7687, 310, 76, 2, 40, "Input"],
+Cell[7766, 314, 53, 1, 40, "Input"],
+Cell[7822, 317, 162, 4, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8021, 326, 47, 0, 51, "Subsection"],
+Cell[8071, 328, 81, 2, 40, "Input"],
+Cell[8155, 332, 53, 1, 40, "Input"],
+Cell[8211, 335, 56, 1, 40, "Input"],
+Cell[8270, 338, 107, 3, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8414, 346, 45, 0, 51, "Subsection"],
+Cell[8462, 348, 116, 3, 40, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8615, 356, 40, 0, 51, "Subsection"],
+Cell[8658, 358, 51, 1, 40, "Input"],
+Cell[8712, 361, 83, 2, 40, "Input"],
+Cell[8798, 365, 82, 1, 40, "Input"],
+Cell[8883, 368, 57, 1, 40, "Input"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8989, 375, 74, 1, 100, "Section"],
+Cell[CellGroupData[{
+Cell[9088, 380, 34, 0, 51, "Subsection"],
+Cell[9125, 382, 399, 13, 109, "Text"],
+Cell[9527, 397, 96, 2, 58, "Input"],
+Cell[9626, 401, 167, 5, 58, "Input"],
+Cell[9796, 408, 53, 1, 58, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[9886, 414, 38, 0, 37, "Subsection"],
+Cell[9927, 416, 138, 4, 70, "Text"],
+Cell[10068, 422, 96, 2, 58, "Input"],
+Cell[10167, 426, 108, 3, 58, "Input"],
+Cell[10278, 431, 53, 1, 58, "Input"],
+Cell[10334, 434, 66, 0, 70, "Text"],
+Cell[10403, 436, 96, 2, 58, "Input"],
+Cell[10502, 440, 167, 5, 58, "Input"],
+Cell[10672, 447, 218, 6, 58, "Input"],
+Cell[10893, 455, 75, 2, 58, "Input"],
+Cell[10971, 459, 53, 1, 58, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[11061, 465, 34, 0, 37, "Subsection"],
+Cell[11098, 467, 96, 2, 58, "Input"],
+Cell[11197, 471, 209, 5, 58, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[11443, 481, 35, 0, 37, "Subsection"],
+Cell[11481, 483, 401, 9, 148, "Text"],
+Cell[11885, 494, 112, 3, 58, "Input"]
+}, Closed]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[12046, 503, 69, 1, 53, "Section"],
+Cell[12118, 506, 88, 2, 39, "Text"],
+Cell[12209, 510, 131, 3, 40, "Input"],
+Cell[12343, 515, 113, 3, 39, "Text"],
+Cell[12459, 520, 128, 3, 40, "Input"],
+Cell[12590, 525, 440, 16, 62, "Text"],
+Cell[13033, 543, 63, 0, 39, "Text"],
+Cell[13099, 545, 123, 3, 40, "Input"],
+Cell[13225, 550, 63, 0, 39, "Text"],
+Cell[13291, 552, 155, 4, 40, "Input"],
+Cell[13449, 558, 90, 2, 39, "Text"],
+Cell[13542, 562, 107, 3, 40, "Input"],
+Cell[13652, 567, 110, 3, 40, "Input"],
+Cell[13765, 572, 74, 2, 40, "Input"],
+Cell[13842, 576, 130, 4, 40, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[14009, 585, 72, 1, 53, "Section"],
+Cell[14084, 588, 64, 0, 39, "Text"],
+Cell[14151, 590, 200, 6, 40, "Input"],
+Cell[14354, 598, 57, 1, 40, "Input"],
+Cell[14414, 601, 1103, 30, 225, "Input"],
+Cell[15520, 633, 57, 1, 40, "Input"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

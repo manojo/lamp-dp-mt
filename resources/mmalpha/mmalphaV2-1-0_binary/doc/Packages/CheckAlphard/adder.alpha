@@ -1,0 +1,7 @@
+-- Example for VHDL translator - September 1998
+system adder: {Tinit, Duration | Tinit>=0; Duration>=0} 
+(x,y : {t|Tinit<= t<= Tinit+Duration-1} of integer)
+returns (z: {t|Tinit<= t<= Tinit+Duration-1} of integer);
+let 
+	z = x+y;
+tel;

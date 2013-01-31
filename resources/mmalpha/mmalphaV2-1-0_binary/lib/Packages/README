@@ -1,0 +1,16 @@
+This directory contains several MMAlpha packages. The Alpha
+directory contains most of the packages.
+
+CONTENT (As of April 25, 2005)
+
+d Alpha		Where the MMA files are
+Alpha.m		Main functions of MMAlpha
+Fail.m		Contains several functions used to handle 
+  errors in MMAlpha functions
+Options.m	???
+README		OK
+autoload	???
+index.html
+setup.m		contains a few (quite dangerous) hacks that are
+  absolutely needed for some packages like Matrix.m
+

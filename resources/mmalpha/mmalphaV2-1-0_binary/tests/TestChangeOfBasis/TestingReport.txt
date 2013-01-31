@@ -1,0 +1,236 @@
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 12:38:26
+Calling TestChangeOfBasis.m
+****** > test COB11 was wrong
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 12:42:06
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 12:45:16
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 12:45:20
+Calling TestChangeOfBasis.m
+****** > test COB11 was wrong
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:22:46
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:22:50
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:22:55
+Calling TestChangeOfBasis.m
+****** > test COB13 was wrong
+****** > test COB17 was wrong
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:24:13
+Calling TestChangeOfBasis.m
+****** > test COB13 was wrong
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:25:34
+Calling TestChangeOfBasis.m
+****** > test COB13 was wrong
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:26:44
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:27:18
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:27:21
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:27:24
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:27:29
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:27:33
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:27:38
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:27:42
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:27:46
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:27:51
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:27:55
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:27:59
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:28:09
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:28:19
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:28:29
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:28:37
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:28:41
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:28:44
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:28:48
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:28:52
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:28:57
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:29:01
+Calling TestChangeOfBasis.m
+****** > test COB17 was wrong
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:29:23
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:29:34
+Calling TestChangeOfBasis.m
+****** > test COB17 was wrong
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:32:33
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Thu 1 Jan 2009 14:32:39
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: Alpha
+Date: Thu 1 Jan 2009 14:34:21
+Calling TestAlpha.m
+------------- > Test for Alpha was passed successfully.
+End of test
+------> Testing: Alpha
+Date: Thu 1 Jan 2009 14:34:29
+Calling TestAlpha.m
+------------- > Test for Alpha was passed successfully.
+End of test
+------> Testing: Alpha
+Date: Thu 1 Jan 2009 14:35:33
+Calling TestAlpha.m
+------------- > Test for Alpha was passed successfully.
+End of test
+------> Testing: Alpha
+Date: Thu 1 Jan 2009 14:35:43
+Calling TestAlpha.m
+****** > test Alpha Zpol 6 was wrong
+End of test
+------> Testing: Alpha
+Date: Thu 1 Jan 2009 14:37:34
+Calling TestAlpha.m
+------------- > Test for Alpha was passed successfully.
+End of test
+------> Testing: Tables
+Date: Thu 1 Jan 2009 14:46:37
+Calling TestTables.m
+------------- > Test for Tables was passed successfully.
+End of test
+------> Testing: Tables
+Date: Thu 1 Jan 2009 14:46:41
+Calling TestTables.m
+------------- > Test for Tables was passed successfully.
+End of test
+------> Testing: Tables
+Date: Thu 1 Jan 2009 14:47:11
+Calling TestTables.m
+End of test
+------> Testing: Tables
+Date: Thu 1 Jan 2009 14:47:23
+Calling TestTables.m
+------------- > Test for Tables was passed successfully.
+End of test
+------> Testing: Matrix
+Date: Thu 1 Jan 2009 14:49:56
+Calling TestMatrix.m
+****** > test Matrix 26 was wrong
+****** > test Matrix 27 was wrong
+End of test
+------> Testing: Matrix
+Date: Thu 1 Jan 2009 14:51:07
+Calling TestMatrix.m
+------------- > Test for Matrix was passed successfully.
+End of test
+------> Testing: Matrix
+Date: Thu 1 Jan 2009 16:32:18
+Calling TestMatrix.m
+------------- > Test for Matrix was passed successfully.
+End of test

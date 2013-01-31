@@ -1,0 +1,33 @@
+(* ----------
+  Trace file 
+  25/4/2010 -- 18h 25mn 24.425346s
+  List of commands executed
+  ----------  *)
+(* ++++ Loading... *)
+load[ distances.alpha mute -> True ];
+(* ++++  Inlining ... *)
+inlineAll[]; removeIdEqus[]; normalize[]; simplifySystem[], 
+asave[ computeDistancesInlined.alpha ];
+load[ computeDistancesInlined.alpha ];
+(* ++++  Analyzing ... *)
+analyze[ mute -> True ]
+(* ++++  Scheduling ... *)
+scd[  ]
+(* ++++ Applying schedule ... *)
+appSched[  ]
+pipeVars[ mute -> True ]
+(* ++++ Generating Alpha0 ...*) 
+toAlpha0v2[ mute -> True, verbose -> False ]
+(* ++++ Generating AlphHard ... *)
+alpha0ToAlphard[ mergeDomains -> True, verbose-> False, mute -> True ]
+(* ++++ Setting parameter's value ... *)
+fixParameter[ N, 20, mute->True ]
+fixParameter[ M, 100, mute->True ]
+(* ++++ Generating Vhdl ... *)
+a2v[ vhdlDir->computeDistancesSYN/VHDL, mute->True, verbose->False, 
+      vhdlPatterns -> False ];
+(*
+----  Vhdl was generated in Directory computeDistancesSYN/VHDL
+----  Congratulations, you made it ! 
+----  Total time: 3.45061 seconds
+ *)

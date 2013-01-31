@@ -1,0 +1,15 @@
+Begin["Alpha`Simul`test4`"];
+Clear[ Alpha`Simul`test4`a, Alpha`Simul`test4`b, Alpha`Simul`test4`c];
+    Alpha`Simul`test4`c[i_, f:(_Integer|_Symbol)...] := Which[
+-2 + i == 0,
+If[ -2 + i == 0,
+    Alpha`Simul`test4`a[ i,f ],
+    Message[ semanticFunction::undef ] ],
+-3 + i == 0,
+If[ -3 + i == 0,
+    Alpha`Simul`test4`b[ i,f ],
+    Message[ semanticFunction::undef ] ],
+True, Message[ semanticFunction::undef ]
+];
+    Alpha`Simul`test4`c[ ___ ] := Message[Alpha`Simul`test4`c::params ];
+End[];

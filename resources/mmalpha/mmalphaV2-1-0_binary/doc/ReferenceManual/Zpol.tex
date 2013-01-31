@@ -1,0 +1,43 @@
+%
+% File created on {2009, 4, 25, 17, 47, 46.104429} by makeDoc.
+%
+% Section header
+\section{The Alpha`Zpol` package } 
+\label{label:Alpha`Zpol`}
+\alphanote{Zpol}{Documentation revised on August 10, 2004} 
+ 
+\alphausage{Zpol}{The Alpha`Zpol` package contains additional functions for computing
+with Z-polyhedra. These functions are expressLatticeWithMat, 
+expressZpolWithMat, getMatOfZpol, and getPolOfZpol.}{Alpha/Zpol.m}{Alpha`Zpol`}
+\index{Zpol}
+
+\alphanote{Zpol}{The internal representation of a Zpol is:
+domain[dim\_Integer, \{\_\_\_String\},
+\{\_\_\_zpol[m\_matrix,\{\_\_\_pol\}]\}] (which is m(p)).} 
+ 
+\alphausage{expressLatticeWithMat}{expressLatticeWithMat[sys,m] returns a system where all Z-polyhedra 
+using lattices corresponding to the matrix m are rewritten so as 
+to appear with matrix m as lattice. Default value of sys is \$result.
+expressLatticeWithMat[sys,m,pos] modifies only the 
+Z-domain at position pos of the Alpha abstract syntax tree.}{Alpha/Zpol.m}{Alpha`Zpol`}
+\index{expressLatticeWithMat}
+
+\alphausage{expressZpolWithMat}{expressZpolWithMat[z,M] attempts to change the representation    
+of the Z-polyhedron z. Assuming z = N(P), we expect a result of the 
+form w = M(P') where M is the matrix given as second argument, hence 
+it returns M(P') where P'=M\^\{-1\} N(P). If M and N do not represent 
+the same lattice, it gives a warning and return z unchanged. 
+If z is a union of Z-polyhedra, it fails.}{Alpha/Zpol.m}{Alpha`Zpol`}
+\index{expressZpolWithMat}
+
+\alphausage{getMatOfZpol}{getMatOfZpol[z] returns the matrix used for identifying the 
+lattice of a Z-polyhedron z. If z=M(P), it returns M. If Z is already a 
+polyhedron, it returns the identity matrix. If z is a union of 
+Z-polyhedra, it fails.}{Alpha/Zpol.m}{Alpha`Zpol`}
+\index{getMatOfZpol}
+
+\alphausage{getPolOfZpol}{getPolOfZpol[z] returns the polyhedron used as source for generating 
+a Z-polyhedron z. If z=M(P), it returns P. If z is already 
+a polyhedron, it returns z. If z is a union of Z-polyhedra, it fails.}{Alpha/Zpol.m}{Alpha`Zpol`}
+\index{getPolOfZpol}
+

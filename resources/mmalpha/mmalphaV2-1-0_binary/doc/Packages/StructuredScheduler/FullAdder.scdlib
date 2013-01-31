@@ -1,0 +1,3 @@
+{scheduleResult["FullAdder", {}, {{"A", {}, sched[{}, 0]}, 
+   {"B", {}, sched[{}, 0]}, {"Cin", {}, sched[{}, 0]}}, 
+  {{"X", {}, sched[{}, 1]}, {"Cout", {}, sched[{}, 1]}}]}

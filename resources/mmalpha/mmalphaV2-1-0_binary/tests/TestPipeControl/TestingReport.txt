@@ -1,0 +1,185 @@
+------> Testing: PipeControl
+Date: Tue 23 Feb 2010 13:56:57
+Calling TestPipeControl.m
+****** > test PipeControl 17 was wrong
+End of test
+------> Testing: Install
+Date: Tue 23 Feb 2010 14:10:15
+Calling TestInstall.m
+------------- > Test for Install was passed successfully.
+End of test
+------> Testing: PipeControl
+Date: Tue 23 Feb 2010 14:11:05
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: PipeControl
+Date: Tue 23 Feb 2010 14:27:25
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: Domlib
+Date: Tue 23 Feb 2010 14:29:45
+Calling TestDomlib.m
+------------- > Test for Domlib was passed successfully.
+End of test
+------> Testing: Tables
+Date: Tue 23 Feb 2010 14:29:55
+Calling TestTables.m
+------------- > Test for Tables was passed successfully.
+End of test
+------> Testing: Matrix
+Date: Tue 23 Feb 2010 14:29:57
+Calling TestMatrix.m
+------------- > Test for Matrix was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Tue 23 Feb 2010 14:30:12
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Normalization
+Date: Tue 23 Feb 2010 14:30:20
+Calling TestNormalization.m
+------------- > Test for Normalization was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Tue 23 Feb 2010 14:30:25
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: Decomposition
+Date: Tue 23 Feb 2010 14:30:44
+Calling TestDecomposition.m
+------------- > Test for Decomposition was passed successfully.
+End of test
+------> Testing: CutMMA
+Date: Tue 23 Feb 2010 14:30:46
+Calling TestCutMMA.m
+------------- > Test for CutMMA was passed successfully.
+End of test
+------> Testing: SubSystems
+Date: Tue 23 Feb 2010 14:30:49
+Calling TestSubSystems.m
+------------- > Test for SubSystems was passed successfully.
+End of test
+------> Testing: Static
+Date: Tue 23 Feb 2010 14:30:51
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Alpha
+Date: Tue 23 Feb 2010 14:31:10
+Calling TestAlpha.m
+------------- > Test for Alpha was passed successfully.
+End of test
+------> Testing: Domlib
+Date: Tue 23 Feb 2010 14:31:11
+Calling TestDomlib.m
+------------- > Test for Domlib was passed successfully.
+End of test
+------> Testing: Tables
+Date: Tue 23 Feb 2010 14:31:13
+Calling TestTables.m
+------------- > Test for Tables was passed successfully.
+End of test
+------> Testing: Matrix
+Date: Tue 23 Feb 2010 14:31:13
+Calling TestMatrix.m
+------------- > Test for Matrix was passed successfully.
+End of test
+------> Testing: CutMMA
+Date: Tue 23 Feb 2010 14:31:14
+Calling TestCutMMA.m
+------------- > Test for CutMMA was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Tue 23 Feb 2010 14:31:15
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Normalization
+Date: Tue 23 Feb 2010 14:31:17
+Calling TestNormalization.m
+------------- > Test for Normalization was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Tue 23 Feb 2010 14:31:21
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: SubSystems
+Date: Tue 23 Feb 2010 14:31:31
+Calling TestSubSystems.m
+------------- > Test for SubSystems was passed successfully.
+End of test
+------> Testing: Decomposition
+Date: Tue 23 Feb 2010 14:31:32
+Calling TestDecomposition.m
+------------- > Test for Decomposition was passed successfully.
+End of test
+------> Testing: Static
+Date: Tue 23 Feb 2010 14:31:32
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: Pipeline
+Date: Tue 23 Feb 2010 14:31:34
+Calling TestPipeline.m
+------------- > Test for Pipeline was passed successfully.
+End of test
+------> Testing: Pipeline
+Date: Tue 23 Feb 2010 14:32:17
+Calling TestPipeline.m
+------------- > Test for Pipeline was passed successfully.
+End of test
+------> Testing: PipeControl
+Date: Tue 23 Feb 2010 14:32:23
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: MultiDim
+Date: Tue 23 Feb 2010 14:32:29
+Calling TestMultiDim.m
+------------- > Test for MultiDim was passed successfully.
+End of test
+------> Testing: Visual
+Date: Tue 23 Feb 2010 14:32:38
+Calling TestVisual.m
+------------- > Test for Visual was passed successfully.
+End of test
+------> Testing: Schedule
+Date: Tue 23 Feb 2010 14:32:40
+Calling TestSchedule.m
+****** > test appSched 13  was wrong
+End of test
+------> Testing: Alphard
+Date: Tue 23 Feb 2010 14:33:24
+Calling TestAlphard.m
+****** > test Alphard 16 was wrong
+End of test
+------> Testing: CodeGen
+Date: Tue 23 Feb 2010 14:34:01
+Calling TestCodeGen.m
+****** > test test cGen 3  was wrong
+End of test
+------> Testing: ModularSchedule
+Date: Tue 23 Feb 2010 14:34:05------> Testing: Pip
+Date: Tue 23 Feb 2010 14:34:06
+Calling TestPip.m
+****** > test getPipResult 1 was wrong
+****** > test getPipResult 2 was wrong
+****** > test getPipResult 3 was wrong
+****** > test getPipResult 4 was wrong
+****** > test pipToSymbol 1 was wrong
+****** > test pipToSymbol 2 was wrong
+****** > test pipToSymbol 3 was wrong
+****** > test pipToSymbol 4 was wrong
+****** > test lpToPip 1 was wrong
+****** > test solveWithPip 1 was wrong
+****** > test solveWithPip 2 was wrong
+****** > test solveWithPip 3 was wrong
+End of test
+------> Testing: Uniformization
+Date: Tue 23 Feb 2010 14:34:09
+Calling TestUniformization.m

@@ -1,0 +1,4 @@
+
+  $label1$ : FOR p IN $lb$ TO $ub$ GENERATE
+    $label2$ : $name$ PORT MAP (clk, CE, rst, $arguments$);
+  END GENERATE

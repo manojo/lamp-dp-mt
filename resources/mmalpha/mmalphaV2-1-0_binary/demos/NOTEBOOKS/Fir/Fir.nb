@@ -1,0 +1,1475 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 6.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[     52068,       1466]
+NotebookOptionsPosition[     44799,       1248]
+NotebookOutlinePosition[     45419,       1275]
+CellTagsIndexPosition[     45346,       1270]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The FIR filter", "Title",
+ TextAlignment->Left,
+ TextJustification->1,
+ FontColor->RGBColor[1, 0, 0],
+ CellTags->"firstcell"],
+
+Cell["Last revision: July 2008.", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell["Credits", "Subsubsection",
+ FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+      Zbigniew Chamski 
+      Catherine Dezan 
+      Florent Dupont de Dinechin 
+      Anne-Claire Guillou
+      Patricia Le Mo\[EDoubleDot]nner 
+      Herv\[EAcute] Le Verge 
+      Christophe Mauras 
+      Patrice Quinton 
+      Fabien Quillere
+      Sanjay Rajopadhye 
+      Sophie Robert 
+      Tanguy Risset 
+      Doran Wilde \
+\>", "SmallText"]
+}, Closed]],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042, Rennes Cedex, France
+quinton@irisa.fr\
+\>", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[" This cell is automatically evaluated.", "Subsubsection",
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+ RowBox[{"setMMADir", "[", 
+  RowBox[{"{", 
+   RowBox[{"\"\<demos\>\"", ",", "\"\<NOTEBOOKS\>\"", ",", "\"\<Fir\>\""}], 
+   "}"}], "]"}]], "Input",
+ InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Everything at once", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+Function vhdlIDType was added. Some modifications done to genVhdl functions. \
+Function checkVhdlIdentifiers added. Variable
+$vhdlTypes added and function findVarType.\
+\>", "Text",
+ CellChangeTimes->{{3.4802554843700314`*^9, 3.4802555718593597`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"syn", "[", 
+  RowBox[{"\"\<fir.alpha\>\"", ",", 
+   RowBox[{"parameterRules", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"\"\<K\>\"", "\[Rule]", "3"}], ",", 
+      RowBox[{"\"\<N\>\"", "\[Rule]", "10"}]}], "}"}]}], ",", 
+   RowBox[{"optionsOfScheduler", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"addConstraints", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{
+        "\"\<TxD1>=1\>\"", ",", "\"\<TyD1==1\>\"", ",", "\"\<TwD1==1\>\""}], 
+        "}"}]}], 
+      RowBox[{"(*", 
+       RowBox[{",", 
+        RowBox[{"optimizationType", "\[Rule]", "Null"}]}], "*)"}], ",", 
+      RowBox[{"lpResolution", "\[Rule]", "False"}], ",", 
+      RowBox[{"integerSolution", "\[Rule]", "False"}]}], "}"}]}], ",", 
+   RowBox[{"schedMethod", "\[Rule]", "vertex"}], ",", 
+   RowBox[{"verbose", "\[Rule]", "True"}], ",", 
+   RowBox[{"debug", "\[Rule]", "True"}], ",", 
+   RowBox[{"placementSteps", "\[Rule]", 
+    RowBox[{
+    "{", "\"\<pipeIO[First[Select[getVariables[],StringMatchQ[#,\\\"pipeCw*\\\
+\"]&]],\\\"w.(t,p->p)\\\",\\\"WW.(t,p->t+2,p+1)\\\",\\\"{t,p|p>=-1}\\\",debug\
+\[Rule]False];simplifySystem[];normalize[];\>\"", "}"}]}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.432473828240306*^9, 3.43247383133945*^9}, {
+   3.4341984189710703`*^9, 3.434198419445821*^9}, {3.434198703985854*^9, 
+   3.434198704447068*^9}, {3.434212570963007*^9, 3.434212578567774*^9}, {
+   3.4386187549913273`*^9, 3.4386187826201572`*^9}, {3.43952994187628*^9, 
+   3.439529953410585*^9}, {3.440091394932825*^9, 3.4400913970005407`*^9}, {
+   3.449754769608334*^9, 3.4497547747512503`*^9}, {3.449757758978961*^9, 
+   3.449757772579331*^9}, {3.4503647302680187`*^9, 3.450364737941517*^9}, {
+   3.450364804486071*^9, 3.450364810891732*^9}, {3.450364841809243*^9, 
+   3.450364853456523*^9}, {3.450364926411077*^9, 3.450365029264373*^9}, {
+   3.450365068610898*^9, 3.450365069608851*^9}, {3.4503651643449*^9, 
+   3.450365172027375*^9}, {3.450365203262319*^9, 3.450365320225522*^9}, {
+   3.450933068815084*^9, 3.4509330724219933`*^9}, {3.450933150102765*^9, 
+   3.4509331521258717`*^9}, {3.450933199525187*^9, 3.450933233094736*^9}, {
+   3.450933269741735*^9, 3.450933400543942*^9}, {3.450933444160851*^9, 
+   3.450933512942774*^9}, {3.450933862920912*^9, 3.450933927024926*^9}, {
+   3.450934050114097*^9, 3.450934053887167*^9}, {3.4509341195360727`*^9, 
+   3.450934121183708*^9}, 3.465902330772695*^9, {3.468332708917801*^9, 
+   3.4683327095881777`*^9}, {3.4760100427367373`*^9, 3.476010046643364*^9}, {
+   3.476010244051519*^9, 3.476010247434795*^9}, 3.476970454160265*^9, {
+   3.479919525155963*^9, 3.479919525993533*^9}, {3.4799195566585503`*^9, 
+   3.479919566320447*^9}, {3.479919654094118*^9, 3.479919661220091*^9}, 
+   3.48000021250959*^9, {3.480071015813211*^9, 3.480071022708208*^9}, 
+   3.480071169809064*^9, 3.480157817067109*^9, {3.480157919253242*^9, 
+   3.480157920021165*^9}, 3.481192141409938*^9}]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["1. Loading the Fir description", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["Load the program:", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<fir.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{
+  3.447770183869523*^9, {3.447770278557564*^9, 3.447770279499708*^9}, {
+   3.447829305931329*^9, 3.447829306285789*^9}, 3.448596041780911*^9}],
+
+Cell[TextData[{
+ "The FIR filter has two inputs, ",
+ StyleBox["x", "Input"],
+ " and ",
+ StyleBox["H", "Input"],
+ ", and one output, ",
+ StyleBox["res", "Input"],
+ ". All domains and equations are parameterized by ",
+ StyleBox["K", "Input"],
+ " and ",
+ StyleBox["N", "Input"],
+ ", (see first line). "
+}], "Text",
+ CellChangeTimes->{{3.468081456037384*^9, 3.4680814597175617`*^9}}],
+
+Cell["First, we check the program: ", "Text"],
+
+Cell[BoxData[
+ RowBox[{"scd", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.476455617170662*^9, 3.476455618473629*^9}}]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2. Generate C code for simulation (may be skipped)", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["Use the code generation function.", "Text"],
+
+Cell[BoxData[
+ RowBox[{"?", "cGen"}]], "Input"],
+
+Cell["Before, schedule it. ", "Text"],
+
+Cell[BoxData[
+ RowBox[{"schedule", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.469449138283779*^9, 3.469449140849111*^9}, {
+  3.479918308899387*^9, 3.479918309867391*^9}, {3.479918650741926*^9, 
+  3.479918652107304*^9}}],
+
+Cell[BoxData[
+ RowBox[{"cGen", "[", 
+  RowBox[{"\"\<fir.c\>\"", ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"\"\<K\>\"", "\[Rule]", "6"}], ",", 
+     RowBox[{"\"\<M\>\"", "\[Rule]", "10"}]}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.439529447352345*^9, 3.43952944828421*^9}}]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["3. Schedule", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<Fir.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.4811927808360653`*^9, 3.481192786655511*^9}}],
+
+Cell["The Farkas scheduler", "Text",
+ CellChangeTimes->{{3.4370391829765673`*^9, 3.437039187539268*^9}}],
+
+Cell[BoxData[
+ RowBox[{"schedule", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.437034227038821*^9, 3.437034228928317*^9}}],
+
+Cell["The vertex scheduler", "Text",
+ CellChangeTimes->{{3.437039164637488*^9, 3.437039170946641*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"scd", "[", 
+   RowBox[{"addConstraints", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<TxD1>=1\>\"", ",", "\"\<TyD1==1\>\"", ",", "\"\<TwD1==1\>\""}], 
+     "}"}]}], 
+   RowBox[{"(*", 
+    RowBox[{",", 
+     RowBox[{"optimizationType", "\[Rule]", "Null"}]}], "*)"}], "]"}], 
+  ";"}]], "Input",
+ CellChangeTimes->{{3.481192640247406*^9, 3.481192650413211*^9}}],
+
+Cell[BoxData[
+ RowBox[{"showSchedResult", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"depGraphViz", "[", 
+  RowBox[{"displaySchedule", "\[Rule]", "True"}], "]"}]], "Input",
+ CellChangeTimes->{{3.469176095361266*^9, 3.469176128180099*^9}, {
+  3.4811916403343153`*^9, 3.481191643234136*^9}, {3.481191915263628*^9, 
+  3.481191916798913*^9}}],
+
+Cell["\<\
+We apply the corresponding change of basis, notice that dependencies are now \
+lexicographically positive.\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"appSched", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell["Save the program, after schedule", "Text",
+ CellChangeTimes->{{3.4370392348423023`*^9, 3.437039242821329*^9}}],
+
+Cell[BoxData[
+ RowBox[{"asave", "[", "\"\<firScheduled.alpha\>\"", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["4. Pipelining", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<firScheduled.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.450925890952197*^9, 3.4509258996640778`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.4811925356207647`*^9, 3.4811925375917253`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"pipeVars", "[", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.437039343746846*^9, 3.437039346517992*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"pipeIO", "[", 
+   RowBox[{
+    RowBox[{"First", "[", 
+     RowBox[{"Select", "[", 
+      RowBox[{
+       RowBox[{"getVariables", "[", "]"}], ",", 
+       RowBox[{
+        RowBox[{"StringMatchQ", "[", 
+         RowBox[{"#", ",", "\"\<pipeCw*\>\""}], "]"}], "&"}]}], "]"}], "]"}], 
+    ",", "\"\<w.(t,p->p)\>\"", ",", "\"\<WW.(t,p->t+2,p+1)\>\"", ",", 
+    "\"\<{t,p|p>=-1}\>\"", ",", 
+    RowBox[{"debug", "\[Rule]", "False"}]}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.481192253235623*^9, 3.481192283645421*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<firPiped.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.437039367763586*^9, 3.437039381218824*^9}, 
+   3.450925909374693*^9, 3.4683329866189632`*^9}],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.450933633792863*^9, 3.450933637091649*^9}}]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "5. ",
+ StyleBox["Pipelining (under work)",
+  FontColor->RGBColor[1, 0, 0]]
+}], "Section",
+ CellChangeTimes->{{3.437039264017653*^9, 3.437039268646062*^9}},
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+There is a first little bug in PipeIO (Pipeline.m), if you do not put the \
+exact expression, w.(t,p->p), you get a problem. Then, there is also another \
+bug, in the sense that you need to find a unimodular completion of the \
+equality space of the expdomain, where the p component is decreasing. This \
+amount to solve the problem here under...
+
+Warning : correct PipeControl.m is in PipeControl-old.m, and there are \
+additional traces in Pipeline.m\
+\>", "Text",
+ CellChangeTimes->{{3.4330344415092154`*^9, 3.43303455312586*^9}, {
+  3.433034606529984*^9, 3.43303461870368*^9}, {3.433034788798613*^9, 
+  3.4330348185292063`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<firPiped1.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.44976012908412*^9, 3.449760131938884*^9}, 
+   3.450925923281577*^9}],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.449758762410953*^9, 3.449758764030355*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450928287516611*^9, 3.45092830077495*^9}}],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.450928306180811*^9, 3.4509283083544893`*^9}}],
+
+Cell["\<\
+To obtain a real systolic architecture, we need to pipe some variables. The \
+function pipeInfo gives some insight on how to do this.\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{"First", "[", 
+  RowBox[{"Select", "[", 
+   RowBox[{
+    RowBox[{"getVariables", "[", "]"}], ",", 
+    RowBox[{
+     RowBox[{"StringMatchQ", "[", 
+      RowBox[{"#", ",", "\"\<pipeCw*\>\""}], "]"}], "&"}]}], "]"}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.4509338320459948`*^9, 3.45093383602835*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"pipeIO", "[", 
+   RowBox[{
+    RowBox[{"First", "[", 
+     RowBox[{"Select", "[", 
+      RowBox[{
+       RowBox[{"getVariables", "[", "]"}], ",", 
+       RowBox[{
+        RowBox[{"StringMatchQ", "[", 
+         RowBox[{"#", ",", "\"\<pipeCw*\>\""}], "]"}], "&"}]}], "]"}], "]"}], 
+    ",", "\"\<w.(t,p->t-K-1)\>\"", ",", "\"\<WW.(t,p->t+2,p+1)\>\"", ",", 
+    "\"\<{t,p|p>=-1}\>\"", ",", 
+    RowBox[{"debug", "\[Rule]", "False"}]}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.43303247498068*^9, 3.4330324860052423`*^9}, {
+   3.433032524817092*^9, 3.433032605386507*^9}, {3.433032651189323*^9, 
+   3.433032652903178*^9}, 3.433032768417059*^9, {3.4330328040202436`*^9, 
+   3.4330328075459423`*^9}, {3.4330330726195803`*^9, 3.433033079145493*^9}, {
+   3.4330331497067823`*^9, 3.433033150082416*^9}, {3.433034303678981*^9, 
+   3.4330343075390453`*^9}, {3.433034396178056*^9, 3.433034399243401*^9}, {
+   3.449758501918168*^9, 3.449758505032753*^9}, {3.4497586067910337`*^9, 
+   3.449758625380128*^9}, {3.449758897738521*^9, 3.4497589174515*^9}, {
+   3.449760154644569*^9, 3.449760155492326*^9}, {3.450925459963839*^9, 
+   3.450925477089262*^9}, {3.4509259288412323`*^9, 3.450925945537847*^9}, {
+   3.4509259980204897`*^9, 3.4509260063432093`*^9}, 3.450926036686743*^9, {
+   3.45092608918652*^9, 3.450926090378957*^9}, {3.450926623519435*^9, 
+   3.450926624034864*^9}, {3.4509266671247587`*^9, 3.4509266676046667`*^9}, {
+   3.450928356032082*^9, 3.450928363422695*^9}, 3.450933845175994*^9}],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.433034314994567*^9, 3.4330343179260406`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.449760174294798*^9, 3.449760187354447*^9}, {
+  3.450926109675832*^9, 3.450926115352067*^9}}],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.450928378400017*^9, 3.4509283809693327`*^9}}],
+
+Cell["and we save it", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<firPiped.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<firPiped.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.450924748044807*^9, 3.45092475776302*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<K\>\"", ",", "3"}], "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924701760951*^9, 3.450924728985765*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<M\>\"", ",", "5"}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.450924806151499*^9, 3.450924816417664*^9}, {
+  3.4509250526572733`*^9, 3.450925054153458*^9}, {3.4509284100866547`*^9, 
+  3.4509284109556627`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.450924767003656*^9, 3.4509247688253593`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<WW\>\"", ",", "\"\<WW\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450926757294302*^9, 3.4509267896307163`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<pipeCw3\>\"", ",", "\"\<pipeCw3\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.450925167430874*^9, 
+   3.450925169012479*^9}, {3.450926824633906*^9, 3.450926838314925*^9}, {
+   3.4509268774337254`*^9, 3.450926878729869*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<pipeCw3\>\"", ",", "\"\<WW\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.450925167430874*^9, 
+   3.450925169012479*^9}, {3.450926901029323*^9, 3.4509269104414682`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.450926939317021*^9, 3.450926944897019*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<pipeCx3\>\"", ",", "\"\<pipeCx3\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.450925167430874*^9, 
+   3.450925169012479*^9}, {3.450927007471554*^9, 3.450927017678639*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<Y\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.450925167430874*^9, 
+   3.450925169012479*^9}}],
+
+Cell[BoxData["\<\"system fir     (x : {i | 0<=i<=5} of integer[S,16]; \\n     \
+           w : {k | 1<=k<=3} of integer[S,16])\\n       returns (y : {i | \
+3<=i<=5} of integer[S,32]);\\nvar\\n  WW : {t,p | 2p+1<=t<=(p+4,2p+3); -1<=p} \
+of integer[S,16];\\n  pipeCx3 : {t,p | 2p+1<=t<=(2p+5,p+6); -1<=p<=3} of \
+integer[S,16];\\n  pipeCw3 : {t,p | p+4<=t<=p+6; 1<=p<=3} of \
+integer[S,16];\\n  Y : {t,p | p+4<=t<=p+6; 0<=p<=3} of \
+integer[S,32];\\nlet\\n  WW[t,p] = \\n      case\\n        { | p=-1} : \
+w[-t+2];\\n        { | 0<=p} | { | 2<=t} : WW[t-2,p-1];\\n      esac;\\n  \
+pipeCx3[t,p] = \\n      case\\n        { | p=-1} : x[t+1];\\n        { | \
+0<=p} : pipeCx3[t-2,p-1];\\n      esac;\\n  pipeCw3[t,p] = \\n      case\\n   \
+     { | t=p+4} : WW;\\n        { | p+5<=t} : pipeCw3[t-1,p];\\n      \
+esac;\\n  Y[t,p] = \\n      case\\n        { | p=0} : 0[];\\n        { | p=1} \
+: 0[] + pipeCw3 * pipeCx3;\\n        { | 2<=p} : Y[t-2,p-2] + \
+pipeCw3[t-1,p-1] * pipeCx3[t-1,p-1] + pipeCw3 * pipeCx3;\\n      esac;\\n  \
+y[i] = Y[i+4,3];\\ntel;\"\>"], "Print",
+ GeneratedCell->False,
+ CellAutoOverwrite->False,
+ CellChangeTimes->{{3.450925170171929*^9, 3.450925178024473*^9}, {
+   3.450925575095735*^9, 3.45092558239408*^9}, {3.450925617092173*^9, 
+   3.450925625879759*^9}, {3.450926166983395*^9, 3.450926176751899*^9}, {
+   3.450926216937834*^9, 3.450926225164603*^9}, {3.450926290991281*^9, 
+   3.4509263003607483`*^9}, {3.450927365972518*^9, 3.4509273870990353`*^9}, 
+   3.4509276689225683`*^9, 3.450928425126443*^9}]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<Y\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.450925167430874*^9, 
+   3.450925169012479*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<pipeCw3\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.450926190321989*^9, 
+   3.4509261914059687`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<pipeCw3\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.450926190321989*^9, 
+   3.4509261914059687`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<pipeCw3\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.450926190321989*^9, 
+   3.4509261914059687`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<WW\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.4509256692769213`*^9, 
+   3.4509256710542173`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<WW\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.4509256692769213`*^9, 
+   3.4509256710542173`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<WW\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.4509256692769213`*^9, 
+   3.4509256710542173`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<WW\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.4509256692769213`*^9, 
+   3.4509256710542173`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<WW\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249549648848`*^9}, {3.4509256692769213`*^9, 
+   3.4509256710542173`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ashow", "[", 
+   RowBox[{"expDomain", "[", 
+    RowBox[{
+     RowBox[{"getDefinition", "[", "\"\<Y\>\"", "]"}], "[", 
+     RowBox[{"[", 
+      RowBox[{"1", ",", "2"}], "]"}], "]"}], "]"}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.450928582313448*^9, 3.450928648687941*^9}, {
+  3.450928683121873*^9, 3.450928683424316*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ashow", "[", 
+   RowBox[{"expDomain", "[", 
+    RowBox[{
+     RowBox[{"getDefinition", "[", "\"\<Y\>\"", "]"}], "[", 
+     RowBox[{"[", 
+      RowBox[{"1", ",", "3"}], "]"}], "]"}], "]"}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.450928582313448*^9, 3.450928648687941*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ashow", "[", 
+   RowBox[{"expDomain", "[", 
+    RowBox[{
+     RowBox[{"getDefinition", "[", "\"\<Y\>\"", "]"}], "[", 
+     RowBox[{"[", 
+      RowBox[{"1", ",", "4"}], "]"}], "]"}], "]"}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.450928582313448*^9, 3.450928661839926*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ashow", "[", 
+   RowBox[{"expDomain", "[", 
+    RowBox[{
+     RowBox[{"getDefinition", "[", "\"\<Y\>\"", "]"}], "[", 
+     RowBox[{"[", 
+      RowBox[{"1", ",", "5"}], "]"}], "]"}], "]"}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.450928582313448*^9, 3.4509286693842793`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ashow", "[", 
+   RowBox[{"expDomain", "[", 
+    RowBox[{
+     RowBox[{"getDefinition", "[", "\"\<Y\>\"", "]"}], "[", 
+     RowBox[{"[", 
+      RowBox[{"1", ",", "6"}], "]"}], "]"}], "]"}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.450928582313448*^9, 3.4509286693842793`*^9}, {
+  3.450928811715004*^9, 3.45092881232218*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ashow", "[", 
+   RowBox[{"expDomain", "[", 
+    RowBox[{
+     RowBox[{"getDefinition", "[", "\"\<Y\>\"", "]"}], "[", 
+     RowBox[{"[", 
+      RowBox[{"1", ",", "7"}], "]"}], "]"}], "]"}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.450928582313448*^9, 3.4509286693842793`*^9}, {
+  3.450928816790772*^9, 3.450928817369133*^9}}],
+
+Cell[BoxData[
+ RowBox[{"show", "[", 
+  RowBox[{"expDomain", "[", "get"}]}]], "Input",
+ CellChangeTimes->{{3.450928551879334*^9, 3.450928578839634*^9}}],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.4509275703638887`*^9, 3.450927572847549*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<pipeCx3\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249798450537`*^9}, {3.4509263137430267`*^9, 
+   3.450926314157776*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<pipeCx3\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249798450537`*^9}, {3.4509263137430267`*^9, 
+   3.450926314157776*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<pipeCx3\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249798450537`*^9}, {3.4509263137430267`*^9, 
+   3.450926314157776*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<pipeCx3\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249798450537`*^9}, {3.4509263137430267`*^9, 
+   3.450926314157776*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<Y\>\"", ",", "\"\<pipeCx3\>\""}], "]"}], ";", 
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.450924670201725*^9, 3.4509246887350683`*^9}, 
+   3.450924796547509*^9, {3.4509248334990273`*^9, 3.450924867744965*^9}, {
+   3.450924950007291*^9, 3.4509249798450537`*^9}, {3.4509263137430267`*^9, 
+   3.450926314157776*^9}}],
+
+Cell["\<\
+Processor 1 : w[2] *x[1] at time t = 4, w[1]*x[2] at time 5, and w[1\
+\>", "Text",
+ CellChangeTimes->{{3.450928059781136*^9, 3.450928110307705*^9}, {
+  3.450928221550475*^9, 3.450928251118428*^9}}],
+
+Cell[BoxData[
+ RowBox[{"show", "[", 
+  RowBox[{"expDomain", "[", 
+   RowBox[{
+   "readExp", "[", "\"\<{t,p|p=1}:w.(t,p->-t+7)*x.(t,p->t-3)\>\"", "]"}], 
+   "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.450927876378528*^9, 3.4509279882482967`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"show", "[", 
+  RowBox[{"expDomain", "[", 
+   RowBox[{
+   "readExp", "[", "\"\<{t,p|p=1;t=4}:w.(t,p->-t+7)*x.(t,p->t-3)\>\"", "]"}], 
+   "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.450927876378528*^9, 3.450928011368972*^9}}],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.4509278587424383`*^9, 3.450927861091859*^9}}],
+
+Cell["\<\
+Explanations. 
+Processor 0 always produces 0
+Processor 1 produces w[1] * x[2] at time t = 5, and w[7-t] * x[\
+\>", "Text",
+ CellChangeTimes->{{3.450926438221917*^9, 3.450926530431324*^9}}]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["5. Downto Alpha0", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+ "Alpha0 is a subset of Alpha which describes hardware in a non-structured \
+manner, Here we present the automatic derivation of Alpha0 from the scheduled \
+program. The function ",
+ StyleBox["toAlpha0v2",
+  FontFamily->"Courier"],
+ " perform the following treatments generation of control signals, pipeline \
+of control signals, decomposition in simple expressions. in section 8, we \
+will detail how to perform each steps manually."
+}], "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<firPiped.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{3.4675550293151703`*^9, 3.468333007455656*^9, 
+  3.468671782094863*^9}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"toAlpha0v2", "[", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.475228969837306*^9, 3.475228976687558*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.474444096535701*^9, 3.474444098073717*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<firAlpha0.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.474977566128786*^9, 3.474977566422312*^9}, {
+  3.474977792915291*^9, 3.47497781669694*^9}, {3.474977850384698*^9, 
+  3.4749778677122507`*^9}}]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["6. Translation in AlpHard", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+The translation to Alphard allow us to obtain a structured version of the \
+architectural description. Structuring is automatically detected by domain \
+analysis (identifying  processors with similar behaviour), then the Alpha0 \
+program is structured 
+in an interface and a module which contains cells and a controler. \
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<firAlpha0.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.475228920283079*^9, 3.475228923433927*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"alpha0ToAlphard", "[", "]"}], ";"}]], "Input"],
+
+Cell["The new program in $result is", "Text"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asaveLib", "[", "\"\<firHard.alpha\>\"", "]"}], ";"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["7. Translating to Vhdl", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+For the generation of VHDL, we need to assign parameters. This is still done \
+manually.\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<firHard.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getSystem", "[", "\"\<fir\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"If", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"FileInformation", "[", "\"\<VHDL4\>\"", "]"}], "===", 
+     RowBox[{"{", "}"}]}], ",", 
+    RowBox[{"CreateDirectory", "[", "\"\<VHDL4\>\"", "]"}]}], "]"}], 
+  ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "[", "\"\<VHDL4\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"fixParameter", "[", 
+    RowBox[{"\"\<K\>\"", ",", "3"}], "]"}], ";"}], " "}]], "Input",
+ CellChangeTimes->{3.474459041071314*^9}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"fixParameter", "[", 
+    RowBox[{"\"\<N\>\"", ",", "10"}], "]"}], ";"}], " "}]], "Input",
+ CellChangeTimes->{{3.469173585720293*^9, 3.469173586108521*^9}, {
+  3.474459049958763*^9, 3.474459051164016*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asaveLib", "[", "\"\<firFixed.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell["Generates the VHDL files :", "Text"],
+
+Cell[BoxData[
+ RowBox[{"Directory", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.47522911301*^9, 3.4752291154421873`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"a2v", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.4497603014858217`*^9, 3.449760303642185*^9}, {
+  3.475229184927019*^9, 3.475229192647626*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["7. Translating to Vhdl (8 cells)", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+For the generation of VHDL, we need to assign parameters. This is still done \
+manually.\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{"SetDirectory", "[", "\"\<..\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.4323747703789673`*^9, 3.432374786068639*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<firHard.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<firHardRmClean.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"If", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"FileInformation", "[", "\"\<VHDL8\>\"", "]"}], "===", 
+     RowBox[{"{", "}"}]}], ",", 
+    RowBox[{"CreateDirectory", "[", "\"\<VHDL8\>\"", "]"}]}], "]"}], 
+  ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "[", "\"\<VHDL8\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "[", "\"\<..\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"fixParameter", "[", 
+    RowBox[{"\"\<K\>\"", ",", "8"}], "]"}], ";"}], " "}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"fixParameter", "[", 
+    RowBox[{"\"\<M\>\"", ",", "30"}], "]"}], ";"}], " "}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"a2v", "[", 
+   RowBox[{"stdLogic", "\[Rule]", "True"}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Cleaning the Directory", "Section",
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["Used for CVS purpose: delete all temporary files", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"setMMADir", "[", 
+   RowBox[{"{", 
+    RowBox[{"\"\<demos\>\"", ",", "\"\<NOTEBOOKS\>\"", ",", "\"\<Fir\>\""}], 
+    "}"}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"CopyFile", "[", 
+   RowBox[{"\"\<fir.alpha\>\"", ",", "\"\<temporaire\>\""}], "]"}], 
+  ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.alpha\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteDirectory", "[", 
+   RowBox[{
+    RowBox[{"FileNames", "[", "\"\<VHDL*\>\"", "]"}], ",", 
+    RowBox[{"DeleteContents", "\[Rule]", "True"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"DeleteDirectory", "[", 
+   RowBox[{
+    RowBox[{"FileNames", "[", "\"\<*SYN\>\"", "]"}], ",", 
+    RowBox[{"DeleteContents", "\[Rule]", "True"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.vhd\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.c\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"DeleteFile", "[", 
+   RowBox[{"FileNames", "[", "\"\<*.component\>\"", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"CopyFile", "[", 
+   RowBox[{"\"\<temporaire\>\"", ",", "\"\<fir.alpha\>\""}], "]"}], 
+  ";"}], "\n", 
+ RowBox[{"DeleteFile", "[", "\"\<temporaire\>\"", "]"}]}], "Input"],
+
+Cell[BoxData[
+ RowBox[{"FileNames", "[", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["8. Generating a Test Bench", "Section",
+ CellChangeTimes->{{3.476094222816778*^9, 3.476094234262373*^9}},
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+A documentation file exists in mmalpha/doc/TestBench. First, make sure that \
+you have vhdl code, and the corresponding library. \
+\>", "Text",
+ CellChangeTimes->{{3.476098935888246*^9, 3.4760989715420027`*^9}, {
+  3.4760996034981537`*^9, 3.47609961710434*^9}}],
+
+Cell[BoxData[
+ RowBox[{"syn", "[", 
+  RowBox[{"\"\<fir.alpha\>\"", ",", 
+   RowBox[{"parameterRules", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"\"\<K\>\"", "\[Rule]", "3"}], ",", 
+      RowBox[{"\"\<N\>\"", "\[Rule]", "10"}]}], "}"}]}], ",", 
+   RowBox[{"optionsOfScheduler", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"addConstraints", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{
+        "\"\<TxD1>=1\>\"", ",", "\"\<TyD1==1\>\"", ",", "\"\<TwD1==1\>\""}], 
+        "}"}]}], ",", 
+      RowBox[{"lpResolution", "\[Rule]", "False"}], ",", 
+      RowBox[{"integerSolution", "\[Rule]", "False"}]}], "}"}]}], ",", 
+   RowBox[{"schedMethod", "\[Rule]", "vertex"}], ",", 
+   RowBox[{"verbose", "\[Rule]", "False"}], ",", 
+   RowBox[{"mute", "\[Rule]", "True"}], ",", 
+   RowBox[{"placementSteps", "\[Rule]", 
+    RowBox[{
+    "{", "\"\<pipeIO[First[Select[getVariables[],StringMatchQ[#,\\\"pipeCw*\\\
+\"]&]],\\\"w.(t,p->p)\\\",\\\"WW.(t,p->t+2,p+1)\\\",\\\"{t,p|p>=-1}\\\",debug\
+\[Rule]False];simplifySystem[];normalize[];\>\"", "}"}]}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.432473828240306*^9, 3.43247383133945*^9}, {
+   3.4341984189710703`*^9, 3.434198419445821*^9}, {3.434198703985854*^9, 
+   3.434198704447068*^9}, {3.434212570963007*^9, 3.434212578567774*^9}, {
+   3.4386187549913273`*^9, 3.4386187826201572`*^9}, {3.43952994187628*^9, 
+   3.439529953410585*^9}, {3.440091394932825*^9, 3.4400913970005407`*^9}, {
+   3.449754769608334*^9, 3.4497547747512503`*^9}, {3.449757758978961*^9, 
+   3.449757772579331*^9}, {3.4503647302680187`*^9, 3.450364737941517*^9}, {
+   3.450364804486071*^9, 3.450364810891732*^9}, {3.450364841809243*^9, 
+   3.450364853456523*^9}, {3.450364926411077*^9, 3.450365029264373*^9}, {
+   3.450365068610898*^9, 3.450365069608851*^9}, {3.4503651643449*^9, 
+   3.450365172027375*^9}, {3.450365203262319*^9, 3.450365320225522*^9}, {
+   3.450933068815084*^9, 3.4509330724219933`*^9}, {3.450933150102765*^9, 
+   3.4509331521258717`*^9}, {3.450933199525187*^9, 3.450933233094736*^9}, {
+   3.450933269741735*^9, 3.450933400543942*^9}, {3.450933444160851*^9, 
+   3.450933512942774*^9}, {3.450933862920912*^9, 3.450933927024926*^9}, {
+   3.450934050114097*^9, 3.450934053887167*^9}, {3.4509341195360727`*^9, 
+   3.450934121183708*^9}, 3.465902330772695*^9, {3.468332708917801*^9, 
+   3.4683327095881777`*^9}, {3.4760100427367373`*^9, 3.476010046643364*^9}, {
+   3.476010244051519*^9, 3.476010247434795*^9}, {3.4760995393044443`*^9, 
+   3.4760995681495857`*^9}, 3.47697061255727*^9, {3.476972420882579*^9, 
+   3.47697243003652*^9}, {3.4800712476038103`*^9, 3.480071290946867*^9}}],
+
+Cell["Then run this.", "Text",
+ CellChangeTimes->{{3.476099002228887*^9, 3.4760990077328444`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"vhdlTestBenchGen", "[", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.476010307391625*^9, 3.476010316394957*^9}, {
+  3.4760108959716473`*^9, 3.4760109032644777`*^9}, {3.476011143711705*^9, 
+  3.4760111460354433`*^9}, {3.4760142317867527`*^9, 3.476014236943268*^9}, {
+  3.476098992325657*^9, 3.476098993911705*^9}}],
+
+Cell["This produces a test bench file in file fir_TB.vhd. ", "Text",
+ CellChangeTimes->{{3.476099041595352*^9, 3.4760990858900948`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"alpHardStim", "[", 
+  RowBox[{"debug", "\[Rule]", "False"}], "]"}]], "Input",
+ CellChangeTimes->{{3.476972468148238*^9, 3.4769724725513363`*^9}, {
+  3.477024850992861*^9, 3.477024853614955*^9}, {3.477025436231402*^9, 
+  3.47702543706999*^9}}]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["9. Generating stimuli files", "Section",
+ CellChangeTimes->{{3.476094222816778*^9, 3.476094234262373*^9}, {
+  3.476098868771674*^9, 3.476098878290885*^9}},
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+A documentation file exists in mmalpha/doc/TestBench. Load fir.\
+\>", "Text",
+ CellChangeTimes->{{3.476094247845894*^9, 3.476094256805559*^9}, {
+   3.47609835406883*^9, 3.4760983561598473`*^9}, 3.476099626418819*^9}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<fir.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{
+  3.447770183869523*^9, {3.447770278557564*^9, 3.447770279499708*^9}, {
+   3.447829305931329*^9, 3.447829306285789*^9}, 3.448596041780911*^9}],
+
+Cell["Schedule it.", "Text",
+ CellChangeTimes->{{3.476098368621656*^9, 3.4760983706793633`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"scd", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.47609483128373*^9, 3.476094832635479*^9}}],
+
+Cell["\<\
+Then run this command. Warning : all parameters must be set (otherwise an \
+error will occur later on). Compile using gcc fir.c -o fir (if gcc is unknown \
+on the Mac, download Xcode). Then run ./fir . This prompts for 11 values for \
+x, 3 values for x, and provides results for y. \
+\>", "Text",
+ CellChangeTimes->{{3.476098384299182*^9, 3.476098425573412*^9}, {
+  3.476098563945066*^9, 3.4760986164707537`*^9}, {3.4760986877213383`*^9, 
+  3.4760987101913977`*^9}}],
+
+Cell[TextData[StyleBox["Warning: for a (yet) unknown reason, before runnin \
+cGen, on must load init.m, as done here.... PQ. 2010-2-25.",
+ FontColor->RGBColor[1, 0, 0]]], "Text",
+ CellChangeTimes->{{3.476099645103314*^9, 3.47609971314009*^9}}],
+
+Cell[BoxData[
+ RowBox[{"<<", "Alpha/CodeGen/init.m"}]], "Input",
+ CellChangeTimes->{{3.476098480232336*^9, 3.476098496819908*^9}}],
+
+Cell[BoxData[
+ RowBox[{"cGen", "[", 
+  RowBox[{"\"\<fir.c\>\"", ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"\"\<K\>\"", "\[Rule]", "3"}], ",", 
+     RowBox[{"\"\<N\>\"", "\[Rule]", "10"}]}], "}"}], ",", 
+   RowBox[{"stimuli", "\[Rule]", "True"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.476079266976362*^9, 3.476079269838126*^9}, {
+  3.476079404736141*^9, 3.4760794314573393`*^9}, {3.476079681297241*^9, 
+  3.476079688479414*^9}, {3.4760827824247847`*^9, 3.4760827842457*^9}, {
+  3.476093295794586*^9, 3.476093328087566*^9}, {3.476094384701839*^9, 
+  3.476094394146557*^9}, {3.476094449026778*^9, 3.47609445840058*^9}, {
+  3.476094985586258*^9, 3.47609499211989*^9}, {3.476096626787784*^9, 
+  3.476096630893375*^9}, {3.4760984750061617`*^9, 3.4760984767087812`*^9}}],
+
+Cell["\<\
+In addition, this builds files stim_x.txt, stim_w.txt and stim_y.txt which \
+contain the values of the input and output stimuli. The results are written \
+as hexadecimal numbers of 8 digits. Using the noprint->True option allows to \
+produce stimuli files without the names of the variables. These files may be \
+used with the test bench.\
+\>", "Text",
+ CellChangeTimes->{{3.476098716720296*^9, 3.476098856386106*^9}}],
+
+Cell[BoxData[
+ RowBox[{"cGen", "[", 
+  RowBox[{"\"\<fir.c\>\"", ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"\"\<K\>\"", "\[Rule]", "3"}], ",", 
+     RowBox[{"\"\<N\>\"", "\[Rule]", "10"}]}], "}"}], ",", 
+   RowBox[{"stimuli", "\[Rule]", "True"}], ",", 
+   RowBox[{"noPrint", "\[Rule]", "False"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.476079266976362*^9, 3.476079269838126*^9}, {
+  3.476079404736141*^9, 3.4760794314573393`*^9}, {3.476079681297241*^9, 
+  3.476079688479414*^9}, {3.4760827824247847`*^9, 3.4760827842457*^9}, {
+  3.476093295794586*^9, 3.476093328087566*^9}, {3.476094384701839*^9, 
+  3.476094394146557*^9}, {3.476094449026778*^9, 3.47609445840058*^9}, {
+  3.476094985586258*^9, 3.47609499211989*^9}, {3.476096626787784*^9, 
+  3.476096630893375*^9}, {3.4760984750061617`*^9, 3.4760984767087812`*^9}, {
+  3.476098513081777*^9, 3.47609851623147*^9}, {3.4760985558534613`*^9, 
+  3.476098557042389*^9}, {3.476970368249879*^9, 3.476970369076692*^9}}]
+}, Closed]]
+}, Open  ]]
+},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+WindowSize->{1041, 680},
+WindowMargins->{{114, Automatic}, {Automatic, 10}},
+PrintingCopies->1,
+PrintingPageRange->{21, Automatic},
+ShowSelection->True,
+Magnification->1.25,
+FrontEndVersion->"7.0 for Mac OS X x86 (32-bit) (February 18, 2009)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{
+ "firstcell"->{
+  Cell[567, 22, 131, 4, 95, "Title",
+   CellTags->"firstcell"]}
+ }
+*)
+(*CellTagsIndex
+CellTagsIndex->{
+ {"firstcell", 45258, 1264}
+ }
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[567, 22, 131, 4, 95, "Title",
+ CellTags->"firstcell"],
+Cell[701, 28, 46, 0, 27, "SmallText"],
+Cell[CellGroupData[{
+Cell[772, 32, 63, 1, 30, "Subsubsection"],
+Cell[838, 35, 360, 14, 112, "SmallText"]
+}, Closed]],
+Cell[1213, 52, 104, 3, 38, "Subsubsection"],
+Cell[CellGroupData[{
+Cell[1342, 59, 94, 1, 21, "Subsubsection"],
+Cell[1439, 62, 188, 5, 33, "Input",
+ InitializationCell->True]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[1664, 72, 68, 1, 83, "Section"],
+Cell[1735, 75, 261, 5, 51, "Text"],
+Cell[1999, 82, 2935, 52, 148, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[4971, 139, 80, 1, 45, "Section"],
+Cell[5054, 142, 33, 0, 32, "Text"],
+Cell[5090, 144, 254, 5, 33, "Input"],
+Cell[5347, 151, 379, 13, 32, "Text"],
+Cell[5729, 166, 45, 0, 32, "Text"],
+Cell[5777, 168, 117, 2, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[5931, 175, 100, 1, 45, "Section"],
+Cell[6034, 178, 49, 0, 32, "Text"],
+Cell[6086, 180, 47, 1, 33, "Input"],
+Cell[6136, 183, 37, 0, 32, "Text"],
+Cell[6176, 185, 220, 4, 33, "Input"],
+Cell[6399, 191, 287, 7, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[6723, 203, 61, 1, 45, "Section"],
+Cell[6787, 206, 159, 3, 33, "Input"],
+Cell[6949, 211, 104, 1, 32, "Text"],
+Cell[7056, 214, 122, 2, 33, "Input"],
+Cell[7181, 218, 102, 1, 32, "Text"],
+Cell[7286, 221, 402, 12, 33, "Input"],
+Cell[7691, 235, 63, 1, 33, "Input"],
+Cell[7757, 238, 276, 5, 33, "Input"],
+Cell[8036, 245, 130, 3, 32, "Text"],
+Cell[8169, 250, 106, 3, 33, "Input"],
+Cell[8278, 255, 116, 1, 32, "Text"],
+Cell[8397, 258, 83, 1, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[8517, 264, 63, 1, 45, "Section"],
+Cell[8583, 267, 168, 3, 33, "Input"],
+Cell[8754, 272, 123, 2, 33, "Input"],
+Cell[8880, 276, 140, 3, 33, "Input"],
+Cell[9023, 281, 640, 16, 72, "Input"],
+Cell[9666, 299, 213, 4, 33, "Input"],
+Cell[9882, 305, 119, 2, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[10038, 312, 204, 6, 45, "Section"],
+Cell[10245, 320, 642, 12, 207, "Text"],
+Cell[10890, 334, 188, 4, 63, "Input"],
+Cell[11081, 340, 119, 2, 63, "Input"],
+Cell[11203, 344, 218, 5, 63, "Input"],
+Cell[11424, 351, 123, 2, 63, "Input"],
+Cell[11550, 355, 157, 3, 51, "Text"],
+Cell[11710, 360, 324, 9, 63, "Input"],
+Cell[12037, 371, 1523, 27, 102, "Input"],
+Cell[13563, 400, 121, 2, 63, "Input"],
+Cell[13687, 404, 268, 6, 63, "Input"],
+Cell[13958, 412, 123, 2, 63, "Input"],
+Cell[14084, 416, 30, 0, 51, "Text"],
+Cell[14117, 418, 97, 2, 63, "Input"],
+Cell[14217, 422, 161, 3, 63, "Input"],
+Cell[14381, 427, 213, 5, 63, "Input"],
+Cell[14597, 434, 285, 6, 63, "Input"],
+Cell[14885, 442, 121, 2, 63, "Input"],
+Cell[15009, 446, 315, 7, 63, "Input"],
+Cell[15327, 455, 599, 11, 47, "Input"],
+Cell[15929, 468, 544, 10, 47, "Input"],
+Cell[16476, 480, 121, 2, 47, "Input"],
+Cell[16600, 484, 547, 10, 47, "Input"],
+Cell[CellGroupData[{
+Cell[17172, 498, 489, 10, 47, "Input"],
+Cell[17664, 510, 1528, 22, 1200, "Print"]
+}, Open  ]],
+Cell[19207, 535, 489, 10, 63, "Input"],
+Cell[19699, 547, 497, 10, 63, "Input"],
+Cell[20199, 559, 497, 10, 47, "Input"],
+Cell[20699, 571, 497, 10, 47, "Input"],
+Cell[21199, 583, 494, 10, 47, "Input"],
+Cell[21696, 595, 494, 10, 47, "Input"],
+Cell[22193, 607, 494, 10, 47, "Input"],
+Cell[22690, 619, 494, 10, 47, "Input"],
+Cell[23187, 631, 494, 10, 47, "Input"],
+Cell[23684, 643, 362, 9, 47, "Input"],
+Cell[24049, 654, 313, 8, 63, "Input"],
+Cell[24365, 664, 313, 8, 63, "Input"],
+Cell[24681, 674, 315, 8, 63, "Input"],
+Cell[24999, 684, 363, 9, 63, "Input"],
+Cell[25365, 695, 364, 9, 63, "Input"],
+Cell[25732, 706, 151, 3, 63, "Input"],
+Cell[25886, 711, 123, 2, 63, "Input"],
+Cell[26012, 715, 497, 10, 47, "Input"],
+Cell[26512, 727, 497, 10, 63, "Input"],
+Cell[27012, 739, 497, 10, 63, "Input"],
+Cell[27512, 751, 497, 10, 63, "Input"],
+Cell[28012, 763, 497, 10, 63, "Input"],
+Cell[28512, 775, 207, 4, 62, "Text"],
+Cell[28722, 781, 247, 6, 63, "Input"],
+Cell[28972, 789, 249, 6, 63, "Input"],
+Cell[29224, 797, 123, 2, 63, "Input"],
+Cell[29350, 801, 198, 5, 135, "Text"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[29585, 811, 66, 1, 45, "Section"],
+Cell[29654, 814, 462, 9, 70, "Text"],
+Cell[30119, 825, 187, 4, 33, "Input"],
+Cell[30309, 831, 142, 3, 33, "Input"],
+Cell[30454, 836, 119, 2, 33, "Input"],
+Cell[30576, 840, 263, 5, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[30876, 850, 75, 1, 45, "Section"],
+Cell[30954, 853, 344, 6, 70, "Text"],
+Cell[31301, 861, 97, 2, 33, "Input"],
+Cell[31401, 865, 119, 2, 33, "Input"],
+Cell[31523, 869, 81, 2, 33, "Input"],
+Cell[31607, 873, 45, 0, 32, "Text"],
+Cell[31655, 875, 53, 1, 33, "Input"],
+Cell[31711, 878, 99, 2, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[31847, 885, 72, 1, 45, "Section"],
+Cell[31922, 888, 112, 3, 32, "Text"],
+Cell[32037, 893, 95, 2, 33, "Input"],
+Cell[32135, 897, 122, 3, 33, "Input"],
+Cell[32260, 902, 261, 8, 33, "Input"],
+Cell[32524, 912, 95, 2, 33, "Input"],
+Cell[32622, 916, 177, 5, 33, "Input"],
+Cell[32802, 923, 251, 6, 33, "Input"],
+Cell[33056, 931, 100, 2, 33, "Input"],
+Cell[33159, 935, 53, 1, 33, "Input"],
+Cell[33215, 938, 42, 0, 32, "Text"],
+Cell[33260, 940, 121, 2, 33, "Input"],
+Cell[33384, 944, 168, 3, 33, "Input"],
+Cell[33555, 949, 53, 1, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[33645, 955, 82, 1, 45, "Section"],
+Cell[33730, 958, 112, 3, 32, "Text"],
+Cell[33845, 963, 142, 2, 33, "Input"],
+Cell[33990, 967, 95, 2, 33, "Input"],
+Cell[34088, 971, 103, 2, 33, "Input"],
+Cell[34194, 975, 53, 1, 33, "Input"],
+Cell[34250, 978, 261, 8, 33, "Input"],
+Cell[34514, 988, 95, 2, 33, "Input"],
+Cell[34612, 992, 92, 2, 33, "Input"],
+Cell[34707, 996, 135, 4, 33, "Input"],
+Cell[34845, 1002, 136, 4, 33, "Input"],
+Cell[34984, 1008, 114, 3, 33, "Input"],
+Cell[35101, 1013, 53, 1, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[35191, 1019, 72, 1, 45, "Section"],
+Cell[35266, 1022, 64, 0, 32, "Text"],
+Cell[35333, 1024, 182, 5, 33, "Input"],
+Cell[35518, 1031, 57, 1, 33, "Input"],
+Cell[35578, 1034, 1211, 33, 186, "Input"],
+Cell[36792, 1069, 57, 1, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[36886, 1075, 142, 2, 45, "Section"],
+Cell[37031, 1079, 271, 5, 32, "Text"],
+Cell[37305, 1086, 2636, 46, 129, "Input"],
+Cell[39944, 1134, 98, 1, 32, "Text"],
+Cell[40045, 1137, 349, 6, 33, "Input"],
+Cell[40397, 1145, 136, 1, 32, "Text"],
+Cell[40536, 1148, 266, 5, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[40839, 1158, 192, 3, 45, "Section"],
+Cell[41034, 1163, 226, 4, 32, "Text"],
+Cell[41263, 1169, 254, 5, 33, "Input"],
+Cell[41520, 1176, 96, 1, 32, "Text"],
+Cell[41619, 1179, 116, 2, 33, "Input"],
+Cell[41738, 1183, 476, 8, 51, "Text"],
+Cell[42217, 1193, 243, 3, 32, "Text"],
+Cell[42463, 1198, 130, 2, 33, "Input"],
+Cell[42596, 1202, 773, 14, 33, "Input"],
+Cell[43372, 1218, 428, 7, 70, "Text"],
+Cell[43803, 1227, 968, 17, 33, "Input"]
+}, Closed]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

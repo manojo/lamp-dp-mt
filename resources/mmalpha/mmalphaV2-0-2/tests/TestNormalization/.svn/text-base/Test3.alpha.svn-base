@@ -1,0 +1,20 @@
+system test3   (x :  integer)
+       returns (y :  integer);
+var
+  A :  integer;
+  B :  integer;
+  C :  integer;
+  X1 :  integer;
+  X :  integer;
+  Y :  integer;
+  Z : {i | 3<=i} of integer;
+  bool1 :  boolean;
+  bool2 :  boolean;
+let
+  Z[i] = 
+      case
+        { | i=0} : X[];
+        { | 1<=i} : -B[];
+        { | i<=-1} : Z[i+1];
+      esac;
+tel;

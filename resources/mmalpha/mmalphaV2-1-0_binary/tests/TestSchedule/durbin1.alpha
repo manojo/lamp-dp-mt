@@ -1,0 +1,28 @@
+system Durbin :{N | 2<=N}
+               (r : {i | 1<=i<=N} of real)
+       returns (y : {i | 1<=i<=N} of real);
+var
+  acc : {t1,t2,i | t1=2t2-2i-2; (0,i+2)<=t2<=i+N; i<=-1} of real;
+  Y : {t1,t2,i,j | t1=2i-1; t2=0; j<=i<=N; 1<=j} of real;
+  B : {t1,t2,i | t1=2i-2; t2=0; 1<=i<=N} of real;
+let
+  acc[t1,t2,i] = 
+      case
+        {| t2=0; -N<=i<=-2} : 0[];
+        {| 1<=t2<=i+N; i<=-1} : acc[t1,t2-1,i-1] + r[t2] * Y[t1-1,0,t2-i-1,-i]
+        ;
+      esac;
+  Y[t1,t2,i,j] = 
+      case
+        {| i=1; j=1} : -r[t1];
+        {| (2,j+1)<=i} : Y[t1-2,0,i-1,j] + Y[t1,0,i,i] * Y[t1-2,0,i-1,i-j];
+        {| i=j; 2<=j<=N} : (-r[i] - acc[t1-1,i-1,-1]) / B[t1-1,0,i];
+      esac;
+  B[t1,t2,i] = 
+      case
+        {| i=1} : 1[];
+        {| 2<=i} : B[t1-2,0,i-1] * (1[] - Y[t1-1,0,i-1,i-1] * Y[t1-1,0,i-1,i-1])
+        ;
+      esac;
+  y[i] = Y[2N-1,0,N,i];
+tel;

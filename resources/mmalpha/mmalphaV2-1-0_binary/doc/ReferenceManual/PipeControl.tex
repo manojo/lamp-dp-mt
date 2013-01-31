@@ -1,0 +1,75 @@
+%
+% File created on {2007, 11, 15, 17, 10, 20.454932} by makeDoc.
+%
+% Section header
+\section{The Alpha`PipeControl` package } 
+\label{label:Alpha`PipeControl`}
+\alphausage{eq2ge}{}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{eq2ge}
+
+\alphausage{eq2le}{}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{eq2le}
+
+\alphausage{PipeControl}{This package contains functions to transform case expressions for the pipeline of control variables.  These functions are: pipeControl, pipeAllControl, report, uniformizeMatrix, uniformizeDep, findSepHalfSpace, findPipeControl, domExplode.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{PipeControl}
+
+\alphausage{pipeAllControl}{pipeAllControl[sys, options] generates pipeline control signals  for all the control variables present in sys (see pipeControl[])  and returns the modified system. pipeAllControl[options] applies  to \$result.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{pipeAllControl}
+
+\alphausage{pipeControl}{pipeControl[var] generates a pipelined control signal from the definition of variable var.  pipeControl[sys, var] does the same to program contained in symbol sys. pipeControl checks that var is defined using a doubly nested case expression. The current version only covers the case when var is defined on a 2-dimensional domain, and we assume that the first dimension is the time. The new variable is named varPipe. pipeControl may not succeed for the following reasons: the pipeline direction is searched among the halfspaces found in the separating domains of the inside case expression and this heuristics may fail. In practice, we believe that it is reasonable...}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{pipeControl}
+
+\alphausage{pipeInfo}{pipeInfo[occ:\{\_\_Integer\}] returns information about pipelining occurrence occ in \$result. If the occurrence can be piped, then pipeInfo returns a list formed by the occurence and the pipevector.  If not, it returns \$Failed. pipeInfo[] applies pipeInfo on all dependencies of  \$result. pipeInfo[ sys, occ ], or pipeInfo[ sys ] do the same to program sys. pipeInfo has an option execute $ \rightarrow $ True$|$False, When this option is set, pipeInfo executes the first pipe it has found}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{pipeInfo}
+
+\alphausage{execute}{Option of pipeInfo. If True, pipeInfo tries to pipeline system, according to the informations it has found}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{execute}
+
+\alphausage{pipeConstants}{Option of pipeInfo. If True, pipeInfo tries to pipeline constants}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{pipeConstants}
+
+\alphausage{pipeVars}{pipeVars[] executes pipeInfo until it converges, a bounded number of times}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{pipeVars}
+
+\alphausage{iterations}{Option of pipeVars. Gives the maximum number of times that pipeInfo can be called.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{iterations}
+
+\alphausage{uniformizeMatrix}{uniformizeMatrix[ mat, contextDom ] tries to find out if mat can  be made uniform in the context defined by contextDom, and returns  the uniform matrix found.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{uniformizeMatrix}
+
+\alphausage{constantizeMatrix}{constantizeMatrix[ mat, contextDom ] eliminates as many indexes  as possible in the context defined by contextDom, and returns the  matrix found.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{constantizeMatrix}
+
+\alphausage{constantizeOccur}{constantizeOccur[occ] tries to transform into constants the dependency occ in program \$result, by eliminating as many redundant indexes as possible. The parameter occ specifies the position of the dependency, and can be obtained using the getOccurs function.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{constantizeOccur}
+
+\alphausage{mkUniform}{mkUniform[occ] uniformizes the dependence occ in \$result. This function should be called only after getting the result of uniformizeOccur}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{mkUniform}
+
+\alphausage{uniformizeOccur}{uniformizeOccur[occ] tries to uniformize the dependency occ in program \$result. The parameter occ specifies the position of the dependency, and can be obtained using the getOccurs function.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{uniformizeOccur}
+
+\alphausage{reportDep}{reportDep[ repFile, occ, opts ] analyzes an dependency given by  its occurrence occ, with options opts, and writes the report in the output stream repFile. This function is called by report.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{reportDep}
+
+\alphausage{report}{report[] analyzes all dependences of \$result and gives information on it in file current.report. report has options. report[name] analyzes a program in file name.alpha and puts the result in file name.report.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{report}
+
+\alphausage{findSepHalfSpace}{findSepHalfSpace[exp] finds a list of separating hyperplanes for binary case expression exp. The method is heuristic in that the candidate hyperplanes are taken within the constraints defining the case expression. exp can be either a String or an Ast}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{findSepHalfSpace}
+
+\alphausage{findPipeControl}{findPipeControl[x] finds if symbol x is defined using a doubly nested case expression, and returns the list of separating hyperplanes with time coefficient equal to 1, of the second level case expression. This function is used in the control signal generation.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{findPipeControl}
+
+\alphausage{domExplode}{domExplode[dom] produces a list of halfspace from a domain definition.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{domExplode}
+
+\alphausage{domExplode1}{domExplode1[dom] produces a list of halfspace from a domain definition.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{domExplode1}
+
+\alphausage{route}{route[ occ, \{var, v\}, dom1, dom2 ] routes occurence occ in \$result, between dom1 and dom2, with routing vector v.}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{route}
+
+\alphausage{delocalizeControl}{}{Alpha/PipeControl.m}{Alpha`PipeControl`}
+\index{delocalizeControl}
+

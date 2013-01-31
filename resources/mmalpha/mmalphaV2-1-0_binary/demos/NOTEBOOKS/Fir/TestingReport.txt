@@ -1,0 +1,137 @@
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:10:08
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:10:44
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:11:13
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:12:37
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:12:44
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:21:13
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:22:50
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:23:22
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:25:16
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:26:09
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:28:21
+Calling TestVhdlTestBench.m
+------------- > Test for VhdlTestBench was passed successfully.
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:30:29
+Calling TestVhdlTestBench.m
+------------- > Test for VhdlTestBench was passed successfully.
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:30:45
+Calling TestVhdlTestBench.m
+------------- > Test for VhdlTestBench was passed successfully.
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 16:32:18
+Calling TestVhdlTestBench.m
+------------- > Test for VhdlTestBench was passed successfully.
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:27:47
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+****** > test vhdlTestBenchGen 2 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:30:30
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+****** > test vhdlTestBenchGen 2 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:32:22
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+****** > test vhdlTestBenchGen 2 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:34:45
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+****** > test vhdlTestBenchGen 2 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:35:03
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+****** > test vhdlTestBenchGen 2 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:37:32
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+****** > test vhdlTestBenchGen 2 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:38:51
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:39:54
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:40:28
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:43:40
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 1 was wrong
+****** > test vhdlTestBenchGen 2 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:45:18
+Calling TestVhdlTestBench.m
+****** > test vhdlTestBenchGen 2 was wrong
+End of test
+------> Testing: VhdlTestBench
+Date: Mon 8 Mar 2010 19:45:40
+Calling TestVhdlTestBench.m
+------------- > Test for VhdlTestBench was passed successfully.
+End of test

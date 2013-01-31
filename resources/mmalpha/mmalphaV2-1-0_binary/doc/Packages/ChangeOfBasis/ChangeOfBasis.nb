@@ -1,0 +1,1840 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     47057,       1433]*)
+(*NotebookOutlinePosition[     48700,       1488]*)
+(*  CellTagsIndexPosition[     48581,       1481]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The \"changeOfBasis\" package", "Title",
+  FontColor->RGBColor[1, 0, 0],
+  CellTags->"firstcell"],
+
+Cell["Patrice Quinton", "Subsubtitle"],
+
+Cell["July 1999 - Checked on Dec. 2007", "Text"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+quinton@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell[" Execute this cell, to redefine the current directory", "SmallText",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(setMMADir[{"\<doc\>", "\<packages\>", "\<ChangeOfBasis\>"}]\)], "Input",\
+
+  InitializationCell->True],
+
+Cell[BoxData[
+    \("/Users/quinton/mmalpha/doc/Packages/ChangeOfBasis"\)], "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["1. Introduction", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+  "The ",
+  StyleBox["ChangeOfBasis",
+    FontColor->RGBColor[1, 0, 0]],
+  " package contains a function which allows someone to reindex  variables. "
+}], "Text",
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?changeOfBasis\)\)], "Input"],
+
+Cell[BoxData[
+    \("changeOfBasis[var.fn] returns a copy of $result in which the variable \
+var is reindexed by an unimodular affine function fn. The change of basis is \
+specified as \"B.(i,j,k -> i+1,j,k)\" where B is the variable to be \
+reindexed, and the change of basis matrix has the format of an Alpha \
+dependence, with one difference: the index mapping function is understood as \
+a mapping from initial to new position (and not the opposite). If it is \
+square, this matrix should be unimodular. Non-square change of basis (also \
+called generalized  change of basis) are allowed, in that case, the function \
+should be called this way: changeOfBasis[var.fn, {index, ...}] applies a \
+change of basis fn on variable var, except that the new indices of var are \
+named according to the second argument.\nExample: \nchangeOfBasis[\"B.(i,j -> \
+1,i,j)\",{\"i1\",\"j1\",\"k1\"}]). \nchangeOfBasis[sys,var.fn, {index, ...}]  \
+applies a change of basis to system sys instead of $result.  \nchangeOfBasis[\
+\"B.(i,j -> 1,i,j)\", recurse->True]  recursively executes the change of \
+basis on subsystem `subsys' called  with B as input or output. The recursive \
+change of basis has  many restriction: as the semantics of the subsystem is \
+modified,  we impose that there is only one occurence of subsys appearing  in \
+the system. Moreover, the recursive change of basis can  modify only local \
+indices (indices which are not extension  indices in the use of subsys) and \
+must involve only local  indices and  parameter transmitted to the subsystem. \
+ The  change of basis on the extension indices can be performed  with the \
+function extDomainCOB[] (see ?extDomainCOB)."\)], "Print",
+  CellTags->"Info3407670287-9538060"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2. A first example", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(load["\<Test1.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \("[exemple5]? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad \
+char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? \
+bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\
+\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r \
+(octal=13)\n"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system exemple5 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 5<=t} of integer;\nlet\n  S[t] = \n      case\n        { | t=1} : 0[];\n \
+       { | 2<=t} : x[t-1] + y[t-1];\n      esac;\n  z[t] = { | 5<=t} : S[t];\n\
+tel;"\)], "Print"]
+}, Open  ]],
+
+Cell["We shift by 1 the domain of the S variable:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(changeOfBasis["\<S.(t->t+1)\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system exemple5 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 6<=t} of integer;\nlet\n  S[t] = \n      case\n        { | t=2} : 0[];\n \
+       { | 3<=t} : x[t-2] + y[t-2];\n      esac;\n  z[t] = { | 5<=t} : \
+S[t+1];\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell["ChangeOfBasis does not normalize the output program:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(normalize[]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system exemple5 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{t | 6<=t} of integer;\nlet\n  S[t] = \n      case\n        { | t=2} : 0[];\n \
+       { | 3<=t} : x[t-2] + y[t-2];\n      esac;\n  z[t] = S[t+1];\ntel;"\)], \
+"Print"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3. Another example", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["In this second example, we have 2-dimensional variables. ", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(load["\<Test2.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("[exemple9]? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad \
+char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? \
+bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\
+\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r \
+(octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \
+\r (octal=13)\n"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("system exemple9 (x : {t,p | 1<=t; 1<=p<=4} of integer; \n              \
+   y : {t,p | 1<=t; 1<=p<=4} of integer)\n       returns  (z : {t | 1<=t} of \
+integer);\nvar\n  Z : {t,p | 1<=t; 0<=p<=4} of integer;\n  S : {t,p | 1<=t; \
+1<=p<=4} of integer;\nlet\n  S[t,p] = x[t,p] + y[t,p];\n  Z[t,p] = \n      \
+case\n        { | p=0} : 0[];\n        { | 1<=p} : Z[t,p-1] + S[t,p];\n      \
+esac;\n  z[t] = Z[t,4];\ntel;"\)], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(changeOfBasis["\<Z.(t,p->t+p,p)\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system exemple9 (x : {t,p | 1<=t; 1<=p<=4} of integer; \n              \
+   y : {t,p | 1<=t; 1<=p<=4} of integer)\n       returns  (z : {t | 1<=t} of \
+integer);\nvar\n  Z : {t,p | p+1<=t; 0<=p<=4} of integer;\n  S : {t,p | 1<=t; \
+1<=p<=4} of integer;\nlet\n  S[t,p] = x[t,p] + y[t,p];\n  Z[t,p] = \n      \
+case\n        { | p=0} : 0[];\n        { | 1<=p} : Z[t-1,p-1] + S[t-p,p];\n   \
+   esac;\n  z[t] = Z[t+4,4];\ntel;"\)], "Print"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["4. Generalized change of basis", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["The change of basis matrix must be unimodular: ", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(changeOfBasis["\<S.(t->2t+1)\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(changeOfBasis::"wrgdim" \(\(:\)\(\ \)\) 
+      "the change of basis does not match dimension of variable."\)], \
+"Message"]
+}, Open  ]],
+
+Cell["\<\
+The change of basis matrix is however not necessary square. In the \
+following example, the domain of the S variable is mapped to a two \
+dimensional space indexed by q and r. The change of basis first extends the \
+space of the variable S, then maps its previous domain on the line q = r. \
+\
+\>", "Text",
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(load["\<Test1.alpha\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \("[exemple5]? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad \
+char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? \
+bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\
+\n? bad char: \r (octal=13)\n? bad char: \r (octal=13)\n? bad char: \r \
+(octal=13)\n"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(\(changeOfBasis["\<S.(t->t,t)\>", {"\<q\>", "\<r\>"}];\)\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(normalize[]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \("system exemple5 (x : {t | 1>=0} of integer; \n                 y : {t \
+| 1>=0} of integer)\n       returns  (z : {t | 5<=t} of integer);\nvar\n  S : \
+{q,r | q=r; 5<=r} of integer;\nlet\n  S[q,r] = \n      case\n        { | q=1} \
+: 0[];\n        { | 2<=q} : x[q-1] + y[q-1];\n      esac;\n  z[t] = S[t,t];\n\
+tel;"\)], "Print"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["5. Abnormal conditions", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(changeOfBasis["\<S.(t->t-2)\>", {"\<q\>", r}];\)\)], "Input"],
+
+Cell[BoxData[
+    \({{"q", r}}\)], "Print"],
+
+Cell[BoxData[
+    \(changeOfBasis::"params" \(\(:\)\(\ \)\) 
+      "wrong parameters."\)], "Message"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(changeOfBasis["\<U.(t->t-2)\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(changeOfBasis::"wrgvar" \(\(:\)\(\ \)\) 
+      "\!\(\"U\"\) is not a variable of this program."\)], "Message"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(changeOfBasis["\<z.(t->t-2)\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(changeOfBasis::"nlocv" \(\(:\)\(\ \)\) 
+      "\!\(\"z\"\) is not a local variable."\)], "Message"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell["6. Tests", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(tests["\<ChangeOfBasis\>"]\)], "Input"],
+
+Cell[BoxData[
+    \("/Users/quinton/mmalpha/tests/"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Calling Test"\[InvisibleSpace]"ChangeOfBasis.m"\),
+      SequenceForm[ "Calling Test", "ChangeOfBasis.m"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Test for ChangeOfBasis"\)], "Print"],
+
+Cell[BoxData[
+    \("[exemple5]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB1"\),
+      SequenceForm[ "--------> Passed test ", "COB1"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[exemple9]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB2"\),
+      SequenceForm[ "--------> Passed test ", "COB2"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[exemple5]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB3"\),
+      SequenceForm[ "--------> Passed test ", "COB3"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(changeOfBasis::"nlocv" \(\(:\)\(\ \)\) 
+      "\!\(\"z\"\) is not a local variable."\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB4"\),
+      SequenceForm[ "--------> Passed test ", "COB4"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \({{"q", r}}\)], "Print"],
+
+Cell[BoxData[
+    \(changeOfBasis::"params" \(\(:\)\(\ \)\) 
+      "wrong parameters."\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB5"\),
+      SequenceForm[ "--------> Passed test ", "COB5"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(changeOfBasis::"wrgdim" \(\(:\)\(\ \)\) 
+      "the change of basis does not match dimension of variable."\)], \
+"Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB6"\),
+      SequenceForm[ "--------> Passed test ", "COB6"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(changeOfBasis::"wrgvar" \(\(:\)\(\ \)\) 
+      "\!\(\"U\"\) is not a variable of this program."\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB7"\),
+      SequenceForm[ "--------> Passed test ", "COB7"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(changeOfBasis::"wrgdim2" \(\(:\)\(\ \)\) 
+      "the dimension of the change of basis is inconsistent with  the number \
+of new indices"\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB8"\),
+      SequenceForm[ "--------> Passed test ", "COB8"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[exemple5]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    RowBox[{\(ReplacePart::"partw"\), \(\(:\)\(\ \)\), "\<\"Part \\!\\({3}\\) \
+of \\!\\($Failed\\) does not exist. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::partw\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB9"\),
+      SequenceForm[ "--------> Passed test ", "COB9"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[fir]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB10"\),
+      SequenceForm[ "--------> Passed test ", "COB10"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("testing recursive Change of basis  "\)], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB11"\),
+      SequenceForm[ "--------> Passed test ", "COB11"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB12"\),
+      SequenceForm[ "--------> Passed test ", "COB12"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB13"\),
+      SequenceForm[ "--------> Passed test ", "COB13"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB14"\),
+      SequenceForm[ "--------> Passed test ", "COB14"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB15"\),
+      SequenceForm[ "--------> Passed test ", "COB15"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB16"\),
+      SequenceForm[ "--------> Passed test ", "COB16"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Sorry, the input to subsystem \
+"\[InvisibleSpace]"MatVect"\[InvisibleSpace]" is not in correct form:  "\
+\[InvisibleSpace]"VectIN.(i,k,N,M,P->i+1,1,k,N,M,P)"\[InvisibleSpace]" please \
+add local variable for it, recursive COB not done for this variable "\),
+      SequenceForm[ 
+      "Sorry, the input to subsystem ", "MatVect", 
+        " is not in correct form:  ", "VectIN.(i,k,N,M,P->i+1,1,k,N,M,P)", 
+        " please add local variable for it, recursive COB not done for this \
+variable "],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(changeOfBasis::"noRecurse" \(\(:\)\(\ \)\) 
+      " Please turn option recurse to False"\)], "Message"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB17"\),
+      SequenceForm[ "--------> Passed test ", "COB17"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[mult][MatVect]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"mult"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "mult", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(" "\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Static Analysis of system \
+"\[InvisibleSpace]"MatVect"\),
+      SequenceForm[ "Static Analysis of system ", "MatVect"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking declaration of variables."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking single assignment rule."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking definitions of output/local variables."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking definition of input variables."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking that input/local variables are used."\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking type and domain consistency in the equations:"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("----equation defining "\[InvisibleSpace]"bIN"\),
+      SequenceForm[ "----equation defining ", "bIN"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("----use \
+"\[InvisibleSpace]"mult"\[InvisibleSpace]"..."\),
+      SequenceForm[ "----use ", "mult", "..."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("----equation defining "\[InvisibleSpace]"C"\),
+      SequenceForm[ "----equation defining ", "C"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("----equation defining "\[InvisibleSpace]"c"\),
+      SequenceForm[ "----equation defining ", "c"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    \("\nAnalysis Successful..."\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB17bis"\),
+      
+      SequenceForm[ "--------> Passed test ", "COB17bis"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB18"\),
+      SequenceForm[ "--------> Passed test ", "COB18"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB19"\),
+      SequenceForm[ "--------> Passed test ", "COB19"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB20"\),
+      SequenceForm[ "--------> Passed test ", "COB20"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[MatVect][MatMat]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB21"\),
+      SequenceForm[ "--------> Passed test ", "COB21"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Testing extDomainCOB "\)], "Print"],
+
+Cell[BoxData[
+    \("[mult][MatVect]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB22"\),
+      SequenceForm[ "--------> Passed test ", "COB22"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[mult][MatVect]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB23"\),
+      SequenceForm[ "--------> Passed test ", "COB23"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[mult][mult2][MatVect]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"mult2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "mult2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult2"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult2", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"mult2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "mult2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult2"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult2", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"mult2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "mult2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult2"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult2", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("WARNING: Input/local variable \
+"\[InvisibleSpace]"mul2"\[InvisibleSpace]" does not appear at the RHS of any \
+equation\n"\),
+      SequenceForm[ 
+      "WARNING: Input/local variable ", "mul2", 
+        " does not appear at the RHS of any equation\n"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB23bis"\),
+      
+      SequenceForm[ "--------> Passed test ", "COB23bis"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[mult][mult2][MatVect]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"mult2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "mult2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult2"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult2", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"mult2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "mult2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult2"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult2", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"mult2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "mult2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult2"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult2", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("WARNING: Input/local variable \
+"\[InvisibleSpace]"mul2"\[InvisibleSpace]" does not appear at the RHS of any \
+equation\n"\),
+      SequenceForm[ 
+      "WARNING: Input/local variable ", "mul2", 
+        " does not appear at the RHS of any equation\n"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB24"\),
+      SequenceForm[ "--------> Passed test ", "COB24"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[mult][mult2][MatVect]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"mult2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "mult2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult2"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult2", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"mult2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "mult2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult2"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult2", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"mult2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "mult2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult2"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult2", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("WARNING: Input/local variable \
+"\[InvisibleSpace]"mul2"\[InvisibleSpace]" does not appear at the RHS of any \
+equation\n"\),
+      SequenceForm[ 
+      "WARNING: Input/local variable ", "mul2", 
+        " does not appear at the RHS of any equation\n"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB25"\),
+      SequenceForm[ "--------> Passed test ", "COB25"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[mult][mult2][MatVect][matvect2]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"matvect2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "matvect2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"matvect2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "matvect2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"matvect2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "matvect2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("WARNING: Input/local variable \
+"\[InvisibleSpace]"bIN2"\[InvisibleSpace]" does not appear at the RHS of any \
+equation\n"\),
+      SequenceForm[ 
+      "WARNING: Input/local variable ", "bIN2", 
+        " does not appear at the RHS of any equation\n"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("WARNING: Input/local variable \
+"\[InvisibleSpace]"mul2"\[InvisibleSpace]" does not appear at the RHS of any \
+equation\n"\),
+      SequenceForm[ 
+      "WARNING: Input/local variable ", "mul2", 
+        " does not appear at the RHS of any equation\n"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB26"\),
+      SequenceForm[ "--------> Passed test ", "COB26"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("[mult][mult2][MatVect][matvect2]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"matvect2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "matvect2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("mult"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "mult", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"matvect2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "matvect2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"matvect2"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "matvect2", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("Warning, performing COB on I/O of system "\
+\[InvisibleSpace]"MatVect"\[InvisibleSpace]": changing its semantic"\),
+      SequenceForm[ 
+      "Warning, performing COB on I/O of system ", "MatVect", 
+        ": changing its semantic"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("MatVect"\[InvisibleSpace]" replaced in library."\),
+      SequenceForm[ "MatVect", " replaced in library."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("WARNING: Input/local variable \
+"\[InvisibleSpace]"bIN2"\[InvisibleSpace]" does not appear at the RHS of any \
+equation\n"\),
+      SequenceForm[ 
+      "WARNING: Input/local variable ", "bIN2", 
+        " does not appear at the RHS of any equation\n"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("WARNING: Input/local variable \
+"\[InvisibleSpace]"mul2"\[InvisibleSpace]" does not appear at the RHS of any \
+equation\n"\),
+      SequenceForm[ 
+      "WARNING: Input/local variable ", "mul2", 
+        " does not appear at the RHS of any equation\n"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    \("--Checking regularity of output equations"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"COB27"\),
+      SequenceForm[ "--------> Passed test ", "COB27"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Testing ZChangeOfBasis "\)], "Print"],
+
+Cell[BoxData[
+    \("[exemple9]"\)], "Print"],
+
+Cell[BoxData[
+    \(" Library Loaded"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"ZCOB1"\),
+      SequenceForm[ "--------> Passed test ", "ZCOB1"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("--------> Passed test "\[InvisibleSpace]"ZCOB2"\),
+      SequenceForm[ "--------> Passed test ", "ZCOB2"],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \("Test OK for ChangeOfBasis.m "\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[\("------------- > Test for \
+"\[InvisibleSpace]"ChangeOfBasis"\[InvisibleSpace]" was passed successfully."\
+\),
+      SequenceForm[ 
+      "------------- > Test for ", "ChangeOfBasis", 
+        " was passed successfully."],
+      Editable->False]], "Print"],
+
+Cell[BoxData[
+    \(True\)], "Output"]
+}, Closed]]
+},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1440}, {0, 835}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+CellGrouping->Manual,
+WindowSize->{1131, 689},
+WindowMargins->{{89, Automatic}, {Automatic, 23}},
+PrintingCopies->1,
+PrintingPageRange->{1, 9999},
+PageHeaders->{{Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"], Inherited, Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"]}, {Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"], Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"]}},
+PrintingOptions->{"PaperSize"->{612, 792},
+"PaperOrientation"->"Portrait",
+"FirstPageHeader"->False,
+"FirstPageFooter"->False,
+"FacingPages"->True,
+"Magnification"->1},
+ShowSelection->True,
+Magnification->1.5,
+StyleDefinitions -> "Default.nb"
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{
+  "firstcell"->{
+    Cell[1776, 53, 103, 2, 132, "Title",
+      CellTags->"firstcell"]},
+  "Info3407670287-9538060"->{
+    Cell[2861, 102, 1732, 23, 562, "Print",
+      CellTags->"Info3407670287-9538060"]}
+  }
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{
+  {"firstcell", 48366, 1471},
+  {"Info3407670287-9538060", 48468, 1474}
+  }
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 103, 2, 132, "Title",
+  CellTags->"firstcell"],
+Cell[1882, 57, 38, 0, 45, "Subsubtitle"],
+Cell[1923, 59, 48, 0, 47, "Text"],
+Cell[1974, 61, 99, 3, 62, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2098, 68, 106, 1, 40, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2229, 73, 122, 3, 39, "Input",
+  InitializationCell->True],
+Cell[2354, 78, 85, 1, 70, "Output"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[2488, 85, 66, 1, 57, "Section"],
+Cell[2557, 88, 225, 7, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[2807, 99, 51, 1, 39, "Input"],
+Cell[2861, 102, 1732, 23, 562, "Print",
+  CellTags->"Info3407670287-9538060"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4642, 131, 69, 1, 104, "Section"],
+
+Cell[CellGroupData[{
+Cell[4736, 136, 61, 1, 39, "Input"],
+Cell[4800, 139, 350, 5, 562, "Print"],
+Cell[5153, 146, 50, 1, 34, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5240, 152, 40, 1, 39, "Input"],
+Cell[5283, 155, 351, 5, 322, "Print"]
+}, Open  ]],
+Cell[5649, 163, 59, 0, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[5733, 167, 73, 1, 39, "Input"],
+Cell[5809, 170, 353, 5, 322, "Print"]
+}, Open  ]],
+Cell[6177, 178, 68, 0, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[6270, 182, 53, 1, 39, "Input"],
+Cell[6326, 185, 341, 5, 322, "Print"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6716, 196, 69, 1, 104, "Section"],
+Cell[6788, 199, 73, 0, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[6886, 203, 65, 1, 39, "Input"],
+Cell[6954, 206, 433, 6, 706, "Print"],
+Cell[7390, 214, 50, 1, 34, "Print"],
+Cell[7443, 217, 450, 6, 370, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7930, 228, 77, 1, 39, "Input"],
+Cell[8010, 231, 458, 6, 370, "Print"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[8517, 243, 81, 1, 104, "Section"],
+Cell[8601, 246, 63, 0, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[8689, 250, 65, 1, 39, "Input"],
+Cell[8757, 253, 143, 3, 30, "Message"]
+}, Open  ]],
+Cell[8915, 259, 363, 8, 99, "Text"],
+
+Cell[CellGroupData[{
+Cell[9303, 271, 61, 1, 39, "Input"],
+Cell[9367, 274, 350, 5, 562, "Print"],
+Cell[9720, 281, 50, 1, 34, "Print"]
+}, Open  ]],
+Cell[9785, 285, 89, 1, 39, "Input"],
+
+Cell[CellGroupData[{
+Cell[9899, 290, 53, 1, 39, "Input"],
+Cell[9955, 293, 350, 5, 322, "Print"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[10354, 304, 73, 1, 104, "Section"],
+
+Cell[CellGroupData[{
+Cell[10452, 309, 83, 1, 39, "Input"],
+Cell[10538, 312, 43, 1, 34, "Print"],
+Cell[10584, 315, 101, 2, 30, "Message"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[10722, 322, 69, 1, 39, "Input"],
+Cell[10794, 325, 130, 2, 30, "Message"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[10961, 332, 69, 1, 39, "Input"],
+Cell[11033, 335, 119, 2, 30, "Message"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+Cell[11191, 342, 59, 1, 104, "Section"],
+
+Cell[CellGroupData[{
+Cell[11275, 347, 59, 1, 39, "Input"],
+Cell[11337, 350, 64, 1, 34, "Print"],
+Cell[11404, 353, 179, 3, 34, "Print"],
+Cell[11586, 358, 57, 1, 34, "Print"],
+Cell[11646, 361, 45, 1, 34, "Print"],
+Cell[11694, 364, 50, 1, 34, "Print"],
+Cell[11747, 367, 177, 3, 34, "Print"],
+Cell[11927, 372, 45, 1, 34, "Print"],
+Cell[11975, 375, 50, 1, 34, "Print"],
+Cell[12028, 378, 177, 3, 34, "Print"],
+Cell[12208, 383, 45, 1, 34, "Print"],
+Cell[12256, 386, 50, 1, 34, "Print"],
+Cell[12309, 389, 177, 3, 34, "Print"],
+Cell[12489, 394, 119, 2, 30, "Message"],
+Cell[12611, 398, 177, 3, 34, "Print"],
+Cell[12791, 403, 43, 1, 34, "Print"],
+Cell[12837, 406, 101, 2, 30, "Message"],
+Cell[12941, 410, 177, 3, 34, "Print"],
+Cell[13121, 415, 143, 3, 30, "Message"],
+Cell[13267, 420, 177, 3, 34, "Print"],
+Cell[13447, 425, 130, 2, 30, "Message"],
+Cell[13580, 429, 177, 3, 34, "Print"],
+Cell[13760, 434, 171, 3, 30, "Message"],
+Cell[13934, 439, 177, 3, 34, "Print"],
+Cell[14114, 444, 45, 1, 34, "Print"],
+Cell[14162, 447, 50, 1, 34, "Print"],
+Cell[14215, 450, 296, 5, 30, "Message"],
+Cell[14514, 457, 177, 3, 34, "Print"],
+Cell[14694, 462, 40, 1, 34, "Print"],
+Cell[14737, 465, 50, 1, 34, "Print"],
+Cell[14790, 468, 179, 3, 34, "Print"],
+Cell[14972, 473, 70, 1, 34, "Print"],
+Cell[15045, 476, 52, 1, 34, "Print"],
+Cell[15100, 479, 50, 1, 34, "Print"],
+Cell[15153, 482, 308, 6, 34, "Print"],
+Cell[15464, 490, 181, 3, 34, "Print"],
+Cell[15648, 495, 76, 1, 34, "Print"],
+Cell[15727, 498, 179, 3, 34, "Print"],
+Cell[15909, 503, 52, 1, 34, "Print"],
+Cell[15964, 506, 50, 1, 34, "Print"],
+Cell[16017, 509, 52, 1, 34, "Print"],
+Cell[16072, 512, 50, 1, 34, "Print"],
+Cell[16125, 515, 179, 3, 34, "Print"],
+Cell[16307, 520, 52, 1, 34, "Print"],
+Cell[16362, 523, 50, 1, 34, "Print"],
+Cell[16415, 526, 52, 1, 34, "Print"],
+Cell[16470, 529, 50, 1, 34, "Print"],
+Cell[16523, 532, 179, 3, 34, "Print"],
+Cell[16705, 537, 308, 6, 34, "Print"],
+Cell[17016, 545, 181, 3, 34, "Print"],
+Cell[17200, 550, 76, 1, 34, "Print"],
+Cell[17279, 553, 76, 1, 34, "Print"],
+Cell[17358, 556, 52, 1, 34, "Print"],
+Cell[17413, 559, 50, 1, 34, "Print"],
+Cell[17466, 562, 179, 3, 34, "Print"],
+Cell[17648, 567, 52, 1, 34, "Print"],
+Cell[17703, 570, 50, 1, 34, "Print"],
+Cell[17756, 573, 308, 6, 34, "Print"],
+Cell[18067, 581, 181, 3, 34, "Print"],
+Cell[18251, 586, 179, 3, 34, "Print"],
+Cell[18433, 591, 52, 1, 34, "Print"],
+Cell[18488, 594, 50, 1, 34, "Print"],
+Cell[18541, 597, 76, 1, 34, "Print"],
+Cell[18620, 600, 179, 3, 34, "Print"],
+Cell[18802, 605, 571, 10, 82, "Print"],
+Cell[19376, 617, 123, 2, 30, "Message"],
+Cell[19502, 621, 179, 3, 34, "Print"],
+Cell[19684, 626, 50, 1, 34, "Print"],
+Cell[19737, 629, 50, 1, 34, "Print"],
+Cell[19790, 632, 302, 6, 34, "Print"],
+Cell[20095, 640, 175, 3, 34, "Print"],
+Cell[20273, 645, 36, 1, 34, "Print"],
+Cell[20312, 648, 193, 4, 34, "Print"],
+Cell[20508, 654, 71, 1, 34, "Print"],
+Cell[20582, 657, 69, 1, 34, "Print"],
+Cell[20654, 660, 84, 1, 34, "Print"],
+Cell[20741, 663, 76, 1, 34, "Print"],
+Cell[20820, 666, 82, 1, 34, "Print"],
+Cell[20905, 669, 91, 1, 34, "Print"],
+Cell[20999, 672, 175, 3, 34, "Print"],
+Cell[21177, 677, 180, 4, 34, "Print"],
+Cell[21360, 683, 171, 3, 34, "Print"],
+Cell[21534, 688, 171, 3, 34, "Print"],
+Cell[21708, 693, 76, 1, 34, "Print"],
+Cell[21787, 696, 59, 1, 58, "Print"],
+Cell[21849, 699, 192, 4, 34, "Print"],
+Cell[22044, 705, 52, 1, 34, "Print"],
+Cell[22099, 708, 50, 1, 34, "Print"],
+Cell[22152, 711, 76, 1, 34, "Print"],
+Cell[22231, 714, 179, 3, 34, "Print"],
+Cell[22413, 719, 52, 1, 34, "Print"],
+Cell[22468, 722, 50, 1, 34, "Print"],
+Cell[22521, 725, 308, 6, 34, "Print"],
+Cell[22832, 733, 181, 3, 34, "Print"],
+Cell[23016, 738, 76, 1, 34, "Print"],
+Cell[23095, 741, 179, 3, 34, "Print"],
+Cell[23277, 746, 52, 1, 34, "Print"],
+Cell[23332, 749, 50, 1, 34, "Print"],
+Cell[23385, 752, 308, 6, 34, "Print"],
+Cell[23696, 760, 181, 3, 34, "Print"],
+Cell[23880, 765, 76, 1, 34, "Print"],
+Cell[23959, 768, 179, 3, 34, "Print"],
+Cell[24141, 773, 52, 1, 34, "Print"],
+Cell[24196, 776, 50, 1, 34, "Print"],
+Cell[24249, 779, 308, 6, 34, "Print"],
+Cell[24560, 787, 181, 3, 34, "Print"],
+Cell[24744, 792, 76, 1, 34, "Print"],
+Cell[24823, 795, 179, 3, 34, "Print"],
+Cell[25005, 800, 56, 1, 34, "Print"],
+Cell[25064, 803, 50, 1, 34, "Print"],
+Cell[25117, 806, 50, 1, 34, "Print"],
+Cell[25170, 809, 308, 6, 34, "Print"],
+Cell[25481, 817, 175, 3, 34, "Print"],
+Cell[25659, 822, 308, 6, 34, "Print"],
+Cell[25970, 830, 175, 3, 34, "Print"],
+Cell[26148, 835, 308, 6, 34, "Print"],
+Cell[26459, 843, 175, 3, 34, "Print"],
+Cell[26637, 848, 76, 1, 34, "Print"],
+Cell[26716, 851, 179, 3, 34, "Print"],
+Cell[26898, 856, 50, 1, 34, "Print"],
+Cell[26951, 859, 50, 1, 34, "Print"],
+Cell[27004, 862, 308, 6, 34, "Print"],
+Cell[27315, 870, 175, 3, 34, "Print"],
+Cell[27493, 875, 308, 6, 34, "Print"],
+Cell[27804, 883, 175, 3, 34, "Print"],
+Cell[27982, 888, 308, 6, 34, "Print"],
+Cell[28293, 896, 175, 3, 34, "Print"],
+Cell[28471, 901, 76, 1, 34, "Print"],
+Cell[28550, 904, 179, 3, 34, "Print"],
+Cell[28732, 909, 57, 1, 34, "Print"],
+Cell[28792, 912, 50, 1, 34, "Print"],
+Cell[28845, 915, 308, 6, 34, "Print"],
+Cell[29156, 923, 304, 6, 34, "Print"],
+Cell[29463, 931, 177, 3, 34, "Print"],
+Cell[29643, 936, 308, 6, 34, "Print"],
+Cell[29954, 944, 304, 6, 34, "Print"],
+Cell[30261, 952, 177, 3, 34, "Print"],
+Cell[30441, 957, 308, 6, 34, "Print"],
+Cell[30752, 965, 304, 6, 34, "Print"],
+Cell[31059, 973, 177, 3, 34, "Print"],
+Cell[31239, 978, 326, 7, 58, "Print"],
+Cell[31568, 987, 76, 1, 34, "Print"],
+Cell[31647, 990, 192, 4, 34, "Print"],
+Cell[31842, 996, 57, 1, 34, "Print"],
+Cell[31902, 999, 50, 1, 34, "Print"],
+Cell[31955, 1002, 308, 6, 34, "Print"],
+Cell[32266, 1010, 304, 6, 34, "Print"],
+Cell[32573, 1018, 177, 3, 34, "Print"],
+Cell[32753, 1023, 308, 6, 34, "Print"],
+Cell[33064, 1031, 304, 6, 34, "Print"],
+Cell[33371, 1039, 177, 3, 34, "Print"],
+Cell[33551, 1044, 308, 6, 34, "Print"],
+Cell[33862, 1052, 304, 6, 34, "Print"],
+Cell[34169, 1060, 177, 3, 34, "Print"],
+Cell[34349, 1065, 76, 1, 34, "Print"],
+Cell[34428, 1068, 76, 1, 34, "Print"],
+Cell[34507, 1071, 326, 7, 58, "Print"],
+Cell[34836, 1080, 76, 1, 34, "Print"],
+Cell[34915, 1083, 179, 3, 34, "Print"],
+Cell[35097, 1088, 57, 1, 34, "Print"],
+Cell[35157, 1091, 50, 1, 34, "Print"],
+Cell[35210, 1094, 308, 6, 34, "Print"],
+Cell[35521, 1102, 304, 6, 34, "Print"],
+Cell[35828, 1110, 177, 3, 34, "Print"],
+Cell[36008, 1115, 308, 6, 34, "Print"],
+Cell[36319, 1123, 304, 6, 34, "Print"],
+Cell[36626, 1131, 177, 3, 34, "Print"],
+Cell[36806, 1136, 308, 6, 34, "Print"],
+Cell[37117, 1144, 304, 6, 34, "Print"],
+Cell[37424, 1152, 177, 3, 34, "Print"],
+Cell[37604, 1157, 76, 1, 34, "Print"],
+Cell[37683, 1160, 76, 1, 34, "Print"],
+Cell[37762, 1163, 326, 7, 58, "Print"],
+Cell[38091, 1172, 76, 1, 34, "Print"],
+Cell[38170, 1175, 179, 3, 34, "Print"],
+Cell[38352, 1180, 67, 1, 34, "Print"],
+Cell[38422, 1183, 50, 1, 34, "Print"],
+Cell[38475, 1186, 310, 6, 34, "Print"],
+Cell[38788, 1194, 308, 6, 34, "Print"],
+Cell[39099, 1202, 175, 3, 34, "Print"],
+Cell[39277, 1207, 181, 3, 34, "Print"],
+Cell[39461, 1212, 310, 6, 34, "Print"],
+Cell[39774, 1220, 308, 6, 34, "Print"],
+Cell[40085, 1228, 181, 3, 34, "Print"],
+Cell[40269, 1233, 310, 6, 34, "Print"],
+Cell[40582, 1241, 308, 6, 34, "Print"],
+Cell[40893, 1249, 181, 3, 34, "Print"],
+Cell[41077, 1254, 326, 7, 58, "Print"],
+Cell[41406, 1263, 326, 7, 58, "Print"],
+Cell[41735, 1272, 76, 1, 34, "Print"],
+Cell[41814, 1275, 76, 1, 34, "Print"],
+Cell[41893, 1278, 76, 1, 34, "Print"],
+Cell[41972, 1281, 76, 1, 34, "Print"],
+Cell[42051, 1284, 179, 3, 34, "Print"],
+Cell[42233, 1289, 67, 1, 34, "Print"],
+Cell[42303, 1292, 50, 1, 34, "Print"],
+Cell[42356, 1295, 310, 6, 34, "Print"],
+Cell[42669, 1303, 308, 6, 34, "Print"],
+Cell[42980, 1311, 175, 3, 34, "Print"],
+Cell[43158, 1316, 181, 3, 34, "Print"],
+Cell[43342, 1321, 310, 6, 34, "Print"],
+Cell[43655, 1329, 308, 6, 34, "Print"],
+Cell[43966, 1337, 181, 3, 34, "Print"],
+Cell[44150, 1342, 310, 6, 34, "Print"],
+Cell[44463, 1350, 308, 6, 34, "Print"],
+Cell[44774, 1358, 181, 3, 34, "Print"],
+Cell[44958, 1363, 326, 7, 58, "Print"],
+Cell[45287, 1372, 326, 7, 58, "Print"],
+Cell[45616, 1381, 76, 1, 34, "Print"],
+Cell[45695, 1384, 76, 1, 34, "Print"],
+Cell[45774, 1387, 76, 1, 34, "Print"],
+Cell[45853, 1390, 76, 1, 34, "Print"],
+Cell[45932, 1393, 179, 3, 34, "Print"],
+Cell[46114, 1398, 58, 1, 34, "Print"],
+Cell[46175, 1401, 45, 1, 34, "Print"],
+Cell[46223, 1404, 50, 1, 34, "Print"],
+Cell[46276, 1407, 179, 3, 34, "Print"],
+Cell[46458, 1412, 179, 3, 34, "Print"],
+Cell[46640, 1417, 63, 1, 34, "Print"],
+Cell[46706, 1420, 294, 7, 34, "Print"],
+Cell[47003, 1429, 38, 1, 40, "Output"]
+}, Closed]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

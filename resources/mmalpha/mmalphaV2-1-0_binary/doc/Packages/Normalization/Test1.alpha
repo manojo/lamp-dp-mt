@@ -1,0 +1,27 @@
+system ss      (x :  integer)
+       returns (y :  integer);
+var
+  A :  integer;
+  B :  integer;
+  C :  integer;
+  X1 :  integer;
+  X :  integer;
+  Y :  integer;
+  Z : {i | 1>=0} of integer;
+  bool1 :  boolean;
+  bool2 :  boolean;
+let
+  bool1[] = bool1 and bool2;
+  bool2[] = not bool2;
+  bool2[] = bool1 or bool2;
+  bool2[] = bool1 xor bool2;
+  X1[] = A + (B - C);
+  A[] = -B;
+  Y[] = X * X + (x - X);
+  Z[i] = 
+      case
+        { | i=0} : X[];
+        { | 1<=i} : -B[];
+        { | i<=-1} : Z[i+1];
+      esac;
+tel;

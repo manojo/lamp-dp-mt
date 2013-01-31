@@ -1,0 +1,33 @@
+% 
+\subsubsection{Introduction}
+The \texttt{Alpha.m} package is the main package of Mathematica.
+It is located in the directory \texttt{\$MMALPHA/lib/Packages}.
+It contains the definition of the main symbols and data structures
+of \MMAlpha{}. 
+
+A special word about the \texttt{exportAlphaFunctions} function.
+This function takes as a parameter the autoloadFile. This file
+is located in 
+\begin{verbatim}
+$MMAlpha/lib/Packages/Alpha/autoload.m
+\end{verbatim}
+%$
+and is created automatically by the \texttt{exportAlphaFunctions}.
+
+At the end of the \texttt{Alpha.m}, a few instructions are executed
+when loading this package. If the \texttt{autoloadFile} does not
+exists, \texttt{exportAlphaFunctions} is called and creates it.
+
+The function \texttt{exportAlphaFunctions} uses a local variable
+\texttt{contexts} of \texttt{Alpha.m} which contains the list of 
+the packages that need to be loaded when using \MMAlpha{}. This variable
+has to be changed when a new package is added. For each package
+of \texttt{contexts}, \texttt{exportAlphaFunctions} creates an 
+entry in the autoload file that declares the corresponding package
+using the \texttt{DeclarePackage} function of Mathematica. In this
+way, all packages are declared, and when a symbol of the package
+is evaluated for the first time, 
+the corresponding package is automatically loaded.
+
+The remaining of this chapter describes the functions of the 
+Alpha package.

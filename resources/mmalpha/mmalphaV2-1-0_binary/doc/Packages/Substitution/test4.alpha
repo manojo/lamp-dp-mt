@@ -1,0 +1,8 @@
+system red1 :  {N | 1<=N}
+               (x : {i,j | 0<=i<=N-1; 0<=j<=N-1} of integer)
+       returns (y :  integer);
+var
+  Z : {i | 0<=i<=N-1} of integer;
+let
+  y[] = Z[N-1];
+tel;

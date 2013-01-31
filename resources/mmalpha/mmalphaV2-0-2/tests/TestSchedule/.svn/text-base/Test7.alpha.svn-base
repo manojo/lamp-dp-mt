@@ -1,0 +1,19 @@
+system test7 : {N | 1<=N}
+               (a : {k | 0<=k<=N} of integer)
+       returns (b : {j | 0<=j<=N} of integer);
+var
+  A1 : {i | 0<=i<=N} of integer;
+  A2 : {i | 0<=i<=N} of integer;
+let
+  A1[i] = 
+      case
+        { | i=0} : a;
+        { | 1<=i} : A1[i-1];
+      esac;
+  A2[i] = 
+      case
+        { | i=0} : A1[N];
+        { | 1<=i} : A2[i-1];
+      esac;
+  b[j] = A2;
+tel;

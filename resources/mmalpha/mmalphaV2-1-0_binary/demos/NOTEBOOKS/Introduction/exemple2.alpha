@@ -1,0 +1,10 @@
+--
+--  Exemple 2
+-- 
+system exemple2 (x,y: {t|t<=t} of integer)  
+returns (z: {t|t>=2} of integer);  
+var    S: {t|t>=2} of integer;  
+let    
+	S[t] = (x+y)[t-1]; 
+	z[t] = S[t];  
+tel;

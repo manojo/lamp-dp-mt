@@ -1,0 +1,35 @@
+%
+% File created on {2007, 11, 15, 17, 10, 18.751224} by makeDoc.
+%
+% Section header
+\section{The Alpha`Semantics` package } 
+\label{label:Alpha`Semantics`}
+\alphanote{Semantics}{Documentation revised on August 10, 2004} 
+ 
+\alphausage{Semantics}{Alpha`Semantics` is the package which contains the functions for computing the type of Alpha expressions. These functions are changeType, expDimension, expDomain, expType, getContextDomain, matchTypes,  and replaceByEquivExpr.}{Alpha/Semantics.m}{Alpha`Semantics`}
+\index{Semantics}
+
+\alphausage{changeType}{changeType[sys,var,newType] changes the type of the variable var to newType in sys (default \$result). No typing compatibility check  is done: this is not a semantic preserving transformation. Mainly  used for changing integers to fixed bit width integers.}{Alpha/Semantics.m}{Alpha`Semantics`}
+\index{changeType}
+
+\alphausage{expDimension}{expDimension[sys,exp] computes the dimension of the expression exp the in  system contained in the system sys (default \$result). The expression may be given as a string, a position vector (following the convention of the Mathematica function Position) in the system, or as an AST. expDimension outputs error messages if the dimensions are not compatible, and returns dimension -1 in this case.  Remark: parameters are counted as additional dimensions.}{Alpha/Semantics.m}{Alpha`Semantics`}
+\index{expDimension}
+
+\alphausage{expDomain}{expDomain[sys,exp] computes and returns the domain of exp in program sys (default \$result) or \$Failed if the expression is badly formed. expDomain generates error and warning messages accordingly. The expression may be given as a string, a position vector (following the convention of the Mathematica function Position) in the system, or as an AST.}{Alpha/Semantics.m}{Alpha`Semantics`}
+\index{expDomain}
+
+\alphausage{expType}{expType[sys,exp] computes the type (integer, boolean, real, bottom) of an expression and checks its correctness using type--matching rules. Default value of sys is \$result. The expression may be given as a string, a position  vector (following the convention of the Mathematica function Position) in the system, or as an AST. expType returns bottom if the expression is not correctly typed.  In such a case, the offending tree and the colliding types are printed on the screen.}{Alpha/Semantics.m}{Alpha`Semantics`}
+\index{expType}
+
+\alphausage{getContextDomain}{getContextDomain[sys,pos] computes the context domain in which an expression at position pos in sys is used. Default value of sys is \$result. The context is the domain inherited by an expression from the constructs which surrounds it.  The position is counted from the root of the system following the Mathematica notion of position.}{Alpha/Semantics.m}{Alpha`Semantics`}
+\index{getContextDomain}
+
+\alphausage{matchTypes}{matchTypes[type1,type2] computes the type corresponding to the union of those of the parameters (integer, boolean, real) and returns the  resulting type or bottom if the types are incompatible.}{Alpha/Semantics.m}{Alpha`Semantics`}
+\index{matchTypes}
+
+\alphausage{replaceByEquivExpr}{replaceByEquivExpr[sys,pos,expr] replace in sys the expression present at position pos by expr. Default value of sys is \$result. replaceByEquivExpr[sys,expr1,expr2] replace in sys all occurences of expr1 by expr2. expr1 and expr2 can be given in AST form of Alpha form.  Warning: the equivalence of the resulting program is NOT guaranteed. A test is made to check if both expressions are equivalent, but if this test fails, the replacement is done anyway. This function should be used for replacing an expression by an equivalent one when this cannot be done automatically (for instance, in presence of degenerated domains).}{Alpha/Semantics.m}{Alpha`Semantics`}
+\index{replaceByEquivExpr}
+
+\alphausage{setBitWidth}{setBitWidth[var:\_String,value:\_Integer] change the scalar type of variable var1 in system sys if this variable has a specified bitwidth (e.g. integer[S,5]) and set it to the bitwidt value, if the variable does not have a specified bitwidth, it does nothing and issue a warning}{Alpha/Semantics.m}{Alpha`Semantics`}
+\index{setBitWidth}
+

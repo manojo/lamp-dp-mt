@@ -1,0 +1,146 @@
+\chapter{The demos of {\mmalfa}}
+\label{demos}
+
+{\sc Version of \today{}}
+
+This chapter presents a few demos of
+{\mmalfa}.\index{demos,demonstrations} 
+There two types of demos: some demos
+have a notebook interface, and the others
+should be executed in kernel mode. There are also various
+documentations available with the \alfa{} archive.
+
+\section{Notebook demos}
+All these demonstrations can be accessed directly by 
+hyperlinks of the 
+so-called {\em master} notebook, which is started by
+evaluating the command \texttt{start[]}.
+
+\begin{description}
+\item [Introduction.] Introduction to {\Alpha}
+
+\item [Domlib.] Elementary computations on domains with Domlib.
+
+\item [Fir: Design of a FIR filter.]  The FIR demo shows the typical
+steps for the synthesis of a linear architecture for a Finite Impulse
+Response filter.  The demo comprises the following steps: loading the
+initial program, pipelining, scheduling, assign parameter values,
+control signal generation, {\alphaz} generation, {\alphard} generation.
+
+\item [matvect: architecture for matrix vector
+multiplication.] 
+
+The MATVECT demo shows the typical steps for the
+synthesis of a linear architecture for a Matrix Vector Multiplication.
+The demo comprises the following steps: loading the initial program,
+pipelining, scheduling, assign parameter values, control signal
+generation,  {\alphaz} generation, {\alphard} generation.
+
+\item[Tutorial\_intro: ]
+very introductory tutorial. Corresponds to document~\cite{first-tutorial}.
+
+\item[mma-intro: ]
+quick introduction to \mma{}. Explains how Alpha ASTs are represented
+in \mma{}. Warning: the abstract syntax presentation may not be as reliable as
+the appendix of this manual (see chapter~\ref{appendixalpha}).
+\item[Kalman: ]
+this example describes an application of \mmalfa{} to a Kalman
+filter. This application, quite complex, shows how to use 
+structured scheduling. Reference~\cite{parelec} describes the 
+background of this application. 
+\item[Kalman-Sqrt: ]
+this example describes an application of \mmalfa{} to a Kalman
+filter, using a so-called square root covariance method. 
+This application, quite complex, shows how to use 
+structured scheduling. Reference~\cite{cce} describes the 
+background of this application. 
+
+\item[Neural-Network: ]
+this notebook is not ready yet, but will be soon.
+\item[Fuzzy-Logic: ]
+an application of fuzzy logic to channel equalization. 
+\end{description}
+
+Another serie of notebook allows one to become familiar with
+different packages of \mmalfa{}: 
+\begin{description}
+\item[Alpha: ] the Alpha package.
+\item[Control: ] the Control package.
+\item[Matrix: ] the Matrix package.
+\item[ChangeOfBasis: ] the ChangeOfBasis package.
+\item[Normalization: ] the Normalization package.
+\item[Cut: ] the Cut package.
+\item[Decomposition: ] the Decomposition package.
+\item[Static: ] the Static package.
+\item[PipeControl: ] the PipeControl package. 
+\item[Vhdl: ] the Vhdl package.
+\item[CheckAlpHard: ] the AlphHard package.
+\item[Meta: ] the Meta package.
+\item[Schedule: ] the various schedule packages.
+\item[dataFlowSchedule: ] 
+
+\item[matlib: ]
+
+\item[Visual: ] the Visual package. 
+
+\end{description}
+
+
+
+\section{kernel demos}
+These demos are avaiblable at the following address:
+\begin{verbatim}
+/udd/alpha/alpha\_beta/Mathematica/demos/demos.html
+\end{verbatim}
+
+\begin{description}
+ \item [INIT: An initiation to {\mmalfa}.] The INIT demo shows a few
+  basic functions of MMAlpha. The demo comprises the following steps:
+  loading and showing a program, normalizing, showing domains etc...
+  \index{INIT demo}
+
+ \item [FIR: Design of a FIR filter.]  The FIR demo shows the typical
+steps for the synthesis of a linear architecture for a Finite Impulse
+Response filter.  The demo comprises the following steps: loading the
+initial program, pipelining, scheduling, assign parameter values,
+control signal generation, {\alphaz} generation, {\alphard} generation.\index{FIR demo, Finite impulse
+response filter}
+
+ \item [MATVECT: architecture for matrix vector
+multiplication.] 
+The MATVECT demo shows the typical steps for the
+synthesis of a linear architecture for a Matrix Vector Multiplication.
+The demo comprises the following steps: loading the initial program,
+pipelining, scheduling, assign parameter values, control signal
+generation,  {\alphaz} generation, {\alphard} generation.\index{MATVECT demo,
+Matrix vector architecture}
+
+% \item [VERIF: Verification of the Matrix vector architecture.]
+%The VERIF demo shows the verification of a linear architecture for a
+%Matrix Vector Multiplication. The demo shows the use of subsystems,
+%the inlining of subsystems, the use of libraries, C code generation
+%and execution.\index{VERIF demo}
+
+
+ \item [SVD: analysis of a Singular Value Decomposition
+algorithm.]  The SVD demo shows the analysis of a larger Alpha
+program. It shows the use of subsystems, the nlining subsystems, the
+CNF code generation, the C code generation and execution.
+
+% \item [SVDUPDATE: another demo on Singular Value Decomposition.]
+%The SVD demo shows the analysis of another version of the SVD algorithm. 
+
+ \item [BINMULT: Synthesis of a multiplier.]  This demonstration
+shows the synthesis of a bit-serial multiplier, from an initial
+specification structured into several parameterized subsystems.  The
+demo script contains the following steps: loading and displaying a
+multi-system program, conversion into C code for simulation,
+pipelining of the diffusions in the initial program, flattenning all
+the systems for synthesis, scheduling before space/time
+transformation, space/time transformation, pipelining of the inputs
+(so that all the data enters the first processor in bit-serial
+manner), simulation of the resulting array.
+
+\item [ESTIM: synthesis of motion estimation] a two dimensionnal example, with 
+simulation, on a real image, derivation of {\alphaz} code (warning, long demo).
+\end{description}

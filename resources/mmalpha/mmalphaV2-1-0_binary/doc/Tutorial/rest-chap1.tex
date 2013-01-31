@@ -1,0 +1,103 @@
+\chapter{Modelling synchronous architectures}
+\label{chap2}
+In this chapter, we present the {\alfa} language through the 
+description of very simple -- and somehow artificial -- examples
+of synchronous circuits. Our goal is to show the basic constructors
+of the language: their syntax, their meaning, and how they can be
+used in practice. 
+% 
+\section{Pointwise operators\index{pointwise operators}}
+\begin{figure}[htbp]
+\htmlimage{scale=1}
+\colorbox{red}{
+\centerline{\input{/udd/quinton/documents/lncs_574/seminaire_litp/figures/exemple_1}}}
+\caption{An adder}\label{adder}
+\end{figure}
+Consider the architecture\index{architecture} shown in figure~\ref{adder}: there is a 
+simple adder, which takes to input flows, respectively {\tt x} and 
+{\tt y}, and returns {\tt S}. 
+
+This architecture is described by the {\alfa} program of figure \ref{adder-alpha}.
+\begin{figure}[htbp]
+\htmlimage{scale=1}
+%\input{adder.alpha}
+\begin{verbatim}
+system exemple1 (x,y: {t|1<=t} of integer)     -- 1
+returns (z: {t|1<=t} of integer);              -- 2
+var S: {t|1<=t} of integer;                    -- 3
+let                                            -- 4
+  S = x + y;                                   -- 5
+  z = S;                                       -- 6
+tel;                                           -- 7
+\end{verbatim}
+\caption{An adder in {\alfa}}\label{adder-alpha}
+\end{figure}
+This program is called a {\em system}. Line 1 is the head of the system, 
+with name {\tt exemple1}. This system has two input arguments named
+{\tt x} and {\tt y}. These arguments, called {\em variables}, are
+defined on the set {\tt \{t|1<=t\}}. Line 3 defines a local variable
+{\tt S}. Between the {\tt let} and {\tt tel} keywords of lines 4 and
+7, we have two equations: line 5 says that {\tt S} is the pointwise sum of 
+{\tt x} and {\tt y}. In other words, $\forall t, S_t = x_t + y_t$. 
+Line 6 says that {\tt z} and {\tt S} are identical.
+\subsection*{Processing this example in {\mmalfa}}
+A few words on {\mma}. A more complete introduction is given in 
+appendix~\ref{mma-introduction}
+\begin{verbatim}
+load["adder.alpha"]    (* loads the alpha file *)
+ashow[];               (* shows its content *)
+\end{verbatim}
+
+%
+\section{Substitution}
+\begin{figure}[htbp]
+\htmlimage{scale=1}
+%\input{adderMultiplexerSubs.alpha}
+\begin{verbatim}
+system adderMultiplexerSubs (x,y : {t|1<=t} of integer)
+       returns (z : {t|5<=t} of integer);
+  var
+    S : {t|1<=t} of integer;
+  let
+    S = case
+        {t|t=1} : 0.(t->);
+        {t|t>1} : x.(t->t-1) + y.(t->t-1);
+        esac;
+    z = {t|t>=5} : case
+                   {t|t=1} : 0.(t->);
+                   {t|t>1} : x.(t->t-1) + y.(t->t-1);
+                   esac;
+  tel;
+\end{verbatim}
+\caption{Substitution}\label{adderMultiplexerSubs-alpha}
+\end{figure}
+\subsection*{Exercices in {\mma}}
+
+%
+\section{Normalization}
+\begin{figure}[htbp]
+\htmlimage{scale=1}
+\centerline{\input{/udd/quinton/documents/lncs_574/seminaire_litp/figures/exemple_7}}
+\caption{Normalizing}\label{adderMultiplexerNorm}
+\end{figure}
+The corresponding program is shown in figure \ref{adderMultiplexerNorm-alpha}.
+\begin{figure}[htbp]
+\htmlimage{scale=1}
+%\input{adderMultiplexerNorm.alpha}
+\begin{verbatim}
+system adderMultiplexerNorm (x,y : {t|t>=1} of integer)
+       returns (z : {t|t>=5} of integer);
+  var
+    S : {t|t>=1} of integer;
+  let
+    S = case
+        {t|1=t} : 0.(t->);
+        {t|t>1} : x.(t->t-1) + y.(t->t-1);
+        esac;
+    z = {t|t>=5} : x.(t->t-1) + y.(t->t-1);
+  tel;
+\end{verbatim}
+\caption{Normalization}\label{adderMultiplexerNorm-alpha}
+\end{figure}
+\subsection*{Exercices in {\mma}}
+

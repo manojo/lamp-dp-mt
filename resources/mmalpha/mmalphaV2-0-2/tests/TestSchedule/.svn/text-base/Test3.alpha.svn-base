@@ -1,0 +1,10 @@
+system assign_vect1 :{N | 0<=N}
+                    ( )
+       returns      (v : {i | 0<=i<=N-1} of integer);
+let
+  v[i] = 
+      case
+        { | i=0} : 1[];
+        { | 1<=i} : 2[] * v[i-1] + v[i-1];
+      esac;
+tel;

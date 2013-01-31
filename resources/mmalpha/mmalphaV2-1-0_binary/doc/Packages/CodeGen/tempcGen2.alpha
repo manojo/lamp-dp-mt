@@ -1,0 +1,14 @@
+"system firr :  {N,M,D | 3<=N<=(D-1,M-D-1)}\n               (x : {n | \
+1<=n<=M} of integer[S,16]; \n                d : {n | N<=n<=M} of \
+integer[S,16])\n       returns (res : {n | N<=n<=M} of integer[S,16]);\nvar\n \
+ outres : {t,p | t=2p; N<=p<=M; 3<=N<=(M-D-1,D-1)} of integer[S,16];\n  W : \
+{t,p | 2p-2N<=t<=2p-N-1; N<=p<=M} of integer[S,16];\n  Y : {t,p | \
+2p-N-1<=t<=2p-1; N<=p<=M} of integer[S,16];\n  E : {t,p | t=2p+1; N<=p<=M} of \
+integer[S,16];\nlet\n  res = outres.(n->2n,n);\n  W = case\n        {n,i | \
+n<=N+D-1} : 0.(n,i->);\n        {n,i | N+D<=n} : \
+W.(n,i->2n-i-N-1,n).(n,i->n-1,i) + E.(n->2n+1,n).(n,i->n-D) * x.(n,i->n-i-D) \
+/ 32768.(n,i->);\n      esac.(t,p->p,-t+2p-N-1);\n  Y = case\n        {n,i | \
+i=-1} : 0.(n,i->);\n        {n,i | 0<=i} : Y.(n,i->2n+i-N,n).(n,i->n,i-1) + \
+W.(n,i->2n-i-N-1,n).(n,i->n,i) * x.(n,i->n-i) / 32768.(n,i->);\n      \
+esac.(t,p->p,t-2p+N);\n  E = ((d.(n->n) - outres.(n->2n,n).(n->n)) / \
+32.(n->)).(t,p->p);\n  outres = Y.(n,i->2n+i-N,n).(n->n,N-1).(t,p->p);\ntel;"

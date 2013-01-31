@@ -1,0 +1,91 @@
+Test report file was cleaned
+Date: Mon 5 Jan 2009 22:01:50
+Entering installation test
+MMALPHA is set to: /Users/quinton/Recherche/Alpha/mmalphaV2-0-2
+domlib open in link: LinkObject[domlib, 2, 2]
+PATH environment set
+OS Type: darwin
+Operating system: Mac OS X x86 (32-bit)
+Operating system: MacOSX
+MMA Version: 6.0 for Mac OS X x86 (32-bit) (June 19, 2007)
+MMA Version number: 6.
+Launch directory: /Applications/Mathematica.app/Contents/MacOS
+Home directory: /Users/quinton
+Path: {/Applications/Mathematica.app/SystemFiles/Links, /Users/quinton/Library/Mathematica/Kernel, /Users/quinton/Library/Mathematica/Autoload, /Users/quinton/Library/Mathematica/Applications, /Library/Mathematica/Kernel, /Library/Mathematica/Autoload, /Library/Mathematica/Applications, ., /Users/quinton, /Applications/Mathematica.app/AddOns/Packages, /Applications/Mathematica.app/AddOns/LegacyPackages, /Applications/Mathematica.app/SystemFiles/Autoload, /Applications/Mathematica.app/AddOns/Autoload, /Applications/Mathematica.app/AddOns/Applications, /Applications/Mathematica.app/AddOns/ExtraPackages, /Applications/Mathematica.app/SystemFiles/Kernel/Packages, /Applications/Mathematica.app/Documentation/English/System, /Users/quinton/Recherche/Alpha/mmalphaV2-0-2/lib/Packages}
+------------- > Test for Install was passed successfully.
+End of test
+------> Testing: Domlib
+Date: Mon 5 Jan 2009 22:01:50
+Calling TestDomlib.m
+------------- > Test for Domlib was passed successfully.
+End of test
+------> Testing: Alpha
+Date: Mon 5 Jan 2009 22:02:01
+Calling TestAlpha.m
+------------- > Test for Alpha was passed successfully.
+End of test
+------> Testing: Tables
+Date: Mon 5 Jan 2009 22:02:06
+Calling TestTables.m
+------------- > Test for Tables was passed successfully.
+End of test
+------> Testing: Matrix
+Date: Mon 5 Jan 2009 22:02:06
+Calling TestMatrix.m
+------------- > Test for Matrix was passed successfully.
+End of test
+------> Testing: CutMMA
+Date: Mon 5 Jan 2009 22:02:17
+Calling TestCutMMA.m
+------------- > Test for CutMMA was passed successfully.
+End of test
+------> Testing: Normalization
+Date: Mon 5 Jan 2009 22:02:28
+Calling TestNormalization.m
+------------- > Test for Normalization was passed successfully.
+End of test
+------> Testing: Static
+Date: Mon 5 Jan 2009 22:02:34
+Calling TestStatic.m
+------------- > Test for Static was passed successfully.
+End of test
+------> Testing: ChangeOfBasis
+Date: Mon 5 Jan 2009 22:02:39
+Calling TestChangeOfBasis.m
+------------- > Test for ChangeOfBasis was passed successfully.
+End of test
+------> Testing: Substitution
+Date: Mon 5 Jan 2009 22:03:01
+Calling TestSubstitution.m
+------------- > Test for Substitution was passed successfully.
+End of test
+------> Testing: Decomposition
+Date: Mon 5 Jan 2009 22:03:28
+Calling TestDecomposition.m
+------------- > Test for Decomposition was passed successfully.
+End of test
+------> Testing: SubSystems
+Date: Mon 5 Jan 2009 22:03:29
+Calling TestSubSystems.m
+------------- > Test for SubSystems was passed successfully.
+End of test
+------> Testing: Pipeline
+Date: Mon 5 Jan 2009 22:03:30
+Calling TestPipeline.m
+------------- > Test for Pipeline was passed successfully.
+End of test
+------> Testing: PipeControl
+Date: Mon 5 Jan 2009 22:03:36
+Calling TestPipeControl.m
+------------- > Test for PipeControl was passed successfully.
+End of test
+------> Testing: Visual
+Date: Mon 5 Jan 2009 22:03:41
+Calling TestVisual.m
+------------- > Test for Visual was passed successfully.
+End of test
+------> Testing: Schedule
+Date: Mon 5 Jan 2009 22:03:41
+Calling TestSchedule.m
+------------- > Test for Schedule was passed successfully.
+End of test

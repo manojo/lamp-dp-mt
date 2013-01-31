@@ -1,0 +1,19 @@
+[main] read_alpha 1000 (0) exception: trapped!
+[main] read_alpha 1000 (0) exception: code 0xC0000005 at 0x40936C
+[main] read_alpha 1000 (0) exception: ax 0x0 bx 0x40 cx 0xA035DE4 dx 0x247FA50
+[main] read_alpha 1000 (0) exception: si 0x0 di 0xA035DE4 bp 0x247F960 sp 0x247F958
+[main] read_alpha 1000 (0) exception: exception is: STATUS_ACCESS_VIOLATION
+[main] read_alpha 1000 (0) stack: Stack trace:
+[main] read_alpha 1000 (0) stack: frame 0: sp = 0x247F54C, pc = 0x6100A2C3
+[main] read_alpha 1000 (0) stack: frame 1: sp = 0x247F588, pc = 0x77FA172E
+[main] read_alpha 1000 (0) stack: frame 2: sp = 0x247F5AC, pc = 0x77FA1700
+[main] read_alpha 1000 (0) stack: frame 3: sp = 0x247F658, pc = 0x77F65DBA
+[main] read_alpha 1000 (0) stack: frame 4: sp = 0x247F960, pc = 0x4063C9
+[main] read_alpha 1000 (0) stack: frame 5: sp = 0x247FEEC, pc = 0x408BF1
+[main] read_alpha 1000 (0) stack: frame 6: sp = 0x247FF24, pc = 0x61004402
+[main] read_alpha 1000 (0) stack: frame 7: sp = 0x247FF88, pc = 0x61004420
+[main] read_alpha 1000 (0) stack: frame 8: sp = 0x247FF94, pc = 0x41DEFE
+[main] read_alpha 1000 (0) stack: frame 9: sp = 0x247FFA4, pc = 0x40103A
+[main] read_alpha 1000 (0) stack: frame 10: sp = 0x247FFC0, pc = 0x77E614C7
+[main] read_alpha 1000 (0) stack: frame 11: sp = 0x247FFF0, pc = 0x0
+[main] read_alpha 1000 (0) stack: End of stack trace

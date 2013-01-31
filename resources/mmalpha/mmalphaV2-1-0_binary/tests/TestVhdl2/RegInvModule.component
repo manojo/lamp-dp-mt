@@ -1,0 +1,9 @@
+
+COMPONENT RegInvModule
+PORT(
+  Ck, CE, Rst : IN STD_LOGIC;
+  a : IN std_logic;
+  b : OUT std_logic
+);
+END COMPONENT;
+

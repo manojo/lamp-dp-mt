@@ -1,0 +1,289 @@
+\chapter{The Alpha0 format}
+\label{chapalfha0}
+
+{\sc Version of \today}
+
+In this chapter, we describe the {\Alpha0} format which is basically a non-structured version of the {\AlpHard} language. We also 
+ describe the methodology to go from an {\Alpha} program to an {\Alpha0} program and then how to translate it into {\AlpHard}. 
+
+\subsection{Definition of {\AlphaZ}}
+{\AlphaZ} was introduced by C. Dezan in her Phd thesis
+(\cite{dezan}). It was conceived as the lowest level of {\Alpha} or
+equivalently as a subset of {\Alpha} which can describe circuits at the 
+register transfer level. the main weakness of this subset came from the fact
+that {\Alpha} programs were not structured.  Since, the structuring of
+{\Alpha} was provided by F. Dupont~\cite{DupontQuRi95} and the
+structured version of {\AlphaZ} was studied by P. Le
+Mo\"enner~\cite{Patricia96}.  {\AlpHard} (described in
+chapter~\ref{chapalphard}) is now intended to be this subset of
+{\Alpha} with structural interpretation, from which we can translate
+{\Alpha} into {\vhdl} or other {\sc rtl} description
+languages. However, during the transformation path from {\Alpha} to
+{\AlpHard}, the automatic structuring is a complicated process, hence
+it appeared that the {\AlphaZ} format is still necessary as an
+intermediate format with all the register transfer level informations
+but in an unstructured form. We describe hereafter, the second version
+ the {\AlphaZ} format (Alpha0v2) which is slightly different from the version described in~\cite{dezan}
+
+
+% As a platform to {\AlpHard}, we need to remove the second point of
+% the previous definition, namely the fact that all temporal domains are
+% of the form $\{t~|~ t>=\}$. The other basic principles remains the same
+% with slight differences. spatial cases contain no dependencies,
+% connections are represented using a simple space dependency (no
+% case). Temporal cases are always nested in a spatial case.
+% Control initialization  equations are called {\em control} equation,
+% the {\em Mirror} equations are the equations affecting  input, output 
+% and control signal to local variables (hence, control signal 
+% become data signals). All these descriptions are summarized by the following 
+% definition:
+
+An {\Alpha} program is in {\AlphaZ} form if it contains no {\tt use} statement
+and if it meets the following conditions:
+
+\begin{enumerate}
+\item there exits, for all declared domains (except for the domains of 
+inputs and outputs variables) an interpretation function for the indices
+(see~\cite{dezan} for precise definition of {\em interpretation function}).
+ Basically, each index is either 
+a temporal index (indicating living dates of the signal) or a spatial index
+(indicating in which processor the signal lives).
+
+
+\item The equations of the system define the output and local
+ variables.  Each operator involved in the equations has a structural
+ interpretation. these equations are of four types: data equations,
+ connection equations, control equations and mirror equations.
+\begin{itemize} 
+\item data equations define the different signals of the program
+which are necessarily local variables.
+They are composed of the following operators:  
+\begin{itemize} 
+  \item pointwise operators represent the corresponding combinatorial 
+operators. 
+  \item restriction are used to restrict the spatial interpretation of 
+indices.
+\item  dependencies are temporal dependencies representing registers 
+or identity dependencies representing connections between two signal inside one cell.
+\item case are spatial case allowing to gather several signals.
+\item the {\tt if} operator (with nested {\tt case} in each branches)
+is interpreted as a multiplexer.
+\end{itemize}
+\item connection equations are limited to the following form: a single
+spatial dependency between two signals ({\tt A=B.(t,p->t,p-1)} for
+instance).
+\item control equations allow initialize control signals. they define signals
+which are only temporal (no spatial indices).
+\item Mirror equations: equation between input variables of the system and 
+local variable of the system (only for interface). equation limited to an 
+affine function applied to a variable ({\tt A[t,p]=a[f(t,p)]} for input mirror
+equation and {\tt b[i,j]=B[f(i,j)]} for output mirror equations)..
+\end{itemize}
+\end{enumerate}
+
+Examples of {\AlphaZ} programs are present in the directory 
+{\tt \$MMALPHA/examples/Alpha0}, a small example is presented hereafter
+ (figure~\ref{fig04}).
+
+\section{From {\Alpha} to {\AlphaZ}}
+The first attempt to go from High level specification in {\Alpha}
+to {\sc rtl} specification in {\Alpha0} has been done be Sie and 
+Wilde~\cite{SieWilde94}. This methodology has been 
+extended and we discribe it briefly here, more informations
+can be obtained by executing the Notebooks demos: {\tt Fir} and {Matvect}.
+
+Consider the very simple program of figure~\ref{fig01}
+
+{\small
+\begin{figure}[h]
+\begin{verbatim}
+system NtimeNot :{N | 2<=N}
+                (a : {i | 1<=i<=N} of boolean)
+       returns  (b : {i | 1<=i<=N} of boolean);
+var
+  Acc : {i,j | 1<=i<=N; 1<=j<=N} of boolean;
+let
+  Acc[i,j] = 
+      case
+        {| j=1} : a[i];
+        {| 2<=j} : not Acc[i,j-1];
+      esac;
+  b[i] = Acc[i,N];
+tel;
+\end{verbatim}
+\caption{An {\Alpha} program computing {\tt N} times {\tt Not} 
+on an array {\tt a}}
+\label{fig01}
+\end{figure}
+}
+
+Translating the program in {\AlphaZ} consists in the following steps: 
+\begin{enumerate}
+ \item {\bf Uniformize the program}. Here the program is already
+uniform, in general this procedure may be complicated {\mmalpha}
+provides tools for the automatic or designer-guided uniformization
+(see the documentation on the chapter~\ref{chapuniformize}).
+\item {\bf Schedule the program}. It consists in finding an execution
+date (and a place also) for each computation. Usually, once
+uniformized, the program should be scheduled with a unique linear part
+(see the chapter~\ref{chapscheduling} for detail on scheduling). The
+function {\tt applySchedule} choose an allocation function. In our example, 
+you can execute  the following commands:
+\begin{verbatim}
+schedule[]
+applySchedule[]
+renameIndices[{"t","p"}]
+\end{verbatim}
+We obtain a linear array of processors,
+the resulting program is shown in figure~\ref{fig02}
+{\small
+\begin{figure}[h]
+\begin{center}
+\begin{verbatim}
+system NtimeNot :{N | 2<=N}
+                (a : {i | 1<=i<=N} of boolean)
+       returns  (b : {i | 1<=i<=N} of boolean);
+var
+  Acc : {t,p | 1<=t<=N; 1<=p<=N} of boolean;
+let
+  Acc[t,p] = 
+      case
+        {| t=1} : a[p];
+        {| 2<=t} : not Acc[t-1,p];
+      esac;
+  b[i] = Acc[N,i];
+tel;
+\end{verbatim}
+\caption{Program of figure~\ref{fig01} after applying schedule}
+\label{fig02}
+\end{center}
+\end{figure}
+}
+
+\item {\bf Pipeline Inputs and Output}. You can see in figure~\ref{fig02}
+that the  {\tt a} is input in every processors. If we want only the first processor to input data from the host, we could have pipelined the input with the following command:\\
+\verb/pipeIO["Acc","a.(t,p->p)","aIn.(t,p->t+1,p+1)","{t,p| p>=1}"]/. We can do the same treatment for the output. Here we chose not to pipeline the I/O for sake of simplicity.
+
+\item {\bf Go Down to Alpha0}. When the previous steps have been correctly 
+executed, this step should be automatic with {\tt toAlpha0v2[]} command. In 
+Our case, if we apply this function to the program of figure~\ref{fig02},
+the printing on the screen are the following:
+\begin{verbatim}
+In[__]:= toAlpha0v2[];
+Time index: {1}  space indices: {2}
+Calling spaceTimeDecomposition[];
+Calling makeAllMuxControl[];
+  Equation of Acc...
+   is in ST form
+    Adding multiplexer.
+  Equation of b...
+Calling pipeAllControl[];
+  Pipelining control for: Acc_ctl1
+     From dimension 2 To dimension 1
+       Warning, no pipe vector was found for control signal Acc_ctl1
+       --> assuming broadcasted signal
+     Control generated in cell: {p | 1<=p<=N; 2<=N}
+Calling decomposeSTdeps[];
+  In equation of Acc, adding a local variable: Acc_reg1
+ Decomposing the space/time dependencies
+Calling makeInputMirrorEqus[];
+  Adding mirror equation for input a
+Out[__]:=
+\end{verbatim}
+
+The important treatment here is the generation and pipeline of a
+control signal. Indeed, the condition {\tt t=1} of the program of
+figure~\ref{fig02} has to be realized in hardware.  Hence a control
+signal was generated and a multiplexer added in each processors. Then
+{\mmalpha} tries to pipeline the control signal (it often happens in
+systolic architectures that the control can be pipelined). In our
+particular example, all processors start their computation
+simultaneously, hence the control signal is not pipelined but
+broadcasted. Other treatments are just syntactic rewriting. The result
+{\AlphaZ} program is show on figure~\ref{fig03}. note the precise information
+that appears on the life time of each signal (in this simple program,
+each signal lives from step 1 to step {\tt N}, but in general it is much 
+more complicated) and on the input date of each data (mirror equation 
+contains the information of {\em how to use} the hardware -- i.e. interface 
+specification --).
+\end{enumerate}
+{\small
+\begin{figure}[h]
+\begin{verbatim}
+system NtimeNot :{N | 2<=N}
+                (a : {i | 1<=i<=N} of boolean)
+       returns  (b : {i | 1<=i<=N} of boolean);
+var
+  a_mirr1 : {t,p | t=1; 1<=p<=N} of boolean;
+  Acc_reg1 : {t,p | 2<=t<=N; 1<=p<=N} of boolean;
+  Acc_ctl1_In : {t,p | 1<=t<=N; 1<=p<=N} of boolean;
+  Acc : {t,p | 1<=t<=N; 1<=p<=N} of boolean;
+  Acc_ctl1 : {t | 1<=t<=N} of boolean;
+let
+  a_mirr1[t,p] = a[t+p-1];
+  Acc_reg1[t,p] = Acc[t-1,p];
+  Acc_ctl1_In[t,p] = Acc_ctl1[t];
+  Acc_ctl1[t] = 
+      case
+        case
+          {| t=1} : True[];
+          {| 2<=t} : False[];
+        esac;
+      esac;
+  Acc[t,p] = 
+      case
+        {| 1<=t} : if (Acc_ctl1_In) then 
+               case
+                 {| t=1} : a_mirr1;
+                 {| 2<=t} : False[];
+               esac else 
+               case
+                 {| t=1} : False[];
+                 {| 2<=t} : not Acc_reg1;
+               esac;
+      esac;
+  b[i] = Acc[N,i];
+tel;
+\end{verbatim}
+\caption{Program {\AlphaZ} derived from the program of
+figure~\ref{fig01}.  This {\AlphaZ} program describes a linear array
+of {\tt N} processors.  The equation defining {\tt Acc} represent a
+multiplexer controlled by {\tt Acc\_ctl1} selecting {\tt a\_mirr1} or
+{\tt Acc\_reg1}. The equation defining {\tt Acc\_ctl1\_In} is a control
+equation. The equations defining {\tt a\_mirr1} and {\tt b} are mirror
+equations. The equation defining {\tt Acc\_reg1} is interpreted as a
+register. The equation defining {\tt Acc\_ctl1\_In} is interpreted as 
+a connection equation: broadcast of the control  signal {\tt Acc\_ctl1}
+to all processors.}
+\label{fig03}
+\end{figure}
+}
+\section{From {\AlphaZ} to {\AlpHard}}
+The translation to {\AlpHard} is automatic. the command to use is {\tt
+alpha0toAlphard[]}. {\mmalpha} automatically detects all the spatial
+regions on which the computations are identical (the whole spatial
+region in our case: {\tt $\{ p \| 1 \leq p \leq N\}$} and structures
+the program with one cell (i.e. one subsystem) for each region, one
+controller for initialization of control signal, one module for the
+complete circuit and one interface to keep the same I/O as the
+original program of figure~\ref{fig01}. The interface system obtained in our 
+example is shown on figure~\ref{fig04}.
+{\small
+\begin{figure}[h]
+\begin{verbatim}
+system NtimeNot :{N | 2<=N}
+                (a : {i | 1<=i<=N} of boolean)
+       returns  (b : {i | 1<=i<=N} of boolean);
+var
+  a_mirr1 : {t,p | t=1; 1<=p<=N} of boolean;
+  Acc : {t,p | 1<=t<=N; 1<=p<=N} of boolean;
+let
+  a_mirr1[t,p] = a[t+p-1];
+  b[i] = Acc[N,i];
+  use  NtimeNotModule[N] (a_mirr1) returns  (Acc) ;
+tel;
+\end{verbatim}
+\caption{interface of the {\AlpHard} Program obtain from the program of figure~\ref{fig03} by the {\tt alpha0ToAlphard[]} command}
+\label{fig04}
+\end{figure}
+}

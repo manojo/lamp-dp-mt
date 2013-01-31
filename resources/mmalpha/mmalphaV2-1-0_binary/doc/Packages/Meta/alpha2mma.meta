@@ -1,0 +1,93 @@
+{
+
+(*
+
+  This file contains an example of meta file for the Meta
+  translator. This example consists in translating an Alpha AST into a
+  program for simulation under Mathematica.
+
+*)
+
+  (* Definition of a domain. The semantics is Null *)
+  DOMAIN ::= domain[ d:_Integer, i:{___String}, p:{POL}] :> Null
+,
+
+  (* Definition of a system. The semantics is a call to semanticFunction, 
+  with various parameters *)
+  SYSTEM ::= system[ n:_String, p:DOMAIN, id:{DECLARATION},
+                     od:{DECLARATION}, ld:{DECLARATION}, e:{EQUATION}] 
+             :> semanticFunction[ system , {n, p, id, od, ld, tre} ]
+,
+
+  (* Definition of a polyhedron. Semantics is identity *)
+  POL ::= pol[a:_Integer,b:_Integer,c:_Integer,d:_Integer,co:{CONSTRAINT},
+          ge:{GENERATORS}]
+             :> pol[ tra, trb, trc, trd, trco, trge ]
+, 
+
+  (* Definition of a constraint in a polyhedron *)
+  CONSTRAINT ::= {_List -> List}
+,
+
+  (* Definition of generators in a polyhedron *)
+  GENERATORS ::= {_List -> List}
+,
+
+  (* Definition of an equation: either an assignment, or
+    a use statement *)
+  EQUATION ::= 
+    { _equation -> ASSIGNMENT,
+      _use -> USESTATEMENT
+    }
+,
+    
+  ASSIGNMENT ::= equation[c:_String, e:EXPRESSION] 
+             :> semanticFunction[ assignment, {c, tre} ]
+,
+
+  (* Definition of an expression *)
+  EXPRESSION ::= { _binop -> BINOP, _var -> VAR, _affine -> AFFINE,
+                   _restrict -> RESTRICT, _case-> CASE, _const -> CONST }, 
+
+  (* Definition of a binary operator *)
+  BINOP ::= binop[ op:_Symbol, op1:EXPRESSION, op2:EXPRESSION ] 
+             :> semanticFunction[ binop, {op, trop1, trop2} ]
+,
+
+  (* Definition of a variable *)
+  VAR ::= var[ v:_String ] :> semanticFunction[ var, v ]
+,
+
+  (* Definition of an affine function *)
+  AFFINE ::= affine[ e:EXPRESSIONAFFINE, m:MATRIX ] 
+             :> semanticFunction[ affine, {e, trm} ]
+,
+
+  (* Definition of an affine expression *)
+  EXPRESSIONAFFINE ::= { _var -> VAR, _const -> CONST },
+  MATRIX ::= matrix[ d1:_Integer, d2:_Integer, in:{___String}, m:_ ]
+             :> m,
+  (* Definition of a restriction *)
+  RESTRICT ::= restrict[ d:DOMAIN, e:EXPRESSION ] 
+             :> semanticFunction[ restrict, {d, tre} ]
+, 
+
+  (* Definition of a case expression *)
+  CASE ::= case[ e:{EXPRESSION} ] 
+             :> semanticFunction[ case, e, tre ]
+,
+
+  (* Definition of a constant *)
+  CONST ::= const[ c:_ ] :> c
+,
+
+  (* Definition of a use *)
+  USESTATEMENT ::= use[ sn:_String, 
+                        d:DOMAIN, 
+                        m:MATRIX,
+                        iv:{VAR},
+                        ov:{__String} ] 
+             :> semanticFunction[ use, {sn, d, m, iv, ov} ]
+
+}
+

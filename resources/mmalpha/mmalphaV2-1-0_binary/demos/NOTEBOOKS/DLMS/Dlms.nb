@@ -1,0 +1,628 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 6.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[     19073,        619]
+NotebookOptionsPosition[     14281,        456]
+NotebookOutlinePosition[     15804,        511]
+CellTagsIndexPosition[     15706,        505]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["DLMS", "Title",
+ FontColor->RGBColor[1, 0, 0],
+ CellTags->"firstcell"],
+
+Cell["\<\
+Anne-Claire Guillou, Daniel Massicotte, P. Quinton, Tanguy Risset\
+\>", "Subsubtitle"],
+
+Cell["\<\
+April 2000, revised October 2008 and April 2010. Seems to be correct...\
+\>", "Text",
+ CellChangeTimes->{{3.480993568611575*^9, 3.480993584800551*^9}}],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042 Rennes Cedex, France
+quinton@irisa.fr\
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+ Evaluate this cell, before you execute any other cell in this notebook.\
+\>", "Subsubsection",
+ InitializationCell->True,
+ FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{
+    RowBox[{"Environment", "[", "\"\<MMALPHA\>\"", "]"}], "<>", 
+    "\"\</demos/NOTEBOOKS/DLMS\>\""}], "]"}], ";"}]], "Input",
+ InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Presentation and synthesis", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell["\<\
+Here is the Alpha program of the delayed least-mean-square filter. This is \
+basically a filter (inputs x, coefficients W, output res), where the \
+coefficients W are adapted using the difference E between the res value and \
+an expected value d. The definition of W adapts the value of W using E and a \
+delayed sample.\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<DLMS.alpha\>\"", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[TextData[{
+ "The value D of the delay, if it is greater than N (the length of the \
+coefficient vector), allows a parallel form to be used, which would not be \
+possible if the adaptation were done directly using the ouptut. (Actually, we \
+need to have D>N+1, since we will provide N+1 registers on the longuest path \
+of our design.)\n\nThe main difficulty when synthesizing this design is to \
+find out a proper schedule, and mapping the E variable in the processor \
+space. \n\nThis notebooks shows how to generate a delayed Least-Mean Square \
+adaptive filter automatically with MMAlpha. It uses a call to the ",
+ StyleBox["syn", "Input"],
+ " function. To work properly, the synthesis function need to be called with \
+a few tricky parameters. Indeed, if you run simply ",
+ StyleBox["syn[\"DLMS.alpha\"]", "Input"],
+ ", the synthesis process will stop before the scheduling.\n\nFirst, the \
+vertex scheduler must be called, with durations properly set. To find out the \
+proper durations, run show[dep[]] and assign a duration 1 only to the \
+dependencies on Y and W. \n\nSecond, and this is more tricky, one should run \
+an additional placement step after piping variables. Indeed, if you look at \
+the initial program, you will see that the variable E has only 1 dimension, \
+and therefore, it cannot be \"placed\" in the processor space of the other \
+equations. To solve this, we substitute the res variable by its value, which \
+introduces the Y variable, and then, we apply a change of basis to E in order \
+to \"place\" it close to the Y variable. \n\nAfter this, the remaining works \
+properly. Notice that D and N have to meet D>N+1, otherwise, there will not \
+be enough delay to get a causal system..."
+}], "Text",
+ TextAlignment->Left,
+ TextJustification->1],
+
+Cell[BoxData[
+ RowBox[{"syn", "[", 
+  RowBox[{"\"\<DLMS.alpha\>\"", ",", 
+   RowBox[{"schedMethod", "\[Rule]", "vertex"}], ",", 
+   RowBox[{"optionsOfScheduler", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"durations", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{
+       "1", ",", "0", ",", "0", ",", "1", ",", "0", ",", "0", ",", "0", ",", 
+        "0", ",", "0"}], "}"}]}], "}"}]}], ",", 
+   RowBox[{"verbose", "\[Rule]", "True"}], ",", 
+   RowBox[{
+   "placementSteps", "->", 
+    "\"\<substituteInDef[\\\"E\\\",\\\"res\\\"];changeOfBasis[\\\"E.(t->t,N-1)\
+\\\",{\\\"t\\\",\\\"p\\\"}];normalize[]\>\""}], ",", 
+   RowBox[{"parameterRules", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"\"\<N\>\"", "\[Rule]", "3"}], ",", 
+      RowBox[{"\"\<M\>\"", "\[Rule]", "10"}], ",", 
+      RowBox[{"\"\<D\>\"", "\[Rule]", "6"}]}], "}"}]}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.480992370741969*^9, 3.480992379739395*^9}, {
+  3.48099256847831*^9, 3.4809925732675323`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.480992427730658*^9, 3.480992429561009*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Load and compile (not checked recently)", "Section",
+ CellChangeTimes->{{3.480992082318592*^9, 3.48099209509431*^9}},
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<DLMS.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"?", "writeC"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"Directory", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"writeC", "[", 
+   RowBox[{"\"\<DLMS.c\>\"", ",", "\"\<-g -p 3 10 5\>\""}], "]"}], 
+  ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Analyze", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[BoxData[
+ RowBox[{"analyze", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Schedule", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[BoxData[
+ RowBox[{"show", "[", 
+  RowBox[{"dep", "[", "]"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"scd", "[", 
+  RowBox[{
+   RowBox[{"scheduleType", "\[Rule]", "sameLinearPart"}], ",", 
+   RowBox[{"durations", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+     "1", ",", "0", ",", "0", ",", "1", ",", "0", ",", "0", ",", "0", ",", 
+      "0", ",", "0"}], "}"}]}]}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"showSchedResult", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Map", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"appSched", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<DLMAScheduled.alpha\>\"", "]"}], ";"}]], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Pipe", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<DLMAScheduled.alpha\>\"", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"pipeVars", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"simplifySystem", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"report", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Place", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"substituteInDef", "[", 
+   RowBox[{"\"\<E\>\"", ",", "\"\<res\>\""}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"changeOfBasis", "[", 
+   RowBox[{"\"\<E.(t->t,N-1)\>\"", ",", 
+    RowBox[{"{", 
+     RowBox[{"\"\<t\>\"", ",", "\"\<p\>\""}], "}"}]}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"normalize", "[", "]"}], ";", 
+  RowBox[{"ashow", "[", "]"}]}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["To Alpha0", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"toAlpha0v2", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"simplifySystem", "[", 
+   RowBox[{"alphaFormat", "\[Rule]", "Alpha0"}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"report", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asave", "[", "\"\<DLMS0.alpha\>\"", "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["ToAlphard", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<DLMS0.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.480993035379034*^9, 3.480993042733395*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"alpha0ToAlphard", "[", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.480992797360539*^9, 3.480992835045835*^9}, {
+  3.480992881908165*^9, 3.480992883665687*^9}, {3.480992913990272*^9, 
+  3.4809929558724413`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ashow", "[", "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"asaveLib", "[", "\"\<DLMSHard.alpha\>\"", "]"}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Fix Parameters", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<N\>\"", ",", "3"}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<M\>\"", ",", "10"}], "]"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fixParameter", "[", 
+   RowBox[{"\"\<D\>\"", ",", "6"}], "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.480993080724492*^9, 3.480993081444291*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Generate Vhdl", "Section",
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[BoxData[
+ RowBox[{"a2v", "[", "]"}]], "Input"]
+}, Open  ]],
+
+Cell["Generate Test Bench", "Section",
+ CellChangeTimes->{{3.4771039114806547`*^9, 3.4771039150225563`*^9}},
+ FontColor->RGBColor[0, 0, 1],
+ CellTags->"Summary"],
+
+Cell[CellGroupData[{
+
+Cell["9. Generating stimuli files", "Section",
+ CellChangeTimes->{{3.476094222816778*^9, 3.476094234262373*^9}, {
+  3.476098868771674*^9, 3.476098878290885*^9}},
+ FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+A documentation file exists in mmalpha/doc/TestBench. Load fir.\
+\>", "Text",
+ CellChangeTimes->{{3.476094247845894*^9, 3.476094256805559*^9}, {
+   3.47609835406883*^9, 3.4760983561598473`*^9}, 3.476099626418819*^9}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"load", "[", "\"\<DLMS.alpha\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{
+  3.447770183869523*^9, {3.447770278557564*^9, 3.447770279499708*^9}, {
+   3.447829305931329*^9, 3.447829306285789*^9}, 3.448596041780911*^9, {
+   3.47710403365711*^9, 3.477104035323311*^9}}],
+
+Cell["Schedule it.", "Text",
+ CellChangeTimes->{{3.476098368621656*^9, 3.4760983706793633`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"schedule", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.47609483128373*^9, 3.476094832635479*^9}, {
+  3.47710404631478*^9, 3.4771040480491734`*^9}}],
+
+Cell["\<\
+Then run this command. Warning : all parameters must be set (otherwise an \
+error will occur later on). Compile using gcc fir.c -o fir (if gcc is unknown \
+on the Mac, download Xcode). Then run ./fir . This prompts for 11 values for \
+x, 3 values for x, and provides results for y. \
+\>", "Text",
+ CellChangeTimes->{{3.476098384299182*^9, 3.476098425573412*^9}, {
+  3.476098563945066*^9, 3.4760986164707537`*^9}, {3.4760986877213383`*^9, 
+  3.4760987101913977`*^9}}],
+
+Cell[TextData[StyleBox["Warning: for a (yet) unknown reason, before runnin \
+cGen, on must load init.m, as done here.... PQ. 2010-2-25.",
+ FontColor->RGBColor[1, 0, 0]]], "Text",
+ CellChangeTimes->{{3.476099645103314*^9, 3.47609971314009*^9}}],
+
+Cell[BoxData[
+ RowBox[{"<<", "Alpha/CodeGen/init.m"}]], "Input",
+ CellChangeTimes->{{3.476098480232336*^9, 3.476098496819908*^9}}],
+
+Cell[BoxData[
+ RowBox[{"cGen", "[", 
+  RowBox[{"\"\<firr.c\>\"", ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"\"\<K\>\"", "\[Rule]", "3"}], ",", 
+     RowBox[{"\"\<N\>\"", "\[Rule]", "10"}]}], "}"}], ",", 
+   RowBox[{"stimuli", "\[Rule]", "True"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.476079266976362*^9, 3.476079269838126*^9}, {
+   3.476079404736141*^9, 3.4760794314573393`*^9}, {3.476079681297241*^9, 
+   3.476079688479414*^9}, {3.4760827824247847`*^9, 3.4760827842457*^9}, {
+   3.476093295794586*^9, 3.476093328087566*^9}, {3.476094384701839*^9, 
+   3.476094394146557*^9}, {3.476094449026778*^9, 3.47609445840058*^9}, {
+   3.476094985586258*^9, 3.47609499211989*^9}, {3.476096626787784*^9, 
+   3.476096630893375*^9}, {3.4760984750061617`*^9, 3.4760984767087812`*^9}, 
+   3.477104057963531*^9}],
+
+Cell["\<\
+In addition, this builds files stim_x.txt, stim_w.txt and stim_y.txt which \
+contain the values of the input and output stimuli. The results are written \
+as hexadecimal numbers of 8 digits. Using the noprint->True option allows to \
+produce stimuli files without the names of the variables. These files may be \
+used with the test bench.\
+\>", "Text",
+ CellChangeTimes->{{3.476098716720296*^9, 3.476098856386106*^9}}],
+
+Cell[BoxData[
+ RowBox[{"cGen", "[", 
+  RowBox[{"\"\<fir.c\>\"", ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"\"\<N\>\"", "\[Rule]", "3"}], ",", 
+     RowBox[{"\"\<M\>\"", "\[Rule]", "10"}], ",", 
+     RowBox[{"\"\<D\>\"", "\[Rule]", "6"}]}], "}"}], ",", 
+   RowBox[{"stimuli", "\[Rule]", "True"}], ",", 
+   RowBox[{"noPrint", "\[Rule]", "False"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.476079266976362*^9, 3.476079269838126*^9}, {
+  3.476079404736141*^9, 3.4760794314573393`*^9}, {3.476079681297241*^9, 
+  3.476079688479414*^9}, {3.4760827824247847`*^9, 3.4760827842457*^9}, {
+  3.476093295794586*^9, 3.476093328087566*^9}, {3.476094384701839*^9, 
+  3.476094394146557*^9}, {3.476094449026778*^9, 3.47609445840058*^9}, {
+  3.476094985586258*^9, 3.47609499211989*^9}, {3.476096626787784*^9, 
+  3.476096630893375*^9}, {3.4760984750061617`*^9, 3.4760984767087812`*^9}, {
+  3.476098513081777*^9, 3.47609851623147*^9}, {3.4760985558534613`*^9, 
+  3.476098557042389*^9}, {3.476970368249879*^9, 3.476970369076692*^9}, {
+  3.4771040846703453`*^9, 3.477104095722004*^9}, {3.477104216103413*^9, 
+  3.4771042175888357`*^9}, {3.477104324128673*^9, 3.4771043267488623`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ashow", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.4771042854445057`*^9, 3.477104286951754*^9}}]
+}, Open  ]]
+}, Open  ]]
+},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+WindowSize->{1048, 648},
+WindowMargins->{{109, Automatic}, {Automatic, 36}},
+DockedCells->FEPrivate`FrontEndResource[
+ "FEExpressions", "CompatibilityToolbar"],
+PrintingCopies->1,
+PrintingPageRange->{1, Automatic},
+ShowSelection->True,
+Magnification->1.25,
+FrontEndVersion->"7.0 for Mac OS X x86 (32-bit) (February 18, 2009)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{
+ "firstcell"->{
+  Cell[567, 22, 76, 2, 95, "Title",
+   CellTags->"firstcell"]},
+ "Summary"->{
+  Cell[1458, 59, 98, 2, 83, "Section",
+   CellTags->"Summary"],
+  Cell[4957, 137, 176, 3, 83, "Section",
+   CellTags->"Summary"],
+  Cell[5516, 161, 79, 2, 83, "Section",
+   CellTags->"Summary"],
+  Cell[5746, 174, 80, 2, 45, "Section",
+   CellTags->"Summary"],
+  Cell[6322, 198, 75, 2, 83, "Section",
+   CellTags->"Summary"],
+  Cell[6672, 216, 76, 2, 45, "Section",
+   CellTags->"Summary"],
+  Cell[7120, 238, 77, 2, 83, "Section",
+   CellTags->"Summary"],
+  Cell[7672, 262, 81, 2, 83, "Section",
+   CellTags->"Summary"],
+  Cell[8268, 291, 81, 2, 83, "Section",
+   CellTags->"Summary"],
+  Cell[8975, 318, 86, 2, 83, "Section",
+   CellTags->"Summary"],
+  Cell[9519, 341, 85, 2, 83, "Section",
+   CellTags->"Summary"],
+  Cell[9673, 349, 161, 3, 83, "Section",
+   CellTags->"Summary"]}
+ }
+*)
+(*CellTagsIndex
+CellTagsIndex->{
+ {"firstcell", 14823, 474},
+ {"Summary", 14901, 477}
+ }
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[567, 22, 76, 2, 95, "Title",
+ CellTags->"firstcell"],
+Cell[646, 26, 96, 2, 32, "Subsubtitle"],
+Cell[745, 30, 161, 3, 32, "Text"],
+Cell[909, 35, 99, 3, 41, "SmallText"],
+Cell[CellGroupData[{
+Cell[1033, 42, 163, 4, 30, "Subsubsection",
+ InitializationCell->True],
+Cell[1199, 48, 222, 6, 33, "Input",
+ InitializationCell->True]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[1458, 59, 98, 2, 83, "Section",
+ CellTags->"Summary"],
+Cell[1559, 63, 344, 6, 70, "Text"],
+Cell[1906, 71, 124, 3, 33, "Input"],
+Cell[2033, 76, 1780, 27, 370, "Text"],
+Cell[3816, 105, 982, 23, 110, "Input"],
+Cell[4801, 130, 119, 2, 33, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4957, 137, 176, 3, 83, "Section",
+ CellTags->"Summary"],
+Cell[5136, 142, 92, 2, 33, "Input"],
+Cell[5231, 146, 49, 1, 33, "Input"],
+Cell[5283, 149, 57, 1, 33, "Input"],
+Cell[5343, 152, 136, 4, 33, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5516, 161, 79, 2, 83, "Section",
+ CellTags->"Summary"],
+Cell[5598, 165, 55, 1, 33, "Input"],
+Cell[5656, 168, 53, 1, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[5746, 174, 80, 2, 45, "Section",
+ CellTags->"Summary"],
+Cell[5829, 178, 82, 2, 33, "Input"],
+Cell[5914, 182, 305, 8, 33, "Input"],
+Cell[6222, 192, 63, 1, 33, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6322, 198, 75, 2, 83, "Section",
+ CellTags->"Summary"],
+Cell[6400, 202, 74, 2, 33, "Input"],
+Cell[6477, 206, 53, 1, 33, "Input"],
+Cell[6533, 209, 102, 2, 33, "Input"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[6672, 216, 76, 2, 45, "Section",
+ CellTags->"Summary"],
+Cell[6751, 220, 101, 2, 33, "Input"],
+Cell[6855, 224, 56, 1, 33, "Input"],
+Cell[6914, 227, 112, 3, 33, "Input"],
+Cell[7029, 232, 54, 1, 33, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[7120, 238, 77, 2, 83, "Section",
+ CellTags->"Summary"],
+Cell[7200, 242, 128, 3, 33, "Input"],
+Cell[7331, 247, 194, 5, 33, "Input"],
+Cell[7528, 254, 107, 3, 33, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[7672, 262, 81, 2, 83, "Section",
+ CellTags->"Summary"],
+Cell[7756, 266, 76, 2, 33, "Input"],
+Cell[7835, 270, 130, 3, 33, "Input"],
+Cell[7968, 275, 53, 1, 33, "Input"],
+Cell[8024, 278, 54, 1, 33, "Input"],
+Cell[8081, 281, 53, 1, 33, "Input"],
+Cell[8137, 284, 94, 2, 33, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8268, 291, 81, 2, 83, "Section",
+ CellTags->"Summary"],
+Cell[8352, 295, 159, 3, 33, "Input"],
+Cell[8514, 300, 247, 5, 33, "Input"],
+Cell[8764, 307, 71, 2, 33, "Input"],
+Cell[8838, 311, 100, 2, 33, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8975, 318, 86, 2, 83, "Section",
+ CellTags->"Summary"],
+Cell[9064, 322, 115, 3, 33, "Input"],
+Cell[9182, 327, 116, 3, 33, "Input"],
+Cell[9301, 332, 181, 4, 33, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[9519, 341, 85, 2, 83, "Section",
+ CellTags->"Summary"],
+Cell[9607, 345, 51, 1, 33, "Input"]
+}, Open  ]],
+Cell[9673, 349, 161, 3, 83, "Section",
+ CellTags->"Summary"],
+Cell[CellGroupData[{
+Cell[9859, 356, 192, 3, 45, "Section"],
+Cell[10054, 361, 226, 4, 32, "Text"],
+Cell[10283, 367, 304, 6, 33, "Input"],
+Cell[10590, 375, 96, 1, 32, "Text"],
+Cell[10689, 378, 171, 3, 33, "Input"],
+Cell[10863, 383, 476, 8, 51, "Text"],
+Cell[11342, 393, 243, 3, 32, "Text"],
+Cell[11588, 398, 130, 2, 33, "Input"],
+Cell[11721, 402, 806, 15, 33, "Input"],
+Cell[12530, 419, 428, 7, 70, "Text"],
+Cell[12961, 428, 1168, 20, 33, "Input"],
+Cell[14132, 450, 121, 2, 33, "Input"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

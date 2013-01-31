@@ -1,0 +1,8 @@
+-- R4 is the radix-four fixed-point representation of real numbers
+
+system R5: {W| W>0}
+        ()
+returns (XT: {k| 0<=k<W} of integer);
+let
+    XT[k] = 2k+1;
+tel;

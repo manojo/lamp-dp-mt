@@ -1,0 +1,134 @@
+#
+#  Version modified by PQ, April 2010
+#
+#  This is the makefile for the darwin system, i.e., MacOS X
+#  Designed by P. Quinton on May 22, 2005, and modified several times...
+#
+#  Assumes that MMALPHA and OSTYPE are defined 
+
+#  Include the shared config file
+include ../MakeIncludes/Makefile.config
+
+#   To compile Domlib, we need to know where the include files
+#   and the lib files of the Polylib are. In this version, this
+#   depends on how the Polylib was installed. 
+
+#   Defines where the library of POLYLIB is. Actually, this variable is the 
+# same as LIBDIR defined in Makefile.config
+POLYLIB-LIB	= $(LIBDIR)
+
+# BINDIR and OBJDIR are already defined
+#
+
+DBG = "Y"
+
+#   Flags for the C compiler. Assumes that PRECISIONFLAG and 
+#   DEFINES have been defined in MakeIncludes/Makefile.${OSTYPE} 
+EXTRA_CFLAGS	 = ${PRECISIONFLAG} ${DEFINES}
+
+#  -----------------
+#  Dependence rules
+
+#
+#  domlib in the binary directory depends on objects, domlib in objdir, makefile
+#  Just make a copy of domlib
+${BINDIR}/domlib: ${OBJDIR} ${OBJDIR}/domlib Makefile.${OSTYPE} 
+	cp ${OBJDIR}/domlib ${BINDIR}/domlib
+
+#  Added to create the object directory. This should be covered by a rule,
+#  but it does not, I do not know why
+${OBJDIR}:
+	mkdir $@
+
+#  compile domlib in Obj directory
+${OBJDIR}/domlib : ${OBJDIR}/domlibtm.o ${OBJDIR}/domlib.o
+	${CXX} -g ${PRECISIONFLAG} ${OBJDIR}/domlibtm.o ${OBJDIR}/domlib.o ${MATHLIB} -L${POLYLIB-LIB} -lpoly $(MATHLOADLIB) -o $@ -v
+
+#  old stuff...
+#	${CC} -g ${PRECISIONFLAG} ${OBJDIR}/domlibtm.o ${OBJDIR}/domlib.o ${MATHLIB} -L${POLYLIB-LIB} -lpolylib64 $(MATHLOADLIB) -o $@ -v
+#	cc ${PRECISIONFLAG} ${MATHINCLUDE} ${OBJDIR}/domlibtm.o ${OBJDIR}/domlib.o ${MATHLIB} -L${POLYLIB-LIB} -lpoly -lML -o $@
+
+# Dependencies on c or o files
+# Just compile the c file, using the appropriate include directories
+# Do not understand what $< means...
+${OBJDIR}/domlib.o: domlib.c
+	${CC} -c -g ${EXTRA_CFLAGS} ${MATHINCLUDE} -I${POLYINCLUDE} -o ${OBJDIR}/domlib.o $<
+
+#  old stuff...
+#	cc -c ${PRECISIONFLAG} ${MATHINCLUDE} -I${POLYINCLUDE} -o ${OBJDIR}/domlib.o $<
+
+${OBJDIR}/domlibtm.o: ${OBJDIR}/domlibtm.c
+	${CC} -c -g ${EXTRA_CFLAGS} ${MATHINCLUDE} -I${POLYINCLUDE} -o ${OBJDIR}/domlibtm.o $<
+
+#
+#  old stuff...
+#	cc -c ${MATHINCLUDE} -I${POLYINCLUDE} -o ${OBJDIR}/domlibtm.o $<
+
+# To produce domlibtm.c, run mprep on domlib.tm given by the MMA 
+# distribution
+${OBJDIR}/domlibtm.c : domlib.tm
+	${MATHPREP} $? >${OBJDIR}/domlibtm.c
+#
+clean:
+	rm ${OBJDIR}/domlibtm.o ${OBJDIR}/domlibtm.c ${OBJDIR}/domlib ${OBJDIR}/domlib.o
+
+#  Checks and lists variables
+.phony: checkvars
+checkvars: 
+#
+# Check value of MMALPHA. Checks if there exists a Domlib directory in it
+	@echo "----- MMALPHA = "$(MMALPHA);
+	@if [ ! -d $(MMALPHA)/sources/Domlib ]; then echo "***MMALPHA is probably wrong."; fi
+#
+# Check value of CC
+	@echo "----- CC = "$(CC);
+	@if [ "$(CC)" = "" ]; then echo "*** Variable CC is not set"; fi
+#
+# Check value of BINDIR, the binary directory
+	@echo "----- BINDIR = "$(BINDIR);
+	@if [ "$(BINDIR)" = "" ]; then echo "*** Variable BINDIR is not set"; fi
+	@if [ ! -d $(BINDIR) ]; then echo "*** Binary directory does not exist."; fi
+#
+# Check value of LIBDIR, the directory of libraries
+	@echo "----- LIBDIR = "$(LIBDIR);
+	@if [ "$(LIBDIR)" = "" ]; then echo "*** Variable LIBDIR is not set"; fi
+	@if [ ! -d $(LIBDIR) ]; then echo "*** Library directory does not exist."; fi
+#
+# Check value of OBJDIR
+	@echo "----- OBJDIR = "$(OBJDIR);
+	@if [ "$(OBJDIR)" = "" ]; then echo "*** Variable OBJDIR is not set"; fi
+	@if [ ! -d $(OBJDIR) ]; then echo "***OBJDIR was not created. Please, create it."; fi
+#
+# Check value of POLYDIR
+	@echo "----- POLYDIR = "$(POLYDIR);
+	@if [ "$(POLYDIR)" = "" ]; then echo "*** Variable POLYDIR is not set"; fi
+	@if [ ! -d $(POLYDIR) ]; then echo "***Directory POLYDIR does not exist."; fi
+#
+# Check value of POLYOBJS
+	@echo "----- POLYOBJS = "$(POLYOBJS);
+	@if [ "$(POLYOBJS)" = "" ]; then echo "*** Variable POLYOBJS is not set"; fi
+#
+# Check value of POLYINCLUDE
+	@echo "----- POLYINCLUDE = "$(POLYINCLUDE);
+	@if [ "$(POLYINCLUDE)" = "" ]; then echo "*** Variable POLYINCLUDE is not set"; fi
+	@if [ ! -d $(POLYINCLUDE) ]; then echo "***Directory POLYINCLUDE does not exist."; fi
+#
+# Check value of NEEDOBJDIR
+	@echo "----- NEEDOBJDIR = "$(NEEDOBJDIR)
+	@if [ "$(NEEDOBJDIR)" = "" ]; then echo "*** Variable NEEDOBJDIR is not set"; fi
+	@echo "----- MAKEFILES = "$(MAKEFILES)
+	@echo "----- LD = "$(LD)
+	@echo "----- LDFLAGS = "$(LDFLAGS)
+	@echo "----- OBJS = "$(OBJS)
+	@echo "----- SHELL = "$(SHELL);
+	@echo "----- CFLAGS = "$(CFLAGS);
+	@echo "----- CODEGENDIR = "$(CODEGENDIR);
+	@echo "----- CODEGENOBJS = "$(CODEGENOBJS);
+	@echo "----- CPPFLAGS = "$(CPPFLAGS);
+	@echo "----- LFFLAGS = "$(LDFLAGS);
+	@echo "----- CXX = "$(CXX)
+	@echo "----- DEFINES = "$(DEFINES)
+	@echo "----- POLYLIB-LIB = "$(POLYLIB-LIB)
+	@echo "----- DBG = "$(DBG)
+
+.phony:

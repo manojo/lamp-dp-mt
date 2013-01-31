@@ -1,0 +1,5051 @@
+Terminals which are not used
+
+   KW_invar
+   KW_outvar
+   KW_locvar
+   KW_usevar
+
+
+Grammar
+
+    0 $accept: Command $end
+
+    1 Command: '<' Program
+    2        | '@' Program
+    3        | '=' '"' Exp1 '"'
+    4        | ':' '"' Domain '"'
+    5        | '.' '"' Affine_Function '"'
+
+    6 Program: System
+    7        | Program System
+
+    8 System: SystemDecl
+    9       | SystemDecl LocalBlock LetBlock
+
+   10 @1: /* empty */
+
+   11 SystemDecl: KW_system ID @1 Param '(' Inputs ')' KW_returns '(' Outputs ')' ';'
+
+   12 Param: /* empty */
+   13      | ':' Domain
+
+   14 Inputs: /* empty */
+   15       | Inputs ';' Decl
+   16       | Decl
+
+   17 Outputs: /* empty */
+   18        | Outputs ';' Decl
+   19        | Decl
+
+   20 LocalBlock: /* empty */
+   21           | KW_var Locals ';'
+
+   22 Locals: /* empty */
+   23       | Locals ';' Decl
+   24       | Decl
+
+   25 Decl: Ids ':' Type
+
+   26 Ids: Ids ',' ID
+   27    | ID
+
+   28 Type: Tsimple
+   29     | Tsimple '[' ID ',' NUMBER ']'
+   30     | Domain KW_of Tsimple
+   31     | Domain KW_of Tsimple '[' ID ',' NUMBER ']'
+   32     | Domain
+
+   33 Tsimple: KW_integer
+   34        | KW_boolean
+   35        | KW_real
+
+   36 Semi: ';'
+   37     | /* empty */
+
+   38 @2: /* empty */
+
+   39 LetBlock: KW_let @2 Equations KW_tel Semi
+   40         | error KW_tel Semi
+
+   41 Equations: Equation
+   42          | Equations Equation
+   43          | Equations error ';'
+
+   44 ContextDomain: Domain
+
+   45 Equation: LetBlock
+
+   46 @3: /* empty */
+
+   47 Equation: ContextDomain ':' @3 Equation
+
+   48 @4: /* empty */
+
+   49 Equation: ContextDomain KW_loop @4 Equation
+
+   50 @5: /* empty */
+
+   51 Equation: KW_use @5 UseDomain ID ParamAssign '(' ExpList ')' KW_returns '(' Ids ')' ';'
+
+   52 UseDomain: /* empty */
+   53          | Domain
+
+   54 ParamAssign: /* empty */
+   55            | '[' Vexpressions ']'
+   56            | '.' '(' Vids KW_arrow Vexpressions ')'
+
+   57 Equation: LHS '=' Exp
+
+   58 LHS: ID
+   59    | ID '[' Vexpressions ']'
+
+   60 ExpList: ExpList ',' Exp1
+   61        | Exp1
+   62        | /* empty */
+
+   63 Domain: Dom1
+
+   64 Dom1: Dom1 '|' Dom2
+   65     | Dom2
+
+   66 Dom2: Dom2 '&' Dom3
+   67     | Dom3
+
+   68 Dom3: Dom4 '.' Affine_Function
+   69     | Dom4 '.' KW_convex
+   70     | Dom4
+
+   71 Dom4: '~' Dom4
+   72     | DomTerm
+
+   73 DomTerm: '{' Expressions '|' Constraints '}'
+   74        | '{' '|' Constraints '}'
+   75        | '{' Expressions '|' '}'
+   76        | '{' error '}'
+   77        | '{' Dom1 '}'
+   78        | KW_domain KW_of ID
+
+   79 Affine_Function: '(' Vexpressions KW_arrow Vexpressions ')'
+
+   80 Constraints: Constraints ';' Constraint
+   81            | Constraint
+
+   82 Constraint: Egalite
+   83           | Suite_Decroissante
+   84           | Suite_Croissante
+
+   85 Egalite: Egalite '=' Expressions
+   86        | Expressions '=' Expressions
+
+   87 Suite_Decroissante: Suite_Decroissante '>' Expressions
+   88                   | Suite_Decroissante KW_geq Expressions
+   89                   | Suite_Decroissante '=' Expressions
+   90                   | Suite_Decroissante '<' Expressions
+   91                   | Suite_Decroissante KW_leq Expressions
+   92                   | Expressions '>' Expressions
+   93                   | Expressions KW_geq Expressions
+
+   94 Suite_Croissante: Suite_Croissante '<' Expressions
+   95                 | Suite_Croissante KW_leq Expressions
+   96                 | Suite_Croissante '=' Expressions
+   97                 | Suite_Croissante '>' Expressions
+   98                 | Suite_Croissante KW_geq Expressions
+   99                 | Expressions '<' Expressions
+  100                 | Expressions KW_leq Expressions
+
+  101 Xid: ID
+  102    | XID
+  103    | Xid ':' ID
+
+  104 Xids: Xids ',' Xid
+  105     | Xid
+
+  106 Vids: /* empty */
+  107     | Xids
+
+  108 Vexpressions: /* empty */
+  109             | Expressions
+
+  110 Expressions: '(' Expressions ',' Expression ')'
+  111            | Expressions ',' Expression
+  112            | Expression
+
+  113 Expression: Expression LinearOp Facteur
+  114           | '-' Facteur
+  115           | Facteur
+
+  116 Facteur: NUMBER Xid
+  117        | Facteur '/' NUMBER
+  118        | '(' Expression ')'
+  119        | NUMBER
+  120        | Xid
+
+  121 LinearOp: '+'
+  122         | '-'
+
+  123 Exp: Exp1 ';'
+  124    | error ';'
+
+  125 Exp1: KW_if Exp1 KW_then Exp1 KW_else Exp1
+  126     | Exp2
+
+  127 Exp2: Domain ':' Exp1
+  128     | Exp3
+
+  129 Exp3: Exp3 KW_or Exp4
+  130     | Exp3 KW_xor Exp4
+  131     | Exp4
+
+  132 Exp4: Exp4 KW_and Exp5
+  133     | Exp4 KW_min Exp5
+  134     | Exp4 KW_max Exp5
+  135     | Exp5
+
+  136 Exp5: KW_not Exp5
+  137     | Exp6
+
+  138 Exp6: Exp7 RelOp Exp7
+  139     | Exp7
+
+  140 RelOp: '='
+  141      | '>'
+  142      | KW_geq
+  143      | '<'
+  144      | KW_leq
+  145      | KW_ne
+
+  146 Exp7: Exp7 '+' Exp8
+  147     | Exp7 '-' Exp8
+  148     | Exp8
+
+  149 Exp8: Exp8 '*' Exp9
+  150     | Exp8 '/' Exp9
+  151     | Exp8 KW_div Exp9
+  152     | Exp8 KW_mod Exp9
+  153     | Exp9
+
+  154 Exp9: '-' Exp10
+  155     | Exp10
+
+  156 Exp10: Exp10 '.' Affine_Function
+  157      | ExpTerm '[' Vexpressions ']'
+  158      | ExpTerm
+
+  159 Projection: '(' Vids KW_arrow Vexpressions ')'
+
+  160 ExpTerm: ID
+
+  161 @6: /* empty */
+
+  162 ExpTerm: KW_reduce '(' @6 CommutativeOp ',' Projection ',' Exp1 ')'
+  163        | ID '(' ExpList ')'
+  164        | BinaryOp '(' Exp1 ',' Exp2 ')'
+  165        | KW_sqrt '(' Exp1 ')'
+  166        | KW_abs '(' Exp1 ')'
+
+  167 Add_Params: /* empty */
+
+  168 ExpTerm: NUMBER
+  169        | NUMBER XID
+  170        | XID
+  171        | INFINITY Add_Params
+  172        | REAL Add_Params
+  173        | BOOLEAN Add_Params
+  174        | '(' Exp1 ')'
+  175        | KW_case Alts KW_esac
+
+  176 Alts: Exp
+  177     | Alts Exp
+
+  178 CommutativeOp: '+'
+  179              | '*'
+  180              | KW_and
+  181              | KW_or
+  182              | KW_xor
+  183              | KW_min
+  184              | KW_max
+
+  185 BinaryOp: CommutativeOp
+  186         | KW_div
+  187         | KW_mod
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'"' (34) 3 4 5
+'&' (38) 66
+'(' (40) 11 51 56 79 110 118 159 162 163 164 165 166 174
+')' (41) 11 51 56 79 110 118 159 162 163 164 165 166 174
+'*' (42) 149 179
+'+' (43) 121 146 178
+',' (44) 26 29 31 60 104 110 111 162 164
+'-' (45) 114 122 147 154
+'.' (46) 5 56 68 69 156
+'/' (47) 117 150
+':' (58) 4 13 25 47 103 127
+';' (59) 11 15 18 21 23 36 43 51 80 123 124
+'<' (60) 1 90 94 99 143
+'=' (61) 3 57 85 86 89 96 140
+'>' (62) 87 92 97 141
+'@' (64) 2
+'[' (91) 29 31 55 59 157
+']' (93) 29 31 55 59 157
+'{' (123) 73 74 75 76 77
+'|' (124) 64 73 74 75
+'}' (125) 73 74 75 76 77
+'~' (126) 71
+error (256) 40 43 76 124
+KW_of (258) 30 31 78
+KW_integer (259) 33
+KW_boolean (260) 34
+KW_real (261) 35
+KW_invar (262)
+KW_outvar (263)
+KW_locvar (264)
+KW_usevar (265)
+KW_var (266) 21
+KW_returns (267) 11 51
+KW_system (268) 11
+KW_let (269) 39
+KW_tel (270) 39 40
+KW_use (271) 51
+KW_case (272) 175
+KW_esac (273) 175
+KW_if (274) 125
+KW_then (275) 125
+KW_else (276) 125
+KW_or (277) 129 181
+KW_xor (278) 130 182
+KW_and (279) 132 180
+KW_not (280) 136
+KW_div (281) 151 186
+KW_mod (282) 152 187
+KW_sqrt (283) 165
+KW_abs (284) 166
+KW_convex (285) 69
+KW_arrow (286) 56 79 159
+KW_leq (287) 91 95 100 144
+KW_geq (288) 88 93 98 142
+KW_ne (289) 145
+KW_domain (290) 78
+KW_loop (291) 49
+KW_reduce (292) 162
+KW_max (293) 134 184
+KW_min (294) 133 183
+NUMBER (295) 29 31 116 117 119 168 169
+INFINITY (296) 171
+REAL (297) 172
+BOOLEAN (298) 173
+ID (299) 11 26 27 29 31 51 58 59 78 101 103 160 163
+XID (300) 102 169 170
+
+
+Nonterminals, with rules where they appear
+
+$accept (68)
+    on left: 0
+Command (69)
+    on left: 1 2 3 4 5, on right: 0
+Program (70)
+    on left: 6 7, on right: 1 2 7
+System (71)
+    on left: 8 9, on right: 6 7
+SystemDecl (72)
+    on left: 11, on right: 8 9
+@1 (73)
+    on left: 10, on right: 11
+Param (74)
+    on left: 12 13, on right: 11
+Inputs (75)
+    on left: 14 15 16, on right: 11 15
+Outputs (76)
+    on left: 17 18 19, on right: 11 18
+LocalBlock (77)
+    on left: 20 21, on right: 9
+Locals (78)
+    on left: 22 23 24, on right: 21 23
+Decl (79)
+    on left: 25, on right: 15 16 18 19 23 24
+Ids (80)
+    on left: 26 27, on right: 25 26 51
+Type (81)
+    on left: 28 29 30 31 32, on right: 25
+Tsimple (82)
+    on left: 33 34 35, on right: 28 29 30 31
+Semi (83)
+    on left: 36 37, on right: 39 40
+LetBlock (84)
+    on left: 39 40, on right: 9 45
+@2 (85)
+    on left: 38, on right: 39
+Equations (86)
+    on left: 41 42 43, on right: 39 42 43
+ContextDomain (87)
+    on left: 44, on right: 47 49
+Equation (88)
+    on left: 45 47 49 51 57, on right: 41 42 47 49
+@3 (89)
+    on left: 46, on right: 47
+@4 (90)
+    on left: 48, on right: 49
+@5 (91)
+    on left: 50, on right: 51
+UseDomain (92)
+    on left: 52 53, on right: 51
+ParamAssign (93)
+    on left: 54 55 56, on right: 51
+LHS (94)
+    on left: 58 59, on right: 57
+ExpList (95)
+    on left: 60 61 62, on right: 51 60 163
+Domain (96)
+    on left: 63, on right: 4 13 30 31 32 44 53 127
+Dom1 (97)
+    on left: 64 65, on right: 63 64 77
+Dom2 (98)
+    on left: 66 67, on right: 64 65 66
+Dom3 (99)
+    on left: 68 69 70, on right: 66 67
+Dom4 (100)
+    on left: 71 72, on right: 68 69 70 71
+DomTerm (101)
+    on left: 73 74 75 76 77 78, on right: 72
+Affine_Function (102)
+    on left: 79, on right: 5 68 156
+Constraints (103)
+    on left: 80 81, on right: 73 74 80
+Constraint (104)
+    on left: 82 83 84, on right: 80 81
+Egalite (105)
+    on left: 85 86, on right: 82 85
+Suite_Decroissante (106)
+    on left: 87 88 89 90 91 92 93, on right: 83 87 88 89 90 91
+Suite_Croissante (107)
+    on left: 94 95 96 97 98 99 100, on right: 84 94 95 96 97 98
+Xid (108)
+    on left: 101 102 103, on right: 103 104 105 116 120
+Xids (109)
+    on left: 104 105, on right: 104 107
+Vids (110)
+    on left: 106 107, on right: 56 159
+Vexpressions (111)
+    on left: 108 109, on right: 55 56 59 79 157 159
+Expressions (112)
+    on left: 110 111 112, on right: 73 75 85 86 87 88 89 90 91 92 93
+    94 95 96 97 98 99 100 109 110 111
+Expression (113)
+    on left: 113 114 115, on right: 110 111 112 113 118
+Facteur (114)
+    on left: 116 117 118 119 120, on right: 113 114 115 117
+LinearOp (115)
+    on left: 121 122, on right: 113
+Exp (116)
+    on left: 123 124, on right: 57 176 177
+Exp1 (117)
+    on left: 125 126, on right: 3 60 61 123 125 127 162 164 165 166
+    174
+Exp2 (118)
+    on left: 127 128, on right: 126 164
+Exp3 (119)
+    on left: 129 130 131, on right: 128 129 130
+Exp4 (120)
+    on left: 132 133 134 135, on right: 129 130 131 132 133 134
+Exp5 (121)
+    on left: 136 137, on right: 132 133 134 135 136
+Exp6 (122)
+    on left: 138 139, on right: 137
+RelOp (123)
+    on left: 140 141 142 143 144 145, on right: 138
+Exp7 (124)
+    on left: 146 147 148, on right: 138 139 146 147
+Exp8 (125)
+    on left: 149 150 151 152 153, on right: 146 147 148 149 150 151
+    152
+Exp9 (126)
+    on left: 154 155, on right: 149 150 151 152 153
+Exp10 (127)
+    on left: 156 157 158, on right: 154 155 156
+Projection (128)
+    on left: 159, on right: 162
+ExpTerm (129)
+    on left: 160 162 163 164 165 166 168 169 170 171 172 173 174 175
+   , on right: 157 158
+@6 (130)
+    on left: 161, on right: 162
+Add_Params (131)
+    on left: 167, on right: 171 172 173
+Alts (132)
+    on left: 176 177, on right: 175 177
+CommutativeOp (133)
+    on left: 178 179 180 181 182 183 184, on right: 162 185
+BinaryOp (134)
+    on left: 185 186 187, on right: 164
+
+
+state 0
+
+    0 $accept: . Command $end
+
+    '<'  shift, and go to state 1
+    '@'  shift, and go to state 2
+    '='  shift, and go to state 3
+    ':'  shift, and go to state 4
+    '.'  shift, and go to state 5
+
+    Command  go to state 6
+
+
+state 1
+
+    1 Command: '<' . Program
+
+    KW_system  shift, and go to state 7
+
+    Program     go to state 8
+    System      go to state 9
+    SystemDecl  go to state 10
+
+
+state 2
+
+    2 Command: '@' . Program
+
+    KW_system  shift, and go to state 7
+
+    Program     go to state 11
+    System      go to state 9
+    SystemDecl  go to state 10
+
+
+state 3
+
+    3 Command: '=' . '"' Exp1 '"'
+
+    '"'  shift, and go to state 12
+
+
+state 4
+
+    4 Command: ':' . '"' Domain '"'
+
+    '"'  shift, and go to state 13
+
+
+state 5
+
+    5 Command: '.' . '"' Affine_Function '"'
+
+    '"'  shift, and go to state 14
+
+
+state 6
+
+    0 $accept: Command . $end
+
+    $end  shift, and go to state 15
+
+
+state 7
+
+   11 SystemDecl: KW_system . ID @1 Param '(' Inputs ')' KW_returns '(' Outputs ')' ';'
+
+    ID  shift, and go to state 16
+
+
+state 8
+
+    1 Command: '<' Program .
+    7 Program: Program . System
+
+    KW_system  shift, and go to state 7
+
+    $default  reduce using rule 1 (Command)
+
+    System      go to state 17
+    SystemDecl  go to state 10
+
+
+state 9
+
+    6 Program: System .
+
+    $default  reduce using rule 6 (Program)
+
+
+state 10
+
+    8 System: SystemDecl .
+    9       | SystemDecl . LocalBlock LetBlock
+
+    KW_var  shift, and go to state 18
+
+    error     reduce using rule 20 (LocalBlock)
+    KW_let    reduce using rule 20 (LocalBlock)
+    $default  reduce using rule 8 (System)
+
+    LocalBlock  go to state 19
+
+
+state 11
+
+    2 Command: '@' Program .
+    7 Program: Program . System
+
+    KW_system  shift, and go to state 7
+
+    $default  reduce using rule 2 (Command)
+
+    System      go to state 17
+    SystemDecl  go to state 10
+
+
+state 12
+
+    3 Command: '=' '"' . Exp1 '"'
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 52
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 13
+
+    4 Command: ':' '"' . Domain '"'
+
+    KW_domain  shift, and go to state 30
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+
+    Domain   go to state 65
+    Dom1     go to state 47
+    Dom2     go to state 48
+    Dom3     go to state 49
+    Dom4     go to state 50
+    DomTerm  go to state 51
+
+
+state 14
+
+    5 Command: '.' '"' . Affine_Function '"'
+
+    '('  shift, and go to state 66
+
+    Affine_Function  go to state 67
+
+
+state 15
+
+    0 $accept: Command $end .
+
+    $default  accept
+
+
+state 16
+
+   11 SystemDecl: KW_system ID . @1 Param '(' Inputs ')' KW_returns '(' Outputs ')' ';'
+
+    $default  reduce using rule 10 (@1)
+
+    @1  go to state 68
+
+
+state 17
+
+    7 Program: Program System .
+
+    $default  reduce using rule 7 (Program)
+
+
+state 18
+
+   21 LocalBlock: KW_var . Locals ';'
+
+    ID  shift, and go to state 69
+
+    $default  reduce using rule 22 (Locals)
+
+    Locals  go to state 70
+    Decl    go to state 71
+    Ids     go to state 72
+
+
+state 19
+
+    9 System: SystemDecl LocalBlock . LetBlock
+
+    error   shift, and go to state 73
+    KW_let  shift, and go to state 74
+
+    LetBlock  go to state 75
+
+
+state 20
+
+  175 ExpTerm: KW_case . Alts KW_esac
+
+    error      shift, and go to state 76
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp            go to state 77
+    Exp1           go to state 78
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    Alts           go to state 79
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 21
+
+  125 Exp1: KW_if . Exp1 KW_then Exp1 KW_else Exp1
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 80
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 22
+
+  181 CommutativeOp: KW_or .
+
+    $default  reduce using rule 181 (CommutativeOp)
+
+
+state 23
+
+  182 CommutativeOp: KW_xor .
+
+    $default  reduce using rule 182 (CommutativeOp)
+
+
+state 24
+
+  180 CommutativeOp: KW_and .
+
+    $default  reduce using rule 180 (CommutativeOp)
+
+
+state 25
+
+  136 Exp5: KW_not . Exp5
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp5           go to state 81
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 26
+
+  186 BinaryOp: KW_div .
+
+    $default  reduce using rule 186 (BinaryOp)
+
+
+state 27
+
+  187 BinaryOp: KW_mod .
+
+    $default  reduce using rule 187 (BinaryOp)
+
+
+state 28
+
+  165 ExpTerm: KW_sqrt . '(' Exp1 ')'
+
+    '('  shift, and go to state 82
+
+
+state 29
+
+  166 ExpTerm: KW_abs . '(' Exp1 ')'
+
+    '('  shift, and go to state 83
+
+
+state 30
+
+   78 DomTerm: KW_domain . KW_of ID
+
+    KW_of  shift, and go to state 84
+
+
+state 31
+
+  162 ExpTerm: KW_reduce . '(' @6 CommutativeOp ',' Projection ',' Exp1 ')'
+
+    '('  shift, and go to state 85
+
+
+state 32
+
+  184 CommutativeOp: KW_max .
+
+    $default  reduce using rule 184 (CommutativeOp)
+
+
+state 33
+
+  183 CommutativeOp: KW_min .
+
+    $default  reduce using rule 183 (CommutativeOp)
+
+
+state 34
+
+  168 ExpTerm: NUMBER .
+  169        | NUMBER . XID
+
+    XID  shift, and go to state 86
+
+    $default  reduce using rule 168 (ExpTerm)
+
+
+state 35
+
+  171 ExpTerm: INFINITY . Add_Params
+
+    $default  reduce using rule 167 (Add_Params)
+
+    Add_Params  go to state 87
+
+
+state 36
+
+  172 ExpTerm: REAL . Add_Params
+
+    $default  reduce using rule 167 (Add_Params)
+
+    Add_Params  go to state 88
+
+
+state 37
+
+  173 ExpTerm: BOOLEAN . Add_Params
+
+    $default  reduce using rule 167 (Add_Params)
+
+    Add_Params  go to state 89
+
+
+state 38
+
+  160 ExpTerm: ID .
+  163        | ID . '(' ExpList ')'
+
+    '('  shift, and go to state 90
+
+    $default  reduce using rule 160 (ExpTerm)
+
+
+state 39
+
+  170 ExpTerm: XID .
+
+    $default  reduce using rule 170 (ExpTerm)
+
+
+state 40
+
+  174 ExpTerm: '(' . Exp1 ')'
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 91
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 41
+
+   71 Dom4: '~' . Dom4
+
+    KW_domain  shift, and go to state 30
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+
+    Dom4     go to state 92
+    DomTerm  go to state 51
+
+
+state 42
+
+   73 DomTerm: '{' . Expressions '|' Constraints '}'
+   74        | '{' . '|' Constraints '}'
+   75        | '{' . Expressions '|' '}'
+   76        | '{' . error '}'
+   77        | '{' . Dom1 '}'
+
+    error      shift, and go to state 93
+    KW_domain  shift, and go to state 30
+    NUMBER     shift, and go to state 94
+    ID         shift, and go to state 95
+    XID        shift, and go to state 96
+    '('        shift, and go to state 97
+    '|'        shift, and go to state 98
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 99
+
+    Dom1         go to state 100
+    Dom2         go to state 48
+    Dom3         go to state 49
+    Dom4         go to state 50
+    DomTerm      go to state 51
+    Xid          go to state 101
+    Expressions  go to state 102
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 43
+
+  154 Exp9: '-' . Exp10
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp10          go to state 105
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 44
+
+  178 CommutativeOp: '+' .
+
+    $default  reduce using rule 178 (CommutativeOp)
+
+
+state 45
+
+  179 CommutativeOp: '*' .
+
+    $default  reduce using rule 179 (CommutativeOp)
+
+
+state 46
+
+  127 Exp2: Domain . ':' Exp1
+
+    ':'  shift, and go to state 106
+
+
+state 47
+
+   63 Domain: Dom1 .
+   64 Dom1: Dom1 . '|' Dom2
+
+    '|'  shift, and go to state 107
+
+    $default  reduce using rule 63 (Domain)
+
+
+state 48
+
+   65 Dom1: Dom2 .
+   66 Dom2: Dom2 . '&' Dom3
+
+    '&'  shift, and go to state 108
+
+    $default  reduce using rule 65 (Dom1)
+
+
+state 49
+
+   67 Dom2: Dom3 .
+
+    $default  reduce using rule 67 (Dom2)
+
+
+state 50
+
+   68 Dom3: Dom4 . '.' Affine_Function
+   69     | Dom4 . '.' KW_convex
+   70     | Dom4 .
+
+    '.'  shift, and go to state 109
+
+    $default  reduce using rule 70 (Dom3)
+
+
+state 51
+
+   72 Dom4: DomTerm .
+
+    $default  reduce using rule 72 (Dom4)
+
+
+state 52
+
+    3 Command: '=' '"' Exp1 . '"'
+
+    '"'  shift, and go to state 110
+
+
+state 53
+
+  126 Exp1: Exp2 .
+
+    $default  reduce using rule 126 (Exp1)
+
+
+state 54
+
+  128 Exp2: Exp3 .
+  129 Exp3: Exp3 . KW_or Exp4
+  130     | Exp3 . KW_xor Exp4
+
+    KW_or   shift, and go to state 111
+    KW_xor  shift, and go to state 112
+
+    $default  reduce using rule 128 (Exp2)
+
+
+state 55
+
+  131 Exp3: Exp4 .
+  132 Exp4: Exp4 . KW_and Exp5
+  133     | Exp4 . KW_min Exp5
+  134     | Exp4 . KW_max Exp5
+
+    KW_and  shift, and go to state 113
+    KW_max  shift, and go to state 114
+    KW_min  shift, and go to state 115
+
+    $default  reduce using rule 131 (Exp3)
+
+
+state 56
+
+  135 Exp4: Exp5 .
+
+    $default  reduce using rule 135 (Exp4)
+
+
+state 57
+
+  137 Exp5: Exp6 .
+
+    $default  reduce using rule 137 (Exp5)
+
+
+state 58
+
+  138 Exp6: Exp7 . RelOp Exp7
+  139     | Exp7 .
+  146 Exp7: Exp7 . '+' Exp8
+  147     | Exp7 . '-' Exp8
+
+    KW_leq  shift, and go to state 116
+    KW_geq  shift, and go to state 117
+    KW_ne   shift, and go to state 118
+    '<'     shift, and go to state 119
+    '='     shift, and go to state 120
+    '>'     shift, and go to state 121
+    '-'     shift, and go to state 122
+    '+'     shift, and go to state 123
+
+    $default  reduce using rule 139 (Exp6)
+
+    RelOp  go to state 124
+
+
+state 59
+
+  148 Exp7: Exp8 .
+  149 Exp8: Exp8 . '*' Exp9
+  150     | Exp8 . '/' Exp9
+  151     | Exp8 . KW_div Exp9
+  152     | Exp8 . KW_mod Exp9
+
+    KW_div  shift, and go to state 125
+    KW_mod  shift, and go to state 126
+    '/'     shift, and go to state 127
+    '*'     shift, and go to state 128
+
+    $default  reduce using rule 148 (Exp7)
+
+
+state 60
+
+  153 Exp8: Exp9 .
+
+    $default  reduce using rule 153 (Exp8)
+
+
+state 61
+
+  155 Exp9: Exp10 .
+  156 Exp10: Exp10 . '.' Affine_Function
+
+    '.'  shift, and go to state 129
+
+    $default  reduce using rule 155 (Exp9)
+
+
+state 62
+
+  157 Exp10: ExpTerm . '[' Vexpressions ']'
+  158      | ExpTerm .
+
+    '['  shift, and go to state 130
+
+    $default  reduce using rule 158 (Exp10)
+
+
+state 63
+
+  185 BinaryOp: CommutativeOp .
+
+    $default  reduce using rule 185 (BinaryOp)
+
+
+state 64
+
+  164 ExpTerm: BinaryOp . '(' Exp1 ',' Exp2 ')'
+
+    '('  shift, and go to state 131
+
+
+state 65
+
+    4 Command: ':' '"' Domain . '"'
+
+    '"'  shift, and go to state 132
+
+
+state 66
+
+   79 Affine_Function: '(' . Vexpressions KW_arrow Vexpressions ')'
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    $default  reduce using rule 108 (Vexpressions)
+
+    Xid           go to state 101
+    Vexpressions  go to state 133
+    Expressions   go to state 134
+    Expression    go to state 103
+    Facteur       go to state 104
+
+
+state 67
+
+    5 Command: '.' '"' Affine_Function . '"'
+
+    '"'  shift, and go to state 135
+
+
+state 68
+
+   11 SystemDecl: KW_system ID @1 . Param '(' Inputs ')' KW_returns '(' Outputs ')' ';'
+
+    ':'  shift, and go to state 136
+
+    $default  reduce using rule 12 (Param)
+
+    Param  go to state 137
+
+
+state 69
+
+   27 Ids: ID .
+
+    $default  reduce using rule 27 (Ids)
+
+
+state 70
+
+   21 LocalBlock: KW_var Locals . ';'
+   23 Locals: Locals . ';' Decl
+
+    ';'  shift, and go to state 138
+
+
+state 71
+
+   24 Locals: Decl .
+
+    $default  reduce using rule 24 (Locals)
+
+
+state 72
+
+   25 Decl: Ids . ':' Type
+   26 Ids: Ids . ',' ID
+
+    ':'  shift, and go to state 139
+    ','  shift, and go to state 140
+
+
+state 73
+
+   40 LetBlock: error . KW_tel Semi
+
+    KW_tel  shift, and go to state 141
+
+
+state 74
+
+   39 LetBlock: KW_let . @2 Equations KW_tel Semi
+
+    $default  reduce using rule 38 (@2)
+
+    @2  go to state 142
+
+
+state 75
+
+    9 System: SystemDecl LocalBlock LetBlock .
+
+    $default  reduce using rule 9 (System)
+
+
+state 76
+
+  124 Exp: error . ';'
+
+    ';'  shift, and go to state 143
+
+
+state 77
+
+  176 Alts: Exp .
+
+    $default  reduce using rule 176 (Alts)
+
+
+state 78
+
+  123 Exp: Exp1 . ';'
+
+    ';'  shift, and go to state 144
+
+
+state 79
+
+  175 ExpTerm: KW_case Alts . KW_esac
+  177 Alts: Alts . Exp
+
+    error      shift, and go to state 76
+    KW_case    shift, and go to state 20
+    KW_esac    shift, and go to state 145
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp            go to state 146
+    Exp1           go to state 78
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 80
+
+  125 Exp1: KW_if Exp1 . KW_then Exp1 KW_else Exp1
+
+    KW_then  shift, and go to state 147
+
+
+state 81
+
+  136 Exp5: KW_not Exp5 .
+
+    $default  reduce using rule 136 (Exp5)
+
+
+state 82
+
+  165 ExpTerm: KW_sqrt '(' . Exp1 ')'
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 148
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 83
+
+  166 ExpTerm: KW_abs '(' . Exp1 ')'
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 149
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 84
+
+   78 DomTerm: KW_domain KW_of . ID
+
+    ID  shift, and go to state 150
+
+
+state 85
+
+  162 ExpTerm: KW_reduce '(' . @6 CommutativeOp ',' Projection ',' Exp1 ')'
+
+    $default  reduce using rule 161 (@6)
+
+    @6  go to state 151
+
+
+state 86
+
+  169 ExpTerm: NUMBER XID .
+
+    $default  reduce using rule 169 (ExpTerm)
+
+
+state 87
+
+  171 ExpTerm: INFINITY Add_Params .
+
+    $default  reduce using rule 171 (ExpTerm)
+
+
+state 88
+
+  172 ExpTerm: REAL Add_Params .
+
+    $default  reduce using rule 172 (ExpTerm)
+
+
+state 89
+
+  173 ExpTerm: BOOLEAN Add_Params .
+
+    $default  reduce using rule 173 (ExpTerm)
+
+
+state 90
+
+  163 ExpTerm: ID '(' . ExpList ')'
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    $default  reduce using rule 62 (ExpList)
+
+    ExpList        go to state 152
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 153
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 91
+
+  174 ExpTerm: '(' Exp1 . ')'
+
+    ')'  shift, and go to state 154
+
+
+state 92
+
+   71 Dom4: '~' Dom4 .
+
+    $default  reduce using rule 71 (Dom4)
+
+
+state 93
+
+   76 DomTerm: '{' error . '}'
+
+    '}'  shift, and go to state 155
+
+
+state 94
+
+  116 Facteur: NUMBER . Xid
+  119        | NUMBER .
+
+    ID   shift, and go to state 95
+    XID  shift, and go to state 96
+
+    $default  reduce using rule 119 (Facteur)
+
+    Xid  go to state 156
+
+
+state 95
+
+  101 Xid: ID .
+
+    $default  reduce using rule 101 (Xid)
+
+
+state 96
+
+  102 Xid: XID .
+
+    $default  reduce using rule 102 (Xid)
+
+
+state 97
+
+  110 Expressions: '(' . Expressions ',' Expression ')'
+  118 Facteur: '(' . Expression ')'
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 157
+    Expression   go to state 158
+    Facteur      go to state 104
+
+
+state 98
+
+   74 DomTerm: '{' '|' . Constraints '}'
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Constraints         go to state 159
+    Constraint          go to state 160
+    Egalite             go to state 161
+    Suite_Decroissante  go to state 162
+    Suite_Croissante    go to state 163
+    Xid                 go to state 101
+    Expressions         go to state 164
+    Expression          go to state 103
+    Facteur             go to state 104
+
+
+state 99
+
+  114 Expression: '-' . Facteur
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 165
+
+    Xid      go to state 101
+    Facteur  go to state 166
+
+
+state 100
+
+   64 Dom1: Dom1 . '|' Dom2
+   77 DomTerm: '{' Dom1 . '}'
+
+    '|'  shift, and go to state 107
+    '}'  shift, and go to state 167
+
+
+state 101
+
+  103 Xid: Xid . ':' ID
+  120 Facteur: Xid .
+
+    ':'  shift, and go to state 168
+
+    $default  reduce using rule 120 (Facteur)
+
+
+state 102
+
+   73 DomTerm: '{' Expressions . '|' Constraints '}'
+   75        | '{' Expressions . '|' '}'
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+    '|'  shift, and go to state 170
+
+
+state 103
+
+  112 Expressions: Expression .
+  113 Expression: Expression . LinearOp Facteur
+
+    '-'  shift, and go to state 171
+    '+'  shift, and go to state 172
+
+    $default  reduce using rule 112 (Expressions)
+
+    LinearOp  go to state 173
+
+
+state 104
+
+  115 Expression: Facteur .
+  117 Facteur: Facteur . '/' NUMBER
+
+    '/'  shift, and go to state 174
+
+    $default  reduce using rule 115 (Expression)
+
+
+state 105
+
+  154 Exp9: '-' Exp10 .
+  156 Exp10: Exp10 . '.' Affine_Function
+
+    '.'  shift, and go to state 129
+
+    $default  reduce using rule 154 (Exp9)
+
+
+state 106
+
+  127 Exp2: Domain ':' . Exp1
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 175
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 107
+
+   64 Dom1: Dom1 '|' . Dom2
+
+    KW_domain  shift, and go to state 30
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+
+    Dom2     go to state 176
+    Dom3     go to state 49
+    Dom4     go to state 50
+    DomTerm  go to state 51
+
+
+state 108
+
+   66 Dom2: Dom2 '&' . Dom3
+
+    KW_domain  shift, and go to state 30
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+
+    Dom3     go to state 177
+    Dom4     go to state 50
+    DomTerm  go to state 51
+
+
+state 109
+
+   68 Dom3: Dom4 '.' . Affine_Function
+   69     | Dom4 '.' . KW_convex
+
+    KW_convex  shift, and go to state 178
+    '('        shift, and go to state 66
+
+    Affine_Function  go to state 179
+
+
+state 110
+
+    3 Command: '=' '"' Exp1 '"' .
+
+    $default  reduce using rule 3 (Command)
+
+
+state 111
+
+  129 Exp3: Exp3 KW_or . Exp4
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp4           go to state 180
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 112
+
+  130 Exp3: Exp3 KW_xor . Exp4
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp4           go to state 181
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 113
+
+  132 Exp4: Exp4 KW_and . Exp5
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp5           go to state 182
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 114
+
+  134 Exp4: Exp4 KW_max . Exp5
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp5           go to state 183
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 115
+
+  133 Exp4: Exp4 KW_min . Exp5
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp5           go to state 184
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 116
+
+  144 RelOp: KW_leq .
+
+    $default  reduce using rule 144 (RelOp)
+
+
+state 117
+
+  142 RelOp: KW_geq .
+
+    $default  reduce using rule 142 (RelOp)
+
+
+state 118
+
+  145 RelOp: KW_ne .
+
+    $default  reduce using rule 145 (RelOp)
+
+
+state 119
+
+  143 RelOp: '<' .
+
+    $default  reduce using rule 143 (RelOp)
+
+
+state 120
+
+  140 RelOp: '=' .
+
+    $default  reduce using rule 140 (RelOp)
+
+
+state 121
+
+  141 RelOp: '>' .
+
+    $default  reduce using rule 141 (RelOp)
+
+
+state 122
+
+  147 Exp7: Exp7 '-' . Exp8
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp8           go to state 185
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 123
+
+  146 Exp7: Exp7 '+' . Exp8
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp8           go to state 186
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 124
+
+  138 Exp6: Exp7 RelOp . Exp7
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp7           go to state 187
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 125
+
+  151 Exp8: Exp8 KW_div . Exp9
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp9           go to state 188
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 126
+
+  152 Exp8: Exp8 KW_mod . Exp9
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp9           go to state 189
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 127
+
+  150 Exp8: Exp8 '/' . Exp9
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp9           go to state 190
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 128
+
+  149 Exp8: Exp8 '*' . Exp9
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Exp9           go to state 191
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 129
+
+  156 Exp10: Exp10 '.' . Affine_Function
+
+    '('  shift, and go to state 66
+
+    Affine_Function  go to state 192
+
+
+state 130
+
+  157 Exp10: ExpTerm '[' . Vexpressions ']'
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    $default  reduce using rule 108 (Vexpressions)
+
+    Xid           go to state 101
+    Vexpressions  go to state 193
+    Expressions   go to state 134
+    Expression    go to state 103
+    Facteur       go to state 104
+
+
+state 131
+
+  164 ExpTerm: BinaryOp '(' . Exp1 ',' Exp2 ')'
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 194
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 132
+
+    4 Command: ':' '"' Domain '"' .
+
+    $default  reduce using rule 4 (Command)
+
+
+state 133
+
+   79 Affine_Function: '(' Vexpressions . KW_arrow Vexpressions ')'
+
+    KW_arrow  shift, and go to state 195
+
+
+state 134
+
+  109 Vexpressions: Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 109 (Vexpressions)
+
+
+state 135
+
+    5 Command: '.' '"' Affine_Function '"' .
+
+    $default  reduce using rule 5 (Command)
+
+
+state 136
+
+   13 Param: ':' . Domain
+
+    KW_domain  shift, and go to state 30
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+
+    Domain   go to state 196
+    Dom1     go to state 47
+    Dom2     go to state 48
+    Dom3     go to state 49
+    Dom4     go to state 50
+    DomTerm  go to state 51
+
+
+state 137
+
+   11 SystemDecl: KW_system ID @1 Param . '(' Inputs ')' KW_returns '(' Outputs ')' ';'
+
+    '('  shift, and go to state 197
+
+
+state 138
+
+   21 LocalBlock: KW_var Locals ';' .
+   23 Locals: Locals ';' . Decl
+
+    ID  shift, and go to state 69
+
+    $default  reduce using rule 21 (LocalBlock)
+
+    Decl  go to state 198
+    Ids   go to state 72
+
+
+state 139
+
+   25 Decl: Ids ':' . Type
+
+    KW_integer  shift, and go to state 199
+    KW_boolean  shift, and go to state 200
+    KW_real     shift, and go to state 201
+    KW_domain   shift, and go to state 30
+    '~'         shift, and go to state 41
+    '{'         shift, and go to state 42
+
+    Type     go to state 202
+    Tsimple  go to state 203
+    Domain   go to state 204
+    Dom1     go to state 47
+    Dom2     go to state 48
+    Dom3     go to state 49
+    Dom4     go to state 50
+    DomTerm  go to state 51
+
+
+state 140
+
+   26 Ids: Ids ',' . ID
+
+    ID  shift, and go to state 205
+
+
+state 141
+
+   40 LetBlock: error KW_tel . Semi
+
+    ';'  shift, and go to state 206
+
+    $default  reduce using rule 37 (Semi)
+
+    Semi  go to state 207
+
+
+state 142
+
+   39 LetBlock: KW_let @2 . Equations KW_tel Semi
+
+    error      shift, and go to state 73
+    KW_let     shift, and go to state 74
+    KW_use     shift, and go to state 208
+    KW_domain  shift, and go to state 30
+    ID         shift, and go to state 209
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+
+    LetBlock       go to state 210
+    Equations      go to state 211
+    ContextDomain  go to state 212
+    Equation       go to state 213
+    LHS            go to state 214
+    Domain         go to state 215
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+
+
+state 143
+
+  124 Exp: error ';' .
+
+    $default  reduce using rule 124 (Exp)
+
+
+state 144
+
+  123 Exp: Exp1 ';' .
+
+    $default  reduce using rule 123 (Exp)
+
+
+state 145
+
+  175 ExpTerm: KW_case Alts KW_esac .
+
+    $default  reduce using rule 175 (ExpTerm)
+
+
+state 146
+
+  177 Alts: Alts Exp .
+
+    $default  reduce using rule 177 (Alts)
+
+
+state 147
+
+  125 Exp1: KW_if Exp1 KW_then . Exp1 KW_else Exp1
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 216
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 148
+
+  165 ExpTerm: KW_sqrt '(' Exp1 . ')'
+
+    ')'  shift, and go to state 217
+
+
+state 149
+
+  166 ExpTerm: KW_abs '(' Exp1 . ')'
+
+    ')'  shift, and go to state 218
+
+
+state 150
+
+   78 DomTerm: KW_domain KW_of ID .
+
+    $default  reduce using rule 78 (DomTerm)
+
+
+state 151
+
+  162 ExpTerm: KW_reduce '(' @6 . CommutativeOp ',' Projection ',' Exp1 ')'
+
+    KW_or   shift, and go to state 22
+    KW_xor  shift, and go to state 23
+    KW_and  shift, and go to state 24
+    KW_max  shift, and go to state 32
+    KW_min  shift, and go to state 33
+    '+'     shift, and go to state 44
+    '*'     shift, and go to state 45
+
+    CommutativeOp  go to state 219
+
+
+state 152
+
+   60 ExpList: ExpList . ',' Exp1
+  163 ExpTerm: ID '(' ExpList . ')'
+
+    ')'  shift, and go to state 220
+    ','  shift, and go to state 221
+
+
+state 153
+
+   61 ExpList: Exp1 .
+
+    $default  reduce using rule 61 (ExpList)
+
+
+state 154
+
+  174 ExpTerm: '(' Exp1 ')' .
+
+    $default  reduce using rule 174 (ExpTerm)
+
+
+state 155
+
+   76 DomTerm: '{' error '}' .
+
+    $default  reduce using rule 76 (DomTerm)
+
+
+state 156
+
+  103 Xid: Xid . ':' ID
+  116 Facteur: NUMBER Xid .
+
+    ':'  shift, and go to state 168
+
+    $default  reduce using rule 116 (Facteur)
+
+
+state 157
+
+  110 Expressions: '(' Expressions . ',' Expression ')'
+  111            | Expressions . ',' Expression
+
+    ','  shift, and go to state 222
+
+
+state 158
+
+  112 Expressions: Expression .
+  113 Expression: Expression . LinearOp Facteur
+  118 Facteur: '(' Expression . ')'
+
+    ')'  shift, and go to state 223
+    '-'  shift, and go to state 171
+    '+'  shift, and go to state 172
+
+    $default  reduce using rule 112 (Expressions)
+
+    LinearOp  go to state 173
+
+
+state 159
+
+   74 DomTerm: '{' '|' Constraints . '}'
+   80 Constraints: Constraints . ';' Constraint
+
+    ';'  shift, and go to state 224
+    '}'  shift, and go to state 225
+
+
+state 160
+
+   81 Constraints: Constraint .
+
+    $default  reduce using rule 81 (Constraints)
+
+
+state 161
+
+   82 Constraint: Egalite .
+   85 Egalite: Egalite . '=' Expressions
+
+    '='  shift, and go to state 226
+
+    $default  reduce using rule 82 (Constraint)
+
+
+state 162
+
+   83 Constraint: Suite_Decroissante .
+   87 Suite_Decroissante: Suite_Decroissante . '>' Expressions
+   88                   | Suite_Decroissante . KW_geq Expressions
+   89                   | Suite_Decroissante . '=' Expressions
+   90                   | Suite_Decroissante . '<' Expressions
+   91                   | Suite_Decroissante . KW_leq Expressions
+
+    KW_leq  shift, and go to state 227
+    KW_geq  shift, and go to state 228
+    '<'     shift, and go to state 229
+    '='     shift, and go to state 230
+    '>'     shift, and go to state 231
+
+    $default  reduce using rule 83 (Constraint)
+
+
+state 163
+
+   84 Constraint: Suite_Croissante .
+   94 Suite_Croissante: Suite_Croissante . '<' Expressions
+   95                 | Suite_Croissante . KW_leq Expressions
+   96                 | Suite_Croissante . '=' Expressions
+   97                 | Suite_Croissante . '>' Expressions
+   98                 | Suite_Croissante . KW_geq Expressions
+
+    KW_leq  shift, and go to state 232
+    KW_geq  shift, and go to state 233
+    '<'     shift, and go to state 234
+    '='     shift, and go to state 235
+    '>'     shift, and go to state 236
+
+    $default  reduce using rule 84 (Constraint)
+
+
+state 164
+
+   86 Egalite: Expressions . '=' Expressions
+   92 Suite_Decroissante: Expressions . '>' Expressions
+   93                   | Expressions . KW_geq Expressions
+   99 Suite_Croissante: Expressions . '<' Expressions
+  100                 | Expressions . KW_leq Expressions
+  111 Expressions: Expressions . ',' Expression
+
+    KW_leq  shift, and go to state 237
+    KW_geq  shift, and go to state 238
+    '<'     shift, and go to state 239
+    '='     shift, and go to state 240
+    ','     shift, and go to state 169
+    '>'     shift, and go to state 241
+
+
+state 165
+
+  118 Facteur: '(' . Expression ')'
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 165
+    '-'     shift, and go to state 99
+
+    Xid         go to state 101
+    Expression  go to state 242
+    Facteur     go to state 104
+
+
+state 166
+
+  114 Expression: '-' Facteur .
+  117 Facteur: Facteur . '/' NUMBER
+
+    '/'  shift, and go to state 174
+
+    $default  reduce using rule 114 (Expression)
+
+
+state 167
+
+   77 DomTerm: '{' Dom1 '}' .
+
+    $default  reduce using rule 77 (DomTerm)
+
+
+state 168
+
+  103 Xid: Xid ':' . ID
+
+    ID  shift, and go to state 243
+
+
+state 169
+
+  111 Expressions: Expressions ',' . Expression
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 165
+    '-'     shift, and go to state 99
+
+    Xid         go to state 101
+    Expression  go to state 244
+    Facteur     go to state 104
+
+
+state 170
+
+   73 DomTerm: '{' Expressions '|' . Constraints '}'
+   75        | '{' Expressions '|' . '}'
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '}'     shift, and go to state 245
+    '-'     shift, and go to state 99
+
+    Constraints         go to state 246
+    Constraint          go to state 160
+    Egalite             go to state 161
+    Suite_Decroissante  go to state 162
+    Suite_Croissante    go to state 163
+    Xid                 go to state 101
+    Expressions         go to state 164
+    Expression          go to state 103
+    Facteur             go to state 104
+
+
+state 171
+
+  122 LinearOp: '-' .
+
+    $default  reduce using rule 122 (LinearOp)
+
+
+state 172
+
+  121 LinearOp: '+' .
+
+    $default  reduce using rule 121 (LinearOp)
+
+
+state 173
+
+  113 Expression: Expression LinearOp . Facteur
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 165
+
+    Xid      go to state 101
+    Facteur  go to state 247
+
+
+state 174
+
+  117 Facteur: Facteur '/' . NUMBER
+
+    NUMBER  shift, and go to state 248
+
+
+state 175
+
+  127 Exp2: Domain ':' Exp1 .
+
+    $default  reduce using rule 127 (Exp2)
+
+
+state 176
+
+   64 Dom1: Dom1 '|' Dom2 .
+   66 Dom2: Dom2 . '&' Dom3
+
+    '&'  shift, and go to state 108
+
+    $default  reduce using rule 64 (Dom1)
+
+
+state 177
+
+   66 Dom2: Dom2 '&' Dom3 .
+
+    $default  reduce using rule 66 (Dom2)
+
+
+state 178
+
+   69 Dom3: Dom4 '.' KW_convex .
+
+    $default  reduce using rule 69 (Dom3)
+
+
+state 179
+
+   68 Dom3: Dom4 '.' Affine_Function .
+
+    $default  reduce using rule 68 (Dom3)
+
+
+state 180
+
+  129 Exp3: Exp3 KW_or Exp4 .
+  132 Exp4: Exp4 . KW_and Exp5
+  133     | Exp4 . KW_min Exp5
+  134     | Exp4 . KW_max Exp5
+
+    KW_and  shift, and go to state 113
+    KW_max  shift, and go to state 114
+    KW_min  shift, and go to state 115
+
+    $default  reduce using rule 129 (Exp3)
+
+
+state 181
+
+  130 Exp3: Exp3 KW_xor Exp4 .
+  132 Exp4: Exp4 . KW_and Exp5
+  133     | Exp4 . KW_min Exp5
+  134     | Exp4 . KW_max Exp5
+
+    KW_and  shift, and go to state 113
+    KW_max  shift, and go to state 114
+    KW_min  shift, and go to state 115
+
+    $default  reduce using rule 130 (Exp3)
+
+
+state 182
+
+  132 Exp4: Exp4 KW_and Exp5 .
+
+    $default  reduce using rule 132 (Exp4)
+
+
+state 183
+
+  134 Exp4: Exp4 KW_max Exp5 .
+
+    $default  reduce using rule 134 (Exp4)
+
+
+state 184
+
+  133 Exp4: Exp4 KW_min Exp5 .
+
+    $default  reduce using rule 133 (Exp4)
+
+
+state 185
+
+  147 Exp7: Exp7 '-' Exp8 .
+  149 Exp8: Exp8 . '*' Exp9
+  150     | Exp8 . '/' Exp9
+  151     | Exp8 . KW_div Exp9
+  152     | Exp8 . KW_mod Exp9
+
+    KW_div  shift, and go to state 125
+    KW_mod  shift, and go to state 126
+    '/'     shift, and go to state 127
+    '*'     shift, and go to state 128
+
+    $default  reduce using rule 147 (Exp7)
+
+
+state 186
+
+  146 Exp7: Exp7 '+' Exp8 .
+  149 Exp8: Exp8 . '*' Exp9
+  150     | Exp8 . '/' Exp9
+  151     | Exp8 . KW_div Exp9
+  152     | Exp8 . KW_mod Exp9
+
+    KW_div  shift, and go to state 125
+    KW_mod  shift, and go to state 126
+    '/'     shift, and go to state 127
+    '*'     shift, and go to state 128
+
+    $default  reduce using rule 146 (Exp7)
+
+
+state 187
+
+  138 Exp6: Exp7 RelOp Exp7 .
+  146 Exp7: Exp7 . '+' Exp8
+  147     | Exp7 . '-' Exp8
+
+    '-'  shift, and go to state 122
+    '+'  shift, and go to state 123
+
+    $default  reduce using rule 138 (Exp6)
+
+
+state 188
+
+  151 Exp8: Exp8 KW_div Exp9 .
+
+    $default  reduce using rule 151 (Exp8)
+
+
+state 189
+
+  152 Exp8: Exp8 KW_mod Exp9 .
+
+    $default  reduce using rule 152 (Exp8)
+
+
+state 190
+
+  150 Exp8: Exp8 '/' Exp9 .
+
+    $default  reduce using rule 150 (Exp8)
+
+
+state 191
+
+  149 Exp8: Exp8 '*' Exp9 .
+
+    $default  reduce using rule 149 (Exp8)
+
+
+state 192
+
+  156 Exp10: Exp10 '.' Affine_Function .
+
+    $default  reduce using rule 156 (Exp10)
+
+
+state 193
+
+  157 Exp10: ExpTerm '[' Vexpressions . ']'
+
+    ']'  shift, and go to state 249
+
+
+state 194
+
+  164 ExpTerm: BinaryOp '(' Exp1 . ',' Exp2 ')'
+
+    ','  shift, and go to state 250
+
+
+state 195
+
+   79 Affine_Function: '(' Vexpressions KW_arrow . Vexpressions ')'
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    $default  reduce using rule 108 (Vexpressions)
+
+    Xid           go to state 101
+    Vexpressions  go to state 251
+    Expressions   go to state 134
+    Expression    go to state 103
+    Facteur       go to state 104
+
+
+state 196
+
+   13 Param: ':' Domain .
+
+    $default  reduce using rule 13 (Param)
+
+
+state 197
+
+   11 SystemDecl: KW_system ID @1 Param '(' . Inputs ')' KW_returns '(' Outputs ')' ';'
+
+    ID  shift, and go to state 69
+
+    $default  reduce using rule 14 (Inputs)
+
+    Inputs  go to state 252
+    Decl    go to state 253
+    Ids     go to state 72
+
+
+state 198
+
+   23 Locals: Locals ';' Decl .
+
+    $default  reduce using rule 23 (Locals)
+
+
+state 199
+
+   33 Tsimple: KW_integer .
+
+    $default  reduce using rule 33 (Tsimple)
+
+
+state 200
+
+   34 Tsimple: KW_boolean .
+
+    $default  reduce using rule 34 (Tsimple)
+
+
+state 201
+
+   35 Tsimple: KW_real .
+
+    $default  reduce using rule 35 (Tsimple)
+
+
+state 202
+
+   25 Decl: Ids ':' Type .
+
+    $default  reduce using rule 25 (Decl)
+
+
+state 203
+
+   28 Type: Tsimple .
+   29     | Tsimple . '[' ID ',' NUMBER ']'
+
+    '['  shift, and go to state 254
+
+    $default  reduce using rule 28 (Type)
+
+
+state 204
+
+   30 Type: Domain . KW_of Tsimple
+   31     | Domain . KW_of Tsimple '[' ID ',' NUMBER ']'
+   32     | Domain .
+
+    KW_of  shift, and go to state 255
+
+    $default  reduce using rule 32 (Type)
+
+
+state 205
+
+   26 Ids: Ids ',' ID .
+
+    $default  reduce using rule 26 (Ids)
+
+
+state 206
+
+   36 Semi: ';' .
+
+    $default  reduce using rule 36 (Semi)
+
+
+state 207
+
+   40 LetBlock: error KW_tel Semi .
+
+    $default  reduce using rule 40 (LetBlock)
+
+
+state 208
+
+   51 Equation: KW_use . @5 UseDomain ID ParamAssign '(' ExpList ')' KW_returns '(' Ids ')' ';'
+
+    $default  reduce using rule 50 (@5)
+
+    @5  go to state 256
+
+
+state 209
+
+   58 LHS: ID .
+   59    | ID . '[' Vexpressions ']'
+
+    '['  shift, and go to state 257
+
+    $default  reduce using rule 58 (LHS)
+
+
+state 210
+
+   45 Equation: LetBlock .
+
+    $default  reduce using rule 45 (Equation)
+
+
+state 211
+
+   39 LetBlock: KW_let @2 Equations . KW_tel Semi
+   42 Equations: Equations . Equation
+   43          | Equations . error ';'
+
+    error      shift, and go to state 258
+    KW_let     shift, and go to state 74
+    KW_tel     shift, and go to state 259
+    KW_use     shift, and go to state 208
+    KW_domain  shift, and go to state 30
+    ID         shift, and go to state 209
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+
+    LetBlock       go to state 210
+    ContextDomain  go to state 212
+    Equation       go to state 260
+    LHS            go to state 214
+    Domain         go to state 215
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+
+
+state 212
+
+   47 Equation: ContextDomain . ':' @3 Equation
+   49         | ContextDomain . KW_loop @4 Equation
+
+    KW_loop  shift, and go to state 261
+    ':'      shift, and go to state 262
+
+
+state 213
+
+   41 Equations: Equation .
+
+    $default  reduce using rule 41 (Equations)
+
+
+state 214
+
+   57 Equation: LHS . '=' Exp
+
+    '='  shift, and go to state 263
+
+
+state 215
+
+   44 ContextDomain: Domain .
+
+    $default  reduce using rule 44 (ContextDomain)
+
+
+state 216
+
+  125 Exp1: KW_if Exp1 KW_then Exp1 . KW_else Exp1
+
+    KW_else  shift, and go to state 264
+
+
+state 217
+
+  165 ExpTerm: KW_sqrt '(' Exp1 ')' .
+
+    $default  reduce using rule 165 (ExpTerm)
+
+
+state 218
+
+  166 ExpTerm: KW_abs '(' Exp1 ')' .
+
+    $default  reduce using rule 166 (ExpTerm)
+
+
+state 219
+
+  162 ExpTerm: KW_reduce '(' @6 CommutativeOp . ',' Projection ',' Exp1 ')'
+
+    ','  shift, and go to state 265
+
+
+state 220
+
+  163 ExpTerm: ID '(' ExpList ')' .
+
+    $default  reduce using rule 163 (ExpTerm)
+
+
+state 221
+
+   60 ExpList: ExpList ',' . Exp1
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 266
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 222
+
+  110 Expressions: '(' Expressions ',' . Expression ')'
+  111            | Expressions ',' . Expression
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 165
+    '-'     shift, and go to state 99
+
+    Xid         go to state 101
+    Expression  go to state 267
+    Facteur     go to state 104
+
+
+state 223
+
+  118 Facteur: '(' Expression ')' .
+
+    $default  reduce using rule 118 (Facteur)
+
+
+state 224
+
+   80 Constraints: Constraints ';' . Constraint
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Constraint          go to state 268
+    Egalite             go to state 161
+    Suite_Decroissante  go to state 162
+    Suite_Croissante    go to state 163
+    Xid                 go to state 101
+    Expressions         go to state 164
+    Expression          go to state 103
+    Facteur             go to state 104
+
+
+state 225
+
+   74 DomTerm: '{' '|' Constraints '}' .
+
+    $default  reduce using rule 74 (DomTerm)
+
+
+state 226
+
+   85 Egalite: Egalite '=' . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 269
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 227
+
+   91 Suite_Decroissante: Suite_Decroissante KW_leq . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 270
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 228
+
+   88 Suite_Decroissante: Suite_Decroissante KW_geq . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 271
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 229
+
+   90 Suite_Decroissante: Suite_Decroissante '<' . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 272
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 230
+
+   89 Suite_Decroissante: Suite_Decroissante '=' . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 273
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 231
+
+   87 Suite_Decroissante: Suite_Decroissante '>' . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 274
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 232
+
+   95 Suite_Croissante: Suite_Croissante KW_leq . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 275
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 233
+
+   98 Suite_Croissante: Suite_Croissante KW_geq . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 276
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 234
+
+   94 Suite_Croissante: Suite_Croissante '<' . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 277
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 235
+
+   96 Suite_Croissante: Suite_Croissante '=' . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 278
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 236
+
+   97 Suite_Croissante: Suite_Croissante '>' . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 279
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 237
+
+  100 Suite_Croissante: Expressions KW_leq . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 280
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 238
+
+   93 Suite_Decroissante: Expressions KW_geq . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 281
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 239
+
+   99 Suite_Croissante: Expressions '<' . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 282
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 240
+
+   86 Egalite: Expressions '=' . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 283
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 241
+
+   92 Suite_Decroissante: Expressions '>' . Expressions
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    Xid          go to state 101
+    Expressions  go to state 284
+    Expression   go to state 103
+    Facteur      go to state 104
+
+
+state 242
+
+  113 Expression: Expression . LinearOp Facteur
+  118 Facteur: '(' Expression . ')'
+
+    ')'  shift, and go to state 223
+    '-'  shift, and go to state 171
+    '+'  shift, and go to state 172
+
+    LinearOp  go to state 173
+
+
+state 243
+
+  103 Xid: Xid ':' ID .
+
+    $default  reduce using rule 103 (Xid)
+
+
+state 244
+
+  111 Expressions: Expressions ',' Expression .
+  113 Expression: Expression . LinearOp Facteur
+
+    '-'  shift, and go to state 171
+    '+'  shift, and go to state 172
+
+    $default  reduce using rule 111 (Expressions)
+
+    LinearOp  go to state 173
+
+
+state 245
+
+   75 DomTerm: '{' Expressions '|' '}' .
+
+    $default  reduce using rule 75 (DomTerm)
+
+
+state 246
+
+   73 DomTerm: '{' Expressions '|' Constraints . '}'
+   80 Constraints: Constraints . ';' Constraint
+
+    ';'  shift, and go to state 224
+    '}'  shift, and go to state 285
+
+
+state 247
+
+  113 Expression: Expression LinearOp Facteur .
+  117 Facteur: Facteur . '/' NUMBER
+
+    '/'  shift, and go to state 174
+
+    $default  reduce using rule 113 (Expression)
+
+
+state 248
+
+  117 Facteur: Facteur '/' NUMBER .
+
+    $default  reduce using rule 117 (Facteur)
+
+
+state 249
+
+  157 Exp10: ExpTerm '[' Vexpressions ']' .
+
+    $default  reduce using rule 157 (Exp10)
+
+
+state 250
+
+  164 ExpTerm: BinaryOp '(' Exp1 ',' . Exp2 ')'
+
+    KW_case    shift, and go to state 20
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp2           go to state 286
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 251
+
+   79 Affine_Function: '(' Vexpressions KW_arrow Vexpressions . ')'
+
+    ')'  shift, and go to state 287
+
+
+state 252
+
+   11 SystemDecl: KW_system ID @1 Param '(' Inputs . ')' KW_returns '(' Outputs ')' ';'
+   15 Inputs: Inputs . ';' Decl
+
+    ')'  shift, and go to state 288
+    ';'  shift, and go to state 289
+
+
+state 253
+
+   16 Inputs: Decl .
+
+    $default  reduce using rule 16 (Inputs)
+
+
+state 254
+
+   29 Type: Tsimple '[' . ID ',' NUMBER ']'
+
+    ID  shift, and go to state 290
+
+
+state 255
+
+   30 Type: Domain KW_of . Tsimple
+   31     | Domain KW_of . Tsimple '[' ID ',' NUMBER ']'
+
+    KW_integer  shift, and go to state 199
+    KW_boolean  shift, and go to state 200
+    KW_real     shift, and go to state 201
+
+    Tsimple  go to state 291
+
+
+state 256
+
+   51 Equation: KW_use @5 . UseDomain ID ParamAssign '(' ExpList ')' KW_returns '(' Ids ')' ';'
+
+    KW_domain  shift, and go to state 30
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+
+    $default  reduce using rule 52 (UseDomain)
+
+    UseDomain  go to state 292
+    Domain     go to state 293
+    Dom1       go to state 47
+    Dom2       go to state 48
+    Dom3       go to state 49
+    Dom4       go to state 50
+    DomTerm    go to state 51
+
+
+state 257
+
+   59 LHS: ID '[' . Vexpressions ']'
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    $default  reduce using rule 108 (Vexpressions)
+
+    Xid           go to state 101
+    Vexpressions  go to state 294
+    Expressions   go to state 134
+    Expression    go to state 103
+    Facteur       go to state 104
+
+
+state 258
+
+   40 LetBlock: error . KW_tel Semi
+   43 Equations: Equations error . ';'
+
+    KW_tel  shift, and go to state 141
+    ';'     shift, and go to state 295
+
+
+state 259
+
+   39 LetBlock: KW_let @2 Equations KW_tel . Semi
+
+    ';'  shift, and go to state 206
+
+    $default  reduce using rule 37 (Semi)
+
+    Semi  go to state 296
+
+
+state 260
+
+   42 Equations: Equations Equation .
+
+    $default  reduce using rule 42 (Equations)
+
+
+state 261
+
+   49 Equation: ContextDomain KW_loop . @4 Equation
+
+    $default  reduce using rule 48 (@4)
+
+    @4  go to state 297
+
+
+state 262
+
+   47 Equation: ContextDomain ':' . @3 Equation
+
+    $default  reduce using rule 46 (@3)
+
+    @3  go to state 298
+
+
+state 263
+
+   57 Equation: LHS '=' . Exp
+
+    error      shift, and go to state 76
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp            go to state 299
+    Exp1           go to state 78
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 264
+
+  125 Exp1: KW_if Exp1 KW_then Exp1 KW_else . Exp1
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 300
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 265
+
+  162 ExpTerm: KW_reduce '(' @6 CommutativeOp ',' . Projection ',' Exp1 ')'
+
+    '('  shift, and go to state 301
+
+    Projection  go to state 302
+
+
+state 266
+
+   60 ExpList: ExpList ',' Exp1 .
+
+    $default  reduce using rule 60 (ExpList)
+
+
+state 267
+
+  110 Expressions: '(' Expressions ',' Expression . ')'
+  111            | Expressions ',' Expression .
+  113 Expression: Expression . LinearOp Facteur
+
+    ')'  shift, and go to state 303
+    '-'  shift, and go to state 171
+    '+'  shift, and go to state 172
+
+    $default  reduce using rule 111 (Expressions)
+
+    LinearOp  go to state 173
+
+
+state 268
+
+   80 Constraints: Constraints ';' Constraint .
+
+    $default  reduce using rule 80 (Constraints)
+
+
+state 269
+
+   85 Egalite: Egalite '=' Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 85 (Egalite)
+
+
+state 270
+
+   91 Suite_Decroissante: Suite_Decroissante KW_leq Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 91 (Suite_Decroissante)
+
+
+state 271
+
+   88 Suite_Decroissante: Suite_Decroissante KW_geq Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 88 (Suite_Decroissante)
+
+
+state 272
+
+   90 Suite_Decroissante: Suite_Decroissante '<' Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 90 (Suite_Decroissante)
+
+
+state 273
+
+   89 Suite_Decroissante: Suite_Decroissante '=' Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 89 (Suite_Decroissante)
+
+
+state 274
+
+   87 Suite_Decroissante: Suite_Decroissante '>' Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 87 (Suite_Decroissante)
+
+
+state 275
+
+   95 Suite_Croissante: Suite_Croissante KW_leq Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 95 (Suite_Croissante)
+
+
+state 276
+
+   98 Suite_Croissante: Suite_Croissante KW_geq Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 98 (Suite_Croissante)
+
+
+state 277
+
+   94 Suite_Croissante: Suite_Croissante '<' Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 94 (Suite_Croissante)
+
+
+state 278
+
+   96 Suite_Croissante: Suite_Croissante '=' Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 96 (Suite_Croissante)
+
+
+state 279
+
+   97 Suite_Croissante: Suite_Croissante '>' Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 97 (Suite_Croissante)
+
+
+state 280
+
+  100 Suite_Croissante: Expressions KW_leq Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 100 (Suite_Croissante)
+
+
+state 281
+
+   93 Suite_Decroissante: Expressions KW_geq Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 93 (Suite_Decroissante)
+
+
+state 282
+
+   99 Suite_Croissante: Expressions '<' Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 99 (Suite_Croissante)
+
+
+state 283
+
+   86 Egalite: Expressions '=' Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 86 (Egalite)
+
+
+state 284
+
+   92 Suite_Decroissante: Expressions '>' Expressions .
+  111 Expressions: Expressions . ',' Expression
+
+    ','  shift, and go to state 169
+
+    $default  reduce using rule 92 (Suite_Decroissante)
+
+
+state 285
+
+   73 DomTerm: '{' Expressions '|' Constraints '}' .
+
+    $default  reduce using rule 73 (DomTerm)
+
+
+state 286
+
+  164 ExpTerm: BinaryOp '(' Exp1 ',' Exp2 . ')'
+
+    ')'  shift, and go to state 304
+
+
+state 287
+
+   79 Affine_Function: '(' Vexpressions KW_arrow Vexpressions ')' .
+
+    $default  reduce using rule 79 (Affine_Function)
+
+
+state 288
+
+   11 SystemDecl: KW_system ID @1 Param '(' Inputs ')' . KW_returns '(' Outputs ')' ';'
+
+    KW_returns  shift, and go to state 305
+
+
+state 289
+
+   15 Inputs: Inputs ';' . Decl
+
+    ID  shift, and go to state 69
+
+    Decl  go to state 306
+    Ids   go to state 72
+
+
+state 290
+
+   29 Type: Tsimple '[' ID . ',' NUMBER ']'
+
+    ','  shift, and go to state 307
+
+
+state 291
+
+   30 Type: Domain KW_of Tsimple .
+   31     | Domain KW_of Tsimple . '[' ID ',' NUMBER ']'
+
+    '['  shift, and go to state 308
+
+    $default  reduce using rule 30 (Type)
+
+
+state 292
+
+   51 Equation: KW_use @5 UseDomain . ID ParamAssign '(' ExpList ')' KW_returns '(' Ids ')' ';'
+
+    ID  shift, and go to state 309
+
+
+state 293
+
+   53 UseDomain: Domain .
+
+    $default  reduce using rule 53 (UseDomain)
+
+
+state 294
+
+   59 LHS: ID '[' Vexpressions . ']'
+
+    ']'  shift, and go to state 310
+
+
+state 295
+
+   43 Equations: Equations error ';' .
+
+    $default  reduce using rule 43 (Equations)
+
+
+state 296
+
+   39 LetBlock: KW_let @2 Equations KW_tel Semi .
+
+    $default  reduce using rule 39 (LetBlock)
+
+
+state 297
+
+   49 Equation: ContextDomain KW_loop @4 . Equation
+
+    error      shift, and go to state 73
+    KW_let     shift, and go to state 74
+    KW_use     shift, and go to state 208
+    KW_domain  shift, and go to state 30
+    ID         shift, and go to state 209
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+
+    LetBlock       go to state 210
+    ContextDomain  go to state 212
+    Equation       go to state 311
+    LHS            go to state 214
+    Domain         go to state 215
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+
+
+state 298
+
+   47 Equation: ContextDomain ':' @3 . Equation
+
+    error      shift, and go to state 73
+    KW_let     shift, and go to state 74
+    KW_use     shift, and go to state 208
+    KW_domain  shift, and go to state 30
+    ID         shift, and go to state 209
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+
+    LetBlock       go to state 210
+    ContextDomain  go to state 212
+    Equation       go to state 312
+    LHS            go to state 214
+    Domain         go to state 215
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+
+
+state 299
+
+   57 Equation: LHS '=' Exp .
+
+    $default  reduce using rule 57 (Equation)
+
+
+state 300
+
+  125 Exp1: KW_if Exp1 KW_then Exp1 KW_else Exp1 .
+
+    $default  reduce using rule 125 (Exp1)
+
+
+state 301
+
+  159 Projection: '(' . Vids KW_arrow Vexpressions ')'
+
+    ID   shift, and go to state 95
+    XID  shift, and go to state 96
+
+    $default  reduce using rule 106 (Vids)
+
+    Xid   go to state 313
+    Xids  go to state 314
+    Vids  go to state 315
+
+
+state 302
+
+  162 ExpTerm: KW_reduce '(' @6 CommutativeOp ',' Projection . ',' Exp1 ')'
+
+    ','  shift, and go to state 316
+
+
+state 303
+
+  110 Expressions: '(' Expressions ',' Expression ')' .
+
+    $default  reduce using rule 110 (Expressions)
+
+
+state 304
+
+  164 ExpTerm: BinaryOp '(' Exp1 ',' Exp2 ')' .
+
+    $default  reduce using rule 164 (ExpTerm)
+
+
+state 305
+
+   11 SystemDecl: KW_system ID @1 Param '(' Inputs ')' KW_returns . '(' Outputs ')' ';'
+
+    '('  shift, and go to state 317
+
+
+state 306
+
+   15 Inputs: Inputs ';' Decl .
+
+    $default  reduce using rule 15 (Inputs)
+
+
+state 307
+
+   29 Type: Tsimple '[' ID ',' . NUMBER ']'
+
+    NUMBER  shift, and go to state 318
+
+
+state 308
+
+   31 Type: Domain KW_of Tsimple '[' . ID ',' NUMBER ']'
+
+    ID  shift, and go to state 319
+
+
+state 309
+
+   51 Equation: KW_use @5 UseDomain ID . ParamAssign '(' ExpList ')' KW_returns '(' Ids ')' ';'
+
+    '.'  shift, and go to state 320
+    '['  shift, and go to state 321
+
+    $default  reduce using rule 54 (ParamAssign)
+
+    ParamAssign  go to state 322
+
+
+state 310
+
+   59 LHS: ID '[' Vexpressions ']' .
+
+    $default  reduce using rule 59 (LHS)
+
+
+state 311
+
+   49 Equation: ContextDomain KW_loop @4 Equation .
+
+    $default  reduce using rule 49 (Equation)
+
+
+state 312
+
+   47 Equation: ContextDomain ':' @3 Equation .
+
+    $default  reduce using rule 47 (Equation)
+
+
+state 313
+
+  103 Xid: Xid . ':' ID
+  105 Xids: Xid .
+
+    ':'  shift, and go to state 168
+
+    $default  reduce using rule 105 (Xids)
+
+
+state 314
+
+  104 Xids: Xids . ',' Xid
+  107 Vids: Xids .
+
+    ','  shift, and go to state 323
+
+    $default  reduce using rule 107 (Vids)
+
+
+state 315
+
+  159 Projection: '(' Vids . KW_arrow Vexpressions ')'
+
+    KW_arrow  shift, and go to state 324
+
+
+state 316
+
+  162 ExpTerm: KW_reduce '(' @6 CommutativeOp ',' Projection ',' . Exp1 ')'
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 325
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 317
+
+   11 SystemDecl: KW_system ID @1 Param '(' Inputs ')' KW_returns '(' . Outputs ')' ';'
+
+    ID  shift, and go to state 69
+
+    $default  reduce using rule 17 (Outputs)
+
+    Outputs  go to state 326
+    Decl     go to state 327
+    Ids      go to state 72
+
+
+state 318
+
+   29 Type: Tsimple '[' ID ',' NUMBER . ']'
+
+    ']'  shift, and go to state 328
+
+
+state 319
+
+   31 Type: Domain KW_of Tsimple '[' ID . ',' NUMBER ']'
+
+    ','  shift, and go to state 329
+
+
+state 320
+
+   56 ParamAssign: '.' . '(' Vids KW_arrow Vexpressions ')'
+
+    '('  shift, and go to state 330
+
+
+state 321
+
+   55 ParamAssign: '[' . Vexpressions ']'
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    $default  reduce using rule 108 (Vexpressions)
+
+    Xid           go to state 101
+    Vexpressions  go to state 331
+    Expressions   go to state 134
+    Expression    go to state 103
+    Facteur       go to state 104
+
+
+state 322
+
+   51 Equation: KW_use @5 UseDomain ID ParamAssign . '(' ExpList ')' KW_returns '(' Ids ')' ';'
+
+    '('  shift, and go to state 332
+
+
+state 323
+
+  104 Xids: Xids ',' . Xid
+
+    ID   shift, and go to state 95
+    XID  shift, and go to state 96
+
+    Xid  go to state 333
+
+
+state 324
+
+  159 Projection: '(' Vids KW_arrow . Vexpressions ')'
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    $default  reduce using rule 108 (Vexpressions)
+
+    Xid           go to state 101
+    Vexpressions  go to state 334
+    Expressions   go to state 134
+    Expression    go to state 103
+    Facteur       go to state 104
+
+
+state 325
+
+  162 ExpTerm: KW_reduce '(' @6 CommutativeOp ',' Projection ',' Exp1 . ')'
+
+    ')'  shift, and go to state 335
+
+
+state 326
+
+   11 SystemDecl: KW_system ID @1 Param '(' Inputs ')' KW_returns '(' Outputs . ')' ';'
+   18 Outputs: Outputs . ';' Decl
+
+    ')'  shift, and go to state 336
+    ';'  shift, and go to state 337
+
+
+state 327
+
+   19 Outputs: Decl .
+
+    $default  reduce using rule 19 (Outputs)
+
+
+state 328
+
+   29 Type: Tsimple '[' ID ',' NUMBER ']' .
+
+    $default  reduce using rule 29 (Type)
+
+
+state 329
+
+   31 Type: Domain KW_of Tsimple '[' ID ',' . NUMBER ']'
+
+    NUMBER  shift, and go to state 338
+
+
+state 330
+
+   56 ParamAssign: '.' '(' . Vids KW_arrow Vexpressions ')'
+
+    ID   shift, and go to state 95
+    XID  shift, and go to state 96
+
+    $default  reduce using rule 106 (Vids)
+
+    Xid   go to state 313
+    Xids  go to state 314
+    Vids  go to state 339
+
+
+state 331
+
+   55 ParamAssign: '[' Vexpressions . ']'
+
+    ']'  shift, and go to state 340
+
+
+state 332
+
+   51 Equation: KW_use @5 UseDomain ID ParamAssign '(' . ExpList ')' KW_returns '(' Ids ')' ';'
+
+    KW_case    shift, and go to state 20
+    KW_if      shift, and go to state 21
+    KW_or      shift, and go to state 22
+    KW_xor     shift, and go to state 23
+    KW_and     shift, and go to state 24
+    KW_not     shift, and go to state 25
+    KW_div     shift, and go to state 26
+    KW_mod     shift, and go to state 27
+    KW_sqrt    shift, and go to state 28
+    KW_abs     shift, and go to state 29
+    KW_domain  shift, and go to state 30
+    KW_reduce  shift, and go to state 31
+    KW_max     shift, and go to state 32
+    KW_min     shift, and go to state 33
+    NUMBER     shift, and go to state 34
+    INFINITY   shift, and go to state 35
+    REAL       shift, and go to state 36
+    BOOLEAN    shift, and go to state 37
+    ID         shift, and go to state 38
+    XID        shift, and go to state 39
+    '('        shift, and go to state 40
+    '~'        shift, and go to state 41
+    '{'        shift, and go to state 42
+    '-'        shift, and go to state 43
+    '+'        shift, and go to state 44
+    '*'        shift, and go to state 45
+
+    $default  reduce using rule 62 (ExpList)
+
+    ExpList        go to state 341
+    Domain         go to state 46
+    Dom1           go to state 47
+    Dom2           go to state 48
+    Dom3           go to state 49
+    Dom4           go to state 50
+    DomTerm        go to state 51
+    Exp1           go to state 153
+    Exp2           go to state 53
+    Exp3           go to state 54
+    Exp4           go to state 55
+    Exp5           go to state 56
+    Exp6           go to state 57
+    Exp7           go to state 58
+    Exp8           go to state 59
+    Exp9           go to state 60
+    Exp10          go to state 61
+    ExpTerm        go to state 62
+    CommutativeOp  go to state 63
+    BinaryOp       go to state 64
+
+
+state 333
+
+  103 Xid: Xid . ':' ID
+  104 Xids: Xids ',' Xid .
+
+    ':'  shift, and go to state 168
+
+    $default  reduce using rule 104 (Xids)
+
+
+state 334
+
+  159 Projection: '(' Vids KW_arrow Vexpressions . ')'
+
+    ')'  shift, and go to state 342
+
+
+state 335
+
+  162 ExpTerm: KW_reduce '(' @6 CommutativeOp ',' Projection ',' Exp1 ')' .
+
+    $default  reduce using rule 162 (ExpTerm)
+
+
+state 336
+
+   11 SystemDecl: KW_system ID @1 Param '(' Inputs ')' KW_returns '(' Outputs ')' . ';'
+
+    ';'  shift, and go to state 343
+
+
+state 337
+
+   18 Outputs: Outputs ';' . Decl
+
+    ID  shift, and go to state 69
+
+    Decl  go to state 344
+    Ids   go to state 72
+
+
+state 338
+
+   31 Type: Domain KW_of Tsimple '[' ID ',' NUMBER . ']'
+
+    ']'  shift, and go to state 345
+
+
+state 339
+
+   56 ParamAssign: '.' '(' Vids . KW_arrow Vexpressions ')'
+
+    KW_arrow  shift, and go to state 346
+
+
+state 340
+
+   55 ParamAssign: '[' Vexpressions ']' .
+
+    $default  reduce using rule 55 (ParamAssign)
+
+
+state 341
+
+   51 Equation: KW_use @5 UseDomain ID ParamAssign '(' ExpList . ')' KW_returns '(' Ids ')' ';'
+   60 ExpList: ExpList . ',' Exp1
+
+    ')'  shift, and go to state 347
+    ','  shift, and go to state 221
+
+
+state 342
+
+  159 Projection: '(' Vids KW_arrow Vexpressions ')' .
+
+    $default  reduce using rule 159 (Projection)
+
+
+state 343
+
+   11 SystemDecl: KW_system ID @1 Param '(' Inputs ')' KW_returns '(' Outputs ')' ';' .
+
+    $default  reduce using rule 11 (SystemDecl)
+
+
+state 344
+
+   18 Outputs: Outputs ';' Decl .
+
+    $default  reduce using rule 18 (Outputs)
+
+
+state 345
+
+   31 Type: Domain KW_of Tsimple '[' ID ',' NUMBER ']' .
+
+    $default  reduce using rule 31 (Type)
+
+
+state 346
+
+   56 ParamAssign: '.' '(' Vids KW_arrow . Vexpressions ')'
+
+    NUMBER  shift, and go to state 94
+    ID      shift, and go to state 95
+    XID     shift, and go to state 96
+    '('     shift, and go to state 97
+    '-'     shift, and go to state 99
+
+    $default  reduce using rule 108 (Vexpressions)
+
+    Xid           go to state 101
+    Vexpressions  go to state 348
+    Expressions   go to state 134
+    Expression    go to state 103
+    Facteur       go to state 104
+
+
+state 347
+
+   51 Equation: KW_use @5 UseDomain ID ParamAssign '(' ExpList ')' . KW_returns '(' Ids ')' ';'
+
+    KW_returns  shift, and go to state 349
+
+
+state 348
+
+   56 ParamAssign: '.' '(' Vids KW_arrow Vexpressions . ')'
+
+    ')'  shift, and go to state 350
+
+
+state 349
+
+   51 Equation: KW_use @5 UseDomain ID ParamAssign '(' ExpList ')' KW_returns . '(' Ids ')' ';'
+
+    '('  shift, and go to state 351
+
+
+state 350
+
+   56 ParamAssign: '.' '(' Vids KW_arrow Vexpressions ')' .
+
+    $default  reduce using rule 56 (ParamAssign)
+
+
+state 351
+
+   51 Equation: KW_use @5 UseDomain ID ParamAssign '(' ExpList ')' KW_returns '(' . Ids ')' ';'
+
+    ID  shift, and go to state 69
+
+    Ids  go to state 352
+
+
+state 352
+
+   26 Ids: Ids . ',' ID
+   51 Equation: KW_use @5 UseDomain ID ParamAssign '(' ExpList ')' KW_returns '(' Ids . ')' ';'
+
+    ')'  shift, and go to state 353
+    ','  shift, and go to state 140
+
+
+state 353
+
+   51 Equation: KW_use @5 UseDomain ID ParamAssign '(' ExpList ')' KW_returns '(' Ids ')' . ';'
+
+    ';'  shift, and go to state 354
+
+
+state 354
+
+   51 Equation: KW_use @5 UseDomain ID ParamAssign '(' ExpList ')' KW_returns '(' Ids ')' ';' .
+
+    $default  reduce using rule 51 (Equation)

@@ -1,0 +1,22 @@
+system firr :  {N,M,D | 3<=N<=(D-1,M-D-1)}
+               (x : {n | 1<=n<=M} of integer; 
+                d : {n | N<=n<=M} of integer)
+       returns (res : {n | N<=n<=M} of integer);
+var
+  W : {t,p | p+N<=t<=p+M; 0<=p<=N-1} of integer;
+  Y : {t,p | p+N+2<=t<=p+M+2; -1<=p<=N-1} of integer;
+  E : {t | 2N+1<=t<=N+M+1} of integer;
+let
+  W[t,p] = 
+      case
+        { | t<=p+N+D-1} : 0[];
+        { | p+N+D<=t} : W[t-1,p] + E[t-p+N-D+1] * x[t-2p-D];
+      esac;
+  Y[t,p] = 
+      case
+        { | p=-1} : 0[];
+        { | 0<=p} : Y[t-1,p-1] + W[t-2,p] * x[t-2p-2];
+      esac;
+  E[t] = (d[t-N-1] - res[t-N-1]) / 32[];
+  res[n] = Y[n+N+1,N-1];
+tel;

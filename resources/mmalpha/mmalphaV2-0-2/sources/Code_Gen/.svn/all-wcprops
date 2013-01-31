@@ -1,0 +1,83 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen
+END
+gen.h
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/gen.h
+END
+lex.l
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/lex.l
+END
+nodeprocs.h
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/nodeprocs.h
+END
+y.tab.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/y.tab.h
+END
+VERSION
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/VERSION
+END
+yacc.y
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/yacc.y
+END
+y.output
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/y.output
+END
+lex.c
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/lex.c
+END
+gen.c
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/gen.c
+END
+node.h
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/node.h
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/Makefile
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/README
+END
+nodeprocs.c
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Code_Gen/nodeprocs.c
+END

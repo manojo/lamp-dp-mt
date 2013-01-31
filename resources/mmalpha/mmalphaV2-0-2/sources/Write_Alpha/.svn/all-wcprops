@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha
+END
+writeitem.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/writeitem.h
+END
+lex.l
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/lex.l
+END
+nodeprocs.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/nodeprocs.h
+END
+item.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/item.h
+END
+itemprocs.c
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/itemprocs.c
+END
+yacc.y
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/yacc.y
+END
+node2item.c
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/node2item.c
+END
+writeitem.c
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/writeitem.c
+END
+itemprocs.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/itemprocs.h
+END
+node.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/node.h
+END
+node2item.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/node2item.h
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/Makefile
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/README
+END
+nodeprocs.c
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/3/mmalphaV2-0-2/sources/Write_Alpha/nodeprocs.c
+END

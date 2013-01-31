@@ -1,0 +1,151 @@
+BeginPackage["Alpha`CheckController`",{"Alpha`",
+"Alpha`Domlib`",
+"Alpha`Tables`",
+"Alpha`Matrix`", 
+"Alpha`Options`", 
+"Alpha`Static`"}];
+
+(* Standard head for CVS
+
+	$Author: trisset $
+	$Date: 2005/03/11 16:38:29 $
+	$Source: /local/chroot/cvsroot/irisa/mmalpha/lib/Packages/Alpha/CheckController.sem,v $
+	$Revision: 1.1 $
+	$Log: CheckController.sem,v $
+	Revision 1.1  2005/03/11 16:38:29  trisset
+	added vhdl and Alphard
+	
+	Revision 1.4  2001/08/14 15:17:59  quinton
+	*** empty log message ***
+	
+	Revision 1.3  2000/05/26 17:44:59  quinton
+	*** empty log message ***
+	
+	Revision 1.2  1999/10/11 13:31:54  quinton
+	Corrections after processing Samba
+	
+	Revision 1.1  1998/12/14 15:14:46  quinton
+	Semantics of the CheckController.m package
+	
+*)
+(*
+	Semantics of the CheckController parser
+*)
+
+General::error3 = 
+"call with wrong parameters. This syntactic construct was not recognized";
+
+checkController::usage = 
+"checkController[] checks whether $result is an AlpHard
+Controller. checkController[sys] checks whether sys is an AlpHard
+Controller.";
+
+semFuncCheckController::usage = "";
+
+Options[ semFuncCheckController ] = { debug -> False, verbose -> False }; 
+
+CheckControllerDebug::usage = "CheckControllerDebug is the value of the debug option for
+the CheckCell function";
+
+Begin["`Private`"];
+
+Clear[checkController];
+checkController[opts:___Rule] := checkController[$result,opts];
+checkController[sys:_system, opts:___Rule]:=
+Module[{msg, error, dbg},
+  CheckControllerDebug = debug/.{opts}/.{debug->False};
+  Catch[
+    error = CheckControllerTranslateSYSTEMDECLARATION[sys];
+    If[ CheckControllerDebug, 
+        If[ error, Print["There is a Mistake somewhere..."],
+                   Print["This program seems to be an AlpHard Controller..."]
+        ]
+    ];
+  !error
+  ]
+]
+checkController[___]:=Message[checkController::params];
+
+Clear[ semFuncCheckController ]; 
+
+(* 
+	System 
+*)
+checkController::paramerror = "In a Controller, the number of parameters should be 0";
+checkController::inputerror = "In a Controller, the number of inputs should be 0";
+semFuncCheckController[ system , param:_Integer, input:_, output:_, local:_, eq:_, opts:___Rule] := 
+Module[{ dbg, errorparam, errorinput, erroroutput, errorlocal, erroreq },
+  dbg = debug/.{opts}/.Options[ checkController ];
+(* No parameters *)
+  If[param === 0, errorparam = False, 
+     If[dbg,Message[checkController::paramerror]];errorparam = True];
+(* No inputs *)
+  If[input==={}, errorinput = False, 
+     If[dbg,Message[checkController::inputerror]];errorinput = True];
+  erroroutput = Not[ Apply[ And, output ]]; 
+(* locals *)
+  errorlocal = Not[ Apply[ And, local ]]; 
+(* eq *)
+  erroreq = Not[ Apply[ And, eq ]]; 
+  errorinput || erroroutput || errorlocal || erroreq || errorparam
+];
+
+(* 	
+	assignment
+*)
+checkController::assignment = "Error in equation\n `1`\n(check dimensions of variable or constant)."; 
+semFuncCheckController[ assignment , rhs:_, eq:_, opts:___Rule] := 
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+  (* rhs is supposed to be true of false *)
+  If[ !rhs&&dbg, Message[ checkController::assignment, ashow[ eq, silent->True ] ]];
+  rhs
+];
+
+(*	Declaration *)
+checkController::decldim = "In :\n `1`\nthe dimension should be less than or equal two...";
+checkController::decltype= "In :\n `1`\nthe type of this variable should be boolean...";
+semFuncCheckController[ decl , d:_ , opts:___Rule] := 
+Module[{ dbg, error },
+  dbg = debug/.{opts}/.{debug->False};
+  error = True;
+  Which[
+    d[[3]][[1]] =!= 1,
+      If[dbg, Message[checkController::decldim, 
+              ashow[d,silent->True]]]; error = False,
+    d[[2]] =!= boolean, 
+      If[dbg, Message[checkController::decltype, 
+              ashow[d,silent->True]]]; error = False,
+    True, Null
+  ];
+  error
+];
+
+(*
+	case expression 
+*)
+semFuncCheckController[ case , expressionList:_, opts:___Rule ] := 
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+  Apply[ And, expressionList ]
+];
+
+(*
+	restriction expression 
+semFuncCheckController[ restrict , trdomain:_, trexpression:_, opts:___Rule ] := 
+Module[{ dbg  },
+  dbg = debug/.{opts}/.{debug->False};
+  trexpression
+];
+*)
+
+semFuncCheckController::params = "parameter error while calling a semantic function. Parameters
+were \n `1`";
+(* Error case *)
+semFuncCheckController[x:___] := 
+Module[{ dbg },	
+  Throw[Message[ semFuncCheckController::params, {x} ]]; 
+];
+
+End[];
+EndPackage[];

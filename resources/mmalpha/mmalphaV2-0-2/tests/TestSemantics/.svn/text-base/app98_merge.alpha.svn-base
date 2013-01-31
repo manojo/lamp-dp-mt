@@ -1,0 +1,60 @@
+system app :   {N | 10<=N}
+               (A : {i,j | 1<=i<=N; 1<=j<=N} of integer)
+       returns (C : {i,j | 1<=i<=N; 1<=j<=N} of integer);
+var
+  F : {i,j,k | 1<=i<=N; 1<=j<=N; 0<=k<=N} of integer;
+let
+  F[i,j,k] = 
+      case
+        {| 2<=i<=N; 2<=j<=N; k=0} : A[i-1,j-1];
+        {| 2<=i<=N; j=1; k=0} : A[i-1,j+N-1];
+        {| i=1; 2<=j<=N; k=0} : A[i+N-1,j-1];
+        {| i=1; j=1; k=0; 1<=N} : A[i+N-1,j+N-1];
+        {| -k+N+2<=i<=N-1; -k+N+2<=j<=N-1; k<=N} : 
+           min(F[i+1,j+1,k-1], (F[i,1,k] + F[2,j+1,k-1]));
+        {| -k+N+2<=i<=N-1; j=N; k<=N} : 
+           min(F[i+1,j-N+1,k-1], (F[i,1,k] + F[2,j-N+1,k-1]));
+        {| i=N; -k+N+2<=j<=N-1; k<=N} : 
+           min(F[i-N+1,j+1,k-1], (F[i,1,k] + F[2,j+1,k-1]));
+        {| i=N; j=N; 2<=k<=N} : 
+           min(F[i-N+1,j-N+1,k-1], (F[i,1,k] + F[2,j-N+1,k-1]));
+        {| -k+N+2<=i<=N-1; j=1; k<=N} : F[i+1,j+1,k-1] + F[1,j,k];
+        {| i=N; j=1; 2<=k<=N} : F[i-N+1,j+1,k-1] + F[1,j,k];
+        {| -k+N+2<=i<=N-1; 2<=j<=-k+N+1} : 
+           min(F[i+1,j+1,k-1], (F[i,1,k] + F[2,j+1,k-1]));
+        {| i=N; 2<=j<=-k+N+1; 2<=k} : 
+           min(F[i-N+1,j+1,k-1], (F[i,1,k] + F[2,j+1,k-1]));
+        {| i=1; -k+N+2<=j<=N-1; k<=N} : F[i,1,k] + F[i+1,j+1,k-1];
+        {| i=1; j=N; 2<=k<=N} : F[i,1,k] + F[i+1,j-N+1,k-1];
+        {| 2<=i<=-k+N+1; -k+N+2<=j<=N-1} : 
+           min(F[i+1,j+1,k-1], (F[i,1,k] + F[2,j+1,k-1]));
+        {| 2<=i<=-k+N+1; j=N; 2<=k} : 
+           min(F[i+1,j-N+1,k-1], (F[i,1,k] + F[2,j-N+1,k-1]));
+        {| i=1; j=1; k=1; 2<=N} : F[i+k,j+k,k-1];
+        {| i=1; j=1; k=1; N=1} : F[i+k-N,j+k-N,k-1];
+        {| i=1; j=1; 2<=k<=N} : F[i+1,j+1,k-1];
+        {| i=1; 2<=j<=N-1; k=1} : F[i,1,k] + F[i+k,j+k,k-1];
+        {| i=1; j=N; k=1; 2<=N} : F[i,1,k] + F[i+k,j+k-N,k-1];
+        {| i=1; 2<=j<=-k+N+1; 2<=k} : F[i,1,k] + F[i+1,j+1,k-1];
+        {| 2<=i<=N-1; j=1; k=1} : F[i+k,j+k,k-1] + F[1,j,k];
+        {| i=N; j=1; k=1; 2<=N} : F[i+k-N,j+k,k-1] + F[1,j,k];
+        {| 2<=i<=-k+N+1; j=1; 2<=k} : F[i+1,j+1,k-1] + F[1,j,k];
+        {| 2<=i<=N-1; 2<=j<=N-1; k=1} : 
+           min(F[i+k,j+k,k-1], (F[i,1,k] + F[k+1,j+k,k-1]));
+        {| 2<=i<=N-1; j=N; k=1} : 
+           min(F[i+k,j+k-N,k-1], (F[i,1,k] + F[k+1,j+k-N,k-1]));
+        {| i=N; 2<=j<=N-1; k=1} : 
+           min(F[i+k-N,j+k,k-1], (F[i,1,k] + F[k+1,j+k,k-1]));
+        {| i=N; j=N; k=1; 2<=N} : 
+           min(F[i+k-N,j+k-N,k-1], (F[i,1,k] + F[k+1,j+k-N,k-1]));
+        {| 2<=i<=-k+N+1; 2<=j<=-k+N+1; 2<=k} : 
+           min(F[i+1,j+1,k-1], (F[i,1,k] + F[2,j+1,k-1]));
+      esac;
+  C[i,j] = 
+      case
+        {| 1<=i<=N-1; 1<=j<=N-1} : F[i+1,j+1,N];
+        {| 1<=i<=N-1; j=N} : F[i+1,j-N+1,N];
+        {| i=N; 1<=j<=N-1} : F[i-N+1,j+1,N];
+        {| i=N; j=N; 1<=N} : F[i-N+1,j-N+1,N];
+      esac;
+tel;

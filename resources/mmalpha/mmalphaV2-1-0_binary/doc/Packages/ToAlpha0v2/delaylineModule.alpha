@@ -1,0 +1,9 @@
+"system delaylineModule :{N | 1<=N}\n                       ( )\n       \
+returns         (outXregister1Out : {t,k | 1<=t; 0<=k<=N} of boolean);\nvar\n \
+ inputs : {t,k | 0<=t; 0<=k<=N} of boolean;\n  outXregister1 : {t,k | 1<=t; \
+0<=k<=N} of boolean;\nlet\n  inputs = \n      case\n        {t,k | 0<=t; k=0; \
+1<=N} : in.(t,k->t);\n        {t,k | t=0; 1<=k<=N} | {t,k | 1<=t; 1<=k<=N} : \
+\n           case\n             {t,k | t=0; 1<=k<=N} : False.(t,k->);\n       \
+      {t,k | 1<=t; 1<=k<=N} : outXregister1.(t,k->t,k-1);\n           esac;\n \
+     esac;\n  outXregister1Out = outXregister1.(t,k->t,k);\n  outXregister1 = \
+inputs.(t,k->t-1,k);\ntel;"

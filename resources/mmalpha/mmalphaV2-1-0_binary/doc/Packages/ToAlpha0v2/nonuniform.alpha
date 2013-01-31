@@ -1,0 +1,12 @@
+system nonuniform (x: {i,j | 1<= i,j <= 10} of integer)
+returns (y: integer);
+var Y : {i,j | 1 <= i,j <= 10} of integer;
+let
+  Y[i,j] = case
+          {|i=1}: x[1,j];
+          {|i>1; i = j}: x[i,i-1];
+          {|i>1; i > j}: x[i,i];
+          {|i>1; j > i}: x[i,j]; 
+       esac;
+  y = Y[10,10];
+tel;

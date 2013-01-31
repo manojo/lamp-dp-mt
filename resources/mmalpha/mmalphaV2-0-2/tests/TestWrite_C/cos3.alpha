@@ -1,0 +1,38 @@
+system cosparam (v1 : {i | 1<=i<=4} of real; 
+                 v2 : {i | 1<=i<=4} of real)
+       returns (c : real; 
+                s : real);
+var
+  alp :   real;
+  beta :  real;
+  gama :  real;
+  eps :  real;
+  t :  real;
+  al : {j | 0<=j<=4} of real;
+  be : {j | 0<=j<=4} of real;
+  ga : {j | 0<=j<=4} of real;
+let
+  al[j] = 
+      case
+        { |j=0} : 0[];
+        { |1<=j} : al[j-1] + v1 * v1;
+      esac;
+  alp[] = al[4];
+  be[j] = 
+      case
+        { |j=0} : 0[];
+        { |1<=j} : be[j-1] + v2 * v2;
+      esac;
+  beta[] = sqrt(be[4]);
+  ga[j] = 
+      case
+        { |j=0} : 0[];
+        { |1<=j} : ga[j-1] + v1 * v2;
+      esac;
+  gama[] = ga[4];
+  eps[] = beta - alp / (2 * gama);
+  t[] = if (eps = 0) then 1 else if (eps > 0) then 1 / (eps + 1 + eps * eps)
+               else -1 / (- eps + 1 + eps * eps);
+  c[] = 1 / (1 + t * t);
+  s[] = c * t;
+tel;

@@ -1,0 +1,371 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      6198,        239]*)
+(*NotebookOutlinePosition[      7635,        288]*)
+(*  CellTagsIndexPosition[      7561,        282]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Domain computations", "Title",
+  FontColor->RGBColor[1, 0, 0],
+  CellTags->"firstcell"],
+
+Cell["The Alpha Team", "Subsubtitle"],
+
+Cell["January 1998", "Text"],
+
+Cell[CellGroupData[{
+
+Cell["Cr\[EAcute]dits", "SmallText",
+  FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+      Zbigniew Chamski 
+      Catherine Dezan 
+      Florent Dupont de Dinechin 
+      Patricia Le Mo\[EDoubleDot]nner 
+      Herv\[EAcute] Le Verge 
+      Christophe Mauras 
+      Patrice Quinton 
+      Fabien Quillere
+      Sanjay Rajopadhye 
+      Sophie Robert 
+      Tanguy Risset 
+      Doran Wilde \
+\>", "SmallText"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+ Open and execute this cell, to go in the Domlib demo directory. \
+\
+\>", "SmallText",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(\(Which[$OperatingSystem === "\<MacOS\>", 
+      SetDirectory[$rootDirectory<>"\<:Demos:Domlib\>"], \n
+      \t$OperatingSystem\  === \ "\<Unix\>", \n\t
+      SetDirectory[Environment["\<MMALPHA\>"]<>"\</doc/packages/Domlib\>"]; \n
+      \tPrint["\<For this tutorial you are in Directory: \>"]; \n\t\t
+      Print[Directory[]], \n\t\tTrue, Print["\<Unsupported OS\>"]]; \)\)], 
+  "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Manipulating domains", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+  "Domains in Alpha a  union of convex polyhedra. domains are manipulated by \
+Domlib as abstract syntax trees.  the translation between the abstract syntax \
+and the external syntax can be done with ",
+  StyleBox["readDom[]",
+    FontFamily->"Courier"],
+  " and ",
+  StyleBox["show[]",
+    FontFamily->"Courier"],
+  ":\n"
+}], "Text"],
+
+Cell[BoxData[
+    \(\(d1 = readDom["\<{i,j| 1<=i,j<=8; i<=j+4}\>"];\)\)], "Input"],
+
+Cell[BoxData[
+    \(show[d1]\)], "Input"],
+
+Cell["the internal AST form is: ", "Text"],
+
+Cell[BoxData[
+    \(d1\)], "Input"],
+
+Cell[TextData[{
+  "When domains are 1 or 2 dimensionnal, one can visualize them with ",
+  StyleBox["showDomain",
+    FontFamily->"Courier"]
+}], "Text"],
+
+Cell[BoxData[
+    \(showDomain[d1]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Functions between domains", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(d1 = readDom["\<{i,j| 1<=i,j<=8; i<=j+4}\>"]; showDomain[d1]\)], "Input"],
+
+Cell[BoxData[
+    \(d2 = readDom["\<{i,j| 1<=i,j<=9; 2j<=i}\>"]; showDomain[d2]\)], "Input"],
+
+Cell["Domain intersection", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(d3 = DomIntersection[d2, d1]; showDomain[d3]\)], "Input"],
+
+Cell["Domain union", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(d4 = DomUnion[d1, d2]; showDomain[d4]\)], "Input"],
+
+Cell[BoxData[
+    \(show[d4]\)], "Input"]
+}, Open  ]],
+
+Cell["Domain Difference", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(d5 = \ DomDifference[d1, d2]; showDomain[d5]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell["Domain projection, extension", "Subsection",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(d6 = DomProject[d1, {"\<i\>"}]; show[d6]\)], "Input"],
+
+Cell[BoxData[
+    \(d7 = DomExtend[d5, {"\<i\>", "\<j\>", "\<k\>"}]; show[d7]\)], "Input"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Functions between domains and functions", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["Matrice are manipulated in abstract syntax form", "Text"],
+
+Cell[BoxData[
+    \(\(mat1 = readMat["\<(i,j->i+1,j+1)\>"]; \)\)], "Input"],
+
+Cell[BoxData[
+    \(d8 = DomImage[d1, mat1]; \nd9 = DomPreimage[d1, mat1]; \n
+    d10 = DomIntersection[d8, d9]; showDomain[d10]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["All Domlib functions", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[BoxData[
+    \(\(?Dom*\)\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Domains of variables, expressions", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+Given a particular Alpha system, all variables have a domain and \
+each expression also\
+\>", "Text"],
+
+Cell[BoxData[
+    \(load["\<lu.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(show[getDeclarationDomain["\<L\>"]]\)], "Input"],
+
+Cell["\<\
+The domain of an expression can be found with expDomain (warning, \
+do not use the array notation)\
+\>", "Text"],
+
+Cell[BoxData[
+    \(show[expDomain["\<F.(i,j->i+2j,j,j)\>"]]\)], "Input"],
+
+Cell[BoxData[
+    \(show[expDomain["\< u = F.(i,j->2i+j-1,j,i-1)\>"]]\)], "Input"]
+}, Closed]]
+}, Open  ]]
+},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1440}, {0, 835}},
+AutoGeneratedPackage->None,
+WindowToolbars->{"RulerBar", "EditBar"},
+Evaluator->"Local",
+CellGrouping->Manual,
+WindowSize->{1017, 697},
+WindowMargins->{{8, Automatic}, {Automatic, 31}},
+PrintingPageRange->{Automatic, Automatic},
+PageHeaders->{{Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"], Inherited, Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"]}, {Cell[ 
+        TextData[ {
+          ValueBox[ "FileName"]}], "Header"], Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}], "PageNumber"]}},
+PrintingOptions->{"PaperSize"->{612, 792},
+"PaperOrientation"->"Portrait",
+"FirstPageHeader"->False,
+"FirstPageFooter"->False,
+"FacingPages"->True,
+"Magnification"->1},
+Magnification->1.5
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{
+  "firstcell"->{
+    Cell[1776, 53, 93, 2, 132, "Title",
+      CellTags->"firstcell"]}
+  }
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{
+  {"firstcell", 7465, 275}
+  }
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 93, 2, 132, "Title",
+  CellTags->"firstcell"],
+Cell[1872, 57, 37, 0, 45, "Subsubtitle"],
+Cell[1912, 59, 28, 0, 47, "Text"],
+
+Cell[CellGroupData[{
+Cell[1965, 63, 68, 1, 40, "SmallText"],
+Cell[2036, 66, 334, 13, 282, "SmallText"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2407, 84, 128, 4, 40, "SmallText"],
+Cell[2538, 90, 408, 7, 177, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[2983, 102, 71, 1, 57, "Section"],
+Cell[3057, 105, 350, 10, 99, "Text"],
+Cell[3410, 117, 82, 1, 39, "Input"],
+Cell[3495, 120, 41, 1, 39, "Input"],
+Cell[3539, 123, 42, 0, 47, "Text"],
+Cell[3584, 125, 35, 1, 39, "Input"],
+Cell[3622, 128, 151, 4, 47, "Text"],
+Cell[3776, 134, 47, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[3860, 140, 76, 1, 57, "Section"],
+Cell[3939, 143, 93, 1, 39, "Input"],
+Cell[4035, 146, 92, 1, 39, "Input"],
+Cell[4130, 149, 73, 1, 41, "Subsection"],
+Cell[4206, 152, 77, 1, 22, "Input"],
+Cell[4286, 155, 66, 1, 41, "Subsection"],
+
+Cell[CellGroupData[{
+Cell[4377, 160, 70, 1, 22, "Input"],
+Cell[4450, 163, 41, 1, 22, "Input"]
+}, Open  ]],
+Cell[4506, 167, 71, 1, 41, "Subsection"],
+Cell[4580, 170, 77, 1, 22, "Input"],
+
+Cell[CellGroupData[{
+Cell[4682, 175, 82, 1, 41, "Subsection"],
+Cell[4767, 178, 73, 1, 22, "Input"],
+Cell[4843, 181, 90, 1, 22, "Input"]
+}, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4982, 188, 90, 1, 57, "Section"],
+Cell[5075, 191, 63, 0, 47, "Text"],
+Cell[5141, 193, 75, 1, 39, "Input"],
+Cell[5219, 196, 141, 2, 108, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5397, 203, 71, 1, 57, "Section"],
+Cell[5471, 206, 42, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5550, 212, 84, 1, 57, "Section"],
+Cell[5637, 215, 111, 3, 47, "Text"],
+Cell[5751, 220, 62, 1, 39, "Input"],
+Cell[5816, 223, 68, 1, 22, "Input"],
+Cell[5887, 226, 122, 3, 24, "Text"],
+Cell[6012, 231, 73, 1, 22, "Input"],
+Cell[6088, 234, 82, 1, 22, "Input"]
+}, Closed]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

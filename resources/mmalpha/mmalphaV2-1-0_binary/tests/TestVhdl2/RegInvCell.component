@@ -1,0 +1,9 @@
+
+COMPONENT RegInvCell IS
+PORT(
+  Ck, CE, Rst : IN STD_LOGIC;
+  A1 : IN std_logic;
+  B1 : OUT std_logic
+);
+END COMPONENT;
+

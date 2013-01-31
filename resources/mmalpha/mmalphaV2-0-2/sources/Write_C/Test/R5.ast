@@ -1,0 +1,29 @@
+(* ALPHA Tree produced by read_alpha ver 4.0 (Doran) *){
+Alpha`system["R5",
+    (* parameter space *)
+    Alpha`domain[1, {"W"}, {
+            Alpha`pol[2, 2, 0, 0, {
+                {1, 1, -1},
+                {1, 0, 1}},{
+                {1, 1, 0},
+                {1, 1, 1}}]}
+    ],
+    { (* input variables *)},
+    { (* output variables *)
+    Alpha`decl["XT", Alpha`integer, 
+        Alpha`domain[2, {"k", "W"}, {
+                Alpha`pol[3, 3, 0, 0, {
+                    {1, 1, 0, 0},
+                    {1, -1, 1, -1},
+                    {1, 0, 0, 1}},{
+                    {1, 0, 1, 0},
+                    {1, 1, 1, 0},
+                    {1, 0, 1, 1}}]}
+        ]]},
+    { (* local variables *)},
+    { (* let *)
+    Alpha`equation["XT", Alpha`index[
+            Alpha`matrix[2, 3, {"k", "W"}, {
+                {2, 0, 1},
+                {0, 0, 1}}]]]}]
+}

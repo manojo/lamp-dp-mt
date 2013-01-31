@@ -1,0 +1,18 @@
+system bidon:{N | N>=1}
+	 (a:integer) returns ();
+var 
+   A,B: {i|i>=0} of integer;
+   C: {i|16>=i>=0} of integer;
+D: {i|N>=i>=4} of integer;
+let
+   B[i] = case
+           {|i=0}: A;
+           {|i>0}: A + A + A;
+          esac;
+   C[i] = A[i+1];
+D[i]= B[i];
+   A[i] = case
+	{|i>0}:B[i-1];
+		{|i=0}:0[];
+	esac;	
+tel;

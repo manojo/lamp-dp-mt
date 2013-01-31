@@ -1,0 +1,96 @@
+Input Ilam1[0,1] =Ilam1[0,1]= 0
+Input Ilam1[1,1] =Ilam1[1,1]= 1
+Input Ilam1[2,1] =Ilam1[2,1]= 1
+Input Ilam1[3,1] =Ilam1[3,1]= 1
+Input Ilam1[4,1] =Ilam1[4,1]= 1
+Input Ilam1[5,1] =Ilam1[5,1]= 2
+Input Ilam2[0,1] =Ilam2[0,1]= 2
+Input Ilam2[1,1] =Ilam2[1,1]= 2
+Input Ilam2[2,1] =Ilam2[2,1]= 2
+Input Ilam2[3,1] =Ilam2[3,1]= 2
+Input Ilam2[4,1] =Ilam2[4,1]= 2
+Input Ilam2[5,1] =Ilam2[5,1]= 2
+Input Ix1[0,1] =Ix1[0,1]= 2
+Input Ix1[1,1] =Ix1[1,1]= 2
+Input Ix1[2,1] =Ix1[2,1]= 2
+Input Ix1[3,1] =Ix1[3,1]= 2
+Input Ix1[4,1] =Ix1[4,1]= 2
+Input Ix1[5,1] =Ix1[5,1]= 2
+Input Ix2[0,1] =Ix2[0,1]= 2
+Input Ix2[1,1] =Ix2[1,1]= 2
+Input Ix2[2,1] =Ix2[2,1]= 2
+Input Ix2[3,1] =Ix2[3,1]= 2
+Input Ix2[4,1] =Ix2[4,1]= 2
+Input Ix2[5,1] =Ix2[5,1]= 2
+Input Iy1[0,1] =Iy1[0,1]= 2
+Input Iy1[1,1] =Iy1[1,1]= 2
+Input Iy1[2,1] =Iy1[2,1]= 2
+Input Iy1[3,1] =Iy1[3,1]= 2
+Input Iy1[4,1] =Iy1[4,1]= 2
+Input Iy1[5,1] =Iy1[5,1]= 2
+Input Iy2[0,1] =Iy2[0,1]= 2
+Input Iy2[1,1] =Iy2[1,1]= 2
+Input Iy2[2,1] =Iy2[2,1]= 2
+Input Iy2[3,1] =Iy2[3,1]= 2
+Input Iy2[4,1] =Iy2[4,1]= 2
+Input Iy2[5,1] =Iy2[5,1]= 2
+Input ck2[2,1] =ck2[2,1]= 2
+Input ck2[3,1] =ck2[3,1]= 2
+Input ck2[4,1] =ck2[4,1]= 2
+Input ck2[5,1] =ck2[5,1]= 2
+Input Redu[0,1] =Redu[0,1]= 2
+Input Redu[1,1] =Redu[1,1]= 2
+Input Redu[2,1] =Redu[2,1]= 2
+Input Redu[3,1] =Redu[3,1]= 2
+Input Redu[4,1] =Redu[4,1]= 2
+Input Redu[5,1] =Redu[5,1]= 2
+Input Iinit[0,1] =Iinit[0,1]= 2
+Input Iinit[1,1] =Iinit[1,1]= 2
+Input Iinit[2,1] =Iinit[2,1]= 2
+Input Iinit[3,1] =Iinit[3,1]= 2
+Input Iinit[4,1] =Iinit[4,1]= 2
+Input Iinit[5,1] =Iinit[5,1]= 2
+Input Iend[0,1] =Iend[0,1]= 2
+Input Iend[1,1] =Iend[1,1]= 2
+Input Iend[2,1] =Iend[2,1]= 2
+Input Iend[3,1] =Iend[3,1]= 2
+Input Iend[4,1] =Iend[4,1]= 2
+Input Iend[5,1] =Iend[5,1]= 2
+Sl1[10,5]= 0
+Sl1[11,5]= 0
+Sl1[12,5]= 0
+Sl1[13,5]= 0
+Sl2[10,5]= 0
+Sl2[11,5]= 0
+Sl2[12,5]= 0
+Sl2[13,5]= 0
+Sx[10,5]= 0
+Sx[11,5]= 0
+Sx[12,5]= 0
+Sx[13,5]= 0
+Sy[10,5]= 0
+Sy[11,5]= 0
+Sy[12,5]= 0
+Sy[13,5]= 0
+Ss[10,5]= 0
+Ss[11,5]= 0
+Ss[12,5]= 0
+Ss[13,5]= 0
+Send[5,5]= 2
+Send[6,5]= 2
+Send[7,5]= 2
+Send[8,5]= 2
+Send[9,5]= 2
+Send[10,5]= 2
+Sendsort[9,5]= 2
+Sendsort[10,5]= 2
+Sendsort[11,5]= 2
+Sendsort[12,5]= 2
+Sendsort[13,5]= 2
+Sendsort[14,5]= 2
+Sinit[9,5]= 2
+Sinit[10,5]= 2
+Sinit[11,5]= 2
+Sinit[12,5]= 2
+Sinit[13,5]= 2
+Sinit[14,5]= 2

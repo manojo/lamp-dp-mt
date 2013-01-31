@@ -1,0 +1,6 @@
+system reg :   {Tinit,Duration | 0<=Tinit; 1<=Duration}
+               (x : {t | Tinit<=t<=Tinit+Duration-1} of integer)
+       returns (z : {t | Tinit+1<=t<=Tinit+Duration-1} of integer);
+let
+  z[t] = x[t-1];
+tel;

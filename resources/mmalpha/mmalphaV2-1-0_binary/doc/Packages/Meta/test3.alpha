@@ -1,0 +1,6 @@
+system test3   (a : {i | 10<=i} of integer; 
+                b : {i | 10<=i} of integer)
+       returns (c : {i | i<=20} of integer);
+let
+  c[i] = { | 2<=i} : a[i] + b[3i+2];
+tel;

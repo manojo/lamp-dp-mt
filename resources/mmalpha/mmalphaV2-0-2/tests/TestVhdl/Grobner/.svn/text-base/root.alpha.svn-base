@@ -1,0 +1,99 @@
+--include cell1.alpha
+--include newsort.alpha
+
+
+system total:{Tinit,Duration,Nbproc| Tinit>=0; Duration > 4; Nbproc>=3}
+  (Ilam1,Ilam2,Ix1,Ix2,Iy1,Iy2 :
+	{t,p|Tinit<=t<=Tinit+Duration-1;p=1} of integer;
+	ck2: {t,p|Tinit+2<=t<=Tinit+Duration-1;p=1} of boolean;
+	Redu: {t,p|Tinit<=t<=Tinit+Duration-1;p=1} of boolean;
+	Iinit,Iend: {t,p|Tinit<=t<=Tinit+Duration-1;p=1} of boolean )
+  returns (Sl1,Sl2,Sx,Sy: {t,p|  Tinit+2p<=t<=Tinit+Duration+2p-3;
+				p=Nbproc} of integer;
+		 Ss : {t,p|  Tinit+2p<=t<=Tinit+Duration+2p-3;
+				p=Nbproc} of boolean;
+		Send : {t,p|Tinit+p<=t<=Tinit+p+Duration-1;
+				p=Nbproc} of boolean;
+                 Sendsort,Sinit : {t,p|Tinit+2p-1<=t<=Tinit+Duration+2p-2;
+				p=Nbproc} of boolean);
+var 
+Ol1,Ol2,Ox,Oy: {t,p|  Tinit+2p<=t<=Tinit+Duration+2p-3;
+				2<=p<=Nbproc} of integer;
+                 Os : {t,p|  Tinit+2p<=t<=Tinit+Duration+2p-3;
+				2<=p<=Nbproc} of boolean;
+		Oend : {t,p| Tinit+p<=t<=Tinit+p+Duration-1;
+				2<=p<=Nbproc;2<=p<=Nbproc} of boolean;
+                 Oendsort,Oinit : {t,p| Tinit+2p-1<=t<=Tinit+Duration+2p-2;
+				2<=p<=Nbproc} of boolean;
+
+OOl1,OOl2,OOx,OOy: {t,p| Tinit+2<=t<=Tinit+Duration-1;
+				p=1} of integer;
+
+OOs: {t,p| Tinit+2<=t<=Tinit+Duration-1;
+				p=1} of boolean;
+
+OOinit,OOend,OOendsort: {t,p| Tinit+1<=t<=Tinit+Duration;
+				p=1} of boolean;
+
+IIl1,IIl2,IIx,IIy: {t,p| Tinit+2p-2<=t<=Tinit+Duration+2p-5;
+				2<=p<=Nbproc } of integer;
+IIs: {t,p| Tinit+2p-2<=t<=Tinit+Duration+2p-5;
+				2<=p<=Nbproc } of boolean;
+IIend: {t,p| Tinit+p-1<=t<=Tinit+p-2+Duration;
+			2<=p<=Nbproc } of boolean;
+IIendsort,IIinit : {t,p| Tinit+2p-3<=t<=Tinit+Duration+2p-4;
+				2<=p<=Nbproc} of boolean;
+let
+
+
+use {p| p=1} cell1b[Tinit,Duration] 
+		(Ilam1,Ilam2,Ix1,Ix2,Iy1,Iy2,ck2,Redu,Iinit,Iend)
+		returns (OOl1,OOl2,OOx,OOy,OOs,OOinit,OOend,OOendsort);
+
+IIl1[t,p]= case 
+	{t,p| p=2} : OOl1[t,p-1];
+	{t,p| 2<p<=Nbproc} : Ol1[t,p-1];
+	esac;
+IIl2[t,p]= case 
+	{t,p| p=2} : OOl2[t,p-1];
+	{t,p| 2<p<=Nbproc} : Ol2[t,p-1];
+	esac;
+IIx[t,p]= case 
+	{t,p| p=2} : OOx[t,p-1];
+	{t,p| 2<p<=Nbproc} : Ox[t,p-1];
+	esac;
+IIy[t,p]= case 
+	{t,p| p=2} : OOy[t,p-1];
+	{t,p| 2<p<=Nbproc} : Oy[t,p-1];
+	esac;
+IIs[t,p]= case 
+	{t,p| p=2} : OOs[t,p-1];
+	{t,p| 2<p<=Nbproc} : Os[t,p-1];
+	esac;
+IIend[t,p]= case 
+	{t,p| p=2} : OOend[t,p-1];
+	{t,p| 2<p<=Nbproc} : Oend[t,p-1];
+	esac;
+IIendsort[t,p]= case 
+	{t,p| p=2} : OOendsort[t,p-1];
+	{t,p| 2<p<=Nbproc} : Oendsort[t,p-1];
+	esac;
+IIinit[t,p]= case 
+	{t,p| p=2} : OOinit[t,p-1];
+	{t,p| 2<p<=Nbproc} : Oinit[t,p-1];
+	esac;
+
+use {p| 2<=p<=Nbproc} sortcell[Tinit+2p-3,Tinit+p-1,Duration-2] 
+	(IIl1,IIl2,IIx,IIy,IIs,IIend,IIendsort,IIinit)
+	returns (Ol1,Ol2,Ox,Oy,Os,Oend,Oendsort,Oinit);
+
+Sl1[t,p]=Ol1[t,p];
+Sl2[t,p]=Ol2[t,p];
+Sx[t,p]=Ox[t,p];
+Sy[t,p]=Oy[t,p];
+Ss[t,p]=Os[t,p];
+Send[t,p]=Oend[t,p];
+Sendsort[t,p]=Oendsort[t,p];
+Sinit[t,p]=Oinit[t,p];
+tel;
+

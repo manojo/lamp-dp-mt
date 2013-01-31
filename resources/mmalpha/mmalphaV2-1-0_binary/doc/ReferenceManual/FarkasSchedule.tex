@@ -1,0 +1,15 @@
+%
+% File created on {2007, 11, 15, 17, 10, 20.758550} by makeDoc.
+%
+% Section header
+\section{The Alpha`FarkasSchedule` package } 
+\label{label:Alpha`FarkasSchedule`}
+\alphausage{FarkasSchedule}{Package.  Schedule for  alpha program with Farkas method,   These function should be used through the schedule[] interface (Package Schedule.m)}{Alpha/FarkasSchedule.m}{Alpha`FarkasSchedule`}
+\index{FarkasSchedule}
+
+\alphausage{farkasSchedule}{(+) farkasSchedule[sys\_Alpha`system], finds the schedule of alpha system $<$sys$>$. farkasSchedule[] finds the schedule of \$result and puts the result in \$schedule.  farkasSchedule[sys\_Alpha`system, \{options\}] calls farkasSchedule with non default options. Options[farkasSchedule] provides the options of schedule, and ?option provides information on option.  ?\$schedule provides info on output formats of farkasSchedule).  By default, the   schedule is affine by variable The schedule computation may take a long time (2 minutes for 10 instructions). More information is available in the file \$MMALPHA/doc/user/Scheduler\_user\_manual.ps.}{Alpha/FarkasSchedule.m}{Alpha`FarkasSchedule`}
+\index{farkasSchedule}
+
+\alphausage{multiSched}{(+) multiSched[sys\_Alpha`system], finds a multiDimensionnal schedule alpha system $<$sys$>$ using the farkasSchedule scheduling function at each dimension. multiSched[] finds the schedule of \$result and puts the result in \$schedule. multiSched[sys\_Alpha`system, \{options\}] calls schedule with non default options. Options[multiSched] provides the options of schedule, and ?option provides information on option.  See also: applySchedule. }{Alpha/FarkasSchedule.m}{Alpha`FarkasSchedule`}
+\index{multiSched}
+

@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLud
+END
+inLud
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLud/inLud
+END
+outLud
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLud/outLud
+END
+check.c
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLud/check.c
+END
+result
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/mmalpha/!svn/ver/4/mmalphaV2-0-2/tests/TestCodegen/testLud/result
+END

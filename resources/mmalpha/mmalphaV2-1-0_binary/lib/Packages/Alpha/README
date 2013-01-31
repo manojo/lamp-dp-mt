@@ -1,0 +1,103 @@
+CONTENT (As of April 25, 2005)
+
+Alphard.m		OK
+ChangeOfBasis.m		OK
+CheckAlpha0.m		OK (new)
+CheckAlpha0.meta	OK (new)
+CheckAlpha0.sem		OK (new)
+CheckCell.m		OK
+CheckCell.meta		OK 
+CheckCell.sem		OK
+CheckController.m	OK
+CheckController.meta	OK
+CheckController.sem	OK
+CheckModule.m		OK
+CheckModule.meta	OK
+CheckModule.sem		OK
+d CodeGen		Not Checked yet, but should be OK
+Control.m		OK
+Cut.m			OK
+Domlib.m		OK
+* FarkasSchedule.m	There are differences. See FarkasSchedule.m-new
+INorm.m			OK
+Lexicographic.m		OK
+Makefile		
+Matrix.m		OK
+Meta.m			OK
+Normalization.m		OK
+* Old-VertexSchedule.m	To be removed...
+Options.m		OK
+PipeControl.m		There are differences. See PipeControl.m-new
+Pipeline.m		OK
+Properties.m		OK
+README			OK
+Reduction.m		OK
+Schedule.m		OK
+ScheduleTools.m		OK
+Semantics.m		OK
+Static.m		OK
+SubSystems.m		OK
+Substitution.m		OK
+Tables.m		OK
+ToAlpha0v2.m		OK
+VertexSchedule.m	OK
+Vhdl2.m			OK
+VhdlTestBench.m		OK
+Visual.m		OK
+Zpol.m			OK
+* autoload.m		OK (This file should be removed)
+vhdlCell.m		OK
+vhdlCell.meta		OK
+vhdlCell.sem		OK
+* vhdlCellSave.m	I don't know what this file is
+vhdlCont.m		OK
+vhdlCont.meta		OK
+vhdlCont.sem		OK
+vhdlModule.m		OK
+vhdlModule.meta		OK
+vhdlModule.sem		OK
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

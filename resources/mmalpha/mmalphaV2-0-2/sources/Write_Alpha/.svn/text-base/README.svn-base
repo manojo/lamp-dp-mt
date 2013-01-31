@@ -1,0 +1,18 @@
+CONTENT (As of April 25, 2005)
+Everything up to date
+
+Makefile. Modification in MMAlphabigmess and alpha_beta. See Makefile-modified inside
+README OK
+d Test OK (I did not change anything)
+item.h OK
+itemprocs.c OK 
+itemprocs.h OK 
+lex.l OK
+node.h OK
+node2item.c OK
+node2item.h OK
+nodeprocs.c OK
+nodeprocs.h OK
+writeitem.c OK
+writeitem.h OK
+yacc.y OK

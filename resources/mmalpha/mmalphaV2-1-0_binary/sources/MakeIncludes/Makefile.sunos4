@@ -1,0 +1,16 @@
+# This is obsolete, no version is kept for sunos
+DEFINES      = -DUNIX
+#-----------------------------------------------
+LD = gcc
+LDFLAGS		= -L$(LIBDIR) 
+#-----------------------------------------------
+MATHLINK      = /soft/Mathematica/V3.0.1.1/AddOns/MathLink/DevelopersKits/SPARC/CompilerAdditions
+OMEGADIR      = 
+#-----------------------------------------------
+MATHPREP	= $(MATHLINK)/mprep
+MATHPREPCOR	= $(MMALPHA)/lib/MathLink/mprepcor.3.0.1
+MATHINCLUDE	= -I$(MATHLINK)/
+MATHLIB		= -L$(MATHLINK)/
+MATHLOADLIB	= -lML -lm
+MATHEXTRALIBS = -lnsl -lsocket
+MATHEXTRAOBJS =

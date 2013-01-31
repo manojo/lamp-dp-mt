@@ -1,0 +1,16 @@
+#-----------------------------------------------
+#  This defines where MATHLINK is for version 3.0.1, for Linux at IRISA
+#-----------------------------------------------
+# at Irisa: 
+MATHLINK     = /soft/Mathematica/V3.0.1.1/AddOns/MathLink/DevelopersKits/Linux/CompilerAdditions
+
+#-----------------------------------------------
+MATHPREP	= $(MATHLINK)/mprep
+MATHPREPCOR	= $(MMALPHA)/lib/MathLink/mprepcor.3.0.1
+MATHINCLUDE	= -I$(MATHLINK)/
+MATHLIB		= -L$(MATHLINK)/
+MATHLOADLIB	= -lML -lm
+MATHEXTRALIBS = -lnsl # -lsocket
+MATHEXTRAOBJS =
+
+

@@ -1,0 +1,404 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.1'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      6821,        276]*)
+(*NotebookOutlinePosition[      7750,        311]*)
+(*  CellTagsIndexPosition[      7654,        304]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Introduction to Alpha", "Title",
+  FontColor->RGBColor[1, 0, 0],
+  CellTags->"firstcell"],
+
+Cell[" ", "SmallText"],
+
+Cell["Patrice Quinton", "Text"],
+
+Cell["\<\
+Irisa, Campus de Beaulieu, 35042, Rennes Cedex, France
+alpha@irisa.fr\
+\>", "SmallText"],
+
+Cell["Cr\[EAcute]dits", "SmallText",
+  FontColor->RGBColor[0, 1, 0]],
+
+Cell["\<\
+      Zbigniew Chamski 
+      Catherine Dezan 
+      Florent Dupont de Dinechin 
+      Patricia Le Mo\[EDoubleDot]nner 
+      Herv\[EAcute] Le Verge 
+      Christophe Mauras 
+      Patrice Quinton 
+      Fabien Quillere
+      Sanjay Rajopadhye 
+      Sophie Robert 
+      Tanguy Risset 
+      Doran Wilde \
+\>", "SmallText"],
+
+Cell[CellGroupData[{
+
+Cell["Open and execute this cell to Go in the right directory", "Subsection",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[
+    \(setMMADir[{"\<demos\>", "\<NOTEBOOKS\>", "\<Introduction\>"}]\)], \
+"Input",
+  InitializationCell->True]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["1. A simple adder", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["\<\
+The purpose of this notebook is to introduce some basic concepts of \
+Alpha. We do this by considering Alpha programs which represent Hardware \
+components. We shall see later that this is not compulsory: Alpha allows one \
+to write a \"behavioural\" program, and to transform it into hardware. \
+\>", 
+  "Text",
+  TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell["Loading a program ", "Subsection"],
+
+Cell["This program represents a simple adder:", "Text"],
+
+Cell[BoxData[
+    \(load["\<exemple2.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[TextData[{
+  "This piece of hardware represented by this alpha program is represented in \
+ the document  ",
+  StyleBox["first steps with Alpha.\.18\.13",
+    FontSlant->"Italic"]
+}], "Text"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Normalisation ", "Subsection"],
+
+Cell[TextData[{
+  "To distribute the dependence operator on the addition, in the definition \
+of ",
+  StyleBox["S", "Input"],
+  ", we use the normalization function:"
+}], "Text",
+  TextJustification->1],
+
+Cell[BoxData[
+    \(\(normalize[];\)\)], "Input"],
+
+Cell[BoxData[
+    \(ashow[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Saving a program ", "Subsection"],
+
+Cell[BoxData[
+    \(\(save[$tmpDirectory <> "\<exemple2.alpha\>"];\)\)], "Input"]
+}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["2. Static analysis of a program", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+  "To check the correctness of a program, we use ",
+  StyleBox["analyze", "Input"],
+  ". Here, we load a \"wrong\" example (do you see why?), and we analyze it. \
+"
+}], "Text"],
+
+Cell[BoxData[""], "Input"],
+
+Cell[BoxData[
+    \(load["\<exemple3wrg.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[BoxData[
+    \(analyze[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["3. Substitution, Normalization", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell[TextData[{
+  "The ",
+  StyleBox["substitution", "Input"],
+  " function allows one to replace a variable by its definition. "
+}], "Text"],
+
+Cell[BoxData[
+    \(load["\<exemple2.alpha\>"]; ashow[]\)], "Input"],
+
+Cell["\<\
+The following substitutes S by its definition in the definition of \
+z:\
+\>", "Text"],
+
+Cell[BoxData[
+    \(substituteInDef["\<z\>", "\<S\>"]; show[]\)], "Input",
+  CellTags->"sub"],
+
+Cell["We can now normalize this system:", "Text"],
+
+Cell[BoxData[
+    \(normalize[]; ashow[]\)], "Input"],
+
+Cell[TextData[{
+  "In this ",
+  ButtonBox["system",
+    ButtonData:>"sub",
+    ButtonStyle->"Hyperlink"],
+  ", the definition of S is useless, which is confirmed by: "
+}], "Text"],
+
+Cell[BoxData[
+    \(unusedVarQ["\<S\>"]\)], "Input"],
+
+Cell["\<\
+One can actually remove all unused vars using the following \
+function:\
+\>", "Text"],
+
+Cell[BoxData[
+    \(removeAllUnusedVars[]; ashow[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["4.  Change of basis", "Section",
+  FontColor->RGBColor[0, 0, 1]],
+
+Cell["We consider now a more interesting example:", "Text"],
+
+Cell[BoxData[
+    \(load["\<exemple9.alpha\>"]; ashow[]\)], "Input"],
+
+Cell[TextData[{
+  "On this example, we can apply a \"change of basis\". Here, we reindex \
+variable ",
+  StyleBox["Z", "Input"],
+  " by means of the function ",
+  StyleBox["(t,p -> t+p,p)", "Input"],
+  " :"
+}], "Text"],
+
+Cell[BoxData[
+    \(changeOfBasis["\<Z.(t,p->t+p,p)\>"]; ashow[]\)], "Input"],
+
+Cell["We can apply a new substitution :", "Text"],
+
+Cell[BoxData[
+    \(substituteInDef["\<Z\>", "\<Z\>"]; ashow[]\)], "Input"],
+
+Cell["and normalize the result:", "Text"],
+
+Cell[BoxData[
+    \(normalize[]; ashow[]\)], "Input"],
+
+Cell["\<\
+The function simplifySystem allows (sometimes) a program to be \
+simplified: \
+\>", "Text"],
+
+Cell[BoxData[
+    \(simplifySystem[]; ashow[]\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["This is the end of this introduction...", "Subsubtitle",
+  FontColor->RGBColor[1, 0, 0]],
+
+Cell[BoxData[{
+    \(dir = Directory[]\), 
+    \(SetDirectory[$tmpDirectory]\), 
+    \(DeleteFile["\<exemple2.alpha\>"]\)}], "Input"]
+}, Closed]]
+}, Open  ]]
+},
+FrontEndVersion->"5.1 for Macintosh",
+ScreenRectangle->{{0, 1440}, {0, 829}},
+AutoGeneratedPackage->None,
+WindowToolbars->"EditBar",
+WindowSize->{1288, 802},
+WindowMargins->{{4, Automatic}, {Automatic, 1}},
+Magnification->1.5
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{
+  "firstcell"->{
+    Cell[1776, 53, 95, 2, 132, "Title",
+      CellTags->"firstcell"]},
+  "sub"->{
+    Cell[4988, 194, 93, 2, 39, "Input",
+      CellTags->"sub"]}
+  }
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{
+  {"firstcell", 7482, 294},
+  {"sub", 7564, 297}
+  }
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 95, 2, 132, "Title",
+  CellTags->"firstcell"],
+Cell[1874, 57, 22, 0, 40, "SmallText"],
+Cell[1899, 59, 31, 0, 47, "Text"],
+Cell[1933, 61, 98, 3, 57, "SmallText"],
+Cell[2034, 66, 68, 1, 40, "SmallText"],
+Cell[2105, 69, 334, 13, 277, "SmallText"],
+
+Cell[CellGroupData[{
+Cell[2464, 86, 109, 1, 53, "Subsection"],
+Cell[2576, 89, 124, 3, 39, "Input",
+  InitializationCell->True]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[2737, 97, 68, 1, 57, "Section"],
+Cell[2808, 100, 346, 7, 73, "Text"],
+
+Cell[CellGroupData[{
+Cell[3179, 111, 40, 0, 53, "Subsection"],
+Cell[3222, 113, 55, 0, 47, "Text"],
+Cell[3280, 115, 68, 1, 39, "Input"],
+Cell[3351, 118, 196, 5, 47, "Text"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[3584, 128, 36, 0, 39, "Subsection"],
+Cell[3623, 130, 202, 6, 47, "Text"],
+Cell[3828, 138, 49, 1, 39, "Input"],
+Cell[3880, 141, 40, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[3957, 147, 39, 0, 39, "Subsection"],
+Cell[3999, 149, 81, 1, 39, "Input"]
+}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4129, 156, 82, 1, 57, "Section"],
+Cell[4214, 159, 192, 5, 47, "Text"],
+Cell[4409, 166, 26, 0, 39, "Input"],
+Cell[4438, 168, 71, 1, 39, "Input"],
+Cell[4512, 171, 42, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[4591, 177, 81, 1, 57, "Section"],
+Cell[4675, 180, 141, 4, 47, "Text"],
+Cell[4819, 186, 68, 1, 39, "Input"],
+Cell[4890, 189, 95, 3, 47, "Text"],
+Cell[4988, 194, 93, 2, 39, "Input",
+  CellTags->"sub"],
+Cell[5084, 198, 49, 0, 47, "Text"],
+Cell[5136, 200, 53, 1, 39, "Input"],
+Cell[5192, 203, 179, 6, 47, "Text"],
+Cell[5374, 211, 52, 1, 39, "Input"],
+Cell[5429, 214, 95, 3, 47, "Text"],
+Cell[5527, 219, 63, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5627, 225, 70, 1, 57, "Section"],
+Cell[5700, 228, 59, 0, 47, "Text"],
+Cell[5762, 230, 68, 1, 39, "Input"],
+Cell[5833, 233, 218, 7, 47, "Text"],
+Cell[6054, 242, 77, 1, 39, "Input"],
+Cell[6134, 245, 49, 0, 47, "Text"],
+Cell[6186, 247, 75, 1, 39, "Input"],
+Cell[6264, 250, 41, 0, 47, "Text"],
+Cell[6308, 252, 53, 1, 39, "Input"],
+Cell[6364, 255, 101, 3, 47, "Text"],
+Cell[6468, 260, 58, 1, 39, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[6563, 266, 94, 1, 46, "Subsubtitle"],
+Cell[6660, 269, 133, 3, 85, "Input"]
+}, Closed]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

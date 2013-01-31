@@ -1,0 +1,12 @@
+------> Testing: VertexSchedule
+Date: Fri 23 Apr 2010 14:18:05
+Calling TestVertexSchedule.m
+****** > test VertexSchedule 1-1 was wrong
+****** > test VertexSchedule 2-1 was wrong
+End of test
+------> Testing: VertexSchedule
+Date: Fri 23 Apr 2010 14:18:39
+Calling TestVertexSchedule.m
+****** > test VertexSchedule 1-1 was wrong
+****** > test VertexSchedule 2-1 was wrong
+End of test

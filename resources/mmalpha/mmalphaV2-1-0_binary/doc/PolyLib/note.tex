@@ -1,0 +1,77 @@
+\documentclass[12pt]{article}
+\begin{document}
+
+\newcommand{\polylib}{{\sc PolyLib}}
+\title{A note regarding the installation of \polylib{}}
+\author{Patrice Quinton}
+\date{October 23, 2007}
+\maketitle
+This short note contains a few remarks regarding the installation of \polylib{}.
+
+%\section{Installing the 5.02 version}
+%The version I run was 5.02, which I inherited from Tanguy Risset. The source should be
+%on 
+%\begin{verbatim}
+%http://icps.u-strasbg.fr/~loechner/polylib
+%\end{verbatim}
+%but I did not check whether this version is the most current one.
+
+%After untaring the tar file, I got a directory where the \texttt{doc/INSTALL} file
+%contains some instructions, but this does not work. 
+
+%To obtain an executable, I did what Tanguy said:
+%\begin{verbatim}
+%./autogen.sh
+%./configure --prefix="path"
+%make
+%make install
+%\end{verbatim}
+
+%The first command runs the \texttt{autogen.sh} file. However, for an unknown reason, 
+%on the MacIntosh, the \texttt{libtoolize} tool is named \texttt{glibtoolize}... So the second
+%line of the \texttt{autogen.sh} file has to be corrected.
+
+\section{Installing the version of Strasburg}
+I got the most recent available version of \polylib{} on site 
+\begin{verbatim}
+http://icps.u-strasbg.fr/~loechner/polylib
+\end{verbatim}
+and I tried to install it. In this version, the installation documentation is correct, as
+\texttt{autoload.sh} does not need to be run prior to \texttt{configure}. By running
+only 
+\begin{verbatim}
+./configure --prefix="$MMALPHA/sources/Poly"
+make
+make install
+\end{verbatim}
+The second command runs the configure tool that creates \texttt{makefiles} and prepares
+libraries. The \texttt{--prefix} option specifies where the \polylib{} is to be created.
+
+The third commands compiles everything, and the \texttt{make install} command 
+creates the library. It adds binary files in the directory \texttt{path/bin}, libraries in directory \texttt{path/lib}, and 
+finally, include files in directory \texttt{path/include}.
+
+I got a runnable version, that I checked using \texttt{make longtest}. The 
+\texttt{make test} command indicated in the install documentation does not work.
+
+In this package, the html documentation is available, but the latex source files 
+are not.
+
+The documentation is also available.
+\section{Tests}
+Running \texttt{make check} runs the tests which are in directory \texttt{Tests}.
+
+\section{Additional remarks}
+Depending on whether you are on PPC or Intel processor, you have to recompile 
+the Polylib. But this is not sufficient to generate a correct Domlib: you should recompile
+Domlib, and make sure that {\em Read\_Alpha and other software are also recompiled}, 
+as currently, this is how the lib.darwin directory is updated. If you do not do so, then
+compiling Domlib may fail. 
+
+\section{Exploring web sites}
+There are now several libraries for doing polyhedral computations. A survey of what these
+libraries do (or cannot do) would be useful.
+
+
+\end{document}
+ 

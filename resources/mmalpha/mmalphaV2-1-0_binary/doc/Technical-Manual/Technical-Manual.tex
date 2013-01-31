@@ -1,0 +1,226 @@
+\documentclass[11pt]{article}
+\begin{document}
+
+\newcommand{\mma}{\texttt{Mathematica}}
+\newcommand{\mmalfa}{\texttt{MMAlpha}}
+
+\title{Technical manual of \mmalfa{}\footnote{Version of \today{}}}
+\author{Patrice Quinton}
+\date{May 2005}
+\maketitle
+\section{Introduction}
+\label{introduction}
+This document presents the organisation of the LipForge distribution of 
+\mmalfa{}. This new archive is being built by Tanguy Risset and Patrice Quinton.
+
+\newcommand{\bincyg}{\texttt{bin.cygwin}}
+\newcommand{\bindarw}{\texttt{bin.darwin}}
+\newcommand{\binlinux}{\texttt{bin.linux}}
+\newcommand{\config}{\texttt{config}}
+\newcommand{\demos}{\texttt{demos}}
+\newcommand{\sources}{\texttt{sources}}
+\newcommand{\tests}{\texttt{tests}}
+\newcommand{\doc}{\texttt{doc}}
+\newcommand{\lib}{\texttt{lib}}
+\newcommand{\libcyg}{\texttt{lib.cygwin}}
+\newcommand{\libdarw}{\texttt{lib.darwin}}
+
+\newcommand{\readme}{\texttt{readme}}
+\newcommand{\cgen}{\texttt{Code\_gen}}
+\newcommand{\makefile}{\texttt{Makefile}}
+\newcommand{\bin}{\texttt{bin}}
+
+\section{Organization}
+\label{organization}
+The distribution contains the following directories:
+\begin{enumerate}
+\item \bincyg{}, \bindarw{}, \binlinux{}, etc. are the directories where the binary 
+files for various systems are put. These binary files are the result of 
+compiling source files.
+\item \config{} contains various files needed to configure the installation.
+\item \demos{} contains notebooks for various demonstrations of \mmalfa{}.
+\item \doc{} contains the documentation.
+\item \lib{} contains the mma{} packages.
+\item \libcyg{}, \libdarw{}, etc. contain some library files obtained as
+byproducts of compiling source files.
+\item \sources{} contains the source files.
+\item \tests{} contains test files.
+\end{enumerate}
+In addition, the main directory contains a \readme{} file, and several files
+for the \texttt{html} documentation. 
+
+The main directory also contains a file \texttt{CopyMMA.m}. This is a 
+\mma{} program that can be used to create a distribution. The documentation 
+of this program is in directory \texttt{doc/Distribution}. 
+
+\section{The \sources{} directory}
+\label{sources}
+\subsection{Content}
+The \sources{} directory contains one directory for each 
+\texttt{C} program used by \mmalfa{}. As any other directory, it contains
+a \readme{} file, \texttt{html} files. 
+
+\newcommand{\domlib}{\texttt{Domlib}}
+\newcommand{\makeinclude}{\texttt{Makeinclude}}
+\newcommand{\mathlink}{\texttt{Mathlink}}
+\newcommand{\pip}{\texttt{Pip}}
+\newcommand{\polylib}{\texttt{Polylib}}
+\newcommand{\pretty}{\texttt{Pretty}}
+\newcommand{\readalfa}{\texttt{Read\_Alpha}}
+\newcommand{\writealfa}{\texttt{Write\_Alpha}}
+The directories are:
+\begin{enumerate}
+\item \cgen{},
+\item \domlib{},
+\item \makeinclude{},
+\item \mathlink{} (obsolete),
+\item \pip{},
+\item \polylib{},
+\item \pretty{}
+\item \readalfa{},
+\item \writealfa{}.
+\end{enumerate} 
+
+It contains also a sed directory, which is obsolete. The \mathlink{} directory is
+also obsolete.
+
+It contains a make file, named \makefile{}. 
+
+\subsection{Compiling source files}
+It is possible to recompile the source files. The 
+method is as follows. 
+
+\newcommand{\envostype}{\texttt{OSTYPE}}
+\newcommand{\envmmalpha}{\texttt{MMALPHA}}
+\newcommand{\vardir}{\texttt{DIR}}
+
+
+In the \sources{} directory, type
+\begin{verbatim}
+make all
+\end{verbatim}
+The  \makefile{} is then executed. If the \envostype{} variable is set, 
+the corresponding binary files are produced and put in the 
+corresponding \bin{} directory. In case of problem, check the
+value of \envostype{} and of \envmmalpha{}. 
+
+\subsection{How it works}
+The \makefile{} in \sources{} contains a few variable definitions and 
+a few rules. The \vardir{} variable defines the list of directories
+where files should be compiled. 
+The \texttt{all} rule, defines what should be done for all element
+of \vardir{}: namely, go in the corresponding directory, and run make. 
+The \texttt{all} rule depends on any file contained in the bin or lib
+directories. 
+
+The \texttt{clean} rule defines what should be done to clean directories.
+Again, it consists in going in the corresponding directory, and running
+\begin{verbatim}
+make -f Makefile clean
+\end{verbatim}
+
+Finally, two rules help create the lib and bin directories, if they
+are missing. 
+
+Once a directory is entered, say \pretty{}, this directory contains
+a make file named \makefile{}, some source files, some Object
+directories, a \readme{} file and \texttt{html} files. 
+
+The organization of this \makefile{} depends on the considered 
+source directory. 
+
+\subsubsection{The \pretty{} directory}
+For the \pretty{} directory, it is very simple, and is explained in 
+the corresponding \makefile{}. This directory contains 
+some source files which are needed for \readalfa{} and 
+\writealfa{}. 
+
+\subsubsection{The \cgen{} directory}
+For the \cgen{} directory, the structure of the make file
+is much more complicated. 
+
+First, the \makefile{} calls the file \texttt{Makefile.config} which is
+situated in the \makeinclude{} directory, where some variables 
+will be set. This make file also calls system dependent make file, 
+say \texttt{Makefile.darwin} for the \texttt{darwin} system, where
+some system dependent definitions are set. 
+
+\newcommand{\varcppflags}{\texttt{CPPFLAGS}}
+\newcommand{\varldflags}{\texttt{LDFLAGS}}
+\newcommand{\vardummy}{\texttt{DUMMY}}
+\newcommand{\varloadlibes}{\texttt{LOADLIBES}}
+\newcommand{\varname}{\texttt{NAME}}
+\newcommand{\varobjs}{\texttt{OBJS}}
+\newcommand{\varlibs}{\texttt{LIBS}}
+\newcommand{\rules}{\texttt{rules}}
+\newcommand{\varcc}{\texttt{CC}}
+\newcommand{\varpolyinclude}{\texttt{POLYINCLUDE}}
+\newcommand{\varbindir}{\texttt{BINDIR}}
+\newcommand{\varobjdir}{\texttt{OBJDIR}}
+\newcommand{\varextraflags}{\texttt{EXTRA\_FLAGS}}
+
+Then, back to the local make file, some other variables are defined:
+\begin{itemize}
+\item \varcppflags{}: include paths for the compiler,
+\item \varldflags{}: library paths for the loader (where libraries should be looked for),
+\item \varloadlibes{}: libraries for the loader,
+\item \vardummy{}: list of files to be removed when cleaning
+\item \varname{}: the name of the binary file to be created
+\item \varobjs{}: the list of all object files
+\item \varlibs{}: the list of libraries needed. This variable is used for completing 
+make dependencies.
+\end{itemize}
+
+After these definition, one additional rule (which I do not understand). 
+
+And finally, call to a generic \makefile{}.\rules{} (which is barely understandable...).
+
+\subsubsection{The \readalfa{} and \writealfa{} directories}
+These directories are defined in much the same way as the \cgen{} 
+directory. 
+
+\subsubsection{The \domlib{} directory}
+\label{domlib}
+The \domlib{} directory is different, after a deep modification that was
+recently done, in order to become less dependent on the \polylib{}
+which is distributed within \mmalfa{}.
+\begin{itemize}
+\item First, the main \makefile{} file contains a switch depending on the
+system type. If the OS is Cygwin, the Visual C++ environment is called, 
+otherwise, an appropriate make file is called. 
+\item I only define here what a make file for a Unix-like system looks like.
+It contains the definition of a few variables.
+\begin{itemize}
+\item \varcc{}: which compiler to use (could be removed)
+\item \varpolyinclude{}: the directory where the include files for the \polylib{}
+are. In the current version, this directory is where the \polylib{} installation 
+puts these files. (A companion document explains how to install the \polylib{}, 
+from the Web distribution. In the installation procedure, one must 
+run a command
+\begin{verbatim}
+./configure.in --prefix="Path"
+make
+make install
+\end{verbatim}
+where \texttt{Path} is the directory where the \texttt{include} and \texttt{lib}
+directories of \polylib{} are put. Say for example, you install 
+\polylib{} with 
+\begin{verbatim}
+./configure.in --prefix="$MMALPHA/sources/Poly/$OSTYPE"
+make
+make install
+\end{verbatim}
+then (provided \envmmalpha{} and \envostype{} are properly set), 
+you will find in \sources{}\texttt{/Poly/}\envostype{} the include
+and lib files.
+\item \varbindir{}: where the binary files will be put, enventually,
+\item \varobjdir{}: where the object files will be put, during compilation,
+\item \varextraflags{}: additional flags for the compiler. Uses some
+variables that are set by \texttt{MakeIncludes/Makefile.\$OSTYPE},
+\end{itemize}
+
+\end{itemize}
+
+
+\end{document}
+ 

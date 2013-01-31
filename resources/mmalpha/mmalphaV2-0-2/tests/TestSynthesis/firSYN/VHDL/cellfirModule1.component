@@ -1,0 +1,13 @@
+
+COMPONENT cellfirModule1
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  HXMirr1 : IN  SIGNED (15 DOWNTO 0);
+  xXMirr1 : IN  SIGNED (15 DOWNTO 0);
+  ser1Xctl1XIn : IN  STD_LOGIC;
+  ser1 : OUT  SIGNED (15 DOWNTO 0)
+);
+END COMPONENT;
+

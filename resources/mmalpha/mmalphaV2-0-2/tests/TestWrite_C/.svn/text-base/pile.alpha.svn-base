@@ -1,0 +1,24 @@
+-- this pile program generates a bug when  compiled
+-- (if in RHS assigne\ment
+-- bug fixewd by T. Risset on 25/01/95
+
+system pile(b: boolean)
+returns (S:{t|5>=t>=1} of integer);
+var
+   C:{t|t>=1} of integer;
+   V:{t|t>=1} of integer;
+   R:{t,p|t>=0;0<=p<=5} of integer;
+let 
+   C[t]= case {|t=1}: 0[]; {|t=2}: 0[]; {|t=3} : 2[]; 
+                {|t=4}: 1[];  {|t=5}: 1[]; esac;
+   V[t]= case {|t=0}: 0[]; {|t=1}: 1[]; {|t=2}: 2[]; {|t=3} : 3[]; 
+                {|t=4}: 4[];  {|t=5}: 5[]; esac;
+   R[t,p] = case
+                {|1<=p<=5}:if C[t]=0[] then R[t-1,p-1] else 0[];
+                {|p=0}:V[t];
+                {|p=5}:0[];
+            esac;
+   S[t] = R[t,1];
+tel;
+
+

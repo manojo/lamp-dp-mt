@@ -1,0 +1,11 @@
+system test3 (x: integer) returns (y: integer);
+var A, B, C, X1, X, Y : integer;
+    Z : {i|i>=3} of integer;
+    bool1,bool2: boolean;
+let
+  Z = case 
+   {i| i=0}:X.(i->); 
+   {i| i>0}:-B.(i->);
+   {i| i<0}:Z.(i->i+1);
+  esac;
+tel;

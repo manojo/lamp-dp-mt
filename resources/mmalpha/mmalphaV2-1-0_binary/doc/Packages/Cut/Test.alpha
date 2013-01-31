@@ -1,0 +1,10 @@
+system test (x: integer) returns (y: integer);
+var 
+    Z : {i|} of integer;
+let
+  Z = case 
+   {i| i=0}:x.(i->); 
+   {i| i>0}:Z.(i->i+2)+x.(i->);
+   {i| i<0}:Z.(i->i+1);
+  esac;
+tel;

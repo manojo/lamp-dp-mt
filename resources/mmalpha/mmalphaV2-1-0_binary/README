@@ -1,0 +1,68 @@
+This directory contains a version of MMAlpha that was downloaded from
+lipforge, where I now have an account. This file is not committed. 
+
+Content (April 2005, checked May 2006)
+
+
+fc CopyMMA.m	A Mathematica program that allows one to make a copy of MMAlpha.
+		Has to be documented
+fu Status.xx	Status file. Has to be put in the maintenance directory
+fu Todo-MMAlpha.xls	Status file. Idem
+fu README 	This file
+dc bin.cygwin 	I guess that this directory is OK.
+dc bin.darwin 	This directory was created to receive the binary files for
+Mac OS X
+dc config	Checked
+dc demos	Not checked yey
+dc doc		Not checked yet
+fc index.html	Html documentation
+dc lib		Checked. A few modifications to be done
+dc lib.cygwin	Cygwin library
+dc lib.darwin	Mac OS X library
+dc sources	Checked. Some modifications to be done
+dc tests		Checked. A few minor modifications done on TestDomlib, 
+		otherwise, nothing changed
+fc welcome.html Welcome documentation
+du maintenance	This is a new directory that I created on May 2006 in order
+		to put maintening tools
+
+
+To cvs something, I need:
+- to export CVS_RSH with the bash command 
+export CVS_RSH=ssh
+or
+setenv CVS_RSH ssh 
+on csh
+- to execute 
+cvs -z3 -d:ext:quinton@lipforge.ens-lyon.fr:/local/chroot/cvsroot/irisa ccc
+where ccc is the cvs command.
+
+This cvs can be saved using an alias
+alias cvs='\cvs blabla ... irisa'
+
+In this directory, I have been able to compile readAlpha. To do so, 
+I added a directory bin.darwin, lib.darwin, and a Makefile.darwin in 
+the directory sources/MakeIncludes
+
+This has to be added, and committed.
+
+The Domlib has been added in the directory bin.darwin, but was
+compiled separately. I must do the same modifications as done in 
+mmalpha-a-moi, in this MMAlpha directory. 
+
+To start MMAlpha, I created an init.m file in my home directory, 
+with the single command Get[Environment etc... see the init.m file.
+
+It did not work, as I guess that Mathematica was unable to find it.
+Look at the documentation...
+
+To start MMAlpha, from an X11 window, I set up MMALPHA by
+export MMALPHA=/Users/quinton/MMAlpha
+then I moved to directory /Applications/Mathematica 5.1.app/Contents/MacOS/
+where I started Mathematica. 
+
+I do not know yet how to define MMALPHA permanently, to add Mathematica
+in my search rules...
+
+Additionnaly, when Mathematica was started, I could see that MacOSX is
+not supported. Alpha.m must be modified.

@@ -1,0 +1,14 @@
+
+COMPONENT cellsequenceModule2
+PORT(
+  clk: IN STD_LOGIC;
+  CE : IN STD_LOGIC;
+  Rst : IN STD_LOGIC;
+  DBXMirr1 : IN  SIGNED (15 DOWNTO 0);
+  QSXMirr1 : IN  SIGNED (15 DOWNTO 0);
+  MReg2Xloc : IN  SIGNED (15 DOWNTO 0);
+  MXctl2XIn : IN  STD_LOGIC;
+  M : OUT  SIGNED (15 DOWNTO 0)
+);
+END COMPONENT;
+

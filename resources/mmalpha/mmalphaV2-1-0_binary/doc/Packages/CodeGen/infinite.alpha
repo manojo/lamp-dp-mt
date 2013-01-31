@@ -1,0 +1,9 @@
+system SimpleEx 
+               (a : {n | 1<=n <= 10} of real )
+       returns (c : {n | 1<=n<= 10} of real);
+var
+  A : {n | 1<=n <= 10} of real; 
+let
+  A[n]=a[n]*a[n];
+  c[n]=A[n];
+tel;
