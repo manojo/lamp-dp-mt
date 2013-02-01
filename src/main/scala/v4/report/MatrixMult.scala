@@ -22,5 +22,6 @@ trait MatrixGrammar extends ADPParsers with MatrixSig {
 }
 
 object MatrixMult extends MatrixGrammar with MatrixAlgebra with App {
-  println(parse(Array((10,100),(100,5),(5,50)))) // List((7500,(10,50)))
+  //println(parse(Array((10,100),(100,5),(5,50)))) // List((7500,(10,50)))
+  println(parse(Array((3,2),(2,4),(4,2),(2,5))))
 }

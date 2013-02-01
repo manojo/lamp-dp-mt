@@ -64,7 +64,8 @@ object MatrixMult extends MatrixGrammar with PrettyMatrixAlgebra with App {
 object MatrixMult2 extends App {
   object a extends MatrixGrammar with MatrixAlgebra
   object b extends MatrixGrammar with PrettyPrintAlgebra
-  val input = List((10,100),(100,5),(5,50)).toArray
+  //val input = List((10,100),(100,5),(5,50)).toArray
+  val input = Array((3,2),(2,4),(4,2),(2,5))
 
   // Compute the matrix, and return the best solution's backtrack
   val (score,bt) = a.backtrack(input).head

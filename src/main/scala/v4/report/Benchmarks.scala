@@ -24,23 +24,24 @@ object Benchmarks extends App {
                      "i,l,k,r,j","return l + r + _in1[i]._1 * _in1[k]._1 * _in1[j-1]._2;")
     val axiom:Tabulate = tabulate("M",( el ^^ single | (emptyi ~ axiom ~ emptyi ~ axiom ~ emptyi) ^^ mult ) aggregate h,true)
     override val tps=(manifest[Alphabet],manifest[Answer])
-    override val cudaEmpty = "0x7fffffff" // max uint32
   }
   // Smith-Waterman
   object swat extends SWatGrammar with SWatAlgebra with CodeGen {
     override val tps = (manifest[Alphabet],manifest[Answer])
-    override val bottomUp = true // reduces recursion
+    override val bottomUp = true // reduces Scala recursion
+    override val cudaSplit = 8192
   }
   // RNAFold
   object fold extends v4.examples.RNAFoldGrammar with v4.examples.RNAFoldAlgebra with CodeGen {
     override val tps=(manifest[Alphabet],manifest[Answer])
-    override val cudaSplit = 96
+    override val cudaSplit = 768
     override val cudaEmpty = "0x7fffffff" // max uint32
   }
   // Zuker MFE
   object zuker extends ZukerGrammar with ZukerMFE with CodeGen {
     override val tps = (manifest[Alphabet],manifest[Answer])
     override val cudaSplit = 320
+    override val cudaEmpty = "0x7fffffff" // max uint32
   }
   object zuker_pp extends ZukerGrammar with ZukerPrettyPrint
 
