@@ -128,7 +128,7 @@ inline static int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int s
         return energy;
       } else {  /* 1xn loop */
         energy = (nl+1<=MAXLOOP)?(P->p0.internal_loop[nl+1]) : (P->p0.internal_loop[30]+(int)(P->p0.lxc*log((nl+1)/30.)));
-        energy += MIN2(P->p0.ninio[1], (nl-ns)*P->p0.ninio[0]);
+        energy += MIN(P->p0.ninio[1], (nl-ns)*P->p0.ninio[0]);
         energy += P->p0.mismatch1nI[type][si1][sj1] + P->p0.mismatch1nI[type_2][sq1][sp1];
         return energy;
       }
@@ -142,7 +142,7 @@ inline static int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int s
     }
     { /* generic interior loop (no else here!)*/
       energy = (n1+n2<=MAXLOOP)?(P->p0.internal_loop[n1+n2]) : (P->p0.internal_loop[30]+(int)(P->p0.lxc*log((n1+n2)/30.)));
-      energy += MIN2(P->p0.ninio[1], (nl-ns)*P->p0.ninio[0]);
+      energy += MIN(P->p0.ninio[1], (nl-ns)*P->p0.ninio[0]);
       energy += P->p0.mismatchI[type][si1][sj1] + P->p0.mismatchI[type_2][sq1][sp1];
     }
   }

@@ -32,7 +32,9 @@ float fold_par(const char *sequence, char *structure);
 #include "energy_const.h"
 #include "energy_par.h"
 
-#define MIN2(A,B) ((A) < (B) ? (A) : (B))
+#define MAX(a,b) ({__typeof__(a) _a=(a); __typeof__(b) _b=(b); _a>_b?_a:_b; })
+#define MIN(a,b) ({__typeof__(a) _a=(a); __typeof__(b) _b=(b); _a<_b?_a:_b; })
+
 #include "loop_energies.h"
 
 extern void nrerror(const char message[]);
@@ -224,25 +226,18 @@ static int fill_arrays(const char *string) {
         /* hairpin ----------------------------------------------*/
         new_c = E_Hairpin(j-i-1, type, S[i+1], S[j-1], string+i-1, P);
         /* check for elementary structures involving more than one closing pair. */
-        for (p=i+1; p<=MIN2(j-2-TURN,i+MAXLOOP+1);p++) {
-          int minq = j-i+p-MAXLOOP-2;
-          if (minq<p+1+TURN) minq = p+1+TURN;
-          for (q=minq; q<j; q++) {
+        for (p=i+1; p<=MIN(j-2-TURN,i+MAXLOOP+1);p++) {
+          for (q=MAX(j-i+p-MAXLOOP-2,p+1+TURN); q<j; q++) {
             type_2 = ptype[indx[q]+p]; if (type_2==0) continue;
             energy = E_IntLoop(p-i-1, j-q-1, type, rtype[type_2], S[i+1], S[j-1], S[p-1], S[q+1], P);
-
-            new_c = MIN2(energy+c[indx[q]+p], new_c);
-            if ((p==i+1)&&(j==q+1)) stackEnergy=energy; /* remember stack energy */
+            new_c = MIN(energy+c[indx[q]+p], new_c);
           }
+          if (p==i+1) stackEnergy=energy; /* remember stack energy */
         }
         /* multi-loop decomposition ------------------------*/
-        int MLenergy;
         decomp = DMLi1[j-1] + E_MLstem(rtype[type],S[j-1],S[i+1],P);
-        MLenergy = decomp + P->p0.MLclosing;
-        new_c = MIN2(new_c, MLenergy);
-        new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
-        cc[j] = new_c;
         c[ij] = cc1[j-1]+stackEnergy;
+        cc[j] = MIN(MIN(new_c, decomp + P->p0.MLclosing), c[ij]);
       } /* end >> if (pair) << */
       else c[ij] = INF;
 
@@ -253,21 +248,19 @@ static int fill_arrays(const char *string) {
       /* free ends ? -----------------------------------------*
        * we must not just extend 3'/5' end by unpaired nucleotides if dangle_model == 1,
        * this could lead to d5+d3 contributions were mismatch must be taken! */
-      new_fML = MIN2(new_fML, fML[ij+1]+P->p0.MLbase); // i+1,j
-      new_fML = MIN2(new_fML, fML[indx[j-1]+i]+P->p0.MLbase); // i,j-1
+      new_fML = MIN(new_fML, fML[ij+1]+P->p0.MLbase); // i+1,j
+      new_fML = MIN(new_fML, fML[indx[j-1]+i]+P->p0.MLbase); // i,j-1
 
       /* modular decomposition -------------------------------*/
       decomp=INF;
-      for (k=i+1+TURN; k<=j-2-TURN; k++) decomp=MIN2(decomp, Fmi[k] /*fML[indx[k]+i]*/ +fML[indx[j]+k+1]);
+      for (k=i+1+TURN; k<=j-2-TURN; k++) decomp=MIN(decomp, Fmi[k] /*fML[indx[k]+i]*/ +fML[indx[j]+k+1]);
       DMLi[j] = decomp; /* store for use in ML decompositon */
-      new_fML = MIN2(new_fML, decomp);
+      new_fML = MIN(new_fML, decomp);
       /* coaxial stacking */
       fML[ij] = Fmi[j] = new_fML; /* substring energy */
     }
-
     /* rotate the auxilliary arrays */
-    int *FF=DMLi1; DMLi1=DMLi; DMLi=FF;
-    FF=cc1; cc1=cc; cc=FF;
+    int *FF=DMLi1; DMLi1=DMLi; DMLi=FF; FF=cc1; cc1=cc; cc=FF;
     for (j=1; j<=length; ++j) { cc[j]=Fmi[j]=DMLi[j]=INF; }
   }
 
@@ -275,8 +268,8 @@ static int fill_arrays(const char *string) {
   f5[TURN+1]= 0;
   /* always use dangles on both sides */
   #define f5_calc(j,Sj1) { f5[j]=f5[j-1]; \
-    for (i=j-TURN-1; i>1; --i) { type=ptype[indx[j]+i]; if(type) f5[j]=MIN2(f5[j], f5[i-1] + c[indx[j]+i] + E_ExtLoop(type, S[i-1], Sj1, P)); } \
-    type=ptype[indx[j]+1]; if(type) f5[j] = MIN2(f5[j], c[indx[j]+1] + E_ExtLoop(type, -1, S[j+1], P)); }
+    for (i=j-TURN-1; i>1; --i) { type=ptype[indx[j]+i]; if(type) f5[j]=MIN(f5[j], f5[i-1] + c[indx[j]+i] + E_ExtLoop(type, S[i-1], Sj1, P)); } \
+    type=ptype[indx[j]+1]; if(type) f5[j]=MIN(f5[j], c[indx[j]+1]+E_ExtLoop(type,-1,S[j+1],P)); }
 
   for(j=TURN+2; j<length; ++j) f5_calc(j,S[j+1]);
   f5_calc(length,-1)
@@ -354,7 +347,7 @@ static void backtrack(const char *string) {
 
     if (cij==E_Hairpin(j-i-1, type, S[i+1], S[j-1],string+i-1, P)) continue;
 
-    for (p=i+1; p<=MIN2(j-2-TURN,i+MAXLOOP+1); ++p) {
+    for (p=i+1; p<=MIN(j-2-TURN,i+MAXLOOP+1); ++p) {
       int minq = j-i+p-MAXLOOP-2;
       if (minq<p+1+TURN) minq = p+1+TURN;
       for (q = j-1; q >= minq; q--) {
