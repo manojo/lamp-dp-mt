@@ -57,7 +57,6 @@ static int     *fML      = NULL; /* multi-loop auxiliary energy array */
 static int     *Fmi      = NULL; /* holds row i of fML (avoids jumps in memory) */
 static int     *DMLi     = NULL; /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
 static int     *DMLi1    = NULL; /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-static int     *DMLi2    = NULL; /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 static sect    sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 static char    *ptype    = NULL; /* precomputed array of pair types */
 static short   *S        = NULL; // TCK: sequence encoded as <length>, base0, base1, ..., baseN, base0, \0 with bases in numerical format
@@ -93,7 +92,6 @@ static void init_arrays(unsigned int size){
   Fmi   = (int *) calloc(size+1, sizeof(int));
   DMLi  = (int *) calloc(size+1, sizeof(int));
   DMLi1 = (int *) calloc(size+1, sizeof(int));
-  DMLi2 = (int *) calloc(size+1, sizeof(int));
   base_pair2 = (bondT *) calloc(1+size/2, sizeof(bondT));
 }
 
@@ -130,10 +128,9 @@ static void free_arrays(){
   if(Fmi)   free(Fmi);
   if(DMLi)  free(DMLi);
   if(DMLi1) free(DMLi1);
-  if(DMLi2) free(DMLi2);
   if(P)     free(P);
   if(S)     free(S);
-  indx = c = fML = f5 = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
+  indx = c = fML = f5 = cc = cc1 = Fmi = DMLi = DMLi1 = NULL;
   ptype       = NULL;
   base_pair2  = NULL;
   P           = NULL;
@@ -149,13 +146,13 @@ PUBLIC float fold_par(const char *string, char *structure) {
   if (length<1) nrerror("initialize_fold: argument must be greater 0");
   init_arrays((unsigned) length);
 
-  // TCK: set diagonal offsets
+  // TCK: set diagonal offsets in indx[diagonal]
   indx = (int *)calloc(length+1, sizeof(int));
   for (i=1; i<=length; i++) indx[i]=(i*(i-1)) >> 1; // i(i-1)/2
 
   P = get_scaled_parameters();
 
-  // TCK: encode input sequence
+  // TCK: encode input sequence in S
   S = (short*) calloc(length+2, sizeof(short));
   for(i=1; i<=length; i++) {
     switch(string[i-1]) {
@@ -170,31 +167,22 @@ PUBLIC float fold_par(const char *string, char *structure) {
   S[0] = (short) length;
 
   // TCK: make pair types
-  {
-    int pair[5][5]= // TCK: converts a pair of bases to a basepair index
-    /* _  A  C  G  U */
-    {{ 0, 0, 0, 0, 0},
-     { 0, 0, 0, 0, 5},
-     { 0, 0, 0, 1, 0},
-     { 0, 0, 2, 0, 3},
-     { 0, 6, 0, 4, 0}};
-
-    int k,l;
-    for (k=1; k<length-TURN; k++)
-      for (l=1; l<=2; l++) {
-        int i=k;
-        int j=i+TURN+l; if (j>length) continue; // TURN=3, minimum loop length
-
-        int type=pair[S[i]][S[j]], ntype=0, otype=0;
-        while ((i>=1)&&(j<=length)) {
-          if ((i>1)&&(j<length)) ntype = pair[S[i-1]][S[j+1]];
-          if ((!otype) && (!ntype)) type = 0; // i..j can only form isolated pairs
-          ptype[indx[j]+i] = (char) type;
-          otype =  type;
-          type  = ntype;
-          i--; j++;
-        }
-      }
+  int pair[5][5]= // TCK: converts a pair of bases to a basepair index
+  /* _  A  C  G  U */
+  {{ 0, 0, 0, 0, 0},
+   { 0, 0, 0, 0, 5},
+   { 0, 0, 0, 1, 0},
+   { 0, 0, 2, 0, 3},
+   { 0, 6, 0, 4, 0}};
+  int k,l;
+  for (k=1; k<length-TURN; k++) for (l=1; l<=2; l++) { // TURN=3, minimum loop length
+    int i=k, j=i+TURN+l; if (j>length) continue;
+    int type=pair[S[i]][S[j]], ntype=0, otype=0;
+    for (;(i>=1)&&(j<=length);--i,++j,otype=type,type=ntype) {
+      if ((i>1)&&(j<length)) ntype = pair[S[i-1]][S[j+1]];
+      if ((!otype) && (!ntype)) type = 0; // i..j can only form isolated pairs
+      ptype[indx[j]+i] = (char) type;
+    }
   }
 
   energy = fill_arrays(string);
@@ -202,7 +190,7 @@ PUBLIC float fold_par(const char *string, char *structure) {
 
   // TCK: pretty print the backtrack (parenthesis structure)
   int n;
-  for (n=0; n<length; structure[n++]='.'); structure[length]='\0';
+  for (n=0; n<length; ++n) structure[n]='.'; structure[length]='\0';
   for (n=1; n<=base_pair2[0].i; n++) {
     structure[base_pair2[n].i-1] = '(';
     structure[base_pair2[n].j-1] = ')';
@@ -214,13 +202,13 @@ PUBLIC float fold_par(const char *string, char *structure) {
 
 /** fill "c", "fML" and "f5" arrays and return optimal energy */
 static int fill_arrays(const char *string) {
-  int   i, j, k, length, energy;
-  int   decomp, new_fML;
-  int   type, type_2;
+  int i, j, k, length, energy;
+  int decomp, new_fML;
+  int type, type_2;
 
   length = (int) strlen(string); if (length<=TURN) return 0;
 
-  for (j=1; j<=length; j++) Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
+  for (j=1; j<=length; j++) Fmi[j]=DMLi[j]=DMLi1[j]=INF;
   for (j=1; j<=length; j++) for (i=(j>TURN?(j-TURN):1); i<j; i++) { c[indx[j]+i]=fML[indx[j]+i]=INF; }
 
   for (i=length-TURN-1; i>=1; --i) { /* i,j in [1..length] */
@@ -230,6 +218,7 @@ static int fill_arrays(const char *string) {
       type = ptype[ij];
       energy = INF;
 
+      // TCK: compute c[i,j]
       if (type) { /* we have a pair */
         int new_c=0, stackEnergy=INF;
         /* hairpin ----------------------------------------------*/
@@ -257,20 +246,19 @@ static int fill_arrays(const char *string) {
       } /* end >> if (pair) << */
       else c[ij] = INF;
 
-      /* done with c[i,j], now compute fML[i,j] */
-      /* (i,j) + MLstem ? */
-      new_fML = INF;
+      // TCK: compute fML[i,j]
+      new_fML = INF; /* (i,j) + MLstem ? */
       if(type) new_fML = c[ij] + E_MLstem(type, (i==1) ? S[length] : S[i-1], S[j+1], P);
 
       /* free ends ? -----------------------------------------*
        * we must not just extend 3'/5' end by unpaired nucleotides if dangle_model == 1,
        * this could lead to d5+d3 contributions were mismatch must be taken! */
-      new_fML = MIN2(new_fML, fML[ij+1]+P->p0.MLbase);
-      new_fML = MIN2(new_fML, fML[indx[j-1]+i]+P->p0.MLbase);
+      new_fML = MIN2(new_fML, fML[ij+1]+P->p0.MLbase); // i+1,j
+      new_fML = MIN2(new_fML, fML[indx[j-1]+i]+P->p0.MLbase); // i,j-1
 
       /* modular decomposition -------------------------------*/
       decomp=INF;
-      for (k=i+1+TURN; k<=j-2-TURN; k++) decomp=MIN2(decomp,Fmi[k]+fML[indx[j]+k+1]);
+      for (k=i+1+TURN; k<=j-2-TURN; k++) decomp=MIN2(decomp, Fmi[k] /*fML[indx[k]+i]*/ +fML[indx[j]+k+1]);
       DMLi[j] = decomp; /* store for use in ML decompositon */
       new_fML = MIN2(new_fML, decomp);
       /* coaxial stacking */
@@ -278,31 +266,21 @@ static int fill_arrays(const char *string) {
     }
 
     /* rotate the auxilliary arrays */
-    int *FF=DMLi2; DMLi2=DMLi1; DMLi1=DMLi; DMLi=FF;
+    int *FF=DMLi1; DMLi1=DMLi; DMLi=FF;
     FF=cc1; cc1=cc; cc=FF;
     for (j=1; j<=length; ++j) { cc[j]=Fmi[j]=DMLi[j]=INF; }
   }
 
   /* calculate energies of 5' and 3' fragments */
   f5[TURN+1]= 0;
-  /* duplicated code may be faster than conditions inside loop ;) */
   /* always use dangles on both sides */
-  for(j=TURN+2; j<length; ++j) {
-    f5[j] = f5[j-1];
-    for (i=j-TURN-1; i>1; --i) {
-      type = ptype[indx[j]+i];
-      if(type) f5[j] = MIN2(f5[j], f5[i-1] + c[indx[j]+i] + E_ExtLoop(type, S[i-1], S[j+1], P));
-    }
-    type=ptype[indx[j]+1];
-    if(type) f5[j] = MIN2(f5[j], c[indx[j]+1] + E_ExtLoop(type, -1, S[j+1], P));
-  }
-  f5[length]=f5[length-1];
-  for (i=length-TURN-1; i>1; --i) {
-    type = ptype[indx[length]+i];
-    if(type) f5[length] = MIN2(f5[length], f5[i-1] + c[indx[length]+i] + E_ExtLoop(type, S[i-1], -1, P));
-  }
-  type=ptype[indx[length]+1];
-  if(type) f5[length] = MIN2(f5[length], c[indx[length]+1] + E_ExtLoop(type, -1, -1, P));
+  #define f5_calc(j,Sj1) { f5[j]=f5[j-1]; \
+    for (i=j-TURN-1; i>1; --i) { type=ptype[indx[j]+i]; if(type) f5[j]=MIN2(f5[j], f5[i-1] + c[indx[j]+i] + E_ExtLoop(type, S[i-1], Sj1, P)); } \
+    type=ptype[indx[j]+1]; if(type) f5[j] = MIN2(f5[j], c[indx[j]+1] + E_ExtLoop(type, -1, S[j+1], P)); }
+
+  for(j=TURN+2; j<length; ++j) f5_calc(j,S[j+1]);
+  f5_calc(length,-1)
+
   return f5[length];
 }
 
@@ -310,9 +288,7 @@ static int fill_arrays(const char *string) {
  * Trace back through the "c", "f5" and "fML" arrays to get the
  * base pairing list. No search for equivalent structures is done.
  * This is fast, since only few structure elements are recalculated.
- *
- * normally s=0.
- * If s>0 then s items have been already pushed onto the sector stack
+ * Normally s=0. If s>0 then s items have been pushed on sector stack
  */
 static void backtrack(const char *string) {
   int   i, j, ij, k, mm3, length, energy, en;
@@ -340,21 +316,13 @@ static void backtrack(const char *string) {
     if (fij == fi) { PUSH(i,j-1,ml) continue; } /* 3' end is unpaired */
 
     if (ml == 0) { /* backtrack in f5 */
-    mm3 = (j<length) ? S[j+1] : -1;
-    for(k=j-TURN-1,traced=0; k>=1; --k) {
-      type = ptype[indx[j]+k];
-      if(type)
-        if(fij == E_ExtLoop(type, (k>1) ? S[k-1] : -1, mm3, P) + c[indx[j]+k] + f5[k-1]) {
-          traced=j; jj = k-1;
-          break;
-        }
-    }
-
-      if (!traced){ fprintf(stderr, "%s\n", string); nrerror("backtrack failed in f5"); }
-      PUSH(1,jj,ml);
-
-      i=k; j=traced;
-      PAIR2(i,j)
+      mm3 = (j<length) ? S[j+1] : -1;
+      for(k=j-TURN-1,traced=0; k>=1; --k) {
+        type = ptype[indx[j]+k];
+        if(type && fij == E_ExtLoop(type, (k>1) ? S[k-1] : -1, mm3, P) + c[indx[j]+k] + f5[k-1]) { traced=j; jj=k-1; break; }
+      }
+      if (!traced) { fprintf(stderr, "%s\n", string); nrerror("backtrack failed in f5"); }
+      PUSH(1,jj,ml); i=k; j=traced; PAIR2(i,j)
       goto repeat1;
     } else { /* trace back in fML array */
       if (fML[indx[j]+i+1]+P->p0.MLbase == fij) { PUSH(i+1,j,ml); continue; } /* 5' end is unpaired */

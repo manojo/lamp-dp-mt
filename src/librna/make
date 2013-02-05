@@ -53,5 +53,5 @@ fi
 
 if [ "$TEST" != "" ]; then
 	echo ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug | ./rfold
-	echo ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug | ../../resources/RNAfold_orig_mac
+	echo ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug | ../../resources/RNAfold_orig_mac --noPS --noLP -d2
 fi
