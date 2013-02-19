@@ -1,0 +1,10 @@
+/*** Implementation related notes ***/
+
+Aka re-engineering todos to clean and refactor things
+
+- trait Print should belong in LMS
+- make people somehow know that they need to extend LiftVariables?
+- x+2 : found Int, expecting Rep[Int]
+- Rep[Unit] => Rep[X] : compiler complains with types
+- getting a "proper" iterator implementation with next and
+  hasNext

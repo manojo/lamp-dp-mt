@@ -1,0 +1,28 @@
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test2 extends ((Int, Int)=>(Int)) {
+def apply(x0:Int, x1:Int): Int = {
+var x2: Int = 0
+val x3 = x0 * 2
+var x4: Int = x3
+val x6 = x1 - x0
+val x15 = while ({val x5 = x2
+val x7 = x5 <= x6
+x7}) {
+val x9 = x2
+val x10 = x9 + 1
+val x11 = x10 * 2
+x4 = x11
+x2 = x10
+()
+}
+val x16 = x4
+x16
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+20

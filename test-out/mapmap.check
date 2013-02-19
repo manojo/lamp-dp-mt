@@ -1,0 +1,20 @@
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test1 extends ((scala.collection.immutable.List[Int])=>(scala.collection.immutable.List[Int])) {
+def apply(x0:scala.collection.immutable.List[Int]): scala.collection.immutable.List[Int] = {
+val x7 = x0.map{
+x1 => 
+val x2 = x1 * 2
+val x4 = x2 + 1
+val x6 = x4 * 3
+x6
+}
+x7
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+List(9, 15, 21)

@@ -1,0 +1,160 @@
+error: illegal sharing of mutable objects Sym(6)
+at Sym(7)=Reflect(ArrayUpdate(Sym(3),Sym(5),Sym(6)),Summary(false,false,false,false,false,List(Sym(3), Sym(6)),List(Sym(3), Sym(6)),List(Sym(3)),List(Sym(3))),List(Sym(6)))
+error: write to non-mutable Sym(17) -> Some(TP(Sym(17),Reflect(ArrayApply(Sym(3),Sym(15)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List())))
+at Sym(88)=Reflect(ArrayUpdate(Sym(17),Sym(16),Sym(87)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(17)),List(Sym(17))),List(Sym(17)))
+error: illegal sharing of mutable objects Sym(3)
+at Sym(88)=Reflect(ArrayUpdate(Sym(17),Sym(16),Sym(87)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(17)),List(Sym(17))),List(Sym(17)))
+error: write to non-mutable Sym(17) -> Some(TP(Sym(17),Reflect(ArrayApply(Sym(3),Sym(15)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List())))
+at Sym(92)=Reflect(ArrayUpdate(Sym(17),Sym(16),Sym(91)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(17)),List(Sym(17))),List(Sym(17), Sym(88)))
+error: illegal sharing of mutable objects Sym(3)
+at Sym(92)=Reflect(ArrayUpdate(Sym(17),Sym(16),Sym(91)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(17)),List(Sym(17))),List(Sym(17), Sym(88)))
+error: write to non-mutable Sym(17) -> Some(TP(Sym(17),Reflect(ArrayApply(Sym(3),Sym(15)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List())))
+at Sym(94)=Reflect(RangeForeach(Const(0),Sym(13),Sym(15),Block(Sym(93))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(Sym(17)),List()),List())
+error: write to non-mutable Sym(17) -> Some(TP(Sym(17),Reflect(ArrayApply(Sym(3),Sym(15)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List())))
+at Sym(96)=Reflect(RangeForeach(Const(1),Sym(2),Sym(12),Block(Sym(95))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(Sym(17)),List()),List(Sym(3), Sym(9)))
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test-bottomup2 extends ((Array[scala.Tuple2[Int, Int]])=>(scala.Tuple3[Int, Int, Int])) {
+def apply(x0:Array[scala.Tuple2[Int, Int]]): scala.Tuple3[Int, Int, Int] = {
+val x1 = x0.length
+val x2 = x1 + 1
+val x3 = new Array[Array[scala.Tuple3[Int, Int, Int]]](x2)
+var x5 : Int = 0
+val x9 = while (x5 < x2) {
+val x6 = new Array[scala.Tuple3[Int, Int, Int]](x2)
+val x7 = x3(x5) = x6
+x7
+x5 = x5 + 1
+}
+val x22 = List()
+val x30 = 0 == 0
+val x10 = (0,100000,0)
+var x12 : Int = 1
+val x96 = while (x12 < x2) {
+val x13 = x2 - x12
+var x15 : Int = 0
+val x94 = while (x15 < x13) {
+val x17 = x3(x15)
+val x16 = x15 + x12
+val x29 = x15 < x16
+val x18 = x15 + 1
+val x33 = if (x30) {
+x18
+} else {
+val x31 = x16 - 0
+val x32 = java.lang.Math.max(x18, x31)
+x32
+}
+val x37 = if (x30) {
+val x34 = x16 - 1
+x34
+} else {
+val x34 = x16 - 1
+val x35 = x15 + 0
+val x36 = java.lang.Math.min(x34, x35)
+x36
+}
+val x38 = x37 + 1
+val x39 = x33 until x38
+val x40 = x39.toList
+val x65 = if (x29) {
+val x63 = x40.map{
+x41 => 
+val x42 = x3(x15)
+val x43 = x42(x41)
+val x46 = x3(x41)
+val x47 = x46(x16)
+val x44 = List(x43)
+val x45 = x44.head
+val x51 = x45._1
+val x48 = List(x47)
+val x49 = x48.head
+val x56 = x49._3
+val x52 = x45._2
+val x55 = x49._2
+val x57 = x52 + x55
+val x53 = x45._3
+val x58 = x51 * x53
+val x59 = x58 * x56
+val x60 = x57 + x59
+val x61 = (x51,x60,x56)
+x61
+}
+x63
+} else {
+x22
+}
+var x67: scala.Tuple3[Int, Int, Int] = x10
+val x19 = x18 == x16
+val x23 = if (x19) {
+val x20 = x0(x15)
+val x21 = List(x20)
+x21
+} else {
+x22
+}
+val x28 = x23.map{
+x24 => 
+val x25 = x24._1
+val x26 = x24._2
+val x27 = (x25,0,x26)
+x27
+}
+val x66 = x28 ::: x65
+val x68 = x66.toSeq
+val x69 = x68.length
+var x71 : Int = 0
+val x84 = while (x71 < x69) {
+val x72 = x67
+val x73 = x66(x71)
+val x75 = x72._2
+val x78 = x73._2
+val x80 = x75 < x78
+val x81 = if (x80) {
+x72
+} else {
+x73
+}
+x67 = x81
+()
+x71 = x71 + 1
+}
+val x85 = x67
+val x86 = List(x85)
+val x87 = x86.head
+val x88 = x17(x16) = x87
+val x89 = x17(x16)
+val x90 = List(x89)
+val x91 = x90.head
+val x92 = x17(x16) = x91
+x92
+x15 = x15 + 1
+}
+x94
+x12 = x12 + 1
+}
+val x97 = x3(0)
+val x98 = x97(x1)
+x98
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+error: illegal sharing of mutable objects Sym(106)
+at Sym(107)=Reflect(ArrayUpdate(Sym(103),Sym(105),Sym(106)),Summary(false,false,false,false,false,List(Sym(103), Sym(106)),List(Sym(103), Sym(106)),List(Sym(103)),List(Sym(103))),List(Sym(106)))
+error: write to non-mutable Sym(116) -> Some(TP(Sym(116),Reflect(ArrayApply(Sym(103),Sym(114)),Summary(false,false,false,false,false,List(Sym(103)),List(Sym(103)),List(),List()),List())))
+at Sym(185)=Reflect(ArrayUpdate(Sym(116),Sym(115),Sym(184)),Summary(false,false,false,false,false,List(Sym(103)),List(Sym(103)),List(Sym(116)),List(Sym(116))),List(Sym(116)))
+error: illegal sharing of mutable objects Sym(103)
+at Sym(185)=Reflect(ArrayUpdate(Sym(116),Sym(115),Sym(184)),Summary(false,false,false,false,false,List(Sym(103)),List(Sym(103)),List(Sym(116)),List(Sym(116))),List(Sym(116)))
+error: write to non-mutable Sym(116) -> Some(TP(Sym(116),Reflect(ArrayApply(Sym(103),Sym(114)),Summary(false,false,false,false,false,List(Sym(103)),List(Sym(103)),List(),List()),List())))
+at Sym(189)=Reflect(ArrayUpdate(Sym(116),Sym(115),Sym(188)),Summary(false,false,false,false,false,List(Sym(103)),List(Sym(103)),List(Sym(116)),List(Sym(116))),List(Sym(116), Sym(185)))
+error: illegal sharing of mutable objects Sym(103)
+at Sym(189)=Reflect(ArrayUpdate(Sym(116),Sym(115),Sym(188)),Summary(false,false,false,false,false,List(Sym(103)),List(Sym(103)),List(Sym(116)),List(Sym(116))),List(Sym(116), Sym(185)))
+error: write to non-mutable Sym(116) -> Some(TP(Sym(116),Reflect(ArrayApply(Sym(103),Sym(114)),Summary(false,false,false,false,false,List(Sym(103)),List(Sym(103)),List(),List()),List())))
+at Sym(191)=Reflect(RangeForeach(Const(0),Sym(112),Sym(114),Block(Sym(190))),Summary(false,false,false,false,false,List(Sym(103)),List(),List(Sym(116)),List()),List())
+error: write to non-mutable Sym(116) -> Some(TP(Sym(116),Reflect(ArrayApply(Sym(103),Sym(114)),Summary(false,false,false,false,false,List(Sym(103)),List(Sym(103)),List(),List()),List())))
+at Sym(193)=Reflect(RangeForeach(Const(1),Sym(102),Sym(111),Block(Sym(192))),Summary(false,false,false,false,false,List(Sym(103)),List(),List(Sym(116)),List()),List(Sym(103), Sym(109)))
+compilation: ok
+(10,7500,50)
