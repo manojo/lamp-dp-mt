@@ -24,6 +24,14 @@ trait IteratorProg extends IteratorOps with NumericOps with OrderingOps{
     val res = it(unit(0))
     res
   }
+
+  def test4(start: Rep[Int], end: Rep[Int]) = {
+    val it1 = range(start,end)
+    val it2 = range(start,end).map(i => i* unit(2))
+    val it = it1 ++ it2
+    val res = it(unit(0))
+    res
+  }
 }
 
 class TestIteratorOps extends FileDiffSuite {
@@ -77,4 +85,21 @@ class TestIteratorOps extends FileDiffSuite {
     }
     assertFileEqualsCheck(prefix+"iterator3")
   }
+
+  def testiterator4 = {
+    withOutFile(prefix+"iterator4"){
+       new IteratorProg with IteratorOpsExp with NumericOpsExp with OrderingOpsExp with MyScalaCompile{ self =>
+
+        val codegen = new ScalaGenIteratorOps with ScalaGenNumericOps with ScalaGenOrderingOps{ val IR: self.type = self }
+        codegen.emitSource2(test4 _ , "test4", new java.io.PrintWriter(System.out))
+
+        val testc = compile2(test4)
+        val res = testc(1,10)
+        scala.Console.println(res)
+
+      }
+    }
+    assertFileEqualsCheck(prefix+"iterator4")
+  }
+
 }

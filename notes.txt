@@ -8,3 +8,4 @@ Aka re-engineering todos to clean and refactor things
 - Rep[Unit] => Rep[X] : compiler complains with types
 - getting a "proper" iterator implementation with next and
   hasNext
+- LiftVariables for tuples?
