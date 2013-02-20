@@ -6,11 +6,12 @@ import scala.virtualization.lms.common._
 import scala.virtualization.lms.internal.{GenericNestedCodegen, GenerationFailedException}
 import scala.reflect.SourceContext
 
-trait MyListOps extends ListOps {
+trait MyListOps extends ListOps with SeqOps with HackyRangeOps with LiftVariables{
   def list_minby[A:Ordering:Manifest, B:Ordering:Manifest](xs: Rep[List[A]], f: Rep[A] => Rep[B])(implicit pos: SourceContext): Rep[A]
+  def list_fold[A:Manifest,B:Manifest](xs:Rep[List[A]], z:Rep[B], f: (Rep[B], Rep[A]) => Rep[B])(implicit pos: SourceContext): Rep[B]
 }
 
-trait MyListOpsExp extends MyListOps with ListOpsExp {
+trait MyListOpsExp extends MyListOps with ListOpsExp with SeqOpsExp with HackyRangeOpsExp{
 
   case class ListMinBy[A:Ordering:Manifest, B:Ordering:Manifest](xs: Exp[List[A]], x: Sym[A], block: Block[B]) extends Def[A]
 
@@ -18,6 +19,18 @@ trait MyListOpsExp extends MyListOps with ListOpsExp {
     val a = fresh[A]
     val b = reifyEffects(f(a))
     reflectEffect(ListMinBy(xs, a, b), summarizeEffects(b).star)
+  }
+
+  //writing this as a for loop
+  //with ranges
+  def list_fold[A:Manifest,B:Manifest](xs:Rep[List[A]], z:Rep[B], f: (Rep[B], Rep[A]) => Rep[B])(implicit pos: SourceContext): Rep[B] = {
+    var startTerm = z
+    val seq = xs.toSeq
+    range_foreach(range_until(unit(0),seq.length),{i: Rep[Int] =>
+      startTerm = f(startTerm, xs(i))
+    })
+
+    startTerm
   }
 
   //following pattern of ListSortBy for ListMinBy
@@ -38,7 +51,23 @@ trait MyListOpsExp extends MyListOps with ListOpsExp {
 
 }
 
-trait ScalaGenMyListOps extends ScalaGenListOps {
+trait MyListOpsExpOpt extends MyListOpsExp {
+
+  override def list_map[A:Manifest, B:Manifest](l: Exp[List[A]], f: Exp[A] => Exp[B])(implicit pos: SourceContext) =
+  l match {
+    case Def(ListMap(l2, x, b)) => b match {
+      case Block(Def(a)) =>
+        //l2.map(y => f(b))
+        //l2.map(y => f(a))
+        ListMap(l2,x,reifyEffects(f(a)))
+      case _ => super.list_map(l,f)
+    }
+    case _ => super.list_map(l,f)
+  }
+}
+
+trait ScalaGenMyListOps extends ScalaGenListOps with ScalaGenSeqOps
+  with ScalaGenHackyRangeOps with ScalaGenVariables{
   val IR: MyListOpsExp
   import IR._
 
@@ -52,13 +81,3 @@ trait ScalaGenMyListOps extends ScalaGenListOps {
     case _ => super.emitNode(sym, rhs)
   }
 }
-
-/*trait CudaGenHackyRangeOps extends CudaGenRangeOps {
-  val IR: HackyRangeOpsExp
-  import IR._
-
-  override def emitNode(sym: Sym[Any], rhs: Def[Any]) = rhs match {
-    case RangetoList(r) => emitValDef(sym, quote(r) + ".toList")
-    case _ => super.emitNode(sym, rhs)
-  }
-}*/

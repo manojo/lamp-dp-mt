@@ -1,7 +1,7 @@
 package lms
 
 import scala.virtualization.lms.common._
-
+import scala.virtualization.lms.internal.Effects
 import java.io.PrintWriter
 import java.io.FileOutputStream
 
@@ -84,15 +84,12 @@ trait MatMultProg extends Parsers{ this: Sig =>
   type Answer = (Int, Int, Int)
   val mAns = manifest[(Int,Int,Int)]
 
-  def single(i: Rep[(Int,Int)]) = (i._1, unit(0), i._2)
+  def single(i: Rep[(Int,Int)]) =
+    (i._1, unit(0), i._2)
+
   def mult(l: Rep[Answer],r : Rep[Answer]) = {
     (l._1, l._2 + r._2 + l._1 * l._3 * r._3 ,r._3)
   }
-
-  /*def el(in: Input) = new Parser[Alphabet] {
-    def apply(i: Rep[Int], j : Rep[Int]) =
-      if(i+1==j) List(in(i)) else List()
-  }*/
 
   def multWithArray(in: Input) = {
     val a : Rep[Array[Array[Answer]]] = NewArray(in.length+1)
@@ -106,7 +103,7 @@ trait MatMultProg extends Parsers{ this: Sig =>
     lazy val p : TabulatedParser = tabulate(
      (el(in) ^^ single
       | (p +~+ p) ^^ {(x: Rep[(Answer,Answer)]) => mult(x._1,x._2)}
-     ).aggregate{x: Rep[List[Answer]] => if(x.isEmpty) x else List(list_minby(x, {elem:Rep[Answer] => elem._2}))},
+     ).aggfold((unit(0),unit(100000),unit(0)), (x,y) => if(x._2 < y._2) x else y),
      "mat",
      a
     )
@@ -125,7 +122,7 @@ trait MatMultProg extends Parsers{ this: Sig =>
   def testBottomup(in: Input): Rep[Answer] = {
     val a : Rep[Array[Array[Answer]]] = NewArray(in.length+1)
     (0 until in.length + 1).foreach{ i=>
-      a(0) = NewArray(in.length+1)
+      a(i) = NewArray(in.length+1)
     }
 
     val mParser = multParser(in, a)
@@ -136,12 +133,18 @@ trait MatMultProg extends Parsers{ this: Sig =>
   def testBottomup2(in: Input): Rep[Answer] = {
     val a : Rep[Array[Array[Answer]]] = NewArray(in.length+1)
     (0 until in.length + 1).foreach{ i=>
-      a(0) = NewArray(in.length+1)
+      a(i) = NewArray(in.length+1)
     }
 
     val mParser = transform(multParser(in, a))
     val res = bottomUp(in,mParser,a)
     res
+  }
+}
+
+trait ListFoldProg extends MyListOps with NumericOps with MiscOps{
+  def testListFold(in: Rep[List[Int]]): Rep[Int] = {
+    list_fold(in, unit(0), {(x: Rep[Int], y: Rep[Int]) => x + y})
   }
 }
 
@@ -151,7 +154,7 @@ class TestSimpleParsers extends FileDiffSuite {
 
   def testParsers = {
     withOutFile(prefix+"simpleParsers"){
-       new ParsersProg with ParsersExp with Sig { self =>
+       new ParsersProg with ParsersExp with Sig with MiscOpsExp { self =>
 
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
@@ -171,7 +174,7 @@ class TestSimpleParsers extends FileDiffSuite {
 
   def testTabulation1 = {
     withOutFile(prefix+"tabulation1"){
-       new ParsersProg with ParsersExp with Sig { self =>
+       new ParsersProg with ParsersExp with Sig with MiscOpsExp{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
@@ -184,7 +187,7 @@ class TestSimpleParsers extends FileDiffSuite {
 
   def testTabulation2 = {
     withOutFile(prefix+"tabulation2"){
-       new StringParsersProg with ParsersExp with Sig { self =>
+       new StringParsersProg with ParsersExp with Sig with MiscOpsExp{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
@@ -197,10 +200,10 @@ class TestSimpleParsers extends FileDiffSuite {
 
   def testMatMult1 = {
     withOutFile(prefix+"matmult"){
-       new MatMultProg with ParsersExp with Sig { self =>
+       new MatMultProg with ParsersExp with Sig with MiscOpsExp{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
+          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
 
         codegen.emitSource(testMult1 _ , "test-matmult", new java.io.PrintWriter(System.out))
 
@@ -211,10 +214,10 @@ class TestSimpleParsers extends FileDiffSuite {
 
   def testMatMult2 = {
     withOutFile(prefix+"matmult2"){
-       new MatMultProg with ParsersExp with Sig { self =>
+       new MatMultProg with ParsersExp with Sig with MiscOpsExp{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
+          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps { val IR: self.type = self }
 
         codegen.emitSource(testMult2 _ , "test-matmult2", new java.io.PrintWriter(System.out))
 
@@ -225,12 +228,18 @@ class TestSimpleParsers extends FileDiffSuite {
 
   def testBottomUp1 = {
     withOutFile(prefix+"bottomup1"){
-       new MatMultProg with ParsersExp with Sig { self =>
+       new MatMultProg with ParsersExp with Sig with MiscOpsExp with CompileScala{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
+          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
 
         codegen.emitSource(testBottomup _ , "test-bottomup1", new java.io.PrintWriter(System.out))
+
+        val testc = compile(testBottomup)
+        val res = testc(scala.Array((10,100),(100,5),(5,50)))
+        scala.Console.println(res)
+        //val input = List((10,100),(100,5),(5,50)).toArray
+        //println(parse(input))
 
       }
     }
@@ -239,15 +248,36 @@ class TestSimpleParsers extends FileDiffSuite {
 
   def testBottomUp2 = {
     withOutFile(prefix+"bottomup2"){
-       new MatMultProg with ParsersExp with Sig { self =>
+       new MatMultProg with ParsersExp with Sig with MiscOpsExp with CompileScala{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
+          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
 
         codegen.emitSource(testBottomup2 _ , "test-bottomup2", new java.io.PrintWriter(System.out))
+
+        val testc = compile(testBottomup2)
+        val res = testc(scala.Array((10,100),(100,5),(5,50)))
+        scala.Console.println(res)
 
       }
     }
     assertFileEqualsCheck(prefix+"bottomup2")
+  }
+
+  def testfold = {
+    withOutFile(prefix+"testfold"){
+       new ListFoldProg with MyListOpsExp with NumericOpsExp with MiscOpsExp with CompileScala{ self =>
+        val codegen = new ScalaGenMyListOps with ScalaGenNumericOps
+          with ScalaGenMiscOps{ val IR: self.type = self }
+
+        codegen.emitSource(testListFold _ , "test-fold", new java.io.PrintWriter(System.out))
+
+        val testc = compile(testListFold)
+        val res = testc(scala.List(1,2,3,4))
+        scala.Console.println(res)
+
+      }
+    }
+    assertFileEqualsCheck(prefix+"testfold")
   }
 }

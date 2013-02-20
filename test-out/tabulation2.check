@@ -1,11 +1,9 @@
 error: illegal sharing of mutable objects Sym(7)
 at Sym(8)=Reflect(ArrayUpdate(Sym(3),Const(0),Sym(7)),Summary(false,false,false,false,false,List(Sym(3), Sym(7)),List(Sym(3), Sym(7)),List(Sym(3)),List(Sym(3))),List(Sym(7)))
-error: write to non-mutable Sym(12) -> Some(TP(Sym(12),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(10)))))
-at Sym(56)=Reflect(ArrayUpdate(Sym(12),Sym(1),Sym(55)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(12)),List(Sym(12))),List(Sym(3), Sym(10), Sym(12)))
+error: write to non-mutable Sym(11) -> Some(TP(Sym(11),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(10)))))
+at Sym(52)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(51)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(10), Sym(11)))
 error: illegal sharing of mutable objects Sym(3)
-at Sym(56)=Reflect(ArrayUpdate(Sym(12),Sym(1),Sym(55)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(12)),List(Sym(12))),List(Sym(3), Sym(10), Sym(12)))
-error: write to non-mutable Sym(12) -> Some(TP(Sym(12),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(10)))))
-at Sym(60)=Reflect(IfThenElse(Sym(11),Block(Sym(59)),Block(Sym(31))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(Sym(12)),List()),List(Sym(3), Sym(10)))
+at Sym(52)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(51)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(10), Sym(11)))
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -22,91 +20,78 @@ val x8 = x3(0) = x7
 x8
 x6 = x6 + 1
 }
-val x11 = 0 <= x1
-val x60 = if (x11) {
-val x12 = x3(0)
-val x13 = 0 < x1
-val x49 = if (x13) {
-val x14 = 0 == 0
-val x15 = 0 + 1
-val x18 = if (x14) {
+val x11 = x3(0)
+val x12 = 0 < x1
+val x45 = if (x12) {
+val x13 = 0 == 0
+val x14 = 0 + 1
+val x17 = if (x13) {
+x14
+} else {
+val x15 = x1 - 0
+val x16 = java.lang.Math.max(x14, x15)
+x16
+}
+val x18 = 1 == 0
+val x20 = if (x18) {
+val x15 = x1 - 0
 x15
 } else {
-val x16 = x1 - 0
-val x17 = java.lang.Math.max(x15, x16)
-x17
+val x15 = x1 - 0
+val x19 = java.lang.Math.min(x15, x14)
+x19
 }
-val x19 = 1 == 0
-val x21 = if (x19) {
-val x16 = x1 - 0
-x16
+val x21 = x20 + 1
+val x22 = x17 until x21
+val x23 = x22.toList
+val x26 = x0(0)
+val x27 = x26 == 'm'
+val x30 = List()
+val x29 = List(x26)
+val x43 = x23.flatMap { x24 => 
+val x25 = x14 == x24
+val x28 = x25 && x27
+val x32 = if (x28) {
+val x31 = if (x25) {
+x29
 } else {
-val x16 = x1 - 0
-val x20 = java.lang.Math.min(x16, x15)
-x20
-}
-val x22 = x21 + 1
-val x23 = x18 until x22
-val x24 = x23.toList
-val x31 = List()
-val x27 = x0(0)
-val x28 = x27 == 'm'
-val x30 = List(x27)
-val x47 = x24.flatMap { x25 => 
-val x26 = x15 == x25
-val x29 = x26 && x28
-val x33 = if (x29) {
-val x32 = if (x26) {
 x30
-} else {
-x31
 }
-x32
-} else {
 x31
+} else {
+x30
 }
-val x35 = x25 <= x1
-val x45 = x33.flatMap { x34 => 
-val x40 = if (x35) {
-val x36 = x3(x25)
-val x37 = x36(x1)
-val x38 = List(x37)
+val x41 = x32.flatMap { x33 => 
+val x34 = x3(x24)
+val x35 = x34(x1)
+val x36 = List(x35)
+val x39 = x36.map{
+x37 => 
+val x38 = (x33,x37)
 x38
-} else {
-x31
 }
-val x43 = x40.map{
-x41 => 
-val x42 = (x34,x41)
-x42
+x39
+}
+x41
 }
 x43
-}
-x45
-}
-x47
 } else {
-val x31 = List()
-x31
+val x30 = List()
+x30
 }
-val x54 = x49.map{
-x50 => 
-val x51 = x50._1
-val x52 = x50._2
-val x53 = x51 :: x52
-x53
+val x50 = x45.map{
+x46 => 
+val x47 = x46._1
+val x48 = x46._2
+val x49 = x47 :: x48
+x49
 }
+val x51 = x50.head
+val x52 = x11(x1) = x51
+val x53 = x11(x1)
+val x54 = List(x53)
 val x55 = x54.head
-val x56 = x12(x1) = x55
-val x57 = x12(x1)
-val x58 = List(x57)
-x58
-} else {
-val x31 = List()
-x31
-}
-val x61 = x60.head
-x61
+x55
 }
 }
 /*****************************************

@@ -16,7 +16,7 @@ trait Sig{
 
 trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
                  with LiftNumeric with Equal with BooleanOps with OrderingOps
-                 with MathOps with HackyRangeOps with TupleOps{this: Sig =>
+                 with MathOps with HackyRangeOps with TupleOps with MiscOps{this: Sig =>
 
   //DSL related type aliases and info
   type Input = Rep[Array[Alphabet]]
@@ -32,6 +32,9 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
     private def or(that: => Parser[T]) = OrParser(inner, () => that)
 
     def aggregate[U:Manifest](h: Rep[List[T]] => Rep[List[U]]) = AggregateParser(inner, h)
+    def aggfold(z: Rep[T], f: (Rep[T], Rep[T]) => Rep[T]) = {
+      AggregateFold(inner, z, f)
+    }
 
     // Concatenate combinator.
     // Parses a concatenation of string left~right with length(left) in [lL,lU]
@@ -80,6 +83,13 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
     def apply(i: Rep[Int], j: Rep[Int]) = h(inner(i,j))
   }
 
+  case class AggregateFold[T:Manifest](inner: Parser[T], z: Rep[T], f: (Rep[T],Rep[T]) => Rep[T]) extends Parser[T]{
+    def apply(i: Rep[Int], j: Rep[Int]) = {
+      val tmp = inner(i,j)
+      List(list_fold(tmp,z,f))
+    }
+  }
+
   case class ConcatParser[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: () => Parser[U]) extends Parser[(T,U)]{
     def apply(i: Rep[Int], j: Rep[Int]) = if(i<j){
       val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
@@ -121,26 +131,29 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
 
   case class TabulatedParser(inner: Parser[Answer], name: String,
     mat: Rep[Array[Array[Answer]]])(implicit val mAns: Manifest[Answer]) extends Parser[Answer]{
-      def apply(i: Rep[Int], j: Rep[Int]) =
-        if(i <= j){
+      def apply(i: Rep[Int], j: Rep[Int]) = {
+        //if(i <= j){
           if(!(productions contains(name)) /*|| mat(i)(j) == null*/){
             productions += name
             mat(i)(j) = inner(i,j).head //we expect one element
             productions -= name
-            val a = mat(i)
-            List(a(j))
-          } else {
+            //val a = mat(i)
+            //List(a(j))
+          }
+          // else {
             val tmp = mat(i)
             List(tmp(j))
-          }
-        } else List()
+          //}
+        //} else List()
+      }
   }
 
   /*************** simple parsers below *****************/
 
    def el(in: Input)(implicit mAlph: Manifest[Alphabet]) = new Parser[Alphabet] {
-    def apply(i: Rep[Int], j : Rep[Int]) =
+    def apply(i: Rep[Int], j : Rep[Int]) = {
       if(i+1==j) List(in(i)) else List()
+    }
   }
 
   def eli(in: Input) = new Parser[Int] {
@@ -150,15 +163,21 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
 
   //bottomup parsing
   def bottomUp(in: Input, p :  => TabulatedParser, costMatrix: Rep[Array[Array[Answer]]])(implicit mAlph: Manifest[Alphabet], mA: Manifest[Answer]) : Rep[Answer] = {
-    (0 until in.length + 1).foreach{j =>
+    /*(0 until in.length + 1).foreach{j =>
       (0 until j+1).foreach{i =>
         //println((j-i,j))
         val a = costMatrix(j-i)
         a(j) = p(j-i,j).head
       }
+    }*/
+    (1 until in.length + 1).foreach{l =>
+      (0 until in.length + 1 -l).foreach{i =>
+        val j = i+l
+        val tempres = p(i,j).head
+        val a = costMatrix(i);a(j) = tempres
+      }
     }
-    val temp = costMatrix(0)
-    temp(in.length)
+    val temp = costMatrix(0);temp(in.length)
   }
 
 /**
@@ -179,7 +198,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
  def transform[T:Manifest](p: Parser[T]): Parser[T] = {
   p match{
     case MParser((ConcatParser(inner,lL,lU,rL,rU,that), f)) =>
-      println("Map Concat parser match")
+      //scala.Console.println("Map Concat parser match")
       new Parser[T]{
         def apply(i: Rep[Int], j: Rep[Int]) = if(i<j){
           val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
@@ -189,17 +208,20 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
           ) yield(f(inner(i,k).head,that()(k,j).head))
         } else List()
       }
-//    case ConcatParser(inner,lL,lU,rL,rU,that) =>
-//      val transformed = transform(that())
-//      OptiConcatParser(transform(inner),lL,lU,rL,rU,() => transformed)
+    case ConcatParser(inner,lL,lU,rL,rU,that) =>
+      val transformed = transform(that())
+      OptiConcatParser(transform(inner),lL,lU,rL,rU,() => transformed)
     case OrParser(p,q) =>
-      println("Or Parser match")
+      //scala.Console.println("Or Parser match")
       OrParser(transform(p), () => transform(q()))
     case AggregateParser(p,h: (Rep[List[T]] => Rep[List[T]]) @unchecked) =>
-      println("Aggregate Parser match")
+      //scala.Console.println("Aggregate Parser match")
       AggregateParser(transform(p),h)
+    case AggregateFold(p,z,f @unchecked) =>
+      //scala.Console.println("Aggregate Parser match")
+      AggregateFold(transform(p),z,f)
     case FilterParser(p,f) =>
-      println("FilterParser match")
+      //scala.Console.println("FilterParser match")
       FilterParser(transform(p), f)
     case _ => p
   }
@@ -262,7 +284,7 @@ object HelloParsers extends App {
 
   //import LoopsProgExp._
 
-  val concreteProg = new LexicalParsers with ParsersExp with Sig { self =>
+  val concreteProg = new LexicalParsers with ParsersExp with Sig with MiscOpsExp{ self =>
     type Answer = Double
     val mAns = manifest[Answer]
 

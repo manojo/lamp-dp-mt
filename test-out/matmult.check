@@ -1,11 +1,9 @@
 error: illegal sharing of mutable objects Sym(6)
 at Sym(7)=Reflect(ArrayUpdate(Sym(3),Const(0),Sym(6)),Summary(false,false,false,false,false,List(Sym(3), Sym(6)),List(Sym(3), Sym(6)),List(Sym(3)),List(Sym(3))),List(Sym(6)))
 error: write to non-mutable Sym(11) -> Some(TP(Sym(11),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(9)))))
-at Sym(83)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(82)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(9), Sym(11)))
+at Sym(89)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(88)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(9), Sym(11)))
 error: illegal sharing of mutable objects Sym(3)
-at Sym(83)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(82)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(9), Sym(11)))
-error: write to non-mutable Sym(11) -> Some(TP(Sym(11),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(9)))))
-at Sym(87)=Reflect(IfThenElse(Sym(10),Block(Sym(86)),Block(Sym(16))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(Sym(11)),List()),List(Sym(3), Sym(9)))
+at Sym(89)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(88)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(9), Sym(11)))
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -21,12 +19,9 @@ val x7 = x3(0) = x6
 x7
 x5 = x5 + 1
 }
-val x10 = 0 <= x1
-val x87 = if (x10) {
 val x11 = x3(0)
 val x23 = 0 < x1
 val x12 = 0 + 1
-val x57 = if (x23) {
 val x24 = 0 == 0
 val x27 = if (x24) {
 x12
@@ -47,41 +42,31 @@ x30
 val x32 = x31 + 1
 val x33 = x27 until x32
 val x34 = x33.toList
-val x16 = List()
-val x55 = x34.flatMap { x35 => 
-val x36 = 0 <= x35
-val x41 = if (x36) {
-val x37 = x3(0)
-val x38 = x37(x35)
-val x39 = List(x38)
-x39
-} else {
-x16
+val x51 = if (x23) {
+val x49 = x34.flatMap { x35 => 
+val x36 = x3(0)
+val x37 = x36(x35)
+val x38 = List(x37)
+val x47 = x38.flatMap { x39 => 
+val x40 = x3(x35)
+val x41 = x40(x1)
+val x42 = List(x41)
+val x45 = x42.map{
+x43 => 
+val x44 = (x39,x43)
+x44
 }
-val x43 = x35 <= x1
-val x53 = x41.flatMap { x42 => 
-val x48 = if (x43) {
-val x44 = x3(x35)
-val x45 = x44(x1)
-val x46 = List(x45)
-x46
-} else {
-x16
+x45
 }
-val x51 = x48.map{
-x49 => 
-val x50 = (x42,x49)
-x50
+x47
 }
-x51
-}
-x53
-}
-x55
+x49
 } else {
 val x16 = List()
 x16
 }
+val x10 = (0,100000,0)
+var x68: scala.Tuple3[Int, Int, Int] = x10
 val x13 = x12 == x1
 val x17 = if (x13) {
 val x14 = x0(0)
@@ -98,46 +83,49 @@ val x20 = x18._2
 val x21 = (x19,0,x20)
 x21
 }
-val x72 = x57.map{
-x58 => 
-val x59 = x58._1
-val x61 = x59._1
-val x60 = x58._2
-val x66 = x60._3
-val x62 = x59._2
-val x65 = x60._2
-val x67 = x62 + x65
-val x63 = x59._3
-val x68 = x61 * x63
-val x69 = x68 * x66
-val x70 = x67 + x69
-val x71 = (x61,x70,x66)
-x71
+val x66 = x51.map{
+x52 => 
+val x53 = x52._1
+val x55 = x53._1
+val x54 = x52._2
+val x60 = x54._3
+val x56 = x53._2
+val x59 = x54._2
+val x61 = x56 + x59
+val x57 = x53._3
+val x62 = x55 * x57
+val x63 = x62 * x60
+val x64 = x61 + x63
+val x65 = (x55,x64,x60)
+x65
 }
-val x73 = x22 ::: x72
-val x74 = x73.isEmpty
-val x81 = if (x74) {
+val x67 = x22 ::: x66
+val x69 = x67.toSeq
+val x70 = x69.length
+var x72 : Int = 0
+val x85 = while (x72 < x70) {
+val x73 = x68
+val x74 = x67(x72)
+val x76 = x73._2
+val x79 = x74._2
+val x81 = x76 < x79
+val x82 = if (x81) {
 x73
 } else {
-val x79 = x73.minBy{
-x75 => 
-val x77 = x75._2
-x77
+x74
 }
-val x80 = List(x79)
-x80
+x68 = x82
+()
+x72 = x72 + 1
 }
-val x82 = x81.head
-val x83 = x11(x1) = x82
-val x84 = x11(x1)
-val x85 = List(x84)
-x85
-} else {
-val x16 = List()
-x16
-}
+val x86 = x68
+val x87 = List(x86)
 val x88 = x87.head
-x88
+val x89 = x11(x1) = x88
+val x90 = x11(x1)
+val x91 = List(x90)
+val x92 = x91.head
+x92
 }
 }
 /*****************************************
