@@ -36,30 +36,6 @@ trait GeneratorOps extends Variables with While with LiftVariables with TupleOps
         tmp(f)
       }
     }
-
-
-
-    /*def fold(z:Rep[T], f: (Rep[T], Rep[T]) => Rep[T]) = new Iterator[T]{
-      def size = self.size
-      def seed = self.seed
-      def next(i : Rep[Int]) = self.next(i)
-      override def apply(begin: Rep[T]): Rep[T] = {
-        var i = 0
-        var s = z
-        while(i <= size){
-          s = f(s,next(i))
-          i = i+1
-        }
-        s
-      }
-    }*/
-
-    /*def ++(that: Iterator[T]) = new Iterator[T]{
-      def size = self.size + that.size
-      def seed = self.seed
-      def next(i : Rep[Int]) =
-        if(i < self.size) self.next(i) else that.next(i - self.size)
-    }*/
   }
 
   def range(start: Rep[Int], end: Rep[Int]) : Generator[Int] = new Generator[Int]{
