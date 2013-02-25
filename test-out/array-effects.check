@@ -1,0 +1,217 @@
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class testFib extends ((Int)=>(Int)) {
+def apply(x0:Int): Int = {
+val x1 = new Array[Int](x0)
+val x2 = x1(0) = 1
+val x3 = x1(1) = 1
+val x4 = x1.length
+var x6 : Int = 2
+val x14 = while (x6 < x4) {
+val x7 = x6 - 1
+val x8 = x1(x7)
+val x9 = x6 - 2
+val x10 = x1(x9)
+val x11 = x8 + x10
+val x12 = x1(x6) = x11
+x12
+x6 = x6 + 1
+}
+val x15 = x1.length
+val x16 = x15 - 1
+val x17 = x1(x16)
+x17
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+55
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class testFib2 extends ((Int, Int)=>(Recordintint)) {
+def apply(x38:Int, x39:Int): Recordintint = {
+val x40 = new Array[Recordintint](x38)
+val x41 = Recordintint(fib_1 = 1, fib_0 = 0)
+val x42 = x40(0) = x41
+val x43 = Recordintint(fib_1 = 1, fib_0 = 1)
+val x44 = x40(1) = x43
+val x45 = x40.length
+var x47 : Int = 2
+val x61 = while (x47 < x45) {
+val x48 = x47 - 1
+val x49 = x40(x48)
+val x50 = x49.fib_1
+val x51 = x47 - 2
+val x52 = x40(x51)
+val x53 = x52.fib_1
+val x55 = x49.fib_0
+val x56 = x52.fib_0
+val x54 = x50 + x53
+val x57 = x55 + x56
+val x58 = Recordintint(fib_1 = x54, fib_0 = x57)
+val x59 = x40(x47) = x58
+x59
+x47 = x47 + 1
+}
+val x62 = x40.length
+val x63 = x62 - 1
+val x64 = x40(x63)
+x64
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+case class Recordintint(fib_1: Int, fib_0: Int)
+compilation: ok
+Recordintint(55,34)
+error: write to non-mutable Sym(94) -> None
+at Sym(97)=Reflect(ArrayUpdate(Sym(94),Const(0),Sym(96)),Summary(false,false,false,false,false,List(),List(),List(Sym(94)),List(Sym(94))),List())
+error: write to non-mutable Sym(94) -> None
+at Sym(99)=Reflect(ArrayUpdate(Sym(94),Const(1),Sym(98)),Summary(false,false,false,false,false,List(),List(),List(Sym(94)),List(Sym(94))),List(Sym(97)))
+error: write to non-mutable Sym(94) -> None
+at Sym(114)=Reflect(ArrayUpdate(Sym(94),Sym(102),Sym(113)),Summary(false,false,false,false,false,List(),List(),List(Sym(94)),List(Sym(94))),List())
+error: write to non-mutable Sym(94) -> None
+at Sym(116)=Reflect(RangeForeach(Const(2),Sym(100),Sym(102),Block(Sym(115))),Summary(false,false,false,false,false,List(),List(),List(Sym(94)),List()),List(Sym(97), Sym(99)))
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class testFib3 extends ((Array[scala.Tuple2[Int, Int]], Int)=>(scala.Tuple2[Int, Int])) {
+def apply(x94:Array[scala.Tuple2[Int, Int]], x95:Int): scala.Tuple2[Int, Int] = {
+val x96 = (1,0)
+val x97 = x94(0) = x96
+val x98 = (1,1)
+val x99 = x94(1) = x98
+val x100 = x94.length
+var x102 : Int = 2
+val x116 = while (x102 < x100) {
+val x103 = x102 - 1
+val x104 = x94(x103)
+val x105 = x104._1
+val x107 = x102 - 2
+val x108 = x94(x107)
+val x109 = x108._1
+val x111 = x105 + x109
+val x106 = x104._2
+val x110 = x108._2
+val x112 = x106 + x110
+val x113 = (x111,x112)
+val x114 = x94(x102) = x113
+x114
+x102 = x102 + 1
+}
+val x117 = x100 - 1
+val x118 = x94(x117)
+x118
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+case class Recordintint(fib_1: Int, fib_0: Int)
+error: write to non-mutable Sym(120) -> None
+at Sym(122)=Reflect(ArrayUpdate(Sym(120),Const(0),Sym(96)),Summary(false,false,false,false,false,List(),List(),List(Sym(120)),List(Sym(120))),List())
+error: write to non-mutable Sym(120) -> None
+at Sym(123)=Reflect(ArrayUpdate(Sym(120),Const(1),Sym(98)),Summary(false,false,false,false,false,List(),List(),List(Sym(120)),List(Sym(120))),List(Sym(122)))
+error: write to non-mutable Sym(120) -> None
+at Sym(138)=Reflect(ArrayUpdate(Sym(120),Sym(126),Sym(137)),Summary(false,false,false,false,false,List(),List(),List(Sym(120)),List(Sym(120))),List())
+error: write to non-mutable Sym(120) -> None
+at Sym(140)=Reflect(RangeForeach(Const(2),Sym(124),Sym(126),Block(Sym(139))),Summary(false,false,false,false,false,List(),List(),List(Sym(120)),List()),List(Sym(122), Sym(123)))
+compilation: ok
+(8,5)
+error: violated ordering of effects
+  expected:
+    TP(Sym(191),Reflect(IfThenElse(Sym(157),Block(Sym(165)),Block(Sym(190))),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(Sym(149)),List(Sym(149))),List()))
+  actual:
+  missing:
+    TP(Sym(191),Reflect(IfThenElse(Sym(157),Block(Sym(165)),Block(Sym(190))),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(Sym(149)),List(Sym(149))),List())) <-- inDeep: true, inShallow: true, inDep: true
+    depends on TP(Sym(188),Reflect(RangeForeach(Sym(156),Sym(167),Sym(169),Block(Sym(187))),Summary(false,false,false,false,false,List(Sym(149)),List(),List(),List()),List())) (bound: List(Sym(169), Sym(171), Sym(174), Sym(175), Sym(176), Sym(177), Sym(178), Sym(180)))
+      TP(Sym(170),NumericPlus(Sym(159),Sym(169)))
+      TP(Sym(171),Reflect(ArrayApply(Sym(149),Sym(170)),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(),List()),List()))
+      TP(Sym(175),Reflect(Field(Sym(171),rows,Int),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(),List()),List()))
+      TP(Sym(172),NumericTimes(Sym(169),Sym(147)))
+      TP(Sym(173),NumericPlus(Sym(172),Sym(155)))
+      TP(Sym(174),Reflect(ArrayApply(Sym(149),Sym(173)),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(),List()),List()))
+      TP(Sym(176),Reflect(Field(Sym(174),cols,Int),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(),List()),List()))
+      TP(Sym(177),Reflect(Field(Sym(171),mults,Int),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(),List()),List()))
+      TP(Sym(178),Reflect(Field(Sym(174),mults,Int),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(),List()),List()))
+      TP(Sym(179),NumericPlus(Sym(177),Sym(178)))
+      TP(Sym(180),Reflect(Field(Sym(171),cols,Int),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(),List()),List()))
+      TP(Sym(181),NumericTimes(Sym(175),Sym(180)))
+      TP(Sym(182),NumericTimes(Sym(181),Sym(176)))
+      TP(Sym(183),NumericPlus(Sym(179),Sym(182)))
+      TP(Sym(184),SimpleStruct(ClassTag(Record),Map(rows -> Sym(175), cols -> Sym(176), mults -> Sym(183))))
+      TP(Sym(189),Reflect(ArrayUpdate(Sym(149),Sym(160),Sym(184)),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(Sym(149)),List(Sym(149))),List(Sym(188))))
+      TP(Sym(190),Reify(Sym(189),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(Sym(149)),List(Sym(149))),List(Sym(188), Sym(189))))
+      TP(Sym(191),Reflect(IfThenElse(Sym(157),Block(Sym(165)),Block(Sym(190))),Summary(false,false,false,false,false,List(Sym(149)),List(Sym(149)),List(Sym(149)),List(Sym(149))),List()))
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class testMatMult extends ((Array[scala.Tuple2[Int, Int]], Int)=>(Unit)) {
+def apply(x144:Array[scala.Tuple2[Int, Int]], x145:Int): Unit = {
+val x146 = x144.length
+val x147 = x146 + 1
+val x148 = x147 * x147
+val x149 = new Array[Recordintintint](x148)
+var x151 : Int = 1
+val x195 = while (x151 < x147) {
+val x152 = x147 - x151
+var x154 : Int = 0
+val x193 = while (x154 < x152) {
+val x155 = x154 + x151
+val x156 = x154 + 1
+val x157 = x156 == x155
+x191
+x154 = x154 + 1
+}
+x193
+x151 = x151 + 1
+}
+val x196 = 0 * x147
+val x197 = x196 + x146
+val x198 = x149(x197)
+val x199 = println(x198)
+x199
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+case class Recordintint(fib_1: Int, fib_0: Int)
+error: violated ordering of effects
+  expected:
+    TP(Sym(248),Reflect(IfThenElse(Sym(214),Block(Sym(222)),Block(Sym(247))),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(Sym(206)),List(Sym(206))),List()))
+  actual:
+  missing:
+    TP(Sym(248),Reflect(IfThenElse(Sym(214),Block(Sym(222)),Block(Sym(247))),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(Sym(206)),List(Sym(206))),List())) <-- inDeep: true, inShallow: true, inDep: true
+    depends on TP(Sym(245),Reflect(RangeForeach(Sym(213),Sym(224),Sym(226),Block(Sym(244))),Summary(false,false,false,false,false,List(Sym(206)),List(),List(),List()),List())) (bound: List(Sym(226), Sym(228), Sym(231), Sym(232), Sym(233), Sym(234), Sym(235), Sym(237)))
+      TP(Sym(227),NumericPlus(Sym(216),Sym(226)))
+      TP(Sym(228),Reflect(ArrayApply(Sym(206),Sym(227)),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(),List()),List()))
+      TP(Sym(232),Reflect(Field(Sym(228),rows,Int),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(),List()),List()))
+      TP(Sym(229),NumericTimes(Sym(226),Sym(204)))
+      TP(Sym(230),NumericPlus(Sym(229),Sym(212)))
+      TP(Sym(231),Reflect(ArrayApply(Sym(206),Sym(230)),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(),List()),List()))
+      TP(Sym(233),Reflect(Field(Sym(231),cols,Int),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(),List()),List()))
+      TP(Sym(234),Reflect(Field(Sym(228),mults,Int),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(),List()),List()))
+      TP(Sym(235),Reflect(Field(Sym(231),mults,Int),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(),List()),List()))
+      TP(Sym(236),NumericPlus(Sym(234),Sym(235)))
+      TP(Sym(237),Reflect(Field(Sym(228),cols,Int),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(),List()),List()))
+      TP(Sym(238),NumericTimes(Sym(232),Sym(237)))
+      TP(Sym(239),NumericTimes(Sym(238),Sym(233)))
+      TP(Sym(240),NumericPlus(Sym(236),Sym(239)))
+      TP(Sym(241),SimpleStruct(ClassTag(Record),Map(rows -> Sym(232), cols -> Sym(233), mults -> Sym(240))))
+      TP(Sym(246),Reflect(ArrayUpdate(Sym(206),Sym(217),Sym(241)),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(Sym(206)),List(Sym(206))),List(Sym(245))))
+      TP(Sym(247),Reify(Sym(246),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(Sym(206)),List(Sym(206))),List(Sym(245), Sym(246))))
+      TP(Sym(248),Reflect(IfThenElse(Sym(214),Block(Sym(222)),Block(Sym(247))),Summary(false,false,false,false,false,List(Sym(206)),List(Sym(206)),List(Sym(206)),List(Sym(206))),List()))
+<stdin>:10: error: not found: type Recordintintint
+val x206 = new Array[Recordintintint](x205)
+                     ^
+<stdin>:19: error: not found: value x248
+x248
+^
+two errors found
+compilation: had errors
