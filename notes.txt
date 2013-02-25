@@ -9,3 +9,6 @@ Aka re-engineering todos to clean and refactor things
 - getting a "proper" iterator implementation with next and
   hasNext
 - LiftVariables for tuples?
+- Integrate "emitDataStructures right into ScalaCompile"
+- how to "ScalaCompile" programs with structs as input?
+- integrate "Array mutation (2d arrays)" without sym errors

@@ -6,7 +6,7 @@ import java.io.PrintWriter
 import scala.virtualization.lms.internal.GenericNestedCodegen
 import scala.reflect.SourceContext
 
-trait GeneratorOps extends Variables with While with LiftVariables with TupleOps
+trait GeneratorOps extends Variables with While with LiftVariables
   with HackyRangeOps with NumericOps with OrderingOps with IfThenElse with EmbeddedControls{
 
   abstract class Generator[T:Manifest] extends ((Rep[T] => Rep[Unit]) => Unit) {self =>
@@ -47,10 +47,10 @@ trait GeneratorOps extends Variables with While with LiftVariables with TupleOps
   }
 }
 
-trait GeneratorOpsExp extends GeneratorOps with EffectExp with VariablesExp with TupleOpsExp
+trait GeneratorOpsExp extends GeneratorOps with EffectExp with VariablesExp
   with HackyRangeOpsExp with WhileExp with NumericOpsExp with OrderingOpsExp with IfThenElseExp
 
 trait ScalaGenGeneratorOps extends ScalaGenWhile with ScalaGenVariables
-  with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenNumericOps with ScalaGenOrderingOps with ScalaGenIfThenElse{
+  with ScalaGenHackyRangeOps with ScalaGenNumericOps with ScalaGenOrderingOps with ScalaGenIfThenElse{
   val IR: GeneratorOpsExp
 }
