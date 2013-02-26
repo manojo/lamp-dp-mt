@@ -9,6 +9,10 @@ import scala.reflect.SourceContext
 trait GeneratorOps extends Variables with While with LiftVariables
   with HackyRangeOps with NumericOps with OrderingOps with IfThenElse with EmbeddedControls{
 
+  object Gen {
+    def fSeq[A:Manifest](xs: Rep[A]*)(implicit pos: SourceContext) = fromSeq(xs)
+  }
+
   abstract class Generator[T:Manifest] extends ((Rep[T] => Rep[Unit]) => Unit) {self =>
 
     def map[U:Manifest](g: Rep[T] => Rep[U]) = new Generator[U]{
@@ -43,6 +47,21 @@ trait GeneratorOps extends Variables with While with LiftVariables
       for(i <- start until end){
         f(i)
       }
+    }
+  }
+
+  def fromSeq[A:Manifest](xs: Seq[Rep[A]]): Generator[A] =
+    if(xs.isEmpty) emptyGen()
+    else if(xs.length == 1) el(xs.head)
+    else el(xs.head) ++ fromSeq(xs.tail)
+
+  def emptyGen[A:Manifest](): Generator[A] = new Generator[A]{
+    def apply(f: Rep[A] => Rep[Unit]){}
+  }
+
+  def el[A:Manifest](a: Rep[A]): Generator[A] = new Generator[A]{
+    def apply(f: Rep[A] => Rep[Unit]) {
+      f(a)
     }
   }
 }

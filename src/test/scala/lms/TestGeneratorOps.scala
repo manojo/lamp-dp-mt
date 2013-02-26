@@ -91,6 +91,16 @@ trait GeneratorProg extends GeneratorOps with NumericOps
     g{ x:Rep[Int] => s = a(x) }
     s
   }
+
+  //fromSeq
+  def test8(start : Rep[Int]) = {
+    val g = Gen.fSeq(unit(1),unit(2),unit(3))
+
+    var s = unit(0)
+    g{ x:Rep[Int] => s = s + x }
+    s
+  }
+
 }
 
 trait ArrayProg extends GeneratorOps with NumericOps
@@ -216,6 +226,11 @@ class TestGeneratorOps extends FileDiffSuite {
         codegen.emitSource2(test7 _ , "test7", printWriter)
         val testc7 = compile2(test7)
         scala.Console.println(testc7(1,2))
+
+        //test8: fromSeq
+        codegen.emitSource(test8 _ , "test8", printWriter)
+        val testc8 = compile(test8)
+        scala.Console.println(testc8(1))
 
       }
     }

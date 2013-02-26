@@ -1,0 +1,109 @@
+/*****************************************
+  Emitting Generated Code
+*******************************************/
+class test1 extends ((Int)=>(Int)) {
+def apply(x0:Int): Int = {
+var x1: Int = 0
+var x4 : Int = 1
+val x9 = while (x4 < 11) {
+val x5 = x1
+val x6 = x5 + x4
+x1 = x6
+()
+x4 = x4 + 1
+}
+val x10 = x1
+x10
+}
+}
+/*****************************************
+  End of Generated Code
+*******************************************/
+compilation: ok
+55
+/*****************************************
+  Emitting Generated Code
+*******************************************/
+class test2 extends ((Int)=>(Int)) {
+def apply(x22:Int): Int = {
+var x23: Int = 0
+var x25 : Int = 1
+val x30 = while (x25 < 11) {
+val x26 = x23
+val x27 = x26 + x25
+x23 = x27
+()
+x25 = x25 + 1
+}
+var x31 : Int = 1
+val x36 = while (x31 < 11) {
+val x32 = x23
+val x33 = x32 + x31
+x23 = x33
+()
+x31 = x31 + 1
+}
+val x37 = x23
+x37
+}
+}
+/*****************************************
+  End of Generated Code
+*******************************************/
+compilation: ok
+110
+/*****************************************
+  Emitting Generated Code
+*******************************************/
+class test3 extends ((Int)=>(Int)) {
+def apply(x55:Int): Int = {
+var x56: Int = 0
+val x58 = x56
+val x59 = x58 + 10
+x56 = x59
+val x61 = x56
+val x62 = x61 + 23
+x56 = x62
+val x64 = x56
+val x65 = x64 + 42
+x56 = x65
+val x67 = x56
+x67
+}
+}
+/*****************************************
+  End of Generated Code
+*******************************************/
+compilation: ok
+75
+/*****************************************
+  Emitting Generated Code
+*******************************************/
+class test4 extends ((Int)=>(Int)) {
+def apply(x82:Int): Int = {
+var x83: Int = 0
+val x84 = x82 > 10
+val x97 = if (x84) {
+val x87 = x83
+val x88 = x87 + 10
+x83 = x88
+val x90 = x83
+val x91 = x90 + 23
+x83 = x91
+val x93 = x83
+val x94 = x93 + 42
+x83 = x94
+()
+} else {
+()
+}
+val x98 = x83
+x98
+}
+}
+/*****************************************
+  End of Generated Code
+*******************************************/
+compilation: ok
+0
+75
