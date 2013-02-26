@@ -7,7 +7,7 @@ import java.io.StringWriter
 import java.io.FileOutputStream
 import scala.reflect.SourceContext
 
-trait ArrayEffectsProg extends Variables with While with LiftVariables
+trait ArrayEffectsProg extends Variables with While with LiftVariables with ReadVarImplicit
   with RangeOps with NumericOps with OrderingOps with IfThenElse
   with PrimitiveOps with Equal with Structs with MiscOps
   with TupleOps with ArrayOps with OverloadHack{
@@ -86,12 +86,12 @@ trait ArrayEffectsProg extends Variables with While with LiftVariables
           val tmp = in(i)
           costMatrix(i * (in.length + unit(1)) + j) = Matres(tmp._1, tmp._2, unit(0))
         }else{
-          var s : Rep[Matres] = Matres(unit(0), unit(0), unit(10000))
+          var s/* : Rep[Matres]*/ = Matres(unit(0), unit(0), unit(10000))
           (i+1 until j+1).foreach{ k=>
             val x = costMatrix(i * (in.length + unit(1)) + k)
             val y = costMatrix(k * (in.length + unit(1)) + j)
             val tmp = mult(x,y)
-            if(tmp.mults < s.mults){ s = tmp}
+            if(tmp.mults < readVar(s).mults){ s = tmp}
           }
           costMatrix(i * (in.length + unit(1)) + j) = s
         }
@@ -116,15 +116,17 @@ class TestArrayEffects extends FileDiffSuite {
 
         val printWriter = new java.io.PrintWriter(System.out)
 
+        override val verbosity = 2
+
         //test1: mat mult
         val codegen = new ScalaGenWhile with ScalaGenVariables
           with ScalaGenRangeOps with ScalaGenNumericOps
           with ScalaGenOrderingOps with ScalaGenPrimitiveOps
-          with ScalaGenEqual with ScalaGenArrayOps
+          with ScalaGenEqual with ScalaGenIfThenElse with ScalaGenArrayOps
           with ScalaGenStruct with ScalaGenMiscOps
           with ScalaGenTupleOps { val IR: self.type = self }
 
-        codegen.emitSource(testFib _ , "testFib", printWriter)
+/*        codegen.emitSource(testFib _ , "testFib", printWriter)
         val testc1 = compile(testFib)//, source)
         scala.Console.println(testc1(10))
 
@@ -141,9 +143,16 @@ class TestArrayEffects extends FileDiffSuite {
         codegen.emitDataStructures(new PrintWriter(source2))
         val testc3 = compile2s(testFib3, source2)
         scala.Console.println(testc3(scala.Array((0,0),(0,0),(0,0),(0,0),(0,0),(0,0)),1))
+*/
 
+        val x1 = fresh[Array[(Int,Int)]]
+        val x2 = fresh[Int]
+        val y = reifyEffects(testMatMult(x1,x2))
 
-        codegen.emitSource2(testMatMult _ , "testMatMult", printWriter)
+        Console.println("*** globalDefs ***")
+        globalDefs.foreach(Console.println _)
+
+        codegen.emitSource(List(x1,x2), y, "testMatMult", printWriter)
         codegen.emitDataStructures(printWriter)
         val source3 = new StringWriter
         codegen.emitDataStructures(new PrintWriter(source3))
