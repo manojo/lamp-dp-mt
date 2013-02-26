@@ -49,6 +49,11 @@ trait MyListOpsExp extends MyListOps with ListOpsExp with SeqOpsExp with HackyRa
     case _ => super.symsFreq(e)
   }
 
+  //my own list map node
+  case class MyListMap[A:Manifest,B:Manifest](l: Exp[List[A]], f: Exp[A] => Exp[B] ) extends Def[List[B]]
+  /*override def list_map[A:Manifest, B:Manifest](l: Exp[List[A]], f: Exp[A] => Exp[B])(implicit pos: SourceContext) =
+    MyListMap(l, f)
+  */
 }
 
 trait MyListOpsExpOpt extends MyListOpsExp {

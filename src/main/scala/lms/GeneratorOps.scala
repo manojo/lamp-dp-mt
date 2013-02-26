@@ -1,8 +1,8 @@
 package lms
 
-import scala.virtualization.lms.common._
-
 import java.io.PrintWriter
+
+import scala.virtualization.lms.common._
 import scala.virtualization.lms.internal.GenericNestedCodegen
 import scala.reflect.SourceContext
 
@@ -67,9 +67,29 @@ trait GeneratorOps extends Variables with While with LiftVariables
 }
 
 trait GeneratorOpsExp extends GeneratorOps with EffectExp with VariablesExp
-  with HackyRangeOpsExp with WhileExp with NumericOpsExp with OrderingOpsExp with IfThenElseExp
+  with HackyRangeOpsExp with WhileExp with NumericOpsExp with OrderingOpsExp with IfThenElseExp{
+
+  //a Let tree for
+  case class Let[T: Manifest,U: Manifest](x: Sym[T], rhs: Exp[T], body: Block[U]) extends Def[U]
+
+  override def boundSyms(e: Any): List[Sym[Any]] = e match {
+    case Let(x, rhs, block) => x :: effectSyms(block)
+    case _ => super.boundSyms(e)
+  }
+}
 
 trait ScalaGenGeneratorOps extends ScalaGenWhile with ScalaGenVariables
   with ScalaGenHackyRangeOps with ScalaGenNumericOps with ScalaGenOrderingOps with ScalaGenIfThenElse{
   val IR: GeneratorOpsExp
+  import IR._
+
+  override def emitNode(sym: Sym[Any], rhs: Def[Any]) = rhs match {
+    case Let(x,y,blk) =>
+      stream.println("val "+ quote(x) + " = "+ quote(y))
+      emitBlock(blk)
+      emitValDef(sym,quote(getBlockResult(blk)) )
+
+    case _ => super.emitNode(sym, rhs)
+  }
+
 }

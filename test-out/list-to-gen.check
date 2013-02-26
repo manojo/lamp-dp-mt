@@ -1,5 +1,5 @@
 /*****************************************
-  Emitting Generated Code
+  Emitting Generated Code                  
 *******************************************/
 class test1 extends ((Int)=>(Int)) {
 def apply(x0:Int): Int = {
@@ -17,12 +17,12 @@ x10
 }
 }
 /*****************************************
-  End of Generated Code
+  End of Generated Code                  
 *******************************************/
 compilation: ok
 55
 /*****************************************
-  Emitting Generated Code
+  Emitting Generated Code                  
 *******************************************/
 class test2 extends ((Int)=>(Int)) {
 def apply(x22:Int): Int = {
@@ -48,12 +48,12 @@ x37
 }
 }
 /*****************************************
-  End of Generated Code
+  End of Generated Code                  
 *******************************************/
 compilation: ok
 110
 /*****************************************
-  Emitting Generated Code
+  Emitting Generated Code                  
 *******************************************/
 class test3 extends ((Int)=>(Int)) {
 def apply(x55:Int): Int = {
@@ -72,12 +72,12 @@ x67
 }
 }
 /*****************************************
-  End of Generated Code
+  End of Generated Code                  
 *******************************************/
 compilation: ok
 75
 /*****************************************
-  Emitting Generated Code
+  Emitting Generated Code                  
 *******************************************/
 class test4 extends ((Int)=>(Int)) {
 def apply(x82:Int): Int = {
@@ -102,8 +102,34 @@ x98
 }
 }
 /*****************************************
-  End of Generated Code
+  End of Generated Code                  
 *******************************************/
 compilation: ok
 0
 75
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test5 extends ((Int)=>(Int)) {
+def apply(x117:Int): Int = {
+var x118: Int = 0
+var x122 : Int = 1
+val x128 = while (x122 < 11) {
+val x124 = x118
+val x119 = x122
+val x120 = x119 * 2
+val x123 = x120
+val x125 = x124 + x123
+x118 = x125
+()
+x122 = x122 + 1
+}
+val x129 = x118
+x129
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+110
