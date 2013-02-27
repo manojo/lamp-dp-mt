@@ -82,12 +82,17 @@ trait ArrayEffectsProg extends Variables with While with LiftVariables with Read
       (unit(0) until in.length + unit(1) -l).foreach{i =>
         val j = i+l
 
+
+
         if(i + 1 == j){
           val tmp = in(i)
           costMatrix(i * (in.length + unit(1)) + j) = Matres(tmp._1, tmp._2, unit(0))
         }else{
           var s/* : Rep[Matres]*/ = Matres(unit(0), unit(0), unit(10000))
-          (i+1 until j+1).foreach{ k=>
+          //print(unit("("));print(i);print(unit(","));print(j);println(unit(")"))
+
+          (i+1 until j).foreach{ k=>
+            //println(i * (in.length + unit(1)) + j)
             val x = costMatrix(i * (in.length + unit(1)) + k)
             val y = costMatrix(k * (in.length + unit(1)) + j)
             val tmp = mult(x,y)
@@ -149,8 +154,8 @@ class TestArrayEffects extends FileDiffSuite {
         val x2 = fresh[Int]
         val y = reifyEffects(testMatMult(x1,x2))
 
-        Console.println("*** globalDefs ***")
-        globalDefs.foreach(Console.println _)
+        //Console.println("*** globalDefs ***")
+        //globalDefs.foreach(Console.println _)
 
         codegen.emitSource(List(x1,x2), y, "testMatMult", printWriter)
         codegen.emitDataStructures(printWriter)

@@ -133,3 +133,64 @@ x129
 *******************************************/
 compilation: ok
 110
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test6 extends ((Int)=>(Int)) {
+def apply(x145:Int): Int = {
+var x146: Int = 0
+var x151 : Int = 1
+val x159 = while (x151 < 11) {
+val x147 = x151
+val x148 = x147 % 2
+val x149 = x148 == 1
+val x152 = x149
+val x157 = if (x152) {
+val x153 = x146
+val x154 = x153 + x151
+x146 = x154
+()
+} else {
+()
+}
+x157
+x151 = x151 + 1
+}
+val x160 = x146
+x160
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+25
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test7 extends ((Int)=>(Int)) {
+def apply(x179:Int): Int = {
+var x180: Int = 0
+var x182 : Int = 1
+val x193 = while (x182 < 11) {
+val x183 = x182 + 1
+var x186 : Int = 1
+val x191 = while (x186 < x183) {
+val x187 = x180
+val x188 = x187 + x186
+x180 = x188
+()
+x186 = x186 + 1
+}
+()
+x182 = x182 + 1
+}
+val x194 = x180
+x194
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+220

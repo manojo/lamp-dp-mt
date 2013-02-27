@@ -5,7 +5,7 @@ import java.io.{File, FileWriter, PrintWriter}
 import scala.reflect.SourceContext
 
 trait ListToGenTransform extends HackyRangeOpsExp
-  with GeneratorOpsExp with MyListOpsExp with IfThenElseExp{
+with GeneratorOpsExp with ModListOpsExp with IfThenElseExp{
 
   def transform[A: Manifest](ls: Exp[List[A]]) : Generator[A] = ls match {
     case Def(ListNew(xs)) => fromSeq(xs)
@@ -15,6 +15,22 @@ trait ListToGenTransform extends HackyRangeOpsExp
       //effect free block => make changes, otherwise empty gen
       case Block(Def(a)) => transform(xs).map{y => Let(x, y, b)}
     }
+    case Def(ListFilter(xs, x, b)) => b match {
+      //effect free block => make changes, otherwise empty gen
+      case Block(Def(a)) => transform(xs).filter{y => Let(x, y, b)}
+    }
+
+    case Def(MyListFlatMap(xs, f)) =>
+      transform(xs).flatMap{x => transform(f(x))}
+
+    /*case Def(ListFlatMap(l, x, b)) => b match{
+      case Block(Def(xs)) =>
+        val ltrans = transform(l)
+        val xstrans = transform(xs)
+
+        ltrans.flatMap{y => xstrans.map{z => }}
+    }*/
+
     case Def(MyListMap(xs,f)) => transform(xs).map(f)
     case Def(IfThenElse(c, t, e)) => (t,e) match {
       case(Block(Def(tp)), Block(Def(ep))) => new Generator[A]{

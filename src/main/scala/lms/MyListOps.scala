@@ -71,6 +71,12 @@ trait MyListOpsExpOpt extends MyListOpsExp {
   }
 }
 
+trait ModListOpsExp extends MyListOpsExp{
+  case class MyListFlatMap[A:Manifest,B:Manifest](l: Exp[List[A]], f: Exp[A] => Exp[List[B]] ) extends Def[List[B]]
+  override def list_flatMap[A : Manifest, B : Manifest](f: Rep[A] => Rep[List[B]])(xs: Rep[List[A]])(implicit pos: SourceContext) =
+    MyListFlatMap(xs, f)
+}
+
 trait ScalaGenMyListOps extends ScalaGenListOps with ScalaGenSeqOps
   with ScalaGenHackyRangeOps with ScalaGenVariables{
   val IR: MyListOpsExp
