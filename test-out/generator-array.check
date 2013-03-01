@@ -1,31 +1,3 @@
-error: violated ordering of effects
-  expected:
-    TP(Sym(47),Reflect(RangeForeach(Sym(12),Sym(13),Sym(24),Block(Sym(46))),Summary(false,false,false,false,false,List(Sym(5)),List(),List(),List()),List()))
-    TP(Sym(49),Reflect(ArrayUpdate(Sym(5),Sym(48),Sym(43)),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(Sym(5)),List(Sym(5))),List(Sym(47))))
-  actual:
-    TP(Sym(47),Reflect(RangeForeach(Sym(12),Sym(13),Sym(24),Block(Sym(46))),Summary(false,false,false,false,false,List(Sym(5)),List(),List(),List()),List()))
-  missing:
-    TP(Sym(49),Reflect(ArrayUpdate(Sym(5),Sym(48),Sym(43)),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(Sym(5)),List(Sym(5))),List(Sym(47)))) <-- inDeep: true, inShallow: true, inDep: true
-    depends on TP(Sym(47),Reflect(RangeForeach(Sym(12),Sym(13),Sym(24),Block(Sym(46))),Summary(false,false,false,false,false,List(Sym(5)),List(),List(),List()),List())) (bound: List(Sym(24), Sym(27), Sym(30), Sym(31), Sym(32), Sym(33), Sym(34), Sym(35), Sym(36), Sym(37), Sym(39)))
-      TP(Sym(26),NumericPlus(Sym(25),Sym(24)))
-      TP(Sym(27),Reflect(ArrayApply(Sym(5),Sym(26)),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(),List()),List()))
-      TP(Sym(28),NumericTimes(Sym(24),Sym(3)))
-      TP(Sym(29),NumericPlus(Sym(28),Sym(11)))
-      TP(Sym(30),Reflect(ArrayApply(Sym(5),Sym(29)),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(),List()),List()))
-      TP(Sym(31),Reflect(ETuple2(Sym(27),Sym(30)),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(),List()),List()))
-      TP(Sym(32),Reflect(Tuple2Access1(Sym(31)),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(),List()),List()))
-      TP(Sym(34),Reflect(Field(Sym(32),rows,Int),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(),List()),List()))
-      TP(Sym(33),Reflect(Tuple2Access2(Sym(31)),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(),List()),List()))
-      TP(Sym(35),Reflect(Field(Sym(33),cols,Int),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(),List()),List()))
-      TP(Sym(36),Reflect(Field(Sym(32),mults,Int),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(),List()),List()))
-      TP(Sym(37),Reflect(Field(Sym(33),mults,Int),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(),List()),List()))
-      TP(Sym(38),NumericPlus(Sym(36),Sym(37)))
-      TP(Sym(39),Reflect(Field(Sym(32),cols,Int),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(),List()),List()))
-      TP(Sym(40),NumericTimes(Sym(34),Sym(39)))
-      TP(Sym(41),NumericTimes(Sym(40),Sym(35)))
-      TP(Sym(42),NumericPlus(Sym(38),Sym(41)))
-      TP(Sym(43),SimpleStruct(ClassTag(Record),Map(rows -> Sym(34), cols -> Sym(35), mults -> Sym(42))))
-      TP(Sym(49),Reflect(ArrayUpdate(Sym(5),Sym(48),Sym(43)),Summary(false,false,false,false,false,List(Sym(5)),List(Sym(5)),List(Sym(5)),List(Sym(5))),List(Sym(47))))
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -36,56 +8,99 @@ val x3 = x2 + 1
 val x4 = x3 * x3
 val x5 = new Array[Recordintintint](x4)
 var x7 : Int = 1
-val x53 = while (x7 < x3) {
+val x80 = while (x7 < x3) {
 val x8 = x3 - x7
 var x10 : Int = 0
-val x51 = while (x10 < x8) {
-val x12 = x10 + 1
+val x78 = while (x10 < x8) {
+var x15: Int = 0
+var x16: Int = 0
+var x17: Int = 10000
 val x11 = x10 + x7
-val x13 = x11 + 1
-val x25 = x10 * x3
-var x24 : Int = x12
-val x47 = while (x24 < x13) {
-val x26 = x25 + x24
-val x27 = x5(x26)
-val x28 = x24 * x3
-val x29 = x28 + x11
-val x30 = x5(x29)
-val x31 = (x27,x30)
-val x32 = x31._1
-val x33 = x31._2
-val x34 = x32.rows
-val x35 = x33.cols
-val x36 = x32.mults
-val x37 = x33.mults
-val x39 = x32.cols
-val x38 = x36 + x37
-val x40 = x34 * x39
-val x41 = x40 * x35
-val x42 = x38 + x41
-val x44 = x42 < 0
-val x45 = if (x44) {
+val x12 = x10 + 1
+val x19 = x12 == x11
+val x35 = if (x19) {
+val x24 = x15
+val x25 = x16
+val x26 = x17
+val x28 = 0 < x26
+val x33 = if (x28) {
+val x20 = x0(x10)
+val x21 = x20._1
+x15 = x21
+val x22 = x20._2
+x16 = x22
+x17 = 0
 ()
 } else {
 ()
 }
-x45
-x24 = x24 + 1
+x33
+} else {
+()
 }
-val x48 = x25 + x11
-x49
+val x13 = x12 < x11
+val x38 = x10 * x3
+val x70 = if (x13) {
+var x37 : Int = x12
+val x68 = while (x37 < x11) {
+val x39 = x38 + x37
+val x40 = x5(x39)
+val x41 = x37 * x3
+val x42 = x41 + x11
+val x43 = x5(x42)
+val x44 = (x40,x43)
+val x45 = x44._1
+val x46 = x44._2
+val x47 = x45.rows
+val x48 = x46.cols
+val x49 = x45.mults
+val x50 = x46.mults
+val x52 = x45.cols
+val x57 = x15
+val x58 = x16
+val x59 = x17
+val x51 = x49 + x50
+val x53 = x47 * x52
+val x54 = x53 * x48
+val x55 = x51 + x54
+val x61 = x55 < x59
+val x66 = if (x61) {
+x15 = x47
+x16 = x48
+x17 = x55
+()
+} else {
+()
+}
+x66
+x37 = x37 + 1
+}
+x68
+} else {
+()
+}
+val x72 = x15
+val x73 = x16
+val x74 = x17
+val x71 = x38 + x11
+val x75 = Recordintintint(rows = x72, cols = x73, mults = x74)
+val x76 = x5(x71) = x75
+x76
 x10 = x10 + 1
 }
-x51
+x78
 x7 = x7 + 1
 }
-val x54 = 0 * x3
-val x55 = x54 + x2
-val x56 = x5(x55)
-val x57 = println(x56)
-x57
+val x81 = 0 * x3
+val x82 = x81 + x2
+val x83 = x5(x82)
+val x84 = println(x83)
+x84
 }
 }
 /*****************************************
   End of Generated Code                  
 *******************************************/
+case class Recordintintint(rows: Int, cols: Int, mults: Int)
+compilation: ok
+Recordintintint(10,50,7500)

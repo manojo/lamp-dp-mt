@@ -4,16 +4,22 @@
 class test1 extends ((Int)=>(Int)) {
 def apply(x0:Int): Int = {
 var x1: Int = 0
-var x4 : Int = 1
-val x9 = while (x4 < 11) {
-val x5 = x1
-val x6 = x5 + x4
-x1 = x6
+val x4 = 1 < 11
+val x12 = if (x4) {
+var x5 : Int = 1
+val x10 = while (x5 < 11) {
+val x6 = x1
+val x7 = x6 + x5
+x1 = x7
 ()
-x4 = x4 + 1
+x5 = x5 + 1
 }
-val x10 = x1
 x10
+} else {
+()
+}
+val x13 = x1
+x13
 }
 }
 /*****************************************
@@ -25,26 +31,37 @@ compilation: ok
   Emitting Generated Code                  
 *******************************************/
 class test2 extends ((Int)=>(Int)) {
-def apply(x22:Int): Int = {
-var x23: Int = 0
-var x25 : Int = 1
-val x30 = while (x25 < 11) {
-val x26 = x23
-val x27 = x26 + x25
-x23 = x27
+def apply(x27:Int): Int = {
+var x28: Int = 0
+val x4 = 1 < 11
+val x37 = if (x4) {
+var x30 : Int = 1
+val x35 = while (x30 < 11) {
+val x31 = x28
+val x32 = x31 + x30
+x28 = x32
 ()
-x25 = x25 + 1
+x30 = x30 + 1
 }
-var x31 : Int = 1
-val x36 = while (x31 < 11) {
-val x32 = x23
-val x33 = x32 + x31
-x23 = x33
+x35
+} else {
 ()
-x31 = x31 + 1
 }
-val x37 = x23
-x37
+val x45 = if (x4) {
+var x38 : Int = 1
+val x43 = while (x38 < 11) {
+val x39 = x28
+val x40 = x39 + x38
+x28 = x40
+()
+x38 = x38 + 1
+}
+x43
+} else {
+()
+}
+val x46 = x28
+x46
 }
 }
 /*****************************************
@@ -56,19 +73,19 @@ compilation: ok
   Emitting Generated Code                  
 *******************************************/
 class test3 extends ((Int)=>(Int)) {
-def apply(x55:Int): Int = {
-var x56: Int = 0
-val x58 = x56
-val x59 = x58 + 10
-x56 = x59
-val x61 = x56
-val x62 = x61 + 23
-x56 = x62
-val x64 = x56
-val x65 = x64 + 42
-x56 = x65
-val x67 = x56
-x67
+def apply(x68:Int): Int = {
+var x69: Int = 0
+val x71 = x69
+val x72 = x71 + 10
+x69 = x72
+val x74 = x69
+val x75 = x74 + 23
+x69 = x75
+val x77 = x69
+val x78 = x77 + 42
+x69 = x78
+val x80 = x69
+x80
 }
 }
 /*****************************************
@@ -80,25 +97,25 @@ compilation: ok
   Emitting Generated Code                  
 *******************************************/
 class test4 extends ((Int)=>(Int)) {
-def apply(x82:Int): Int = {
-var x83: Int = 0
-val x84 = x82 > 10
-val x97 = if (x84) {
-val x87 = x83
-val x88 = x87 + 10
-x83 = x88
-val x90 = x83
-val x91 = x90 + 23
-x83 = x91
-val x93 = x83
-val x94 = x93 + 42
-x83 = x94
+def apply(x95:Int): Int = {
+var x96: Int = 0
+val x97 = x95 > 10
+val x110 = if (x97) {
+val x100 = x96
+val x101 = x100 + 10
+x96 = x101
+val x103 = x96
+val x104 = x103 + 23
+x96 = x104
+val x106 = x96
+val x107 = x106 + 42
+x96 = x107
 ()
 } else {
 ()
 }
-val x98 = x83
-x98
+val x111 = x96
+x111
 }
 }
 /*****************************************
@@ -111,21 +128,27 @@ compilation: ok
   Emitting Generated Code                  
 *******************************************/
 class test5 extends ((Int)=>(Int)) {
-def apply(x117:Int): Int = {
-var x118: Int = 0
-var x122 : Int = 1
-val x128 = while (x122 < 11) {
-val x124 = x118
-val x119 = x122
-val x120 = x119 * 2
-val x123 = x120
-val x125 = x124 + x123
-x118 = x125
+def apply(x130:Int): Int = {
+var x131: Int = 0
+val x4 = 1 < 11
+val x143 = if (x4) {
+var x135 : Int = 1
+val x141 = while (x135 < 11) {
+val x137 = x131
+val x132 = x135
+val x133 = x132 * 2
+val x136 = x133
+val x138 = x137 + x136
+x131 = x138
 ()
-x122 = x122 + 1
+x135 = x135 + 1
 }
-val x129 = x118
-x129
+x141
+} else {
+()
+}
+val x144 = x131
+x144
 }
 }
 /*****************************************
@@ -137,27 +160,33 @@ compilation: ok
   Emitting Generated Code                  
 *******************************************/
 class test6 extends ((Int)=>(Int)) {
-def apply(x145:Int): Int = {
-var x146: Int = 0
-var x151 : Int = 1
-val x159 = while (x151 < 11) {
-val x147 = x151
-val x148 = x147 % 2
-val x149 = x148 == 1
-val x152 = x149
-val x157 = if (x152) {
-val x153 = x146
-val x154 = x153 + x151
-x146 = x154
+def apply(x162:Int): Int = {
+var x163: Int = 0
+val x4 = 1 < 11
+val x178 = if (x4) {
+var x168 : Int = 1
+val x176 = while (x168 < 11) {
+val x164 = x168
+val x165 = x164 % 2
+val x166 = x165 == 1
+val x169 = x166
+val x174 = if (x169) {
+val x170 = x163
+val x171 = x170 + x168
+x163 = x171
 ()
 } else {
 ()
 }
-x157
-x151 = x151 + 1
+x174
+x168 = x168 + 1
 }
-val x160 = x146
-x160
+x176
+} else {
+()
+}
+val x179 = x163
+x179
 }
 }
 /*****************************************
@@ -169,24 +198,38 @@ compilation: ok
   Emitting Generated Code                  
 *******************************************/
 class test7 extends ((Int)=>(Int)) {
-def apply(x179:Int): Int = {
-var x180: Int = 0
-var x182 : Int = 1
-val x193 = while (x182 < 11) {
-val x183 = x182 + 1
-var x186 : Int = 1
-val x191 = while (x186 < x183) {
-val x187 = x180
-val x188 = x187 + x186
-x180 = x188
+def apply(x200:Int): Int = {
+var x201: Int = 0
+val x4 = 1 < 11
+val x222 = if (x4) {
+var x207 : Int = 1
+val x220 = while (x207 < 11) {
+val x202 = x207
+val x203 = x202 + 1
+val x208 = 1 < x203
+val x216 = if (x208) {
+var x209 : Int = 1
+val x214 = while (x209 < x203) {
+val x210 = x201
+val x211 = x210 + x209
+x201 = x211
 ()
-x186 = x186 + 1
+x209 = x209 + 1
 }
+x214
+} else {
 ()
-x182 = x182 + 1
 }
-val x194 = x180
-x194
+val x218 = x216
+x218
+x207 = x207 + 1
+}
+x220
+} else {
+()
+}
+val x223 = x201
+x223
 }
 }
 /*****************************************

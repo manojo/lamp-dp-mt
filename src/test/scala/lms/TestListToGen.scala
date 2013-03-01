@@ -114,10 +114,11 @@ class TestListToGen extends FileDiffSuite {
           s
         }
 
-        def transformed7(n: Rep[Int]) = {
+        def transformed7(n: Rep[Int]): Rep[Int] = {
           var s = unit(0)
           val generator = this.transform(test7(n))
-          generator{x: Rep[Int] => s = s+x}
+          generator{x: Rep[Int] =>
+            s = s+x}
           s
         }
 

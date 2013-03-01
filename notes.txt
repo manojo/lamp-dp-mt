@@ -12,3 +12,5 @@ Aka re-engineering todos to clean and refactor things
 - Integrate "emitDataStructures right into ScalaCompile"
 - how to "ScalaCompile" programs with structs as input?
 - integrate "Array mutation (2d arrays)" without sym errors
+- printing globalDefs to understand how symbols link to each other. How the
+ effect system works.

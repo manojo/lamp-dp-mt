@@ -82,7 +82,7 @@ trait GeneratorProg extends GeneratorOps with NumericOps
   def test7(start: Rep[Int], end: Rep[Int]) = {
     val a : Rep[Array[Int]] = Array(1,2,3)
     val g = new Generator[Int]{
-      def apply(f: Rep[Int] => Rep[Unit]){
+      def apply(f: Rep[Int] => Rep[Unit]) = {
         if(start + unit(1) == end) f(start)
       }
     }
@@ -145,7 +145,7 @@ trait ArrayProg extends GeneratorOps with NumericOps
       }
 
     def concat(i: Rep[Int], j: Rep[Int]): Generator[Matres] =
-      range(i+1, j+1).map{k : Rep[Int] =>
+      range(i+1, j).map{k : Rep[Int] =>
         val x = costMatrix(i * (in.length + unit(1)) + k)
         val y = costMatrix(k * (in.length + unit(1)) + j)
         (x,y)
@@ -160,9 +160,9 @@ trait ArrayProg extends GeneratorOps with NumericOps
 
         val p = single(i,j) ++ concat(i,j)
 
-        var s: Rep[Matres] = Matres(unit(0), unit(0), unit(10000))
+        var s/*: Rep[Matres]*/ = Matres(unit(0), unit(0), unit(10000))
         p{  x: Rep[Matres] =>
-          if(x.mults < s.mults) s = x
+          if(x.mults < readVar(s).mults){s = x}
         }
         costMatrix(i * (in.length + unit(1)) + j) = s
       }
@@ -255,16 +255,11 @@ class TestGeneratorOps extends FileDiffSuite {
 
         codegen.emitSource2(testMul _ , "testMul", printWriter)
         codegen.emitDataStructures(printWriter)
-        //val source = new StringWriter
-        //codegen.emitDataStructures(new PrintWriter(source))
+        val source = new StringWriter
+        codegen.emitDataStructures(new PrintWriter(source))
 
-        //val testc1 = compile2s(testMul, source)
-
-
-
-        //val a = new Record{ val rows = 10; val cols = 100}
-
-        //  testc1(scala.Array((10,100),(100,5),(5,50)), unit(0))
+        val testc1 = compile2s(testMul, source)
+        testc1(scala.Array((10,100),(100,5),(5,50)), 0)
 
       }
     }

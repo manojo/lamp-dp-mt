@@ -1,0 +1,67 @@
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test1 extends ((Array[Char])=>(Char)) {
+def apply(x0:Array[Char]): Char = {
+var x1: Char = 'a'
+val x2 = 0 + 1
+val x3 = x2 == 1
+val x7 = if (x3) {
+val x4 = x0(0)
+x1 = x4
+()
+} else {
+()
+}
+val x8 = x1
+x8
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+c
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test1 extends ((Array[Char])=>(Char)) {
+def apply(x18:Array[Char]): Char = {
+val x19 = new Array[Char](2)
+var x20: Char = 'a'
+val x22 = 0 < 1
+val x36 = if (x22) {
+val x2 = 0 + 1
+val x3 = x2 == 1
+val x34 = if (x3) {
+val x24 = println("storing in a matrix")
+val x25 = (0,1)
+val x26 = println(x25)
+val x21 = x18.length
+val x27 = x21 + 1
+val x28 = 0 * x27
+val x29 = x28 + 1
+val x30 = println(x29)
+val x23 = x18(0)
+val x31 = x19(x29) = x23
+x20 = x23
+()
+} else {
+()
+}
+()
+} else {
+()
+}
+val x37 = x20
+x37
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+storing in a matrix
+(0,1)
+1
+c

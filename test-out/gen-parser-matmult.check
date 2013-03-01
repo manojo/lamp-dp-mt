@@ -1,0 +1,257 @@
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class gen-parser-matmult extends ((Array[scala.Tuple2[Int, Int]])=>(scala.Tuple3[Int, Int, Int])) {
+def apply(x0:Array[scala.Tuple2[Int, Int]]): scala.Tuple3[Int, Int, Int] = {
+val x1 = x0.length
+val x2 = x1 + 1
+val x3 = x2 * x2
+val x4 = new Array[scala.Tuple3[Int, Int, Int]](x3)
+val x5 = (0,100000,0)
+val x20 = 0 == 0
+var x7 : Int = 1
+val x114 = while (x7 < x2) {
+val x8 = x2 - x7
+var x10 : Int = 0
+val x112 = while (x10 < x8) {
+var x12: scala.Tuple3[Int, Int, Int] = x5
+val x11 = x10 + x7
+val x13 = x10 < x11
+val x18 = (x10,x11)
+val x38 = x10 * x2
+val x39 = x38 + x11
+val x104 = if (x13) {
+val x17 = println("when do we get in")
+val x19 = println(x18)
+val x28 = println("min and max")
+val x14 = x10 + 1
+val x23 = if (x20) {
+x14
+} else {
+val x21 = x11 - 0
+val x22 = java.lang.Math.max(x14, x21)
+x22
+}
+val x27 = if (x20) {
+val x24 = x11 - 1
+x24
+} else {
+val x24 = x11 - 1
+val x25 = x10 + 0
+val x26 = java.lang.Math.min(x24, x25)
+x26
+}
+val x29 = (x23,x27)
+val x30 = println(x29)
+val x15 = x14 == x11
+val x50 = if (x15) {
+val x36 = println("storing in a matrix")
+val x37 = println(x18)
+val x40 = println(x39)
+val x16 = x0(x10)
+val x33 = x16._1
+val x34 = x16._2
+val x35 = (x33,0,x34)
+val x41 = x4(x39) = x35
+val x42 = x12
+val x44 = x42._2
+val x46 = 0 < x44
+val x47 = if (x46) {
+x35
+} else {
+x42
+}
+x12 = x47
+()
+} else {
+()
+}
+val x102 = if (x13) {
+val x31 = x27 + 1
+val x32 = x23 < x31
+val x100 = if (x32) {
+var x52 : Int = x23
+val x98 = while (x52 < x31) {
+val x53 = x10 < x52
+val x96 = if (x53) {
+val x54 = println("it be there already!")
+val x55 = (x10,x52)
+val x56 = println(x55)
+val x57 = x38 + x52
+val x58 = println(x57)
+val x59 = x4(x57)
+val x60 = x52 < x11
+val x94 = if (x60) {
+val x61 = println("it be there already!")
+val x62 = (x52,x11)
+val x63 = println(x62)
+val x64 = x52 * x2
+val x65 = x64 + x11
+val x66 = println(x65)
+val x67 = x4(x65)
+val x68 = (x59,x67)
+val x69 = x68._1
+val x70 = x68._2
+val x71 = x69._1
+val x72 = x69._2
+val x73 = x69._3
+val x74 = x70._1
+val x75 = x70._2
+val x76 = x70._3
+val x82 = println("storing in a matrix")
+val x83 = println(x18)
+val x84 = println(x39)
+val x77 = x72 + x75
+val x78 = x71 * x73
+val x79 = x78 * x76
+val x80 = x77 + x79
+val x81 = (x71,x80,x76)
+val x85 = x4(x39) = x81
+val x86 = x12
+val x88 = x86._2
+val x90 = x80 < x88
+val x91 = if (x90) {
+x81
+} else {
+x86
+}
+x12 = x91
+()
+} else {
+()
+}
+x94
+} else {
+()
+}
+x96
+x52 = x52 + 1
+}
+x98
+} else {
+()
+}
+x100
+} else {
+()
+}
+()
+} else {
+()
+}
+val x105 = println("storing again!")
+val x106 = println(x18)
+val x107 = println(x39)
+val x108 = x12
+val x109 = println(x108)
+val x110 = x4(x39) = x108
+x110
+x10 = x10 + 1
+}
+x112
+x7 = x7 + 1
+}
+val x115 = 0 * x2
+val x116 = x115 + x1
+val x117 = x4(x116)
+x117
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+when do we get in
+(0,1)
+min and max
+(1,0)
+storing in a matrix
+(0,1)
+1
+storing again!
+(0,1)
+1
+(10,0,100)
+when do we get in
+(1,2)
+min and max
+(2,1)
+storing in a matrix
+(1,2)
+6
+storing again!
+(1,2)
+6
+(100,0,5)
+when do we get in
+(2,3)
+min and max
+(3,2)
+storing in a matrix
+(2,3)
+11
+storing again!
+(2,3)
+11
+(5,0,50)
+when do we get in
+(0,2)
+min and max
+(1,1)
+it be there already!
+(0,1)
+1
+it be there already!
+(1,2)
+6
+storing in a matrix
+(0,2)
+2
+storing again!
+(0,2)
+2
+(10,5000,5)
+when do we get in
+(1,3)
+min and max
+(2,2)
+it be there already!
+(1,2)
+6
+it be there already!
+(2,3)
+11
+storing in a matrix
+(1,3)
+7
+storing again!
+(1,3)
+7
+(100,25000,50)
+when do we get in
+(0,3)
+min and max
+(1,2)
+it be there already!
+(0,1)
+1
+it be there already!
+(1,3)
+7
+storing in a matrix
+(0,3)
+3
+it be there already!
+(0,2)
+2
+it be there already!
+(2,3)
+11
+storing in a matrix
+(0,3)
+3
+storing again!
+(0,3)
+3
+(10,7500,50)
+(10,7500,50)
