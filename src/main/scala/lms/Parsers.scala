@@ -63,6 +63,9 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
   def parser_aggfold[T:Manifest](inner: Parser[T], z: Rep[T], f: (Rep[T],Rep[T]) => Rep[T]) : Parser[T]
   def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: => Parser[U]): Parser[(T,U)]
   def tabulate(inner: Parser[Answer], name:String, mat: Rep[Array[Array[Answer]]]) : Parser[Answer]
+  def tabulate2(inner: Parser[Answer], name:String, mat: Rep[Array[Array[Answer]]],
+    z: Rep[Answer], f:(Rep[Answer], Rep[Answer]) => Rep[Answer]) : Parser[Answer]
+
 
 
   /*************** simple parsers below *****************/
@@ -120,7 +123,7 @@ trait LexicalParsers extends Parsers {this: Sig =>
 trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNumeric
     with NumericOpsExp with IfThenElseExp with EqualExp with BooleanOpsExp
     with OrderingOpsExp with MathOpsExp with HackyRangeOpsExp
-    with TupleOpsExp with GeneratorOpsExp{this: Sig =>
+    with TupleOpsExp with ListToGenTransform{this: Sig =>
 
 
   def parser_filter[T:Manifest](inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean]) :  Parser[T] =
@@ -137,6 +140,9 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
     ConcatParser(inner, lL, lU, rL, rU, () => that)
   def tabulate(inner: Parser[Answer],name:String, mat: Rep[Array[Array[Answer]]]) =
     TabulatedParser(inner, name, mat)(mAns)
+  def tabulate2(inner: Parser[Answer], name:String, mat: Rep[Array[Array[Answer]]],
+    z: Rep[Answer], f:(Rep[Answer], Rep[Answer]) => Rep[Answer]) =
+    TabulatedParser2(inner, name, mat, z, f)(mAns)
 
   // Memoization through tabulation
   import scala.collection.mutable.HashSet
@@ -218,6 +224,38 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
      }
    }
 
+    /*
+     * tabulation parser2
+     */
+   case class TabulatedParser2(inner: Parser[Answer], name: String,
+     mat: Rep[Array[Array[Answer]]], z: Rep[Answer],
+     f: (Rep[Answer], Rep[Answer]) => Rep[Answer])(implicit val mAns: Manifest[Answer]) extends Parser[Answer]{
+     def apply(i: Rep[Int], j: Rep[Int]) = {
+       //if(i <= j){
+         if(!(productions contains(name)) /*|| mat(i)(j) == null*/){
+           productions += name
+
+           val tmp = inner(i,j)
+           Console.println("Here is a list we wanna tab!")
+           Console.println(tmp)
+           var s = z
+           transform(tmp).apply{
+            x : Rep[Answer] => s = f(s,x)
+           }
+           mat(i)(j) = s //we expect one element
+           productions -= name
+           //val a = mat(i)
+           //List(a(j))
+         }
+         // else {
+          println(unit("Are we here?"))
+           val tmp = mat(i)
+           List(tmp(j))
+         //}
+       //} else List()
+     }
+   }
+
   /*
    * an extractor for MParser: to force the match of a MapParser(ConcatParser)
    */
@@ -279,7 +317,7 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
   def transform(p: TabulatedParser): TabulatedParser = p match {
     case t@TabulatedParser(inner, n, m: Rep[Array[Array[Answer]]] @unchecked) =>
      TabulatedParser(transform(inner)(t.mAns), n, m)(t.mAns)
-    case _ => Console.println("aggagagagag"); Console.println(p); p
+    case _ => p
   }
 
   def transform[T:Manifest](p: Parser[T]): Parser[T] = {

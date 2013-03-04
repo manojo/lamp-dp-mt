@@ -1,8 +1,6 @@
 package lms
 
 import scala.virtualization.lms.common._
-import scala.virtualization.lms.internal.Effects
-import scala.virtualization.lms.internal.GraphVizExport
 import java.io.PrintWriter
 import java.io.FileOutputStream
 
@@ -22,17 +20,6 @@ trait MatMultToGenProg extends Parsers{ this: Sig =>
   def mult(l: Rep[Answer],r : Rep[Answer]) = {
     (l._1, l._2 + r._2 + l._1 * l._3 * r._3 ,r._3)
   }
-
-  def multParser(in:Input, a: Rep[Array[Array[Answer]]]) /*: TabulatedParser*/ = {
-    lazy val p : Parser[Answer]/*: TabulatedParser*/ = tabulate(
-     (el(in) ^^ single
-      | (p +~+ p) ^^ {(x: Rep[(Answer,Answer)]) => mult(x._1,x._2)}
-     ),//.aggfold((unit(0),unit(100000),unit(0)), (x,y) => if(x._2 < y._2) x else y),
-     "mat",
-     a
-    )
-   p
-  }
 }
 
 class TestParsersToGen extends FileDiffSuite {
@@ -42,15 +29,27 @@ class TestParsersToGen extends FileDiffSuite {
   //listogen transform
   def testBottomUp3 = {
     withOutFile(prefix+"bottomup3"){
-       new MatMultProg with ParsersExp with Sig with MiscOpsExp
+       new MatMultToGenProg with ParsersExp with Sig with MiscOpsExp
         with ListToGenTransform with CompileScala{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
 
-        val gviz = new GraphVizExport { val IR: self.type = self }
 
-        def bottomUp2(in: Input, p :  => Parser[Answer]/*TabulatedParser*/,
+        def multParser(in:Input, a: Rep[Array[Array[Answer]]]) : TabulatedParser2 = {
+          lazy val p /*: Parser[Answer]*/ : TabulatedParser2 = tabulate2(
+           (el(in) ^^ single
+            | (p +~+ p) ^^ {(x: Rep[(Answer,Answer)]) => mult(x._1,x._2)}
+           ),//.aggfold((unit(0),unit(100000),unit(0)), (x,y) => if(x._2 < y._2) x else y),
+           "mat",
+           a,
+           (unit(0),unit(100000),unit(0)),
+           (x,y) => if(x._2 < y._2) x else y
+          )
+         p
+        }
+
+        def bottomUp2(in: Input, p :  => TabulatedParser2,
             costMatrix: Rep[Array[Array[Answer]]], z: Rep[Answer])(implicit mAlph: Manifest[Alphabet], mA: Manifest[Answer]) : Rep[Answer] = {
           (1 until in.length + 1).foreach{l =>
             (0 until in.length + 1 -l).foreach{i =>
@@ -58,8 +57,6 @@ class TestParsersToGen extends FileDiffSuite {
 
               var s = z
               val res = p(i,j)
-              //debugging
-              gviz.emitDepGraph(res, prefix+"matmult-dot")
 
               val genned = transform(res)
               genned{x : Rep[Answer] =>

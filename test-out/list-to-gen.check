@@ -1,3 +1,5 @@
+in transform function
+RangetoList(Sym(2))
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -25,8 +27,16 @@ x13
 /*****************************************
   End of Generated Code                  
 *******************************************/
+in transform function
+RangetoList(Sym(2))
 compilation: ok
 55
+in transform function
+ListConcat(Sym(3),Sym(3))
+in transform function
+RangetoList(Sym(2))
+in transform function
+RangetoList(Sym(2))
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -67,8 +77,16 @@ x46
 /*****************************************
   End of Generated Code                  
 *******************************************/
+in transform function
+ListConcat(Sym(3),Sym(3))
+in transform function
+RangetoList(Sym(2))
+in transform function
+RangetoList(Sym(2))
 compilation: ok
 110
+in transform function
+ListNew(WrappedArray(Const(10), Const(23), Const(42)))
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -91,8 +109,16 @@ x80
 /*****************************************
   End of Generated Code                  
 *******************************************/
+in transform function
+ListNew(WrappedArray(Const(10), Const(23), Const(42)))
 compilation: ok
 75
+in transform function
+IfThenElse(Sym(97),Block(Sym(70)),Block(Sym(98)))
+in transform function
+ListNew(WrappedArray(Const(10), Const(23), Const(42)))
+in transform function
+ListNew(List())
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -121,9 +147,19 @@ x111
 /*****************************************
   End of Generated Code                  
 *******************************************/
+in transform function
+IfThenElse(Sym(115),Block(Sym(70)),Block(Sym(98)))
+in transform function
+ListNew(WrappedArray(Const(10), Const(23), Const(42)))
+in transform function
+ListNew(List())
 compilation: ok
 0
 75
+in transform function
+ListMap(Sym(3),Sym(132),Block(Sym(133)))
+in transform function
+RangetoList(Sym(2))
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -154,8 +190,16 @@ x144
 /*****************************************
   End of Generated Code                  
 *******************************************/
+in transform function
+ListMap(Sym(3),Sym(148),Block(Sym(149)))
+in transform function
+RangetoList(Sym(2))
 compilation: ok
 110
+in transform function
+ListFilter(Sym(3),Sym(164),Block(Sym(166)))
+in transform function
+RangetoList(Sym(2))
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -192,8 +236,18 @@ x179
 /*****************************************
   End of Generated Code                  
 *******************************************/
+in transform function
+ListFilter(Sym(3),Sym(183),Block(Sym(185)))
+in transform function
+RangetoList(Sym(2))
 compilation: ok
 25
+in transform function
+ListFlatMap(Sym(3),Sym(202),Block(Sym(205)))
+in transform function
+RangetoList(Sym(2))
+in transform function
+RangetoList(Sym(204))
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -235,5 +289,11 @@ x223
 /*****************************************
   End of Generated Code                  
 *******************************************/
+in transform function
+ListFlatMap(Sym(3),Sym(227),Block(Sym(230)))
+in transform function
+RangetoList(Sym(2))
+in transform function
+RangetoList(Sym(229))
 compilation: ok
 220

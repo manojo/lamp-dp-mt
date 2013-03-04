@@ -81,12 +81,12 @@ trait GeneratorParsers extends ArrayOps with NumericOps with IfThenElse
 */
   case class ConcatParser[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: () => Parser[U]) extends Parser[(T,U)]{
     def apply(i: Rep[Int], j: Rep[Int]) = cond((i < j), {
-      println(unit("when do we get in"))
-      println((i,j))
+    //  println(unit("when do we get in"))
+    //  println((i,j))
       val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
       val max_k = if (lU==0) j-rL else Math.min(j-rL,i+lU)
-      println(unit("min and max"))
-      println((min_k,max_k))
+    //  println(unit("min and max"))
+    //  println((min_k,max_k))
       range(min_k, max_k+1).flatMap{ k=>
         inner(i,k).flatMap{x =>
           that()(k,j).map{y => (x,y)}
@@ -130,9 +130,9 @@ trait GeneratorParsers extends ArrayOps with NumericOps with IfThenElse
           if(!(productions contains(name))){
             productions += name
             val gen = inner(i,j).map{x: Rep[Answer] =>
-              println(unit("storing in a matrix"))
-              println((i,j))
-              println(i * (len + 1) + j)
+            //  println(unit("storing in a matrix"))
+            //  println((i,j))
+            //  println(i * (len + 1) + j)
               mat(i * (len + 1) + j) = x
               x
             }
@@ -140,9 +140,9 @@ trait GeneratorParsers extends ArrayOps with NumericOps with IfThenElse
             productions -= name
             unit(())
           }else{
-            println(unit("it be there already!"))
-            println((i,j))
-            println(i * (len + 1) + j)
+           // println(unit("it be there already!"))
+           // println((i,j))
+           // println(i * (len + 1) + j)
             val tmp = elGen(mat(i * (len + 1) + j))
             tmp(f)
           }
@@ -184,10 +184,10 @@ trait GeneratorParsers extends ArrayOps with NumericOps with IfThenElse
         p(i,j){x : Rep[Answer] =>
           s = f(x,s)
         }
-        println(unit("storing again!"))
-        println((i,j))
-        println(i * (in.length + 1) + j)
-        println(s)
+//        println(unit("storing again!"))
+//        println((i,j))
+//        println(i * (in.length + 1) + j)
+//        println(s)
         costMatrix(i * (in.length + 1) + j) = s
       }
     }

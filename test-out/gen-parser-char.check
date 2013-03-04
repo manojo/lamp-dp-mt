@@ -30,20 +30,16 @@ def apply(x18:Array[Char]): Char = {
 val x19 = new Array[Char](2)
 var x20: Char = 'a'
 val x22 = 0 < 1
-val x36 = if (x22) {
+val x32 = if (x22) {
 val x2 = 0 + 1
 val x3 = x2 == 1
-val x34 = if (x3) {
-val x24 = println("storing in a matrix")
-val x25 = (0,1)
-val x26 = println(x25)
-val x21 = x18.length
-val x27 = x21 + 1
-val x28 = 0 * x27
-val x29 = x28 + 1
-val x30 = println(x29)
+val x30 = if (x3) {
 val x23 = x18(0)
-val x31 = x19(x29) = x23
+val x21 = x18.length
+val x24 = x21 + 1
+val x25 = 0 * x24
+val x26 = x25 + 1
+val x27 = x19(x26) = x23
 x20 = x23
 ()
 } else {
@@ -53,15 +49,12 @@ x20 = x23
 } else {
 ()
 }
-val x37 = x20
-x37
+val x33 = x20
+x33
 }
 }
 /*****************************************
   End of Generated Code                  
 *******************************************/
 compilation: ok
-storing in a matrix
-(0,1)
-1
 c

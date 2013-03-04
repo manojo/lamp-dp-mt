@@ -1,9 +1,9 @@
 error: illegal sharing of mutable objects Sym(6)
 at Sym(7)=Reflect(ArrayUpdate(Sym(3),Const(0),Sym(6)),Summary(false,false,false,false,false,List(Sym(3), Sym(6)),List(Sym(3), Sym(6)),List(Sym(3)),List(Sym(3))),List(Sym(6)))
 error: write to non-mutable Sym(11) -> Some(TP(Sym(11),Reflect(ArrayApply(Sym(3),Const(0)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(9)))))
-at Sym(82)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(81)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(9), Sym(11)))
+at Sym(89)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(88)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(9), Sym(11)))
 error: illegal sharing of mutable objects Sym(3)
-at Sym(82)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(81)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(9), Sym(11)))
+at Sym(89)=Reflect(ArrayUpdate(Sym(11),Sym(1),Sym(88)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(11)),List(Sym(11))),List(Sym(3), Sym(9), Sym(11)))
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
@@ -42,36 +42,31 @@ x30
 val x32 = x31 + 1
 val x33 = x27 until x32
 val x34 = x33.toList
-val x59 = if (x23) {
-val x57 = x34.map{
-x35 => 
+val x51 = if (x23) {
+val x49 = x34.flatMap { x35 => 
 val x36 = x3(0)
 val x37 = x36(x35)
+val x38 = List(x37)
+val x47 = x38.flatMap { x39 => 
 val x40 = x3(x35)
 val x41 = x40(x1)
-val x38 = List(x37)
-val x39 = x38.head
-val x45 = x39._1
 val x42 = List(x41)
-val x43 = x42.head
-val x50 = x43._3
-val x46 = x39._2
-val x49 = x43._2
-val x51 = x46 + x49
-val x47 = x39._3
-val x52 = x45 * x47
-val x53 = x52 * x50
-val x54 = x51 + x53
-val x55 = (x45,x54,x50)
-x55
+val x45 = x42.map{
+x43 => 
+val x44 = (x39,x43)
+x44
 }
-x57
+x45
+}
+x47
+}
+x49
 } else {
 val x16 = List()
 x16
 }
 val x10 = (0,100000,0)
-var x61: scala.Tuple3[Int, Int, Int] = x10
+var x68: scala.Tuple3[Int, Int, Int] = x10
 val x13 = x12 == x1
 val x17 = if (x13) {
 val x14 = x0(0)
@@ -88,33 +83,49 @@ val x20 = x18._2
 val x21 = (x19,0,x20)
 x21
 }
-val x60 = x22 ::: x59
-val x62 = x60.toSeq
-val x63 = x62.length
-var x65 : Int = 0
-val x78 = while (x65 < x63) {
-val x66 = x61
-val x67 = x60(x65)
-val x69 = x66._2
-val x72 = x67._2
-val x74 = x69 < x72
-val x75 = if (x74) {
-x66
+val x66 = x51.map{
+x52 => 
+val x53 = x52._1
+val x55 = x53._1
+val x54 = x52._2
+val x60 = x54._3
+val x56 = x53._2
+val x59 = x54._2
+val x61 = x56 + x59
+val x57 = x53._3
+val x62 = x55 * x57
+val x63 = x62 * x60
+val x64 = x61 + x63
+val x65 = (x55,x64,x60)
+x65
+}
+val x67 = x22 ::: x66
+val x69 = x67.toSeq
+val x70 = x69.length
+var x72 : Int = 0
+val x85 = while (x72 < x70) {
+val x73 = x68
+val x74 = x67(x72)
+val x76 = x73._2
+val x79 = x74._2
+val x81 = x76 < x79
+val x82 = if (x81) {
+x73
 } else {
-x67
+x74
 }
-x61 = x75
+x68 = x82
 ()
-x65 = x65 + 1
+x72 = x72 + 1
 }
-val x79 = x61
-val x80 = List(x79)
-val x81 = x80.head
-val x82 = x11(x1) = x81
-val x83 = x11(x1)
-val x84 = List(x83)
-val x85 = x84.head
-x85
+val x86 = x68
+val x87 = List(x86)
+val x88 = x87.head
+val x89 = x11(x1) = x88
+val x90 = x11(x1)
+val x91 = List(x90)
+val x92 = x91.head
+x92
 }
 }
 /*****************************************
