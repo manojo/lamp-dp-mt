@@ -14,3 +14,56 @@ Aka re-engineering todos to clean and refactor things
 - integrate "Array mutation (2d arrays)" without sym errors
 - printing globalDefs to understand how symbols link to each other. How the
  effect system works.
+
+
+
+
+
+/*** Architecture ideas (Thierry) ***/
+Ideas:
+- separate the concerns: evaluation / pretty print algebrae and DP algebra
+  -> use Vojin macros to make these two interact.
+  -> What files/framework do we need?
+- file naming conventions: separate the phases
+  - *Ops.scala: describes IR
+    - we need to describe all the parsers into IR nodes
+  - *Opt.scala: describes optimizations
+    - bottom-up evaluation is done by the outer wrapping node
+  - *SGen.scala: Scala generation
+  - *CGen.scala: C/CUDA generation
+
+- rework folders:
+  - src/main/scala/lms/utils? -> evaluation algebrae helpers (+package LMS ops)
+  - src/main/scala/lms/dp     -> DP algebra
+  - src/main/scala/examples   -> examples of the algebrae
+  - src/test/scala/lms        -> regression tests (with shellscript?)
+                                 idea: compare v4 vs lms-scala vs lms-cuda
+
+IR Nodes:
+- Terminal[T](min,max) + F(input,i,j)=>List(T)
+- Tabulate(P)
+- Aggregate(P)
+- Filter(P,f) f: T=>Bool
+- Or(P,P)
+- Map(P,f) f:T=>U
+- Concat(P,P,type,indices)
+- Wrapper(List[P],axiom_ptr,single/k_element?)
++++ syntactic sugar to Detuple
+
+Optimization phase:
+- wrapper -> normalization(single/k_element)
+
+Code generation:
+- Wrapper
+  - Generates bottom-up loops (Scala+CUDA) [quite generic]
+    -> we have 2 different iteration schemes: single track and two track
+  - Generates JNI transfer + CUDA wrappers
+  -> how to tightly integrate with JVM as currently?
+  --> can we reuse Delite JNI generation? What about array(struct)
+
+Shortcomings of previous work:
+- All the arrays are in O(n^2), we do not leverage yield_max
+- Can we implement k-best for CUDA? (with k comparisons)
+
+Misc:
+- What is ListToGen? Could we leverage the idea to generalize the k-normalization ?
