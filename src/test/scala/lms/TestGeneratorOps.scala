@@ -265,4 +265,48 @@ class TestGeneratorOps extends FileDiffSuite {
     }
     assertFileEqualsCheck(prefix+"generator-array")
   }
+
+  //C Code generation!!!
+  def testgenerator1c = {
+    withOutFile(prefix+"generator-simple-c"){
+       new GeneratorProg with GeneratorOpsExp with NumericOpsExp
+        with OrderingOpsExp with PrimitiveOpsExp with EqualExp
+        with StructExp with StructExpOptCommon with ArrayOpsExp
+        with MiscOpsExp{ self =>
+
+        val printWriter = new java.io.PrintWriter(System.out)
+
+        //test1: first "loop"
+        val codegen = new CGenGeneratorOps with CGenNumericOps
+          with CGenOrderingOps with CGenPrimitiveOps with CGenEqual
+          with CGenArrayOps /*with CGenStruct*/ with CGenMiscOps { val IR: self.type = self }
+
+        codegen.emitSource2(test1 _ , "test1", printWriter)
+
+        //test2: a map
+        codegen.emitSource2(test2 _ , "test2", printWriter)
+
+
+        //test3: a sum
+        codegen.emitSource2(test3 _ , "test3", printWriter)
+
+        //test4: a filtersum
+        codegen.emitSource2(test4 _ , "test4", printWriter)
+
+        //test5: a concat
+        codegen.emitSource2(test5 _ , "test5", printWriter)
+
+        //test6: a flatMap
+        codegen.emitSource2(test6 _ , "test6", printWriter)
+
+        //test7: single elem from Array
+        //codegen.emitSource2(test7 _ , "test7", printWriter)
+
+        //test8: fromSeq
+        //codegen.emitSource(test8 _ , "test8", printWriter)
+
+      }
+    }
+    assertFileEqualsCheck(prefix+"generator-simple-c")
+  }
 }

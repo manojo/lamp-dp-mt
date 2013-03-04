@@ -112,3 +112,20 @@ trait ScalaGenGeneratorOps extends ScalaGenWhile with ScalaGenVariables
   }
 
 }
+
+trait CGenGeneratorOps extends CGenWhile with CGenVariables
+  with CGenHackyRangeOps with CGenNumericOps with CGenOrderingOps
+  with CGenIfThenElse with CGenMiscOps{
+  val IR: GeneratorOpsExp
+  import IR._
+
+  override def emitNode(sym: Sym[Any], rhs: Def[Any]) = rhs match {
+    case Let(x,y,blk) =>
+      stream.println("val "+ quote(x) + " = "+ quote(y))
+      emitBlock(blk)
+      emitValDef(sym,quote(getBlockResult(blk)) )
+
+    case _ => super.emitNode(sym, rhs)
+  }
+
+}

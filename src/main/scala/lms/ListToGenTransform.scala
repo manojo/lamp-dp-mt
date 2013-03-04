@@ -18,18 +18,28 @@ with GeneratorOpsExp with MyListOpsExp with IfThenElseExp{ self =>
   def transform[A: Manifest](ls: Exp[List[A]]) : Generator[A] = {
 
     //debugging
-    Console.println("in transform function")
-    Console.println(ls match { case Def(xs) => xs})
-    gviz.emitDepGraph(ls, "test-out/transforming-dot"+i); i+= 1
-    val res = ls match {
-      case Def(ListNew(xs)) => fromSeq(xs)
-      case Def(RangetoList(Def(Until(start, end)))) => range(start,end).asInstanceOf[Generator[A]]
-      case Def(ListConcat(xs, ys)) => transform(xs) ++ transform(ys)
-      case Def(ListMap(xs, x, b)) => b match {
+    //Console.println("in transform function")
+    //Console.println(ls match { case Def(xs) => xs})
+    //gviz.emitDepGraph(ls, "test-out/transforming-dot"+i); i+= 1
+
+    val ls1 = ls match {
+      case Def(Reflect(d, _, _)) =>
+        //trick to throw away un-needed effects!! :-)
+        context = context filterNot (_ == ls)
+        Some(d)
+      case Def(d) => Some(d)
+      case _ => None
+    }
+
+    val res = ls1 map {
+      case (ListNew(xs)) => fromSeq(xs)
+      case (RangetoList(Def(Until(start, end)))) => range(start,end).asInstanceOf[Generator[A]]
+      case (ListConcat(xs, ys)) => transform(xs) ++ transform(ys)
+      case (ListMap(xs, x, b)) => b match {
         //effect free block => make changes, otherwise empty gen
         case Block(Def(a)) => transform(xs).map{y => let(x, y, a)}
       }
-      case Def(ListFilter(xs, x, b)) => b match {
+      case (ListFilter(xs, x, b)) => b match {
         //effect free block => make changes, otherwise empty gen
         case Block(Def(a)) => transform(xs).filter{y => let(x, y, a)}
       }
@@ -38,7 +48,7 @@ with GeneratorOpsExp with MyListOpsExp with IfThenElseExp{ self =>
         //transform(xs).flatMap{x => transform(f(x))}
 
       //TODO: fix, not working yet ...
-      case Def(ListFlatMap(l, x, b: Block[List[A]])) => b match {
+      case (ListFlatMap(l, x, b: Block[List[A]])) => b match {
         case Block(xs) =>
         transform(l).flatMap{ y =>
           new Generator[A]{
@@ -61,7 +71,7 @@ with GeneratorOpsExp with MyListOpsExp with IfThenElseExp{ self =>
 
 
   //    case Def(MyListMap(xs,f)) => transform(xs).map(f)
-      case Def(IfThenElse(c, t, e)) => (t,e) match {
+      case (IfThenElse(c, t, e)) => (t,e) match {
         case(Block(Def(tp)), Block(Def(ep))) => new Generator[A]{
           def apply(f: Rep[A] => Rep[Unit]) =
             if(c){
@@ -74,11 +84,15 @@ with GeneratorOpsExp with MyListOpsExp with IfThenElseExp{ self =>
         }
         case _ => assert(false, "no match"); emptyGen() //error case
       }
-      case _ => assert(false, "no match"); emptyGen() //error case
+
+      case (Reify(xs, _, _)) =>
+        transform(xs)
+
+      //case _ => assert(false, "no match"); emptyGen() //error case
     }
 
     //debugging
     //gviz.emitDepGraph(res, prefix+"after-dot")
-    res
+    res.get
   }
 }

@@ -236,8 +236,6 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
            productions += name
 
            val tmp = inner(i,j)
-           Console.println("Here is a list we wanna tab!")
-           Console.println(tmp)
            var s = z
            transform(tmp).apply{
             x : Rep[Answer] => s = f(s,x)
@@ -248,7 +246,6 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
            //List(a(j))
          }
          // else {
-          println(unit("Are we here?"))
            val tmp = mat(i)
            List(tmp(j))
          //}

@@ -29,6 +29,8 @@ trait ScalaGenHackyRangeOps extends ScalaGenRangeOps {
   }
 }
 
+trait CGenHackyRangeOps extends CGenRangeOps
+
 trait CudaGenHackyRangeOps extends CudaGenRangeOps {
   val IR: HackyRangeOpsExp
   import IR._

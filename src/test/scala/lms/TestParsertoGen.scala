@@ -33,7 +33,8 @@ class TestParsersToGen extends FileDiffSuite {
         with ListToGenTransform with CompileScala{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
+          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps
+          with ScalaGenGeneratorOps{ val IR: self.type = self }
 
 
         def multParser(in:Input, a: Rep[Array[Array[Answer]]]) : TabulatedParser2 = {
