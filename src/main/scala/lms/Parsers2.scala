@@ -26,7 +26,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
     def filter (p: (Rep[Int], Rep[Int]) => Rep[Boolean]) = parser_filter(this, p)
     def ^^[U:Manifest](f: Rep[T] => Rep[U]) = parser_map(this, f)
     def |(that: => Parser[T]) = parser_or(inner, that)
-    
+
     // Concatenation XXX: rework + add yield analysis
     private def concat[U:Manifest](lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int])(that: => Parser[U]) = parser_concat(inner, lL,lU,rL,rU, that)
     def ~ [U:Manifest](that: => Parser[U]) = concat(0,-1,0,-1)(that) // 0 to infinity on each side, !WARNING, this might generate inifite loops without yield analysis
@@ -39,7 +39,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U]
   def parser_or[T:Manifest](inner: Parser[T], that: Parser[T]): Parser[T]
   def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: Parser[U]): Parser[(T,U)]
-  def tabulate(name:String, inner: =>Parser[Answer], mat: Rep[Array[Answer]], z: Rep[Answer], n:Rep[Int]) : Parser[Answer] // XXX: mat,z must go away
+  def tabulate(name:String, inner: =>Parser[Answer], z: Rep[Answer]) : Parser[Answer] // XXX: mat,z must go away
   
   /*************** terminals below *****************/
   def el(in: Input)(implicit mAlph: Manifest[Alphabet]) = new Parser[Alphabet] {
@@ -72,7 +72,7 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
   def parser_aggregate[T:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) : Parser[T] = AggregateParser(inner,h)
   def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int],
                                             that: Parser[U]): Parser[(T,U)] = ConcatParser(inner, lL,lU,rL,rU, that)
-  def tabulate(name:String, inner: =>Parser[Answer], mat: Rep[Array[Answer]], z: Rep[Answer], n:Rep[Int]) = new TabulatedParser(name, inner, mat, z, n)(mAns)
+  def tabulate(name:String, inner: =>Parser[Answer], z: Rep[Answer]) = new TabulatedParser(name, inner, z)(mAns)
 
   // Memoization through tabulation
   import scala.collection.mutable.HashSet
@@ -98,7 +98,7 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
   }
 
   case class ConcatParser[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: Parser[U]) extends Parser[(T,U)]{
-    def apply(i: Rep[Int], j: Rep[Int]) = if(i< j){
+    def apply(i: Rep[Int], j: Rep[Int]) = if(i < j) {
       val min_k = if (rU== -1) i+lL else Math.max(i+lL,j-rU)
       val max_k = if (lU== -1) j-rL else Math.min(j-rL,i+lU)
       for(
@@ -106,14 +106,19 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
         x <- inner(i,k);
         y <- that(k,j)
       ) yield((x,y))
-      //for(k <- (min_k until max_k+1).toList) yield((inner(i,k).head,that()(k,j).head)) + WARNING: test emptynesss of x,y
+      // for(k <- (min_k until max_k+1).toList) yield((inner(i,k).head,that()(k,j).head)) + WARNING: test emptynesss of x,y
     } else List()
   }
 
-  class TabulatedParser(name:String, inner: =>Parser[Answer], mat: Rep[Array[Answer]], z: Rep[Answer], n:Rep[Int])(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
-  // Upper triangular matrix
-    val mem = (n+1)*(n+2)/2;
-    def idx(i:Rep[Int],j:Rep[Int]) = { val d=n+2+i-j; mem - (d*(d-1))/2 + i; }
+  // Call init(n) before usage and clear to free memory, use get to retrieve final value
+  class TabulatedParser(name:String, inner: =>Parser[Answer], z: Rep[Answer])(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
+    private var sz:Rep[Int] = unit(0)
+    private var mem:Rep[Int] = unit(0)
+    private var tab:Rep[Array[Answer]] = null
+    private def idx(i:Rep[Int],j:Rep[Int]) = { val d=sz+2+i-j; mem - (d*(d-1))/2 + i; }
+    def init(size:Rep[Int]) { sz=size; mem=(sz+1)*(sz+2)/2; tab=NewArray(mem) } // XXX: make recursive
+    def clear = { sz=unit(0); tab=null; } // XXX: make recursive
+    def get:Rep[Answer] = tab(idx(0,sz))
 
     def apply(i: Rep[Int], j: Rep[Int]) = {
       if(!(productions contains(name))) {
@@ -123,32 +128,31 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
         var s:Rep[Answer] = z // z is a zero placeholder
         if (!tmp.isEmpty) s = tmp.head
         //transform(tmp).apply{x:Rep[Answer] => s=x}
-        mat(idx(i,j))=s
+        tab(idx(i,j))=s
         // --- STAGED
         productions -= name
       }
-      val e = mat(idx(i,j))
+      val e = tab(idx(i,j))
       if (e==z) List() else List(e)
     }
   }
 
-  // Bottom-up parsing (from bottomUp2)
-  def bottomUp(in:Input, p: =>TabulatedParser, costMatrix: Rep[Array[Answer]], z: Rep[Answer])(implicit mAlph: Manifest[Alphabet], mA: Manifest[Answer]) : Rep[Answer] = {
-  	val n = in.length
-    val mem = (n+1)*(n+2)/2;
-    def idx(i:Rep[Int],j:Rep[Int]) = { val d=n+2+i-j; mem - (d*(d-1))/2 + i; }
-
-    (1 until in.length + 1).foreach{l =>
-      (0 until in.length + 1 -l).foreach{i =>
+  // Bottom-up scheduling (from bottomUp2)
+  def bottomUp(in:Input, p: =>TabulatedParser, z: Rep[Answer])(implicit mAlph: Manifest[Alphabet], mA: Manifest[Answer]) : Rep[Answer] = {
+    //
+    // XXX: convert here into generators recursively ?
+    //
+  	val n = in.length; p.init(n)
+    (1 until n + 1).foreach{l =>
+      (0 until n + 1 -l).foreach{i =>
         val j = i+l
-        var s = z
-        val res = p(i,j)
-        if (!res.isEmpty) s=res.head
-        //transform(res).apply{x:Rep[Answer] => s=x}
-        costMatrix(idx(i,j))=s
+        var z = p(i,j);
       }
     }
-    costMatrix(idx(0,in.length))
+    val r = p.get
+    // XXX: retrieve backtrack
+    p.clear
+    r // and backtrack
   }
 }
 
@@ -161,7 +165,7 @@ trait ParsersPkg extends ParsersExp with Signature with MiscOpsExp with ListToGe
 
 // ------------------------------------------------------------------------------
 
-//matrix multiplication List to Gen
+// Matrix multiplication algebra
 trait MatMultAlgebra extends Parsers with Signature {
   type Alphabet = (Int,Int)
   type Answer = (Int, Int, Int)
@@ -169,46 +173,30 @@ trait MatMultAlgebra extends Parsers with Signature {
   val mAlph = manifest[Alphabet]
   val mAns = manifest[Answer]
 
-  def single(i: Rep[(Int,Int)]) = (i._1, unit(0), i._2)
-  def mult(l: Rep[Answer],r : Rep[Answer]) = (l._1, l._2+r._2+l._1*l._3*r._3, r._3)
+  def single(i:Rep[(Int,Int)]) = (i._1, unit(0), i._2)
+  def mult(l:Rep[Answer], r:Rep[Answer]) = (l._1, l._2+r._2+l._1*l._3*r._3, r._3)
 }
 
 object MatMutlTest extends App {
   new MatMultAlgebra with ParsersPkg {
     def h(x:Rep[Answer],y:Rep[Answer]) = if(x._2 < y._2) x else y
 
-    def test(in:Input):Rep[Answer] = {
-      val a : Rep[Array[Answer]] = NewArray((in.length+1)*(in.length+1))
+    // Matrix multiplication grammar
+    def grammar(in:Input):Rep[Answer] = {
       val z = (unit(0),unit(100000),unit(0))
 
       lazy val p:TabulatedParser = tabulate("mat",(
           el(in) ^^ single
         | (p +~+ p) ^^ {x: Rep[(Answer,Answer)] => mult(x._1,x._2)}
-      ).aggregate(h),a,z,in.length)
+      ).aggregate(h),z)
 
-      bottomUp(in,p,a,z)(mAlph, mAns)
+      bottomUp(in,p,z)(mAlph, mAns)
     }
 
-/*
-    val z = (unit(0),unit(100000),unit(0))
-    def multParser(in:Input, a: Rep[Array[Answer]]) : TabulatedParser = {
-      lazy val p:TabulatedParser = tabulate("mat",(
-          el(in) ^^ single
-        | (p +~+ p) ^^ {x: Rep[(Answer,Answer)] => mult(x._1,x._2)}
-      ).aggregate(h),a,z,in.length)
-      p
-    }
-
-    def test(in: Input): Rep[Answer] = { // arrays allocation wrapper
-      val a : Rep[Array[Answer]] = NewArray((in.length+1)*(in.length+1))
-      val mParser = multParser(in, a)
-      val res = bottomUp(in,mParser,a,z)(mAlph, mAns)
-      res
-    }
-*/
-    codegen.emitSource(test _, "test-bottomup4", new java.io.PrintWriter(System.out))
-    val testc = compile(test)
-    val res = testc(scala.Array((10,100),(100,5),(5,50)))
+    // Now we compile and execute our program
+    codegen.emitSource(grammar _, "test-bottomup4", new java.io.PrintWriter(System.out))
+    val prog = compile(grammar)
+    val res = prog(scala.Array((10,100),(100,5),(5,50)))
     scala.Console.println(res)
   }
 }
