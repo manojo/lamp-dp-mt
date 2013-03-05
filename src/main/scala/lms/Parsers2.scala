@@ -118,15 +118,15 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
     private def idx(i:Rep[Int],j:Rep[Int]) = { val d=sz+2+i-j; mem - (d*(d-1))/2 + i; }
     def init(size:Rep[Int]) { sz=size; mem=(sz+1)*(sz+2)/2; tab=NewArray(mem) } // XXX: make recursive
     def clear = { sz=unit(0); tab=null; } // XXX: make recursive
-    def get:Rep[Answer] = tab(idx(0,sz))
+    def get:Rep[Answer] = tab(idx(0,sz)) // XXX: useful
 
     def apply(i: Rep[Int], j: Rep[Int]) = {
       if(!(productions contains(name))) {
         productions += name
         // --- STAGED
         val tmp = inner(i,j)
-        if (!tmp.isEmpty) { tab(idx(i,j)) = tmp.head }
-        //transform(tmp).apply{x:Rep[Answer] => tab(idx(i,j))=x}
+        //if (!tmp.isEmpty) { tab(idx(i,j)) = tmp.head }
+        transform(tmp).apply{x:Rep[Answer] => tab(idx(i,j))=x}
         // --- STAGED
         productions -= name
       }
@@ -142,9 +142,10 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
     //
     // XXX: convert here into generators recursively ?
     //
+    // XXX: make sure this loop is fine
   	val n = in.length; p.init(n)
-    (1 until n + 1).foreach{l =>
-      (0 until n + 1 -l).foreach{i =>
+    (1 until n+1).foreach{l =>
+      (0 until n+1 -l).foreach{i =>
         val j = i+l
         p(i,j);
         ();
