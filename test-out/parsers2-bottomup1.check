@@ -1,0 +1,177 @@
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test-bottomup4 extends ((Array[scala.Tuple2[Int, Int]])=>(scala.Tuple3[Int, Int, Int])) {
+def apply(x0:Array[scala.Tuple2[Int, Int]]): scala.Tuple3[Int, Int, Int] = {
+val x1 = x0.length
+val x2 = x1 + 1
+val x3 = x1 + 2
+val x4 = x2 * x3
+val x5 = x4 / 2
+val x6 = new Array[scala.Tuple3[Int, Int, Int]](x5)
+val x17 = List()
+val x25 = -1 == -1
+var x8 : Int = 1
+val x126 = while (x8 < x2) {
+val x9 = x2 - x8
+var x11 : Int = 0
+val x124 = while (x11 < x9) {
+val x12 = x11 + x8
+val x24 = x11 < x12
+val x13 = x11 + 1
+val x37 = x3 + x11
+val x68 = if (x24) {
+val x28 = if (x25) {
+x13
+} else {
+val x26 = x12 - -1
+val x27 = java.lang.Math.max(x13, x26)
+x27
+}
+val x32 = if (x25) {
+val x29 = x12 - 1
+x29
+} else {
+val x29 = x12 - 1
+val x30 = x11 + -1
+val x31 = java.lang.Math.min(x29, x30)
+x31
+}
+val x33 = x32 + 1
+val x34 = x28 until x33
+val x35 = x34.toList
+val x66 = x35.flatMap { x36 => 
+val x38 = x37 - x36
+val x39 = x38 - 1
+val x40 = x38 * x39
+val x41 = x40 / 2
+val x42 = x5 - x41
+val x43 = x42 + x11
+val x44 = x6(x43)
+val x45 = x44 == null
+val x47 = if (x45) {
+x17
+} else {
+val x46 = List(x44)
+x46
+}
+val x49 = x3 + x36
+val x50 = x49 - x12
+val x51 = x50 - 1
+val x52 = x50 * x51
+val x53 = x52 / 2
+val x54 = x5 - x53
+val x55 = x54 + x36
+val x64 = x47.flatMap { x48 => 
+val x56 = x6(x55)
+val x57 = x56 == null
+val x59 = if (x57) {
+x17
+} else {
+val x58 = List(x56)
+x58
+}
+val x62 = x59.map{
+x60 => 
+val x61 = (x48,x60)
+x61
+}
+x62
+}
+x64
+}
+x66
+} else {
+x17
+}
+val x14 = x13 == x12
+val x18 = if (x14) {
+val x15 = x0(x11)
+val x16 = List(x15)
+x16
+} else {
+x17
+}
+val x23 = x18.map{
+x19 => 
+val x20 = x19._1
+val x21 = x19._2
+val x22 = (x20,0,x21)
+x22
+}
+val x83 = x68.map{
+x69 => 
+val x70 = x69._1
+val x72 = x70._1
+val x71 = x69._2
+val x77 = x71._3
+val x73 = x70._2
+val x76 = x71._2
+val x78 = x73 + x76
+val x74 = x70._3
+val x79 = x72 * x74
+val x80 = x79 * x77
+val x81 = x78 + x80
+val x82 = (x72,x81,x77)
+x82
+}
+val x84 = x23 ::: x83
+val x85 = x84.isEmpty
+val x110 = x37 - x12
+val x111 = x110 - 1
+val x112 = x110 * x111
+val x113 = x112 / 2
+val x114 = x5 - x113
+val x115 = x114 + x11
+val x118 = if (x85) {
+()
+} else {
+val x87 = x84.head
+var x88: scala.Tuple3[Int, Int, Int] = x87
+val x86 = x84.tail
+val x89 = x86.toSeq
+val x90 = x89.length
+var x92 : Int = 0
+val x105 = while (x92 < x90) {
+val x93 = x88
+val x94 = x86(x92)
+val x96 = x93._2
+val x99 = x94._2
+val x101 = x96 < x99
+val x102 = if (x101) {
+x93
+} else {
+x94
+}
+x88 = x102
+()
+x92 = x92 + 1
+}
+val x106 = x88
+val x116 = x6(x115) = x106
+x116
+}
+val x119 = x6(x115)
+val x120 = x119 == null
+()
+x11 = x11 + 1
+}
+x124
+x8 = x8 + 1
+}
+val x127 = x3 + 0
+val x128 = x127 - x1
+val x129 = x128 - 1
+val x130 = x128 * x129
+val x131 = x130 / 2
+val x132 = x5 - x131
+val x133 = x132 + 0
+val x134 = x6(x133)
+x134
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+(10,7500,50)

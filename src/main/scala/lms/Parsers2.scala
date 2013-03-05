@@ -1,6 +1,6 @@
 package lms.v2
 
-import lms.{MyListOps,MyListOpsExp,ScalaGenMyListOps}
+import lms.{MyListOps,MyListOpsExp,ScalaGenMyListOps, MyScalaCompile}
 import lms.{HackyRangeOps,HackyRangeOpsExp,ScalaGenHackyRangeOps}
 import lms.{ListToGenTransform,ScalaGenGeneratorOps}
 import scala.virtualization.lms.common._
@@ -40,7 +40,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
   def parser_or[T:Manifest](inner: Parser[T], that: Parser[T]): Parser[T]
   def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: Parser[U]): Parser[(T,U)]
   def tabulate(name:String, inner: =>Parser[Answer]) : Parser[Answer]
-  
+
   /*************** terminals below *****************/
   def el(in: Input)(implicit mAlph: Manifest[Alphabet]) = new Parser[Alphabet] {
     def apply(i:Rep[Int], j:Rep[Int]) = if(i+1==j) List(in(i)) else List()
@@ -159,7 +159,7 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
 }
 
 // A package to simplify mixing all the traits
-trait ParsersPkg extends ParsersExp with Signature with MiscOpsExp with ListToGenTransform with IfThenElseExp with CompileScala { self =>
+trait ParsersPkg extends ParsersExp with Signature with MiscOpsExp with ListToGenTransform with IfThenElseExp with MyScalaCompile { self =>
     val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
       with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps with ScalaGenHackyRangeOps with ScalaGenTupleOps
       with ScalaGenMiscOps with ScalaGenGeneratorOps{ val IR: self.type = self }
