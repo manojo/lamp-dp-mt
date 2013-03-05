@@ -35,8 +35,8 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
   def parser_aggregate[T:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) : Parser[T]
   def parser_filter[T:Manifest](inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean]) : Parser[T]
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U]
-  def parser_or[T:Manifest](inner: Parser[T], that: => Parser[T]): Parser[T]
-  def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: => Parser[U]): Parser[(T,U)]
+  def parser_or[T:Manifest](inner: Parser[T], that: Parser[T]): Parser[T]
+  def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: Parser[U]): Parser[(T,U)]
   def tabulate(name:String, inner: =>Parser[Answer], mat: Rep[Array[Array[Answer]]], z: Rep[Answer]) : Parser[Answer] // XXX: mat must go away
   
   /*************** simple parsers below *****************/
@@ -66,11 +66,11 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
 
   def parser_filter[T:Manifest](inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean]) :  Parser[T] = FilterParser(inner,p)
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U] = MapParser(inner,f)
-  def parser_or[T:Manifest](inner: Parser[T], that: => Parser[T]): Parser[T] = OrParser(inner, ()=>that)
+  def parser_or[T:Manifest](inner: Parser[T], that: Parser[T]): Parser[T] = OrParser(inner, that)
   def parser_aggregate[T:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) : Parser[T] = AggregateParser(inner,h)
   def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int],
-                                            that: => Parser[U]): Parser[(T,U)] = ConcatParser(inner, lL,lU,rL,rU, () => that)
-  def tabulate(name:String, inner: =>Parser[Answer], mat: Rep[Array[Array[Answer]]], z: Rep[Answer]) = TabulatedParser(name, inner, mat, z)(mAns)
+                                            that: Parser[U]): Parser[(T,U)] = ConcatParser(inner, lL,lU,rL,rU, that)
+  def tabulate(name:String, inner: =>Parser[Answer], mat: Rep[Array[Array[Answer]]], z: Rep[Answer]) = new TabulatedParser(name, inner, mat, z)(mAns)
 
   // Memoization through tabulation
   import scala.collection.mutable.HashSet
@@ -85,8 +85,8 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
     def apply(i: Rep[Int], j: Rep[Int]) = inner(i,j) map f
   }
 
-  case class OrParser[T:Manifest](inner: Parser[T], that: () => Parser[T]) extends Parser[T] {
-    def apply(i: Rep[Int], j: Rep[Int]) = inner(i,j) ++ that()(i,j)
+  case class OrParser[T:Manifest](inner: Parser[T], that: Parser[T]) extends Parser[T] {
+    def apply(i: Rep[Int], j: Rep[Int]) = inner(i,j) ++ that(i,j)
   }
 
   case class AggregateParser[T:Manifest, U:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) extends Parser[T] {
@@ -95,20 +95,20 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
     }
   }
 
-  case class ConcatParser[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: () => Parser[U]) extends Parser[(T,U)]{
+  case class ConcatParser[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: Parser[U]) extends Parser[(T,U)]{
     def apply(i: Rep[Int], j: Rep[Int]) = if(i< j){
       val min_k = if (rU== -1) i+lL else Math.max(i+lL,j-rU)
       val max_k = if (lU== -1) j-rL else Math.min(j-rL,i+lU)
       for(
         k <- (min_k until max_k+1).toList;
         x <- inner(i,k);
-        y <- that()(k,j)
+        y <- that(k,j)
       ) yield((x,y))
       //for(k <- (min_k until max_k+1).toList) yield((inner(i,k).head,that()(k,j).head)) + WARNING: test emptynesss of x,y
     } else List()
   }
 
-  case class TabulatedParser(name:String, inner: Parser[Answer], mat: Rep[Array[Array[Answer]]], z: Rep[Answer])(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
+  class TabulatedParser(name:String, inner: =>Parser[Answer], mat: Rep[Array[Array[Answer]]], z: Rep[Answer])(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
     def apply(i: Rep[Int], j: Rep[Int]) = {
       if(!(productions contains(name))) {
         productions += name
