@@ -121,10 +121,8 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
         // --- STAGED
         val tmp = inner(i,j)
         var s:Rep[Answer] = z // z is a zero placeholder
-
         if (!tmp.isEmpty) s = tmp.head
         //transform(tmp).apply{x:Rep[Answer] => s=x}
-
         mat(idx(i,j))=s
         // --- STAGED
         productions -= name
@@ -154,14 +152,17 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
   }
 }
 
+// A package to simplify mixing all the traits
+trait ParsersPkg extends ParsersExp with Signature with MiscOpsExp with ListToGenTransform with IfThenElseExp with CompileScala { self =>
+    val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
+      with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps with ScalaGenHackyRangeOps with ScalaGenTupleOps
+      with ScalaGenMiscOps with ScalaGenGeneratorOps{ val IR: self.type = self }
+}
+
 // ------------------------------------------------------------------------------
 
-import scala.virtualization.lms.common._
-import java.io.PrintWriter
-import java.io.FileOutputStream
-
 //matrix multiplication List to Gen
-trait MatMultToGenProg extends Parsers{ this: Signature =>
+trait MatMultAlgebra extends Parsers with Signature {
   type Alphabet = (Int,Int)
   type Answer = (Int, Int, Int)
 
@@ -173,14 +174,23 @@ trait MatMultToGenProg extends Parsers{ this: Signature =>
 }
 
 object MatMutlTest extends App {
-  new MatMultToGenProg with ParsersExp with Signature with MiscOpsExp with ListToGenTransform with IfThenElseExp with CompileScala { self =>
-    val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
-      with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps with ScalaGenHackyRangeOps with ScalaGenTupleOps
-      with ScalaGenMiscOps with ScalaGenGeneratorOps{ val IR: self.type = self }
-
+  new MatMultAlgebra with ParsersPkg {
     def h(x:Rep[Answer],y:Rep[Answer]) = if(x._2 < y._2) x else y
-    val z = (unit(0),unit(100000),unit(0))
 
+    def test(in:Input):Rep[Answer] = {
+      val a : Rep[Array[Answer]] = NewArray((in.length+1)*(in.length+1))
+      val z = (unit(0),unit(100000),unit(0))
+
+      lazy val p:TabulatedParser = tabulate("mat",(
+          el(in) ^^ single
+        | (p +~+ p) ^^ {x: Rep[(Answer,Answer)] => mult(x._1,x._2)}
+      ).aggregate(h),a,z,in.length)
+
+      bottomUp(in,p,a,z)(mAlph, mAns)
+    }
+
+/*
+    val z = (unit(0),unit(100000),unit(0))
     def multParser(in:Input, a: Rep[Array[Answer]]) : TabulatedParser = {
       lazy val p:TabulatedParser = tabulate("mat",(
           el(in) ^^ single
@@ -195,7 +205,7 @@ object MatMutlTest extends App {
       val res = bottomUp(in,mParser,a,z)(mAlph, mAns)
       res
     }
-
+*/
     codegen.emitSource(test _, "test-bottomup4", new java.io.PrintWriter(System.out))
     val testc = compile(test)
     val res = testc(scala.Array((10,100),(100,5),(5,50)))
