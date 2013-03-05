@@ -39,7 +39,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U]
   def parser_or[T:Manifest](inner: Parser[T], that: Parser[T]): Parser[T]
   def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: Parser[U]): Parser[(T,U)]
-  def tabulate(name:String, inner: =>Parser[Answer], z: Rep[Answer]) : Parser[Answer] // XXX: mat,z must go away
+  def tabulate(name:String, inner: =>Parser[Answer]) : Parser[Answer]
   
   /*************** terminals below *****************/
   def el(in: Input)(implicit mAlph: Manifest[Alphabet]) = new Parser[Alphabet] {
@@ -72,7 +72,7 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
   def parser_aggregate[T:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) : Parser[T] = AggregateParser(inner,h)
   def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int],
                                             that: Parser[U]): Parser[(T,U)] = ConcatParser(inner, lL,lU,rL,rU, that)
-  def tabulate(name:String, inner: =>Parser[Answer], z: Rep[Answer]) = new TabulatedParser(name, inner, z)(mAns)
+  def tabulate(name:String, inner: =>Parser[Answer]) = new TabulatedParser(name, inner)(mAns)
 
   // Memoization through tabulation
   import scala.collection.mutable.HashSet
@@ -111,7 +111,7 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
   }
 
   // Call init(n) before usage and clear to free memory, use get to retrieve final value
-  class TabulatedParser(name:String, inner: =>Parser[Answer], z: Rep[Answer])(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
+  class TabulatedParser(name:String, inner: =>Parser[Answer])(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
     private var sz:Rep[Int] = unit(0)
     private var mem:Rep[Int] = unit(0)
     private var tab:Rep[Array[Answer]] = null
@@ -125,20 +125,20 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
         productions += name
         // --- STAGED
         val tmp = inner(i,j)
-        var s:Rep[Answer] = z // z is a zero placeholder
-        if (!tmp.isEmpty) s = tmp.head
-        //transform(tmp).apply{x:Rep[Answer] => s=x}
-        tab(idx(i,j))=s
+        if (!tmp.isEmpty) { tab(idx(i,j)) = tmp.head }
+        //transform(tmp).apply{x:Rep[Answer] => tab(idx(i,j))=x}
         // --- STAGED
         productions -= name
       }
       val e = tab(idx(i,j))
-      if (e==z) List() else List(e)
+      // Since we build bottom-up, null means 'already processed and with no result'
+      // NOTE: A null would be encoded in C with uninitialized value and rule_id = -1
+      if (e==null.asInstanceOf[Answer]) List() else List(e)
     }
   }
 
   // Bottom-up scheduling (from bottomUp2)
-  def bottomUp(in:Input, p: =>TabulatedParser, z: Rep[Answer])(implicit mAlph: Manifest[Alphabet], mA: Manifest[Answer]) : Rep[Answer] = {
+  def bottomUp(in:Input, p: =>TabulatedParser)(implicit mAlph: Manifest[Alphabet], mA: Manifest[Answer]) : Rep[Answer] = {
     //
     // XXX: convert here into generators recursively ?
     //
@@ -146,7 +146,8 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
     (1 until n + 1).foreach{l =>
       (0 until n + 1 -l).foreach{i =>
         val j = i+l
-        var z = p(i,j);
+        p(i,j);
+        ();
       }
     }
     val r = p.get
@@ -183,14 +184,12 @@ object MatMutlTest extends App {
 
     // Matrix multiplication grammar
     def grammar(in:Input):Rep[Answer] = {
-      val z = (unit(0),unit(100000),unit(0))
-
       lazy val p:TabulatedParser = tabulate("mat",(
           el(in) ^^ single
         | (p +~+ p) ^^ {x: Rep[(Answer,Answer)] => mult(x._1,x._2)}
-      ).aggregate(h),z)
+      ).aggregate(h))
 
-      bottomUp(in,p,z)(mAlph, mAns)
+      bottomUp(in,p)(mAlph, mAns)
     }
 
     // Now we compile and execute our program
