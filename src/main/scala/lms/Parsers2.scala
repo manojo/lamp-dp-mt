@@ -1,6 +1,8 @@
 package lms.v2
 
-import lms._
+import lms.{MyListOps,MyListOpsExp,ScalaGenMyListOps}
+import lms.{HackyRangeOps,HackyRangeOpsExp,ScalaGenHackyRangeOps}
+import lms.{ListToGenTransform,ScalaGenGeneratorOps}
 import scala.virtualization.lms.common._
 
 trait Signature {
@@ -15,7 +17,7 @@ trait Signature {
 
 trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
                  with LiftNumeric with Equal with BooleanOps with OrderingOps
-                 with MathOps with HackyRangeOps with TupleOps with MiscOps{this: Sig =>
+                 with MathOps with HackyRangeOps with TupleOps with MiscOps { this: Signature =>
 
   type Input = Rep[Array[Alphabet]] //DSL related type aliases and info
 
@@ -37,9 +39,9 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U]
   def parser_or[T:Manifest](inner: Parser[T], that: Parser[T]): Parser[T]
   def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: Parser[U]): Parser[(T,U)]
-  def tabulate(name:String, inner: =>Parser[Answer], mat: Rep[Array[Array[Answer]]], z: Rep[Answer]) : Parser[Answer] // XXX: mat must go away
+  def tabulate(name:String, inner: =>Parser[Answer], mat: Rep[Array[Answer]], z: Rep[Answer], n:Rep[Int]) : Parser[Answer] // XXX: mat,z must go away
   
-  /*************** simple parsers below *****************/
+  /*************** terminals below *****************/
   def el(in: Input)(implicit mAlph: Manifest[Alphabet]) = new Parser[Alphabet] {
     def apply(i:Rep[Int], j:Rep[Int]) = if(i+1==j) List(in(i)) else List()
   }
@@ -49,7 +51,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
   }
 }
 
-trait LexicalParsers extends Parsers {this: Sig =>
+trait LexicalParsers extends Parsers {this: Signature =>
   type Alphabet = Char
   val mAlph = manifest[Char]
 
@@ -62,7 +64,7 @@ trait LexicalParsers extends Parsers {this: Sig =>
 trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNumeric
     with NumericOpsExp with IfThenElseExp with EqualExp with BooleanOpsExp
     with OrderingOpsExp with MathOpsExp with HackyRangeOpsExp
-    with TupleOpsExp with ListToGenTransform{this: Sig =>
+    with TupleOpsExp with ListToGenTransform{this: Signature =>
 
   def parser_filter[T:Manifest](inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean]) :  Parser[T] = FilterParser(inner,p)
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U] = MapParser(inner,f)
@@ -70,7 +72,7 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
   def parser_aggregate[T:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) : Parser[T] = AggregateParser(inner,h)
   def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int],
                                             that: Parser[U]): Parser[(T,U)] = ConcatParser(inner, lL,lU,rL,rU, that)
-  def tabulate(name:String, inner: =>Parser[Answer], mat: Rep[Array[Array[Answer]]], z: Rep[Answer]) = new TabulatedParser(name, inner, mat, z)(mAns)
+  def tabulate(name:String, inner: =>Parser[Answer], mat: Rep[Array[Answer]], z: Rep[Answer], n:Rep[Int]) = new TabulatedParser(name, inner, mat, z, n)(mAns)
 
   // Memoization through tabulation
   import scala.collection.mutable.HashSet
@@ -108,36 +110,47 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
     } else List()
   }
 
-  class TabulatedParser(name:String, inner: =>Parser[Answer], mat: Rep[Array[Array[Answer]]], z: Rep[Answer])(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
+  class TabulatedParser(name:String, inner: =>Parser[Answer], mat: Rep[Array[Answer]], z: Rep[Answer], n:Rep[Int])(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
+  // Upper triangular matrix
+    val mem = (n+1)*(n+2)/2;
+    def idx(i:Rep[Int],j:Rep[Int]) = { val d=n+2+i-j; mem - (d*(d-1))/2 + i; }
+
     def apply(i: Rep[Int], j: Rep[Int]) = {
       if(!(productions contains(name))) {
         productions += name
+        // --- STAGED
         val tmp = inner(i,j)
-        var s:Rep[Answer] = z
-        //if (!tmp.isEmpty) s = tmp.head // z is a zero placeholder
-        transform(tmp).apply { x:Rep[Answer] => s=x }
-        val x=mat(i); x(j)=s
+        var s:Rep[Answer] = z // z is a zero placeholder
+
+        if (!tmp.isEmpty) s = tmp.head
+        //transform(tmp).apply{x:Rep[Answer] => s=x}
+
+        mat(idx(i,j))=s
+        // --- STAGED
         productions -= name
       }
-      val e = mat(i).apply(j)
+      val e = mat(idx(i,j))
       if (e==z) List() else List(e)
-
     }
   }
 
   // Bottom-up parsing (from bottomUp2)
-  def bottomUp(in:Input, p: =>TabulatedParser, costMatrix: Rep[Array[Array[Answer]]], z: Rep[Answer])(implicit mAlph: Manifest[Alphabet], mA: Manifest[Answer]) : Rep[Answer] = {
+  def bottomUp(in:Input, p: =>TabulatedParser, costMatrix: Rep[Array[Answer]], z: Rep[Answer])(implicit mAlph: Manifest[Alphabet], mA: Manifest[Answer]) : Rep[Answer] = {
+  	val n = in.length
+    val mem = (n+1)*(n+2)/2;
+    def idx(i:Rep[Int],j:Rep[Int]) = { val d=n+2+i-j; mem - (d*(d-1))/2 + i; }
+
     (1 until in.length + 1).foreach{l =>
       (0 until in.length + 1 -l).foreach{i =>
         val j = i+l
         var s = z
         val res = p(i,j)
-        val genp = transform(res)
-        genp{x:Rep[Answer] => s=x}
-        val x=costMatrix(i); x(j)=s
+        if (!res.isEmpty) s=res.head
+        //transform(res).apply{x:Rep[Answer] => s=x}
+        costMatrix(idx(i,j))=s
       }
     }
-    val temp = costMatrix(0); temp(in.length)
+    costMatrix(idx(0,in.length))
   }
 }
 
@@ -148,7 +161,7 @@ import java.io.PrintWriter
 import java.io.FileOutputStream
 
 //matrix multiplication List to Gen
-trait MatMultToGenProg extends Parsers{ this: Sig =>
+trait MatMultToGenProg extends Parsers{ this: Signature =>
   type Alphabet = (Int,Int)
   type Answer = (Int, Int, Int)
 
@@ -160,47 +173,32 @@ trait MatMultToGenProg extends Parsers{ this: Sig =>
 }
 
 object MatMutlTest extends App {
-  new MatMultToGenProg with ParsersExp with Sig with MiscOpsExp with ListToGenTransform with IfThenElseExp with CompileScala { self =>
+  new MatMultToGenProg with ParsersExp with Signature with MiscOpsExp with ListToGenTransform with IfThenElseExp with CompileScala { self =>
     val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
       with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps with ScalaGenHackyRangeOps with ScalaGenTupleOps
       with ScalaGenMiscOps with ScalaGenGeneratorOps{ val IR: self.type = self }
 
-        def h(x:Rep[Answer],y:Rep[Answer]) = if(x._2 < y._2) x else y
-        val z = (unit(0),unit(100000),unit(0))
+    def h(x:Rep[Answer],y:Rep[Answer]) = if(x._2 < y._2) x else y
+    val z = (unit(0),unit(100000),unit(0))
 
-        def multParser(in:Input, a: Rep[Array[Array[Answer]]]) : TabulatedParser = {
-          lazy val p:TabulatedParser = tabulate("mat",(
-          	   el(in) ^^ single
-             | (p +~+ p) ^^ {x: Rep[(Answer,Answer)] => mult(x._1,x._2)}
-           ).aggregate(h),a,z)
-          p
-        }
+    def multParser(in:Input, a: Rep[Array[Answer]]) : TabulatedParser = {
+      lazy val p:TabulatedParser = tabulate("mat",(
+          el(in) ^^ single
+        | (p +~+ p) ^^ {x: Rep[(Answer,Answer)] => mult(x._1,x._2)}
+      ).aggregate(h),a,z,in.length)
+      p
+    }
 
-        //with listtogen transform
-        def test(in: Input): Rep[Answer] = {
-          val a : Rep[Array[Array[Answer]]] = NewArray(in.length+1)
+    def test(in: Input): Rep[Answer] = { // arrays allocation wrapper
+      val a : Rep[Array[Answer]] = NewArray((in.length+1)*(in.length+1))
+      val mParser = multParser(in, a)
+      val res = bottomUp(in,mParser,a,z)(mAlph, mAns)
+      res
+    }
 
-          (0 until in.length + 1).foreach{ i=> a(i) = NewArray(in.length+1) }
-          val mParser = multParser(in, a)
-          val res = bottomUp(in,mParser,a,z)(mAlph, mAns)
-          res
-        }
-
-  /*
-        def ttt(y:Rep[List[Int]]):Rep[Int] = {
-          var x = if (y.head==3) List(3) else List()
-          if (x.isEmpty) { unit(0) } else { x.head }
-        }
-        val ttc = compile(ttt);
-        val ttr = scala.List(2)
-        scala.Console.println(ttc(ttr))
-    */    
-
-        codegen.emitSource(test _ , "test-bottomup3", new java.io.PrintWriter(System.out))
-        val testc = compile(test)
-        val res = testc(scala.Array((10,100),(100,5),(5,50)))
-        scala.Console.println(res)
-      }
-
-
+    codegen.emitSource(test _, "test-bottomup4", new java.io.PrintWriter(System.out))
+    val testc = compile(test)
+    val res = testc(scala.Array((10,100),(100,5),(5,50)))
+    scala.Console.println(res)
+  }
 }
