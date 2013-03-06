@@ -23,7 +23,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
 
   abstract class Parser[T:Manifest] extends ((Rep[Int], Rep[Int]) => Rep[List[T]]){inner =>
 
-    def filter (p: (Rep[Int], Rep[Int]) => Rep[Boolean]) = parser_filter(this, p)
+    def filter(p: Rep[T] => Rep[Boolean]) = parser_filter(this, p)
 
     def ^^[U:Manifest](f: Rep[T] => Rep[U]) = this.map(f)
     private def map[U:Manifest](f: Rep[T] => Rep[U]) = parser_map(this, f)
@@ -56,7 +56,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
   }
 
 
-  def parser_filter[T:Manifest](inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean]) :  Parser[T]
+  def parser_filter[T:Manifest](inner: Parser[T], p: Rep[T] => Rep[Boolean]) :  Parser[T]
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U]
   def parser_or[T:Manifest](inner: Parser[T], that: => Parser[T]): Parser[T]
   def parser_aggregate[T:Manifest,U:Manifest](inner: Parser[T], h: Rep[List[T]] => Rep[List[U]]) : Parser[U]
@@ -92,32 +92,8 @@ trait LexicalParsers extends Parsers {this: Sig =>
       if(i+1==j) List(in(i)) else List()
   }
 
-  def charf(in: Input, c: Rep[Char]) = char(in) filter { (i: Rep[Int], j: Rep[Int]) =>
-    (i + 1 == j) && in(i) == c
-  }
-
-
-  def myParser(in: Input) : Parser[Char] = {
-    /*val a : Rep[Array[Array[List[Char]]]] = NewArray(in.length+1)
-    (0 until in.length + 2).foreach{ i=>
-      a(0) = NewArray(in.length+1)
-    }
-
-    tabulate("myParser",
-      charf(in, 'm'),
-      a
-    )*/
-    charf(in,'m')
-  }
-
-
-  def bla(in: Input) : Rep[List[Char]] = {
-    //def p : Parser[List[Char]] = (charf(in, 'm') -~~ p) ^^ concatenate
-    myParser(in)(0,in.length)//.head
-  }
-
-  def concatenate(t : Rep[(Char, List[Char])]) = t._1 :: t._2
-
+  def charf(in: Input, f: Rep[Char] => Rep[Boolean]): Parser[Char] =
+    char(in).filter(f)
 }
 
 trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNumeric
@@ -126,7 +102,7 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
     with TupleOpsExp with ListToGenTransform{this: Sig =>
 
 
-  def parser_filter[T:Manifest](inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean]) :  Parser[T] =
+  def parser_filter[T:Manifest](inner: Parser[T], p: Rep[T] => Rep[Boolean]) :  Parser[T] =
     FilterParser(inner,p)
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U] =
     MapParser(inner,f)
@@ -152,8 +128,8 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
 
   /*** case classes for matching on Parsers */
 
-  case class FilterParser[T:Manifest](inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean]) extends Parser[T]{
-    def apply(i: Rep[Int], j: Rep[Int]) = if(p(i,j)) inner(i,j) else List()
+  case class FilterParser[T:Manifest](inner: Parser[T], p: Rep[T] => Rep[Boolean]) extends Parser[T]{
+    def apply(i: Rep[Int], j: Rep[Int]) = inner(i,j) filter p
   }
 
   case class MapParser[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) extends Parser[U]{
@@ -231,25 +207,18 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
      mat: Rep[Array[Array[Answer]]], z: Rep[Answer],
      f: (Rep[Answer], Rep[Answer]) => Rep[Answer])(implicit val mAns: Manifest[Answer]) extends Parser[Answer]{
      def apply(i: Rep[Int], j: Rep[Int]) = {
-       //if(i <= j){
-         if(!(productions contains(name)) /*|| mat(i)(j) == null*/){
-           productions += name
+       if(!(productions contains(name)) /*|| mat(i)(j) == null*/){
+         productions += name
 
-           val tmp = inner(i,j)
-           var s = z
-           transform(tmp).apply{
-            x : Rep[Answer] => s = f(s,x)
-           }
-           mat(i)(j) = s //we expect one element
-           productions -= name
-           //val a = mat(i)
-           //List(a(j))
+         val tmp = inner(i,j)
+         var s = z
+         transform(tmp).apply{
+          x : Rep[Answer] => s = f(s,x)
          }
-         // else {
-           val tmp = mat(i)
-           List(tmp(j))
-         //}
-       //} else List()
+         mat(i)(j) = s //we expect one element
+         productions -= name
+       }
+       List(mat(i).apply(j))
      }
    }
 
@@ -349,27 +318,4 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
    }
   }
 
-}
-
-object HelloParsers extends App {
-
-  //import LoopsProgExp._
-
-  val concreteProg = new LexicalParsers with ParsersExp with Sig with MiscOpsExp{ self =>
-    type Answer = Double
-    val mAns = manifest[Answer]
-
-    val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
-      with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-      with ScalaGenHackyRangeOps with ScalaGenTupleOps{ val IR: self.type = self }
-
-    codegen.emitSource(bla, "bla", new java.io.PrintWriter(System.out))
-
-  }
-
-  //val f = (x:Rep[Double]) => fac(x) + fac(2.0 *x)
-  //println(globalDefs.mkString("\n"))
-  //println(f)
-  //val p = new CudaGenNumericOps with CudaGenMathOps with CudaGenEqual with
-  //  CudaGenIfThenElse with CudaGenFunctions { val IR: FacProgExp.type = FacProgExp }
 }
