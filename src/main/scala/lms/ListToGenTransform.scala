@@ -47,7 +47,6 @@ with GeneratorOpsExp with MyListOpsExp with IfThenElseExp{ self =>
       //case Def(MyListFlatMap(xs, f)) =>
         //transform(xs).flatMap{x => transform(f(x))}
 
-      //TODO: fix, not working yet ...
       case (ListFlatMap(l, x, b: Block[List[A]])) => b match {
         case Block(xs) =>
         transform(l).flatMap{ y =>

@@ -1,0 +1,348 @@
+error: illegal sharing of mutable objects Sym(6)
+at Sym(7)=Reflect(ArrayUpdate(Sym(3),Sym(5),Sym(6)),Summary(false,false,false,false,false,List(Sym(3), Sym(6)),List(Sym(3), Sym(6)),List(Sym(3)),List(Sym(3))),List(Sym(6)))
+error: write to non-mutable Sym(230) -> Some(TP(Sym(230),Reflect(ArrayApply(Sym(3),Sym(14)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List())))
+at Sym(232)=Reflect(ArrayUpdate(Sym(230),Sym(15),Sym(231)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(230)),List(Sym(230))),List(Sym(230)))
+error: illegal sharing of mutable objects Sym(3)
+at Sym(232)=Reflect(ArrayUpdate(Sym(230),Sym(15),Sym(231)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(230)),List(Sym(230))),List(Sym(230)))
+error: write to non-mutable Sym(230) -> Some(TP(Sym(230),Reflect(ArrayApply(Sym(3),Sym(14)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List())))
+at Sym(241)=Reflect(ArrayUpdate(Sym(230),Sym(15),Sym(240)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(230)),List(Sym(230))),List(Sym(230), Sym(232)))
+error: illegal sharing of mutable objects Sym(3)
+at Sym(241)=Reflect(ArrayUpdate(Sym(230),Sym(15),Sym(240)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(230)),List(Sym(230))),List(Sym(230), Sym(232)))
+error: write to non-mutable Sym(230) -> Some(TP(Sym(230),Reflect(ArrayApply(Sym(3),Sym(14)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List())))
+at Sym(243)=Reflect(RangeForeach(Const(0),Sym(12),Sym(14),Block(Sym(242))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(Sym(230)),List()),List())
+error: write to non-mutable Sym(230) -> Some(TP(Sym(230),Reflect(ArrayApply(Sym(3),Sym(14)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List())))
+at Sym(245)=Reflect(RangeForeach(Const(1),Sym(2),Sym(11),Block(Sym(244))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(Sym(230)),List()),List(Sym(3), Sym(9)))
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class parser-to-gen-matmult extends ((Array[Char])=>(Int)) {
+def apply(x0:Array[Char]): Int = {
+val x1 = x0.length
+val x2 = x1 + 1
+val x3 = new Array[Array[Int]](x2)
+var x5 : Int = 0
+val x9 = while (x5 < x2) {
+val x6 = new Array[Int](x2)
+val x7 = x3(x5) = x6
+x7
+x5 = x5 + 1
+}
+val x33 = 0 == 0
+val x45 = 1 == 0
+var x11 : Int = 1
+val x245 = while (x11 < x2) {
+val x12 = x2 - x11
+var x14 : Int = 0
+val x243 = while (x14 < x12) {
+var x16: Int = 0
+var x148: Int = 0
+val x15 = x14 + x11
+val x17 = x14 + 1
+val x18 = x17 == x15
+val x158 = if (x18) {
+val x19 = x0(x14)
+val x23 = x19
+val x24 = x23 >= '0'
+val x25 = x23 < '9'
+val x26 = x24 && x25
+val x149 = x26
+val x156 = if (x149) {
+val x151 = x148
+val x28 = x19
+val x29 = x28.toInt
+val x30 = x29 - 48
+val x150 = x30
+val x152 = x151 > x150
+val x153 = if (x152) {
+x151
+} else {
+x150
+}
+x148 = x153
+()
+} else {
+()
+}
+x156
+} else {
+()
+}
+val x32 = x14 < x15
+val x194 = if (x32) {
+val x37 = if (x33) {
+val x34 = x14 + 0
+x34
+} else {
+val x34 = x14 + 0
+val x35 = x15 - 0
+val x36 = java.lang.Math.max(x34, x35)
+x36
+}
+val x39 = if (x33) {
+val x35 = x15 - 0
+x35
+} else {
+val x34 = x14 + 0
+val x35 = x15 - 0
+val x38 = java.lang.Math.min(x35, x34)
+x38
+}
+val x40 = x39 + 1
+val x159 = x37 < x40
+val x192 = if (x159) {
+val x34 = x14 + 0
+val x55 = x3(x14)
+var x160 : Int = x37
+val x190 = while (x160 < x40) {
+val x43 = x160
+val x44 = x14 < x43
+val x186 = if (x44) {
+val x48 = if (x45) {
+x34
+} else {
+val x46 = x43 - 1
+val x47 = java.lang.Math.max(x34, x46)
+x47
+}
+val x50 = if (x33) {
+val x46 = x43 - 1
+x46
+} else {
+val x46 = x43 - 1
+val x49 = java.lang.Math.min(x46, x34)
+x49
+}
+val x51 = x50 + 1
+val x161 = x48 < x51
+val x184 = if (x161) {
+val x76 = x3(x43)
+val x77 = x76(x15)
+var x162 : Int = x48
+val x182 = while (x162 < x51) {
+val x54 = x162
+val x56 = x55(x54)
+val x59 = x54 + 1
+val x60 = x59 == x43
+val x58 = x56
+val x176 = if (x60) {
+val x61 = x0(x54)
+val x64 = x61
+val x65 = x64 == '+'
+val x163 = x65
+val x174 = if (x163) {
+val x67 = x61
+val x68 = (x58,x67)
+val x164 = x68
+val x75 = x164
+val x167 = x148
+val x79 = x77
+val x80 = (x75,x79)
+val x165 = x80
+val x88 = x165
+val x90 = x88._2
+val x89 = x88._1
+val x91 = x89._1
+val x93 = x91 + x90
+val x166 = x93
+val x168 = x167 > x166
+val x169 = if (x168) {
+x167
+} else {
+x166
+}
+x148 = x169
+val x172 = ()
+x172
+} else {
+()
+}
+x174
+} else {
+()
+}
+val x178 = x176
+val x180 = x178
+x180
+x162 = x162 + 1
+}
+x182
+} else {
+()
+}
+x184
+} else {
+()
+}
+val x188 = x186
+x188
+x160 = x160 + 1
+}
+x190
+} else {
+()
+}
+x192
+} else {
+()
+}
+val x229 = if (x32) {
+val x37 = if (x33) {
+val x34 = x14 + 0
+x34
+} else {
+val x34 = x14 + 0
+val x35 = x15 - 0
+val x36 = java.lang.Math.max(x34, x35)
+x36
+}
+val x39 = if (x33) {
+val x35 = x15 - 0
+x35
+} else {
+val x34 = x14 + 0
+val x35 = x15 - 0
+val x38 = java.lang.Math.min(x35, x34)
+x38
+}
+val x40 = x39 + 1
+val x159 = x37 < x40
+val x227 = if (x159) {
+val x34 = x14 + 0
+val x107 = x3(x14)
+var x195 : Int = x37
+val x225 = while (x195 < x40) {
+val x96 = x195
+val x97 = x14 < x96
+val x221 = if (x97) {
+val x100 = if (x45) {
+x34
+} else {
+val x98 = x96 - 1
+val x99 = java.lang.Math.max(x34, x98)
+x99
+}
+val x102 = if (x33) {
+val x98 = x96 - 1
+x98
+} else {
+val x98 = x96 - 1
+val x101 = java.lang.Math.min(x98, x34)
+x101
+}
+val x103 = x102 + 1
+val x196 = x100 < x103
+val x219 = if (x196) {
+val x128 = x3(x96)
+val x129 = x128(x15)
+var x197 : Int = x100
+val x217 = while (x197 < x103) {
+val x106 = x197
+val x108 = x107(x106)
+val x111 = x106 + 1
+val x112 = x111 == x96
+val x110 = x108
+val x211 = if (x112) {
+val x113 = x0(x106)
+val x116 = x113
+val x117 = x116 == '*'
+val x198 = x117
+val x209 = if (x198) {
+val x119 = x113
+val x120 = (x110,x119)
+val x199 = x120
+val x127 = x199
+val x202 = x148
+val x131 = x129
+val x132 = (x127,x131)
+val x200 = x132
+val x140 = x200
+val x142 = x140._2
+val x141 = x140._1
+val x143 = x141._1
+val x145 = x143 * x142
+val x201 = x145
+val x203 = x202 > x201
+val x204 = if (x203) {
+x202
+} else {
+x201
+}
+x148 = x204
+val x207 = ()
+x207
+} else {
+()
+}
+x209
+} else {
+()
+}
+val x213 = x211
+val x215 = x213
+x215
+x197 = x197 + 1
+}
+x217
+} else {
+()
+}
+x219
+} else {
+()
+}
+val x223 = x221
+x223
+x195 = x195 + 1
+}
+x225
+} else {
+()
+}
+x227
+} else {
+()
+}
+val x230 = x3(x14)
+val x231 = x148
+val x232 = x230(x15) = x231
+val x233 = x230(x15)
+val x235 = x16
+val x236 = x233 > x235
+val x239 = if (x236) {
+x16 = x233
+()
+} else {
+()
+}
+val x240 = x16
+val x241 = x230(x15) = x240
+x241
+x14 = x14 + 1
+}
+x243
+x11 = x11 + 1
+}
+val x246 = x3(0)
+val x247 = x246(x1)
+x247
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+error: illegal sharing of mutable objects Sym(255)
+at Sym(256)=Reflect(ArrayUpdate(Sym(252),Sym(254),Sym(255)),Summary(false,false,false,false,false,List(Sym(252), Sym(255)),List(Sym(252), Sym(255)),List(Sym(252)),List(Sym(252))),List(Sym(255)))
+error: write to non-mutable Sym(476) -> Some(TP(Sym(476),Reflect(ArrayApply(Sym(252),Sym(263)),Summary(false,false,false,false,false,List(Sym(252)),List(Sym(252)),List(),List()),List())))
+at Sym(478)=Reflect(ArrayUpdate(Sym(476),Sym(264),Sym(477)),Summary(false,false,false,false,false,List(Sym(252)),List(Sym(252)),List(Sym(476)),List(Sym(476))),List(Sym(476)))
+error: illegal sharing of mutable objects Sym(252)
+at Sym(478)=Reflect(ArrayUpdate(Sym(476),Sym(264),Sym(477)),Summary(false,false,false,false,false,List(Sym(252)),List(Sym(252)),List(Sym(476)),List(Sym(476))),List(Sym(476)))
+error: write to non-mutable Sym(476) -> Some(TP(Sym(476),Reflect(ArrayApply(Sym(252),Sym(263)),Summary(false,false,false,false,false,List(Sym(252)),List(Sym(252)),List(),List()),List())))
+at Sym(487)=Reflect(ArrayUpdate(Sym(476),Sym(264),Sym(486)),Summary(false,false,false,false,false,List(Sym(252)),List(Sym(252)),List(Sym(476)),List(Sym(476))),List(Sym(476), Sym(478)))
+error: illegal sharing of mutable objects Sym(252)
+at Sym(487)=Reflect(ArrayUpdate(Sym(476),Sym(264),Sym(486)),Summary(false,false,false,false,false,List(Sym(252)),List(Sym(252)),List(Sym(476)),List(Sym(476))),List(Sym(476), Sym(478)))
+error: write to non-mutable Sym(476) -> Some(TP(Sym(476),Reflect(ArrayApply(Sym(252),Sym(263)),Summary(false,false,false,false,false,List(Sym(252)),List(Sym(252)),List(),List()),List())))
+at Sym(489)=Reflect(RangeForeach(Const(0),Sym(261),Sym(263),Block(Sym(488))),Summary(false,false,false,false,false,List(Sym(252)),List(),List(Sym(476)),List()),List())
+error: write to non-mutable Sym(476) -> Some(TP(Sym(476),Reflect(ArrayApply(Sym(252),Sym(263)),Summary(false,false,false,false,false,List(Sym(252)),List(Sym(252)),List(),List()),List())))
+at Sym(491)=Reflect(RangeForeach(Const(1),Sym(251),Sym(260),Block(Sym(490))),Summary(false,false,false,false,false,List(Sym(252)),List(),List(Sym(476)),List()),List(Sym(252), Sym(258)))
+compilation: ok
+81

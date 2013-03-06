@@ -1,0 +1,292 @@
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class gen-parser-elmamun extends ((Array[Char])=>(Int)) {
+def apply(x0:Array[Char]): Int = {
+val x1 = x0.length
+val x2 = x1 + 1
+val x3 = x2 * x2
+val x4 = new Array[Int](x3)
+val x16 = 0 == 0
+val x44 = 1 == 0
+var x6 : Int = 1
+val x150 = while (x6 < x2) {
+val x7 = x2 - x6
+var x9 : Int = 0
+val x148 = while (x9 < x7) {
+var x11: Int = 0
+val x10 = x9 + x6
+val x12 = x9 < x10
+val x30 = x9 * x2
+val x31 = x30 + x10
+val x144 = if (x12) {
+val x13 = x9 + 1
+val x14 = x13 == x10
+val x40 = if (x14) {
+val x15 = x0(x9)
+val x25 = x15 >= '0'
+val x26 = x15 < '9'
+val x27 = x25 && x26
+val x38 = if (x27) {
+val x28 = x15.toInt
+val x29 = x28 - 48
+val x32 = x4(x31) = x29
+val x33 = x11
+val x34 = x29 > x33
+val x35 = if (x34) {
+x29
+} else {
+x33
+}
+x11 = x35
+()
+} else {
+()
+}
+x38
+} else {
+()
+}
+val x92 = if (x12) {
+val x20 = if (x16) {
+val x17 = x9 + 0
+x17
+} else {
+val x17 = x9 + 0
+val x18 = x10 - 0
+val x19 = java.lang.Math.max(x17, x18)
+x19
+}
+val x22 = if (x16) {
+val x18 = x10 - 0
+x18
+} else {
+val x17 = x9 + 0
+val x18 = x10 - 0
+val x21 = java.lang.Math.min(x18, x17)
+x21
+}
+val x23 = x22 + 1
+val x24 = x20 < x23
+val x90 = if (x24) {
+val x17 = x9 + 0
+var x42 : Int = x20
+val x88 = while (x42 < x23) {
+val x43 = x9 < x42
+val x86 = if (x43) {
+val x47 = if (x44) {
+x17
+} else {
+val x45 = x42 - 1
+val x46 = java.lang.Math.max(x17, x45)
+x46
+}
+val x49 = if (x16) {
+val x45 = x42 - 1
+x45
+} else {
+val x45 = x42 - 1
+val x48 = java.lang.Math.min(x45, x17)
+x48
+}
+val x50 = x49 + 1
+val x51 = x47 < x50
+val x84 = if (x51) {
+val x62 = x42 < x10
+val x63 = x42 * x2
+val x64 = x63 + x10
+var x53 : Int = x47
+val x82 = while (x53 < x50) {
+val x54 = x9 < x53
+val x80 = if (x54) {
+val x55 = x30 + x53
+val x56 = x4(x55)
+val x57 = x53 + 1
+val x58 = x57 == x42
+val x78 = if (x58) {
+val x59 = x0(x53)
+val x60 = x59 == '+'
+val x76 = if (x60) {
+val x74 = if (x62) {
+val x65 = x4(x64)
+val x67 = x56 + x65
+val x68 = x4(x31) = x67
+val x69 = x11
+val x70 = x67 > x69
+val x71 = if (x70) {
+x67
+} else {
+x69
+}
+x11 = x71
+()
+} else {
+()
+}
+x74
+} else {
+()
+}
+x76
+} else {
+()
+}
+x78
+} else {
+()
+}
+x80
+x53 = x53 + 1
+}
+x82
+} else {
+()
+}
+x84
+} else {
+()
+}
+x86
+x42 = x42 + 1
+}
+x88
+} else {
+()
+}
+x90
+} else {
+()
+}
+val x142 = if (x12) {
+val x20 = if (x16) {
+val x17 = x9 + 0
+x17
+} else {
+val x17 = x9 + 0
+val x18 = x10 - 0
+val x19 = java.lang.Math.max(x17, x18)
+x19
+}
+val x22 = if (x16) {
+val x18 = x10 - 0
+x18
+} else {
+val x17 = x9 + 0
+val x18 = x10 - 0
+val x21 = java.lang.Math.min(x18, x17)
+x21
+}
+val x23 = x22 + 1
+val x24 = x20 < x23
+val x140 = if (x24) {
+val x17 = x9 + 0
+var x93 : Int = x20
+val x138 = while (x93 < x23) {
+val x94 = x9 < x93
+val x136 = if (x94) {
+val x97 = if (x44) {
+x17
+} else {
+val x95 = x93 - 1
+val x96 = java.lang.Math.max(x17, x95)
+x96
+}
+val x99 = if (x16) {
+val x95 = x93 - 1
+x95
+} else {
+val x95 = x93 - 1
+val x98 = java.lang.Math.min(x95, x17)
+x98
+}
+val x100 = x99 + 1
+val x101 = x97 < x100
+val x134 = if (x101) {
+val x112 = x93 < x10
+val x113 = x93 * x2
+val x114 = x113 + x10
+var x103 : Int = x97
+val x132 = while (x103 < x100) {
+val x104 = x9 < x103
+val x130 = if (x104) {
+val x105 = x30 + x103
+val x106 = x4(x105)
+val x107 = x103 + 1
+val x108 = x107 == x93
+val x128 = if (x108) {
+val x109 = x0(x103)
+val x110 = x109 == '*'
+val x126 = if (x110) {
+val x124 = if (x112) {
+val x115 = x4(x114)
+val x117 = x106 * x115
+val x118 = x4(x31) = x117
+val x119 = x11
+val x120 = x117 > x119
+val x121 = if (x120) {
+x117
+} else {
+x119
+}
+x11 = x121
+()
+} else {
+()
+}
+x124
+} else {
+()
+}
+x126
+} else {
+()
+}
+x128
+} else {
+()
+}
+x130
+x103 = x103 + 1
+}
+x132
+} else {
+()
+}
+x134
+} else {
+()
+}
+x136
+x93 = x93 + 1
+}
+x138
+} else {
+()
+}
+x140
+} else {
+()
+}
+()
+} else {
+()
+}
+val x145 = x11
+val x146 = x4(x31) = x145
+x146
+x9 = x9 + 1
+}
+x148
+x6 = x6 + 1
+}
+val x151 = 0 * x2
+val x152 = x151 + x1
+val x153 = x4(x152)
+x153
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+81

@@ -62,6 +62,45 @@ trait GenMatMultProg extends GeneratorParsers{ this: Sig =>
   }
 }
 
+//El Mamun
+trait GenElMamunProg extends LexicalGenParsers with MyCharOps{ this: Sig =>
+
+  type Answer = Int
+  val mAns = manifest[Int]
+
+  def isDigit(c: Rep[Char]) : Rep[Boolean] = {
+    c >= unit('0') && c < unit('9')
+  }
+
+  def add(i: Rep[Answer], j:Rep[Answer]) = i+j
+  def mult(l: Rep[Answer],r : Rep[Answer]) = l * r
+
+  def billGrammar(in:Input, a: Rep[Array[Answer]]) : TabulatedParser = {
+    def plus = charf(in, _ == '+')
+    def times = charf(in, _ == '*')
+
+    lazy val p : TabulatedParser = tabulate(
+     (charf(in, {x: Rep[Char] => isDigit(x)}) ^^ {x: Rep[Char] => (x.toInt - unit('0'.toInt))}
+     | (p ~~- plus ~~~ p) ^^ {x:Rep[((Answer,Alphabet),Answer)] => add(x._1._1, x._2)}
+     | (p ~~- times ~~~ p) ^^ {x:Rep[((Answer,Alphabet),Answer)] => mult(x._1._1, x._2)}
+     ),
+     "mat",
+     a, in.length
+    )
+   p
+  }
+
+  def testBottomup(in: Input): Rep[Answer] = {
+    val a : Rep[Array[Answer]] = NewArray((in.length+1) * (in.length+1))
+
+    val mParser = billGrammar(in, a)
+    val res = bottomUp(in,mParser,a, unit(0), {
+      (x: Rep[Answer], y : Rep[Answer]) => if(x > y) x else y
+    })
+    res
+  }
+}
+
 
 class TestGeneratorParsers extends FileDiffSuite {
 
@@ -108,5 +147,29 @@ class TestGeneratorParsers extends FileDiffSuite {
       }
     }
     assertFileEqualsCheck(prefix+"gen-parser-matmult")
+  }
+
+
+  def testElMamun = {
+    withOutFile(prefix+"gen-parser-elmamun"){
+       new GenElMamunProg with GeneratorParsersExp with Sig
+        with MiscOpsExp with MyCharOpsExp with CompileScala{ self =>
+
+        val codegen = new ScalaGenArrayOps with ScalaGenGeneratorOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
+          with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
+          with ScalaGenHackyRangeOps with ScalaGenTupleOps
+          with ScalaGenMyCharOps with ScalaGenMiscOps{ val IR: self.type = self }
+
+        codegen.emitSource(testBottomup _ , "gen-parser-elmamun", new java.io.PrintWriter(System.out))
+
+        val testc = compile(testBottomup)
+        val res = testc("1+2*3*4+5".toArray)
+        scala.Console.println(res)
+        //val input = List((10,100),(100,5),(5,50)).toArray
+        //println(parse(input))
+
+      }
+    }
+    assertFileEqualsCheck(prefix+"gen-parser-elmamun")
   }
 }
