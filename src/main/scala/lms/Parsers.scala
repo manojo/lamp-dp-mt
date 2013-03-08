@@ -16,7 +16,7 @@ trait Sig{
 
 trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
                  with LiftNumeric with Equal with BooleanOps with OrderingOps
-                 with MathOps with HackyRangeOps with TupleOps with MiscOps{this: Sig =>
+                 with MathOps with MyRangeOps with TupleOps with MiscOps{this: Sig =>
 
   //DSL related type aliases and info
   type Input = Rep[Array[Alphabet]]
@@ -98,7 +98,7 @@ trait LexicalParsers extends Parsers {this: Sig =>
 
 trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNumeric
     with NumericOpsExp with IfThenElseExp with EqualExp with BooleanOpsExp
-    with OrderingOpsExp with MathOpsExp with HackyRangeOpsExp
+    with OrderingOpsExp with MathOpsExp with MyRangeOpsExp
     with TupleOpsExp with ListToGenTransform{this: Sig =>
 
 

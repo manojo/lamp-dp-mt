@@ -8,7 +8,7 @@ import java.io.FileOutputStream
 import scala.reflect.SourceContext
 
 trait ListToGenProg extends Variables with LiftVariables
-  with HackyRangeOps with ListOps with NumericOps
+  with MyRangeOps with ListOps with NumericOps
   with IfThenElse with OrderingOps with PrimitiveOps
   with Equal {
 
@@ -64,7 +64,7 @@ class TestListToGen extends FileDiffSuite {
 
   def testlisttogen = {
     withOutFile(prefix+"list-to-gen"){
-       new ListToGenProg with EffectExp with VariablesExp with HackyRangeOpsExp
+       new ListToGenProg with EffectExp with VariablesExp with MyRangeOpsExp
         with NumericOpsExp with ListToGenTransform
         with IfThenElseExp with OrderingOpsExp
         with GeneratorOpsExp with PrimitiveOpsExp
@@ -124,7 +124,7 @@ class TestListToGen extends FileDiffSuite {
 
         //test1: mat mult
         val codegen = new ScalaGenVariables
-          with ScalaGenHackyRangeOps with ScalaGenNumericOps
+          with ScalaGenMyRangeOps with ScalaGenNumericOps
           with ScalaGenIfThenElse with ScalaGenOrderingOps
           with ScalaGenGeneratorOps with ScalaGenPrimitiveOps
           with ScalaGenEqual with ScalaGenMyListOps{ val IR: self.type = self }

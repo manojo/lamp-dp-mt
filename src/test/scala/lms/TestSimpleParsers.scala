@@ -53,7 +53,7 @@ class TestSimpleParsers extends FileDiffSuite {
        new MatMultProg with ParsersExp with Sig with MiscOpsExp{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
+          with ScalaGenMyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
 
         codegen.emitSource(testMult1 _ , "test-matmult", new java.io.PrintWriter(System.out))
 
@@ -67,7 +67,7 @@ class TestSimpleParsers extends FileDiffSuite {
        new MatMultProg with ParsersExp with Sig with MiscOpsExp{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps { val IR: self.type = self }
+          with ScalaGenMyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps { val IR: self.type = self }
 
         def testMult2(in: Input) : Rep[Answer] = {
           val opti = transform(multWithArray(in))//.asInstanceOf[Parser[Answer]]
@@ -86,7 +86,7 @@ class TestSimpleParsers extends FileDiffSuite {
        new MatMultProg with ParsersExp with Sig with MiscOpsExp with CompileScala{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
+          with ScalaGenMyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
 
         def testBottomup(in: Input): Rep[Answer] = {
           val a : Rep[Array[Array[Answer]]] = NewArray(in.length+1)
@@ -117,7 +117,7 @@ class TestSimpleParsers extends FileDiffSuite {
        new MatMultProg with ParsersExp with Sig with MiscOpsExp with CompileScala{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
+          with ScalaGenMyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
 
         def multP(in:Input, a: Rep[Array[Array[Answer]]]) : TabulatedParser = {
           lazy val p : TabulatedParser = tabulate(

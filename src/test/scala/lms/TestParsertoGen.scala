@@ -47,7 +47,7 @@ class TestParsersToGen extends FileDiffSuite {
         with ListToGenTransform with CompileScala{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps
+          with ScalaGenMyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps
           with ScalaGenGeneratorOps{ val IR: self.type = self }
 
 
@@ -115,7 +115,7 @@ class TestParsersToGen extends FileDiffSuite {
         with ListToGenTransform with MyCharOpsExp with CompileScala{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps
+          with ScalaGenMyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps
           with ScalaGenGeneratorOps with ScalaGenMyCharOps{ val IR: self.type = self }
 
 

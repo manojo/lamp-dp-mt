@@ -6,12 +6,12 @@ import scala.virtualization.lms.common._
 import scala.virtualization.lms.internal.{GenericNestedCodegen, GenerationFailedException}
 import scala.reflect.SourceContext
 
-trait MyListOps extends ListOps with SeqOps with HackyRangeOps with LiftVariables{
+trait MyListOps extends ListOps with SeqOps with MyRangeOps with LiftVariables{
   def list_minby[A:Ordering:Manifest, B:Ordering:Manifest](xs: Rep[List[A]], f: Rep[A] => Rep[B])(implicit pos: SourceContext): Rep[A]
   def list_fold[A:Manifest,B:Manifest](xs:Rep[List[A]], z:Rep[B], f: (Rep[B], Rep[A]) => Rep[B])(implicit pos: SourceContext): Rep[B]
 }
 
-trait MyListOpsExp extends MyListOps with ListOpsExp with SeqOpsExp with HackyRangeOpsExp{
+trait MyListOpsExp extends MyListOps with ListOpsExp with SeqOpsExp with MyRangeOpsExp{
 
   case class ListMinBy[A:Ordering:Manifest, B:Ordering:Manifest](xs: Exp[List[A]], x: Sym[A], block: Block[B]) extends Def[A]
 
@@ -78,7 +78,7 @@ trait ModListOpsExp extends MyListOpsExp{
 }
 
 trait ScalaGenMyListOps extends ScalaGenListOps with ScalaGenSeqOps
-  with ScalaGenHackyRangeOps with ScalaGenVariables{
+  with ScalaGenMyRangeOps with ScalaGenVariables{
   val IR: MyListOpsExp
   import IR._
 

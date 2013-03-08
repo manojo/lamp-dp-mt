@@ -1,7 +1,7 @@
 package lms.v2
 
 import lms.{MyListOps,MyListOpsExp,ScalaGenMyListOps, MyScalaCompile}
-import lms.{HackyRangeOps,HackyRangeOpsExp,ScalaGenHackyRangeOps}
+import lms.{MyRangeOps,MyRangeOpsExp,ScalaGenMyRangeOps}
 import lms.{ListToGenTransform,ScalaGenGeneratorOps}
 import scala.virtualization.lms.common._
 
@@ -17,7 +17,7 @@ trait Signature {
 
 trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
                  with LiftNumeric with Equal with BooleanOps with OrderingOps
-                 with MathOps with HackyRangeOps with TupleOps with MiscOps { this: Signature =>
+                 with MathOps with MyRangeOps with TupleOps with MiscOps { this: Signature =>
 
   type Input = Rep[Array[Alphabet]] //DSL related type aliases and info
 
@@ -63,7 +63,7 @@ trait LexicalParsers extends Parsers {this: Signature =>
 
 trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNumeric
     with NumericOpsExp with IfThenElseExp with EqualExp with BooleanOpsExp
-    with OrderingOpsExp with MathOpsExp with HackyRangeOpsExp
+    with OrderingOpsExp with MathOpsExp with MyRangeOpsExp
     with TupleOpsExp with ListToGenTransform{this: Signature =>
 
   def parser_filter[T:Manifest](inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean]) :  Parser[T] = FilterParser(inner,p)
@@ -161,7 +161,7 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
 // A package to simplify mixing all the traits
 trait ParsersPkg extends ParsersExp with Signature with MiscOpsExp with ListToGenTransform with IfThenElseExp with MyScalaCompile { self =>
     val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
-      with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps with ScalaGenHackyRangeOps with ScalaGenTupleOps
+      with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps with ScalaGenMyRangeOps with ScalaGenTupleOps
       with ScalaGenMiscOps with ScalaGenGeneratorOps{ val IR: self.type = self }
 }
 

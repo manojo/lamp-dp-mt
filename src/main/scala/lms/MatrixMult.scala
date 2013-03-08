@@ -10,15 +10,15 @@ import v4.examples._
 /*
 trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
                  with LiftNumeric with Equal with BooleanOps with OrderingOps
-                 with MathOps with HackyRangeOps with TupleOps
+                 with MathOps with MyRangeOps with TupleOps
 
 trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNumeric
     with NumericOpsExp with IfThenElseExp with EqualExp with BooleanOpsExp
-    with OrderingOpsExp with MathOpsExp with HackyRangeOpsExp with TupleOpsExp {this: Sig =>}
+    with OrderingOpsExp with MathOpsExp with MyRangeOpsExp with TupleOpsExp {this: Sig =>}
 
 new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
     with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-    with ScalaGenHackyRangeOps with ScalaGenTupleOps
+    with ScalaGenMyRangeOps with ScalaGenTupleOps
 */
 
 // We can provide everything nicely packaged

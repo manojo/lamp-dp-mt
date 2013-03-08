@@ -4,7 +4,7 @@ import scala.virtualization.lms.common._
 
 trait GeneratorParsers extends ArrayOps with NumericOps with IfThenElse
                  with LiftNumeric with Equal with BooleanOps with OrderingOps
-                 with MathOps with HackyRangeOps with TupleOps with MiscOps
+                 with MathOps with MyRangeOps with TupleOps with MiscOps
                  with GeneratorOps{this: Sig =>
 
   //DSL related type aliases and info
@@ -172,6 +172,6 @@ trait LexicalGenParsers extends GeneratorParsers{this: Sig =>
 
 trait GeneratorParsersExp extends GeneratorParsers with ArrayOpsExp /*with MyListOpsExp*/ with LiftNumeric
     with NumericOpsExp with IfThenElseExp with EqualExp with BooleanOpsExp
-    with OrderingOpsExp with MathOpsExp with HackyRangeOpsExp
+    with OrderingOpsExp with MathOpsExp with MyRangeOpsExp
     with TupleOpsExp with GeneratorOpsExp{this: Sig =>}
 

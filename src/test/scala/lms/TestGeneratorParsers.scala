@@ -112,7 +112,7 @@ class TestGeneratorParsers extends FileDiffSuite {
 
         val codegen = new ScalaGenArrayOps with ScalaGenGeneratorOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
+          with ScalaGenMyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
 
         codegen.emitSource(test1 _ , "test1", new java.io.PrintWriter(System.out))
         val testc1 = compile(test1)
@@ -134,7 +134,7 @@ class TestGeneratorParsers extends FileDiffSuite {
        new GenMatMultProg with GeneratorParsersExp with Sig with MiscOpsExp with CompileScala{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenGeneratorOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
+          with ScalaGenMyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps{ val IR: self.type = self }
 
         codegen.emitSource(testBottomup _ , "gen-parser-matmult", new java.io.PrintWriter(System.out))
 
@@ -157,7 +157,7 @@ class TestGeneratorParsers extends FileDiffSuite {
 
         val codegen = new ScalaGenArrayOps with ScalaGenGeneratorOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
-          with ScalaGenHackyRangeOps with ScalaGenTupleOps
+          with ScalaGenMyRangeOps with ScalaGenTupleOps
           with ScalaGenMyCharOps with ScalaGenMiscOps{ val IR: self.type = self }
 
         codegen.emitSource(testBottomup _ , "gen-parser-elmamun", new java.io.PrintWriter(System.out))

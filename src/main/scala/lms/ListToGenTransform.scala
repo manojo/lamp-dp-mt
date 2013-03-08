@@ -7,7 +7,7 @@ import scala.reflect.SourceContext
 import scala.virtualization.lms.internal.Effects
 import scala.virtualization.lms.internal.GraphVizExport
 
-trait ListToGenTransform extends HackyRangeOpsExp
+trait ListToGenTransform extends MyRangeOpsExp
 with GeneratorOpsExp with MyListOpsExp with IfThenElseExp{ self =>
 
   val gviz = new GraphVizExport {

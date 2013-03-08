@@ -7,7 +7,7 @@ import scala.virtualization.lms.internal.GenericNestedCodegen
 import scala.reflect.SourceContext
 
 trait GeneratorOps extends Variables with While with LiftVariables
-  with HackyRangeOps with NumericOps with OrderingOps with IfThenElse
+  with MyRangeOps with NumericOps with OrderingOps with IfThenElse
   with MiscOps with EmbeddedControls{
 
   object Gen {
@@ -77,7 +77,7 @@ trait GeneratorOps extends Variables with While with LiftVariables
 }
 
 trait GeneratorOpsExp extends GeneratorOps with EffectExp with VariablesExp
-  with HackyRangeOpsExp with WhileExp with NumericOpsExp with OrderingOpsExp
+  with MyRangeOpsExp with WhileExp with NumericOpsExp with OrderingOpsExp
   with IfThenElseExp with MiscOpsExp{
 
   //a Let tree for
@@ -97,7 +97,7 @@ trait GeneratorOpsExp extends GeneratorOps with EffectExp with VariablesExp
 }
 
 trait ScalaGenGeneratorOps extends ScalaGenWhile with ScalaGenVariables
-  with ScalaGenHackyRangeOps with ScalaGenNumericOps with ScalaGenOrderingOps
+  with ScalaGenMyRangeOps with ScalaGenNumericOps with ScalaGenOrderingOps
   with ScalaGenIfThenElse with ScalaGenMiscOps{
   val IR: GeneratorOpsExp
   import IR._
@@ -114,7 +114,7 @@ trait ScalaGenGeneratorOps extends ScalaGenWhile with ScalaGenVariables
 }
 
 trait CGenGeneratorOps extends CGenWhile with CGenVariables
-  with CGenHackyRangeOps with CGenNumericOps with CGenOrderingOps
+  with CGenMyRangeOps with CGenNumericOps with CGenOrderingOps
   with CGenIfThenElse with CGenMiscOps{
   val IR: GeneratorOpsExp
   import IR._

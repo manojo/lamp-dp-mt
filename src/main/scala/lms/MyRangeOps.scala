@@ -6,12 +6,12 @@ import scala.virtualization.lms.common._
 import scala.virtualization.lms.internal.{GenericNestedCodegen, GenerationFailedException}
 import scala.reflect.SourceContext
 
-trait HackyRangeOps extends RangeOps {
+trait MyRangeOps extends RangeOps {
   def infix_toList(r: Rep[Range])(implicit pos: SourceContext) = range_toList(r)
   def range_toList(r: Rep[Range])(implicit pos: SourceContext) : Rep[List[Int]]
 }
 
-trait HackyRangeOpsExp extends HackyRangeOps with RangeOpsExp {
+trait MyRangeOpsExp extends MyRangeOps with RangeOpsExp {
 
   case class RangetoList(r: Exp[Range]) extends Def[List[Int]]
 
@@ -19,8 +19,8 @@ trait HackyRangeOpsExp extends HackyRangeOps with RangeOpsExp {
 
 }
 
-trait ScalaGenHackyRangeOps extends ScalaGenRangeOps {
-  val IR: HackyRangeOpsExp
+trait ScalaGenMyRangeOps extends ScalaGenRangeOps {
+  val IR: MyRangeOpsExp
   import IR._
 
   override def emitNode(sym: Sym[Any], rhs: Def[Any]) = rhs match {
@@ -29,10 +29,10 @@ trait ScalaGenHackyRangeOps extends ScalaGenRangeOps {
   }
 }
 
-trait CGenHackyRangeOps extends CGenRangeOps
+trait CGenMyRangeOps extends CGenRangeOps
 
-trait CudaGenHackyRangeOps extends CudaGenRangeOps {
-  val IR: HackyRangeOpsExp
+trait CudaGenMyRangeOps extends CudaGenRangeOps {
+  val IR: MyRangeOpsExp
   import IR._
 
   override def emitNode(sym: Sym[Any], rhs: Def[Any]) = rhs match {
