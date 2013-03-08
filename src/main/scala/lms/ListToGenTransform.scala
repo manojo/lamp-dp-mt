@@ -44,6 +44,8 @@ with GeneratorOpsExp with MyListOpsExp with IfThenElseExp{ self =>
         case Block(Def(a)) => transform(xs).filter{y => let(x, y, a)}
       }
 
+      case ListReduce(xs, x, y, Block(Def(bd)), z) => transform(xs).reduce((a,b) => let(x,a,let(y,b,bd)), z)
+
       //case Def(MyListFlatMap(xs, f)) =>
         //transform(xs).flatMap{x => transform(f(x))}
 

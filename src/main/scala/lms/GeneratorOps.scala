@@ -8,7 +8,7 @@ import scala.reflect.SourceContext
 
 trait GeneratorOps extends Variables with While with LiftVariables
   with MyRangeOps with NumericOps with OrderingOps with IfThenElse
-  with MiscOps with EmbeddedControls{
+  with MiscOps with EmbeddedControls with Equal {
 
   object Gen {
     def fSeq[A:Manifest](xs: Rep[A]*)(implicit pos: SourceContext) = fromSeq(xs)
@@ -39,6 +39,14 @@ trait GeneratorOps extends Variables with While with LiftVariables
       def apply(f: Rep[U] => Rep[Unit]) = self.apply{ x:Rep[T] =>
         val tmp : Generator[U] = g(x)
         tmp(f)
+      }
+    }
+
+    def reduce(h:(Rep[T],Rep[T])=>Rep[T], z:Rep[T]) = new Generator[T] {
+      def apply(f: Rep[T] => Rep[Unit]) = {
+        var best = z;
+        self.apply { x:Rep[T] => if (best==z) best=x; else best=h(best,x) }
+        if (best!=z) f(best)
       }
     }
   }

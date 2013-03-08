@@ -22,7 +22,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
   type Input = Rep[Array[Alphabet]] //DSL related type aliases and info
 
   abstract class Parser[T:Manifest] extends ((Rep[Int], Rep[Int]) => Rep[List[T]]){inner =>
-    def aggregate(h:(Rep[T],Rep[T])=>Rep[T]) = parser_aggregate(inner, h)
+    def aggregate(h:(Rep[T],Rep[T])=>Rep[T], z:Rep[T]) = parser_aggregate(inner, h, z)
     def filter (p: (Rep[Int], Rep[Int]) => Rep[Boolean]) = parser_filter(this, p)
     def ^^[U:Manifest](f: Rep[T] => Rep[U]) = parser_map(this, f)
     def |(that: => Parser[T]) = parser_or(inner, that)
@@ -34,7 +34,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
     def +~+ [U:Manifest](that: => Parser[U]) = concat(1,-1,1,-1)(that) // XXX: legacy to get rid of
   }
 
-  def parser_aggregate[T:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) : Parser[T]
+  def parser_aggregate[T:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T], z:Rep[T]) : Parser[T]
   def parser_filter[T:Manifest](inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean]) : Parser[T]
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U]
   def parser_or[T:Manifest](inner: Parser[T], that: Parser[T]): Parser[T]
@@ -69,7 +69,7 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
   def parser_filter[T:Manifest](inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean]) :  Parser[T] = FilterParser(inner,p)
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U] = MapParser(inner,f)
   def parser_or[T:Manifest](inner: Parser[T], that: Parser[T]): Parser[T] = OrParser(inner, that)
-  def parser_aggregate[T:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) : Parser[T] = AggregateParser(inner,h)
+  def parser_aggregate[T:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T], z:Rep[T]) : Parser[T] = AggregateParser(inner,h,z)
   def parser_concat[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int],
                                             that: Parser[U]): Parser[(T,U)] = ConcatParser(inner, lL,lU,rL,rU, that)
   def tabulate(name:String, inner: =>Parser[Answer]) = new TabulatedParser(name, inner)(mAns)
@@ -91,10 +91,9 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
     def apply(i: Rep[Int], j: Rep[Int]) = inner(i,j) ++ that(i,j)
   }
 
-  case class AggregateParser[T:Manifest, U:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) extends Parser[T] {
-    def apply(i: Rep[Int], j: Rep[Int]) = {
-      val tmp=inner(i,j); if (tmp.isEmpty) List() else { List(list_fold(tmp.tail,tmp.head,h)) }
-    }
+  case class AggregateParser[T:Manifest, U:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T], z:Rep[T]) extends Parser[T] {
+    def apply(i: Rep[Int], j: Rep[Int]) = list_reduce(inner(i,j),h,z)
+    // { val tmp=inner(i,j); if (tmp.isEmpty) List() else List(list_fold(tmp.tail,tmp.head,h)) }
   }
 
   case class ConcatParser[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: Parser[U]) extends Parser[(T,U)]{
@@ -182,13 +181,14 @@ trait MatMultAlgebra extends Parsers with Signature {
 object MatMutlTest extends App {
   new MatMultAlgebra with ParsersPkg {
     def h(x:Rep[Answer],y:Rep[Answer]) = if(x._2 < y._2) x else y
+    val z = unit((-1,-1,-1))
 
     // Matrix multiplication grammar
     def grammar(in:Input):Rep[Answer] = {
       lazy val p:TabulatedParser = tabulate("mat",(
           el(in) ^^ single
         | (p +~+ p) ^^ {x: Rep[(Answer,Answer)] => mult(x._1,x._2)}
-      ).aggregate(h))
+      ).aggregate(h,z))
 
       bottomUp(in,p)(mAlph, mAns)
     }

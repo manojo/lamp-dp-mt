@@ -28,13 +28,14 @@ class TestParsers2 extends FileDiffSuite {
       new MatMultAlgebra2 with ParsersPkg { self =>
 
         def h(x:Rep[Answer],y:Rep[Answer]) = if(x._2 < y._2) x else y
+        val z = unit((-1,-1,-1))
 
         // Matrix multiplication grammar
         def grammar(in:Input):Rep[Answer] = {
           lazy val p:TabulatedParser = tabulate("mat",(
               el(in) ^^ single
             | (p +~+ p) ^^ {x: Rep[(Answer,Answer)] => mult(x._1,x._2)}
-          ).aggregate(h))
+          ).aggregate(h,z))
 
           bottomUp(in,p)(mAlph, mAns)
         }
