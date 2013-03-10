@@ -22,7 +22,7 @@ trait ADPParsers extends BaseParsers { this:Signature =>
     tabReset; input=null; res
   }
   private def parseBottomUp:Unit = if (bottomUp) { val rs=rulesOrder map {n=>rules(n)}; val du=(if (window>0) window else size)
-    var d=0; while (d<=du) { for (r<-rs) { val iu=size-d; var i=0; while (i<=iu) { r((d+i,d+i)); i=i+1 } }; d=d+1; }
+    var d=0; while (d<=du) { for (r<-rs) { val iu=size-d; var i=0; while (i<=iu) { r((i,d+i)); i=i+1 } }; d=d+1; }
   }
 
   // Concatenation operations
