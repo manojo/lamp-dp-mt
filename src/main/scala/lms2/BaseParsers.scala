@@ -9,10 +9,8 @@ trait Signature {
 
 trait BaseParsers { this:Signature =>
   type Input = Array[Alphabet]
-  type Subword = (Int, Int)
   type Backtrack = (Int,List[Int]) // (subrule_id, indices)
-  type BTItem = (Subword,Backtrack)
-  type Trace = List[(Subword,Backtrack)]
+  type Trace = List[(Int,Int,Backtrack)]
 
   val axiom:Tabulate      // initial parser to be applied
   val twotracks = false   // whether grammar is multi-track
@@ -23,20 +21,20 @@ trait BaseParsers { this:Signature =>
 // Generator[T:Manifest] extends (continuation:(Rep[T] => Rep[Unit]) => Rep[Unit]) <- execution
 
   // Abstract parser
-  sealed abstract class Parser[T] extends (Subword => List[(T,Backtrack)]) {
+  sealed abstract class Parser[T] extends ((Int,Int) => List[(T,Backtrack)]) {
     def min:Int // subword minimal size
     def max:Int // subword maximal size, -1=infinity
     val alt:Int // alternative (subrule_id)
     val cat:Int // concatenation split (offset in backtrack)
 
-    def apply(sw:Subword): List[(T,Backtrack)]
-    def unapply(sw:Subword,bt:Backtrack): Trace
-    def reapply(sw:Subword,bt:Backtrack): T
+    def apply(i:Int,j:Int): List[(T,Backtrack)]
+    def unapply(i:Int,j:Int,bt:Backtrack): Trace
+    def reapply(i:Int,j:Int,bt:Backtrack): T
 
     final def ^^[U](f: T => U) = new Map(this,f)
     final def |(other: Parser[T]) = new Or(this,other)
     final def aggregate(h:(T,T)=>T) = new Aggregate(this,h)
-    final def filter (f: Subword => Boolean) = new Filter(this,f)
+    final def filter (f:(Int,Int)=>Boolean) = new Filter(this,f)
   }
 
   // Recurrence analysis, done once when grammar is complete, before the computation.
@@ -105,28 +103,29 @@ trait BaseParsers { this:Signature =>
     rules += ((name,this))
 
     var id:Int = -1 // subrules base index
-    @inline private def idx(sw:Subword):Int = if (twotracks) sw._1*mW+sw._2 else { val d=mH+1+sw._1-sw._2; ( mH*(mH+1) - d*(d-1) ) /2 + sw._1 }
 
-    def apply(sw:Subword) = { val v = data(idx(sw)); if (v!=null) List((v._1,bt0)) else List() } // read-only
-    def compute(sw:Subword) = { val l=inner(sw); if (!l.isEmpty) { val (c,(r,b))=l.head; data(idx(sw))=(c,(id+r,b)); } } // write-only
+    @inline private def idx(i:Int,j:Int):Int = if (twotracks) i*mW+j else { val d=mH+1+i-j; ( mH*(mH+1) - d*(d-1) ) /2 + i }
 
-    def unapply(sw:Subword,bt:Backtrack) = { val v=data(idx(sw)); if (v!=null) List((sw,v._2)) else List() }
-    def reapply(sw:Subword,bt:Backtrack) = { val v=data(idx(sw)); if (v!=null) v._1 else sys.error("Failed reapply"+sw) }
+    def apply(i:Int,j:Int) = { val v = data(idx(i,j)); if (v!=null) List((v._1,bt0)) else List() } // read-only
+    def compute(i:Int,j:Int) = { val l=inner(i,j); if (!l.isEmpty) { val (c,(r,b))=l.head; data(idx(i,j))=(c,(id+r,b)); } } // write-only
+
+    def unapply(i:Int,j:Int,bt:Backtrack) = { val v=data(idx(i,j)); if (v!=null) List((i,j,v._2)) else List() }
+    def reapply(i:Int,j:Int,bt:Backtrack) = { val v=data(idx(i,j)); if (v!=null) v._1 else sys.error("Failed reapply"+(i,j)) }
 
     def build(bt:Trace):Answer = bt match {
-      case bh::bs => val (sw,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(sw,(rr,b)); if (bs==Nil) a else { data(idx(sw))=(a,bt0); build(bs) }
+      case bh::bs => val (i,j,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(i,j,(rr,b)); if (bs==Nil) a else { data(idx(i,j))=(a,bt0); build(bs) }
       case Nil => sys.error("No backtrack provided")
     }
 
-    def backtrack(sw:Subword) = {
-      val e=data(idx(sw))
-      var pending:Trace = List((sw,e._2))
+    def backtrack(i0:Int,j0:Int) = {
+      val e=data(idx(i0,j0))
+      var pending:Trace = List((i0,j0,e._2))
       var trace:Trace = Nil
       while (!pending.isEmpty) {
         val el = pending.head; trace=el::trace;
-        val (sw,(rule,bt))=el;
+        val (i,j,(rule,bt))=el;
         val (t,rr) = findTab(rule)
-        val res = t.inner.unapply(sw,(rr,bt))
+        val res = t.inner.unapply(i,j,(rr,bt))
         pending = res:::pending.tail;
       }
       List((e._1,trace))
@@ -144,8 +143,8 @@ trait BaseParsers { this:Signature =>
   // Terminal abstraction
   abstract case class Terminal[T](min:Int,max:Int) extends Parser[T] {
     final val (alt,cat) = (1,0)
-    def unapply(sw:Subword,bt:Backtrack) = Nil
-    def reapply(sw:Subword,bt:Backtrack) = { val r=apply(sw); if (r.isEmpty) sys.error("Empty apply"+sw+" for "+bt); r.map{ _._1 }.head }
+    def unapply(i:Int,j:Int,bt:Backtrack) = Nil
+    def reapply(i:Int,j:Int,bt:Backtrack) = { val r=apply(i,j); if (r.isEmpty) sys.error("Empty apply"+(i,j)+" for "+bt); r.map{ _._1 }.head }
   }
 
   // Aggregate combinator.
@@ -155,20 +154,20 @@ trait BaseParsers { this:Signature =>
     def min = inner.min
     def max = inner.max
     lazy val (alt,cat) = (inner.alt,inner.cat)
-    def apply(sw:Subword) = { val l=inner(sw); if (l.isEmpty) Nil else List(l.tail.foldLeft(l.head){(a,b)=> if (a._1==h(a._1,b._1)) a else b}) }
-    def unapply(sw:Subword,bt:Backtrack) = inner.unapply(sw,bt) // we have only 1 result
-    def reapply(sw:Subword,bt:Backtrack) = inner.reapply(sw,bt)
+    def apply(i:Int,j:Int) = { val l=inner(i,j); if (l.isEmpty) Nil else List(l.tail.foldLeft(l.head){(a,b)=> if (a._1==h(a._1,b._1)) a else b}) }
+    def unapply(i:Int,j:Int,bt:Backtrack) = inner.unapply(i,j,bt) // we have only 1 result
+    def reapply(i:Int,j:Int,bt:Backtrack) = inner.reapply(i,j,bt)
   }
 
   // Filter combinator.
   // Yields an empty list if the filter does not pass.
-  case class Filter[T](inner:Parser[T], pred: Subword => Boolean) extends Parser[T] {
+  case class Filter[T](inner:Parser[T], pred:(Int,Int)=>Boolean) extends Parser[T] {
     def min = inner.min
     def max = inner.max
     lazy val (alt,cat) = (inner.alt,inner.cat)
-    def apply(sw:Subword) = if(pred(sw)) inner(sw) else Nil
-    def unapply(sw:Subword,bt:Backtrack) = inner.unapply(sw,bt) // filter matched at apply
-    def reapply(sw:Subword,bt:Backtrack) = inner.reapply(sw,bt) // ditto
+    def apply(i:Int,j:Int) = if(pred(i,j)) inner(i,j) else Nil
+    def unapply(i:Int,j:Int,bt:Backtrack) = inner.unapply(i,j,bt) // filter matched at apply
+    def reapply(i:Int,j:Int,bt:Backtrack) = inner.reapply(i,j,bt) // ditto
   }
 
   // Mapper. Equivalent of ADP's <<< operator.
@@ -177,9 +176,9 @@ trait BaseParsers { this:Signature =>
     def min = inner.min
     def max = inner.max
     lazy val (alt,cat) = (inner.alt,inner.cat)
-    def apply(sw:Subword) = inner(sw) map { case (s,b) => (f(s),b) }
-    def unapply(sw:Subword,bt:Backtrack) = inner.unapply(sw,bt)
-    def reapply(sw:Subword,bt:Backtrack) = f(inner.reapply(sw,bt))
+    def apply(i:Int,j:Int) = inner(i,j) map { case (s,b) => (f(s),b) }
+    def unapply(i:Int,j:Int,bt:Backtrack) = inner.unapply(i,j,bt)
+    def reapply(i:Int,j:Int,bt:Backtrack) = f(inner.reapply(i,j,bt))
   }
 
   // Or combinator. Equivalent of ADP's ||| operator.
@@ -189,9 +188,9 @@ trait BaseParsers { this:Signature =>
     def min = Math.min(left.min,right.min)
     def max = if (left.max==maxN || right.max==maxN) maxN else Math.max(left.max,right.max)
     lazy val (alt,cat) = (left.alt+right.alt, Math.max(left.cat,right.cat))
-    def apply(sw: Subword) = left(sw) ++ right(sw).map{ case (t,(r,b)) => (t,(r+left.alt,b)) }
-    def unapply(sw:Subword, bt:Backtrack) = { val (r,idx)=bt; var a=left.alt-1; if (r<=a) left.unapply(sw,(r,idx)) else right.unapply(sw,(r-a,idx)) }
-    def reapply(sw:Subword, bt:Backtrack) = { val (r,idx)=bt; var a=left.alt-1; if (r<=a) left.reapply(sw,(r,idx)) else right.reapply(sw,(r-a,idx)) }
+    def apply(i:Int,j:Int) = left(i,j) ++ right(i,j).map{ case (t,(r,b)) => (t,(r+left.alt,b)) }
+    def unapply(i:Int,j:Int, bt:Backtrack) = { val (r,idx)=bt; var a=left.alt-1; if (r<=a) left.unapply(i,j,(r,idx)) else right.unapply(i,j,(r-a,idx)) }
+    def reapply(i:Int,j:Int, bt:Backtrack) = { val (r,idx)=bt; var a=left.alt-1; if (r<=a) left.reapply(i,j,(r,idx)) else right.reapply(i,j,(r-a,idx)) }
   }
 
   // Concatenate combinator.
@@ -212,41 +211,41 @@ trait BaseParsers { this:Signature =>
       (bl._1*right.alt+br._1, bl._2:::(if (hasBt)List(k) else Nil):::br._2)
     }
 
-    def apply(sw:Subword) = {
-      val (i,j) = sw; val (lL,lU,rL,rU) = indices
+    def apply(i:Int,j:Int) = {
+      val (lL,lU,rL,rU) = indices
       if (track==0) {
         val min_k = if (rU==maxN || i+lL > j-rU) i+lL else j-rU
         val max_k = if (lU==maxN || j-rL < i+lU) j-rL else i+lU
         for(
           k <- (min_k to max_k).toList;
-          (x,xb) <- left((i,k));
-          (y,yb) <- right((k,j))
+          (x,xb) <- left(i,k);
+          (y,yb) <- right(k,j)
         ) yield(((x,y),bt(xb,yb,k)))
       } else if (track==1) {
         val min_k = if (lU==maxN || i-lU < 0) 0 else i-lU
         val max_k = i-lL
         for(
           k <- (min_k to max_k).toList;
-          (x,xb) <- left((k,i)); // in1[k..i]
-          (y,yb) <- right((k,j)) // M[k,j]
+          (x,xb) <- left(k,i); // in1[k..i]
+          (y,yb) <- right(k,j) // M[k,j]
         ) yield(((x,y),bt(xb,yb,k)))
       } else if (track==2) {
         val min_k = if (rU==maxN || j-rU < 0) 0 else j-rU
         val max_k = j-rL
         for(
           k <- (min_k to max_k).toList;
-          (x,xb) <- left((i,k)); // M[i,k]
-          (y,yb) <- right((k,j)) // in2[k..j]
+          (x,xb) <- left(i,k); // M[i,k]
+          (y,yb) <- right(k,j) // in2[k..j]
         ) yield(((x,y),bt(xb,yb,k)))
       } else Nil
     }
 
-    private def sw_split(sw:Subword,kb:Int) = (sw,track,indices) match {
-      case ((i,j),0,(lL,lU,rL,rU)) if i<j => // single track
-        val k=if(hasBt)kb else if (rU==maxN)i+lL else Math.max(i+lL,j-rU); ((i,k),(k,j))
-      case ((i,j),1,(l,u,_,_)) => val k=if(hasBt)kb else i-l; ((k,i),(k,j)) // tt:concat1
-      case ((i,j),2,(_,_,l,u)) => val k=if(hasBt)kb else j-l; ((i,k),(k,j)) // tt:concat2
-      case _ => ((0,0),(0,0))
+    private def sw_split(i:Int,j:Int,kb:Int) = (track,indices) match {
+      case (0,(lL,lU,rL,rU)) if i<j => // single track
+        val k=if(hasBt)kb else if (rU==maxN)i+lL else Math.max(i+lL,j-rU); (i,k, k,j)
+      case (1,(l,u,_,_)) => val k=if(hasBt)kb else i-l; (k,i, k,j) // tt:concat1
+      case (2,(_,_,l,u)) => val k=if(hasBt)kb else j-l; (i,k, k,j) // tt:concat2
+      case _ => (0,0, 0,0)
     }
 
     private def bt_split(bt:Backtrack):(Backtrack,Backtrack,Int) = bt match { case (r,idx) =>
@@ -254,14 +253,14 @@ trait BaseParsers { this:Signature =>
       ((r/a,idx.take(c)), (r%a,idx.drop(c+(if (hasBt)1 else 0))), if (hasBt)idx(c) else -1)
     }
 
-    def unapply(sw:Subword,bt:Backtrack) = {
-      val (bl,br,k)=bt_split(bt); val (swl,swr)=sw_split(sw,k)
-      left.unapply(swl,bl) ::: right.unapply(swr,br)
+    def unapply(i:Int,j:Int,bt:Backtrack) = {
+      val (bl,br,k)=bt_split(bt); val (li,lj,ri,rj)=sw_split(i,j,k)
+      left.unapply(li,lj,bl) ::: right.unapply(ri,rj,br)
     }
 
-    def reapply(sw:Subword,bt:Backtrack) = {
-      val (bl,br,k)=bt_split(bt); val (swl,swr)=sw_split(sw,k)
-      (left.reapply(swl,bl), right.reapply(swr,br))
+    def reapply(i:Int,j:Int,bt:Backtrack) = {
+      val (bl,br,k)=bt_split(bt); val (li,lj,ri,rj)=sw_split(i,j,k)
+      (left.reapply(li,lj,bl), right.reapply(ri,rj,br))
     }
   }
 

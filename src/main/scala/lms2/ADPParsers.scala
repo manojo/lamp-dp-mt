@@ -10,7 +10,7 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   def build(in:Input,bt:Trace):Answer = run(in,()=>axiom.build(bt))
   private def run[T](in:Input, f:()=>T) = { input=in; analyze; tabInit(in.size+1,in.size+1); val res=f(); tabReset; input=null; res }
   private def parseBottomUp:Unit = {
-    val rs=rulesOrder map {n=>rules(n)}; var d=0; while (d<=size) { for (r<-rs) { val iu=size-d; var i=0; while (i<=iu) { r.compute((i,d+i)); i=i+1 } }; d=d+1; }
+    val rs=rulesOrder map {n=>rules(n)}; var d=0; while (d<=size) { for (r<-rs) { val iu=size-d; var i=0; while (i<=iu) { r.compute(i,d+i); i=i+1 } }; d=d+1; }
   }
 
   // Concatenation operations
@@ -23,19 +23,19 @@ trait ADPParsers extends BaseParsers { this:Signature =>
 
   // Terminal parsers
   val empty = new Terminal[Unit](0,0) {
-    def apply(sw:Subword) = { val (i,j)=sw; if (i==j) List(({},bt0)) else Nil }
+    def apply(i:Int,j:Int) = if (i==j) List(({},bt0)) else Nil
   }
   val emptyi = new Terminal[Int](0,0) {
-    def apply(sw:Subword) = { val (i,j)=sw; if (i==j) List((i,bt0)) else Nil }
+    def apply(i:Int,j:Int) = if (i==j) List((i,bt0)) else Nil
   }
   val el = new Terminal[Alphabet](1,1) {
-    def apply(sw:Subword) = { val (i,j)=sw; if(i+1==j) List((in(i),bt0)) else Nil }
+    def apply(i:Int,j:Int) = if(i+1==j) List((in(i),bt0)) else Nil
   }
   val eli = new Terminal[Int](1,1) {
-    def apply(sw:Subword) = { val (i,j)=sw; if(i+1==j) List((i,bt0)) else Nil }
+    def apply(i:Int,j:Int) = if(i+1==j) List((i,bt0)) else Nil
   }
-  def seq(min:Int=1, max:Int=maxN) = new Terminal[Subword](min,max) {
-    def apply(sw:Subword) = { val (i,j)=sw; if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil }
+  def seq(min:Int=1, max:Int=maxN) = new Terminal[(Int,Int)](min,max) {
+    def apply(i:Int,j:Int) = if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil
   }
 }
 
