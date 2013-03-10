@@ -1,6 +1,7 @@
 package lms2
 
-object MatrixMult2 extends App with Signature with ADPParsers {
+//import scala.virtualization.lms.common._
+object MatrixMult2 extends App with Signature with ADPParsers /*with BaseExp*/ {
   type Alphabet = (Int,Int) // matrix as (rows, columns)
   type Answer = (Int,Int,Int) // rows, cost, columns
 

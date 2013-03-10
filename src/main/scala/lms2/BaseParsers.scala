@@ -7,7 +7,23 @@ trait Signature {
   def h(a:Answer,b:Answer):Answer // optimization function
 }
 
-trait BaseParsers { this:Signature =>
+/*
+import lms.{MyListOps,MyListOpsExp,ScalaGenMyListOps, MyScalaCompile}
+import lms.{MyRangeOps,MyRangeOpsExp,ScalaGenMyRangeOps}
+import lms.{ListToGenTransform,ScalaGenGeneratorOps}
+
+trait Package extends ArrayOps with MyListOps with NumericOps with IfThenElse
+                 with LiftNumeric with Equal with BooleanOps with OrderingOps
+                 with MathOps with MyRangeOps with TupleOps with MiscOps {}
+// XXX: how to control manually how operations ?
+*/
+
+// XXX: if we start importing LMS traits we end-up with all Scala code (analysis, static data) being lifted
+// whereas this is not necessary (and not desired, as it restricts usable functions).
+// Idea: use generators to achive what we want and combine them into BaseParsers to obtain desired effect ?
+
+//import scala.virtualization.lms.common._
+trait BaseParsers /*extends Base*/ { this:Signature =>
   type Input = Array[Alphabet]
   type Backtrack = (Int,List[Int]) // (subrule_id, indices)
   type Trace = List[(Int,Int,Backtrack)]
@@ -27,9 +43,17 @@ trait BaseParsers { this:Signature =>
     val alt:Int // alternative (subrule_id)
     val cat:Int // concatenation split (offset in backtrack)
 
+    // List-based vanilla Scala
     def apply(i:Int,j:Int): List[(T,Backtrack)]
     def unapply(i:Int,j:Int,bt:Backtrack): Trace
     def reapply(i:Int,j:Int,bt:Backtrack): T
+
+    // Generator-based LMS function generators
+    /*
+    def genApply(implicit mT:Manifest[T]) : ((Rep[Int],Rep[Int])=>Rep[List[(T,Backtrack)]]) = (x:Rep[Int],y:Rep[Int]) => unit(List[(T,Backtrack)]())
+    def genUnapply(implicit mT:Manifest[T]) : ((Rep[Int],Rep[Int],Rep[Backtrack])=>Rep[Trace]) = (x:Rep[Int],y:Rep[Int],bt:Rep[Backtrack]) => unit(List[(Int,Int,Backtrack)]())
+    def genReapply(implicit mT:Manifest[T]) : ((Rep[Int],Rep[Int],Rep[Backtrack])=>Rep[T]) = (x:Rep[Int],y:Rep[Int],bt:Rep[Backtrack]) => unit(null.asInstanceOf[T])
+    */
 
     final def ^^[U](f: T => U) = new Map(this,f)
     final def |(other: Parser[T]) = new Or(this,other)
@@ -248,8 +272,8 @@ trait BaseParsers { this:Signature =>
       case _ => (0,0, 0,0)
     }
 
-    private def bt_split(bt:Backtrack):(Backtrack,Backtrack,Int) = bt match { case (r,idx) =>
-      val a:Int=right.alt; val c:Int=left.cat;
+    private def bt_split(bt:Backtrack):(Backtrack,Backtrack,Int) = {
+      val (r,idx)=bt; val a:Int=right.alt; val c:Int=left.cat;
       ((r/a,idx.take(c)), (r%a,idx.drop(c+(if (hasBt)1 else 0))), if (hasBt)idx(c) else -1)
     }
 
