@@ -16,7 +16,7 @@ trait BaseParsers { this:Signature =>
 
   val axiom:Tabulate      // initial parser to be applied
   val twotracks = false   // whether grammar is multi-track
-  final val bt0 = (0,Nil) // default initial backtrack
+  final val bt0 = (0,List[Int]()) // default initial backtrack
   final val maxN = -1     // infinity for Parser.max
 
 // (Rep[Int], Rep[Int]) => Generator[T]
@@ -106,12 +106,11 @@ trait BaseParsers { this:Signature =>
 
     var id:Int = -1 // subrules base index
     @inline private def idx(sw:Subword):Int = if (twotracks) sw._1*mW+sw._2 else { val d=mH+1+sw._1-sw._2; ( mH*(mH+1) - d*(d-1) ) /2 + sw._1 }
-    private def get(sw:Subword) = { val i=idx(sw); val v1=data(i); if (v1!=null) List(v1) else { val v=inner(sw).map{case(c,(r,b))=>(c,(id+r,b))}; put(sw,v); v } }
 
-    private def put(sw:Subword,v:List[(Answer,Backtrack)]) { if (v!=Nil) data(idx(sw))=v.head; }
+    def apply(sw:Subword) = { val v = data(idx(sw)); if (v!=null) List((v._1,bt0)) else List() } // read-only
+    def compute(sw:Subword) = { val l=inner(sw); if (!l.isEmpty) { val (c,(r,b))=l.head; data(idx(sw))=(c,(id+r,b)); } } // write-only
 
-    def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
-    def unapply(sw:Subword,bt:Backtrack) = get(sw).map{ case (c,b) => List((sw,b)) }.head
+    def unapply(sw:Subword,bt:Backtrack) = { val v=data(idx(sw)); if (v!=null) List((sw,v._2)) else List() }
     def reapply(sw:Subword,bt:Backtrack) = { val v=data(idx(sw)); if (v!=null) v._1 else sys.error("Failed reapply"+sw) }
 
     def build(bt:Trace):Answer = bt match {
@@ -120,14 +119,17 @@ trait BaseParsers { this:Signature =>
     }
 
     def backtrack(sw:Subword) = {
-      val e=get(sw).head;
-      def bt0(tail:Trace,pending:Trace):List[Trace] = pending match {
-        case Nil => List(tail)
-        case (sw,(rule,bt))::ps => val (t,rr) = findTab(rule)
-          val res = t.inner.unapply(sw,(rr,bt))
-          bt0((sw,(rule,bt))::tail, res:::ps)
+      val e=data(idx(sw))
+      var pending:Trace = List((sw,e._2))
+      var trace:Trace = Nil
+      while (!pending.isEmpty) {
+        val el = pending.head; trace=el::trace;
+        val (sw,(rule,bt))=el;
+        val (t,rr) = findTab(rule)
+        val res = t.inner.unapply(sw,(rr,bt))
+        pending = res:::pending.tail;
       }
-      bt0(Nil,List((sw,e._2))).map{x=>(e._1,x)}
+      List((e._1,trace))
     } 
   }
 

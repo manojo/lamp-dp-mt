@@ -10,7 +10,7 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   def build(in:Input,bt:Trace):Answer = run(in,()=>axiom.build(bt))
   private def run[T](in:Input, f:()=>T) = { input=in; analyze; tabInit(in.size+1,in.size+1); val res=f(); tabReset; input=null; res }
   private def parseBottomUp:Unit = {
-    val rs=rulesOrder map {n=>rules(n)}; var d=0; while (d<=size) { for (r<-rs) { val iu=size-d; var i=0; while (i<=iu) { r((d+i,d+i)); i=i+1 } }; d=d+1; }
+    val rs=rulesOrder map {n=>rules(n)}; var d=0; while (d<=size) { for (r<-rs) { val iu=size-d; var i=0; while (i<=iu) { r.compute((i,d+i)); i=i+1 } }; d=d+1; }
   }
 
   // Concatenation operations
