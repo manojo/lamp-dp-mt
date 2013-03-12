@@ -2,13 +2,13 @@ package lms2
 
 trait ADPParsers extends BaseParsersExpList { this:Signature =>
   // I/O interface
-  private var input: Input = null
-  def in(k:Int):Alphabet = input(k)
-  def size:Int = input.size
-  def parse(in:Input):List[Answer] = run(in,()=>{parseBottomUp; axiom(0,size).map(_._1)})
-  def backtrack(in:Input):List[(Answer,Trace)] = run(in,()=>{parseBottomUp; axiom.backtrack(0,size)})
-  def build(in:Input,bt:Trace):Answer = run(in,()=>axiom.build(bt))
-  private def run[T](in:Input, f:()=>T) = { input=in; analyze; tabInit(in.size+1,in.size+1); val res=f(); tabReset; input=null; res }
+  private var input: Rep[Input] = unit(null)
+  def in(k:Rep[Int]):Alphabet = input(k)
+  def size:Rep[Int] = input.length
+  def parse(in:Rep[Input]):Rep[List[Answer]] = run(in,()=>{parseBottomUp; axiom(unit(0),size).map(_._1)})
+  def backtrack(in:Rep[Input]):Rep[List[(Answer,Trace)]] = run(in,()=>{parseBottomUp; axiom.backtrack(unit(0),size)})
+  def build(in:Rep[Input],bt:Rep[Trace]):Rep[Answer] = run(in,()=>axiom.build(bt))
+  private def run[T](in:Rep[Input], f:()=>T) = { input=in; analyze; tabInit(size+unit(1),size+unit(1)); val res=f(); tabReset; input=unit(null); res }
   private def parseBottomUp:Unit = {
     val rs=rulesOrder map {n=>rules(n)}; var d=0; while (d<=size) { for (r<-rs) { val iu=size-d; var i=0; while (i<=iu) { r.compute(i,d+i); i=i+1 } }; d=d+1; }
   }
@@ -23,19 +23,19 @@ trait ADPParsers extends BaseParsersExpList { this:Signature =>
 
   // Terminal parsers
   val empty = new Terminal[Unit](0,0) {
-    def apply(i:Int,j:Int) = if (i==j) List(({},bt0)) else Nil
+    def apply(i:Rep[Int],j:Rep[Int]) = if (i==j) List((unit({}),bt0)) else List[(Unit,Backtrack)]()
   }
   val emptyi = new Terminal[Int](0,0) {
-    def apply(i:Int,j:Int) = if (i==j) List((i,bt0)) else Nil
+    def apply(i:Rep[Int],j:Rep[Int]) = if (i==j) List((i,bt0)) else List[(Int,Backtrack)]()
   }
   val el = new Terminal[Alphabet](1,1) {
-    def apply(i:Int,j:Int) = if(i+1==j) List((in(i),bt0)) else Nil
+    def apply(i:Rep[Int],j:Rep[Int]) = if(i+1==j) List((in(i),bt0)) else List[(Alphabet,Backtrack)]()
   }
   val eli = new Terminal[Int](1,1) {
-    def apply(i:Int,j:Int) = if(i+1==j) List((i,bt0)) else Nil
+    def apply(i:Rep[Int],j:Rep[Int]) = if(i+1==j) List((i,bt0)) else List[(Int,Backtrack)]()
   }
   def seq(min:Int=1, max:Int=maxN) = new Terminal[(Int,Int)](min,max) {
-    def apply(i:Int,j:Int) = if (i+min<=j && (max==maxN || i+max>=j)) List(((i,j),bt0)) else Nil
+    def apply(i:Rep[Int],j:Rep[Int]) = if (i+min<=j && (unit(max==maxN) || i+unit(max)>=j)) List(((i,j),bt0)) else List[((Int,Int),Backtrack)]()
   }
 }
 

@@ -27,7 +27,7 @@ trait Package extends ArrayOps with MyListOps with NumericOps with IfThenElse
   def genReapply(implicit mT:Manifest[T]) : ((Rep[Int],Rep[Int],Rep[Backtrack])=>Rep[T]) = (x:Rep[Int],y:Rep[Int],bt:Rep[Backtrack]) => unit(null.asInstanceOf[T])
   */
 
-trait BaseParsersExpList extends BaseParsers { this:Signature =>
+trait BaseParsersExpList extends BaseParsers /*with NumericOps with MathOps with ListOps with TupleOps with OrderingOps with IfThenElse with ArrayOps*/ { this:Signature =>
 
   override type Rep[+A] = A
   override def unit[A : Manifest](a: A) = a
@@ -35,8 +35,8 @@ trait BaseParsersExpList extends BaseParsers { this:Signature =>
   // LMS nodes
 
   def findTab(rule:Rep[Int]):(Tabulate,Rep[Int]) = { // XXX: LMS/non-LMS involved
-    rules.find{ case (n,t)=> val rr=rule-t.id; rr >= 0 && rr < t.inner.alt} match {
-      case Some((n,t)) => (t,rule-t.id)
+    rules.find{ case (n,t)=> val rr=rule-unit(t.id); rr >= unit(0) && rr < unit(t.inner.alt)} match {
+      case Some((n,t)) => (t,rule-unit(t.id))
       case None => sys.error("No tabulation for subrule #"+rule)
     }
   }

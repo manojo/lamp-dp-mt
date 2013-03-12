@@ -3,7 +3,10 @@ package lms2
 trait Signature {
   type Alphabet // input type
   type Answer // output type
-  def h(a:Answer,b:Answer):Answer // optimization function
+  //def h(a:Rep[Answer],b:Rep[Answer]):Rep[Answer] // optimization function
+
+  val mAlph: Manifest[Alphabet]
+  val mAns : Manifest[Answer]
 }
 
 import scala.virtualization.lms.common._
@@ -28,10 +31,9 @@ trait BaseParsers extends Base { this:Signature =>
   def tab_reapply(t:Tabulate,i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) : tpReapply[Answer]
   def tab_compute(t:Tabulate,i:Rep[Int],j:Rep[Int]):Unit
   def tab_build(t:Tabulate,bt:Trace) : Answer
-  def tab_backtrack(t:Tabulate,i:Rep[Int],j:Rep[Int]) : List[(Answer,Trace)]
+  def tab_backtrack(t:Tabulate,i:Rep[Int],j:Rep[Int]) : Rep[List[(Answer,Trace)]]
   def tab_init(t:Tabulate,w:Rep[Int],h:Rep[Int]) : Unit // { mW=w; mH=h; val sz=if (twotracks) w*h else { assert(w==h); h*(h+1)/2 }; data=new Array(sz); }
   def tab_reset(t:Tabulate) : Unit // { data=unit(null); mW=unit(0); mH=unit(0); }
-
 
   // term_apply is defined at terminal level
   def term_unapply[T](p:Terminal[T],i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) : tpUnapply[T]
@@ -63,10 +65,10 @@ trait BaseParsers extends Base { this:Signature =>
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]): tpUnapply[T]
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]): tpReapply[T]
 
-    final def ^^[U](f: T => U) = new Map(this,f)
+    final def ^^[U](f: Rep[T] => Rep[U]) = new Map(this,f)
     final def |(other: Parser[T]) = new Or(this,other)
-    final def aggregate(h:(T,T)=>T) = new Aggregate(this,h)
-    final def filter (f:(Int,Int)=>Boolean) = new Filter(this,f)
+    final def aggregate(h:(Rep[T],Rep[T])=>Rep[T]) = new Aggregate(this,h)
+    final def filter (f:(Rep[Int],Rep[Int])=>Rep[Boolean]) = new Filter(this,f)
   }
 
   // Recurrence analysis, done once when grammar is complete, before the computation.
@@ -154,7 +156,7 @@ trait BaseParsers extends Base { this:Signature =>
   // Aggregate combinator.
   // Takes a function which modifies the list of a parse. Usually used
   // for max or min functions (but can also be a prettyprint).
-  case class Aggregate[T](inner:Parser[T], h:(T,T)=>T) extends Parser[T] {
+  case class Aggregate[T](inner:Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) extends Parser[T] {
     def min = inner.min
     def max = inner.max
     lazy val (alt,cat) = (inner.alt,inner.cat)
@@ -165,7 +167,7 @@ trait BaseParsers extends Base { this:Signature =>
 
   // Filter combinator.
   // Yields an empty list if the filter does not pass.
-  case class Filter[T](inner:Parser[T], pred:(Int,Int)=>Boolean) extends Parser[T] {
+  case class Filter[T](inner:Parser[T], pred:(Rep[Int],Rep[Int])=>Rep[Boolean]) extends Parser[T] {
     def min = inner.min
     def max = inner.max
     lazy val (alt,cat) = (inner.alt,inner.cat)
@@ -176,7 +178,7 @@ trait BaseParsers extends Base { this:Signature =>
 
   // Mapper. Equivalent of ADP's <<< operator.
   // To separate left and right hand side of a grammar rule
-  case class Map[T,U](inner:Parser[T], f: T => U) extends Parser[U] {
+  case class Map[T,U](inner:Parser[T], f: Rep[T] => Rep[U]) extends Parser[U] {
     def min = inner.min
     def max = inner.max
     lazy val (alt,cat) = (inner.alt,inner.cat)
