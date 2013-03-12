@@ -49,15 +49,17 @@ trait BaseParsers extends Package { this:Signature =>
 trait BaseParsersExp extends BaseParsers with PackageExp{this: Signature =>
 
   // Dependency analyis order: prevents infinite loops, also define an order for bottom up implementations (requires yield analysis)
-  def deps[T](q:Parser[T]): scala.List[String] = q match { // (A->B) <=> B(i,j) = ... | A(i,j)
+  def deps[T:Manifest](q:Parser[T]): scala.List[String] = q match { // (A->B) <=> B(i,j) = ... | A(i,j)
     case Aggregate(p,_) => deps(p)
     case Filter(p,_) => deps(p)
     case Map(p,_) => deps(p)
     case Or(l,r) => deps(l) ::: deps(r)
     case cc@Concat(l,r/*,_*/) =>
       /*val(lm,_,rm,_)=cc.indices;*/
-      deps(r) ::: deps(l)
-      //(if (/*lm*/10==0) deps(r) else Nil) ::: (if (/*rm*/10==0) deps(l) else Nil)
+      //deps(r) ::: deps(l)
+      val ldeps : List[String] = if (/*lm*/10==0) deps(r) else Nil
+      val rdeps : List[String] = if (/*rm*/10==0) deps(l) else Nil
+      ldeps ::: rdeps
     case t:Tabulate => scala.List(t.name)
     case _ => Nil
   }
