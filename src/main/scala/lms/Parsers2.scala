@@ -21,7 +21,7 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
 
   type Input = Rep[Array[Alphabet]] //DSL related type aliases and info
 
-  abstract class Parser[T:Manifest] extends ((Rep[Int], Rep[Int]) => Rep[List[T]]){inner =>
+  abstract class Parser[T:Manifest] extends ((Rep[Int], Rep[Int]) => Rep[List[(T,Int,List[Int])]]){inner =>
     def aggregate(h:(Rep[T],Rep[T])=>Rep[T], z:Rep[T]) = parser_aggregate(inner, h, z)
     def filter (p: (Rep[Int], Rep[Int]) => Rep[Boolean]) = parser_filter(this, p)
     def ^^[U:Manifest](f: Rep[T] => Rep[U]) = parser_map(this, f)
@@ -43,11 +43,10 @@ trait Parsers extends ArrayOps with MyListOps with NumericOps with IfThenElse
 
   /*************** terminals below *****************/
   def el(in: Input)(implicit mAlph: Manifest[Alphabet]) = new Parser[Alphabet] {
-    def apply(i:Rep[Int], j:Rep[Int]) = if(i+1==j) List(in(i)) else List()
+    def apply(i:Rep[Int], j:Rep[Int]) = if(i+1==j) List((in(i),unit(0),List[Int]())) else List[(Alphabet,Int,List[Int])]()
   }
-
   def eli(in: Input) = new Parser[Int] {
-    def apply(i: Rep[Int], j : Rep[Int]) = if(i+1==j) List(i) else List()
+    def apply(i: Rep[Int], j : Rep[Int]) = if(i+1==j) List((i,unit(0),List[Int]())) else List[(Int,Int,List[Int])]()
   }
 }
 
@@ -55,10 +54,8 @@ trait LexicalParsers extends Parsers {this: Signature =>
   type Alphabet = Char
   val mAlph = manifest[Char]
 
-  def char(in: Input) = new Parser[Char] {
-    def apply(i: Rep[Int], j: Rep[Int]) = if(i+1==j) List(in(i)) else List()
-  }
-  def charf(in: Input, c: Rep[Char]) = char(in) filter {(i:Rep[Int], j:Rep[Int]) => (i + 1 == j) && in(i) == c }
+  def char(in: Input) = el(in)
+  def charf(in: Input, c:Rep[Char]) = char(in) filter {(i:Rep[Int], j:Rep[Int]) => (i + 1 == j) && in(i) == c }
 }
 
 trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNumeric
@@ -80,11 +77,11 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
 
   /*** case classes for matching on Parsers */
   case class FilterParser[T:Manifest](inner: Parser[T], p: (Rep[Int], Rep[Int]) => Rep[Boolean]) extends Parser[T] {
-    def apply(i: Rep[Int], j: Rep[Int]) = if(p(i,j)) inner(i,j) else List()
+    def apply(i: Rep[Int], j: Rep[Int]) = if(p(i,j)) inner(i,j) else List[(T,Int,List[Int])]()
   }
 
   case class MapParser[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) extends Parser[U] {
-    def apply(i: Rep[Int], j: Rep[Int]) = inner(i,j) map f
+    def apply(i: Rep[Int], j: Rep[Int]) = inner(i,j) map {x => (f(x._1),x._2,x._3)}
   }
 
   case class OrParser[T:Manifest](inner: Parser[T], that: Parser[T]) extends Parser[T] {
@@ -92,11 +89,17 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
   }
 
   case class AggregateParser[T:Manifest, U:Manifest](inner: Parser[T], h:(Rep[T],Rep[T])=>Rep[T], z:Rep[T]) extends Parser[T] {
-    def apply(i: Rep[Int], j: Rep[Int]) = list_reduce(inner(i,j),h,z)
+    def apply(i: Rep[Int], j: Rep[Int]) = {
+      val zero:Rep[(T,Int,List[Int])] = (z,unit(-1),List[Int]())
+      val res = list_fold(inner(i,j), zero, (x:Rep[(T,Int,List[Int])], y:Rep[(T,Int,List[Int])]) => if (x._2==unit(-1) || y._1==h(x._1,y._1)) y else x)
+      if (res._2!=unit(-1)) List(res) else List()
+    }
+    //list_reduce(inner(i,j),h,z)
     // { val tmp=inner(i,j); if (tmp.isEmpty) List() else List(list_fold(tmp.tail,tmp.head,h)) }
   }
 
-  case class ConcatParser[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: Parser[U]) extends Parser[(T,U)]{
+  case class ConcatParser[T:Manifest, U:Manifest](inner: Parser[T], lL:Rep[Int], lU:Rep[Int], rL:Rep[Int], rU:Rep[Int], that: Parser[U])
+      (implicit mRes:Manifest[List[((T,U),Int,List[Int])]]) extends Parser[(T,U)]{
     def apply(i: Rep[Int], j: Rep[Int]) = if(i < j) {
       val min_k = if (rU== -1) i+lL else Math.max(i+lL,j-rU)
       val max_k = if (lU== -1) j-rL else Math.min(j-rL,i+lU)
@@ -104,20 +107,20 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
         k <- (min_k until max_k+1).toList;
         x <- inner(i,k);
         y <- that(k,j)
-      ) yield((x,y))
+      ) yield { val a:Rep[(T,U)]=(x._1,y._1); (a, x._2 /* *unit(XX)+y._2 */, x._3 /* ::: k :: y._2 */ ) } // XXX: fix this
       // for(k <- (min_k until max_k+1).toList) yield((inner(i,k).head,that()(k,j).head)) + WARNING: test emptynesss of x,y
-    } else List()
+    } else List[((T,U),Int,List[Int])]()
   }
 
   // Call init(n) before usage and clear to free memory, use get to retrieve final value
   class TabulatedParser(name:String, inner: =>Parser[Answer])(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
     private var sz:Rep[Int] = unit(0)
     private var mem:Rep[Int] = unit(0)
-    private var tab:Rep[Array[Answer]] = null
+    private var tab :Rep[Array[(Answer,Int,List[Int])]] = unit(null) //NewArray[(Answer,Int,List[Int])](1)
     private def idx(i:Rep[Int],j:Rep[Int]) = { val d=sz+2+i-j; mem - (d*(d-1))/2 + i; }
-    def init(size:Rep[Int]) { sz=size; mem=(sz+1)*(sz+2)/2; tab=NewArray(mem) } // XXX: make recursive
-    def clear = { sz=unit(0); tab=null; } // XXX: make recursive
-    def get:Rep[Answer] = tab(idx(0,sz)) // XXX: useful
+    def init(size:Rep[Int]) { sz=size; mem=(sz+1)*(sz+2)/2; tab=NewArray[(Answer,Int,List[Int])](mem)} // XXX: make recursive
+    def clear = { sz=unit(0); tab= unit(null)} // XXX: make recursive
+    def get:Rep[(Answer,Int,List[Int])] = tab(idx(0,sz)) // XXX: useful?
 
     def apply(i: Rep[Int], j: Rep[Int]) = {
       if(!(productions contains(name))) {
@@ -125,24 +128,24 @@ trait ParsersExp extends Parsers with ArrayOpsExp with MyListOpsExp with LiftNum
         // --- STAGED
         val tmp = inner(i,j)
         //if (!tmp.isEmpty) { tab(idx(i,j)) = tmp.head }
-        transform(tmp).apply{x:Rep[Answer] => tab(idx(i,j))=x}
+        transform(tmp).apply{x:Rep[(Answer,Int,List[Int])] => tab(idx(i,j))=x}
         // --- STAGED
         productions -= name
       }
       val e = tab(idx(i,j))
       // Since we build bottom-up, null means 'already processed and with no result'
       // NOTE: A null would be encoded in C with uninitialized value and rule_id = -1
-      if (e==null.asInstanceOf[Answer]) List() else List(e)
+      if (e==null.asInstanceOf[(Answer,Int,List[Int])]) List[(Answer,Int,List[Int])]() else List(e)
     }
   }
 
   // Bottom-up scheduling (from bottomUp2)
-  def bottomUp(in:Input, p: =>TabulatedParser)(implicit mAlph: Manifest[Alphabet], mA: Manifest[Answer]) : Rep[Answer] = {
+  def bottomUp(in:Input, p: =>TabulatedParser)(implicit mAlph: Manifest[Alphabet], mA: Manifest[Answer]) : Rep[(Answer,Int,List[Int])] = {
     //
     // XXX: convert here into generators recursively ?
     //
     // XXX: make sure this loop is fine
-  	val n = in.length; p.init(n)
+        val n = in.length; p.init(n)
     (1 until n+1).foreach{l =>
       (0 until n+1 -l).foreach{i =>
         val j = i+l
@@ -184,7 +187,7 @@ object MatMutlTest extends App {
     val z = unit((-1,-1,-1))
 
     // Matrix multiplication grammar
-    def grammar(in:Input):Rep[Answer] = {
+    def grammar(in:Input):Rep[(Answer,Int,List[Int])] = {
       lazy val p:TabulatedParser = tabulate("mat",(
           el(in) ^^ single
         | (p +~+ p) ^^ {x: Rep[(Answer,Answer)] => mult(x._1,x._2)}
@@ -192,11 +195,17 @@ object MatMutlTest extends App {
 
       bottomUp(in,p)(mAlph, mAns)
     }
+    /*def grammar(in:Input): Rep[(Answer, Int, List[Int])] = {
+      val a = NewArray[(Answer, Int, List[Int])](1)
+      a(unit(0)) = (unit((1,1,1)), unit(1), List(1))
+      a(unit(0))
+    }
+    */
 
     // Now we compile and execute our program
     codegen.emitSource(grammar _, "test-bottomup4", new java.io.PrintWriter(System.out))
     val prog = compile(grammar)
     val res = prog(scala.Array((10,100),(100,5),(5,50)))
-    scala.Console.println(res)
+    scala.Console.println(res._1)
   }
 }
