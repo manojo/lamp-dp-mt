@@ -1,7 +1,7 @@
 package lms2
 
-//import scala.virtualization.lms.common._
-object MatrixMult2 extends App with Signature with ADPParsers /*with BaseExp*/ {
+import scala.virtualization.lms.common._
+object MatrixMult2 extends App with Signature with ADPParsers {
   type Alphabet = (Int,Int) // matrix as (rows, columns)
   type Answer = (Int,Int,Int) // rows, cost, columns
 
@@ -13,6 +13,10 @@ object MatrixMult2 extends App with Signature with ADPParsers /*with BaseExp*/ {
     el ^^ single
   | (axiom ~ axiom) ^^ { x:(Answer,Answer) => mult(x._1,x._2) }
   ) aggregate h,true)
+
+  // Interpreter
+  override type Rep[+A] = A
+  override def unit[A : Manifest](a: A) = a
 
   val input = Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
   val (score,bt) = backtrack(input).head

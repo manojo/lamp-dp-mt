@@ -1,6 +1,6 @@
 package lms2
 
-trait ADPParsers extends BaseParsers { this:Signature =>
+trait ADPParsers extends BaseParsersExpList { this:Signature =>
   // I/O interface
   private var input: Input = null
   def in(k:Int):Alphabet = input(k)
