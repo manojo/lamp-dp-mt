@@ -64,6 +64,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   // Recurrence analysis, done once when grammar is complete, before the computation.
   private var analyzed:Boolean=false
   def analyze { if (analyzed) return; analyzed=true
+    scala.Console.println("Analyze: rulesCount = "+rules.size)
 /*
     // Strip away unnecessary tabulations
     var used = Set[String](); use(axiom)
@@ -129,6 +130,8 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
     var id:Int = -1 // subrules base index
+    scala.Console.println("Rules count => "+rules.size)
+
 
     @inline private def idx(i:Rep[Int],j:Rep[Int]):Rep[Int] = if (twotracks) i*mW+j else { val d=mH+unit(1)+i-j; ( mH*(mH+unit(1)) - d*(d-unit(1)) ) / unit(2) + i }
     def apply(i:Rep[Int],j:Rep[Int]) = { val v = data(idx(i,j)); if (v!=unit(null)) List((v._1,bt0)) else List[(Answer,Backtrack)]() } // read-only
