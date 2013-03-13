@@ -5,7 +5,6 @@ import lms._
 
 trait ADPParsers extends BaseParsersExp { this:Signature =>
   var in: Rep[Input] = unit(null)
-  val axiom:Tabulate
 
   def bottomUp(n:Rep[Int]) {
     val rs=rulesOrder map {n=>rules(n)};
@@ -17,12 +16,13 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
   }
 
   def parse(input:Rep[Input])(implicit mAlph:Manifest[Alphabet], mAns:Manifest[Answer]):Rep[List[Answer]] = {
-    scala.Console.println(axiom.id)
     analyze; val rs=rulesOrder map {x=>rules(x)};
+    scala.Console.println("Parse: rulesCount="+rs.size)
+    scala.Console.println("Parse: axiomId="+axiom.id)
+
     in = input;
     val n:Rep[Int] = in.length+unit(1)
     // Initialization
-    scala.Console.println("Rules count:"+rs.size)
     for (r<-rs) { r.init(n,n); }
     // Bottom-Up
     bottomUp(n)
@@ -104,6 +104,7 @@ object MatrixMult2 extends App with Signature with ADPParsers with ScalaGenPacka
     el              ^^ single
   | (axiom ~ axiom) ^^ mult
   ) aggregate h,true)
+  analyze
 
   // Compilation into a program (apply,unapply,reapply)
   codegen.emitSource(parse _, "testParse", new java.io.PrintWriter(System.out))
