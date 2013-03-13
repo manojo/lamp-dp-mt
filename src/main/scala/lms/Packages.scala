@@ -1,7 +1,7 @@
 package lms
 import scala.virtualization.lms.common._
 
-trait Package extends ScalaOpsPkg with MyRangeOps with MyListOps with LiftScala {
+trait Package extends ScalaOpsPkg with MyRangeOps with MyListOps /*with LiftScala*/ {
 
 }
 

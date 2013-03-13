@@ -91,7 +91,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp{this: Signature =>
     //lazy val (alt,cat) = (inner.alt,inner.cat)
     def apply(i:Rep[Int],j:Rep[Int]) = {
       val l = inner(i,j)
-      if (l.isEmpty) Nil
+      if (l.isEmpty) List[(T,Backtrack)]()
       else {
         val folded = list_fold(l.tail, l.head, {(a: Rep[(T,Backtrack)], b: Rep[(T,Backtrack)]) =>
           if(a._1 == h(a._1, b._1)) a else b

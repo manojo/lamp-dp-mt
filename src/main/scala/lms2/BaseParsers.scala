@@ -59,11 +59,11 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
 
   // axiom must be given to bottom up
   final val bt0:Rep[Backtrack] = (unit(0),List[Int]()) // default initial backtrack
+  val axiom:Tabulate
 
   // Recurrence analysis, done once when grammar is complete, before the computation.
   private var analyzed:Boolean=false
   def analyze { if (analyzed) return; analyzed=true
-
 /*
     // Strip away unnecessary tabulations
     var used = Set[String](); use(axiom)
@@ -71,6 +71,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
       case Aggregate(p,_) => use(p) case Filter(p,_) => use(p) case Map(p,_) => use(p) case Or(l,r) => use(l); use(r) case Concat(l,r,_) => use(l); use(r)
       case t:Tabulate if (!used.contains(t.name)) => used++=Set(t.name); use(t.inner) case _ =>
     }
+
     for (n <- (rules.keys.toSet -- used)) rules.remove(n)
     // Yield analysis
     for((n,t)<-rules) t.minv=100000 // upper bound on minimum yields
@@ -107,11 +108,11 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
   var rulesOrder:List[String]=Nil // Order of tabulations evaluation
-  val rules = new scala.collection.mutable.HashMap[String,Tabulate]
-  def tabInit(w:Int,h:Int) = rules.foreach{ case (_,t) => t.init(w,h) }
+  val rules = new HashMap[String,Tabulate]
+  def tabInit(w:Rep[Int],h:Rep[Int]) = rules.foreach{ case (_,t) => t.init(w,h) }
   def tabReset = rules.foreach{ case (_,t) => t.reset }
   class Tabulate(in: => Parser[Answer], val name:String, val alwaysValid:Boolean=false)(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
-    lazy val inner = in
+    //lazy val inner = in
     val (alt,cat) = (1,0)
     def min = minv; var minv:Int = 0
     def max = maxv; var maxv:Int = 0
@@ -121,21 +122,22 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     private var mW = unit(0)
     private var mH = unit(0)
 
-    def init(w:Rep[Int],h:Rep[Int]) { mW=w; mH=h; val sz=if (twotracks) w*h else { /*assert(w==h);*/ h*(h+1)/2 }; data=NewArray(sz); }
+    def init(w:Rep[Int],h:Rep[Int]) { mW=w; mH=h; val sz=if (twotracks) w*h else { /*assert(w==h);*/ h*(h+unit(1))/unit(2) }; data=NewArray(sz); }
     def reset { data=unit(null); mW=unit(0); mH=unit(0); }
     
-    println("Registering rule '"+name+"'")
+    scala.Console.println("Registering rule '"+name+"'")
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
     var id:Int = -1 // subrules base index
 
-    @inline private def idx(i:Rep[Int],j:Rep[Int]):Rep[Int] = if (twotracks) i*mW+j else { val d=mH+1+i-j; ( mH*(mH+1) - d*(d-1) ) /2 + i }
+    @inline private def idx(i:Rep[Int],j:Rep[Int]):Rep[Int] = if (twotracks) i*mW+j else { val d=mH+unit(1)+i-j; ( mH*(mH+unit(1)) - d*(d-unit(1)) ) / unit(2) + i }
     def apply(i:Rep[Int],j:Rep[Int]) = { val v = data(idx(i,j)); if (v!=unit(null)) List((v._1,bt0)) else List[(Answer,Backtrack)]() } // read-only
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); if (v!=unit(null)) List((i,j,v._2)) else List[(Int,Int,Backtrack)]() }
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); /*if (v==unit(null)) sys.error("Failed reapply"+(i,j))*/ v._1 }
 
     def compute(i:Rep[Int],j:Rep[Int]):Rep[Unit] = {
-      val l = inner(i,j); if (l.isEmpty) { val e = l.head; val b:Rep[Backtrack]=(e._2._1+unit(id),e._2._2); data(idx(i,j))=(e._1,b); } else { unit({}) }
+      unit({})
+      //val l = inner(i,j); if (l.isEmpty) { val e = l.head; val b:Rep[Backtrack]=(e._2._1+unit(id),e._2._2); data(idx(i,j))=(e._1,b); } else { unit({}) }
     } // write-only
 /*
     def build(bt:Trace):Answer = bt match {
@@ -171,7 +173,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   // Terminal abstraction
   abstract case class Terminal[T:Manifest](min:Int,max:Int) extends Parser[T] {
     final val (alt,cat) = (1,0)
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = Nil
+    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = List[(Int,Int,Backtrack)]()
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=apply(i,j); /*if (r.isEmpty) sys.error("Empty apply"+(i,j)+" for "+bt);*/ r.map{ _._1 }.head }
   }
 
@@ -183,7 +185,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     def min = inner.min
     def max = inner.max
     def apply(i:Rep[Int],j:Rep[Int]) = { 
-      val l=inner(i,j); if (l.isEmpty) Nil else List(list_fold(l.tail,l.head,(a:Rep[(T,Backtrack)],b:Rep[(T,Backtrack)]) => if (a._1==h(a._1,b._1)) a else b ))
+      val l=inner(i,j); if (l.isEmpty) List[(T,Backtrack)]() else List(list_fold(l.tail,l.head,(a:Rep[(T,Backtrack)],b:Rep[(T,Backtrack)]) => if (a._1==h(a._1,b._1)) a else b ))
     }
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt) // we have only 1 result
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.reapply(i,j,bt)
@@ -258,7 +260,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
           y <- right(k,j)
         ) yield { val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k)) }
       } else if (track==1) {
-        val min_k = if (lU==maxN) unit(0) else Math.max(i-unit(lU),0)
+        val min_k = if (lU==maxN) unit(0) else Math.max(i-unit(lU),unit(0))
         val max_k = i-unit(lL)
         for(
           k <- (min_k until max_k+unit(1)).toList;
@@ -266,7 +268,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
           y <- right(k,j) // M[k,j]
         ) yield{ val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k)) }  
       } else if (track==2) {
-        val min_k = if (rU==maxN) unit(0) else Math.max(j-unit(rU),0)
+        val min_k = if (rU==maxN) unit(0) else Math.max(j-unit(rU),unit(0))
         val max_k = j-unit(rL)
         for(
           k <- (min_k until max_k+unit(1)).toList;
@@ -280,7 +282,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
       case (0,(l,_,_,u)) => val k=if(hasBt)kb else if (u==maxN) i+l else Math.max(i+unit(l),j-unit(u)); (i,k, k,j) // single track
       case (1,(l,u,_,_)) => val k=if(hasBt)kb else i-unit(l); (k,i, k,j) // tt:concat1
       case (2,(_,_,l,u)) => val k=if(hasBt)kb else j-unit(l); (i,k, k,j) // tt:concat2
-      case _ => (0,0, 0,0)
+      case _ => (unit(0),unit(0), unit(0),unit(0))
     }
 
     private def bt_split(bt:Rep[Backtrack]):Rep[(Backtrack,Backtrack,Int)] = {

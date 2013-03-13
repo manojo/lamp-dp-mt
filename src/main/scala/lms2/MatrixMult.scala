@@ -9,14 +9,15 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
 
   def bottomUp(n:Rep[Int]) {
     val rs=rulesOrder map {n=>rules(n)};
-    (0 until n).foreach { d=>
-      (0 until n-d).foreach { i=>
+    (unit(0) until n).foreach { d=>
+      (unit(0) until n-d).foreach { i=>
         for (r<-rs) r.compute(i,d+i); unit({})
       }
     }
   }
 
   def parse(input:Rep[Input])(implicit mAlph:Manifest[Alphabet], mAns:Manifest[Answer]):Rep[List[Answer]] = {
+    scala.Console.println(axiom.id)
     analyze; val rs=rulesOrder map {x=>rules(x)};
     in = input;
     val n:Rep[Int] = in.length+unit(1)
@@ -26,7 +27,7 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
     // Bottom-Up
     bottomUp(n)
     // Backtrack (if any)
-    val r=axiom(0,n); val res = if (r.isEmpty) List[Answer]() else List(r.head._1)
+    val r=axiom(unit(0),n); val res = if (r.isEmpty) List[Answer]() else List(r.head._1)
     // Cleanup
     for (r<-rs) { r.reset; }; in=unit(null)
     // Return result
@@ -71,7 +72,7 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
     def apply(i:Rep[Int],j:Rep[Int]) = if(i+1==j) List((in(i),bt0)) else List[(Alphabet,Backtrack)]()
   }
   def seq(min:Int=1, max:Int=maxN) = new Terminal[(Int,Int)](min,max) {
-    def apply(i:Rep[Int],j:Rep[Int]) = if (i+unit(min)<=j && (max==maxN || i+unit(max)>=j)) { val p:Rep[(Int,Int)]=(i,j); List((p,bt0)) } else List[((Int,Int),Backtrack)]()
+    def apply(i:Rep[Int],j:Rep[Int]) = if (i+unit(min)<=j && (unit(max==maxN) || i+unit(max)>=j)) { val p:Rep[(Int,Int)]=(i,j); List((p,bt0)) } else List[((Int,Int),Backtrack)]()
   }
 }
 
@@ -108,7 +109,7 @@ object MatrixMult2 extends App with Signature with ADPParsers with ScalaGenPacka
   codegen.emitSource(parse _, "testParse", new java.io.PrintWriter(System.out))
   val progParse = compile(parse)
   val input = scala.Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
-  println(progParse(input))
+  scala.Console.println(progParse(input))
   /*
   val (score,bt) = backtrack(input).head
   println("Score     : "+score)
