@@ -57,6 +57,12 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   def parser_or[T:Manifest](left: Parser[T], right: Parser[T]) = Or(left,right)
   def parser_concat[T:Manifest, U:Manifest](left: Parser[T], right: Parser[U], track:Int) = Concat(left,right,track)
 
+  // Forcibly escape LMS lifting (avoid forcing type for every operand)
+  private def __min(a:Int,b:Int) = if (a < b) a else b
+  private def __max(a:Int,b:Int) = if (a > b) a else b
+  private def __or(a:Boolean,b:Boolean) = if (a) true else b
+  private def __and(a:Boolean,b:Boolean) = if (a) b else false
+
   // axiom must be given to bottom up
   final val bt0:Rep[Backtrack] = (unit(0),List[Int]()) // default initial backtrack
   val axiom:Tabulate
@@ -64,15 +70,12 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   // Recurrence analysis, done once when grammar is complete, before the computation.
   private var analyzed:Boolean=false
   def analyze { if (analyzed) return; analyzed=true
-    scala.Console.println("Analyze: rulesCount = "+rules.size)
-/*
     // Strip away unnecessary tabulations
-    var used = Set[String](); use(axiom)
+    var used = scala.collection.mutable.Set[String](); use(axiom)
     def use[T](q:Parser[T]):Unit = q match {
       case Aggregate(p,_) => use(p) case Filter(p,_) => use(p) case Map(p,_) => use(p) case Or(l,r) => use(l); use(r) case Concat(l,r,_) => use(l); use(r)
-      case t:Tabulate if (!used.contains(t.name)) => used++=Set(t.name); use(t.inner) case _ =>
+      case t:Tabulate if (!used.contains(t.name)) => used++=scala.collection.mutable.Set(t.name); use(t.inner) case _ =>
     }
-
     for (n <- (rules.keys.toSet -- used)) rules.remove(n)
     // Yield analysis
     for((n,t)<-rules) t.minv=100000 // upper bound on minimum yields
@@ -84,17 +87,28 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
       case Filter(p,f) => rmax(p,d)
       case Aggregate(p,h) => rmax(p,d)
       case Map(p,f) => rmax(p,d)
-      case Or(l,r) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else Math.max(ml,mr) }
+      case Or(l,r) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else __max(ml,mr) }
       case Concat(l,r,_) => val ml=rmax(l,d); if (ml==maxN) maxN else { val mr=rmax(r,d); if (mr==maxN) maxN else ml+mr }
       case p:Tabulate => if (d==1) maxN else rmax(p.inner,d-1)
     }
     // Dependency analyis order: prevents infinite loops, also define an order for bottom up implementations (requires yield analysis)
     def deps[T](q:Parser[T]): List[String] = q match { // (A->B) <=> B(i,j) = ... | A(i,j)
-      case Aggregate(p,_) => deps(p) case Filter(p,_) => deps(p) case Map(p,_) => deps(p) case Or(l,r) => deps(l)++deps(r)
-      case cc@Concat(l,r,_) => val(lm,_,rm,_)=cc.indices; (if (lm==0) deps(r) else Nil) ::: (if (rm==0) deps(l) else Nil)
-      case t:Tabulate => List(t.name) case _ => Nil
+      case Aggregate(p,_) => deps(p)
+      case Filter(p,_) => deps(p)
+      case Map(p,_) => deps(p)
+      case Or(l,r) => deps(l)++deps(r)
+      
+      case cc@Concat(l,r,_) =>
+        // XXX: bug here
+        scala.Console.println("Inner indices: "+(l.min,l.max)+" "+(r.min,r.max));
+        val ix = cc.indices;
+        scala.Console.println("Read indices = "+ix);
+        val (lm,_,rm,_)=cc.indices;
+        (if (lm==0) deps(r) else Nil) ::: (if (rm==0) deps(l) else Nil)
+      case t:Tabulate => scala.List(t.name) case _ => Nil
     }
     val cs = rules.map{case (n,p)=>(n,deps(p.inner)) }
+    /*
     while (!cs.isEmpty) { var rem=false;
       cs.foreach { case (n,ds) if (ds.isEmpty||(true/:ds.map{d=>rulesOrder.contains(d)}){case(a,b)=>a&&b}) => rem=true; rulesOrder=n::rulesOrder; cs.remove(n); case _ => }
       if (rem==false) sys.error("Loop between tabulations, error in grammar")
@@ -102,7 +116,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     rulesOrder = rulesOrder.reverse
     // Identify subrules (uniquely within the same grammar as sorted by name)
     var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.inner.alt; }
-*/
+    */
   }
 
   // --------------------------------------------------------------------------
@@ -113,7 +127,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   def tabInit(w:Rep[Int],h:Rep[Int]) = rules.foreach{ case (_,t) => t.init(w,h) }
   def tabReset = rules.foreach{ case (_,t) => t.reset }
   class Tabulate(in: => Parser[Answer], val name:String, val alwaysValid:Boolean=false)(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
-    //lazy val inner = in
+    lazy val inner = in
     val (alt,cat) = (1,0)
     def min = minv; var minv:Int = 0
     def max = maxv; var maxv:Int = 0
@@ -126,12 +140,9 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     def init(w:Rep[Int],h:Rep[Int]) { mW=w; mH=h; val sz=if (twotracks) w*h else { /*assert(w==h);*/ h*(h+unit(1))/unit(2) }; data=NewArray(sz); }
     def reset { data=unit(null); mW=unit(0); mH=unit(0); }
     
-    scala.Console.println("Registering rule '"+name+"'")
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
     var id:Int = -1 // subrules base index
-    scala.Console.println("Rules count => "+rules.size)
-
 
     @inline private def idx(i:Rep[Int],j:Rep[Int]):Rep[Int] = if (twotracks) i*mW+j else { val d=mH+unit(1)+i-j; ( mH*(mH+unit(1)) - d*(d-unit(1)) ) / unit(2) + i }
     def apply(i:Rep[Int],j:Rep[Int]) = { val v = data(idx(i,j)); if (v!=unit(null)) List((v._1,bt0)) else List[(Answer,Backtrack)]() } // read-only
@@ -139,8 +150,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); /*if (v==unit(null)) sys.error("Failed reapply"+(i,j))*/ v._1 }
 
     def compute(i:Rep[Int],j:Rep[Int]):Rep[Unit] = {
-      unit({})
-      //val l = inner(i,j); if (l.isEmpty) { val e = l.head; val b:Rep[Backtrack]=(e._2._1+unit(id),e._2._2); data(idx(i,j))=(e._1,b); } else { unit({}) }
+      val l = inner(i,j); if (l.isEmpty) { val e = l.head; val b:Rep[Backtrack]=(e._2._1+unit(id),e._2._2); data(idx(i,j))=(e._1,b); } else { unit({}) }
     } // write-only
 /*
     def build(bt:Trace):Answer = bt match {
@@ -216,12 +226,6 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = f(inner.reapply(i,j,bt))
   }
 
-  // Forcibly escape LMS lifting (avoid forcing type for every operand)
-  private def __min(a:Int,b:Int) = if (a < b) a else b
-  private def __max(a:Int,b:Int) = if (a > b) a else b
-  private def __or(a:Boolean,b:Boolean) = if (a) true else b
-  private def __and(a:Boolean,b:Boolean) = if (a) b else false
-
   // Or combinator. Equivalent of ADP's ||| operator.
   // In ADP semantics we concatenate the results of the parse
   // of 'this' with the parse of 'that'
@@ -247,7 +251,10 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
       case (2,_,_,a,b) if(__and(a==b,a>=0)) => false
       case _ => true
     }
-    lazy val indices:(Int,Int,Int,Int) = { assert(analyzed==true); (left.min,left.max,right.min,right.max) }
+    lazy val indices = {
+      scala.Console.println("INDICES"); // XXX: THIS IS NOT BEING CALLED PROPERLY
+      assert(analyzed==true); (left.min,left.max,right.min,right.max)
+    }
     @inline private def bt(bl:Rep[Backtrack],br:Rep[Backtrack],k:Rep[Int]):Rep[Backtrack] = {
       (bl._1*unit(right.alt)+br._1, bl._2 ++ (if (hasBt)List(k) else List[Int]()) ++ br._2)
     }

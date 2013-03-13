@@ -92,7 +92,7 @@ object MatrixMult2 extends App with Signature with ADPParsers
   def h(a:Rep[Answer],b:Rep[Answer]) = if (a._2 < b._2) a else b
 
   // Grammar
-  lazy val axiom:Tabulate = tabulate("M",( // XXX: can we get rid of the name? it was used only for CUDA codegen
+  val axiom:Tabulate = tabulate("M",( // XXX: can we get rid of the name? it was used only for CUDA codegen
     el              ^^ single
   | (axiom ~ axiom) ^^ mult
   ) aggregate h,true)
