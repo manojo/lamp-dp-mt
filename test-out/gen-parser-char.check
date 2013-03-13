@@ -25,7 +25,7 @@ c
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
-class test1 extends ((Array[Char])=>(Char)) {
+class test2 extends ((Array[Char])=>(Char)) {
 def apply(x18:Array[Char]): Char = {
 val x19 = new Array[Char](2)
 var x20: Char = 'a'

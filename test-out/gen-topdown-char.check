@@ -1,0 +1,33 @@
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test1 extends ((Array[Char])=>(scala.Tuple2[Char, Int])) {
+def apply(x0:Array[Char]): scala.Tuple2[Char, Int] = {
+val x1 = ('a',-1)
+var x2: scala.Tuple2[Char, Int] = x1
+val x3 = x0.length
+val x4 = 0 >= x3
+val x13 = if (x4) {
+()
+} else {
+val x5 = x0(0)
+val x6 = x5 == 'h'
+val x11 = if (x6) {
+val x7 = 0 + 1
+val x8 = (x5,x7)
+x2 = x8
+()
+} else {
+()
+}
+x11
+}
+val x14 = x2
+x14
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+(h,1)

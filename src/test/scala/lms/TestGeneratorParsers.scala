@@ -119,7 +119,7 @@ class TestGeneratorParsers extends FileDiffSuite {
         val res1 = testc1(scala.Array('c'))
         scala.Console.println(res1)
 
-        codegen.emitSource(test2 _ , "test1", new java.io.PrintWriter(System.out))
+        codegen.emitSource(test2 _ , "test2", new java.io.PrintWriter(System.out))
         val testc2 = compile(test2)
         val res2 = testc2(scala.Array('c'))
         scala.Console.println(res2)

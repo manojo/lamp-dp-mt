@@ -1,14 +1,11 @@
 package vanilla.topdown
 
-import lms._
-import scala.virtualization.lms.common._
-
 trait TopDownParsers{
   type Input = Array[Char]
   type Pos = Int
 
 
-  abstract class Parser[T] extends ((Int) => Option[(T, Int)]/*Generator[(T, Pos)]*/){self =>
+  abstract class Parser[T] extends (Int => Option[(T, Int)]/*Generator[(T, Pos)]*/){self =>
     def ~ [U](that: => Parser[U]) = Parser[(T,U)]{ pos =>
       self(pos) match {
         case None => None
@@ -69,14 +66,7 @@ trait TopDownParsers{
 
   def repsep[T,U](p: => Parser[T], q: =>Parser[U]): Parser[List[T]] =
     rep(p <~  q)
-/*  Parser[List[T]]{ pos =>
-    p(pos) match {
-      case None => Some((List(), pos))
-      case Some((res, p2)) =>
-        rep(p)(p2).map{case (rest, pfin) => (res::rest, pfin)}
-    }
-  }
-*/
+
   def Parser[T](f: Int => Option[(T, Int)]) = new Parser[T]{
     def apply(in: Int) = f(in)
   }
