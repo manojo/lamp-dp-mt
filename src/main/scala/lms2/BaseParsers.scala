@@ -129,16 +129,13 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
     var id:Int = -1 // subrules base index
-/*
-    @inline private def idx(i:Rep[Int],j:Rep[Int]):Int = if (twotracks) i*mW+j else { val d=mH+1+i-j; ( mH*(mH+1) - d*(d-1) ) /2 + i }
-*/
-    def apply(i:Rep[Int],j:Rep[Int]) = List[(Answer,Backtrack)]() // { val v = data(idx(i,j)); if (v!=null) List((v._1,bt0)) else List() } // read-only
+
+    @inline private def idx(i:Rep[Int],j:Rep[Int]):Rep[Int] = if (twotracks) i*mW+j else { val d=mH+1+i-j; ( mH*(mH+1) - d*(d-1) ) /2 + i }
+    def apply(i:Rep[Int],j:Rep[Int]) = { val v = data(idx(i,j)); if (v!=unit(null)) List((v._1,bt0)) else List[(Answer,Backtrack)]() } // read-only
+    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); if (v!=unit(null)) List((i,j,v._2)) else List[(Int,Int,Backtrack)]() }
+    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); /*if (v==unit(null)) sys.error("Failed reapply"+(i,j))*/ v._1 }
 /*
     def compute(i:Rep[Int],j:Rep[Int]) = { val l=inner(i,j); if (!l.isEmpty) { val (c,(r,b))=l.head; data(idx(i,j))=(c,(id+r,b)); } } // write-only
-*/
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = List[(Int,Int,Backtrack)]() //{ val v=data(idx(i,j)); if (v!=null) List((i,j,v._2)) else List() }
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = unit(null).asInstanceOf[Answer] //{ val v=data(idx(i,j)); if (v!=null) v._1 else sys.error("Failed reapply"+(i,j)) }
-/*
 
     def build(bt:Trace):Answer = bt match {
       case bh::bs => val (i,j,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(i,j,(rr,b)); if (bs==Nil) a else { data(idx(i,j))=(a,bt0); build(bs) }
@@ -244,8 +241,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
       case (2,_,_,a,b) if(__and(a==b,a>=0)) => false
       case _ => true
     }
-    lazy val indices:(Int,Int,Int,Int) = { /*assert(analyzed==true);*/ (left.min,left.max,right.min,right.max) }
-
+    lazy val indices:(Int,Int,Int,Int) = { assert(analyzed==true); (left.min,left.max,right.min,right.max) }
     @inline private def bt(bl:Rep[Backtrack],br:Rep[Backtrack],k:Rep[Int]):Rep[Backtrack] = {
       (bl._1*unit(right.alt)+br._1, bl._2 ++ (if (hasBt)List(k) else List[Int]()) ++ br._2)
     }
