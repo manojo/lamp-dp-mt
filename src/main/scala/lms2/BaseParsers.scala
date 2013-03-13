@@ -108,10 +108,8 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   import scala.collection.mutable.HashMap
   var rulesOrder:List[String]=Nil // Order of tabulations evaluation
   val rules = new HashMap[String,Tabulate]
-/*
   def tabInit(w:Int,h:Int) = rules.foreach{ case (_,t) => t.init(w,h) }
   def tabReset = rules.foreach{ case (_,t) => t.reset }
-*/
   class Tabulate(in: => Parser[Answer], val name:String, val alwaysValid:Boolean=false)(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
     lazy val inner = in
     val (alt,cat) = (1,0)
@@ -134,9 +132,11 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     def apply(i:Rep[Int],j:Rep[Int]) = { val v = data(idx(i,j)); if (v!=unit(null)) List((v._1,bt0)) else List[(Answer,Backtrack)]() } // read-only
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); if (v!=unit(null)) List((i,j,v._2)) else List[(Int,Int,Backtrack)]() }
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); /*if (v==unit(null)) sys.error("Failed reapply"+(i,j))*/ v._1 }
-/*
-    def compute(i:Rep[Int],j:Rep[Int]) = { val l=inner(i,j); if (!l.isEmpty) { val (c,(r,b))=l.head; data(idx(i,j))=(c,(id+r,b)); } } // write-only
 
+    def compute(i:Rep[Int],j:Rep[Int]):Rep[Unit] = {
+      val l = inner(i,j); if (l.isEmpty) { val e = l.head; val b:Rep[Backtrack]=(e._2._1+unit(id),e._2._2); data(idx(i,j))=(e._1,b); } else { unit({}) }
+    } // write-only
+/*
     def build(bt:Trace):Answer = bt match {
       case bh::bs => val (i,j,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(i,j,(rr,b)); if (bs==Nil) a else { data(idx(i,j))=(a,bt0); build(bs) }
       case Nil => sys.error("No backtrack provided")
@@ -168,7 +168,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
 */
   // --------------------------------------------------------------------------
   // Terminal abstraction
-  abstract case class Terminal[T:Manifest](min:Int,max:Int,in:Rep[Input]) extends Parser[T] {
+  abstract case class Terminal[T:Manifest](min:Int,max:Int) extends Parser[T] {
     final val (alt,cat) = (1,0)
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = Nil
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=apply(i,j); /*if (r.isEmpty) sys.error("Empty apply"+(i,j)+" for "+bt);*/ r.map{ _._1 }.head }

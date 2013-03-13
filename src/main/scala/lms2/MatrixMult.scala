@@ -1,17 +1,44 @@
 package lms2
 
-trait ADPParsers extends BaseParsersExp { this:Signature =>
-  val grammar:Rep[Input]=>Tabulate
+import scala.virtualization.lms.common._
+import lms._
 
-  def parse(in:Rep[Input])(implicit mAns:Manifest[Answer]):Rep[List[Answer]] = {
-    List[Answer]() // Stub
+trait ADPParsers extends BaseParsersExp { this:Signature =>
+  var in: Rep[Input] = unit(null)
+  val axiom:Tabulate
+
+
+/*
+  def bottomUp(size:Rep[Int]) {
+    val rs=rulesOrder map {n=>rules(n)};
+    // LMS loop
+    var d=unit(0); while (d<=size) { for (r<-rs) { val iu=size-d; var i=0; while (i<=iu) { r.compute(i,d+i); i=i+1 } }; d=d+1; }
   }
+*/
+  def parse(input:Rep[Input])(implicit mAlph:Manifest[Alphabet], mAns:Manifest[Answer]):Rep[List[Answer]] = {
+    in = input;
+    val n:Rep[Int] = in.length+unit(1)
+    // Bottom-Up
+    /*
+    val rs=rulesOrder map {x=>rules(x)};
+    (0 until n).foreach { d=>
+      (0 until n-d).foreach { i=>
+        for (r<-rs) { r.compute(i,d+i); }
+        unit({})
+      }
+    }
+    */
+    in = unit(null)
+    val r=axiom(0,n); if (r.isEmpty) List[Answer]() else List(r.head._1)
+  }
+  /*
   def backtrack(in:Rep[Input])(implicit mAns:Manifest[Answer]):Rep[List[(Answer,Trace)]] = {
     List[(Answer,Trace)]() // Stub
   }
   def build(in:Rep[Input],trace:Rep[Trace])(implicit mAns:Manifest[Answer]):Rep[Answer] = {
     unit(null.asInstanceOf[Answer]) // Stub
   }
+  */
 
   // LEGACY I/O interface
   //private var input: Rep[Input] = unit(null)
@@ -36,20 +63,58 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
   }
 
   // Terminal parsers
-  val empty = new Terminal[Unit](0,0,unit(null)) { def apply(i:Rep[Int],j:Rep[Int]) = if (i==j) List((unit({}),bt0)) else List[(Unit,Backtrack)]() }
-  val emptyi = new Terminal[Int](0,0,unit(null)) { def apply(i:Rep[Int],j:Rep[Int]) = if (i==j) List((i,bt0)) else List[(Int,Backtrack)]() }
-  val eli = new Terminal[Int](1,1,unit(null)) { def apply(i:Rep[Int],j:Rep[Int]) = if(i+1==j) List((i,bt0)) else List[(Int,Backtrack)]() }
-  def el(in:Rep[Input])(implicit mAlph:Manifest[Alphabet]) = new Terminal[Alphabet](1,1,in) {
+  val empty = new Terminal[Unit](0,0) { def apply(i:Rep[Int],j:Rep[Int]) = if (i==j) List((unit({}),bt0)) else List[(Unit,Backtrack)]() }
+  val emptyi = new Terminal[Int](0,0) { def apply(i:Rep[Int],j:Rep[Int]) = if (i==j) List((i,bt0)) else List[(Int,Backtrack)]() }
+  val eli = new Terminal[Int](1,1) { def apply(i:Rep[Int],j:Rep[Int]) = if(i+1==j) List((i,bt0)) else List[(Int,Backtrack)]() }
+  def el(implicit mAlph:Manifest[Alphabet]) = new Terminal[Alphabet](1,1) {
     def apply(i:Rep[Int],j:Rep[Int]) = if(i+1==j) List((in(i),bt0)) else List[(Alphabet,Backtrack)]()
   }
-  def seq(in:Rep[Input],min:Int=1, max:Int=maxN) = new Terminal[(Int,Int)](min,max,in) {
+  def seq(min:Int=1, max:Int=maxN) = new Terminal[(Int,Int)](min,max) {
     def apply(i:Rep[Int],j:Rep[Int]) = if (i+unit(min)<=j && (max==maxN || i+unit(max)>=j)) { val p:Rep[(Int,Int)]=(i,j); List((p,bt0)) } else List[((Int,Int),Backtrack)]()
   }
 }
 
-//import scala.virtualization.lms.common._
-import lms._
-object MatrixMult2 extends App with Signature with ADPParsers /*with ScalaGenPackage*/ {
+object MatrixMult2 extends App with Signature with ADPParsers with ScalaGenPackage with MyScalaCompile { self =>
+
+  val IR = new ScalaOpsPkgExp with MyRangeOpsExp with MyListOpsExp
+  val codegen = new ScalaGenPackage { val IR: self.type = self }
+
+  override def reset = {
+    shallowAliasCache.clear()
+    deepAliasCache.clear()
+    allAliasCache.clear()
+    globalMutableSyms = Nil
+    context = null
+
+    innerScope = null
+    //shallow = false
+    IR.reset
+
+    super.reset
+  }
+
+/*
+  LMS/internal/Effects.scala::Effects
+  override def reset = {
+    shallowAliasCache.clear()
+    deepAliasCache.clear()
+    allAliasCache.clear()
+    globalMutableSyms = Nil
+    context = null
+    super.reset
+  }
+
+
+  lms/internal/BlockTraversal.scala::NestedBlockTraversal
+  override def reset { // used anywhere?
+    innerScope = null
+    //shallow = false
+    IR.reset
+    super.reset
+  }
+*/
+
+
   type Alphabet = (Int,Int) // matrix as (rows, columns)
   type Answer = (Int,Int,Int) // rows, cost, columns
 
@@ -62,21 +127,19 @@ object MatrixMult2 extends App with Signature with ADPParsers /*with ScalaGenPac
   def h(a:Rep[Answer],b:Rep[Answer]) = if (a._2 < b._2) a else b
 
   // Grammar
-  val grammar = (in:Rep[Input]) => {
-    lazy val axiom:Tabulate = tabulate("M",( // XXX: can we get rid of the name? it was used only for CUDA codegen
-      el(in)          ^^ single
-    | (axiom ~ axiom) ^^ mult
-    ) aggregate h,true)
-    axiom // return the axiom of grammar
-  }
+  lazy val axiom:Tabulate = tabulate("M",( // XXX: can we get rid of the name? it was used only for CUDA codegen
+    el              ^^ single
+  | (axiom ~ axiom) ^^ mult
+  ) aggregate h,true)
 
   // compile axiom for (apply,unapply,reapply)
 
   // XXX: I'm missing one trait somewhere
-  //codegen.emitSource(parse(grammar) _, "testParse", new java.io.PrintWriter(System.out))
-  //val progParse = compile(parse(grammar))
+  codegen.emitSource(parse _, "testParse", new java.io.PrintWriter(System.out))
+  val progParse = compile(parse)
 
-  val input = Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
+  val input = scala.Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
+  println(progParse(input))
   /*
   val (score,bt) = backtrack(input).head
   println("Score     : "+score)
