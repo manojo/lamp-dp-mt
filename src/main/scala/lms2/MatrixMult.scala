@@ -76,17 +76,9 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
   }
 }
 
-object MatrixMult2 extends App with Signature with ADPParsers with ScalaGenPackage with MyScalaCompile { self =>
-  val IR = new ScalaOpsPkgExp with MyRangeOpsExp with MyListOpsExp
+object MatrixMult2 extends App with Signature with ADPParsers
+  with PackageExp with MyScalaCompile { self =>
   val codegen = new ScalaGenPackage { val IR: self.type = self }
-
-  // Collision between:
-  // - lms/src/internal/Effects.scala::Effects
-  // - lms/src/internal/BlockTraversal.scala::NestedBlockTraversal
-  override def reset = {
-    shallowAliasCache.clear(); deepAliasCache.clear(); allAliasCache.clear(); globalMutableSyms=Nil; context=null /*super.reset*/
-    innerScope = null; /*shallow = false*/ IR.reset; super.reset
-  }
 
   type Alphabet = (Int,Int) // matrix as (rows, columns)
   type Answer = (Int,Int,Int) // rows, cost, columns
