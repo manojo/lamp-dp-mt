@@ -16,22 +16,18 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
   }
 
   def parse(input:Rep[Input])(implicit mAlph:Manifest[Alphabet], mAns:Manifest[Answer]):Rep[List[Answer]] = {
-    analyze; val rs=rulesOrder map {x=>rules(x)};
-    scala.Console.println("Parse: rulesCount="+rs.size)
-    scala.Console.println("Parse: axiomId="+axiom.id)
-
-    in = input;
+    analyze; in = input;
     val n:Rep[Int] = in.length+unit(1)
+    val rs=rulesOrder map {x=>rules(x)};
     // Initialization
     for (r<-rs) { r.init(n,n); }
     // Bottom-Up
-    bottomUp(n)
+    //bottomUp(n)
     // Backtrack (if any)
-    val r=axiom(unit(0),n); val res = if (r.isEmpty) List[Answer]() else List(r.head._1)
-    // Cleanup
-    for (r<-rs) { r.reset; }; in=unit(null)
-    // Return result
-    res
+    val r=axiom(unit(0),in.length); val res = if (r.isEmpty) List[Answer]() else List(r.head._1)
+    // Cleanup & return result
+    //for (r<-rs) { r.reset; };
+    in=unit(null); res // 
   }
   /*
   def backtrack(in:Rep[Input])(implicit mAns:Manifest[Answer]):Rep[List[(Answer,Trace)]] = {
@@ -60,7 +56,7 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
   import scala.language.implicitConversions
   implicit def parserADP[T:Manifest](p1:Parser[T]) = new ParserADP(p1)
   class ParserADP[T:Manifest](p1:Parser[T],idx:(Int,Int,Int,Int)=null) {
-    def ~ [U:Manifest](p2:Parser[U]) = { if (idx.eq(null)) new Concat(p1,p2,0) { override lazy val indices=idx } else new Concat(p1,p2,0) }
+    def ~ [U:Manifest](p2:Parser[U]) = { if (idx!=null) new Concat(p1,p2,0) { override lazy val indices=idx } else new Concat(p1,p2,0) }
     def ~ (minl:Int,maxl:Int,minr:Int,maxr:Int):ParserADP[T] = new ParserADP[T](p1,(minl,maxl,minr,maxr))
   }
 
@@ -92,7 +88,7 @@ object MatrixMult2 extends App with Signature with ADPParsers
   def h(a:Rep[Answer],b:Rep[Answer]) = if (a._2 < b._2) a else b
 
   // Grammar
-  lazy val axiom:Tabulate = tabulate("M",( // XXX: can we get rid of the name? it was used only for CUDA codegen
+  val axiom:Tabulate = tabulate("M",( // XXX: can we get rid of the name? it was used only for CUDA codegen
     el              ^^ single
   | (axiom ~ axiom) ^^ mult
   ) aggregate h,true)
