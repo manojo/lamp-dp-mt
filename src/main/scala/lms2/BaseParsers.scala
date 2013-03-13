@@ -93,22 +93,11 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     }
     // Dependency analyis order: prevents infinite loops, also define an order for bottom up implementations (requires yield analysis)
     def deps[T](q:Parser[T]): List[String] = q match { // (A->B) <=> B(i,j) = ... | A(i,j)
-      case Aggregate(p,_) => deps(p)
-      case Filter(p,_) => deps(p)
-      case Map(p,_) => deps(p)
-      case Or(l,r) => deps(l)++deps(r)
-      
-      case cc@Concat(l,r,_) =>
-        // XXX: bug here
-        scala.Console.println("Inner indices: "+(l.min,l.max)+" "+(r.min,r.max));
-        val ix = cc.indices;
-        scala.Console.println("Read indices = "+ix);
-        val (lm,_,rm,_)=cc.indices;
-        (if (lm==0) deps(r) else Nil) ::: (if (rm==0) deps(l) else Nil)
+      case Aggregate(p,_) => deps(p) case Filter(p,_) => deps(p) case Map(p,_) => deps(p) case Or(l,r) => deps(l)++deps(r)
+      case cc@Concat(l,r,_) => val ix = cc.indices; val (lm,_,rm,_)=cc.indices; (if (lm==0) deps(r) else Nil) ::: (if (rm==0) deps(l) else Nil)
       case t:Tabulate => scala.List(t.name) case _ => Nil
     }
     val cs = rules.map{case (n,p)=>(n,deps(p.inner)) }
-    /*
     while (!cs.isEmpty) { var rem=false;
       cs.foreach { case (n,ds) if (ds.isEmpty||(true/:ds.map{d=>rulesOrder.contains(d)}){case(a,b)=>a&&b}) => rem=true; rulesOrder=n::rulesOrder; cs.remove(n); case _ => }
       if (rem==false) sys.error("Loop between tabulations, error in grammar")
@@ -116,7 +105,6 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     rulesOrder = rulesOrder.reverse
     // Identify subrules (uniquely within the same grammar as sorted by name)
     var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.inner.alt; }
-    */
   }
 
   // --------------------------------------------------------------------------
@@ -134,10 +122,9 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
 
     // Matrix storage
     private var data:Rep[Array[(Answer,Backtrack)]] = unit(null)
-    private var mW = unit(0)
-    private var mH = unit(0)
-
-    def init(w:Rep[Int],h:Rep[Int]) { mW=w; mH=h; val sz=if (twotracks) w*h else { /*assert(w==h);*/ h*(h+unit(1))/unit(2) }; data=NewArray(sz); }
+    private var mW:Rep[Int] = unit(0)
+    private var mH:Rep[Int] = unit(0)
+    def init(w:Rep[Int],h:Rep[Int]) { mW=w; mH=h; val sz:Rep[Int]=if (twotracks) w*h else { /*assert(w==h);*/ h*(h+unit(1))/unit(2) }; data=NewArray[(Answer,Backtrack)](sz); }
     def reset { data=unit(null); mW=unit(0); mH=unit(0); }
     
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
@@ -251,10 +238,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
       case (2,_,_,a,b) if(__and(a==b,a>=0)) => false
       case _ => true
     }
-    lazy val indices = {
-      scala.Console.println("INDICES"); // XXX: THIS IS NOT BEING CALLED PROPERLY
-      assert(analyzed==true); (left.min,left.max,right.min,right.max)
-    }
+    lazy val indices = { assert(analyzed==true); (left.min,left.max,right.min,right.max) }
     @inline private def bt(bl:Rep[Backtrack],br:Rep[Backtrack],k:Rep[Int]):Rep[Backtrack] = {
       (bl._1*unit(right.alt)+br._1, bl._2 ++ (if (hasBt)List(k) else List[Int]()) ++ br._2)
     }
