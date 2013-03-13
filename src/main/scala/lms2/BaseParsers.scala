@@ -3,77 +3,68 @@ package lms2
 trait Signature {
   type Alphabet // input type
   type Answer // output type
-  //def h(a:Rep[Answer],b:Rep[Answer]):Rep[Answer] // optimization function
+
+  //def h(a:Answer,b:Answer):Answer // optimization function
 
   val mAlph: Manifest[Alphabet]
   val mAns : Manifest[Answer]
 }
 
-import scala.virtualization.lms.common._
+// (Rep[Int], Rep[Int]) => Generator[T]
+// Generator[T:Manifest] extends (continuation:(Rep[T] => Rep[Unit]) => Rep[Unit]) <- execution
 
-trait BaseParsers extends Base { this:Signature =>
+import scala.virtualization.lms.common._
+import lms._
+trait BaseParsers extends Package { this:Signature =>
   type Input = Array[Alphabet]
   type Backtrack = (Int,List[Int]) // (subrule_id, indices)
   type Trace = List[(Int,Int,Backtrack)]
 
-  val axiom:Tabulate      // initial parser to be applied
-  val twotracks = false   // whether grammar is multi-track
-  final val bt0 = (0,List[Int]()) // default initial backtrack
-  final val maxN = -1     // infinity for Parser.max
+  val twotracks = false // whether grammar is multi-track
+  final val maxN = -1   // infinity for Parser.max
 
-  type tpApply[T] = Rep[List[(T,Backtrack)]]
-  type tpUnapply[T] = Rep[Trace]
-  type tpReapply[T] = Rep[T]
-
-  // LMS nodes
-  def tab_apply(t:Tabulate,i:Rep[Int],j:Rep[Int]) : tpApply[Answer]
-  def tab_unapply(t:Tabulate,i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) : tpUnapply[Answer]
-  def tab_reapply(t:Tabulate,i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) : tpReapply[Answer]
-  def tab_compute(t:Tabulate,i:Rep[Int],j:Rep[Int]):Unit
-  def tab_build(t:Tabulate,bt:Trace) : Answer
-  def tab_backtrack(t:Tabulate,i:Rep[Int],j:Rep[Int]) : Rep[List[(Answer,Trace)]]
-  def tab_init(t:Tabulate,w:Rep[Int],h:Rep[Int]) : Unit // { mW=w; mH=h; val sz=if (twotracks) w*h else { assert(w==h); h*(h+1)/2 }; data=new Array(sz); }
-  def tab_reset(t:Tabulate) : Unit // { data=unit(null); mW=unit(0); mH=unit(0); }
-
-  // term_apply is defined at terminal level
-  def term_unapply[T](p:Terminal[T],i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) : tpUnapply[T]
-  def term_reapply[T](p:Terminal[T],i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) : tpReapply[T]
-
-  def aggr_apply[T](p:Aggregate[T],i:Rep[Int],j:Rep[Int]) : tpApply[T]
-  def filter_apply[T](p:Filter[T],i:Rep[Int],j:Rep[Int]) : tpApply[T]
-
-  def map_apply[T,U](p:Map[T,U],i:Rep[Int],j:Rep[Int]) : tpApply[U]
-  def map_reapply[T,U](p:Map[T,U],i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) : tpReapply[U]
-
-  def or_apply[T](p:Or[T],i:Rep[Int],j:Rep[Int]) : tpApply[T]
-  def or_unapply[T](p:Or[T],i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) : tpUnapply[T]
-  def or_reapply[T](p:Or[T],i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) : tpReapply[T]
-
-  def ccat_apply[T,U](p:Concat[T,U],i:Rep[Int],j:Rep[Int]) : tpApply[(T,U)]
-  def ccat_unapply[T,U](p:Concat[T,U],i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) : tpUnapply[(T,U)]
-  def ccat_reapply[T,U](p:Concat[T,U],i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) : tpReapply[(T,U)]
+  def tabulate(name:String, inner: => Parser[Answer], alwaysValid:Boolean=false) : Parser[Answer]
+  def parser_aggr[T:Manifest](inner: Parser[T], h: (Rep[T],Rep[T]) => Rep[T]) : Parser[T]
+  def parser_filter[T:Manifest](inner: Parser[T], pred:(Rep[Int],Rep[Int]) => Rep[Boolean]) : Parser[T]
+  def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U]
+  def parser_or[T:Manifest](left: Parser[T], right: Parser[T]): Parser[T]
+  def parser_concat[T:Manifest, U:Manifest](left: Parser[T], right: Parser[U], track:Int): Parser[(T,U)]
 
   // Abstract parser
-  sealed abstract class Parser[T] extends ((Rep[Int],Rep[Int]) => tpApply[T]) {
+  sealed abstract class Parser[T:Manifest] extends ((Rep[Int],Rep[Int]) => Rep[List[(T,Backtrack)]]) {
     def min:Int // subword minimal size
     def max:Int // subword maximal size, -1=infinity
     val alt:Int // alternative (subrule_id)
     val cat:Int // concatenation split (offset in backtrack)
 
     // List-based vanilla Scala
-    def apply(i:Rep[Int],j:Rep[Int]): tpApply[T]
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]): tpUnapply[T]
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]): tpReapply[T]
+    def apply(i:Rep[Int],j:Rep[Int]): Rep[List[(T,Backtrack)]]
+    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]): Rep[Trace]
+    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]): Rep[T]
 
-    final def ^^[U](f: Rep[T] => Rep[U]) = new Map(this,f)
-    final def |(other: Parser[T]) = new Or(this,other)
-    final def aggregate(h:(Rep[T],Rep[T])=>Rep[T]) = new Aggregate(this,h)
-    final def filter (f:(Rep[Int],Rep[Int])=>Rep[Boolean]) = new Filter(this,f)
+    final def ^^[U:Manifest](f: Rep[T] => Rep[U]) = parser_map(this,f)
+    final def |(other: Parser[T]) = parser_or(this,other)
+    final def aggregate(h:(Rep[T],Rep[T])=>Rep[T]) = parser_aggr(this,h)
+    final def filter (f:(Rep[Int],Rep[Int])=>Rep[Boolean]) = parser_filter(this,f)
   }
+}
+
+trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
+  def tabulate(name:String, inner: => Parser[Answer], alwaysValid:Boolean=false) = new Tabulate(inner,name,alwaysValid)(mAns)
+  def parser_aggr[T:Manifest](inner: Parser[T], h: (Rep[T],Rep[T]) => Rep[T]) = Aggregate(inner,h)
+  def parser_filter[T:Manifest](inner: Parser[T], pred:(Rep[Int],Rep[Int]) => Rep[Boolean]) = Filter(inner,pred)
+  def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) = Map(inner,f)
+  def parser_or[T:Manifest](left: Parser[T], right: Parser[T]) = Or(left,right)
+  def parser_concat[T:Manifest, U:Manifest](left: Parser[T], right: Parser[U], track:Int) = Concat(left,right,track)
+
+  // axiom must be given to bottom up
+  final val bt0:Rep[Backtrack] = (unit(0),List[Int]()) // default initial backtrack
 
   // Recurrence analysis, done once when grammar is complete, before the computation.
-  private var analyzed=false
-  def analyze:Boolean = { if (analyzed) return false; analyzed=true
+  private var analyzed:Boolean=false
+  def analyze { if (analyzed) return; analyzed=true
+
+/*
     // Strip away unnecessary tabulations
     var used = Set[String](); use(axiom)
     def use[T](q:Parser[T]):Unit = q match {
@@ -109,114 +100,209 @@ trait BaseParsers extends Base { this:Signature =>
     rulesOrder = rulesOrder.reverse
     // Identify subrules (uniquely within the same grammar as sorted by name)
     var id=0; for((n,p) <- rules.toList.sortBy(_._1)) { p.id=id; id=id+p.inner.alt; }
-    true
+*/
   }
 
+/*
   // --------------------------------------------------------------------------
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
   var rulesOrder:List[String]=Nil // Order of tabulations evaluation
   val rules = new HashMap[String,Tabulate]
-  def tabInit(w:Rep[Int],h:Rep[Int]) = rules.foreach{ case (_,t) => t.init(w,h) }
+  def tabInit(w:Int,h:Int) = rules.foreach{ case (_,t) => t.init(w,h) }
   def tabReset = rules.foreach{ case (_,t) => t.reset }
-
-  def tabulate(name:String, inner: => Parser[Answer], alwaysValid:Boolean=false) = new Tabulate(inner,name,alwaysValid)
-  class Tabulate(in: => Parser[Answer], val name:String, val alwaysValid:Boolean=false) extends Parser[Answer] {
+*/
+  class Tabulate(in: => Parser[Answer], val name:String, val alwaysValid:Boolean=false)(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
     lazy val inner = in
     val (alt,cat) = (1,0)
-    def min = minv; var minv = 0
-    def max = maxv; var maxv = 0
+    def min = minv; var minv:Int = 0
+    def max = maxv; var maxv:Int = 0
+/*
+
+    // Matrix storage
+    private var data:Array[(Answer,Backtrack)] = null
+    private var (mW,mH) = (0,0)
+    def init(w:Int,h:Int) { mW=w; mH=h; val sz=if (twotracks) w*h else { assert(w==h); h*(h+1)/2 }; data=new Array(sz); }
+    def reset { data=null; mW=0; mH=0; }
 
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
+
     var id:Int = -1 // subrules base index
 
-    // Matrix storage
-    var data:Rep[Array[(Answer,Backtrack)]] = unit(null)
-    var mW:Rep[Int] = unit(0)
-    var mH:Rep[Int] = unit(0)
-    def init(w:Rep[Int],h:Rep[Int]) = tab_init(this,w,h)
-    def reset = tab_reset(this)
-    def apply(i:Rep[Int],j:Rep[Int]) = tab_apply(this,i,j)
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = tab_unapply(this,i,j,bt)
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = tab_reapply(this,i,j,bt)
-    def compute(i:Rep[Int],j:Rep[Int]) = tab_compute(this,i,j)
-    def build(bt:Trace) = tab_build(this,bt)
-    def backtrack(i:Rep[Int],j:Rep[Int]) = tab_backtrack(this,i,j)
+    @inline private def idx(i:Rep[Int],j:Rep[Int]):Int = if (twotracks) i*mW+j else { val d=mH+1+i-j; ( mH*(mH+1) - d*(d-1) ) /2 + i }
+*/
+    def apply(i:Rep[Int],j:Rep[Int]) = List[(Answer,Backtrack)]() // { val v = data(idx(i,j)); if (v!=null) List((v._1,bt0)) else List() } // read-only
+/*
+    def compute(i:Rep[Int],j:Rep[Int]) = { val l=inner(i,j); if (!l.isEmpty) { val (c,(r,b))=l.head; data(idx(i,j))=(c,(id+r,b)); } } // write-only
+*/
+    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = List[(Int,Int,Backtrack)]() //{ val v=data(idx(i,j)); if (v!=null) List((i,j,v._2)) else List() }
+    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = unit(null).asInstanceOf[Answer] //{ val v=data(idx(i,j)); if (v!=null) v._1 else sys.error("Failed reapply"+(i,j)) }
+/*
+
+    def build(bt:Trace):Answer = bt match {
+      case bh::bs => val (i,j,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(i,j,(rr,b)); if (bs==Nil) a else { data(idx(i,j))=(a,bt0); build(bs) }
+      case Nil => sys.error("No backtrack provided")
+    }
+
+    def backtrack(i0:Int,j0:Int) = {
+      val e=data(idx(i0,j0))
+      var pending:Trace = List((i0,j0,e._2))
+      var trace:Trace = Nil
+      while (!pending.isEmpty) {
+        val el = pending.head; trace=el::trace;
+        val (i,j,(rule,bt))=el;
+        val (t,rr) = findTab(rule)
+        val res = t.inner.unapply(i,j,(rr,bt))
+        pending = res:::pending.tail;
+      }
+      List((e._1,trace))
+    }
+*/
   }
 
+/*
+  def findTab(rule:Int):(Tabulate,Int) = {
+    rules.find{ case (n,t)=> val rr=rule-t.id; rr >= 0 && rr < t.inner.alt} match {
+      case Some((n,t)) => (t,rule-t.id)
+      case None => sys.error("No tabulation for subrule #"+rule)
+    }
+  }
+*/
   // --------------------------------------------------------------------------
   // Terminal abstraction
-  abstract case class Terminal[T](min:Int,max:Int) extends Parser[T] {
+  abstract case class Terminal[T:Manifest](min:Int,max:Int,in:Rep[Input]) extends Parser[T] {
     final val (alt,cat) = (1,0)
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = term_unapply(this,i,j,bt)
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = term_reapply(this,i,j,bt)
+    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = Nil
+    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=apply(i,j); /*if (r.isEmpty) sys.error("Empty apply"+(i,j)+" for "+bt);*/ r.map{ _._1 }.head }
   }
 
   // Aggregate combinator.
   // Takes a function which modifies the list of a parse. Usually used
   // for max or min functions (but can also be a prettyprint).
-  case class Aggregate[T](inner:Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) extends Parser[T] {
+  case class Aggregate[T:Manifest](inner:Parser[T], h:(Rep[T],Rep[T])=>Rep[T]) extends Parser[T] {
+    lazy val (alt,cat) = (inner.alt,inner.cat)
     def min = inner.min
     def max = inner.max
-    lazy val (alt,cat) = (inner.alt,inner.cat)
-    def apply(i:Rep[Int],j:Rep[Int]) = aggr_apply(this,i,j)
+    def apply(i:Rep[Int],j:Rep[Int]) = { 
+      val l=inner(i,j); if (l.isEmpty) Nil else List(list_fold(l.tail,l.head,(a:Rep[(T,Backtrack)],b:Rep[(T,Backtrack)]) => if (a._1==h(a._1,b._1)) a else b ))
+    }
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt) // we have only 1 result
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.reapply(i,j,bt)
   }
 
   // Filter combinator.
   // Yields an empty list if the filter does not pass.
-  case class Filter[T](inner:Parser[T], pred:(Rep[Int],Rep[Int])=>Rep[Boolean]) extends Parser[T] {
+  case class Filter[T:Manifest](inner:Parser[T], pred:(Rep[Int],Rep[Int])=>Rep[Boolean]) extends Parser[T] {
+    lazy val (alt,cat) = (inner.alt,inner.cat)
     def min = inner.min
     def max = inner.max
-    lazy val (alt,cat) = (inner.alt,inner.cat)
-    def apply(i:Rep[Int],j:Rep[Int]) = filter_apply(this,i,j)
+    def apply(i:Rep[Int],j:Rep[Int]) = if(pred(i,j)) inner(i,j) else List[(T,Backtrack)]()
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt) // filter matched at apply
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.reapply(i,j,bt) // ditto
   }
 
   // Mapper. Equivalent of ADP's <<< operator.
   // To separate left and right hand side of a grammar rule
-  case class Map[T,U](inner:Parser[T], f: Rep[T] => Rep[U]) extends Parser[U] {
+  case class Map[T:Manifest,U:Manifest](inner:Parser[T], f: Rep[T] => Rep[U]) extends Parser[U] {
+    lazy val (alt,cat) = (inner.alt,inner.cat)
     def min = inner.min
     def max = inner.max
-    lazy val (alt,cat) = (inner.alt,inner.cat)
-    def apply(i:Rep[Int],j:Rep[Int]) = map_apply(this,i,j)
+    def apply(i:Rep[Int],j:Rep[Int]) = inner(i,j) map { x => (f(x._1),x._2) }
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt)
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = map_reapply(this,i,j,bt)
+    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = f(inner.reapply(i,j,bt))
   }
+
+  // Forcibly escape LMS lifting (avoid forcing type for every operand)
+  private def __min(a:Int,b:Int) = if (a < b) a else b
+  private def __max(a:Int,b:Int) = if (a > b) a else b
+  private def __or(a:Boolean,b:Boolean) = if (a) true else b
+  private def __and(a:Boolean,b:Boolean) = if (a) b else false
 
   // Or combinator. Equivalent of ADP's ||| operator.
   // In ADP semantics we concatenate the results of the parse
   // of 'this' with the parse of 'that'
-  case class Or[T](left:Parser[T], right:Parser[T]) extends Parser[T] {
-    def min = Math.min(left.min,right.min)
-    def max = if (left.max==maxN || right.max==maxN) maxN else Math.max(left.max,right.max)
-    lazy val (alt,cat) = (left.alt+right.alt, Math.max(left.cat,right.cat))
-    def apply(i:Rep[Int],j:Rep[Int]) = or_apply(this,i,j)
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = or_unapply(this,i,j,bt)
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = or_reapply(this,i,j,bt)
+  case class Or[T:Manifest](left:Parser[T], right:Parser[T]) extends Parser[T] {
+    lazy val (alt,cat) = (left.alt+right.alt,__max(left.cat,right.cat))
+    def min = __min(left.min,right.min)
+    def max = if (__or(left.max==maxN, right.max==maxN)) maxN else __max(left.max,right.max)
+    def apply(i:Rep[Int],j:Rep[Int]) = left(i,j) ++ right(i,j).map{ x:Rep[(T,Backtrack)] => val b:Rep[Backtrack]=(x._2._1+unit(left.alt),x._2._2); (x._1,b) }
+    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=bt._1; var a=unit(left.alt-1); if (r<=a) left.unapply(i,j,bt) else right.unapply(i,j,(r-a,bt._2)) }
+    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=bt._1; var a=unit(left.alt-1); if (r<=a) left.reapply(i,j,bt) else right.reapply(i,j,(r-a,bt._2)) }
   }
 
   // Concatenate combinator.
   // Parses a concatenation of string " left ~ right " with length(left) in [lL,lU]
   // and length(right) in [rL,rU], lU,rU=0 means unbounded (infinity).
-  case class Concat[T,U](left: Parser[T], right:Parser[U], track:Int) extends Parser[(T,U)] {
-    def min = left.min+right.min
-    def max = if (left.max==maxN || right.max==maxN) maxN else left.max+right.max
+  case class Concat[T:Manifest,U:Manifest](left: Parser[T], right:Parser[U], track:Int) extends Parser[(T,U)] {
     lazy val (alt,cat) = (left.alt*right.alt, left.cat+(if(hasBt)1 else 0)+right.cat)
+    def min = left.min+right.min
+    def max = if (__or(left.max==maxN, right.max==maxN)) maxN else left.max+right.max
     lazy val hasBt:Boolean = (track,left.min,left.max,right.min,right.max) match {
-      case (0,a,b,c,d) if ((a==b && a>=0) || (c==d && c>=0)) => false
-      case (1,a,b,_,_) if (a==b && a>=0) => false
-      case (2,_,_,a,b) if (a==b && a>=0) => false
+      case (0,a,b,c,d) if (__and(a==b,a>=0) || __and(c==d,c>=0)) => false
+      case (1,a,b,_,_) if(__and(a==b,a>=0)) => false
+      case (2,_,_,a,b) if(__and(a==b,a>=0)) => false
       case _ => true
     }
-    lazy val indices = { assert(analyzed==true); (left.min,left.max,right.min,right.max) }
+    lazy val indices:(Int,Int,Int,Int) = { /*assert(analyzed==true);*/ (left.min,left.max,right.min,right.max) }
 
-    def apply(i:Rep[Int],j:Rep[Int]) = ccat_apply(this,i,j)
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = ccat_unapply(this,i,j,bt)
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = ccat_reapply(this,i,j,bt)
+    @inline private def bt(bl:Rep[Backtrack],br:Rep[Backtrack],k:Rep[Int]):Rep[Backtrack] = {
+      (bl._1*unit(right.alt)+br._1, bl._2 ++ (if (hasBt)List(k) else List[Int]()) ++ br._2)
+    }
+
+    def apply(i:Rep[Int],j:Rep[Int]) = {
+      val (lL,lU,rL,rU) = indices
+      if (track==0) {
+        val min_k = if (rU==maxN) i+unit(lL) else Math.max(i+unit(lL),j-unit(rU))
+        val max_k = if (lU==maxN) j-unit(rL) else Math.min(j-unit(rL),i+unit(lU))
+        for(
+          k <- (min_k until max_k+unit(1)).toList;
+          x <- left(i,k);
+          y <- right(k,j)
+        ) yield { val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k)) }
+      } else if (track==1) {
+        val min_k = if (lU==maxN) unit(0) else Math.max(i-unit(lU),0)
+        val max_k = i-unit(lL)
+        for(
+          k <- (min_k until max_k+unit(1)).toList;
+          x <- left(k,i); // in1[k..i]
+          y <- right(k,j) // M[k,j]
+        ) yield{ val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k)) }  
+      } else if (track==2) {
+        val min_k = if (rU==maxN) unit(0) else Math.max(j-unit(rU),0)
+        val max_k = j-unit(rL)
+        for(
+          k <- (min_k until max_k+unit(1)).toList;
+          x <- left(i,k); // M[i,k]
+          y <- right(k,j) // in2[k..j]
+        ) yield{ val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k)) }
+      } else List[((T,U),Backtrack)]()
+    }
+
+    private def sw_split(i:Rep[Int],j:Rep[Int],kb:Rep[Int]):Rep[(Int,Int,Int,Int)] = (track,indices) match {
+      case (0,(l,_,_,u)) => val k=if(hasBt)kb else if (u==maxN) i+l else Math.max(i+unit(l),j-unit(u)); (i,k, k,j) // single track
+      case (1,(l,u,_,_)) => val k=if(hasBt)kb else i-unit(l); (k,i, k,j) // tt:concat1
+      case (2,(_,_,l,u)) => val k=if(hasBt)kb else j-unit(l); (i,k, k,j) // tt:concat2
+      case _ => (0,0, 0,0)
+    }
+
+    private def bt_split(bt:Rep[Backtrack]):Rep[(Backtrack,Backtrack,Int)] = {
+      val a:Int=right.alt; val c:Int=left.cat;
+      /*
+      val (r,idx)=bt; 
+      ((r/a,idx.take(c)), (r%a,idx.drop(c+(if (hasBt)1 else 0))), if (hasBt)idx(c) else -1)
+      */
+      (bt0, bt0, unit(0)) // XXX: must go away
+    }
+
+    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = {
+      val bb=bt_split(bt); val sw=sw_split(i,j,bb._3)
+      left.unapply(sw._1,sw._2,bb._1) ++ right.unapply(sw._3,sw._4,bb._2)
+    }
+    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = {
+      val bb=bt_split(bt); val sw=sw_split(i,j,bb._3)
+      (left.reapply(sw._1,sw._2,bb._1), right.reapply(sw._3,sw._4,bb._2))
+    }
   }
 
   // --------------------------------------------------------------------------
