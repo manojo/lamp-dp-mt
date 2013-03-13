@@ -107,7 +107,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
   var rulesOrder:List[String]=Nil // Order of tabulations evaluation
-  val rules = new HashMap[String,Tabulate]
+  val rules = new scala.collection.mutable.HashMap[String,Tabulate]
   def tabInit(w:Int,h:Int) = rules.foreach{ case (_,t) => t.init(w,h) }
   def tabReset = rules.foreach{ case (_,t) => t.reset }
   class Tabulate(in: => Parser[Answer], val name:String, val alwaysValid:Boolean=false)(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
@@ -124,6 +124,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     def init(w:Rep[Int],h:Rep[Int]) { mW=w; mH=h; val sz=if (twotracks) w*h else { /*assert(w==h);*/ h*(h+1)/2 }; data=NewArray(sz); }
     def reset { data=unit(null); mW=unit(0); mH=unit(0); }
     
+    println("Registering rule '"+name+"'")
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
     var id:Int = -1 // subrules base index

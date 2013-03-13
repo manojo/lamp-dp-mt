@@ -7,29 +7,30 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
   var in: Rep[Input] = unit(null)
   val axiom:Tabulate
 
-
-/*
-  def bottomUp(size:Rep[Int]) {
+  def bottomUp(n:Rep[Int]) {
     val rs=rulesOrder map {n=>rules(n)};
-    // LMS loop
-    var d=unit(0); while (d<=size) { for (r<-rs) { val iu=size-d; var i=0; while (i<=iu) { r.compute(i,d+i); i=i+1 } }; d=d+1; }
-  }
-*/
-  def parse(input:Rep[Input])(implicit mAlph:Manifest[Alphabet], mAns:Manifest[Answer]):Rep[List[Answer]] = {
-    in = input;
-    val n:Rep[Int] = in.length+unit(1)
-    // Bottom-Up
-    /*
-    val rs=rulesOrder map {x=>rules(x)};
     (0 until n).foreach { d=>
       (0 until n-d).foreach { i=>
-        for (r<-rs) { r.compute(i,d+i); }
-        unit({})
+        for (r<-rs) r.compute(i,d+i); unit({})
       }
     }
-    */
-    in = unit(null)
-    val r=axiom(0,n); if (r.isEmpty) List[Answer]() else List(r.head._1)
+  }
+
+  def parse(input:Rep[Input])(implicit mAlph:Manifest[Alphabet], mAns:Manifest[Answer]):Rep[List[Answer]] = {
+    analyze; val rs=rulesOrder map {x=>rules(x)};
+    in = input;
+    val n:Rep[Int] = in.length+unit(1)
+    // Initialization
+    scala.Console.println("Rules count:"+rs.size)
+    for (r<-rs) { r.init(n,n); }
+    // Bottom-Up
+    bottomUp(n)
+    // Backtrack (if any)
+    val r=axiom(0,n); val res = if (r.isEmpty) List[Answer]() else List(r.head._1)
+    // Cleanup
+    for (r<-rs) { r.reset; }; in=unit(null)
+    // Return result
+    res
   }
   /*
   def backtrack(in:Rep[Input])(implicit mAns:Manifest[Answer]):Rep[List[(Answer,Trace)]] = {
@@ -75,45 +76,16 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
 }
 
 object MatrixMult2 extends App with Signature with ADPParsers with ScalaGenPackage with MyScalaCompile { self =>
-
   val IR = new ScalaOpsPkgExp with MyRangeOpsExp with MyListOpsExp
   val codegen = new ScalaGenPackage { val IR: self.type = self }
 
+  // Collision between:
+  // - lms/src/internal/Effects.scala::Effects
+  // - lms/src/internal/BlockTraversal.scala::NestedBlockTraversal
   override def reset = {
-    shallowAliasCache.clear()
-    deepAliasCache.clear()
-    allAliasCache.clear()
-    globalMutableSyms = Nil
-    context = null
-
-    innerScope = null
-    //shallow = false
-    IR.reset
-
-    super.reset
+    shallowAliasCache.clear(); deepAliasCache.clear(); allAliasCache.clear(); globalMutableSyms=Nil; context=null /*super.reset*/
+    innerScope = null; /*shallow = false*/ IR.reset; super.reset
   }
-
-/*
-  LMS/internal/Effects.scala::Effects
-  override def reset = {
-    shallowAliasCache.clear()
-    deepAliasCache.clear()
-    allAliasCache.clear()
-    globalMutableSyms = Nil
-    context = null
-    super.reset
-  }
-
-
-  lms/internal/BlockTraversal.scala::NestedBlockTraversal
-  override def reset { // used anywhere?
-    innerScope = null
-    //shallow = false
-    IR.reset
-    super.reset
-  }
-*/
-
 
   type Alphabet = (Int,Int) // matrix as (rows, columns)
   type Answer = (Int,Int,Int) // rows, cost, columns
@@ -132,12 +104,9 @@ object MatrixMult2 extends App with Signature with ADPParsers with ScalaGenPacka
   | (axiom ~ axiom) ^^ mult
   ) aggregate h,true)
 
-  // compile axiom for (apply,unapply,reapply)
-
-  // XXX: I'm missing one trait somewhere
+  // Compilation into a program (apply,unapply,reapply)
   codegen.emitSource(parse _, "testParse", new java.io.PrintWriter(System.out))
   val progParse = compile(parse)
-
   val input = scala.Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
   println(progParse(input))
   /*
