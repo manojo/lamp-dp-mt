@@ -9,7 +9,7 @@ trait PackageExp extends ScalaOpsPkgExp with MyRangeOpsExp with MyListOpsExp {
 
 }
 
-trait ScalaGenPackage extends ScalaCodeGenPkg with ScalaGenMyRangeOps with ScalaGenMyListOps{
+trait ScalaGenPackage extends ScalaCodeGenPkg with ScalaGenMyRangeOps with ScalaGenMyListOps {
   val IR: ScalaOpsPkgExp with MyRangeOpsExp with MyListOpsExp
 }
 

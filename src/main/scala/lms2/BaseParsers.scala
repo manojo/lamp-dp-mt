@@ -103,12 +103,12 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
 */
   }
 
-/*
   // --------------------------------------------------------------------------
   // Memoization through tabulation
   import scala.collection.mutable.HashMap
   var rulesOrder:List[String]=Nil // Order of tabulations evaluation
   val rules = new HashMap[String,Tabulate]
+/*
   def tabInit(w:Int,h:Int) = rules.foreach{ case (_,t) => t.init(w,h) }
   def tabReset = rules.foreach{ case (_,t) => t.reset }
 */
@@ -117,19 +117,19 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     val (alt,cat) = (1,0)
     def min = minv; var minv:Int = 0
     def max = maxv; var maxv:Int = 0
-/*
 
     // Matrix storage
-    private var data:Array[(Answer,Backtrack)] = null
-    private var (mW,mH) = (0,0)
-    def init(w:Int,h:Int) { mW=w; mH=h; val sz=if (twotracks) w*h else { assert(w==h); h*(h+1)/2 }; data=new Array(sz); }
-    def reset { data=null; mW=0; mH=0; }
+    private var data:Rep[Array[(Answer,Backtrack)]] = unit(null)
+    private var mW = unit(0)
+    private var mH = unit(0)
 
+    def init(w:Rep[Int],h:Rep[Int]) { mW=w; mH=h; val sz=if (twotracks) w*h else { /*assert(w==h);*/ h*(h+1)/2 }; data=NewArray(sz); }
+    def reset { data=unit(null); mW=unit(0); mH=unit(0); }
+    
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
-
     var id:Int = -1 // subrules base index
-
+/*
     @inline private def idx(i:Rep[Int],j:Rep[Int]):Int = if (twotracks) i*mW+j else { val d=mH+1+i-j; ( mH*(mH+1) - d*(d-1) ) /2 + i }
 */
     def apply(i:Rep[Int],j:Rep[Int]) = List[(Answer,Backtrack)]() // { val v = data(idx(i,j)); if (v!=null) List((v._1,bt0)) else List() } // read-only
