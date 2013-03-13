@@ -43,7 +43,7 @@ val x158 = if (x18) {
 val x19 = x0(x14)
 val x23 = x19
 val x24 = x23 >= '0'
-val x25 = x23 < '9'
+val x25 = x23 <= '9'
 val x26 = x24 && x25
 val x149 = x26
 val x156 = if (x149) {

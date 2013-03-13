@@ -29,7 +29,7 @@ trait ElMamunToGenProg extends LexicalParsers with MyCharOps{ this: Sig =>
   val mAns = manifest[Int]
 
   def isDigit(c: Rep[Char]) : Rep[Boolean] = {
-    c >= unit('0') && c < unit('9')
+    c >= unit('0') && c <= unit('9')
   }
 
   def add(i: Rep[Answer], j:Rep[Answer]) = i+j
