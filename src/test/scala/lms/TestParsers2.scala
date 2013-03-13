@@ -1,4 +1,4 @@
-package lms.v2
+/*package lms.v2
 
 import lms._
 
@@ -52,3 +52,4 @@ class TestParsers2 extends FileDiffSuite {
   }
 
 }
+*/
