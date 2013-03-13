@@ -1,4 +1,4 @@
-package lms2
+/*package lms2
 
 trait Signature {
   type Alphabet // input type
@@ -126,7 +126,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     private var mH:Rep[Int] = unit(0)
     def init(w:Rep[Int],h:Rep[Int]) { mW=w; mH=h; val sz:Rep[Int]=if (twotracks) w*h else { /*assert(w==h);*/ h*(h+unit(1))/unit(2) }; data=NewArray[(Answer,Backtrack)](sz); }
     def reset { data=unit(null); mW=unit(0); mH=unit(0); }
-    
+
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
     var id:Int = -1 // subrules base index
@@ -184,7 +184,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     lazy val (alt,cat) = (inner.alt,inner.cat)
     def min = inner.min
     def max = inner.max
-    def apply(i:Rep[Int],j:Rep[Int]) = { 
+    def apply(i:Rep[Int],j:Rep[Int]) = {
       val l=inner(i,j); if (l.isEmpty) List[(T,Backtrack)]() else List(list_fold(l.tail,l.head,(a:Rep[(T,Backtrack)],b:Rep[(T,Backtrack)]) => if (a._1==h(a._1,b._1)) a else b ))
     }
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt) // we have only 1 result
@@ -260,7 +260,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
           k <- (min_k until max_k+unit(1)).toList;
           x <- left(k,i); // in1[k..i]
           y <- right(k,j) // M[k,j]
-        ) yield{ val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k)) }  
+        ) yield{ val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k)) }
       } else if (track==2) {
         val min_k = if (rU==maxN) unit(0) else Math.max(j-unit(rU),unit(0))
         val max_k = j-unit(rL)
@@ -282,7 +282,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     private def bt_split(bt:Rep[Backtrack]):Rep[(Backtrack,Backtrack,Int)] = {
       val a:Int=right.alt; val c:Int=left.cat;
       /*
-      val (r,idx)=bt; 
+      val (r,idx)=bt;
       ((r/a,idx.take(c)), (r%a,idx.drop(c+(if (hasBt)1 else 0))), if (hasBt)idx(c) else -1)
       */
       (bt0, bt0, unit(0)) // XXX: must go away
@@ -331,3 +331,4 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   //   println("  implicit def detuple"+n+"["+ls()+",R](fn:Function"+n+"["+ls()+",R]) = new (("+lr()+")=>R) with DeTuple { override val f=fn\n"+
   //           "    def apply(t:"+lr()+") = { val "+lr('a')+"=t; fn("+ls('a')+") } }") }
 }
+*/

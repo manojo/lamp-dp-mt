@@ -1,4 +1,4 @@
-package lms2
+/*package lms2
 
 import scala.virtualization.lms.common._
 import lms._
@@ -27,7 +27,7 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
     val r=axiom(unit(0),in.length); val res = if (r.isEmpty) List[Answer]() else List(r.head._1)
     // Cleanup & return result
     //for (r<-rs) { r.reset; };
-    in=unit(null); res // 
+    in=unit(null); res //
   }
   /*
   def backtrack(in:Rep[Input])(implicit mAns:Manifest[Answer]):Rep[List[(Answer,Trace)]] = {
@@ -130,4 +130,5 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
   def in(k:Int):Char
   */
 }
+*/
 */
