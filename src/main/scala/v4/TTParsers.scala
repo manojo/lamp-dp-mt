@@ -13,11 +13,11 @@ trait TTParsers extends BaseParsers { this:Signature =>
   def size1:Int = input1.size
   def size2:Int = input2.size
   def parse(in1:Input,in2:Input,ps:ParserStyle=psCUDA):List[Answer] = this match {
-    case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.parseCUTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input]).asInstanceOf[Answer])
+    case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.parseCUTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input],ps==psCUDA).asInstanceOf[Answer])
     case _ => run(in1,in2,()=>{ if (ps==psBottomUp) parseBottomUp; axiom(input1.size,input2.size).map(_._1)})
   }
   def backtrack(in1:Input,in2:Input,ps:ParserStyle=psCUDA):List[(Answer,Trace)] =  this match {
-    case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.backtrackCUTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input]).asInstanceOf[(Answer,Trace)])
+    case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.backtrackCUTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input],ps==psCUDA).asInstanceOf[(Answer,Trace)])
     case _ => run(in1,in2,()=>{ if (ps==psBottomUp) parseBottomUp; axiom.backtrack(input1.size,input2.size)})
   }
   def build(in1:Input,in2:Input,bt:Trace):Answer = run(in1,in2,()=>axiom.build(bt))
