@@ -12,19 +12,17 @@ trait TTParsers extends BaseParsers { this:Signature =>
   def in2(k:Int):Alphabet = input2(k)
   def size1:Int = input1.size
   def size2:Int = input2.size
-  def parse(in1:Input,in2:Input,forceScala:Boolean=false):List[Answer] = this match {
-    case c:CodeGen if (!forceScala) => List(c.parseCUTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input]).asInstanceOf[Answer])
-    case _ => run(in1,in2,()=>{ parseBottomUp; axiom(input1.size,input2.size).map(_._1)})
+  def parse(in1:Input,in2:Input,ps:ParserStyle=psCUDA):List[Answer] = this match {
+    case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.parseCUTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input]).asInstanceOf[Answer])
+    case _ => run(in1,in2,()=>{ if (ps==psBottomUp) parseBottomUp; axiom(input1.size,input2.size).map(_._1)})
   }
-  def backtrack(in1:Input,in2:Input,forceScala:Boolean=false):List[(Answer,Trace)] =  this match {
-    case c:CodeGen if (!forceScala) => List(c.backtrackCUTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input]).asInstanceOf[(Answer,Trace)])
-    case _ => run(in1,in2,()=>{ parseBottomUp; axiom.backtrack(input1.size,input2.size)})
+  def backtrack(in1:Input,in2:Input,ps:ParserStyle=psCUDA):List[(Answer,Trace)] =  this match {
+    case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.backtrackCUTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input]).asInstanceOf[(Answer,Trace)])
+    case _ => run(in1,in2,()=>{ if (ps==psBottomUp) parseBottomUp; axiom.backtrack(input1.size,input2.size)})
   }
   def build(in1:Input,in2:Input,bt:Trace):Answer = run(in1,in2,()=>axiom.build(bt))
   private def run[T](in1:Input,in2:Input, f:()=>T) = { input1=in1; input2=in2; analyze; tabInit(in1.size+1,in2.size+1); val res=time("Execution")(f); tabReset; input1=null; input2=null; res }
-  private def parseBottomUp:Unit = if (bottomUp) { val rs=rulesOrder map {n=>rules(n)}
-    var i=0; while (i<=size1) { var j=0; while (j<=size2) { for (r<-rs) r((i,j)); j=j+1; }; i=i+1; }
-  }
+  private def parseBottomUp { val rs=rulesOrder map {n=>rules(n)}; var i=0; while (i<=size1) { var j=0; while (j<=size2) { for (r<-rs) r((i,j)); j=j+1; }; i=i+1; } }
 
   // Concat parsers
   import scala.language.implicitConversions

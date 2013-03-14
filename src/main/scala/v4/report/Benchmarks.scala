@@ -28,7 +28,6 @@ object Benchmarks extends App {
   // Smith-Waterman
   object swat extends SWatGrammar with SWatAlgebra with CodeGen {
     override val tps = (manifest[Alphabet],manifest[Answer])
-    override val bottomUp = true // reduces Scala recursion
     override val cudaSplit = 8192
   }
   // RNAFold
@@ -75,18 +74,18 @@ object Benchmarks extends App {
     val numS = (if (size>=2048) 8 else 15)
     val numC = if (size<=512) 20 else (if (size>=4096) 8 else 12)
     def runScala(n:Int,s:String,f:()=>Unit) = if (size<=4096) { f(); print("sprintf('%.3f',median(["); for (i<-0 until n) time(f); println(" ])) % Scala "+s+" ("+size+")") }
-    def runCuda(n:Int,s:String,f:()=>Unit) = { f(); print("sprintf('%.3f',median(["); for (i<-0 until n) time(f); println(" ])) % Scala+CUDA "+s+" ("+size+")") }
+    def runCuda(n:Int,s:String,f:()=>Unit) = { f(); print("sprintf('%.3f',median(["); for (i<-0 until n) time(f); println(" ])) % CUDA "+s+" ("+size+")") }
 
     runCuda(numC,"MatrixMult3",()=>mm3.backtrack(Utils.genMats(size)))
-    runScala(numS,"MatrixMult1",()=>mm1.backtrack(Utils.genMats(size),true))
+    runScala(numS,"MatrixMult1",()=>mm1.backtrack(Utils.genMats(size),mm1.psBottomUp))
 
     runCuda(numC,"Smith-Waterman",()=>swat.backtrack(Utils.genDNA(size),Utils.genDNA(size)))
-    runScala(numS,"Smith-Waterman",()=>swat.backtrack(Utils.genDNA(size),Utils.genDNA(size),true))
+    runScala(numS,"Smith-Waterman",()=>swat.backtrack(Utils.genDNA(size),Utils.genDNA(size),swat.psBottomUp))
 
     runCuda(numC,"Zuker",()=>zuker.backtrack(rna(size)))
-    runScala(numS,"Zuker",()=>zuker.backtrack(rna(size),true))
+    runScala(numS,"Zuker",()=>zuker.backtrack(rna(size),zuker.psTopDown))
 
     runCuda(numC,"RNAfold",()=>fold.backtrack(rna(size)))
-    runScala(numS,"RNAfold",()=>fold.backtrack(rna(size),true))
+    runScala(numS,"RNAfold",()=>fold.backtrack(rna(size),fold.psTopDown))
   }
 }

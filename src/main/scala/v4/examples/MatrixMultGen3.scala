@@ -34,7 +34,7 @@ object MatrixMultGen3 extends MatrixGrammar3 with MatrixSig3 with CodeGen with A
 
   Utils.runBenchmark(
     (n:Int)=>backtrack(Utils.genMats(n)),
-    (n:Int)=>backtrack(Utils.genMats(n),true)
+    (n:Int)=>backtrack(Utils.genMats(n),psBottomUp)
   )
   */
 }

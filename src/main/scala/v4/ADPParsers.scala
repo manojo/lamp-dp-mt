@@ -5,13 +5,13 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   private var input: Input = null
   def in(k:Int):Alphabet = input(k)
   def size:Int = input.size
-  def parse(in:Input,forceScala:Boolean=false):List[Answer] = this match {
-    case c:CodeGen if (!forceScala) => List(c.parseCU(in.asInstanceOf[c.Input]).asInstanceOf[Answer])
-    case _ => run(in,()=>{ parseBottomUp; (if (window>0) aggr(((0 to size-window).flatMap{x=>axiom(x,window+x)}).toList, h) else axiom(0,size)).map(_._1)})
+  def parse(in:Input,ps:ParserStyle=psCUDA):List[Answer] = this match {
+    case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.parseCU(in.asInstanceOf[c.Input]).asInstanceOf[Answer])
+    case _ => run(in,()=>{ if (ps==psBottomUp) parseBottomUp; (if (window>0) aggr(((0 to size-window).flatMap{x=>axiom(x,window+x)}).toList, h) else axiom(0,size)).map(_._1)})
   }
-  def backtrack(in:Input,forceScala:Boolean=false):List[(Answer,Trace)] = this match {
-    case c:CodeGen if (!forceScala) => List(c.backtrackCU(in.asInstanceOf[c.Input]).asInstanceOf[(Answer,Trace)])
-    case _ => run(in,()=>{ parseBottomUp; if (window>0) aggr(((0 to size-window).flatMap{x=>axiom.backtrack(x,window+x)}).toList, h) else axiom.backtrack(0,size)})
+  def backtrack(in:Input,ps:ParserStyle=psCUDA):List[(Answer,Trace)] = this match {
+    case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.backtrackCU(in.asInstanceOf[c.Input]).asInstanceOf[(Answer,Trace)])
+    case _ => run(in,()=>{ if (ps==psBottomUp) parseBottomUp; if (window>0) aggr(((0 to size-window).flatMap{x=>axiom.backtrack(x,window+x)}).toList, h) else axiom.backtrack(0,size)})
   }
   def build(in:Input,bt:Trace):Answer = run(in,()=>axiom.build(bt))
   private def run[T](in:Input, f:()=>T) = {
@@ -21,7 +21,8 @@ trait ADPParsers extends BaseParsers { this:Signature =>
     this match { case s:RNASignature => if (s.energies) librna.LibRNA.clear case _ => }
     tabReset; input=null; res
   }
-  private def parseBottomUp:Unit = if (bottomUp) { val rs=rulesOrder map {n=>rules(n)}; val du=(if (window>0) window else size)
+  private def parseBottomUp {
+    val rs=rulesOrder map {n=>rules(n)}; val du=(if (window>0) window else size)
     var d=0; while (d<=du) { for (r<-rs) { val iu=size-d; var i=0; while (i<=iu) { r((i,d+i)); i=i+1 } }; d=d+1; }
   }
 

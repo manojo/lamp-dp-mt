@@ -75,7 +75,7 @@ object MatrixMultGen2 extends MatrixMultGen2Grammar with CodeGen with App {
   //println(gen)
 
   println("------ SCALA -------------------")
-  val (res1,bt1) = backtrack(input,true).head
+  val (res1,bt1) = backtrack(input,psBottomUp).head
   println("--> "+res1)
   println("--> "+build(input,bt1))
   println("------ CUDA  -------------------")

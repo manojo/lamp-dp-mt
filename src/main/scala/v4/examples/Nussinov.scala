@@ -84,7 +84,7 @@ object Nussinov extends App {
     val s=seq.toArray
     val (score,bt) = nu.backtrack(s).head
     println(seq+"\nGPU: "+pretty.build(s,bt)+" ("+score+")")
-    val (score2,bt2) = nu.backtrack(s,true).head
+    val (score2,bt2) = nu.backtrack(s,nu.psTopDown).head
     println("CPU: "+pretty.build(s,bt2)+" ("+score2+")\n")
   }
   for (k<-0 until 30) testSeq(Utils.genRNA(180))
