@@ -72,7 +72,7 @@ object MatrixMultGen2 extends MatrixMultGen2Grammar with CodeGen with App {
   override val benchmark = true
   override val tps = (manifest[Alphabet],manifest[Answer])
   // ------- Extra codegen initialization
-  println(gen)
+  //println(gen)
 
   println("------ SCALA -------------------")
   val (res1,bt1) = backtrack(input,psBottomUp).head

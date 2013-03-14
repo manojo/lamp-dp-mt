@@ -472,11 +472,10 @@ trait CodeGen extends BaseParsers { this:Signature =>
     }
   }
 
+  // --------------------------------------------------------------------------
+  // CPU-specific code generation (might need additional cleanup)
+  // XXX: RNA functions currently not supported 
 
-// ----------------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
-  // QUICK CODE GENERATION FOR CPU, MIGHT NEED ADDITIONAL REWORK
   lazy val code_cc = {
     code_h; // make sure this happen after other codegen phases
     val kern=genKern(false); val bt=genBT(false);
@@ -518,12 +517,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     hpriv+ /* "\n"+rna+ */ "\n"+hfun.replace("__device__ ","")+"\n"+kern+"\n"+bt+"\n"+wrap+"\n"
   }
 
-// ----------------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
-
-
-
+  // --------------------------------------------------------------------------
   // Memoize reference to the generated code such that we compile only once for a particular problem size
   // Unfortunately this does not seems to help much the CUDA code to 'warm-up'
   abstract class CodeCompiler extends CCompiler with ScalaCompiler {
@@ -540,11 +534,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
       if (benchmark) println("%-20s : %d x %d / %d".format("Size / splits",size1,size2,splits))
 
       val map = scala.collection.immutable.Map(("className",className),("MAT_HEIGHT",""+(size1+1)),("MAT_WIDTH",""+(size2+1)),("SPLITS",""+splits))
-      if (gpu) {
-        time("C+CUDA compilation"){()=> add("h", code_h, map); add("c", code_c, map); add("cu", code_cu, map); gen }
-      } else {
-        time("C compilation"){()=> add("h", code_h, map); add("c", code_c+code_cc, map); /*XXX ADD PURE C IMPLEMENTATION*/  gen }
-      }
+      if (gpu) time("C+CUDA compilation"){()=> add("h", code_h, map); add("c", code_c, map); add("cu", code_cu, map); gen }
+      else time("C compilation"){()=> add("h", code_h, map); add("c", code_c+code_cc, map); gen }
       time("Scala compilation"){()=>
         val cl = (if(tt) classOf[TTWrapper[Alphabet,Answer]] else classOf[ADPWrapper[Alphabet,Answer]]).getCanonicalName
         val al = tpAlphabet match {case head.TPri(s,_,_)=>s case _=>"Any"}
