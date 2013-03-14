@@ -112,8 +112,8 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   import scala.collection.mutable.HashMap
   var rulesOrder:List[String]=Nil // Order of tabulations evaluation
   val rules = new HashMap[String,Tabulate]
-  def tabInit(w:Rep[Int],h:Rep[Int]) = rules.foreach{ case (_,t) => t.init(w,h) }
-  def tabReset = rules.foreach{ case (_,t) => t.reset }
+  //def tabInit(w:Rep[Int],h:Rep[Int]) = rules.foreach{ case (_,t) => t.init(w,h) }
+  //def tabReset = rules.foreach{ case (_,t) => t.reset }
   class Tabulate(in: => Parser[Answer], val name:String)(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
     lazy val inner = in
     val (alt,cat) = (1,0)
@@ -141,30 +141,38 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
       case bh::bs => val (i,j,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(i,j,(rr,b)); if (bs==Nil) a else { data(idx(i,j))=(a,bt0); build(bs) }
       case Nil => sys.error("No backtrack provided")
     }
-    def backtrack(i0:Int,j0:Int) = {
+    */
+    def backtrack(i0:Rep[Int],j0:Rep[Int]) = {
       val e=data(idx(i0,j0))
-      var pending:Trace = List((i0,j0,e._2))
-      var trace:Trace = Nil
-      while (!pending.isEmpty) {
-        val el = pending.head; trace=el::trace;
-        val (i,j,(rule,bt))=el;
+      var pending:Rep[Trace] = List((i0,j0,e._2))
+      var trace:Rep[Trace] = List[(Int,Int,Backtrack)]()
+      while (!pending.isEmpty) { // XXX: use an array instead ???
+        val el = pending.head;
+        println(el) // XXX: we loop always on the same element
+
+        trace=el::trace;
+        val i=el._1; val j=el._2; val rule=el._3._1; val bt=el._3._2;
         val (t,rr) = findTab(rule)
         val res = t.inner.unapply(i,j,(rr,bt))
-        pending = res:::pending.tail;
+        pending = res ++ pending.tail;
       }
       List((e._1,trace))
     }
-    */
   }
 
-/*
-  def findTab(rule:Int):(Tabulate,Int) = {
-    rules.find{ case (n,t)=> val rr=rule-t.id; rr >= 0 && rr < t.inner.alt} match {
-      case Some((n,t)) => (t,rule-t.id)
-      case None => sys.error("No tabulation for subrule #"+rule)
+  def findTab(rule:Rep[Int]):(Tabulate,Rep[Int]) = {
+    var tab = rules.values.head; // placeholder
+    var r:Rep[Int]=unit(0);
+    for (t<-rules.values) {
+      val rr=rule-unit(t.id);
+      if (rr >= unit(0) && rr < unit(t.inner.alt)) {
+        tab = t;
+        r = rr;
+      }
     }
+    (tab,r)
   }
-*/
+
   // --------------------------------------------------------------------------
   // Terminal abstraction
   abstract case class Terminal[T:Manifest](min:Int,max:Int) extends Parser[T] {

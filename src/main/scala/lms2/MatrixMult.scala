@@ -16,23 +16,27 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
     }
   }
 
+  // XXX: avoid code duplication
   def parse(input:Rep[Input])(implicit mAlph:Manifest[Alphabet], mAns:Manifest[Answer]):Rep[List[Answer]] = {
     analyze; in = input;
     val n:Rep[Int] = in.length+unit(1)
     val rs=rulesOrder map {x=>rules(x)};
-    // Initialization
-    for (r<-rs) r.init(n,n);
-    // Bottom-Up
+    for (r<-rs) r.init(n,n); // Initialization
     bottomUp(n)
-    // Backtrack (if any)
     val r=axiom(unit(0),in.length); val res = if (r.isEmpty) List[Answer]() else List(r.head._1)
-    // Cleanup & return result
-    for (r<-rs) r.reset; in=unit(null); res
+    for (r<-rs) r.reset; in=unit(null); res // Cleanup & return result
+  }
+
+  def backtrack(input:Rep[Input])(implicit mAlph:Manifest[Alphabet], mAns:Manifest[Answer]):Rep[List[(Answer,Trace)]] = {
+    analyze; in = input;
+    val n:Rep[Int] = in.length+unit(1)
+    val rs=rulesOrder map {x=>rules(x)};
+    for (r<-rs) r.init(n,n); // Initialization
+    bottomUp(n)
+    val res=axiom.backtrack(unit(0),in.length)
+    for (r<-rs) r.reset; in=unit(null); res // Cleanup & return result
   }
   /*
-  def backtrack(in:Rep[Input])(implicit mAns:Manifest[Answer]):Rep[List[(Answer,Trace)]] = {
-    List[(Answer,Trace)]() // Stub
-  }
   def build(in:Rep[Input],trace:Rep[Trace])(implicit mAns:Manifest[Answer]):Rep[Answer] = {
     unit(null.asInstanceOf[Answer]) // Stub
   }
@@ -94,11 +98,16 @@ object MatrixMult2 extends App with Signature with ADPParsers
   ) aggregate h)
   analyze
 
-  // Compilation into a program (apply,unapply,reapply)
-  codegen.emitSource(parse _, "testParse", new java.io.PrintWriter(System.out))
-  val progParse = compile(parse)
+  // Concrete program
   val input = scala.Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
+  val progParse = compile(parse)
   scala.Console.println(progParse(input))
+
+  val progBacktrack = compile(backtrack)
+  scala.Console.println(progBacktrack(input))
+
+  // Compilation into a program (apply,unapply,reapply)
+  //codegen.emitSource(parse _, "testParse", new java.io.PrintWriter(System.out))
   /*
   val (score,bt) = backtrack(input).head
   println("Score     : "+score)
