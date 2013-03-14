@@ -40,7 +40,6 @@ trait MyListOpsExp extends MyListOps with ListOpsExp with SeqOpsExp with MyRange
     range_foreach(range_until(unit(0),seq.length),{i: Rep[Int] =>
       startTerm = f(startTerm, xs(i))
     })
-
     startTerm
   }
 

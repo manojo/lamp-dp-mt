@@ -10,7 +10,8 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
     val rs=rulesOrder map {n=>rules(n)};
     (unit(0) until n).foreach { d=>
       (unit(0) until n-d).foreach { i=>
-        for (r<-rs) r.compute(i,d+i); unit({})
+        for (r<-rs) { r.compute(i,d+i); }
+        unit({})
       }
     }
   }
@@ -20,14 +21,13 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
     val n:Rep[Int] = in.length+unit(1)
     val rs=rulesOrder map {x=>rules(x)};
     // Initialization
-    for (r<-rs) { r.init(n,n); }
+    for (r<-rs) r.init(n,n);
     // Bottom-Up
-    //bottomUp(n)
+    bottomUp(n)
     // Backtrack (if any)
     val r=axiom(unit(0),in.length); val res = if (r.isEmpty) List[Answer]() else List(r.head._1)
     // Cleanup & return result
-    //for (r<-rs) { r.reset; };
-    in=unit(null); res // 
+    for (r<-rs) r.reset; in=unit(null); res
   }
   /*
   def backtrack(in:Rep[Input])(implicit mAns:Manifest[Answer]):Rep[List[(Answer,Trace)]] = {
@@ -65,7 +65,7 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
   val emptyi = new Terminal[Int](0,0) { def apply(i:Rep[Int],j:Rep[Int]) = if (i==j) List((i,bt0)) else List[(Int,Backtrack)]() }
   val eli = new Terminal[Int](1,1) { def apply(i:Rep[Int],j:Rep[Int]) = if(i+1==j) List((i,bt0)) else List[(Int,Backtrack)]() }
   def el(implicit mAlph:Manifest[Alphabet]) = new Terminal[Alphabet](1,1) {
-    def apply(i:Rep[Int],j:Rep[Int]) = if(i+1==j) List((in(i),bt0)) else List[(Alphabet,Backtrack)]()
+    def apply(i:Rep[Int],j:Rep[Int]) = { if(i+1==j) List((in(i),bt0)) else List[(Alphabet,Backtrack)]() }
   }
   def seq(min:Int=1, max:Int=maxN) = new Terminal[(Int,Int)](min,max) {
     def apply(i:Rep[Int],j:Rep[Int]) = if (i+unit(min)<=j && (unit(max==maxN) || i+unit(max)>=j)) { val p:Rep[(Int,Int)]=(i,j); List((p,bt0)) } else List[((Int,Int),Backtrack)]()
@@ -89,9 +89,9 @@ object MatrixMult2 extends App with Signature with ADPParsers
 
   // Grammar
   val axiom:Tabulate = tabulate("M",( // XXX: can we get rid of the name? it was used only for CUDA codegen
-    el              ^^ single
+    el              ^^ single // XXX: bug in here
   | (axiom ~ axiom) ^^ mult
-  ) aggregate h,true)
+  ) aggregate h)
   analyze
 
   // Compilation into a program (apply,unapply,reapply)

@@ -23,7 +23,7 @@ trait BaseParsers extends Package { this:Signature =>
   val twotracks = false // whether grammar is multi-track
   final val maxN = -1   // infinity for Parser.max
 
-  def tabulate(name:String, inner: => Parser[Answer], alwaysValid:Boolean=false) : Parser[Answer]
+  def tabulate(name:String, inner: => Parser[Answer]) : Parser[Answer]
   def parser_aggr[T:Manifest](inner: Parser[T], h: (Rep[T],Rep[T]) => Rep[T]) : Parser[T]
   def parser_filter[T:Manifest](inner: Parser[T], pred:(Rep[Int],Rep[Int]) => Rep[Boolean]) : Parser[T]
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) : Parser[U]
@@ -50,7 +50,7 @@ trait BaseParsers extends Package { this:Signature =>
 }
 
 trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
-  def tabulate(name:String, inner: => Parser[Answer], alwaysValid:Boolean=false) = new Tabulate(inner,name,alwaysValid)(mAns)
+  def tabulate(name:String, inner: => Parser[Answer]) = new Tabulate(inner,name)(mAns)
   def parser_aggr[T:Manifest](inner: Parser[T], h: (Rep[T],Rep[T]) => Rep[T]) = Aggregate(inner,h)
   def parser_filter[T:Manifest](inner: Parser[T], pred:(Rep[Int],Rep[Int]) => Rep[Boolean]) = Filter(inner,pred)
   def parser_map[T:Manifest, U:Manifest](inner: Parser[T], f: Rep[T] => Rep[U]) = Map(inner,f)
@@ -114,7 +114,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   val rules = new HashMap[String,Tabulate]
   def tabInit(w:Rep[Int],h:Rep[Int]) = rules.foreach{ case (_,t) => t.init(w,h) }
   def tabReset = rules.foreach{ case (_,t) => t.reset }
-  class Tabulate(in: => Parser[Answer], val name:String, val alwaysValid:Boolean=false)(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
+  class Tabulate(in: => Parser[Answer], val name:String)(implicit val mAns: Manifest[Answer]) extends Parser[Answer] {
     lazy val inner = in
     val (alt,cat) = (1,0)
     def min = minv; var minv:Int = 0
@@ -132,19 +132,15 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     var id:Int = -1 // subrules base index
 
     @inline private def idx(i:Rep[Int],j:Rep[Int]):Rep[Int] = if (twotracks) i*mW+j else { val d=mH+unit(1)+i-j; ( mH*(mH+unit(1)) - d*(d-unit(1)) ) / unit(2) + i }
-    def apply(i:Rep[Int],j:Rep[Int]) = { val v = data(idx(i,j)); if (v!=unit(null)) List((v._1,bt0)) else List[(Answer,Backtrack)]() } // read-only
+    def apply(i:Rep[Int],j:Rep[Int]) = { val v=data(idx(i,j)); if (v!=unit(null)) List((v._1,bt0)) else List[(Answer,Backtrack)]() } // read-only
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); if (v!=unit(null)) List((i,j,v._2)) else List[(Int,Int,Backtrack)]() }
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); /*if (v==unit(null)) sys.error("Failed reapply"+(i,j))*/ v._1 }
-
-    def compute(i:Rep[Int],j:Rep[Int]):Rep[Unit] = {
-      val l = inner(i,j); if (l.isEmpty) { val e = l.head; val b:Rep[Backtrack]=(e._2._1+unit(id),e._2._2); data(idx(i,j))=(e._1,b); } else { unit({}) }
-    } // write-only
-/*
+    def compute(i:Rep[Int],j:Rep[Int]):Rep[Unit] = { val l = inner(i,j); if (!l.isEmpty) { val e=l.head; val b:Rep[Backtrack]=(e._2._1+unit(id),e._2._2); data(idx(i,j))=(e._1,b); } else { unit({}) } } // write-only
+    /*
     def build(bt:Trace):Answer = bt match {
       case bh::bs => val (i,j,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(i,j,(rr,b)); if (bs==Nil) a else { data(idx(i,j))=(a,bt0); build(bs) }
       case Nil => sys.error("No backtrack provided")
     }
-
     def backtrack(i0:Int,j0:Int) = {
       val e=data(idx(i0,j0))
       var pending:Trace = List((i0,j0,e._2))
@@ -158,7 +154,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
       }
       List((e._1,trace))
     }
-*/
+    */
   }
 
 /*
@@ -185,7 +181,10 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     def min = inner.min
     def max = inner.max
     def apply(i:Rep[Int],j:Rep[Int]) = { 
-      val l=inner(i,j); if (l.isEmpty) List[(T,Backtrack)]() else List(list_fold(l.tail,l.head,(a:Rep[(T,Backtrack)],b:Rep[(T,Backtrack)]) => if (a._1==h(a._1,b._1)) a else b ))
+      val l=inner(i,j);
+      if (l.isEmpty) List[(T,Backtrack)]()
+      else list_reduce(l,(a:Rep[(T,Backtrack)],b:Rep[(T,Backtrack)]) => if (a._1==h(a._1,b._1)) a else b, l.head);
+      // if (l.isEmpty) List[(T,Backtrack)]() else List(list_fold(l.tail,l.head,(a:Rep[(T,Backtrack)],b:Rep[(T,Backtrack)]) => if (a._1==h(a._1,b._1)) a else b ))
     }
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt) // we have only 1 result
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.reapply(i,j,bt)
@@ -208,7 +207,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     lazy val (alt,cat) = (inner.alt,inner.cat)
     def min = inner.min
     def max = inner.max
-    def apply(i:Rep[Int],j:Rep[Int]) = inner(i,j) map { x => (f(x._1),x._2) }
+    def apply(i:Rep[Int],j:Rep[Int]) = inner(i,j) map { (x:Rep[(T,Backtrack)]) => (f(x._1),x._2) }
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt)
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = f(inner.reapply(i,j,bt))
   }
@@ -220,7 +219,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     lazy val (alt,cat) = (left.alt+right.alt,__max(left.cat,right.cat))
     def min = __min(left.min,right.min)
     def max = if (__or(left.max==maxN, right.max==maxN)) maxN else __max(left.max,right.max)
-    def apply(i:Rep[Int],j:Rep[Int]) = left(i,j) ++ right(i,j).map{ x:Rep[(T,Backtrack)] => val b:Rep[Backtrack]=(x._2._1+unit(left.alt),x._2._2); (x._1,b) }
+    def apply(i:Rep[Int],j:Rep[Int]) = { left(i,j) ++ right(i,j).map{ x:Rep[(T,Backtrack)] => val b:Rep[Backtrack]=(x._2._1+unit(left.alt),x._2._2); (x._1,b) } }
     def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=bt._1; var a=unit(left.alt-1); if (r<=a) left.unapply(i,j,bt) else right.unapply(i,j,(r-a,bt._2)) }
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=bt._1; var a=unit(left.alt-1); if (r<=a) left.reapply(i,j,bt) else right.reapply(i,j,(r-a,bt._2)) }
   }
