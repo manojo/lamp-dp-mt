@@ -79,6 +79,14 @@ trait GenCharParsersProg extends CharParsers with Structs{
     s
   }
 
+  //or
+  def test9(in: Rep[Array[Char]]): Rep[(Char,Int)] = {
+    var s = make_tuple2(unit('a'), unit(-1))
+    val parser = (letter(in) | digit(in)).apply(unit(0))
+    parser{x: Rep[(Char, Int)] => s = x}
+    s
+  }
+
 }
 
 class TestTopDownParsers extends FileDiffSuite {
@@ -136,6 +144,11 @@ class TestTopDownParsers extends FileDiffSuite {
         codegen.emitDataStructures(new PrintWriter(source))
         val testc8 = compile2s(test8, source)
         scala.Console.println(testc8("hello".toArray, 1))
+
+        codegen.emitSource(test9 _ , "test9", new java.io.PrintWriter(System.out))
+        val testc9 = compile(test9)
+        scala.Console.println(testc9("hello".toArray))
+        scala.Console.println(testc9("12".toArray))
 
       }
 
