@@ -256,3 +256,43 @@ x254
 *******************************************/
 compilation: ok
 6
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test6b extends ((Int, Int)=>(Int)) {
+def apply(x269:Int, x270:Int): Int = {
+var x272: Int = 0
+val x271 = x269 < x270
+val x288 = if (x271) {
+var x274 : Int = x269
+val x286 = while (x274 < x270) {
+val x275 = x269 < x274
+val x284 = if (x275) {
+var x277 : Int = x269
+val x282 = while (x277 < x274) {
+val x278 = x272
+val x279 = x278 + x277
+x272 = x279
+()
+x277 = x277 + 1
+}
+true
+} else {
+false
+}
+()
+x274 = x274 + 1
+}
+true
+} else {
+false
+}
+val x289 = x272
+x289
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+20

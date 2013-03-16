@@ -123,8 +123,9 @@ class TestTopDownParsers extends FileDiffSuite {
 
         codegen.emitSource(test5 _ , "test5", new java.io.PrintWriter(System.out))
         val testc5 = compile(test5)
-        val res5 = testc5("hello".toArray)
-        scala.Console.println(res5)
+        scala.Console.println(testc5("hello".toArray)) //succeeding a ~ b
+        scala.Console.println(testc5("1ello".toArray)) //failing left
+        scala.Console.println(testc5("h2llo".toArray)) //failing right
 
         codegen.emitSource(test6 _ , "test6", new java.io.PrintWriter(System.out))
         val testc6 = compile(test6)

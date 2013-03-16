@@ -78,6 +78,18 @@ trait GeneratorProg extends GeneratorOps with NumericOps
     s
   }
 
+
+  //a flatMap!!!
+  def test6b(start: Rep[Int], end: Rep[Int]) = {
+    val f = rangeb(start, end).flatMap{i:Rep[Int] =>
+      rangeb(start,i)
+    }
+
+    var s = unit(0)
+    f{ x:Rep[Int] => s = s+x }
+    s
+  }
+
   //gen-ing a single elem from a list
   def test7(start: Rep[Int], end: Rep[Int]) = {
     val a : Rep[Array[Int]] = Array(1,2,3)
@@ -231,6 +243,11 @@ class TestGeneratorOps extends FileDiffSuite {
         codegen.emitSource(test8 _ , "test8", printWriter)
         val testc8 = compile(test8)
         scala.Console.println(testc8(1))
+
+        //test6b: a flatMap with boolGenerators
+        codegen.emitSource2(test6b _ , "test6b", printWriter)
+        val testc6b = compile2(test6b)
+        scala.Console.println(testc6b(1,6))
 
       }
     }

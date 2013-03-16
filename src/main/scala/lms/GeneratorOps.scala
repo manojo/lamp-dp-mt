@@ -8,7 +8,7 @@ import scala.reflect.SourceContext
 
 trait GeneratorOps extends Variables with While with LiftVariables
   with MyRangeOps with NumericOps with OrderingOps with IfThenElse
-  with MiscOps with EmbeddedControls with Equal {
+  with MiscOps with EmbeddedControls with BooleanOps with Equal {
 
   object Gen {
     def fSeq[A:Manifest](xs: Rep[A]*)(implicit pos: SourceContext) = fromSeq(xs)
@@ -67,9 +67,7 @@ trait GeneratorOps extends Variables with While with LiftVariables
     else if(xs.length == 1) elGen(xs.head)
     else elGen(xs.head) ++ fromSeq(xs.tail)
 
-  def emptyGen[A:Manifest](): Generator[A] = new Generator[A]{
-    def apply(f: Rep[A] => Rep[Unit]) = {}
-  }
+  def emptyGen[A:Manifest](): Generator[A] = EmptyGen[A]
 
   def elGen[A:Manifest](a: Rep[A]): Generator[A] = new Generator[A]{
     def apply(f: Rep[A] => Rep[Unit]) = {
@@ -82,11 +80,90 @@ trait GeneratorOps extends Variables with While with LiftVariables
       if(cond) a(f) else b(f)
     }
   }
+
+  case class EmptyGen[T:Manifest]() extends Generator[T]{
+    def apply(f: Rep[T] => Rep[Unit]) = {}
+  }
+
+
+
+  /** Boolean Generator */
+  abstract class BoolGenerator[T:Manifest] extends ((Rep[T] => Rep[Unit]) => Rep[Boolean]) {self =>
+
+    def map[U:Manifest](g: Rep[T] => Rep[U]) = new BoolGenerator[U]{
+      def apply(f: Rep[U] => Rep[Unit]) = self.apply{
+        x:Rep[T] => f(g(x))
+      }
+    }
+
+    def filter(p: Rep[T] => Rep[Boolean]) = new BoolGenerator[T]{
+      def apply(f: Rep[T] => Rep[Unit]) = self.apply{
+        x:Rep[T] => if(p(x)) f(x)
+      }
+    }
+
+    def ++(that: BoolGenerator[T]) = new BoolGenerator[T]{
+      def apply(f: Rep[T] => Rep[Unit]) = {
+        self.apply(f) && that.apply(f)
+      }
+    }
+
+
+    def flatMap[U:Manifest](g: Rep[T] => BoolGenerator[U]) = new BoolGenerator[U]{
+      def apply(f: Rep[U] => Rep[Unit]) = self.apply{ x:Rep[T] =>
+        val tmp : BoolGenerator[U] = g(x)
+        tmp.apply{u: Rep[U] => f(u)}
+        unit(())
+      }
+    }
+
+/*
+    def reduce(h:(Rep[T],Rep[T])=>Rep[T], z:Rep[T]) = new BoolGenerator[T] {
+      def apply(f: Rep[T] => Rep[Boolean]) = {
+        var best = z;
+        self.apply { x:Rep[T] => if (best==z) best=x; else best=h(best,x) }
+        if (best!=z) f(best)
+      }
+    }
+*/
+  }
+  def rangeb(start: Rep[Int], end: Rep[Int]) : BoolGenerator[Int] = {
+    val tmp = new BoolGenerator[Int]{
+      def apply(f: Rep[Int] => Rep[Unit]) = {
+        for(i <- start until end){
+          f(i)
+        }
+        unit(true)
+      }
+    }
+    condb((start < end), tmp, emptyGenb())
+  }
+
+  def condb[A:Manifest](cond: Rep[Boolean], a: BoolGenerator[A], b: BoolGenerator[A]) = new BoolGenerator[A]{
+    def apply(f: Rep[A] => Rep[Unit]) = {
+      if(cond) a(f) else b(f)
+    }
+  }
+
+  def emptyGenb[A:Manifest]() = new BoolGenerator[A]{
+    def apply(f: Rep[A] => Rep[Unit]) = unit(false)
+  }
+
+  def repb[A:Manifest](a: BoolGenerator[A]) = new BoolGenerator[List[A]]{
+    def apply(f: Rep[A] => Rep[Unit])= {
+      var t = unit(true)
+      while(t) {
+        t = a(f)
+      }
+      unit(true)
+    }
+  }
+
 }
 
 trait GeneratorOpsExp extends GeneratorOps with EffectExp with VariablesExp
   with MyRangeOpsExp with WhileExp with NumericOpsExp with OrderingOpsExp
-  with IfThenElseExp with MiscOpsExp{
+  with IfThenElseExp with BooleanOpsExp with MiscOpsExp{
 
   //a Let tree for
   case class Let[T: Manifest,U: Manifest](x: Sym[T], rhs: Exp[T], body: Block[U]) extends Def[U]
@@ -106,7 +183,7 @@ trait GeneratorOpsExp extends GeneratorOps with EffectExp with VariablesExp
 
 trait ScalaGenGeneratorOps extends ScalaGenWhile with ScalaGenVariables
   with ScalaGenMyRangeOps with ScalaGenNumericOps with ScalaGenOrderingOps
-  with ScalaGenIfThenElse with ScalaGenMiscOps{
+  with ScalaGenIfThenElse with ScalaGenBooleanOps with ScalaGenMiscOps{
   val IR: GeneratorOpsExp
   import IR._
 
@@ -123,7 +200,7 @@ trait ScalaGenGeneratorOps extends ScalaGenWhile with ScalaGenVariables
 
 trait CGenGeneratorOps extends CGenWhile with CGenVariables
   with CGenMyRangeOps with CGenNumericOps with CGenOrderingOps
-  with CGenIfThenElse with CGenMiscOps{
+  with CGenIfThenElse with CGenBooleanOps with CGenMiscOps{
   val IR: GeneratorOpsExp
   import IR._
 
