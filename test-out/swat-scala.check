@@ -1,0 +1,101 @@
+error: illegal sharing of mutable objects Sym(8)
+at Sym(9)=Reflect(ArrayUpdate(Sym(3),Sym(6),Sym(8)),Summary(false,false,false,false,false,List(Sym(3), Sym(8)),List(Sym(3), Sym(8)),List(Sym(3)),List(Sym(3))),List(Sym(8)))
+error: illegal sharing of mutable objects Sym(16)
+at Sym(17)=Reflect(ArrayUpdate(Sym(12),Sym(15),Sym(16)),Summary(false,false,false,false,false,List(Sym(12), Sym(16)),List(Sym(12), Sym(16)),List(Sym(12)),List(Sym(12))),List(Sym(16)))
+TP(Sym(2),ArrayLength(Sym(0)))
+TP(Sym(3),Reflect(ArrayNew(Sym(2)),Summary(false,false,false,false,true,List(),List(),List(),List()),List()))
+TP(Sym(4),Reflect(ArrayLength(Sym(3)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3))))
+TP(Sym(7),ArrayLength(Sym(1)))
+TP(Sym(8),Reflect(ArrayNew(Sym(7)),Summary(false,false,false,false,true,List(),List(),List(),List()),List()))
+TP(Sym(9),Reflect(ArrayUpdate(Sym(3),Sym(6),Sym(8)),Summary(false,false,false,false,false,List(Sym(3), Sym(8)),List(Sym(3), Sym(8)),List(Sym(3)),List(Sym(3))),List(Sym(8))))
+TP(Sym(10),Reify(Sym(9),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(Sym(3)),List(Sym(3))),List(Sym(8), Sym(9))))
+TP(Sym(11),Reflect(RangeForeach(Const(0),Sym(4),Sym(6),Block(Sym(10))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(Sym(3)),List()),List(Sym(3), Sym(4))))
+TP(Sym(12),Reflect(ArrayNew(Sym(2)),Summary(false,false,false,false,true,List(),List(),List(),List()),List()))
+TP(Sym(13),Reflect(ArrayLength(Sym(12)),Summary(false,false,false,false,false,List(Sym(12)),List(Sym(12)),List(),List()),List(Sym(12))))
+TP(Sym(16),Reflect(ArrayNew(Sym(7)),Summary(false,false,false,false,true,List(),List(),List(),List()),List()))
+TP(Sym(17),Reflect(ArrayUpdate(Sym(12),Sym(15),Sym(16)),Summary(false,false,false,false,false,List(Sym(12), Sym(16)),List(Sym(12), Sym(16)),List(Sym(12)),List(Sym(12))),List(Sym(16))))
+TP(Sym(18),Reify(Sym(17),Summary(false,false,false,false,false,List(Sym(12)),List(Sym(12)),List(Sym(12)),List(Sym(12))),List(Sym(16), Sym(17))))
+TP(Sym(19),Reflect(RangeForeach(Const(0),Sym(13),Sym(15),Block(Sym(18))),Summary(false,false,false,false,false,List(Sym(12)),List(),List(Sym(12)),List()),List(Sym(12), Sym(13))))
+TP(Sym(20),Equal(Const(10),Const(0)))
+TP(Sym(21),OrderingLTEQ(Const(1),Const(10)))
+TP(Sym(22),Equal(Const(1000),Const(0)))
+TP(Sym(23),BooleanAnd(Sym(21),Sym(22)))
+TP(Sym(24),OrderingLTEQ(Const(1),Const(1000)))
+TP(Sym(25),BooleanAnd(Sym(21),Sym(24)))
+TP(Sym(26),Reflect(ArrayApply(Sym(3),Const(10)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(11))))
+TP(Sym(27),NumericMinus(Const(1000),Const(1)))
+TP(Sym(28),Reflect(ArrayApply(Sym(26),Sym(27)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(11))))
+TP(Sym(31),NumericMinus(Const(10),Const(1)))
+TP(Sym(32),Reflect(ArrayApply(Sym(3),Sym(31)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(11))))
+TP(Sym(33),Reflect(ArrayApply(Sym(32),Const(1000)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(11))))
+TP(Sym(35),Reflect(ArrayApply(Sym(32),Sym(27)),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(3), Sym(11))))
+TP(Sym(29),NumericMinus(Sym(28),Const(8)))
+TP(Sym(30),MathMax(Const(0),Sym(29)))
+TP(Sym(34),NumericMinus(Sym(33),Const(8)))
+TP(Sym(36),Equal(Const(10),Const(1000)))
+TP(Sym(37),IfThenElse(Sym(36),Block(Const(15)),Block(Const(-12))))
+TP(Sym(38),NumericPlus(Sym(35),Sym(37)))
+TP(Sym(39),MathMax(Sym(34),Sym(38)))
+TP(Sym(40),MathMax(Sym(30),Sym(39)))
+TP(Sym(41),Reify(Sym(40),Summary(false,false,false,false,false,List(Sym(3)),List(Sym(3)),List(),List()),List(Sym(26), Sym(28), Sym(32), Sym(33), Sym(35))))
+TP(Sym(42),Reflect(IfThenElse(Sym(25),Block(Sym(41)),Block(Const(-1))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(),List()),List(Sym(3), Sym(11))))
+TP(Sym(43),Reify(Sym(42),Summary(false,false,false,false,false,List(Sym(3)),List(),List(),List()),List(Sym(42))))
+TP(Sym(44),Reflect(IfThenElse(Sym(23),Block(Const(0)),Block(Sym(43))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(),List()),List(Sym(3), Sym(11))))
+TP(Sym(45),Reify(Sym(44),Summary(false,false,false,false,false,List(Sym(3)),List(),List(),List()),List(Sym(44))))
+TP(Sym(46),Reflect(IfThenElse(Sym(20),Block(Const(0)),Block(Sym(45))),Summary(false,false,false,false,false,List(Sym(3)),List(),List(),List()),List(Sym(3), Sym(11))))
+TP(Sym(47),Reify(Sym(46),Summary(false,false,false,false,false,List(),List(),List(),List()),List(Sym(3), Sym(4), Sym(11), Sym(12), Sym(13), Sym(19), Sym(46))))
+error: illegal sharing of mutable objects Sym(56)
+at Sym(57)=Reflect(ArrayUpdate(Sym(51),Sym(54),Sym(56)),Summary(false,false,false,false,false,List(Sym(51), Sym(56)),List(Sym(51), Sym(56)),List(Sym(51)),List(Sym(51))),List(Sym(56)))
+error: illegal sharing of mutable objects Sym(64)
+at Sym(65)=Reflect(ArrayUpdate(Sym(60),Sym(63),Sym(64)),Summary(false,false,false,false,false,List(Sym(60), Sym(64)),List(Sym(60), Sym(64)),List(Sym(60)),List(Sym(60))),List(Sym(64)))
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class computeElem extends ((Array[Int], Array[Int])=>(Int)) {
+def apply(x48:Array[Int], x49:Array[Int]): Int = {
+val x50 = x48.length
+val x51 = new Array[Array[Int]](x50)
+val x52 = x51.length
+val x55 = x49.length
+var x54 : Int = 0[]
+val x59 = while (x54 < x52) {
+val x56 = new Array[Int](x55)
+val x57 = x51(x54) = x56
+x57
+x54 = x54 + 1
+}
+val x60 = new Array[Array[Int]](x50)
+val x61 = x60.length
+var x63 : Int = 0[]
+val x67 = while (x63 < x61) {
+val x64 = new Array[Int](x55)
+val x65 = x60(x63) = x64
+x65
+x63 = x63 + 1
+}
+10 = 0val x84 = if (x20) {
+0[]
+} else {
+1 <= 101000 = 0x21 : x22val x82 = if (x23) {
+0[]
+} else {
+1 <= 1000x21 : x24val x80 = if (x25) {
+x51[10]1000[] - 1[]x68[x27]10[] - 1[]x51[x31]x72[1000]x72[x27]x69 - 8[]max(0[],x70)x73 - 8[]10 = 1000val x37 = if (x36) {
+15[]
+} else {
+-12[]
+}
+x75 + x37max(x74,x76)max(x71,x77)x78
+} else {
+-1[]
+}
+x80
+}
+x82
+}
+x84
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
