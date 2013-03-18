@@ -399,3 +399,58 @@ x375
 compilation: ok
 (h,1)
 (1,1)
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test10 extends ((Array[Char])=>(scala.Tuple2[java.lang.String, Int])) {
+def apply(x401:Array[Char]): scala.Tuple2[java.lang.String, Int] = {
+val x402 = ("",-1)
+var x403: scala.Tuple2[java.lang.String, Int] = x402
+val x404 = List()
+var x405: scala.collection.immutable.List[Char] = x404
+var x406: Int = -1
+var x407: Int = 0
+val x414 = x401.length
+val x432 = while ({val x408 = x407
+val x409 = x406
+val x410 = x408 != x409
+x410}) {
+val x412 = x407
+x406 = x412
+val x415 = x412 >= x414
+val x430 = if (x415) {
+()
+} else {
+val x416 = x401(x412)
+val x417 = x416 >= 'a'
+val x418 = x416 <= 'z'
+val x419 = x417 && x418
+val x428 = if (x419) {
+val x422 = x405
+val x423 = List(x416)
+val x424 = x422 ::: x423
+x405 = x424
+val x420 = x412 + 1
+x407 = x420
+()
+} else {
+()
+}
+x428
+}
+x430
+}
+val x433 = x405
+val x434 = x406
+val x436 = x433.mkString
+val x437 = (x436,x434)
+x403 = x437
+val x439 = x403
+x439
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+(hello,5)

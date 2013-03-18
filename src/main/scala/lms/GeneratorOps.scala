@@ -149,16 +149,6 @@ trait GeneratorOps extends Variables with While with LiftVariables
     def apply(f: Rep[A] => Rep[Unit]) = unit(false)
   }
 
-  def repb[A:Manifest](a: BoolGenerator[A]) = new BoolGenerator[List[A]]{
-    def apply(f: Rep[A] => Rep[Unit])= {
-      var t = unit(true)
-      while(t) {
-        t = a(f)
-      }
-      unit(true)
-    }
-  }
-
 }
 
 trait GeneratorOpsExp extends GeneratorOps with EffectExp with VariablesExp

@@ -160,6 +160,50 @@ trait GeneratorParsers extends ArrayOps with NumericOps with IfThenElse
   }
 }
 
+trait TTParsers extends GeneratorParsers{this: Sig =>
+
+  /*abstract class TTParser[T:Manifest] extends Parser[T]{ self =>
+    def -~[U:Manifest](that: Parser[U]) = LeftConcat(self, that)
+    def ~-[U:Manifest](that: Parser[U]) = RighConcat(self, that)
+  }*/
+
+/*  case class LeftConcat[T:Manifest, U:Manifest](left: Parser[T], right: Parser[U]) extends Parser[(T,U)]{
+    def apply(i: Rep[Int], j: Rep[Int]) = cond((i < j), {
+    //  println(unit("when do we get in"))
+    //  println((i,j))
+      val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
+      val max_k = if (lU==0) j-rL else Math.min(j-rL,i+lU)
+    //  println(unit("min and max"))
+    //  println((min_k,max_k))
+      range(min_k, max_k+1).flatMap{ k=>
+        inner(i,k).flatMap{x =>
+          that()(k,j).map{y => (x,y)}
+        }
+      }
+    }, emptyGen()
+    )
+  }
+
+  case class RightConcat[T:Manifest, U:Manifest](left: Parser[T], right: Parser[U]) extends Parser[(T,U)]{
+    def apply(i: Rep[Int], j: Rep[Int]) = cond((i < j), {
+    //  println(unit("when do we get in"))
+    //  println((i,j))
+      val min_k = if (rU==0) i+lL else Math.max(i+lL,j-rU)
+      val max_k = if (lU==0) j-rL else Math.min(j-rL,i+lU)
+    //  println(unit("min and max"))
+    //  println((min_k,max_k))
+      range(min_k, max_k+1).flatMap{ k=>
+        inner(i,k).flatMap{x =>
+          that()(k,j).map{y => (x,y)}
+        }
+      }
+    }, emptyGen()
+    )
+  }
+*/
+
+}
+
 trait LexicalGenParsers extends GeneratorParsers{this: Sig =>
 
   type Alphabet = Char

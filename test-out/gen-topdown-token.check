@@ -1,0 +1,283 @@
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test1 extends ((Array[Char])=>(scala.Tuple2[java.lang.String, Int])) {
+def apply(x0:Array[Char]): scala.Tuple2[java.lang.String, Int] = {
+val x1 = ("",-1)
+var x2: scala.Tuple2[java.lang.String, Int] = x1
+val x3 = x0.length
+val x4 = 0 >= x3
+val x59 = if (x4) {
+()
+} else {
+val x5 = x0(0)
+val x6 = x5 >= 'a'
+val x7 = x5 <= 'z'
+val x8 = x6 && x7
+val x57 = if (x8) {
+val x11 = List()
+var x12: scala.collection.immutable.List[Char] = x11
+var x13: Int = -1
+val x9 = 0 + 1
+var x14: Int = x9
+val x38 = while ({val x15 = x14
+val x16 = x13
+val x17 = x15 != x16
+x17}) {
+val x19 = x14
+x13 = x19
+val x21 = x19 >= x3
+val x36 = if (x21) {
+()
+} else {
+val x22 = x0(x19)
+val x23 = x22 >= 'a'
+val x24 = x22 <= 'z'
+val x25 = x23 && x24
+val x34 = if (x25) {
+val x28 = x12
+val x29 = List(x22)
+val x30 = x28 ::: x29
+x12 = x30
+val x26 = x19 + 1
+x14 = x26
+()
+} else {
+()
+}
+x34
+}
+x36
+}
+val x39 = x12
+val x40 = x13
+val x44 = x5 :: x39
+val x45 = x44.mkString
+val x46 = x45 == "true"
+val x47 = x45 == "null"
+val x48 = x46 || x47
+val x49 = x45 == "false"
+val x50 = x48 || x49
+val x53 = if (x50) {
+val x51 = "Keyword("+x45
+val x52 = x51+")"
+x52
+} else {
+"NoToken"
+}
+val x54 = (x53,x40)
+x2 = x54
+()
+} else {
+()
+}
+x57
+}
+val x60 = x2
+x60
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+(Keyword(true),4)
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class test2 extends ((Array[Char])=>(scala.Tuple2[scala.Tuple2[java.lang.String, java.lang.String], Int])) {
+def apply(x121:Array[Char]): scala.Tuple2[scala.Tuple2[java.lang.String, java.lang.String], Int] = {
+val x122 = ("","")
+val x123 = (x122,-1)
+var x124: scala.Tuple2[scala.Tuple2[java.lang.String, java.lang.String], Int] = x123
+val x125 = x121.length
+val x126 = 0 >= x125
+val x268 = if (x126) {
+()
+} else {
+val x127 = x121(0)
+val x128 = x127 == '"'
+val x266 = if (x128) {
+val x11 = List()
+var x130: scala.collection.immutable.List[Char] = x11
+var x131: Int = -1
+val x9 = 0 + 1
+var x132: Int = x9
+val x154 = while ({val x133 = x132
+val x134 = x131
+val x135 = x133 != x134
+x135}) {
+val x137 = x132
+x131 = x137
+val x139 = x137 >= x125
+val x152 = if (x139) {
+()
+} else {
+val x140 = x121(x137)
+val x141 = x140 != '"'
+val x150 = if (x141) {
+val x144 = x130
+val x145 = List(x140)
+val x146 = x144 ::: x145
+x130 = x146
+val x142 = x137 + 1
+x132 = x142
+()
+} else {
+()
+}
+x150
+}
+x152
+}
+val x155 = x130
+val x156 = x131
+val x158 = x156 >= x125
+val x264 = if (x158) {
+()
+} else {
+val x159 = x121(x156)
+val x160 = x159 == '"'
+val x262 = if (x160) {
+var x168: scala.collection.immutable.List[Char] = x11
+var x169: Int = -1
+val x161 = x156 + 1
+var x170: Int = x161
+val x201 = while ({val x171 = x170
+val x172 = x169
+val x173 = x171 != x172
+x173}) {
+val x175 = x170
+x169 = x175
+val x177 = x175 >= x125
+val x191 = if (x177) {
+()
+} else {
+val x178 = x121(x175)
+val x179 = x178 == ' '
+val x189 = if (x179) {
+val x183 = x168
+val x184 = List(x178)
+val x185 = x183 ::: x184
+x168 = x185
+val x180 = x175 + 1
+x170 = x180
+()
+} else {
+()
+}
+x189
+}
+val x199 = if (x177) {
+()
+} else {
+val x178 = x121(x175)
+val x182 = x178 == '
+'
+val x197 = if (x182) {
+val x192 = x168
+val x184 = List(x178)
+val x193 = x192 ::: x184
+x168 = x193
+val x180 = x175 + 1
+x170 = x180
+()
+} else {
+()
+}
+x197
+}
+x199
+}
+val x202 = x168
+val x203 = x169
+val x207 = x203 >= x125
+val x260 = if (x207) {
+()
+} else {
+val x208 = x121(x203)
+val x209 = x208 == '"'
+val x258 = if (x209) {
+var x212: scala.collection.immutable.List[Char] = x11
+var x213: Int = -1
+val x210 = x203 + 1
+var x214: Int = x210
+val x236 = while ({val x215 = x214
+val x216 = x213
+val x217 = x215 != x216
+x217}) {
+val x219 = x214
+x213 = x219
+val x221 = x219 >= x125
+val x234 = if (x221) {
+()
+} else {
+val x222 = x121(x219)
+val x223 = x222 != '"'
+val x232 = if (x223) {
+val x226 = x212
+val x227 = List(x222)
+val x228 = x226 ::: x227
+x212 = x228
+val x224 = x219 + 1
+x214 = x224
+()
+} else {
+()
+}
+x232
+}
+x234
+}
+val x237 = x212
+val x238 = x213
+val x240 = x238 >= x125
+val x256 = if (x240) {
+()
+} else {
+val x241 = x121(x238)
+val x242 = x241 == '"'
+val x254 = if (x242) {
+val x243 = x238 + 1
+val x164 = x155.mkString
+val x165 = "StringLit("+x164
+val x166 = x165+")"
+val x246 = x237.mkString
+val x247 = "StringLit("+x246
+val x248 = x247+")"
+val x250 = (x166,x248)
+val x251 = (x250,x243)
+x124 = x251
+()
+} else {
+()
+}
+x254
+}
+x256
+} else {
+()
+}
+x258
+}
+x260
+} else {
+()
+}
+x262
+}
+x264
+} else {
+()
+}
+x266
+}
+val x269 = x124
+x269
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+((StringLit(hello),StringLit(carol)),15)
