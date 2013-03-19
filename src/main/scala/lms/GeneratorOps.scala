@@ -14,7 +14,7 @@ trait GeneratorOps extends Variables with While with LiftVariables
     def fSeq[A:Manifest](xs: Rep[A]*)(implicit pos: SourceContext) = fromSeq(xs)
   }
 
-  abstract class Generator[T:Manifest] extends ((Rep[T] => Rep[Unit]) => Rep[Unit]) {self =>
+  abstract class Generator[T:Manifest] extends ((Rep[T] => Rep[Unit]) => Rep[Unit]) with Serializable {self =>
 
     def map[U:Manifest](g: Rep[T] => Rep[U]) = new Generator[U]{
       def apply(f: Rep[U] => Rep[Unit]) = self.apply{
