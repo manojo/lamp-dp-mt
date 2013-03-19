@@ -133,40 +133,25 @@ trait GenRecParsersProg extends TokenParsers with Functions {
   def term(in: Rep[Input]): Parser[String] = Parser{ i: Rep[Int] =>
     new Generator[(String, Int)]{
       def apply(f: Rep[(String,Int)] => Rep[Unit]) = {
-      val term1: Rep[Int=>Unit] =
+      val term1: Rep[Int=>Unit] = {
+        val f2 = doLambda{ x: Rep[(String,Int)] => f(x)}
         doLambda{ i: Rep[Int] =>
 
           digit(in)(i) apply { x: Rep[(Char,Int)] =>
             term(in)(x._2) { y: Rep[(String,Int)] =>
-              f(make_tuple2((x._1 + y._1), y._2))
+              f2(make_tuple2((x._1 + y._1), y._2))
             }
           }
         }
+      }
       term1.apply(i)
     }
     }
   }
 
   def testTerm(in:Rep[Input]) = {
-
-    val t1 : Parser[String] = Parser{ i: Rep[Int] =>
-      new Generator[(String, Int)]{
-        def apply(f: Rep[(String,Int)] => Rep[Unit]) = {
-            val term1 = doLambda{i: Rep[Int] =>
-            val p = (digit(in) ~ term(in)) ^^ {x: Rep[(Char, String)] =>
-              x._1 + x._2
-            }
-            p(i).apply(f)
-            /*2 * i; */
-            //unit(())
-          }
-          term1.apply(i)
-        }
-      }
-    }
-
     var s = make_tuple2(unit(""), unit(-1))
-    t1(unit(0)).apply{x : Rep[(String, Int)] => s =x }
+    term(in).apply(unit(0)).apply{x : Rep[(String, Int)] => s =x }
     s
   }
 
