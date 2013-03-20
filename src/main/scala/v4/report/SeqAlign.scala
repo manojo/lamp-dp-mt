@@ -54,7 +54,7 @@ trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
   | seq() -~ axiom          ^^ gap1
   |          axiom ~- seq() ^^ gap2
   | el1   -~ axiom ~- el2   ^^ pair
-  ) aggregate h)
+  ) aggregate h,true)
 }
 
 object SeqAlign extends App {
