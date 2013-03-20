@@ -394,18 +394,17 @@ trait CodeGen extends BaseParsers { this:Signature =>
   // RNA folding specific additions
 
   private def useRna = this match { case s:RNASignature => s.energies case _ => false }
+  private def rnaPath = "../src/librna/" // src/librna/ folder relatively to compile folder (bin/)
 
   def genRNA = this match {
     // XXX: fix path automatically
     // XXX: add way to link pre-existing object to spare compilation phase
-    case s:RNASignature if (s.energies) =>
-      def path ="../src/librna/"
+    case s:RNASignature if (s.energies) => val pf=s.paramsFile
       import librna.{LibRNA=>l}
-
-      if (s.paramsFile!=null) l.setParams(s.paramsFile)
+      if (pf!=null) l.setParams(pf)
       val consts = l.getConsts
       "// --------------------------------\n"+
-      "#include \""+path+"vienna/vienna.h\"\n"+
+      "#include \""+rnaPath+"vienna/vienna.h\"\n"+
       "__constant__ paramT0 param0;\n"+
       consts+ // XXX: move this inside CodeGen for correctness, also this is an input parameter like size RNASignature(params) ??
       "#define my_len (M_H-1)\n"+
@@ -413,13 +412,13 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "#define my_P g_P\n"+
       "#define my_P0 param0\n"+
       "#define my_dev __device__\n"+
-      "#include \""+path+"librna_impl.h\"\n"+
-      "#include \""+path+"vienna/vienna.c\"\n"+
-      "#include \""+path+"vienna/energy_par.c\"\n\n"+
+      "#include \""+rnaPath+"librna_impl.h\"\n"+
+      "#include \""+rnaPath+"vienna/vienna.c\"\n"+
+      "#include \""+rnaPath+"vienna/energy_par.c\"\n\n"+
       "static paramT *cg_P=NULL;\n"+
       "__global__ static void _initP(paramT* params) { g_P=params; }\n"+
       "static inline void rna_init() {\n"+
-      (if (s.paramsFile!=null) "  read_parameter_file(\""+s.paramsFile+"\");\n" else "")+
+      (if (pf!=null) "  read_parameter_file(\""+pf+"\");\n" else "")+
       "  paramT* P = get_scaled_parameters();\n"+
       "  cudaMemcpyToSymbol(param0,&(P->p0),sizeof(paramT0));"+
       "  cuMalloc(cg_P,sizeof(paramT));\n"+
@@ -484,7 +483,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     head.addPriv("#define M_W {MAT_WIDTH}")
     head.addPriv("#define M_H {MAT_HEIGHT}")
     if (twotracks) {
-      head.addPriv("#define B_H 1")
+      head.addPriv("#define B_H 1") // no coalescing required
       head.addPriv("#define MEM_MATRIX (M_W*M_H)")
       head.addPriv("#define idx(i,j) ((i)*B_W+(j))")
     } else {
@@ -499,10 +498,22 @@ trait CodeGen extends BaseParsers { this:Signature =>
       case _ => sys.error("Unsupported aggregation: "+h)
     }
 
+    head.addPriv("#include <strings.h>") // for memcpy
+    head.addPriv("static input_t *_in1=NULL, *_in2=NULL;\nstatic cost_t* c_cost=NULL;\nstatic back_t* c_back=NULL;")
+    // RNA setup
+    val rna = this match {
+      case s:RNASignature if (s.energies) => val p=s.paramsFile; if (p!=null) librna.LibRNA.setParams(p)
+        head.addPriv("#define my_len (M_H-1)\n#define my_seq _in1\n#define my_P c_P\n#define my_dev")
+        List("vienna/vienna.h","librna_impl.h","vienna/vienna.c","vienna/energy_par.c").foreach{x=>head.addPriv("#include \""+rnaPath+x+"\"")}
+        (if (p!=null) "  read_parameter_file(\""+p+"\");\n" else "")+"  c_P = get_scaled_parameters();\n"
+      case _ => ""
+    }
     // Backtracking wrapper: read result (get best within window) and produce backward trace from there
-    val wrap = "static input_t *c_in1=NULL, *c_in2=NULL;\nstatic cost_t* c_cost=NULL;\nstatic back_t* c_back=NULL;\n\n"+
-               "void my_init(input_t* in1, input_t* in2) {\n  c_in1=in1; c_in2=in2;\n  c_cost=(cost_t*)malloc(sizeof(cost_t)*MEM_MATRIX);\n  c_back=(back_t*)malloc(sizeof(back_t)*MEM_MATRIX); }\n\n"+
-               "void my_solve() { cpu_solve(c_in1, c_in2, c_cost, c_back); }\nvoid my_free() { free(c_cost); free(c_back); }\n"+
+    val wrap = "void my_init(input_t* in1, input_t* in2) {\n"+
+               "  size_t sz1=(M_H-1)*sizeof(input_t); _in1=(input_t*)malloc(sz1); memcpy(_in1,in1,sz1); \n"+
+               "  if (in2) { size_t sz2=(M_W-1)*sizeof(input_t); _in2=(input_t*)malloc(sz2); memcpy(_in2,in2,sz2); }\n"+
+               "  c_cost=(cost_t*)malloc(sizeof(cost_t)*MEM_MATRIX);\n  c_back=(back_t*)malloc(sizeof(back_t)*MEM_MATRIX);\n"+rna+"}\n\n"+
+               "void my_solve() { cpu_solve(_in1, _in2, c_cost, c_back); }\nvoid my_free() { free(_in1); free(_in2); free(c_cost); free(c_back);"+(if (useRna) " free(c_P);" else "")+" }\n"+
     tpAnswer+" my_backtrack(trace_t** trace, unsigned* size) {\n"+
     "  "+tpAnswer+" res; unsigned i0="+(if(twotracks) "M_H-1" else "0")+", j0=M_W-1;\n"+
     (if (window>0) "  bool valid=false;\n"+
@@ -513,8 +524,8 @@ trait CodeGen extends BaseParsers { this:Signature =>
     "  if (trace && size) { *trace=(trace_t*)malloc((M_W+M_H)*sizeof(trace_t)); cpu_backtrack(*trace,size,c_back,i0,j0); }\n"+
     "  return res;\n}\n"
 
-    var (_,hpriv,hfun)=head.flush
-    hpriv+ /* "\n"+rna+ */ "\n"+hfun.replace("__device__ ","")+"\n"+kern+"\n"+bt+"\n"+wrap+"\n"
+    val (_,hpriv,hfun)=head.flush
+    hpriv+"\n"+hfun.replace("__device__ ","")+"\n"+kern+"\n"+bt+"\n"+wrap+"\n"
   }
 
   // --------------------------------------------------------------------------

@@ -178,7 +178,7 @@ object Zuker extends App {
   }
 
   def testSeq(seq:String, strict:Boolean=true) {
-    val (gpu,btG)=parse(seq,mfe.psCUDA)
+    val (gpu,btG)=parse(seq,mfe.psCPU)
     val (cpu,btC)=parse(seq,mfe.psTopDown)
     val ref=Utils.refFold(seq,"src/librna/rfold" /*"resources/RNAfold_orig_mac --noPS --noLP -d2"*/)
     if (ref==gpu || !strict && ref.substring(seq.size)==gpu.substring(seq.size)) print(".")
