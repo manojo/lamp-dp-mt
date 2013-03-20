@@ -14,9 +14,9 @@ trait SWat extends SeqSig {
   override val h = max[Int] _
   //def start(x:Unit) = 0
   val start = cfun1((x:Unit) => 0, "","0[]")
-  val gap1 = cfun2((g:Char,a:Int) => Math.max(0, a-3), "g,a","a-3")
-  val gap2 = cfun2((a:Int,g:Char) => Math.max(0, a-3), "a,g","a-3")
-  val pair = cfun3((c1:Char,a:Int,c2:Char) => if (c1==c2) a+10 else Math.max(0,a-3), "c1,a,c2", "if (c1==c2) a+10 else a-3") 
+  val gap1 = cfun2((g:Char,a:Int) => Math.max(0, a-3), "g,a","max(0,a-8[])")
+  val gap2 = cfun2((a:Int,g:Char) => Math.max(0, a-3), "a,g","max(0,a-8[])")
+  val pair = cfun3((c1:Char,a:Int,c2:Char) => if (c1==c2) a+10 else Math.max(0,a-3), "c1,a,c2", "if (c1==c2) a+15[] else a-12[]") 
 
 //  val start = cfun1((x:Unit) => 0, "","return 0;")
 //  val open1 = cfun2((c1:Alphabet,a:Answer) => Math.max(0, a+open), "c1,a", "return a>3 ? a-3 : 0;")
@@ -26,7 +26,7 @@ trait SWat extends SeqSig {
 
 trait PrettyPrint extends SeqSig {
   type Answer = (String,String)
-  val start = (x:Unit) => (".",".")
+  val start = (x:Unit) => ("","")
   val gap1 = (g:Char,a:Answer) => (a._1+g,a._2+"-")
   val gap2 = (a:Answer,g:Char) => (a._1+"-",a._2+g)
   val pair = (c1:Char,a:Answer,c2:Char) => (a._1+c1,a._2+c2)
@@ -50,8 +50,8 @@ object SeqAlign extends SeqAlignGrammar with SWat with FPGACodeGen with App {
   val s2 = "CCCATTAGAG".toArray
   val (score,bt) = backtrack(s1,s2).head
   val (a1,a2) = pretty.build(s1,s2,bt)
-  println("- Score: "+score)
-  println("- Seq1: "+a1+"\n- Seq2: "+a2+"\n")
+  println("Alignment score: "+score)
+  println("  [ "+a1+" ]\n  [ "+a2+" ]\n")
 
   // Generating MMAlpha code
   println(gen)
