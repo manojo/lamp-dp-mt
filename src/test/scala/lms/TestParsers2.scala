@@ -25,6 +25,7 @@ class TestParsers2 extends FileDiffSuite {
 
   def testBottomUp1 = {
     withOutFile(prefix+"parsers2-bottomup1"){
+/*
       new MatMultAlgebra2 with ParsersPkg { self =>
 
         def h(x:Rep[Answer],y:Rep[Answer]) = if(x._2 < y._2) x else y
@@ -45,10 +46,9 @@ class TestParsers2 extends FileDiffSuite {
         val prog = compile(grammar)
         val res = prog(scala.Array((10,100),(100,5),(5,50)))
         scala.Console.println(res)
-
       }
+*/
     }
     assertFileEqualsCheck(prefix+"parsers2-bottomup1")
   }
-
 }
