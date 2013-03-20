@@ -39,6 +39,6 @@ object MatrixMultGen extends MatrixGrammar with MatrixAlgebraGen with CodeGen wi
   */
   Utils.runBenchmark(
     (n:Int)=>backtrack(Utils.genMats(n)),
-    (n:Int)=>backtrack(Utils.genMats(n),true)
+    (n:Int)=>backtrack(Utils.genMats(n),psBottomUp)
   )
 }

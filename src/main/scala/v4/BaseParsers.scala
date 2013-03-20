@@ -33,6 +33,12 @@ trait Signature {
 }
 
 trait BaseParsers { this:Signature =>
+  sealed abstract class ParserStyle
+  case object psTopDown extends ParserStyle
+  case object psBottomUp extends ParserStyle
+  case object psCPU extends ParserStyle
+  case object psCUDA extends ParserStyle
+
   type Input = Array[Alphabet]
   type Subword = (Int, Int)
   type Backtrack = (Int,List[Int]) // (subrule_id, indices)
@@ -41,7 +47,6 @@ trait BaseParsers { this:Signature =>
 
   val axiom:Tabulate // initial parser to be applied
   val twotracks = false // whether grammar is multi-track
-  val bottomUp = false // bottom-up parsers for Scala
   final val bt0 = (0,Nil) // default initial backtrack
 
   // Benchmarking

@@ -90,6 +90,6 @@ object RNAFold extends App {
   */
   Utils.runBenchmark(
     (n:Int)=>fold.backtrack(fold.convert(Utils.genRNA(n))),
-    (n:Int)=>fold.backtrack(fold.convert(Utils.genRNA(n)),true)
+    (n:Int)=>fold.backtrack(fold.convert(Utils.genRNA(n)),fold.psTopDown)
   )
 }

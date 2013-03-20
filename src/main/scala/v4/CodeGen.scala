@@ -12,8 +12,8 @@ trait TTWrapper[A,R] {
 
 trait CodeGen extends BaseParsers { this:Signature =>
   private val head = new CodeHeader(this) // User code and helpers store
-  private lazy val tpAlphabet = head.parse(tps._1.toString)
-  private lazy val tpAnswer = head.parse(tps._2.toString)
+  private def tpAlphabet = head.parse(tps._1.toString)
+  private def tpAnswer = head.parse(tps._2.toString)
 
   // Additional typing informations required for codegen. We need to use Manifest due to following limitations:
   // - TypeTag: type (i.e. (Int,Int)) not necessary linked to class (examples.Test.Alphabet instead of examples.TestSig$Mat)
@@ -182,24 +182,30 @@ trait CodeGen extends BaseParsers { this:Signature =>
     emit(gen(norm(Aggregate(t.inner,h)),Var('i',0),Var('j',0),new FreeVar('k'),t.id,0))
   }
 
-  def genKern = {
+  def genKern(gpu:Boolean=true) = {
     val kern= "#define VALID(I,J,RULE) "+(if (cudaEmpty!=null) "(cost[idx(I,J)].RULE!="+cudaEmpty+")\n" else "(back[idx(I,J)].RULE.rule!=-1)\ncost_t _cost = {}; // init to 0\n")+
       rulesOrder.map{n=>val r=rules(n); val c=r.inner.cat;
         "// ---- "+n+"[i,j] ----\n{\n"+ind("__bt"+c+" _b0 = {-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"};\n"+
         (if (cudaEmpty!=null) tpAnswer+" _c0 = "+cudaEmpty+";\n"+genTab(r)+"\ncost[idx(i,j)]."+n+" = _c0;\n" else genTab(r)+"\ncost[idx(i,j)]."+n+" = _cost."+n+";\n")+
         "back[idx(i,j)]."+n+" = _b0;")+"}"
       }.mkString("\n")
-    val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
-      (if (twotracks) "  for (int i=tI; i<M_H; i+=tN) {\n    int j = jj-i; if (j>=0)" else "  for (int ii=tI; ii<M_H; ii+=tN) {\n    int i = M_H-1-ii, j = i+jj;")+"\n"
-    "__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {\n"+ind(
-    "const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x;\n"+
-    "const unsigned tN = blockDim.x * gridDim.x;\n"+
-    "const unsigned tB = blockIdx.x;\n"+
-    (if (cudaSharedInput) "for (unsigned i=threadIdx.x; i<M_W-1; i+=blockDim.x) _in1[i]=__in1[i];\n"+
-         (if (twotracks) "for (unsigned i=threadIdx.x; i<M_H-1; i+=blockDim.x) _in2[i]=__in2[i];\n" else "")+"__syncthreads();\n" else "")+
-    "unsigned tP=s_start; // block progress\n"+loops+"    if (j<M_W) {\n"+ind(kern,3)+"    }\n  }\n"+
-    "  // Sync between blocks, removing __threadfence() here is incorrect but works\n  // __threadfence();\n"+
-    "  if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }\n  __syncthreads();\n}")+"}\n"
+    if (gpu) {
+      val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
+        (if (twotracks) "  for (int i=tI; i<M_H; i+=tN) {\n    int j = jj-i; if (j>=0)" else "  for (int ii=tI; ii<M_H; ii+=tN) {\n    int i = M_H-1-ii, j = i+jj;")+"\n"
+      "__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {\n"+ind(
+      "const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x;\n"+
+      "const unsigned tN = blockDim.x * gridDim.x;\n"+
+      "const unsigned tB = blockIdx.x;\n"+
+      (if (cudaSharedInput) "for (unsigned i=threadIdx.x; i<M_W-1; i+=blockDim.x) _in1[i]=__in1[i];\n"+
+           (if (twotracks) "for (unsigned i=threadIdx.x; i<M_H-1; i+=blockDim.x) _in2[i]=__in2[i];\n" else "")+"__syncthreads();\n" else "")+
+      "unsigned tP=s_start; // block progress\n"+loops+"    if (j<M_W) {\n"+ind(kern,3)+"    }\n  }\n"+
+      "  // Sync between blocks, removing __threadfence() here is incorrect but works\n  // __threadfence();\n"+
+      "  if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }\n  __syncthreads();\n}")+"}\n"
+    } else {
+      val loops = (if (twotracks) "for (unsigned i=0; i<M_H; ++i) {\n  for (int j=0; j<M_W; ++j) {"
+                             else "for (unsigned jj=0; jj<M_W; ++jj) {\n  for (int ii=0; ii<M_H; ++ii) {\n    int i = M_H-1-ii, j = i+jj;")+"\n"
+      "void cpu_solve(const input_t* _in1, const input_t* _in2, cost_t* cost, back_t* back) {\n"+ind(loops+"    if (j<M_W) {\n"+ind(kern,3)+"    }\n  }\n}")+"}\n"
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -225,7 +231,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   }
 
   private lazy val catMax = rules.map{case (n,t)=>t.inner.cat}.max
-  def genBT = {
+  def genBT(gpu:Boolean=true) = {
     val altMax=rules.map{case (n,t)=>t.inner.alt}.sum
     def switch(f:Int=>String) = "    switch (rd->rule) {\n"+(0 until altMax).map{x=>"      case "+x+":"+f(x)+" break;"}.mkString("\n")+"\n    }\n"
     val trLen = "const unsigned trace_len["+altMax+"] = {"+(0 until altMax).map{x=>findTab(x)._1.inner.cat}.mkString(",")+"};" // subrule->#indices
@@ -233,7 +239,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     head.add("#define MIN(a,b) ({__typeof__(a) _a=(a); __typeof__(b) _b=(b); _a<_b?_a:_b; })") // for 'for' loops
     head.add("typedef struct { short i,j,rule; "+(if(catMax>0)"short pos["+catMax+"]; " else "")+"} trace_t;")
     head.add(trLen)
-    "__global__ void gpu_backtrack(trace_t* trace, unsigned* size, back_t* back, int i0, int j0) {\n"+ // start at (i0,j0)
+    (if (gpu) "__global__ void gpu" else "void cpu")+"_backtrack(trace_t* trace, unsigned* size, back_t* back, int i0, int j0) {\n"+ // start at (i0,j0)
     "  "+(if(catMax>0)trLen+"\n  " else "")+"trace_t *rd=trace, *wr=trace; *size=0;\n"+
     "  #define PUSH_BACK(I,J,RULE) { wr->i=I; wr->j=J; wr->rule=RULE; ++wr; ++(*size); }\n"+
     "  PUSH_BACK(i0,j0,"+axiom.id+");\n"+
@@ -283,11 +289,11 @@ trait CodeGen extends BaseParsers { this:Signature =>
     val din=if(cudaSharedInput)"__in"else"_in" // book shared memory if necessary
     head.addPriv("__device__ static __attribute__((unused)) input_t *"+din+"1=NULL, *"+din+"2=NULL;\n__global__ void gpu_input(input_t* in1, input_t* in2) { "+din+"1=in1; "+din+"2=in2; }")
     if (cudaSharedInput) head.addPriv("__shared__ input_t _in1[M_H]"+(if (twotracks) ", _in2[M_W]" else "")+";")
-    head.add("void g_init(input_t* in1, input_t* in2);\nvoid g_free();\nvoid g_solve();\n"+tpAnswer+" g_backtrack(trace_t** trace, unsigned* size);")
+    head.add("void my_init(input_t* in1, input_t* in2);\nvoid my_free();\nvoid my_solve();\n"+tpAnswer+" my_backtrack(trace_t** trace, unsigned* size);")
 
     // Initialize and free device memory for cost and backtrack matrices
     val init = "static cost_t* c_cost=NULL;\nstatic back_t* c_back=NULL;\n\n"+
-      "void g_init(input_t* in1, input_t* in2) {\n"+ind(
+      "void my_init(input_t* in1, input_t* in2) {\n"+ind(
       "int dev="+cudaDevice+"; cuErr("+(if(cudaDevice>=0)"cudaSetDevice(dev)" else "cudaGetDevice(&dev)")+");\n"+
       "cuMalloc(g_in1,sizeof(input_t)*(M_H-1)); cuPut(in1,g_in1,sizeof(input_t)*(M_H-1),NULL);\n"+
       (if (twotracks) "cuMalloc(g_in2,sizeof(input_t)*(M_W-1)); cuPut(in2,g_in2,sizeof(input_t)*(M_W-1),NULL);\n" else "g_in2=NULL;\n")+
@@ -301,12 +307,12 @@ trait CodeGen extends BaseParsers { this:Signature =>
         "printf(\"%-20s : %.2fMb / %.2fMb [in=%ld,tr=%ld,cost=%ld,back=%ld] -> cost:%s, backtrack:%s\\n\",\"Memory selection\","+
         "mem/1048576.0,prop.totalGlobalMem/1048576.0, sizeof(input_t),sizeof(trace_t),sizeof(cost_t),sizeof(back_t), costDev?\"device\":\"host\", backDev?\"device\":\"host\");")
       )+"}\n\n"+
-      "void g_free() {\n"+ind("cuFree(g_in1);"+(if(twotracks) " cuFree(g_in2);" else "")+(if (useRna)" rna_free();" else "")+"\n"+
+      "void my_free() {\n"+ind("cuFree(g_in1);"+(if(twotracks) " cuFree(g_in2);" else "")+(if (useRna)" rna_free();" else "")+"\n"+
       "cuFree2(c_cost,g_cost); cuFree2(c_back,g_back); cuReset;")+"}\n\n"
 
     // Wrapper to run the matrix computation
     val steps = if (!twotracks&&window>0) ""+(window+1) else "(M_W"+(if(twotracks) "+M_H" else "")+")"
-    val solve = "void g_solve() {\n"+
+    val solve = "void my_solve() {\n"+
     "  #define WARP_SIZE 32 // constant over CUDA devices\n"+
     "  unsigned blk_size = WARP_SIZE;\n"+
     "  unsigned blk_num = (M_H+blk_size-1)/blk_size;\n"+
@@ -333,7 +339,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "*res"+(h.toString match {case "$$count$$"=>"+=1" case "$$sum$$"=>"+=c" case _=>"=c"})+"; pos[0]=i; pos[1]=j; valid=true; }\n  }\n}\n\n"
 
     // Backtracking wrapper: read result (get best within window) and produce backward trace from there
-    val backtrack = tpAnswer+" g_backtrack(trace_t** trace, unsigned* size) {\n"+
+    val backtrack = tpAnswer+" my_backtrack(trace_t** trace, unsigned* size) {\n"+
     "  "+tpAnswer+" res; unsigned i0="+(if(twotracks) "M_H-1" else "0")+", j0=M_W-1;\n"+
     (if (window>0)
       "  unsigned* g_pos; cuMalloc(g_pos,sizeof(unsigned)*2);\n"+
@@ -366,22 +372,22 @@ trait CodeGen extends BaseParsers { this:Signature =>
     val parm = "(JNIEnv* env, jobject obj, "+jtp+"Array input1"+(if (twotracks) ", "+jtp+"Array input2" else "")+")"
     val flush = if (benchmark) "  fflush(stdout); fflush(stderr);\n" else ""
     val solve = (if(benchmark)"  struct timeval ts,te; double delta;\n" else"")+ctime("  input_t *in1=NULL; jni_read(env,input1,&in1);\n"+
-      (if (twotracks) "  input_t *in2=NULL; jni_read(env,input2,&in2);\n  g_init(in1,in2); free(in2);"
-                 else "  g_init(in1,NULL);"),"- JNI read")+"  free(in1);\n"+
-    ctime("  g_solve();\n","- CUDA compute")
+      (if (twotracks) "  input_t *in2=NULL; jni_read(env,input2,&in2);\n  my_init(in1,in2); free(in2);"
+                 else "  my_init(in1,NULL);"),"- JNI read")+"  free(in1);\n"+
+    ctime("  my_solve();\n","- Compute")
 
     "#include <jni.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <sys/time.h>\n#include \"{file}.h\"\n#ifdef __cplusplus\n"+
     "extern \"C\" {\n#endif\n"+call+"parse"+parm+";\n"+call+"backtrack"+parm+";\n#ifdef __cplusplus\n}\n#endif\n\n"+
     head.jniRead(tpAlphabet)+"\n"+head.jniWrite(tpAnswer,catMax>0)+"\n"+
     "jobject Java_{className}_parse"+parm+" {\n"+solve+
-    "  "+tpAnswer+" score=g_backtrack(NULL,NULL);\n"+
+    "  "+tpAnswer+" score=my_backtrack(NULL,NULL);\n"+
     "  jobject result = jni_write(env, score, NULL, 0);\n"+flush+
-    "  g_free(); return result;\n}\n\n"+
+    "  my_free(); return result;\n}\n\n"+
     "jobject Java_{className}_backtrack"+parm+" {\n"+solve+
     "  trace_t *trace=NULL; unsigned size=0;\n"+
-    ctime("  "+tpAnswer+" score=g_backtrack(&trace,&size);\n","- CUDA backtrack")+
+    ctime("  "+tpAnswer+" score=my_backtrack(&trace,&size);\n","- Backtrack")+
     ctime("  jobject result = jni_write(env, score, trace, size); free(trace);\n","- JNI output")+flush+
-    "  g_free(); return result;\n}\n"
+    "  my_free(); return result;\n}\n"
   }
 
   // --------------------------------------------------------------------------
@@ -461,29 +467,75 @@ trait CodeGen extends BaseParsers { this:Signature =>
       val info="// Type: "+(if (twotracks) "sequence alignment" else "sequence parser" )+(if (window>0) ", window="+window else "")+", complexity=O(n^"+cpx+"), splits={SPLITS}\n"+
         rulesOrder.zipWithIndex.map { case(n,i)=> val p=rules(n); "// Rule #%-2d %-8s : id=%-2d alt=%-2d cat=%-2d min=%-2d max=%-2d\n".format(i,"'"+n+"'",p.id,p.inner.alt,p.inner.cat,p.min,p.max) }.mkString
       // Generate modules code
-      val kern=genKern; val bt=genBT; var hlp=genHelpers(); var jni=genJNI; var rna=genRNA; var (hpub,hpriv,hfun)=head.flush
+      val kern=genKern(true); val bt=genBT(true); var hlp=genHelpers(); var jni=genJNI; var rna=genRNA; var (hpub,hpriv,hfun)=head.flush
       (info+hpub, hpriv+"\n"+rna+"\n"+hfun+"\n"+kern+"\n"+bt+"\n"+hlp, jni, cpx)
     }
   }
 
+  // --------------------------------------------------------------------------
+  // CPU-specific code generation (might need additional cleanup)
+  // XXX: RNA functions currently not supported 
+
+  lazy val code_cc = {
+    code_h; // make sure this happen after other codegen phases
+    val kern=genKern(false); val bt=genBT(false);
+
+    head.addPriv("#define _unroll _Pragma(\"unroll "+(if(useRna) 1 else cudaUnroll)+"\")") // experimental optimal
+    head.addPriv("#define M_W {MAT_WIDTH}")
+    head.addPriv("#define M_H {MAT_HEIGHT}")
+    if (twotracks) {
+      head.addPriv("#define B_H 1")
+      head.addPriv("#define MEM_MATRIX (M_W*M_H)")
+      head.addPriv("#define idx(i,j) ((i)*B_W+(j))")
+    } else {
+      head.addPriv("#define MEM_MATRIX ((M_H*(M_H+1))/2)") // upper right triangle, including diagonal
+      head.addPriv("#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - ((_d*(_d-1))>>1) +_i; })")
+    }
+    // Extra function to compute the best result within the window
+    val aggr=h.toString match {
+      case "$$count$$"|"$$sum$$" => "true" case "$$max$$" => "c>res" case "$$min$$" => "c<res"
+      case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); f+"(c)>"+f+"(res)"
+      case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); f+"(c)<"+f+"(res)"
+      case _ => sys.error("Unsupported aggregation: "+h)
+    }
+
+    // Backtracking wrapper: read result (get best within window) and produce backward trace from there
+    val wrap = "static input_t *c_in1=NULL, *c_in2=NULL;\nstatic cost_t* c_cost=NULL;\nstatic back_t* c_back=NULL;\n\n"+
+               "void my_init(input_t* in1, input_t* in2) {\n  c_in1=in1; c_in2=in2;\n  c_cost=(cost_t*)malloc(sizeof(cost_t)*MEM_MATRIX);\n  c_back=(back_t*)malloc(sizeof(back_t)*MEM_MATRIX); }\n\n"+
+               "void my_solve() { cpu_solve(c_in1, c_in2, c_cost, c_back); }\nvoid my_free() { free(c_cost); free(c_back); }\n"+
+    tpAnswer+" my_backtrack(trace_t** trace, unsigned* size) {\n"+
+    "  "+tpAnswer+" res; unsigned i0="+(if(twotracks) "M_H-1" else "0")+", j0=M_W-1;\n"+
+    (if (window>0) "  bool valid=false;\n"+
+      "  for (unsigned i=0,j="+window+"; j<M_W; ++i, ++j) "+(if (axiom.alwaysValid)"" else "if (back[idx(i,j)]."+axiom.name+".rule!=-1) ")+"{\n"+
+      "    "+tpAnswer+" c = c_cost[idx(i,j)]."+axiom.name+";\n    if (!valid || "+aggr+") { "+
+      "res"+(h.toString match {case "$$count$$"=>"+=1" case "$$sum$$"=>"+=c" case _=>"=c"})+"; i0=i; j0=j; valid=true; }\n  }\n"
+    else "  res = c_cost[idx(i0,j0)]."+axiom.name+";\n")+
+    "  if (trace && size) { *trace=(trace_t*)malloc((M_W+M_H)*sizeof(trace_t)); cpu_backtrack(*trace,size,c_back,i0,j0); }\n"+
+    "  return res;\n}\n"
+
+    var (_,hpriv,hfun)=head.flush
+    hpriv+ /* "\n"+rna+ */ "\n"+hfun.replace("__device__ ","")+"\n"+kern+"\n"+bt+"\n"+wrap+"\n"
+  }
+
+  // --------------------------------------------------------------------------
   // Memoize reference to the generated code such that we compile only once for a particular problem size
   // Unfortunately this does not seems to help much the CUDA code to 'warm-up'
   abstract class CodeCompiler extends CCompiler with ScalaCompiler {
     import scala.collection.mutable.HashMap
-    private val adp = new HashMap[Int,ADPWrapper[Alphabet,Answer]]
-    private val tt = new HashMap[(Int,Int),TTWrapper[Alphabet,Answer]]
-    def getADP(size1:Int):ADPWrapper[Alphabet,Answer] = adp.getOrElseUpdate(size1,genDP[ADPWrapper[Alphabet,Answer]](size1,size1,false) )
-    def getTT(size1:Int,size2:Int):TTWrapper[Alphabet,Answer] = tt.getOrElseUpdate((size1,size2),genDP[TTWrapper[Alphabet,Answer]](size1,size2,true) )
+    private val adp = new HashMap[(Int,Boolean),ADPWrapper[Alphabet,Answer]]
+    private val tt = new HashMap[(Int,Int,Boolean),TTWrapper[Alphabet,Answer]]
+    def getADP(size1:Int,gpu:Boolean):ADPWrapper[Alphabet,Answer] = adp.getOrElseUpdate((size1,gpu),genDP[ADPWrapper[Alphabet,Answer]](size1,size1,gpu,false) )
+    def getTT(size1:Int,size2:Int,gpu:Boolean):TTWrapper[Alphabet,Answer] = tt.getOrElseUpdate((size1,size2,gpu),genDP[TTWrapper[Alphabet,Answer]](size1,size2,gpu,true) )
 
-    def genDP[T](size1:Int,size2:Int,tt:Boolean)(implicit mT: scala.reflect.ClassTag[T]):T = {
+    def genDP[T](size1:Int,size2:Int,gpu:Boolean,tt:Boolean)(implicit mT: scala.reflect.ClassTag[T]):T = {
       val className = "CompWrapper"+CompileCounter.get // fresh namespace for the problem (code+in1+in2)
       // Problems up to 'cudaSplit' can be solve within a single kernel, otherwise, divide running time in splits
       val splits:Int = Math.ceil(Math.pow(Math.max(size1,size2)*1.0/cudaSplit,code_cpx)).intValue
       if (benchmark) println("%-20s : %d x %d / %d".format("Size / splits",size1,size2,splits))
-      time("C/CUDA compilation"){()=>
-        val map = scala.collection.immutable.Map(("className",className),("MAT_HEIGHT",""+(size1+1)),("MAT_WIDTH",""+(size2+1)),("SPLITS",""+splits))
-        add("h", code_h, map); add("c", code_c, map); add("cu", code_cu, map); gen
-      }
+
+      val map = scala.collection.immutable.Map(("className",className),("MAT_HEIGHT",""+(size1+1)),("MAT_WIDTH",""+(size2+1)),("SPLITS",""+splits))
+      if (gpu) time("C+CUDA compilation"){()=> add("h", code_h, map); add("c", code_c, map); add("cu", code_cu, map); gen }
+      else time("C compilation"){()=> add("h", code_h, map); add("c", code_c+code_cc, map); gen }
       time("Scala compilation"){()=>
         val cl = (if(tt) classOf[TTWrapper[Alphabet,Answer]] else classOf[ADPWrapper[Alphabet,Answer]]).getCanonicalName
         val al = tpAlphabet match {case head.TPri(s,_,_)=>s case _=>"Any"}
@@ -496,15 +548,16 @@ trait CodeGen extends BaseParsers { this:Signature =>
   }
 
   // Wrappers for CUDA invocation, these are automatically called by ADPParsers/TTParsers
-  def parseCU(in1:Input) = { val w=compiler.getADP(in1.size); time("Execution"){()=> w.parse(in1) } }
-  def backtrackCU(in1:Input) = { val w=compiler.getADP(in1.size); time("Execution"){()=> w.backtrack(in1) } }
-  def parseCUTT(in1:Input,in2:Input) = { val w=compiler.getTT(in1.size,in2.size); time("Execution"){()=> w.parse(in1,in2) } }
-  def backtrackCUTT(in1:Input,in2:Input) = { val w=compiler.getTT(in1.size,in2.size); time("Execution"){()=> w.backtrack(in1,in2) } }
+  def parseCU(in1:Input,gpu:Boolean) = { val w=compiler.getADP(in1.size,gpu); time("Execution"){()=> w.parse(in1) } }
+  def backtrackCU(in1:Input,gpu:Boolean) = { val w=compiler.getADP(in1.size,gpu); time("Execution"){()=> w.backtrack(in1) } }
+  def parseCUTT(in1:Input,in2:Input,gpu:Boolean) = { val w=compiler.getTT(in1.size,in2.size,gpu); time("Execution"){()=> w.parse(in1,in2) } }
+  def backtrackCUTT(in1:Input,in2:Input,gpu:Boolean) = { val w=compiler.getTT(in1.size,in2.size,gpu); time("Execution"){()=> w.backtrack(in1,in2) } }
 
   // Debug
   def gen:String = {
     "----------- headers -----------\n"+code_h+
     "------------- gpu -------------\n"+code_cu+
+    "------------- cpu -------------\n"+code_cc+
     "------------- jni -------------\n"+code_c+
     "------------- end -------------\n"
   }

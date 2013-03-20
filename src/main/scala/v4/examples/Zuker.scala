@@ -171,15 +171,15 @@ object Zuker extends App {
   object explain extends ZukerGrammar with ZukerExplain
 
   mfe.setParams("src/librna/vienna/rna_turner2004.par")
-  def parse(s:String,forceScala:Boolean=false) = {
+  def parse(s:String,ps:mfe.ParserStyle=mfe.psCUDA) = {
     val seq=mfe.convert(s)
-    val (score,bt) = mfe.backtrack(seq,forceScala).head
+    val (score,bt) = mfe.backtrack(seq,ps).head
     (pretty.build(seq,bt)+" (%6.2f)".format(score/100.0),bt)
   }
 
   def testSeq(seq:String, strict:Boolean=true) {
-    val (gpu,btG)=parse(seq)
-    val (cpu,btC)=parse(seq,true)
+    val (gpu,btG)=parse(seq,mfe.psCUDA)
+    val (cpu,btC)=parse(seq,mfe.psTopDown)
     val ref=Utils.refFold(seq,"src/librna/rfold" /*"resources/RNAfold_orig_mac --noPS --noLP -d2"*/)
     if (ref==gpu || !strict && ref.substring(seq.size)==gpu.substring(seq.size)) print(".")
     else println("\nSeq: "+seq+"\nRef: "+ref+"\nCPU: "+cpu+"\nGPU: "+gpu+"\n"+
@@ -190,15 +190,15 @@ object Zuker extends App {
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
 
-  //println(mfe.gen)
+  println(mfe.gen)
   //testSeq("acgcaccggcauacgugugcucgaaaagcgu")
   //testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
 
-  //val s = Utils.genRNA(320)
-  //for (k<-0 until 100) { testSeq(s); println }
+  val s = Utils.genRNA(160)
+  for (k<-0 until 1) { testSeq(s); println }
 
-  println(Utils.genRNA(8192))
-  mfe.backtrack(mfe.convert(Utils.genRNA(128)))
+  //println(Utils.genRNA(8192))
+  //mfe.backtrack(mfe.convert(Utils.genRNA(128)))
   /*
   Utils.runBenchmark(
     (n:Int)=>mfe.backtrack(mfe.convert(Utils.genRNA(n))),
