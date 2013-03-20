@@ -1,7 +1,24 @@
 package v4.fpga
 import v4._
 
+// MMAlpha code generator
+// See: http://www.irisa.fr/cosi/ALPHA/index.html
+//
+// Restriction that apply: (we may relax some later)
+// - Two-track grammar (TTParsers)
+// - We only care about result (aka no backtrack)
+// - We have at most 1 rule in the grammar (axiom)
+// - That rule _always_ generate some result (aka tabulate.alwaysValid=true)
+// - No nested aggregation
+// - Only serial dependencies, aka access M[i-k,j-l] with k,l bounded
+// XXX: shall we encode them somewhere ?
+
 trait FPGACodeGen extends CodeGen with TTParsers { this:Signature=>
+  // Avoid CUDA to automatically kick-in when mixing CodeGen
+  override def parse(in1:Input,in2:Input,ps:ParserStyle=psBottomUp):List[Answer] = super.parse(in1,in2,ps)
+  override def backtrack(in1:Input,in2:Input,ps:ParserStyle=psBottomUp):List[(Answer,Trace)] = super.backtrack(in1,in2,ps)
+  // ---- END ----
+
   val is = scala.collection.mutable.Set[Int]()
   val js = scala.collection.mutable.Set[Int]()
 
@@ -15,9 +32,9 @@ trait FPGACodeGen extends CodeGen with TTParsers { this:Signature=>
       t match {
         case 1 => is ++= Set(x._1, x._2)
         case 2 => js ++= Set(x._3, x._4)
-        case _ => // XXX
+        case _ => sys.error("Does not appear in TTParsers")
       }
-    case p:Tabulate => ()
+    case t:Tabulate => ()
   }
 
   def getRulesFor[T](p: Parser[T], i: Int, j: Int): Option[Parser[T]] = p match {
@@ -67,4 +84,29 @@ trait FPGACodeGen extends CodeGen with TTParsers { this:Signature=>
   */
 
   override def genFun[T,U](f0:T=>U):String = "fun(<>)"
+
+  override def gen:String = {
+    analyze; val rs=rulesOrder.map{n=>rules(n)}
+    // Split the domain in tiles where different set of parsers apply
+    computeDomains(axiom.inner) //for (r<-rs) computeDomains(r.inner)
+    val(ix, jx) = ((is - (-1)).toArray.sorted,  (js - (-1)).toArray.sorted)
+
+    //println(ix.toList); println(jx.toList)
+
+    println("case")
+    for(i <- 0 until ix.length; j <- 0 until jx.length){
+      print("{ |")
+      print(  "i >= " + ix(i) + (if(i == ix.length -1) "" else "; i < " + ix(i+1)))
+      print("; j >= " + jx(j) + (if(j == jx.length -1) "" else "; j < " + jx(j+1)))
+      print("} : ")
+      getRulesFor(axiom.inner, ix(i), jx(j)) match {
+        case Some(p) => println(genTab(tabulate("tab"+i+"_"+j,p))) // XXX: use a Tabulation -> Parser transform => XXX: use custom codegen instead
+        case _ => sys.error("No parser applies")
+      }
+      //println(getRulesFor(axiom, ix(i), jx(j)))
+    }
+    println("esac;")
+    ""
+  }
+
 }
