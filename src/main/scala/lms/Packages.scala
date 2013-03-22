@@ -14,5 +14,5 @@ trait ScalaGenPackage extends ScalaCodeGenPkg with ScalaGenMyRangeOps with Scala
 }
 
 trait CGenPackage extends CCodeGenPkg {
-  val IR: ScalaOpsPkgExp
+  val IR: PackageExp
 }

@@ -1,0 +1,146 @@
+error: illegal sharing of mutable objects Sym(9)
+at Sym(106)=Reflect(Assign(Variable(Sym(96)),Sym(104)),Summary(false,false,false,false,false,List(Sym(96), Sym(9)),List(Sym(96), Sym(9)),List(Sym(96)),List(Sym(96))),List(Sym(9), Sym(95), Sym(96)))
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class testParse extends ((Array[scala.Tuple2[Int, Int]])=>(scala.Tuple3[Int, Int, Int])) {
+def apply(x2:Array[scala.Tuple2[Int, Int]]): scala.Tuple3[Int, Int, Int] = {
+val x4 = x2.length
+val x5 = x4 + 1
+val x6 = x5 + 1
+val x7 = x5 * x6
+val x8 = x7 / 2
+val x9 = new Array[scala.Tuple3[Int, Int, Int]](x8)
+val x3 = (0,10000,0)
+var x11 : Int = 0
+val x95 = while (x11 < x5) {
+val x12 = x5 - x11
+var x14 : Int = 0
+val x93 = while (x14 < x12) {
+var x16: scala.Tuple3[Int, Int, Int] = x3
+val x15 = x11 + x14
+val x17 = x14 + 1
+val x18 = x17 == x15
+val x34 = if (x18) {
+val x26 = x16
+val x28 = x26._2
+val x30 = x28 < 0
+val x31 = if (x30) {
+x26
+} else {
+val x19 = x2(x14)
+val x23 = x19._1
+val x24 = x19._2
+val x25 = (x23,0,x24)
+x25
+}
+x16 = x31
+()
+} else {
+()
+}
+val x20 = x15 - 1
+val x21 = x20 + 1
+val x22 = x17 < x21
+val x37 = x6 + x14
+val x83 = if (x22) {
+var x36 : Int = x17
+val x81 = while (x36 < x21) {
+val x38 = x37 - x36
+val x39 = x38 - 1
+val x40 = x38 * x39
+val x41 = x7 - x40
+val x42 = x41 / 2
+val x43 = x42 + x14
+val x44 = x9(x43)
+val x45 = x44 != null
+val x79 = if (x45) {
+val x46 = x6 + x36
+val x47 = x46 - x15
+val x48 = x47 - 1
+val x49 = x47 * x48
+val x50 = x7 - x49
+val x51 = x50 / 2
+val x52 = x51 + x36
+val x53 = x9(x52)
+val x54 = x53 != null
+val x77 = if (x54) {
+val x55 = (x44,x53)
+val x56 = x55._1
+val x57 = x55._2
+val x58 = x56._1
+val x59 = x56._2
+val x60 = x56._3
+val x61 = x57._1
+val x62 = x57._2
+val x63 = x57._3
+val x69 = x16
+val x64 = x59 + x62
+val x65 = x58 * x60
+val x66 = x65 * x63
+val x67 = x64 + x66
+val x71 = x69._2
+val x73 = x71 < x67
+val x74 = if (x73) {
+x69
+} else {
+val x68 = (x58,x67,x63)
+x68
+}
+x16 = x74
+()
+} else {
+()
+}
+x77
+} else {
+()
+}
+x79
+x36 = x36 + 1
+}
+x81
+} else {
+()
+}
+val x90 = x16
+val x84 = x37 - x15
+val x85 = x84 - 1
+val x86 = x84 * x85
+val x87 = x7 - x86
+val x88 = x87 / 2
+val x89 = x88 + x14
+val x91 = x9(x89) = x90
+()
+x14 = x14 + 1
+}
+x93
+x11 = x11 + 1
+}
+var x96: scala.Tuple3[Int, Int, Int] = x3
+val x97 = x6 + 0
+val x98 = x97 - x4
+val x99 = x98 - 1
+val x100 = x98 * x99
+val x101 = x7 - x100
+val x102 = x101 / 2
+val x103 = x102 + 0
+val x104 = x9(x103)
+val x105 = x104 != null
+val x108 = if (x105) {
+x96 = x104
+()
+} else {
+()
+}
+val x109 = x96
+x109
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+error: illegal sharing of mutable objects Sym(117)
+at Sym(214)=Reflect(Assign(Variable(Sym(204)),Sym(212)),Summary(false,false,false,false,false,List(Sym(204), Sym(117)),List(Sym(204), Sym(117)),List(Sym(204)),List(Sym(204))),List(Sym(117), Sym(203), Sym(204)))
+compilation: ok
+(1,122,3)

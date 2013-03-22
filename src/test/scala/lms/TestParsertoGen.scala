@@ -44,11 +44,11 @@ class TestParsersToGen extends FileDiffSuite {
   def testParserToGenMatmult = {
     withOutFile(prefix+"parser-to-gen-matmult"){
        new MatMultToGenProg with ParsersExp with Sig with MiscOpsExp
-        with ListToGenTransform with CompileScala{ self =>
+        with ListToGenTransform with LiftVariables with CompileScala{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenMyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps
-          with ScalaGenGeneratorOps{ val IR: self.type = self }
+          with ScalaGenGeneratorOps with ScalaGenVariables { val IR: self.type = self }
 
 
         def multParser(in:Input, a: Rep[Array[Array[Answer]]]) : TabulatedParser2 = {
@@ -112,11 +112,14 @@ class TestParsersToGen extends FileDiffSuite {
   def testParserToGenElMamun = {
     withOutFile(prefix+"parser-to-gen-elmamun"){
        new ElMamunToGenProg with ParsersExp with Sig with MiscOpsExp
-        with ListToGenTransform with MyCharOpsExp with CompileScala{ self =>
+        with ListToGenTransform with MyCharOpsExp with LiftVariables
+        with CompileScala{ self =>
         val codegen = new ScalaGenArrayOps with ScalaGenMyListOps with ScalaGenNumericOps with ScalaGenIfThenElse with ScalaGenBooleanOps
           with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenMathOps
           with ScalaGenMyRangeOps with ScalaGenTupleOps with ScalaGenMiscOps
-          with ScalaGenGeneratorOps with ScalaGenMyCharOps{ val IR: self.type = self }
+          with ScalaGenGeneratorOps with ScalaGenMyCharOps with ScalaGenVariables{
+           val IR: self.type = self
+         }
 
 
         def billGrammar(in:Input, a: Rep[Array[Array[Answer]]]) : TabulatedParser2 = {

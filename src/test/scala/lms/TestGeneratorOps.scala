@@ -9,7 +9,7 @@ import scala.reflect.SourceContext
 
 trait GeneratorProg extends GeneratorOps with NumericOps
   with OrderingOps with PrimitiveOps with Equal
-  with Structs with MiscOps with ArrayOps with OverloadHack
+  with Structs with MiscOps with ArrayOps with LiftVariables with OverloadHack
   {
 
   type Complex = Record { val re: Double; val im: Double }
@@ -105,7 +105,8 @@ trait GeneratorProg extends GeneratorOps with NumericOps
 
 trait ArrayProg extends GeneratorOps with NumericOps
   with OrderingOps with PrimitiveOps with Equal
-  with Structs with MiscOps with TupleOps with ArrayOps with OverloadHack{
+  with Structs with MiscOps with TupleOps with ArrayOps
+  with LiftVariables with OverloadHack{
 
   type Matres = Record { val rows: Int; val cols: Int; val mults: Int }
   def Matres(r: Rep[Int], c: Rep[Int], m: Rep[Int]): Rep[Matres] = new Record {
@@ -188,7 +189,8 @@ class TestGeneratorOps extends FileDiffSuite {
         //test1: first "loop"
         val codegen = new ScalaGenGeneratorOps with ScalaGenNumericOps
           with ScalaGenOrderingOps with ScalaGenPrimitiveOps with ScalaGenEqual
-          with ScalaGenArrayOps with ScalaGenStruct with ScalaGenMiscOps { val IR: self.type = self }
+          with ScalaGenArrayOps with ScalaGenStruct with ScalaGenMiscOps
+          with ScalaGenVariables { val IR: self.type = self }
 
         codegen.emitSource2(test1 _ , "test1", printWriter)
         codegen.emitDataStructures(printWriter)
@@ -251,7 +253,7 @@ class TestGeneratorOps extends FileDiffSuite {
         val codegen = new ScalaGenGeneratorOps with ScalaGenNumericOps
           with ScalaGenOrderingOps with ScalaGenPrimitiveOps with ScalaGenEqual
           with ScalaGenArrayOps with ScalaGenStruct with ScalaGenMiscOps
-          with ScalaGenTupleOps { val IR: self.type = self }
+          with ScalaGenTupleOps with ScalaGenVariables { val IR: self.type = self }
 
         codegen.emitSource2(testMul _ , "testMul", printWriter)
         codegen.emitDataStructures(printWriter)
@@ -279,7 +281,8 @@ class TestGeneratorOps extends FileDiffSuite {
         //test1: first "loop"
         val codegen = new CGenGeneratorOps with CGenNumericOps
           with CGenOrderingOps with CGenPrimitiveOps with CGenEqual
-          with CGenArrayOps /*with CGenStruct*/ with CGenMiscOps { val IR: self.type = self }
+          with CGenArrayOps /*with CGenStruct*/ with CGenMiscOps
+          with CGenVariables { val IR: self.type = self }
 
         codegen.emitSource2(test1 _ , "test1", printWriter)
 

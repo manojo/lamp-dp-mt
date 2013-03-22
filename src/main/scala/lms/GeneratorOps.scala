@@ -6,8 +6,8 @@ import scala.virtualization.lms.common._
 import scala.virtualization.lms.internal.GenericNestedCodegen
 import scala.reflect.SourceContext
 
-trait GeneratorOps extends Variables with While with LiftVariables
-  with MyRangeOps with NumericOps with OrderingOps with IfThenElse
+trait GeneratorOps extends Variables with While with MyRangeOps
+  with NumericOps with OrderingOps with IfThenElse
   with MiscOps with EmbeddedControls with Equal {
 
   object Gen {
@@ -84,8 +84,8 @@ trait GeneratorOps extends Variables with While with LiftVariables
   }
 }
 
-trait GeneratorOpsExp extends GeneratorOps with EffectExp with VariablesExp
-  with MyRangeOpsExp with WhileExp with NumericOpsExp with OrderingOpsExp
+trait GeneratorOpsExp extends GeneratorOps with EffectExp with MyRangeOpsExp
+  with WhileExp with NumericOpsExp with OrderingOpsExp
   with IfThenElseExp with MiscOpsExp{
 
   //a Let tree for
@@ -104,8 +104,8 @@ trait GeneratorOpsExp extends GeneratorOps with EffectExp with VariablesExp
   }
 }
 
-trait ScalaGenGeneratorOps extends ScalaGenWhile with ScalaGenVariables
-  with ScalaGenMyRangeOps with ScalaGenNumericOps with ScalaGenOrderingOps
+trait ScalaGenGeneratorOps extends ScalaGenWhile with ScalaGenMyRangeOps
+  with ScalaGenNumericOps with ScalaGenOrderingOps
   with ScalaGenIfThenElse with ScalaGenMiscOps{
   val IR: GeneratorOpsExp
   import IR._
@@ -121,8 +121,8 @@ trait ScalaGenGeneratorOps extends ScalaGenWhile with ScalaGenVariables
 
 }
 
-trait CGenGeneratorOps extends CGenWhile with CGenVariables
-  with CGenMyRangeOps with CGenNumericOps with CGenOrderingOps
+trait CGenGeneratorOps extends CGenWhile with CGenMyRangeOps
+  with CGenNumericOps with CGenOrderingOps
   with CGenIfThenElse with CGenMiscOps{
   val IR: GeneratorOpsExp
   import IR._

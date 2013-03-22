@@ -3,82 +3,11 @@ package lms2
 import scala.virtualization.lms.common._
 import lms._
 
-trait ADPParsers extends BaseParsersExp { this:Signature =>
-  var in: Rep[Input] = unit(null)
-
-  def bottomUp(n:Rep[Int]) {
-    val rs=rulesOrder map {n=>rules(n)};
-    (unit(0) until n).foreach { d=>
-      (unit(0) until n-d).foreach { i=>
-        for (r<-rs) { r.compute(i,d+i); }
-        unit({})
-      }
-    }
-  }
-
-  // XXX: avoid code duplication
-  def parse(input:Rep[Input])(implicit mAlph:Manifest[Alphabet], mAns:Manifest[Answer]):Rep[List[Answer]] = {
-    analyze; in = input;
-    val n:Rep[Int] = in.length+unit(1)
-    val rs=rulesOrder map {x=>rules(x)};
-    for (r<-rs) r.init(n,n); // Initialization
-    bottomUp(n)
-    val r=axiom(unit(0),in.length); val res = if (r.isEmpty) List[Answer]() else List(r.head._1)
-    for (r<-rs) r.reset; in=unit(null); res // Cleanup & return result
-  }
-
-  def backtrack(input:Rep[Input])(implicit mAlph:Manifest[Alphabet], mAns:Manifest[Answer]):Rep[List[(Answer,Trace)]] = {
-    analyze; in = input;
-    val n:Rep[Int] = in.length+unit(1)
-    val rs=rulesOrder map {x=>rules(x)};
-    for (r<-rs) r.init(n,n); // Initialization
-    bottomUp(n)
-    val res=axiom.backtrack(unit(0),in.length)
-    for (r<-rs) r.reset; in=unit(null); res // Cleanup & return result
-  }
-  /*
-  def build(in:Rep[Input],trace:Rep[Trace])(implicit mAns:Manifest[Answer]):Rep[Answer] = {
-    unit(null.asInstanceOf[Answer]) // Stub
-  }
-  */
-
-  // LEGACY I/O interface
-  //private var input: Rep[Input] = unit(null)
-  //def in(k:Rep[Int]):Rep[Alphabet] = input(k)
-  //def size:Rep[Int] = input.length
-/*
-  def parse(in:Rep[Input]):List[Answer] = run(in,()=>{parseBottomUp; axiom(0,size).map(_._1)})
-  def backtrack(in:Rep[Input]):List[(Answer,Trace)] = run(in,()=>{parseBottomUp; axiom.backtrack(0,size)})
-  def build(in:Rep[Input],bt:Rep[Trace]):Answer = run(in,()=>axiom.build(bt))
-  private def run[T](in:Rep[Input], f:()=>T) = { input=in; analyze; tabInit(in.size+1,in.size+1); val res=f(); tabReset; input=null; res }
-  private def parseBottomUp:Unit = {
-    val rs=rulesOrder map {n=>rules(n)}; var d=0; while (d<=size) { for (r<-rs) { val iu=size-d; var i=0; while (i<=iu) { r.compute(i,d+i); i=i+1 } }; d=d+1; }
-  }
-*/
-
-  // Concatenation operations
-  import scala.language.implicitConversions
-  implicit def parserADP[T:Manifest](p1:Parser[T]) = new ParserADP(p1)
-  class ParserADP[T:Manifest](p1:Parser[T],idx:(Int,Int,Int,Int)=null) {
-    def ~ [U:Manifest](p2:Parser[U]) = { if (idx!=null) new Concat(p1,p2,0) { override lazy val indices=idx } else new Concat(p1,p2,0) }
-    def ~ (minl:Int,maxl:Int,minr:Int,maxr:Int):ParserADP[T] = new ParserADP[T](p1,(minl,maxl,minr,maxr))
-  }
-
-  // Terminal parsers
-  val empty = new Terminal[Unit](0,0) { def apply(i:Rep[Int],j:Rep[Int]) = if (i==j) List((unit({}),bt0)) else List[(Unit,Backtrack)]() }
-  val emptyi = new Terminal[Int](0,0) { def apply(i:Rep[Int],j:Rep[Int]) = if (i==j) List((i,bt0)) else List[(Int,Backtrack)]() }
-  val eli = new Terminal[Int](1,1) { def apply(i:Rep[Int],j:Rep[Int]) = if(i+1==j) List((i,bt0)) else List[(Int,Backtrack)]() }
-  def el(implicit mAlph:Manifest[Alphabet]) = new Terminal[Alphabet](1,1) {
-    def apply(i:Rep[Int],j:Rep[Int]) = { if(i+1==j) List((in(i),bt0)) else List[(Alphabet,Backtrack)]() }
-  }
-  def seq(min:Int=1, max:Int=maxN) = new Terminal[(Int,Int)](min,max) {
-    def apply(i:Rep[Int],j:Rep[Int]) = if (i+unit(min)<=j && (unit(max==maxN) || i+unit(max)>=j)) { val p:Rep[(Int,Int)]=(i,j); List((p,bt0)) } else List[((Int,Int),Backtrack)]()
-  }
-}
-
 object MatrixMult2 extends App with Signature with ADPParsers
   with PackageExp with MyScalaCompile { self =>
-  val codegen = new ScalaGenPackage { val IR: self.type = self }
+  val codegen = new ScalaGenPackage with ScalaGenVariables { val IR: self.type = self }
+
+  //val cCodegen = new CGenPackage { val IR: self.type = self }
 
   type Alphabet = (Int,Int) // matrix as (rows, columns)
   type Answer = (Int,Int,Int) // rows, cost, columns
@@ -95,19 +24,25 @@ object MatrixMult2 extends App with Signature with ADPParsers
   val axiom:Tabulate = tabulate("M",( // XXX: can we get rid of the name? it was used only for CUDA codegen
     el              ^^ single // XXX: bug in here
   | (axiom ~ axiom) ^^ mult
-  ) aggregate h)
+  ) /*aggregate h*/)
   analyze
 
   // Concrete program
   val input = scala.Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
-  val progParse = compile(parse)
-  scala.Console.println(progParse(input))
+  //val progParse = compile(parse)
+  //scala.Console.println(progParse(input))
 
-  val progBacktrack = compile(backtrack)
-  scala.Console.println(progBacktrack(input))
+  def testParse(input: Rep[Input]) = {
+    parse(input, (unit(0),unit(10000),unit(0)), h)
+  }
+
+
 
   // Compilation into a program (apply,unapply,reapply)
-  //codegen.emitSource(parse _, "testParse", new java.io.PrintWriter(System.out))
+  codegen.emitSource(testParse, "testParse", new java.io.PrintWriter(System.out))
+
+  val progParse = compile(testParse)
+  scala.Console.println(progParse(input))
   /*
   val (score,bt) = backtrack(input).head
   println("Score     : "+score)

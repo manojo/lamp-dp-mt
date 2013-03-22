@@ -15,7 +15,7 @@ trait Signature {
 
 import scala.virtualization.lms.common._
 import lms._
-trait BaseParsers extends Package { this:Signature =>
+trait BaseParsers extends Package with GeneratorOps /*with LiftVariables*/{ this:Signature =>
   type Input = Array[Alphabet]
   type Backtrack = (Int,List[Int]) // (subrule_id, indices)
   type Trace = List[(Int,Int,Backtrack)]
@@ -31,16 +31,17 @@ trait BaseParsers extends Package { this:Signature =>
   def parser_concat[T:Manifest, U:Manifest](left: Parser[T], right: Parser[U], track:Int): Parser[(T,U)]
 
   // Abstract parser
-  sealed abstract class Parser[T:Manifest] extends ((Rep[Int],Rep[Int]) => Rep[List[(T,Backtrack)]]) {
+  sealed abstract class Parser[T:Manifest]{
     def min:Int // subword minimal size
     def max:Int // subword maximal size, -1=infinity
     val alt:Int // alternative (subrule_id)
     val cat:Int // concatenation split (offset in backtrack)
 
+
     // List-based vanilla Scala
-    def apply(i:Rep[Int],j:Rep[Int]): Rep[List[(T,Backtrack)]]
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]): Rep[Trace]
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]): Rep[T]
+    def apply(i:Rep[Int],j:Rep[Int]): Generator[T] //Generator[(T,Backtrack)]
+    //def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]): Rep[Trace]
+    //def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]): Rep[T]
 
     final def ^^[U:Manifest](f: Rep[T] => Rep[U]) = parser_map(this,f)
     final def |(other: Parser[T]) = parser_or(this,other)
@@ -49,7 +50,7 @@ trait BaseParsers extends Package { this:Signature =>
   }
 }
 
-trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
+trait BaseParsersExp extends BaseParsers with PackageExp with GeneratorOpsExp { this:Signature =>
   def tabulate(name:String, inner: => Parser[Answer]) = new Tabulate(inner,name)(mAns)
   def parser_aggr[T:Manifest](inner: Parser[T], h: (Rep[T],Rep[T]) => Rep[T]) = Aggregate(inner,h)
   def parser_filter[T:Manifest](inner: Parser[T], pred:(Rep[Int],Rep[Int]) => Rep[Boolean]) = Filter(inner,pred)
@@ -121,27 +122,54 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     def max = maxv; var maxv:Int = 0
 
     // Matrix storage
-    private var data:Rep[Array[(Answer,Backtrack)]] = unit(null)
-    private var mW:Rep[Int] = unit(0)
-    private var mH:Rep[Int] = unit(0)
-    def init(w:Rep[Int],h:Rep[Int]) { mW=w; mH=h; val sz:Rep[Int]=if (twotracks) w*h else { /*assert(w==h);*/ h*(h+unit(1))/unit(2) }; data=NewArray[(Answer,Backtrack)](sz); }
+    //XXX: highly dubious trick here.. the var is unlifted and we are assigning a rep to it
+    //Why and how it works exactly is a bit unclear.
+    private var data: Rep[Array[Answer/*,Backtrack)*/]]  = unit(null)
+    private var mW: Rep[Int] = unit(0)
+    private var mH: Rep[Int] = unit(0)
+    def init(w:Rep[Int],h:Rep[Int]) = {
+      mW=w; mH=h;
+      val sz:Rep[Int]= if (twotracks) w*h else { /*assert(w==h);*/ h*(h+unit(1))/unit(2) }
+        data=NewArray[Answer/*,Backtrack)*/](sz)
+      unit({})
+    }
+
     def reset { data=unit(null); mW=unit(0); mH=unit(0); }
-    
+
     if (rules.contains(name)) sys.error("Duplicate tabulation name")
     rules += ((name,this))
     var id:Int = -1 // subrules base index
 
-    @inline private def idx(i:Rep[Int],j:Rep[Int]):Rep[Int] = if (twotracks) i*mW+j else { val d=mH+unit(1)+i-j; ( mH*(mH+unit(1)) - d*(d-unit(1)) ) / unit(2) + i }
-    def apply(i:Rep[Int],j:Rep[Int]) = { val v=data(idx(i,j)); if (v!=unit(null)) List((v._1,bt0)) else List[(Answer,Backtrack)]() } // read-only
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); if (v!=unit(null)) List((i,j,v._2)) else List[(Int,Int,Backtrack)]() }
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); /*if (v==unit(null)) sys.error("Failed reapply"+(i,j))*/ v._1 }
-    def compute(i:Rep[Int],j:Rep[Int]):Rep[Unit] = { val l = inner(i,j); if (!l.isEmpty) { val e=l.head; val b:Rep[Backtrack]=(e._2._1+unit(id),e._2._2); data(idx(i,j))=(e._1,b); } else { unit({}) } } // write-only
+    /*@inline */private def idx(i:Rep[Int],j:Rep[Int]):Rep[Int] =
+      if (twotracks) i*mW+j
+      else {
+        val d= mH +unit(1)+i-j
+        ( mH * (mH + unit(1)) - d*(d-unit(1)) ) / unit(2) + i
+      }
+
+    def apply(i:Rep[Int],j:Rep[Int]) = {
+      /*val arr = readVar(data); */
+      val v = data(idx(i,j))
+      cond(v != unit(null), elGen(v/*,bt0*/), emptyGen())
+    } // read-only
+    //def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); if (v!=unit(null)) List((i,j,v._2)) else List[(Int,Int,Backtrack)]() }
+    //def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); /*if (v==unit(null)) sys.error("Failed reapply"+(i,j))*/ v._1 }
+    def compute(i:Rep[Int],j:Rep[Int])(z: Rep[Answer], foldF: (Rep[Answer], Rep[Answer]) => Rep[Answer]):Rep[Unit] = {
+
+      val s = var_new(z)
+      inner(i,j).apply{ x: Rep[Answer/*,Backtrack*/] =>
+        s = foldF(readVar(s), x)
+      }
+      /*val arr = readVar(data); */
+      data(idx(i,j)) = readVar(s) //(e._1,b)
+    } // write-only
     /*
     def build(bt:Trace):Answer = bt match {
       case bh::bs => val (i,j,(rule,b))=bh; val (t,rr)=findTab(rule); val a=t.inner.reapply(i,j,(rr,b)); if (bs==Nil) a else { data(idx(i,j))=(a,bt0); build(bs) }
       case Nil => sys.error("No backtrack provided")
     }
     */
+    /*
     def backtrack(i0:Rep[Int],j0:Rep[Int]) = {
       val e=data(idx(i0,j0))
       var pending:Rep[Trace] = List((i0,j0,e._2))
@@ -158,6 +186,7 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
       }
       List((e._1,trace))
     }
+    */
   }
 
   def findTab(rule:Rep[Int]):(Tabulate,Rep[Int]) = {
@@ -177,8 +206,8 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
   // Terminal abstraction
   abstract case class Terminal[T:Manifest](min:Int,max:Int) extends Parser[T] {
     final val (alt,cat) = (1,0)
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = List[(Int,Int,Backtrack)]()
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=apply(i,j); /*if (r.isEmpty) sys.error("Empty apply"+(i,j)+" for "+bt);*/ r.map{ _._1 }.head }
+    //def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = List[(Int,Int,Backtrack)]()
+    //def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=apply(i,j); /*if (r.isEmpty) sys.error("Empty apply"+(i,j)+" for "+bt);*/ r.map{ _._1 }.head }
   }
 
   // Aggregate combinator.
@@ -188,14 +217,16 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     lazy val (alt,cat) = (inner.alt,inner.cat)
     def min = inner.min
     def max = inner.max
-    def apply(i:Rep[Int],j:Rep[Int]) = { 
-      val l=inner(i,j);
-      if (l.isEmpty) List[(T,Backtrack)]()
-      else list_reduce(l,(a:Rep[(T,Backtrack)],b:Rep[(T,Backtrack)]) => if (a._1==h(a._1,b._1)) a else b, l.head);
+    def apply(i:Rep[Int],j:Rep[Int]) = {
+      //XXX: change this later!
+      inner(i,j)
+      //val l=inner(i,j);
+      //if (l.isEmpty) List[(T,Backtrack)]()
+      //else list_reduce(l,(a:Rep[(T,Backtrack)],b:Rep[(T,Backtrack)]) => if (a._1==h(a._1,b._1)) a else b, l.head);
       // if (l.isEmpty) List[(T,Backtrack)]() else List(list_fold(l.tail,l.head,(a:Rep[(T,Backtrack)],b:Rep[(T,Backtrack)]) => if (a._1==h(a._1,b._1)) a else b ))
     }
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt) // we have only 1 result
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.reapply(i,j,bt)
+    //def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt) // we have only 1 result
+    //def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.reapply(i,j,bt)
   }
 
   // Filter combinator.
@@ -204,9 +235,10 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     lazy val (alt,cat) = (inner.alt,inner.cat)
     def min = inner.min
     def max = inner.max
-    def apply(i:Rep[Int],j:Rep[Int]) = if(pred(i,j)) inner(i,j) else List[(T,Backtrack)]()
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt) // filter matched at apply
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.reapply(i,j,bt) // ditto
+    def apply(i:Rep[Int],j:Rep[Int]) =
+      cond(pred(i,j), inner(i,j), emptyGen())
+    //def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt) // filter matched at apply
+    //def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.reapply(i,j,bt) // ditto
   }
 
   // Mapper. Equivalent of ADP's <<< operator.
@@ -215,9 +247,10 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     lazy val (alt,cat) = (inner.alt,inner.cat)
     def min = inner.min
     def max = inner.max
-    def apply(i:Rep[Int],j:Rep[Int]) = inner(i,j) map { (x:Rep[(T,Backtrack)]) => (f(x._1),x._2) }
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt)
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = f(inner.reapply(i,j,bt))
+    def apply(i:Rep[Int],j:Rep[Int]) =
+      inner(i,j) map { (x:Rep[T/*,Backtrack*/]) => f(x) /*(f(x._1),x._2)*/ }
+    //def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = inner.unapply(i,j,bt)
+    //def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = f(inner.reapply(i,j,bt))
   }
 
   // Or combinator. Equivalent of ADP's ||| operator.
@@ -227,9 +260,11 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     lazy val (alt,cat) = (left.alt+right.alt,__max(left.cat,right.cat))
     def min = __min(left.min,right.min)
     def max = if (__or(left.max==maxN, right.max==maxN)) maxN else __max(left.max,right.max)
-    def apply(i:Rep[Int],j:Rep[Int]) = { left(i,j) ++ right(i,j).map{ x:Rep[(T,Backtrack)] => val b:Rep[Backtrack]=(x._2._1+unit(left.alt),x._2._2); (x._1,b) } }
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=bt._1; var a=unit(left.alt-1); if (r<=a) left.unapply(i,j,bt) else right.unapply(i,j,(r-a,bt._2)) }
-    def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=bt._1; var a=unit(left.alt-1); if (r<=a) left.reapply(i,j,bt) else right.reapply(i,j,(r-a,bt._2)) }
+    def apply(i:Rep[Int],j:Rep[Int]) = {
+      left(i,j) ++ right(i,j)//.map{ x:Rep[(T,Backtrack)] => val b:Rep[Backtrack]=(x._2._1+unit(left.alt),x._2._2); (x._1,b) }
+    }
+    //def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=bt._1; var a=unit(left.alt-1); if (r<=a) left.unapply(i,j,bt) else right.unapply(i,j,(r-a,bt._2)) }
+    //def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val r=bt._1; var a=unit(left.alt-1); if (r<=a) left.reapply(i,j,bt) else right.reapply(i,j,(r-a,bt._2)) }
   }
 
   // Concatenate combinator.
@@ -255,28 +290,37 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
       if (track==0) {
         val min_k = if (rU==maxN) i+unit(lL) else Math.max(i+unit(lL),j-unit(rU))
         val max_k = if (lU==maxN) j-unit(rL) else Math.min(j-unit(rL),i+unit(lU))
-        for(
-          k <- (min_k until max_k+unit(1)).toList;
-          x <- left(i,k);
-          y <- right(k,j)
-        ) yield { val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k)) }
+
+        range(min_k, max_k+unit(1)).flatMap{ k=>
+          left(i,k).flatMap{ x=>
+            right(k,j).map{ y=>
+              (x,y) //val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k))
+            }
+          }
+        }
       } else if (track==1) {
         val min_k = if (lU==maxN) unit(0) else Math.max(i-unit(lU),unit(0))
         val max_k = i-unit(lL)
-        for(
-          k <- (min_k until max_k+unit(1)).toList;
-          x <- left(k,i); // in1[k..i]
-          y <- right(k,j) // M[k,j]
-        ) yield{ val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k)) }  
+
+        range(min_k, max_k+unit(1)).flatMap{ k=>
+          left(k,i).flatMap{ x=>
+            right(k,j).map{ y=>
+              (x,y) //val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k))
+            }
+          }
+        }
       } else if (track==2) {
         val min_k = if (rU==maxN) unit(0) else Math.max(j-unit(rU),unit(0))
         val max_k = j-unit(rL)
-        for(
-          k <- (min_k until max_k+unit(1)).toList;
-          x <- left(i,k); // M[i,k]
-          y <- right(k,j) // in2[k..j]
-        ) yield{ val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k)) }
-      } else List[((T,U),Backtrack)]()
+
+        range(min_k, max_k+unit(1)).flatMap{ k=>
+          left(i,k).flatMap{ x=>
+            right(k,j).map{ y=>
+              (x,y) //val t:Rep[(T,U)]=(x._1,y._1); (t,bt(x._2,y._2,k))
+            }
+          }
+        }
+      } else emptyGen[(T,U)/*,Backtrack*/]()
     }
 
     private def sw_split(i:Rep[Int],j:Rep[Int],kb:Rep[Int]):Rep[(Int,Int,Int,Int)] = (track,indices) match {
@@ -289,52 +333,111 @@ trait BaseParsersExp extends BaseParsers with PackageExp { this:Signature =>
     private def bt_split(bt:Rep[Backtrack]):Rep[(Backtrack,Backtrack,Int)] = {
       val a:Int=right.alt; val c:Int=left.cat;
       /*
-      val (r,idx)=bt; 
+      val (r,idx)=bt;
       ((r/a,idx.take(c)), (r%a,idx.drop(c+(if (hasBt)1 else 0))), if (hasBt)idx(c) else -1)
       */
       (bt0, bt0, unit(0)) // XXX: must go away
     }
 
-    def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = {
+    /*def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = {
       val bb=bt_split(bt); val sw=sw_split(i,j,bb._3)
       left.unapply(sw._1,sw._2,bb._1) ++ right.unapply(sw._3,sw._4,bb._2)
     }
     def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = {
       val bb=bt_split(bt); val sw=sw_split(i,j,bb._3)
       (left.reapply(sw._1,sw._2,bb._1), right.reapply(sw._3,sw._4,bb._2))
-    }
+    }*/
   }
 
-  // --------------------------------------------------------------------------
-  // Implicit conversion, to allow 'flat' arguments functions (instead of recursive pairs)
+
   /*
-  import scala.language.implicitConversions
-  trait DeTuple { val f:Any=null }
-  implicit def detuple2[A,B,R](fn:Function2[A,B,R]) = new (((A,B))=>R) with DeTuple { override val f=fn
-    def apply(t:(A,B)) = { val (a,b)=t; fn(a,b) } }
-  implicit def detuple3[A,B,C,R](fn:Function3[A,B,C,R]) = new ((((A,B),C))=>R) with DeTuple { override val f=fn
-    def apply(t:((A,B),C)) = { val ((a,b),c)=t; fn(a,b,c) } }
-  implicit def detuple4[A,B,C,D,R](fn:Function4[A,B,C,D,R]) = new (((((A,B),C),D))=>R) with DeTuple { override val f=fn
-    def apply(t:(((A,B),C),D)) = { val (((a,b),c),d)=t; fn(a,b,c,d) } }
-  implicit def detuple5[A,B,C,D,E,R](fn:Function5[A,B,C,D,E,R]) = new ((((((A,B),C),D),E))=>R) with DeTuple { override val f=fn
-    def apply(t:((((A,B),C),D),E)) = { val ((((a,b),c),d),e)=t; fn(a,b,c,d,e) } }
-  implicit def detuple6[A,B,C,D,E,F,R](fn:Function6[A,B,C,D,E,F,R]) = new (((((((A,B),C),D),E),F))=>R) with DeTuple { override val f=fn
-    def apply(t:(((((A,B),C),D),E),F)) = { val (((((a,b),c),d),e),f)=t; fn(a,b,c,d,e,f) } }
-  implicit def detuple7[A,B,C,D,E,F,G,R](fn:Function7[A,B,C,D,E,F,G,R]) = new ((((((((A,B),C),D),E),F),G))=>R) with DeTuple { override val f=fn
-    def apply(t:((((((A,B),C),D),E),F),G)) = { val ((((((a,b),c),d),e),f),g)=t; fn(a,b,c,d,e,f,g) } }
-  implicit def detuple8[A,B,C,D,E,F,G,H,R](fn:Function8[A,B,C,D,E,F,G,H,R]) = new (((((((((A,B),C),D),E),F),G),H))=>R) with DeTuple { override val f=fn
-    def apply(t:(((((((A,B),C),D),E),F),G),H)) = { val (((((((a,b),c),d),e),f),g),h)=t; fn(a,b,c,d,e,f,g,h) } }
-  implicit def detuple9[A,B,C,D,E,F,G,H,I,R](fn:Function9[A,B,C,D,E,F,G,H,I,R]) = new ((((((((((A,B),C),D),E),F),G),H),I))=>R) with DeTuple { override val f=fn
-    def apply(t:((((((((A,B),C),D),E),F),G),H),I)) = { val ((((((((a,b),c),d),e),f),g),h),i)=t; fn(a,b,c,d,e,f,g,h,i) } }
-  implicit def detuple10[A,B,C,D,E,F,G,H,I,J,R](fn:Function10[A,B,C,D,E,F,G,H,I,J,R]) = new (((((((((((A,B),C),D),E),F),G),H),I),J))=>R) with DeTuple { override val f=fn
-    def apply(t:(((((((((A,B),C),D),E),F),G),H),I),J)) = { val (((((((((a,b),c),d),e),f),g),h),i),j)=t; fn(a,b,c,d,e,f,g,h,i,j) } }
-  implicit def detuple11[A,B,C,D,E,F,G,H,I,J,K,R](fn:Function11[A,B,C,D,E,F,G,H,I,J,K,R]) = new ((((((((((((A,B),C),D),E),F),G),H),I),J),K))=>R) with DeTuple { override val f=fn
-    def apply(t:((((((((((A,B),C),D),E),F),G),H),I),J),K)) = { val ((((((((((a,b),c),d),e),f),g),h),i),j),k)=t; fn(a,b,c,d,e,f,g,h,i,j,k) } }
-  implicit def detuple12[A,B,C,D,E,F,G,H,I,J,K,L,R](fn:Function12[A,B,C,D,E,F,G,H,I,J,K,L,R]) = new (((((((((((((A,B),C),D),E),F),G),H),I),J),K),L))=>R) with DeTuple { override val f=fn
-    def apply(t:(((((((((((A,B),C),D),E),F),G),H),I),J),K),L)) = { val (((((((((((a,b),c),d),e),f),g),h),i),j),k),l)=t; fn(a,b,c,d,e,f,g,h,i,j,k,l) } }
+  ----
+  I said something wrong: I don't pass the offset but directly values being written in the backtrack (hence overwrite
+  the whole backtrack everytime I write a new value in the aggregation temporary variable); although, what I said for rule_id
+  still remains valid.
+  ---
+
+  You need to pass additional information top-down when you are composing the parsers into a Generator
+  See function signature in CodeGen.sala:105
+
+  say we have transform(Parser, rule, off ) : Generator
+  - rule represents the actual rule number that is tabulate.id + alternative index within the tabulation
+  - off is the offset at which to write concatenation index in idx_tmp
+
+  - In an aggregation, you need to create 4 variables: res:T, rule_id=-1, idx=idx_tmp=newArray(tabulation.ccat)
+    In inner parsers, you just write and compare these variables.
+    Make sure you initialize rule_id to -1.
+    Whenever you write res=XXX also do idx=copy(idx_tmp), rule_id=rule
+
+  - Map, Filter just pass rule and off values to inner
+  - transform( Or(l,r), rule) ==> transform(l,rule,off) ... transform(r,rule + l.alt, off)
+  - transform( cc@Concat(l,r), rule, aggr) ==> if (cc.hasBt) idx_tmp[off]=k;
+                                               transform(l,rule,off),
+                                               transform(r,rule,off+if (cc.hasBt) 1 else 0)
   */
-  // def detuple(n:Int) { def ls(c:Char='A') = (0 until n).map{x=>(c+x).toChar}.mkString(",")
-  //   def lr(c:Char='A') = ("("*(n-1))+c+","+(1 until n).map{x=>(c+x).toChar}.mkString("),")+")"
-  //   println("  implicit def detuple"+n+"["+ls()+",R](fn:Function"+n+"["+ls()+",R]) = new (("+lr()+")=>R) with DeTuple { override val f=fn\n"+
-  //           "    def apply(t:"+lr()+") = { val "+lr('a')+"=t; fn("+ls('a')+") } }") }
+  //probably not the most elegant way to do this, but will work for now.
+  case class BTIndexWrapper[T:Manifest](p: Parser[T], indices: Rep[Array[Int]])
+
+  // Generate C parser for subword (i,j): collect conditions, hoisted/content and backtrack indices
+  // (parser, i,j,k?, subrule, aggregation_depth) => (Conditions+for loops, hoisted, body, backtrack indices)
+  def addIndices[T:Manifest](p0: Parser[T], rule:Int, offset : Int) : BTIndexWrapper[T] = p0 match {
+
+    case t@Terminal(_,_) => BTIndexWrapper(t, NewArray[Int](unit(0)))
+    case p:Tabulate => BTIndexWrapper(p, NewArray[Int](unit(0)))
+
+    //special case for us this one, used only as a fold?
+    case a@Aggregate(p,h) =>
+      val inner = addIndices(p, rule, offset+1)
+
+      //val (c,hb,b,bti) = gen(p,i,j,g,rule,aggr+1)
+
+      /*
+      def bodyTpe:String = { // fallback to "typeof(body)" if untypable, where body has no fresh variable
+        val g0:FreeVar = new FreeVar('0') { override def get=zero; override def dup=this }
+        val (_,_,lb,_)=gen(p,zero,zero,g0,0,0); "typeof("+lb+")"
+      }
+      */
+
+      /*if (aggr==0) (c,hb,cc,bti) // hoist aggregation if contained
+      else { val nv = tpe+" "+tc+"; "+btTpe(p.cat)+" "+tb+"={-1"+(if (p.cat>0)",{}" else "")+"};\n";
+        (List(CUser(tb+".rule!=-1")),nv+emit((c,hb,cc,bti)),tc,(0 until p.cat).map{x=>tb+".pos["+x+"]"}.toList)
+      }
+      */
+      BTIndexWrapper(p, NewArray[Int](unit(0)))
+
+    case Or(l,r) => BTIndexWrapper(p0, NewArray[Int](unit(0)))
+
+    case m@Map(p,f) => addIndices(p, rule, offset) match {
+      case BTIndexWrapper(_, indices) => BTIndexWrapper(m, indices)
+    }
+
+    case fi@Filter(p,f) => addIndices(p, rule, offset) match {
+      case BTIndexWrapper(_, indices) => BTIndexWrapper(fi, indices)
+    }
+
+    case cc@Concat(l,r,tt) =>
+     /*def bf1(f:Int, l:Int, u:Int):List[Cond] = { val ls=List(i.leq(j,f+l)); if (u!=maxN) j.leq(i,-f-u)::ls else ls }
+      val (c,k):(List[Cond],Var) = (tt,cc.indices) match {
+        // low=up in at least one side
+        case (0,(iL,iU,jL,jU)) if (iL==iU && jL==jU) => (List(i.eq(j,iL+jL)), i.add(iL))
+        case (0,(iL,iU,jL,jU)) if (iL==iU) => (bf1(iL,jL,jU), i.add(iL))
+        case (0,(iL,iU,jL,jU)) if (jL==jU) => (bf1(jL,iL,iU), j.add(-jL))
+        // most general case
+        case (0,(iL,iU,jL,jU)) => val k0=g.get; var cs:List[Cond]=Nil;
+          if (jU!=maxN) cs = j.leq(k0,-jU) :: cs
+          if (iU!=maxN) cs = k0.leq(i,-iU) :: cs // we might want to simplify if min_k==i || max_k==j
+          (CFor(k0.v,i.v,iL,j.v,jL)::cs, k0)
+        // concat1,concat2
+        case (t,(a,b,c,d)) if (t==1||t==2) => val (l,u,v) = if (t==1) (a,b,i) else (c,d,j)
+          if (l==u) (List(zero.leq(v,l)), v.add(-l))
+          else { val k0=g.get; val cu=if (u==maxN) Nil else List(k0.leq(v,u)); (CFor(k0.v,'0',0,v.v,l)::cu, k0) }
+      }
+      val (lc,lhb,lb,lbt) = if (tt==1) gen(l,k,i,g,rule,aggr) else gen(l,i,k,g,rule,aggr)
+      val (rc,rhb,rb,rbt) = gen(r,k,j,g,rule,aggr)
+      (simplify(c:::lc:::rc), lhb+(if (lhb!=""&&rhb!="") "\n" else "")+rhb, lb+","+rb, lbt:::(if(cc.hasBt) List(k.toString) else Nil):::rbt)
+      */
+      BTIndexWrapper(cc, NewArray[Int](unit(0)))
+    case _ => sys.error("Unknown parser")
+  }
+
 }
