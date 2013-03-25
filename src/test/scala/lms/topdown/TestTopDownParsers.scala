@@ -130,22 +130,52 @@ trait GenRecParsersProg extends TokenParsers with Functions {
     }
   }
 */
+/*  term(in) = digit(in) ~ opt(term(in))
+
+  digit(in)(i).flatMap{ x: Rep[(Char, Int)] =>
+    term(in)(x._2).map{ y:Rep[(String,Int)] =>
+      if(y._2 == x._2) {()} else {
+        (unit(x._1)+y._1 , y._2)
+      }
+    }
+  }
+
+  {
+    self(pos).flatMap{ x: Rep[(T,Int)] =>
+      that(x._2).map{ y: Rep[(U,Int)] =>
+        make_tuple2((x._1, y._1), y._2)
+      }
+    }
+
+    digit(in)
+  }
+
+  expr = term ~ rep("+" ~ term | "-" ~ term)
+  term = factor ~ rep(" * " ~ factor | "/" ~ factor)
+  factor = floatingPointNumber | "(" ~ expr ~ ")"
+
+  def expr(in: Rep[Input]): Parser[String] = Parser{ i: Rep[Int] =>
+    new Generator[(String,Int)]{
+
+    }
+
+  }
+
+*/
+
   def term(in: Rep[Input]): Parser[String] = Parser{ i: Rep[Int] =>
     new Generator[(String, Int)]{
       def apply(f: Rep[(String,Int)] => Rep[Unit]) = {
-      val term1: Rep[Int=>Unit] = {
-        val f2 = doLambda{ x: Rep[(String,Int)] => f(x)}
-        doLambda{ i: Rep[Int] =>
-
-          digit(in)(i) apply { x: Rep[(Char,Int)] =>
-            term(in)(x._2) { y: Rep[(String,Int)] =>
-              f2(make_tuple2((x._1 + y._1), y._2))
-            }
+        lazy val termg: Rep[((String,Int))=>Unit] = doLambda{ t: Rep[(String,Int)] =>
+          digit(in)(t._2).apply{ x: Rep[(Char,Int)] =>
+            val param = make_tuple2(t._1 + (unit("")+x._1), x._2 )
+            f(param)
+            termg(param)
           }
+//          val param = make_tuple2( (unit("")+x._1)+t._1, x._2 )
         }
+        termg(make_tuple2(unit(""), i))
       }
-      term1.apply(i)
-    }
     }
   }
 
@@ -154,46 +184,6 @@ trait GenRecParsersProg extends TokenParsers with Functions {
     term(in).apply(unit(0)).apply{x : Rep[(String, Int)] => s =x }
     s
   }
-
-/*    { x : i =>
-      { gen: (Rep[(T,Int)] => Rep[Unit]) =>
-
-        val term1 = doLambda { i =>
-          (digit(in) ~ term(in) ~ digit(in) ~ term(in))(i)(gen)
-        }
-        term1(i)
-      }}
-
-  def term(in: Rep[Input]): Parser[String] =
-    (digit(in) ~ term(in))) ^^ {
-      x:Rep[(String, List[String])] => (x._1::x._2).mkString
-    }
-*/
-  //def factor(in: Rep[Int]): Parser[String] = floatingPointNumber | "(" ~ expr ~ ")"
-
-  def lift[T:Manifest](p:Parser[String]) : Rep[Int => (String,Int)] = doLambda {i =>
-    var s = make_tuple2(unit(""), unit(-1))
-    p(i).apply{x: Rep[(String, Int)] => s = x}
-    s
-  }
-
-  def flatten[T:Manifest](p : Parser[T], z: Rep[(T, Int)]) : Rep[Int] => Rep[(T,Int)] = { i: Rep[Int] =>
-    var s = z
-    p(i).apply{x: Rep[(T, Int)] => s = x}
-    s
-  }
-
-
-  def recursive[A: Manifest,B:Manifest](f: Rep[A]=>Rep[B]) =
-   (x:Rep[A]) => doLambda(f).apply(x)  // result has type A=>B again
-
-  def liftedStringLit = recursive { in: Rep[Input] =>
-    var s = make_tuple2(unit(""), unit(-1))
-    //val parser = (keyword(in)).apply(unit(0))
-    stringLit(in).apply(unit(0)).apply{x: Rep[(String, Int)] => s = x}
-    s
-  }
-
 }
 
 class TestTopDownParsers extends FileDiffSuite {
@@ -260,7 +250,6 @@ class TestTopDownParsers extends FileDiffSuite {
         codegen.emitSource(test10 _ , "test10", new java.io.PrintWriter(System.out))
         val testc10 = compile(test10)
         scala.Console.println(testc10("hello21".toArray))
-        //scala.Console.println(testc10("12".toArray))
 
       }
 
@@ -299,19 +288,11 @@ class TestTopDownParsers extends FileDiffSuite {
     withOutFile(prefix+"gen-topdown-rec") {
       new GenRecParsersProg with FunctionsExternalDef
        with GeneratorOpsExp with PackageExp with MyScalaCompile {self =>
-        val f = (x:Rep[Input]) => liftedStringLit(x)
-//        val f2 = {x: Rep[Input] => lift(stringLit(x))}
-
-        //val terms = (x:Rep[Input]) => liftedTerm(x)
 
         val codegen = new ScalaGenPackage with ScalaGenGeneratorOps
          with ScalaGenFunctionsExternal {
           val IR: self.type = self
         }
-
-        codegen.emitSource(f, "LiftedStringLit", new java.io.PrintWriter(System.out))
-        val testc1 = compile(f)
-        scala.Console.println(testc1("\"hello\" \"carol\"".toArray))
 
         codegen.emitSource(testTerm, "LiftTerm", new java.io.PrintWriter(System.out))
         val testc2 = compile(testTerm)
@@ -324,27 +305,4 @@ class TestTopDownParsers extends FileDiffSuite {
     }
     assertFileEqualsCheck(prefix+"gen-topdown-rec")
   }
-/*    withOutFile(prefix+"gen-fun"){
-      new FunProg with ArithExp with FunctionsExp with EqualExp with IfThenElseExp{ self =>
-
-        val codegen = new ScalaGenPackage with ScalaGenGeneratorOps
-          with ScalaGenStruct{ val IR: self.type = self }
-
-        codegen.emitSource(keywordParse _ , "test1", new java.io.PrintWriter(System.out))
-        val testc1 = compile(keywordParse)
-        val res1 = testc1("true false".toArray)
-        scala.Console.println(res1)
-
-        codegen.emitSource(twoWordParse _ , "test2", new java.io.PrintWriter(System.out))
-        val testc2 = compile(twoWordParse)
-        val res2 = testc2("\"hello\" \"carol\"".toArray)
-        scala.Console.println(res2)
-
-      }
-
-    }
-
-    assertFileEqualsCheck(prefix+"gen-fun")
-  }
-*/
 }

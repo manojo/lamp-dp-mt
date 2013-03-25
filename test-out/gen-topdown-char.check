@@ -411,8 +411,8 @@ var x405: scala.collection.immutable.List[Char] = x404
 var x406: Int = -1
 var x407: Int = 0
 val x414 = x401.length
-val x432 = while ({val x408 = x407
-val x409 = x406
+val x432 = while ({val x408 = x406
+val x409 = x407
 val x410 = x408 != x409
 x410}) {
 val x412 = x407
@@ -441,7 +441,7 @@ x428
 x430
 }
 val x433 = x405
-val x434 = x406
+val x434 = x407
 val x436 = x433.mkString
 val x437 = (x436,x434)
 x403 = x437

@@ -7,21 +7,21 @@ val x1 = ("",-1)
 var x2: scala.Tuple2[java.lang.String, Int] = x1
 val x3 = x0.length
 val x4 = 0 >= x3
-val x59 = if (x4) {
+val x58 = if (x4) {
 ()
 } else {
 val x5 = x0(0)
 val x6 = x5 >= 'a'
 val x7 = x5 <= 'z'
 val x8 = x6 && x7
-val x57 = if (x8) {
+val x56 = if (x8) {
 val x11 = List()
 var x12: scala.collection.immutable.List[Char] = x11
 var x13: Int = -1
 val x9 = 0 + 1
 var x14: Int = x9
-val x38 = while ({val x15 = x14
-val x16 = x13
+val x38 = while ({val x15 = x13
+val x16 = x14
 val x17 = x15 != x16
 x17}) {
 val x19 = x14
@@ -50,7 +50,7 @@ x34
 x36
 }
 val x39 = x12
-val x40 = x13
+val x40 = x14
 val x44 = x5 :: x39
 val x45 = x44.mkString
 val x46 = x45 == "true"
@@ -58,222 +58,221 @@ val x47 = x45 == "null"
 val x48 = x46 || x47
 val x49 = x45 == "false"
 val x50 = x48 || x49
-val x53 = if (x50) {
-val x51 = "Keyword("+x45
-val x52 = x51+")"
-x52
+val x52 = if (x50) {
+val x51 = "Keyword"+x45
+x51
 } else {
 "NoToken"
 }
-val x54 = (x53,x40)
-x2 = x54
+val x53 = (x52,x40)
+x2 = x53
 ()
 } else {
 ()
 }
-x57
+x56
 }
-val x60 = x2
-x60
+val x59 = x2
+x59
 }
 }
 /*****************************************
   End of Generated Code                  
 *******************************************/
 compilation: ok
-(Keyword(true),4)
+(Keywordtrue,4)
 /*****************************************
   Emitting Generated Code                  
 *******************************************/
 class test2 extends ((Array[Char])=>(scala.Tuple2[scala.Tuple2[java.lang.String, java.lang.String], Int])) {
-def apply(x121:Array[Char]): scala.Tuple2[scala.Tuple2[java.lang.String, java.lang.String], Int] = {
-val x122 = ("","")
-val x123 = (x122,-1)
-var x124: scala.Tuple2[scala.Tuple2[java.lang.String, java.lang.String], Int] = x123
-val x125 = x121.length
-val x126 = 0 >= x125
-val x268 = if (x126) {
+def apply(x119:Array[Char]): scala.Tuple2[scala.Tuple2[java.lang.String, java.lang.String], Int] = {
+val x120 = ("","")
+val x121 = (x120,-1)
+var x122: scala.Tuple2[scala.Tuple2[java.lang.String, java.lang.String], Int] = x121
+val x123 = x119.length
+val x124 = 0 >= x123
+val x266 = if (x124) {
 ()
 } else {
-val x127 = x121(0)
-val x128 = x127 == '"'
-val x266 = if (x128) {
+val x125 = x119(0)
+val x126 = x125 == '"'
+val x264 = if (x126) {
 val x11 = List()
-var x130: scala.collection.immutable.List[Char] = x11
-var x131: Int = -1
+var x128: scala.collection.immutable.List[Char] = x11
+var x129: Int = -1
 val x9 = 0 + 1
-var x132: Int = x9
-val x154 = while ({val x133 = x132
-val x134 = x131
-val x135 = x133 != x134
-x135}) {
-val x137 = x132
-x131 = x137
-val x139 = x137 >= x125
-val x152 = if (x139) {
+var x130: Int = x9
+val x152 = while ({val x131 = x129
+val x132 = x130
+val x133 = x131 != x132
+x133}) {
+val x135 = x130
+x129 = x135
+val x137 = x135 >= x123
+val x150 = if (x137) {
 ()
 } else {
-val x140 = x121(x137)
-val x141 = x140 != '"'
-val x150 = if (x141) {
-val x144 = x130
-val x145 = List(x140)
-val x146 = x144 ::: x145
-x130 = x146
-val x142 = x137 + 1
-x132 = x142
+val x138 = x119(x135)
+val x139 = x138 != '"'
+val x148 = if (x139) {
+val x142 = x128
+val x143 = List(x138)
+val x144 = x142 ::: x143
+x128 = x144
+val x140 = x135 + 1
+x130 = x140
 ()
 } else {
 ()
+}
+x148
 }
 x150
 }
-x152
-}
-val x155 = x130
-val x156 = x131
-val x158 = x156 >= x125
-val x264 = if (x158) {
+val x153 = x128
+val x154 = x130
+val x156 = x154 >= x123
+val x262 = if (x156) {
 ()
 } else {
-val x159 = x121(x156)
-val x160 = x159 == '"'
-val x262 = if (x160) {
-var x168: scala.collection.immutable.List[Char] = x11
-var x169: Int = -1
-val x161 = x156 + 1
-var x170: Int = x161
-val x201 = while ({val x171 = x170
-val x172 = x169
-val x173 = x171 != x172
-x173}) {
-val x175 = x170
-x169 = x175
-val x177 = x175 >= x125
-val x191 = if (x177) {
+val x157 = x119(x154)
+val x158 = x157 == '"'
+val x260 = if (x158) {
+var x166: scala.collection.immutable.List[Char] = x11
+var x167: Int = -1
+val x159 = x154 + 1
+var x168: Int = x159
+val x199 = while ({val x169 = x167
+val x170 = x168
+val x171 = x169 != x170
+x171}) {
+val x173 = x168
+x167 = x173
+val x175 = x173 >= x123
+val x189 = if (x175) {
 ()
 } else {
-val x178 = x121(x175)
-val x179 = x178 == ' '
-val x189 = if (x179) {
-val x183 = x168
-val x184 = List(x178)
-val x185 = x183 ::: x184
-x168 = x185
-val x180 = x175 + 1
-x170 = x180
+val x176 = x119(x173)
+val x177 = x176 == ' '
+val x187 = if (x177) {
+val x181 = x166
+val x182 = List(x176)
+val x183 = x181 ::: x182
+x166 = x183
+val x178 = x173 + 1
+x168 = x178
 ()
 } else {
 ()
 }
-x189
+x187
 }
-val x199 = if (x177) {
+val x197 = if (x175) {
 ()
 } else {
-val x178 = x121(x175)
-val x182 = x178 == '
+val x176 = x119(x173)
+val x180 = x176 == '
 '
-val x197 = if (x182) {
-val x192 = x168
-val x184 = List(x178)
-val x193 = x192 ::: x184
-x168 = x193
-val x180 = x175 + 1
-x170 = x180
+val x195 = if (x180) {
+val x190 = x166
+val x182 = List(x176)
+val x191 = x190 ::: x182
+x166 = x191
+val x178 = x173 + 1
+x168 = x178
 ()
 } else {
 ()
+}
+x195
 }
 x197
 }
-x199
+val x200 = x166
+val x201 = x168
+val x205 = x201 >= x123
+val x258 = if (x205) {
+()
+} else {
+val x206 = x119(x201)
+val x207 = x206 == '"'
+val x256 = if (x207) {
+var x210: scala.collection.immutable.List[Char] = x11
+var x211: Int = -1
+val x208 = x201 + 1
+var x212: Int = x208
+val x234 = while ({val x213 = x211
+val x214 = x212
+val x215 = x213 != x214
+x215}) {
+val x217 = x212
+x211 = x217
+val x219 = x217 >= x123
+val x232 = if (x219) {
+()
+} else {
+val x220 = x119(x217)
+val x221 = x220 != '"'
+val x230 = if (x221) {
+val x224 = x210
+val x225 = List(x220)
+val x226 = x224 ::: x225
+x210 = x226
+val x222 = x217 + 1
+x212 = x222
+()
+} else {
+()
 }
-val x202 = x168
-val x203 = x169
-val x207 = x203 >= x125
-val x260 = if (x207) {
-()
-} else {
-val x208 = x121(x203)
-val x209 = x208 == '"'
-val x258 = if (x209) {
-var x212: scala.collection.immutable.List[Char] = x11
-var x213: Int = -1
-val x210 = x203 + 1
-var x214: Int = x210
-val x236 = while ({val x215 = x214
-val x216 = x213
-val x217 = x215 != x216
-x217}) {
-val x219 = x214
-x213 = x219
-val x221 = x219 >= x125
-val x234 = if (x221) {
-()
-} else {
-val x222 = x121(x219)
-val x223 = x222 != '"'
-val x232 = if (x223) {
-val x226 = x212
-val x227 = List(x222)
-val x228 = x226 ::: x227
-x212 = x228
-val x224 = x219 + 1
-x214 = x224
-()
-} else {
-()
+x230
 }
 x232
 }
-x234
+val x235 = x210
+val x236 = x212
+val x238 = x236 >= x123
+val x254 = if (x238) {
+()
+} else {
+val x239 = x119(x236)
+val x240 = x239 == '"'
+val x252 = if (x240) {
+val x241 = x236 + 1
+val x162 = x153.mkString
+val x163 = "StringLit("+x162
+val x164 = x163+")"
+val x244 = x235.mkString
+val x245 = "StringLit("+x244
+val x246 = x245+")"
+val x248 = (x164,x246)
+val x249 = (x248,x241)
+x122 = x249
+()
+} else {
+()
 }
-val x237 = x212
-val x238 = x213
-val x240 = x238 >= x125
-val x256 = if (x240) {
-()
-} else {
-val x241 = x121(x238)
-val x242 = x241 == '"'
-val x254 = if (x242) {
-val x243 = x238 + 1
-val x164 = x155.mkString
-val x165 = "StringLit("+x164
-val x166 = x165+")"
-val x246 = x237.mkString
-val x247 = "StringLit("+x246
-val x248 = x247+")"
-val x250 = (x166,x248)
-val x251 = (x250,x243)
-x124 = x251
-()
-} else {
-()
+x252
 }
 x254
+} else {
+()
 }
 x256
-} else {
-()
 }
 x258
+} else {
+()
 }
 x260
-} else {
-()
 }
 x262
-}
-x264
 } else {
 ()
 }
-x266
+x264
 }
-val x269 = x124
-x269
+val x267 = x122
+x267
 }
 }
 /*****************************************
