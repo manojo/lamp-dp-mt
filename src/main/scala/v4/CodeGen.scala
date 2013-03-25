@@ -442,7 +442,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
     override val outPath = "bin"
     override val cudaPath = "/usr/local/cuda"
     override val cudaFlags = "-m64 -arch=sm_30" // --ptxas-options=-v
-    override val ccFlags = "-O2 -I/System/Library/Frameworks/JavaVM.framework/Headers"
+    override val ccFlags = "-O3 -I/System/Library/Frameworks/JavaVM.framework/Headers"
     override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
   }
 
@@ -483,12 +483,11 @@ trait CodeGen extends BaseParsers { this:Signature =>
     head.addPriv("#define M_W {MAT_WIDTH}")
     head.addPriv("#define M_H {MAT_HEIGHT}")
     if (twotracks) {
-      head.addPriv("#define B_H 1") // no coalescing required
-      head.addPriv("#define MEM_MATRIX (M_W*M_H)")
-      head.addPriv("#define idx(i,j) ((i)*B_W+(j))")
+      head.addPriv("#define MEM_MATRIX (M_W*M_H)") // (M_W*M_H)
+      head.addPriv("#define idx(i,j) ((i)*M_W+j)") // ((i)*B_W+(j))
     } else {
-      head.addPriv("#define MEM_MATRIX ((M_H*(M_H+1))/2)") // upper right triangle, including diagonal
-      head.addPriv("#define idx(i,j) ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - ((_d*(_d-1))>>1) +_i; })")
+      head.addPriv("#define MEM_MATRIX (M_W*M_H)") // ((M_H*(M_H+1))/2) -- upper right triangle, including diagonal
+      head.addPriv("#define idx(i,j) ((i)*M_W+j)") // ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - ((_d*(_d-1))>>1) +_i; })
     }
     // Extra function to compute the best result within the window
     val aggr=h.toString match {

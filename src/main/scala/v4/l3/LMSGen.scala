@@ -73,32 +73,18 @@ trait ScalaGenDP extends ScalaGenEffect {
   }
 }
 
-trait CGenDP extends CGenEffect {
-  val IR: DPExp
-  import IR._
-  override def emitNode(sym: Sym[Any], rhs: Def[Any]) = rhs match {
-    case TabIdx(i,j) => stream.println("val "+quote(sym)+" = idx("+quote(i)+","+quote(j)+");")
-    case TabRead(name,idx) => stream.println("val "+quote(sym)+" = _cost."+name+"["+quote(idx)+"];")
-    case TabWrite(name,idx,value,rule,bt) =>
-      stream.println("_cost."+name+"["+quote(idx)+"] = "+quote(value)+";")
-      stream.println("_back."+name+"["+quote(idx)+"].rule = "+quote(rule)+";")
-      stream.println("_back."+name+"["+quote(idx)+"].pos = "+quote(bt)+";")
-    case In1Read(i) => stream.println("val "+quote(sym)+" = _in1["+quote(i)+"];")
-    case In2Read(i) => stream.println("val "+quote(sym)+" = _in2["+quote(i)+"];")
-    case BtNew(size) => stream.println("val "+quote(sym)+" = new Array[Int]("+size+");")
-    case BtSet(dst, idx, value) => stream.println(quote(dst)+"("+idx+") = "+quote(value)+";")
-    case _ => super.emitNode(sym, rhs)
-  }
-}
-
-
 // -----------------------------------------------------------------
 
 trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp with BooleanOpsExp with CompileScala { self:Signature =>
   val codegen = new ScalaCodeGenPkg with ScalaGenGeneratorOps with ScalaGenDP { val IR:self.type = self }
 
   def toFun[T:Manifest,U:Manifest](f:Rep[T]=>Rep[U]) = new LFun(f)
-  case class LFun[T:Manifest,U:Manifest](f:Rep[T]=>Rep[U]) extends Function1[T,U] { lazy val fs = self.compile(f); def apply(arg:T) = fs(arg) }
+  case class LFun[T:Manifest,U:Manifest](f:Rep[T]=>Rep[U]) extends Function1[T,U] {
+    //val mT = manifest[T] // to feed at LMS node construction
+    //val mU = manifest[U]
+    lazy val fs = self.compile(f);
+    def apply(arg:T) = fs(arg)
+  }
 
   // Helpers to set manifest appropriately
   private def _in1(idx:Rep[Int]):Rep[Alphabet] = in1_read(idx)(tps._1)
@@ -114,28 +100,35 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
     
     // Transform into generators/CPS
     def genParser[T](p0:Parser[T],cont:Rep[T]=>Rep[Unit],rid:Int,off:Int) : Rep[Unit] = p0 match { // rule id, backtrack index position
-/*
       case Aggregate(p,h) => 
-        implicit val manifestForH = tps._2
-        var tmp = unit(null).asInstanceOf[Rep[T]]
+        implicit val manifestForH = tps._2 // not necessarily
+        var tmp = unit(null).asInstanceOf[Rep[T]] // must be a Var instead
         genParser(p,{(res:Rep[T]) =>
           h.toString match {
             case "$$max$$" => if (/*boolean_or(*/ rule==unit(-1) /*,r > tmp)*/) { tmp=res; rule=rid; }
             case "$$min$$" => if (/*boolean_or(*/ rule==unit(-1) /*,r < tmp)*/) { tmp=res; rule=rid; }
-            case _ => sys.error("Unsupported LMS aggregation")
+            case "$$count$$" => // var_plusequals(tmp,unit(1))
+            /*
+            case "$$sum$$" => tc+"+="+b+";"
+            case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)>"+f+"("+tc+") || "+tb+".rule==-1) "+updt
+            case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)<"+f+"("+tc+") || "+tb+".rule==-1) "+updt
+            */
+
+            case _ =>
+             //  match on mixBy(LFun(f))
+              // sys.error("Unsupported LMS aggregation "+h.toString)
+              scala.Console.println("Unsupported LMS aggregation "+h.toString)
           }
         },rid,off)
         cont(tmp)
+      case Or(l,r) => genParser(l,cont,rid,off); genParser(r,cont,rid+l.alt,off)
+      case Filter(p,LFun(f)) => if (f((i,j))) genParser(p,cont,rid,off);
+      case Map(p,m@LFun(f)) => genParser(p,{ (r:Rep[Any]) => cont(f(r)) },rid,off)
       /*
       case t:Terminal =>
       case p:Tabulate =>
-      case Or(l,r) => 
-      case Filter(p,f) => 
       case cc@Concat(l,r,tt) =>
       */
-      case Or(l,r) => genParser(l,cont,rid,off); genParser(r,cont,rid+l.alt,off)
-      case Map(p,LFun(f)) => genParser(l,{(r:Rep[U]) => cont(f(r)) } )
-*/
       case _ =>
         //sys.error("Does not match")
         val value = _read(t,i,j)
