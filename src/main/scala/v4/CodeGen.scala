@@ -473,7 +473,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
   // --------------------------------------------------------------------------
   // CPU-specific code generation (might need additional cleanup)
-  // XXX: RNA functions currently not supported 
+  // XXX: RNA functions currently not supported
 
   lazy val code_cc = {
     code_h; // make sure this happen after other codegen phases

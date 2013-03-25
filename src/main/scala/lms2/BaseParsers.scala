@@ -129,7 +129,9 @@ trait BaseParsersExp extends BaseParsers with PackageExp with GeneratorOpsExp { 
     private var mH: Rep[Int] = unit(0)
     def init(w:Rep[Int],h:Rep[Int]) = {
       mW=w; mH=h;
-      val sz:Rep[Int]= if (twotracks) w*h else { /*assert(w==h);*/ h*(h+unit(1))/unit(2) }
+      val sz:Rep[Int]= w*h
+                    //  if (twotracks) w*h
+                    //   else { /*assert(w==h);*/ h*(h+unit(1))/unit(2) }
         data=NewArray[Answer/*,Backtrack)*/](sz)
       unit({})
     }
@@ -143,8 +145,9 @@ trait BaseParsersExp extends BaseParsers with PackageExp with GeneratorOpsExp { 
     /*@inline */private def idx(i:Rep[Int],j:Rep[Int]):Rep[Int] =
       if (twotracks) i*mW+j
       else {
-        val d= mH +unit(1)+i-j
-        ( mH * (mH + unit(1)) - d*(d-unit(1)) ) / unit(2) + i
+        mW * i + j
+        //val d= mH +unit(1)+i-j
+        //( mH * (mH + unit(1)) - d*(d-unit(1)) ) / unit(2) + i
       }
 
     def apply(i:Rep[Int],j:Rep[Int]) = {

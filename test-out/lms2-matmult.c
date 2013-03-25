@@ -1,143 +1,124 @@
+error: illegal sharing of mutable objects Sym(7)
+at Sym(84)=Reflect(Assign(Variable(Sym(79)),Sym(82)),Summary(false,false,false,false,false,List(Sym(79), Sym(7)),List(Sym(79), Sym(7)),List(Sym(79)),List(Sym(79))),List(Sym(7), Sym(78), Sym(79)))
 /*****************************************
-  Emitting C Generated Code
+  Emitting Generated Code
 *******************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-
-typedef struct {int t1; int t2; int t3; } T3iii;
-typedef struct {T3iii t1; T3iii t2; } T2TT;
-typedef struct {int t1; int t2;} T2ii;
-
-T3iii testParse(T2ii x2[]) {
-const int x4 = 8;
-const int x5 = x4 + 1;
-const int x6 = x5 + 1;
-const int x7 = x5 * x6;
-const int x8 = x7 / 2;
-T3iii x9[x8];
-const T3iii x3 = (T3iii){0,10000,0};
-for(int x11=0; x11 < x5; x11++) {
-const int x12 = x5 - x11;
-for(int x14=0; x14 < x12; x14++) {
-T3iii x16 = x3;
-const int x15 = x11 + x14;
-const int x17 = x14 + 1;
-const bool x18 = x17 == x15;
-if (x18) {
-const T3iii x26 = x16;
-const int x28 = x26.t2;
-const bool x30 = x28 < 0;
-T3iii x31;
-if (x30) {
-x31 = x26;
+class testParse extends ((Array[scala.Tuple2[Int, Int]])=>(scala.Tuple3[Int, Int, Int])) {
+def apply(x2:Array[scala.Tuple2[Int, Int]]): scala.Tuple3[Int, Int, Int] = {
+val x4 = x2.length
+val x5 = x4 + 1
+val x6 = x5 * x5
+val x7 = new Array[scala.Tuple3[Int, Int, Int]](x6)
+val x3 = (0,10000,0)
+var x9 : Int = 0
+val x78 = while (x9 < x5) {
+val x10 = x5 - x9
+var x12 : Int = 0
+val x76 = while (x12 < x10) {
+var x14: scala.Tuple3[Int, Int, Int] = x3
+val x13 = x9 + x12
+val x15 = x12 + 1
+val x16 = x15 == x13
+val x32 = if (x16) {
+val x24 = x14
+val x26 = x24._2
+val x28 = x26 < 0
+val x29 = if (x28) {
+x24
 } else {
-const T2ii x19 = x2[x14];
-const int x23 = x19.t1;
-const int x24 = x19.t2;
-const T3iii x25 = (T3iii){x23,0,x24};
-x31 = x25;
+val x17 = x2(x12)
+val x21 = x17._1
+val x22 = x17._2
+val x23 = (x21,0,x22)
+x23
 }
-x16 = x31;
+x14 = x29
+()
 } else {
+()
 }
-const int x20 = x15 - 1;
-const int x21 = x20 + 1;
-const bool x22 = x17 < x21;
-const int x37 = x6 + x14;
-if (x22) {
-for(int x36=x17; x36 < x21; x36++) {
-const int x38 = x37 - x36;
-const int x39 = x38 - 1;
-const int x40 = x38 * x39;
-const int x41 = x7 - x40;
-const int x42 = x41 / 2;
-const int x43 = x42 + x14;
-const T3iii x44 = x9[x43];
-const bool x45 = true ;// x44 != NULL;//null
-if (x45) {
-const int x46 = x6 + x36;
-const int x47 = x46 - x15;
-const int x48 = x47 - 1;
-const int x49 = x47 * x48;
-const int x50 = x7 - x49;
-const int x51 = x50 / 2;
-const int x52 = x51 + x36;
-const T3iii x53 = x9[x52];
-const bool x54 = true; //x53 != null;
-if (x54) {
-const T2TT x55 = (T2TT){x44,x53};
-const T3iii x56 = x55.t1;
-const T3iii x57 = x55.t2;
-const int x58 = x56.t1;
-const int x59 = x56.t2;
-const int x60 = x56.t3;
-const int x61 = x57.t1;
-const int x62 = x57.t2;
-const int x63 = x57.t3;
-const T3iii x69 = x16;
-const int x64 = x59 + x62;
-const int x65 = x58 * x60;
-const int x66 = x65 * x63;
-const int x67 = x64 + x66;
-const int x71 = x69.t2;
-const bool x73 = x71 < x67;
-T3iii x74;
-if (x73) {
-x74 = x69;
+val x18 = x13 - 1
+val x19 = x18 + 1
+val x20 = x15 < x19
+val x35 = x5 * x12
+val x71 = if (x20) {
+var x34 : Int = x15
+val x69 = while (x34 < x19) {
+val x36 = x35 + x34
+val x37 = x7(x36)
+val x38 = x37 != null
+val x67 = if (x38) {
+val x39 = x5 * x34
+val x40 = x39 + x13
+val x41 = x7(x40)
+val x42 = x41 != null
+val x65 = if (x42) {
+val x43 = (x37,x41)
+val x44 = x43._1
+val x45 = x43._2
+val x46 = x44._1
+val x47 = x44._2
+val x48 = x44._3
+val x49 = x45._1
+val x50 = x45._2
+val x51 = x45._3
+val x57 = x14
+val x52 = x47 + x50
+val x53 = x46 * x48
+val x54 = x53 * x51
+val x55 = x52 + x54
+val x59 = x57._2
+val x61 = x59 < x55
+val x62 = if (x61) {
+x57
 } else {
-const T3iii x68 = (T3iii){x58,x67,x63};
-x74 = x68;
+val x56 = (x46,x55,x51)
+x56
 }
-x16 = x74;
+x14 = x62
+()
 } else {
+()
 }
+x65
 } else {
+()
 }
+x67
+x34 = x34 + 1
 }
+x69
 } else {
+()
 }
-const T3iii x90 = x16;
-const int x84 = x37 - x15;
-const int x85 = x84 - 1;
-const int x86 = x84 * x85;
-const int x87 = x7 - x86;
-const int x88 = x87 / 2;
-const int x89 = x88 + x14;
-x9[x89] = x90;
+val x73 = x14
+val x72 = x35 + x13
+val x74 = x7(x72) = x73
+()
+x12 = x12 + 1
 }
+x76
+x9 = x9 + 1
 }
-T3iii x96 = x3;
-const int x97 = x6 + 0;
-const int x98 = x97 - x4;
-const int x99 = x98 - 1;
-const int x100 = x98 * x99;
-const int x101 = x7 - x100;
-const int x102 = x101 / 2;
-const int x103 = x102 + 0;
-const T3iii x104 = x9[x103];
-const bool x105 = true; //x104 != null;
-if (x105) {
-x96 = x104;
+var x79: scala.Tuple3[Int, Int, Int] = x3
+val x80 = x5 * 0
+val x81 = x80 + x4
+val x82 = x7(x81)
+val x83 = x82 != null
+val x86 = if (x83) {
+x79 = x82
+()
 } else {
+()
 }
-const T3iii x109 = x96;
-return x109;
+val x87 = x79
+x87
 }
-
-
-int main(){
-
-  T2ii matrices[] = {
-    {1,2},{2,20},{20,2},{2,4},
-    {4,2},{2,1},{1,7},{7,3}
-  };
-
-  T3iii res = testParse(matrices);
-
-  printf("(%d, %d, %d) \n",res.t1, res.t2, res.t3);
-
-};
+}
 /*****************************************
-  End of C Generated Code
+  End of Generated Code
 *******************************************/
+error: illegal sharing of mutable objects Sym(93)
+at Sym(170)=Reflect(Assign(Variable(Sym(165)),Sym(168)),Summary(false,false,false,false,false,List(Sym(165), Sym(93)),List(Sym(165), Sym(93)),List(Sym(165)),List(Sym(165))),List(Sym(93), Sym(164), Sym(165)))
+compilation: ok
+(1,122,3)
