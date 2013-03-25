@@ -63,6 +63,7 @@ trait NussinovGrammar extends ADPParsers with NussinovSig {
   }
   */
 
+  /*
   val s:Tabulate = tabulate("s",(
     empty  ^^ nil
   | el ~ s ^^ left
@@ -71,6 +72,14 @@ trait NussinovGrammar extends ADPParsers with NussinovSig {
   ) aggregate h)
 
   val t:Tabulate = tabulate("t", (el ~ s ~ el filter basePair) ^^ pair)
+  */
+  val s:Tabulate = tabulate("s",(
+    empty  ^^ nil
+  | el ~ s ^^ left
+  | s ~ el ^^ right
+  | (el ~ s ~ el filter basePair) ^^ pair
+  | s ~(1,maxN,1,maxN)~ s  ^^ split
+  ) aggregate h,true)
 
   val axiom=s
 }
@@ -78,8 +87,10 @@ trait NussinovGrammar extends ADPParsers with NussinovSig {
 object Nussinov extends App {
   object nu extends NussinovGrammar with NussinovAlgebra with CodeGen {
     override val tps = (manifest[Alphabet],manifest[Answer])
+    override val benchmark = true
   }
   object pretty extends NussinovGrammar with NussinovString
+  /*
   def testSeq(seq:String) = {
     val s=seq.toArray
     val (score,bt) = nu.backtrack(s).head
@@ -88,4 +99,12 @@ object Nussinov extends App {
     println("CPU: "+pretty.build(s,bt2)+" ("+score2+")\n")
   }
   for (k<-0 until 30) testSeq(Utils.genRNA(180))
+  */
+
+  for (k<-0 until 10) {
+    println("OK")
+    val s = Utils.genRNA(1000).toArray
+    nu.time("CPU")(()=>nu.backtrack(s,nu.psCPU))
+  }
+
 }
