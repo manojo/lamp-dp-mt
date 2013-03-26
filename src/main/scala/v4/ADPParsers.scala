@@ -30,8 +30,8 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   import scala.language.implicitConversions
   implicit def parserADP[T](p1:Parser[T]) = new ParserADP(p1)
   class ParserADP[T](p1:Parser[T],idx:(Int,Int,Int,Int)=null) {
-    def ~ [U](p2:Parser[U]) = if (idx!=null) new Concat(p1,p2,0) { override lazy val indices=idx } else new Concat(p1,p2,0)
-    def ~ (minl:Int,maxl:Int,minr:Int,maxr:Int):ParserADP[T] = new ParserADP[T](p1,(minl,maxl,minr,maxr))
+    def ~ [U](p2:Parser[U]) = if (idx!=null) new Concat(p1,p2,0) { override val hint=idx } else new Concat(p1,p2,0)
+    def ~ (minl:Int=0,maxl:Int=maxN,minr:Int=0,maxr:Int=maxN):ParserADP[T] = new ParserADP[T](p1,(minl,maxl,minr,maxr))
   }
 
   // Terminal parsers

@@ -202,9 +202,9 @@ trait CodeGen extends BaseParsers { this:Signature =>
       "  // Sync between blocks, removing __threadfence() here is incorrect but works\n  // __threadfence();\n"+
       "  if (threadIdx.x==0) { lock[tB]=++tP; if (tB) while(lock[tB-1]<tP) {} }\n  __syncthreads();\n}")+"}\n"
     } else {
-      val loops = (if (twotracks) "for (unsigned i=0; i<M_H; ++i) {\n  for (int j=0; j<M_W; ++j) {"
-                             else "for (unsigned jj=0; jj<M_W; ++jj) {\n  for (int ii=0; ii<M_H; ++ii) {\n    int i = M_H-1-ii, j = i+jj;")+"\n"
-      "void cpu_solve(const input_t* _in1, const input_t* _in2, cost_t* cost, back_t* back) {\n"+ind(loops+"    if (j<M_W) {\n"+ind(kern,3)+"    }\n  }\n}")+"}\n"
+      val loops = (if (twotracks) "for (int i=0; i<M_H; ++i) {\n  for (int j=0; j<M_W; ++j) {"
+                             else "for (int jj=0; jj<M_W; ++jj) {\n  for (int ii=jj; ii<M_H; ++ii) {\n    int i=M_H-1-ii, j=i+jj;")+"\n"
+      "void cpu_solve(const input_t* _in1, const input_t* _in2, cost_t* cost, back_t* back) {\n"+ind(loops+ind(kern,2)+"  }\n}")+"}\n"
     }
   }
 
@@ -487,7 +487,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
       head.addPriv("#define idx(i,j) ((i)*M_W+j)") // ((i)*B_W+(j))
     } else {
       head.addPriv("#define MEM_MATRIX (M_W*M_H)") // ((M_H*(M_H+1))/2) -- upper right triangle, including diagonal
-      head.addPriv("#define idx(i,j) ((i)*M_W+j)") // ({ unsigned _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - ((_d*(_d-1))>>1) +_i; })
+      head.addPriv("#define idx(i,j) ((i)*M_W+j)") // ({ int _i=(i),_d=M_H+1+_i-(j); MEM_MATRIX - ((_d*(_d-1))>>1) +_i; })
     }
     // Extra function to compute the best result within the window
     val aggr=h.toString match {

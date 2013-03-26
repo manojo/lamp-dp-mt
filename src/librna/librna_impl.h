@@ -88,6 +88,9 @@ my_dev double scale(int x);
 my_dev bool iupac_match(enum base_t base, unsigned char iupac_base);
 
 #define INLINE inline
+#define GAPS_DISABLED // input sequence does not contain any gap
+#define NOCHECKS // avoid useless tests
+
 
 // -----------------------------------------------------------------------------
 // Implementation
@@ -110,11 +113,15 @@ my_dev static inline int bp_index(char x, char y) {
   return NO_BP;
 }
 
-#define GAPS_DISABLED
 #ifdef GAPS_DISABLED // if gaps are forbidden in original sequence, we can avoid loops here
 #define noGaps(i,j) 0
-my_dev static inline rsize getNext(rsize pos, rsize steps, rsize rightBorder) { int x=pos+steps; return (x>rightBorder) ? rightBorder : x; }
-my_dev static inline rsize getPrev(rsize pos, rsize steps, rsize leftBorder) { int x=pos-steps; return (x<leftBorder) ? leftBorder : x; }
+#ifdef NOCHECKS
+  #define getNext(pos,steps,rightBorder) ((pos)+(steps))
+  #define getPrev(pos,steps,leftBorder) ((pos)-(steps))
+#else
+  my_dev static inline rsize getNext(rsize pos, rsize steps, rsize rightBorder) { int x=pos+steps; return (x>rightBorder) ? rightBorder : x; }
+  my_dev static inline rsize getPrev(rsize pos, rsize steps, rsize leftBorder) { int x=pos-steps; return (x<leftBorder) ? leftBorder : x; }
+#endif
 #else
 my_dev static rsize noGaps(rsize i, rsize j) {
   rsize noGaps=0; rsize k; for (k=i;k<=j;++k) if (my_seq[k]==GAP_BASE) ++noGaps;
@@ -140,7 +147,6 @@ my_dev static rsize getPrev(rsize pos, rsize steps, rsize leftBorder) { // asser
 #define _bp2(a,b,c, d,e,f) bp_index(my_seq[getPrev(a,b,c)], my_seq[getNext(d,e,f)])
 
 my_dev static inline int jacobson_stockmayer(rsize l) { return (int)(my_LXC*my_LOG((l)*(1.0 / MAXLOOP))); } // approx 10% total time (RNAfold-768)
-
 my_dev static inline int hl_ent(rsize l) { return (l>MAXLOOP) ? my_HAIRPIN_MAX+jacobson_stockmayer(l) : my_P0.hairpin[l]; }
 my_dev static inline int hl_stack(rsize i, rsize j) { return my_P0.mismatchH[_bp(i,j)][_next(i,1,j-1)][_prev(j,1,i+1)]; }
 my_dev INLINE int termau_energy(rsize i, rsize j) { return ((my_seq[i]==G_BASE && my_seq[j]==C_BASE) || (my_seq[i]==C_BASE && my_seq[j]==G_BASE)) ? 0 : my_TERM_AU; }
@@ -149,7 +155,13 @@ my_dev static int strMatch(rsize i, rsize j, const char *str, int strlen, int st
   int len = j-i+1; // length of the sequence to match
   const char* p; const char* pmax=str+strlen;
   for (p=str; p<pmax; p+=step) { // p is str candidate
-    int n,k;
+    int n;
+
+#ifdef GAPS_DISABLED
+    const char* chr="NACGU";
+    for (n=0;n<len;++n) { if (p[n]!=chr[(int)my_seq[i+n]]) break; }
+#else
+	int k;
     for (n=0,k=0;n<len;++n) { // for all items in [i,j]
       char c=my_seq[i+n];
       if (c==GAP_BASE) continue;
@@ -160,6 +172,7 @@ my_dev static int strMatch(rsize i, rsize j, const char *str, int strlen, int st
       else if (c==U_BASE) { if (p[k]!='U') break; ++k; }
       else break;
     }
+#endif
     if (n==len) return ((int)(p-str))/step;
   }
   return -1; // not found
@@ -175,7 +188,7 @@ my_dev int hl_energy(rsize i, rsize j) { // assert(j-i>1);
     case 6: if ((pos=strMatch(i,j,my_P0.Hexaloops ,my_P0.HexaloopsLen ,9))!=-1) return my_P0.Hexaloop_E[pos]; break; //special hexaloop cases
   }
   int entropy = hl_ent(size);
-  if (size == 3) return entropy + termau_energy(i, j); //normal hairpins of loop size 3
+  if (size == 3) return entropy + termau_energy(i,j); //normal hairpins of loop size 3
   else return entropy + hl_stack(i,j); //normal hairpins of loop sizes larger than three (entropy+stack_mismatch)
 }
 
@@ -254,10 +267,17 @@ my_dev int il_energy(rsize i, rsize k, rsize l, rsize j) {
 my_dev INLINE int sr_energy(rsize i, rsize j) { return my_P0.stack[_bp(i,j)][_bp(j-1,i+1)]; }
 my_dev INLINE int sr_pk_energy(char a, char b, char c, char d) { return my_P0.stack[bp_index(a,b)][bp_index(d,c)]; }
 
-my_dev INLINE int dl_energy(rsize i, rsize j) { if (i==0) return 0; int dd = my_P0.dangle5[_bp(i,j)][_prev(i,1,0)]; return (dd>0) ? 0 : dd; } // must be <= 0
-my_dev INLINE int dr_energy(rsize i, rsize j) { if ((j+1)>=my_len) return 0; int dd = my_P0.dangle3[_bp(i,j)][_next(j,1,my_len)]; return (dd>0) ? 0 : dd; } // must be <= 0
-my_dev INLINE int dli_energy(rsize i, rsize j) { int dd = my_P0.dangle3[_bp(j,i)][_next(i,1,j-1)]; return (dd>0) ? 0 : dd; } // must be <= 0
-my_dev INLINE int dri_energy(rsize i, rsize j) { int dd = my_P0.dangle5[_bp(j,i)][_prev(j,1,i+1)]; return (dd>0) ? 0 : dd; } // must be <= 0
+#ifdef NOCHECKS
+  my_dev INLINE int dl_energy(rsize i, rsize j) { return my_P0.dangle5[_bp(i,j)][_prev(i,1,0)]; }
+  my_dev INLINE int dr_energy(rsize i, rsize j) { return my_P0.dangle3[_bp(i,j)][_next(j,1,my_len)]; }
+  my_dev INLINE int dli_energy(rsize i, rsize j) { return my_P0.dangle3[_bp(j,i)][_next(i,1,j-1)]; }
+  my_dev INLINE int dri_energy(rsize i, rsize j) { return my_P0.dangle5[_bp(j,i)][_prev(j,1,i+1)]; }
+#else
+  my_dev INLINE int dl_energy(rsize i, rsize j) { if (i==0) return 0; int dd = my_P0.dangle5[_bp(i,j)][_prev(i,1,0)]; return (dd>0) ? 0 : dd; } // must be <= 0
+  my_dev INLINE int dr_energy(rsize i, rsize j) { if ((j+1)>=my_len) return 0; int dd = my_P0.dangle3[_bp(i,j)][_next(j,1,my_len)]; return (dd>0) ? 0 : dd; } // must be <= 0
+  my_dev INLINE int dli_energy(rsize i, rsize j) { int dd = my_P0.dangle3[_bp(j,i)][_next(i,1,j-1)]; return (dd>0) ? 0 : dd; } // must be <= 0
+  my_dev INLINE int dri_energy(rsize i, rsize j) { int dd = my_P0.dangle5[_bp(j,i)][_prev(j,1,i+1)]; return (dd>0) ? 0 : dd; } // must be <= 0
+#endif
 
 my_dev int ext_mismatch_energy(rsize i, rsize j) {
   if ((i > 0) && ((j+1) < my_len)) return my_P0.mismatchExt[_bp(i,j)][_prev(i,1,0)][_next(j,1,my_len)];
