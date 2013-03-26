@@ -153,7 +153,8 @@ trait BaseParsersExp extends BaseParsers with PackageExp with GeneratorOpsExp { 
     def apply(i:Rep[Int],j:Rep[Int]) = {
       /*val arr = readVar(data); */
       val v = data(idx(i,j))
-      cond(v != unit(null), elGen(v/*,bt0*/), emptyGen())
+      //cond(v != unit(null), elGen(v/*,bt0*/), emptyGen())
+      elGen(v)
     } // read-only
     //def unapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); if (v!=unit(null)) List((i,j,v._2)) else List[(Int,Int,Backtrack)]() }
     //def reapply(i:Rep[Int],j:Rep[Int],bt:Rep[Backtrack]) = { val v=data(idx(i,j)); /*if (v==unit(null)) sys.error("Failed reapply"+(i,j))*/ v._1 }
