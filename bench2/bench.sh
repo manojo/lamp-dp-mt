@@ -18,7 +18,7 @@ fi
 # Benchmarking setup
 
 LOOPS=25; # Number of tests
-SIZES="100 200 300 400 500 600 700 800 900 1000"
+SIZES="100 200 300 400 500 600 700 800 900 1000 1200 1400 1600 1800 2000 2200 2400 2600 2800 3000 3200 3400 3600 3800 4000"
 
 # Benchmarking loop
 for prog in nu zu; do
@@ -36,12 +36,3 @@ done
 done
 done
 done
-
-#      case("c",_) =>   run("g++ "+ccFlags+" "+f+".c -c -o "+f+"_c.o") // gcc fails to link properly with nvcc object files
-#      case("cpp",_) => run("g++ "+ccFlags+" "+f+".cpp -c -o "+f+"_cpp.o")
-#      case("cu",_) =>  run(cudaPath+"/bin/nvcc "+cudaFlags+" "+ccFlags+" "+f+".cu -c -o "+f+"_cu.o")
-#    override val outPath = "bin"
-#    override val cudaPath = "/usr/local/cuda"
-#    override val cudaFlags = "-m64 -arch=sm_30" // --ptxas-options=-v
-#    override val ccFlags = "-O3 -I/System/Library/Frameworks/JavaVM.framework/Headers"
-#    override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"

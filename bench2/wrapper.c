@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 		double last=(te.tv_sec-ts.tv_sec)*1000.0+(te.tv_usec-ts.tv_usec)/1000.0;
 		printf("%7.2f ",last); fflush(stdout);
 	}
-	printf(" ]); %% ");
+	printf(" ])) %% ");
 	#ifdef NU
 	printf("Nussinov");
 	#else
