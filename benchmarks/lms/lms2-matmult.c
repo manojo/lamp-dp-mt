@@ -109,8 +109,7 @@ int main() {
   gettimeofday(&te, NULL);
 
   double last=(te.tv_sec-ts.tv_sec)*1000.0+(te.tv_usec-ts.tv_usec)/1000.0;
-  printf("Runnin time: %7.2fms [%7.2f,%7.2f], %d runs \n",last);
-
+  printf("Running time: %7.2fms\n",last);
 
   printf("(%d, %d, %d)\n", res.t1, res.t2, res.t3 );
 

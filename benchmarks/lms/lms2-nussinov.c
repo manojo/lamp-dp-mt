@@ -200,19 +200,17 @@ return x158;
 #include <sys/time.h>
   int main() {
 
-    char rna[] = {
-      'a','c','g','u','a','c','g','u'
-    };
+    char* rna = "cuggcugaaacuagucuacaugugcgcuucucuagcaugaauuuaguagugagcgguccgguuuacgaggcuggaguuaccauuggcugugucggggaaggggacaggauguccggacguccaccgacucuuaguaccgacacucacacccuuauuuggaaaaagaggaggacucucccgcggcaacguacgacaagcguauauggggaaacaaagaaucuuaaaaaaugaggaaucuagucacccaugaacuccuauucguuugcaucacggaccucguuaaaaaggauaguagcuguaccugggggcagugaucgugcuagauggggcagcuucgcucagagcauucguugugcugacgaagcugaggauauccuagcaguguuggugcgccuauuccugaccaugcuuaacugugaggcaacguucgaacuagacaacucucgcacgggauuaggucuacgccggagcuucaccuguuacuaaaggcucauccguagcccuagaccggaaccauacuccuauucaacugaaacuggaaucguuuguuccuaacuagaggcaacgacuaacgaugcgaucgcgaacgguaagacugggaaagcgcugcucaggcacguuuccuauacaaugaucaggcgcauguaaauaagguggaaccuagcucggaaugcuccgccucaguuaacguguaguugcaauggguaagauaacugacugcgugucucgccacuacccccagauucucgugaucauuugugaccgagaauauagcuauugcguucccaaguguuaccgauggcgcgagaucgcuagguacgugcugauaugccggccccuguuauggguucaggcucucacgcacauaggcugcauggcgagcccaccgaacauauaccauuacuuauagucggaggcaccucucuuugucccugggauugauaccggugagguacgugauaggaggcuaccccguggaggugggagauccauugauaac";
 
     struct timeval ts, te;
     gettimeofday(&ts, NULL);
 
-    int res = testParse(rna, 8);
+    int res = testParse(rna, 1000);
 
     gettimeofday(&te, NULL);
 
     double last=(te.tv_sec-ts.tv_sec)*1000.0+(te.tv_usec-ts.tv_usec)/1000.0;
-    printf("Runnin time: %7.2fms [%7.2f,%7.2f], %d runs \n",last);
+    printf("Running time: %7.2fms\n",last);
 
 
     printf("%d\n", res);
