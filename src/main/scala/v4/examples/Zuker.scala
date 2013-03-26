@@ -138,7 +138,7 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
     ) aggregate h, true); // always nonempty
 
   lazy val dangle = LOC ~ closed ~ LOC ^^ dlr
-  val closed:Tabulate = tabulate("cl", (stack | hairpin | leftB | rightB | iloop | multiloop) filter stackpairing aggregate h)
+  val closed:Tabulate = tabulate("cl", (stack | hairpin | leftB | rightB | iloop | multiloop) aggregate h filter stackpairing)
 
   lazy val stack   = BASE ~ closed ~ BASE ^^ sr
   lazy val hairpin = BASE ~ BASE ~ REG3 ~ BASE ~ BASE ^^ hl
@@ -165,6 +165,7 @@ object Zuker extends App {
     override val benchmark = true
     override val tps = (manifest[Alphabet],manifest[Answer])
     override val cudaSplit = 320
+    override val cudaEmpty = "999999"
   }
   object pretty extends ZukerGrammar with ZukerPrettyPrint
   object count extends ZukerGrammar with ZukerCount

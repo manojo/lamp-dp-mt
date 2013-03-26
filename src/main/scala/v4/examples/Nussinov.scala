@@ -51,17 +51,17 @@ trait NussinovPrettyAlgebra extends NussinovSig {
 */
 
 trait NussinovGrammar extends ADPParsers with NussinovSig {
-  val basePair = cfun2((i:Int,j:Int) => if (i+2>j) false else (in(i),in(j-1)) match {
-    case ('a','u') | ('u','a') | ('g','u') | ('u','g') | ('c','g') | ('g','c') => true
-    case _ => false
-  },"i,j","if (i+2>j) return false; char a=_in1[i],b=_in1[j-1];"+
-    " return (a=='a'&&b=='u') || (a=='u'&&b=='a') || (a=='g'&&b=='u') || (a=='u'&&b=='g') || (a=='c'&&b=='g') || (a=='g'&&b=='c');")
   /*
   def basePair(i:Int,j:Int) = (in(i),in(j-1)) match {
     case ('a','u') | ('u','a') | ('g','u') | ('u','g') | ('c','g') | ('g','c') => true
     case _ => false
   }
   */
+  val basePair = cfun2((i:Int,j:Int) => if (i+2>j) false else (in(i),in(j-1)) match {
+    case ('a','u') | ('u','a') | ('g','u') | ('u','g') | ('c','g') | ('g','c') => true
+    case _ => false
+  },"i,j","if (i+2>j) return false; char a=_in1[i],b=_in1[j-1];"+
+    " return (a=='a'&&b=='u') || (a=='u'&&b=='a') || (a=='g'&&b=='u') || (a=='u'&&b=='g') || (a=='c'&&b=='g') || (a=='g'&&b=='c');")
 
   /*
   val s:Tabulate = tabulate("s",(
@@ -70,15 +70,16 @@ trait NussinovGrammar extends ADPParsers with NussinovSig {
   | s ~ el ^^ right
   | s ~ t  ^^ split
   ) aggregate h)
-
   val t:Tabulate = tabulate("t", (el ~ s ~ el filter basePair) ^^ pair)
   */
+
+  // Nussinov78 grammar
   val s:Tabulate = tabulate("s",(
     empty  ^^ nil
   | el ~ s ^^ left
   | s ~ el ^^ right
   | (el ~ s ~ el filter basePair) ^^ pair
-  | s ~(1,maxN,1,maxN)~ s  ^^ split
+  | s ~ s ^^ split
   ) aggregate h,true)
 
   val axiom=s
