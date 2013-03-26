@@ -7,30 +7,63 @@ import v4._
 // Formulae are according to TCK's empirical guess
 
 trait Zuker2Sig extends RNASignature {
+  val iloopI : ((Int,Int),Answer,(Int,Int)) => Answer
+  val multiI : (Answer,Answer) => Answer
+  // weak
+  val multiO : (Int,Answer,Int) => Answer
+  val iloopO : (Int,Answer,Int) => Answer
+  val iloop1N : ((Int,Int),Answer,(Int,Int)) => Answer
+  val iloopN1 : ((Int,Int),Answer,(Int,Int)) => Answer
+  val bulgeL : ((Int,Int),Answer,Int) => Answer
+  val bulgeR : (Int,Answer,(Int,Int)) => Answer
+  val tinyloop : ((Int,Int),Answer,(Int,Int)) => Answer
+  val hairpin : (Int,(Int,Int),Int) => Answer
+  // block
+  val justStem : (Int,Answer,Int) => Answer
+  val regionStem : (Int,Answer) => Answer
+  // comps
+  val bs : (Answer,Int) => Answer
+  val bc : (Answer,Answer) => Answer
+  // struct
+  val iD : Answer => Answer
+  val cm : (Answer,Answer) => Answer
+  val rS : (Int,Answer) => Answer
+  val nil : Unit => Answer
+}
+
+trait Zuker2MFE extends Zuker2Sig {
   type Answer = Int
   import librna.LibRNA._
   override val h = min[Int] _
 
-  // See RNAFold/Energy.hs for coefficients
+  val iloopI = cfun3((r1:(Int,Int),x:Int,r2:(Int,Int)) => x + il_energy(r1._1,r1._2,r2._1-1,r2._2-1),
+                                        "r1,x,r2","return x + il_energy(r1._1,r1._2,r2._1-1,r2._2-1);")
 
-  val iloopI = (r1:(Int,Int),x:Int,r2:(Int,Int)) => il_energy(r1._1-1,r1._2,r2._1-1,r2._2)
-  val multiI = (l:Int,r:Int) => 0 // XXX
-
+  val multiI = cfun2((l:Int,r:Int) => l+r, "l,r","return l+r;")
   // weak
-  val multiO = (l:Int,e:Int,r:Int) => 0 // XXX --> il_energy
-  val iloopO = (l:Int,e:Int,r:Int) => 0 // XXX --> il_energy
-  val iloop1N = (l:(Int,Int),e:Int,r:(Int,Int)) => 0 // XXX --> il_energy
-  val iloopN1 = (l:(Int,Int),e:Int,r:(Int,Int)) => 0 // XXX --> il_energy
+  val multiO = cfun3((l:Int,e:Int,r:Int) => sr_energy(l,r)+e, "l,e,r","return sr_energy(l,r)+e;")
+  val iloopO = cfun3((l:Int,e:Int,r:Int) => sr_energy(l,r)+e, "l,e,r","return sr_energy(l,r)+e;")
 
-  val bulgeL = (b:(Int,Int),x:Int,r:Int) => x + bl_energy(b._1-1,b._1,b._2-1,r,r-1)
-  val bulgeR = (l:Int,x:Int,b:(Int,Int)) => x + br_energy(l,b._1,b._2-1,b._2,l+1)
+  val iloop1N = cfun3((r1:(Int,Int),x:Int,r2:(Int,Int)) => x + il_energy(r1._1,r1._2,r2._1-1,r2._2-1),
+                                         "r1,x,r2","return x + il_energy(r1._1,r1._2,r2._1-1,r2._2-1);")
 
-  val tinyloop = (l:(Int,Int),e:Int,r:(Int,Int)) => 0 // --> il_energy
+  val iloopN1 = cfun3((r1:(Int,Int),x:Int,r2:(Int,Int)) => x + il_energy(r1._1,r1._2,r2._1-1,r2._2-1),
+                                         "r1,x,r2","return x + il_energy(r1._1,r1._2,r2._1-1,r2._2-1);")
 
-  val hairpin = (l:Int,e:(Int,Int),r:Int) => hl_energy(l,r)
+  val bulgeL = cfun3((b:(Int,Int),x:Int,r:Int) => x + bl_energy(b._1,b._1+1,b._2-1,r,r-1),
+                                  "b,x,r","return x + bl_energy(b._1,b._1+1,b._2-1,r,r-1);")
+
+  val bulgeR = cfun3((i:Int,x:Int,b:(Int,Int)) => x + br_energy(i,b._1,b._2-2,b._2-1,i+1),
+                                  "i,x,b","return x + br_energy(i,b._1,b._2-2,b._2-1,i+1);")
+
+  val tinyloop = cfun3((l:(Int,Int),e:Int,r:(Int,Int)) => e + il_energy(l._1,l._2,r._1-1,r._2-1),
+                                          "l,e,r","return e + il_energy(l._1,l._2,r._1-1,r._2-1);")
+
+  val hairpin = cfun3((l:Int,e:(Int,Int),r:Int) => hl_energy(l,r),
+                                   "l,e,r","return hl_energy(l,r);")
   // block
-  val justStem = (l:Int,e:Int,r:Int) => e // guessed
-  val regionStem = (l:Int,r:Int) => r // guessed
+  val justStem = cfun3((l:Int,e:Int,r:Int) => e, "l,e,r","return e;")
+  val regionStem = cfun2((l:Int,r:Int) => r, "l,r","return r;")
   // comps
   val bs = cfun2((e:Int,r:Int)=>e, "e,r","return e;")
   val bc = cfun2((l:Int,r:Int)=>l+r, "l,r","return l+r;")
@@ -40,6 +73,35 @@ trait Zuker2Sig extends RNASignature {
   val rS = cfun2((x:Int,e:Int)=>e, "x,e","return e;")
   val nil = cfun1((d:Unit)=>0,"","return 0;")
 }
+/*
+trait Zuker2Pretty extends Zuker2Sig {
+  val iloopI = (r1:(Int,Int),x:Int,r2:(Int,Int)) => x + il_energy(r1._1,r1._2,r2._1-1,r2._2-1)
+  val multiI = (l:Int,r:Int) => l+r // guessed
+  // weak
+  val multiO = (l:Int,e:Int,r:Int) => { println("stack"+(l,r)); sr_energy(l,r)+e }
+  val iloopO = (l:Int,e:Int,r:Int) => { println("stack"+(l,r)); sr_energy(l,r)+e }
+  val iloop1N = (r1:(Int,Int),x:Int,r2:(Int,Int)) => x + il_energy(r1._1,r1._2,r2._1-1,r2._2-1)
+  val iloopN1 = (r1:(Int,Int),x:Int,r2:(Int,Int)) => x + il_energy(r1._1,r1._2,r2._1-1,r2._2-1)
+  val bulgeL = (b:(Int,Int),x:Int,r:Int) => x + bl_energy(b._1,b._1+1,b._2-1,r,r-1) // guess ok
+  val bulgeR = (i:Int,x:Int,b:(Int,Int)) => x + br_energy(i,b._1,b._2-2,b._2-1,i+1) // guess ok
+  val tinyloop = (l:(Int,Int),e:Int,r:(Int,Int)) => e + il_energy(l._1,l._2,r._1-1,r._2-1) // guess ok
+  val hairpin = (l:Int,e:(Int,Int),r:Int) => hl_energy(l,r) // guess ok
+  // block
+  val justStem = (l:Int,e:Int,r:Int) => e // guessed ok
+  val regionStem = (l:Int,r:Int) => r // guessed ok
+  // comps
+  val bs = cfun2((e:Int,r:Int)=>e, "e,r","return e;")
+  val bc = cfun2((l:Int,r:Int)=>l+r, "l,r","return l+r;")
+  // struct
+  val iD = cfun1((e:Int)=>e, "e","return e;")
+  val cm = cfun2((x:Int,e:Int)=>x+e, "x,e","return x+e;")
+  val rS = cfun2((x:Int,e:Int)=>e, "x,e","return e;")
+  val nil = cfun1((d:Unit)=>0,"","return 0;")
+}
+*/
+
+
+
 
 trait Zuker2Grammar extends Zuker2Sig with ADPParsers {
   lazy val iif = primary ~(3,30,1,maxN)~   weak  ~(1,maxN,3,30)~  primary ^^ iloopI aggregate h
@@ -57,15 +119,15 @@ trait Zuker2Grammar extends Zuker2Sig with ADPParsers {
   ) aggregate h filter basepairing)
 
   val block:Tabulate = tabulate("bl",(
-    baseLr ~(1,1,1,maxN)~ weak  ~(1,maxN,1,1)~ baselR ^^ justStem // adjustStream n
-  | base   ~(1,1,1,maxN)~ block                       ^^ regionStem
+    baseLr ~(1,1,1,maxN)~ weak  ~(1,maxN,1,1)~ baselR  ^^ justStem // adjustStream n
+  | base   ~(1,1,1,maxN)~ block                        ^^ regionStem
   ) aggregate h)
 
   val reglen = new Terminal[Int](0,maxN,(i:Var,j:Var) => (Nil,"(("+j+")-("+i+"))")) { def apply(sw:Subword) = List((sw._2-sw._1,bt0)) }
   val comps:Tabulate = tabulate("co",(
-    block ~(1,maxN,1,maxN)~ reglen ^^ bs
-  | block ~(1,maxN,1,maxN)~ comps  ^^ bc
-  | block                          ^^ iD
+    block ~(1,maxN,1,maxN)~ reglen  ^^ bs
+  | block ~(1,maxN,1,maxN)~ comps   ^^ bc
+  | block                           ^^ iD
   ) aggregate h)
 
   val tail = cfun2((i:Int,j:Int) => j==size, "i,j","return j==M_W-1;")
@@ -88,20 +150,25 @@ trait Zuker2Grammar extends Zuker2Sig with ADPParsers {
 }
 
 object Zuker2 extends App {
-  object mfe extends Zuker2Grammar {
+  object mfe extends Zuker2Grammar with Zuker2MFE with CodeGen {
     override val benchmark = true
-    /*
     override val tps = (manifest[Alphabet],manifest[Answer])
     override val cudaSplit = 320
     override val cudaEmpty = "999999"
-    */
   }
 
-  for (k<-0 until 2) {
-    val s = Utils.genRNA(1000).toArray
-    val r = mfe.parse(s)
-    println ("Result = "+r)
+  def testSeq(seq:String) {
+    val (cpu,btC) = mfe.backtrack(mfe.convert(seq),mfe.psCPU).head
+    val ref=mfe.time("ViennaRNA")(()=>Utils.refFold(seq,"resources/RNAfold_orig_mac --noPS --noLP -d2"))
+    println("\nSeq: "+seq+"\nRef: "+ref+"\nCPU: "+cpu+"\n")
   }
+
+/*
+  for (k<-1 to 10) {
+    testSeq(Utils.genRNA(100*k))
+  }
+*/
+  testSeq(Utils.genRNA(1000))
 
   println("Not implemented")
 }
