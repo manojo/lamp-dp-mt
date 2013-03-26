@@ -258,8 +258,6 @@ trait BaseParsers { this:Signature =>
   // Parses a concatenation of string " left ~ right " with length(left) in [lL,lU]
   // and length(right) in [rL,rU], lU,rU=0 means unbounded (infinity).
   case class Concat[T,U](left: Parser[T], right:Parser[U], track:Int) extends Parser[(T,U)] {
-    def min = left.min+right.min
-    def max = if (left.max==maxN || right.max==maxN) maxN else left.max+right.max
     lazy val (alt,cat) = (left.alt*right.alt, left.cat+(if(hasBt)1 else 0)+right.cat)
     lazy val hasBt:Boolean = (track,left.min,left.max,right.min,right.max) match {
       case (0,a,b,c,d) if ((a==b && a>=0) || (c==d && c>=0)) => false
@@ -267,7 +265,13 @@ trait BaseParsers { this:Signature =>
       case (2,_,_,a,b) if (a==b && a>=0) => false
       case _ => true
     }
-    lazy val indices = { assert(analyzed==true); (left.min,left.max,right.min,right.max) }
+    // Yield: we can only give restrictions hints, but analysis might restrict it further
+    val hint = if (left==right && track==0) (1,maxN,1,maxN) else (0,maxN, 0,maxN)
+    def min = Math.max(left.min,hint._1)+Math.max(right.min,hint._3)
+    def max = { val lm=hm(left.max,hint._2); val rm=hm(right.max,hint._4); if (lm==maxN || rm==maxN) maxN else lm+rm }
+    lazy val indices = { assert(analyzed==true); (Math.max(left.min,hint._1),hm(left.max,hint._2),Math.max(right.min,hint._3),hm(right.max,hint._4)) }
+    private def hm(a:Int,b:Int) = if (a==maxN) b else if (b==maxN) a else Math.min(a,b) // min with maxN=infinity semantics
+
     @inline private def bt(bl:Backtrack,br:Backtrack,k:Int):Backtrack = {
       (bl._1*right.alt+br._1, bl._2:::(if (hasBt)List(k) else Nil):::br._2)
     }
