@@ -1,0 +1,233 @@
+/*****************************************
+  Emitting Generated Code                  
+*******************************************/
+class testParse extends ((Array[Char])=>(Int)) {
+def apply(x2:Array[Char]): Int = {
+val x3 = x2.length
+val x4 = x3 + 1
+val x5 = x4 * x4
+val x6 = new Array[Int](x5)
+var x8 : Int = 0
+val x152 = while (x8 < x4) {
+val x9 = x4 - x8
+var x11 : Int = 0
+val x150 = while (x11 < x9) {
+var x13: Int = 0
+val x15 = x11 + 1
+val x12 = x8 + x11
+val x16 = x12 - 0
+val x17 = x16 <= x15
+val x18 = if (x17) {
+x16
+} else {
+x15
+}
+val x19 = x18 + 1
+val x20 = x15 < x19
+val x72 = if (x20) {
+var x57 : Int = x15
+val x70 = while (x57 < x19) {
+val x58 = x15 == x57
+val x68 = if (x58) {
+val x59 = x4 * x57
+val x60 = x59 + x12
+val x61 = x6(x60)
+val x63 = x13
+val x64 = x63 >= x61
+val x65 = if (x64) {
+x63
+} else {
+x61
+}
+x13 = x65
+()
+} else {
+()
+}
+x68
+x57 = x57 + 1
+}
+x70
+} else {
+()
+}
+val x21 = x11 + 0
+val x22 = x12 - 1
+val x23 = x21 >= x22
+val x24 = if (x23) {
+x21
+} else {
+x22
+}
+val x25 = x22 + 1
+val x26 = x24 < x25
+val x75 = x4 * x11
+val x91 = if (x26) {
+var x74 : Int = x24
+val x89 = while (x74 < x25) {
+val x76 = x75 + x74
+val x77 = x6(x76)
+val x78 = x74 + 1
+val x79 = x78 == x12
+val x87 = if (x79) {
+val x82 = x13
+val x83 = x82 >= x77
+val x84 = if (x83) {
+x82
+} else {
+x77
+}
+x13 = x84
+()
+} else {
+()
+}
+x87
+x74 = x74 + 1
+}
+x89
+} else {
+()
+}
+val x27 = x11 + 2
+val x28 = x27 > x12
+val x50 = if (x28) {
+false
+} else {
+val x29 = x2(x11)
+val x31 = x29 == 'a'
+val x30 = x2(x22)
+val x32 = x30 == 'u'
+val x33 = x31 && x32
+val x34 = x29 == 'u'
+val x35 = x30 == 'a'
+val x36 = x34 && x35
+val x37 = x33 || x36
+val x38 = x29 == 'g'
+val x39 = x38 && x32
+val x40 = x37 || x39
+val x41 = x30 == 'g'
+val x42 = x34 && x41
+val x43 = x40 || x42
+val x44 = x29 == 'c'
+val x45 = x44 && x41
+val x46 = x43 || x45
+val x47 = x30 == 'c'
+val x48 = x38 && x47
+val x49 = x46 || x48
+x49
+}
+val x128 = if (x50) {
+val x51 = x15 >= x22
+val x52 = if (x51) {
+x15
+} else {
+x22
+}
+val x53 = x52 < x25
+val x126 = if (x53) {
+var x93 : Int = x52
+val x124 = while (x93 < x25) {
+val x94 = x93 - 0
+val x95 = x94 <= x15
+val x96 = if (x95) {
+x94
+} else {
+x15
+}
+val x97 = x96 + 1
+val x98 = x15 < x97
+val x122 = if (x98) {
+val x106 = x93 + 1
+val x107 = x106 == x12
+var x100 : Int = x15
+val x120 = while (x100 < x97) {
+val x101 = x15 == x100
+val x118 = if (x101) {
+val x102 = x4 * x100
+val x103 = x102 + x93
+val x104 = x6(x103)
+val x116 = if (x107) {
+val x111 = x13
+val x110 = x104 + 1
+val x112 = x111 >= x110
+val x113 = if (x112) {
+x111
+} else {
+x110
+}
+x13 = x113
+()
+} else {
+()
+}
+x116
+} else {
+()
+}
+x118
+x100 = x100 + 1
+}
+x120
+} else {
+()
+}
+x122
+x93 = x93 + 1
+}
+x124
+} else {
+()
+}
+x126
+} else {
+()
+}
+val x54 = x15 < x25
+val x145 = if (x54) {
+var x130 : Int = x15
+val x143 = while (x130 < x25) {
+val x131 = x75 + x130
+val x132 = x6(x131)
+val x133 = x4 * x130
+val x134 = x133 + x12
+val x135 = x6(x134)
+val x138 = x13
+val x137 = x132 + x135
+val x139 = x138 >= x137
+val x140 = if (x139) {
+x138
+} else {
+x137
+}
+x13 = x140
+()
+x130 = x130 + 1
+}
+x143
+} else {
+()
+}
+val x147 = x13
+val x146 = x75 + x12
+val x148 = x6(x146) = x147
+()
+x11 = x11 + 1
+}
+x150
+x8 = x8 + 1
+}
+var x153: Int = 0
+val x154 = x4 * 0
+val x155 = x154 + x3
+val x156 = x6(x155)
+x153 = x156
+val x158 = x153
+x158
+}
+}
+/*****************************************
+  End of Generated Code                  
+*******************************************/
+compilation: ok
+4

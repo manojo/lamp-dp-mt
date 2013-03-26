@@ -10,7 +10,6 @@ trait ADPParsers extends BaseParsersExp { this:Signature =>
     val rs=rulesOrder map {n=>rules(n)};
     (unit(0) until n).foreach { d=>
       (unit(0) until n-d).foreach { i=>
-        print(unit("("));  print(i); print(unit(",")); print(d+i); println(unit(")"))
         for (r<-rs) { r.compute(i,d+i)(z, foldF); }
         unit({})
       }

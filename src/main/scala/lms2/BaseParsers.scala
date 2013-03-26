@@ -292,8 +292,14 @@ trait BaseParsersExp extends BaseParsers with PackageExp with GeneratorOpsExp { 
     def apply(i:Rep[Int],j:Rep[Int]) = {
       val (lL,lU,rL,rU) = indices
       if (track==0) {
-        val min_k = if (rU==maxN) i+unit(lL) else Math.max(i+unit(lL),j-unit(rU))
-        val max_k = if (lU==maxN) j-unit(rL) else Math.min(j-unit(rL),i+unit(lU))
+        val min_k = if (rU==maxN) i+unit(lL) else {
+          val a = i+unit(lL); val b = j-unit(rU)
+          if(a >= b) a else b
+        }
+        val max_k = if (lU==maxN) j-unit(rL) else {
+          val a = j-unit(rL); val b = i+unit(lU)
+          if(a <= b) a else b
+        }
 
         range(min_k, max_k+unit(1)).flatMap{ k=>
           left(i,k).flatMap{ x=>

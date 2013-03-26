@@ -1,5 +1,5 @@
 error: illegal sharing of mutable objects Sym(7)
-at Sym(82)=Reflect(Assign(Variable(Sym(78)),Sym(81)),Summary(false,false,false,false,false,List(Sym(78), Sym(7)),List(Sym(78), Sym(7)),List(Sym(78)),List(Sym(78))),List(Sym(7), Sym(77), Sym(78)))
+at Sym(77)=Reflect(Assign(Variable(Sym(73)),Sym(76)),Summary(false,false,false,false,false,List(Sym(73), Sym(7)),List(Sym(73), Sym(7)),List(Sym(73)),List(Sym(73))),List(Sym(7), Sym(72), Sym(73)))
 /*****************************************
   Emitting C Generated Code                  
 *******************************************/
@@ -14,82 +14,77 @@ const T3iii x3 = (T3iii){0,10000,0};
 for(int x9=0; x9 < x5; x9++) {
 const int x10 = x5 - x9;
 for(int x12=0; x12 < x10; x12++) {
-printf("%s","(");
-printf("%s",x12);
-printf("%s",",");
-const int x16 = x9 + x12;
-printf("%s",x16);
-printf("%s\n",")");
-T3iii x19 = x3;
-const int x20 = x12 + 1;
-const bool x21 = x20 == x16;
-if (x21) {
-const T3iii x29 = x19;
-const int x31 = x29.t2;
-const bool x33 = x31 < 0;
-T3iii x34;
-if (x33) {
-x34 = x29;
+T3iii x14 = x3;
+const int x13 = x9 + x12;
+const int x15 = x12 + 1;
+const bool x16 = x15 == x13;
+if (x16) {
+const T3iii x24 = x14;
+const int x26 = x24.t2;
+const bool x28 = x26 < 0;
+T3iii x29;
+if (x28) {
+x29 = x24;
 } else {
-const T2ii x22 = x2[x12];
-const int x26 = x22.t1;
-const int x27 = x22.t2;
-const T3iii x28 = (T3iii){x26,0,x27};
-x34 = x28;
+const T2ii x17 = x2[x12];
+const int x21 = x17.t1;
+const int x22 = x17.t2;
+const T3iii x23 = (T3iii){x21,0,x22};
+x29 = x23;
 }
-x19 = x34;
+x14 = x29;
 } else {
 }
-const int x23 = x16 - 1;
-const int x24 = x23 + 1;
-const bool x25 = x20 < x24;
-const int x40 = x5 * x12;
-if (x25) {
-for(int x39=x20; x39 < x24; x39++) {
-const int x41 = x40 + x39;
-const T3iii x42 = x7[x41];
-const int x43 = x5 * x39;
-const int x44 = x43 + x16;
-const T3iii x45 = x7[x44];
-const T2TT x46 = (T2TT){x42,x45};
-const T3iii x47 = x46.t1;
-const T3iii x48 = x46.t2;
-const int x49 = x47.t1;
-const int x50 = x47.t2;
-const int x51 = x47.t3;
-const int x52 = x48.t1;
-const int x53 = x48.t2;
-const int x54 = x48.t3;
-const T3iii x60 = x19;
-const int x55 = x50 + x53;
-const int x56 = x49 * x51;
-const int x57 = x56 * x54;
-const int x58 = x55 + x57;
-const int x62 = x60.t2;
-const bool x64 = x62 < x58;
-T3iii x65;
-if (x64) {
-x65 = x60;
+const int x18 = x13 - 1;
+const int x19 = x18 + 1;
+const bool x20 = x15 < x19;
+const int x35 = x5 * x12;
+if (x20) {
+for(int x34=x15; x34 < x19; x34++) {
+const int x36 = x35 + x34;
+const T3iii x37 = x7[x36];
+const int x38 = x5 * x34;
+const int x39 = x38 + x13;
+const T3iii x40 = x7[x39];
+const T2TT x41 = (T2TT){x37,x40};
+const T3iii x42 = x41.t1;
+const T3iii x43 = x41.t2;
+const int x44 = x42.t1;
+const int x45 = x42.t2;
+const int x46 = x42.t3;
+const int x47 = x43.t1;
+const int x48 = x43.t2;
+const int x49 = x43.t3;
+const T3iii x55 = x14;
+const int x50 = x45 + x48;
+const int x51 = x44 * x46;
+const int x52 = x51 * x49;
+const int x53 = x50 + x52;
+const int x57 = x55.t2;
+const bool x59 = x57 < x53;
+T3iii x60;
+if (x59) {
+x60 = x55;
 } else {
-const T3iii x59 = (T3iii){x49,x58,x54};
-x65 = x59;
+const T3iii x54 = (T3iii){x44,x53,x49};
+x60 = x54;
 }
-x19 = x65;
+x14 = x60;
 }
 } else {
 }
-const T3iii x72 = x19;
-const int x71 = x40 + x16;
-x7[x71] = x72;
+const T3iii x67 = x14;
+const int x66 = x35 + x13;
+x7[x66] = x67;
 }
 }
-T3iii x78 = x3;
-const int x79 = x5 * 0;
-const int x80 = x79 + x4;
-const T3iii x81 = x7[x80];
-x78 = x81;
-const T3iii x83 = x78;
-return x83;
+T3iii x73 = x3;
+const int x74 = x5 * 0;
+const int x75 = x74 + x4;
+const T3iii x76 = x7[x75];
+x73 = x76;
+const T3iii x78 = x73;
+return x78;
 }
 /*****************************************
   End of C Generated Code                  
