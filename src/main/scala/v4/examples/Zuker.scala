@@ -131,7 +131,7 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
   val REG3 = seq(3,maxN)
   val REG30 = seq(1,30)
 
-  val tail = cfun2((i:Int,j:Int) => j==size-1, "i,j","return j==M_W-1;")
+  val tail = cfun2((i:Int,j:Int) => j==size, "i,j","return j==M_W-1;")
 
   val struct:Tabulate = tabulate("st",(
       BASE   ~ struct ^^ sadd

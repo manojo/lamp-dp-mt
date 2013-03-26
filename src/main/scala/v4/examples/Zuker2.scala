@@ -11,6 +11,8 @@ trait Zuker2Sig extends RNASignature {
   import librna.LibRNA._
   override val h = min[Int] _
 
+  // See RNAFold/Energy.hs for coefficients
+
   val iloopI = (r1:(Int,Int),x:Int,r2:(Int,Int)) => il_energy(r1._1-1,r1._2,r2._1-1,r2._2)
   val multiI = (l:Int,r:Int) => 0 // XXX
 
@@ -66,13 +68,13 @@ trait Zuker2Grammar extends Zuker2Sig with ADPParsers {
   | block                          ^^ iD
   ) aggregate h)
 
-  val tail = cfun2((i:Int,j:Int) => j==size-1, "i,j","return j==M_W-1;")
+  val tail = cfun2((i:Int,j:Int) => j==size, "i,j","return j==M_W-1;")
   val struct:Tabulate = tabulate("st",(
     weak                           ^^ iD
   | base ~(1,1,0,maxN)~    struct  ^^ rS
   | weak ~(1,maxN,1,maxN)~ struct  ^^ cm
   | empty                          ^^ nil
-  ) aggregate h filter tail)
+  ) aggregate h filter tail, true)
 
   val axiom = struct
 
@@ -86,7 +88,7 @@ trait Zuker2Grammar extends Zuker2Sig with ADPParsers {
 }
 
 object Zuker2 extends App {
-  object mfe extends ZukerGrammar with ZukerMFE {
+  object mfe extends Zuker2Grammar {
     override val benchmark = true
     /*
     override val tps = (manifest[Alphabet],manifest[Answer])
@@ -139,6 +141,7 @@ object Zuker2 extends App {
   //   $ Scalar (inp :!: i-1 :!: j-1)
 
 /*
+BACKTACKING GRAMMAR
   weakG :: DIM2 -> [String]
   weakG = (
             multiBT ener    <<< baseLr -~+ block'  +~+ comps' +~- baselR             |||
