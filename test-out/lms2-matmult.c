@@ -14,92 +14,93 @@ const int x5 = x4 + 1;
 const int x6 = x5 * x5;
 T3iii x7[x6];
 const T3iii x3 = (T3iii){0,10000,0};
+const int x12 = x5 - 1;
 for(int x9=0; x9 < x5; x9++) {
-const int x10 = x5 - x9;
-for(int x12=0; x12 < x10; x12++) {
-T3iii x14 = x3;
-const int x13 = x9 + x12;
-const int x15 = x12 + 1;
-const bool x16 = x15 == x13;
-if (x16) {
-const T3iii x24 = x14;
-const int x26 = x24.t2;
-const bool x28 = x26 < 0;
-T3iii x29;
-if (x28) {
-x29 = x24;
+for(int x11=x9; x11 < x5; x11++) {
+T3iii x15 = x3;
+const int x13 = x12 - x11;
+const int x14 = x13 + x9;
+const int x16 = x13 + 1;
+const bool x17 = x16 == x14;
+if (x17) {
+const T3iii x25 = x15;
+const int x27 = x25.t2;
+const bool x29 = x27 < 0;
+T3iii x30;
+if (x29) {
+x30 = x25;
 } else {
-const T2ii x17 = x2[x12];
-const int x21 = x17.t1;
-const int x22 = x17.t2;
-const T3iii x23 = (T3iii){x21,0,x22};
-x29 = x23;
+const T2ii x18 = x2[x13];
+const int x22 = x18.t1;
+const int x23 = x18.t2;
+const T3iii x24 = (T3iii){x22,0,x23};
+x30 = x24;
 }
-x14 = x29;
-} else {
-}
-const int x18 = x13 - 1;
-const int x19 = x18 + 1;
-const bool x20 = x15 < x19;
-const int x35 = x5 * x12;
-if (x20) {
-for(int x34=x15; x34 < x19; x34++) {
-const int x36 = x35 + x34;
-const T3iii x37 = x7[x36];
-const bool x38 = true; //x37 != null;
-if (x38) {
-const int x39 = x5 * x34;
-const int x40 = x39 + x13;
-const T3iii x41 = x7[x40];
-const bool x42 = true; //x41 != null;
-if (x42) {
-const T2TT x43 = (T2TT){x37,x41};
-const T3iii x44 = x43.t1;
-const T3iii x45 = x43.t2;
-const int x46 = x44.t1;
-const int x47 = x44.t2;
-const int x48 = x44.t3;
-const int x49 = x45.t1;
-const int x50 = x45.t2;
-const int x51 = x45.t3;
-const T3iii x57 = x14;
-const int x52 = x47 + x50;
-const int x53 = x46 * x48;
-const int x54 = x53 * x51;
-const int x55 = x52 + x54;
-const int x59 = x57.t2;
-const bool x61 = x59 < x55;
-T3iii x62;
-if (x61) {
-x62 = x57;
-} else {
-const T3iii x56 = (T3iii){x46,x55,x51};
-x62 = x56;
-}
-x14 = x62;
+x15 = x30;
 } else {
 }
+const int x19 = x14 - 1;
+const int x20 = x19 + 1;
+const bool x21 = x16 < x20;
+const int x36 = x5 * x13;
+if (x21) {
+for(int x35=x16; x35 < x20; x35++) {
+const int x37 = x36 + x35;
+const T3iii x38 = x7[x37];
+const bool x39 = true; //x38 != null;
+if (x39) {
+const int x40 = x5 * x35;
+const int x41 = x40 + x14;
+const T3iii x42 = x7[x41];
+const bool x43 = true;// x42 != null;
+if (x43) {
+const T2TT x44 = (T2TT){x38,x42};
+const T3iii x45 = x44.t1;
+const T3iii x46 = x44.t2;
+const int x47 = x45.t1;
+const int x48 = x45.t2;
+const int x49 = x45.t3;
+const int x50 = x46.t1;
+const int x51 = x46.t2;
+const int x52 = x46.t3;
+const T3iii x58 = x15;
+const int x53 = x48 + x51;
+const int x54 = x47 * x49;
+const int x55 = x54 * x52;
+const int x56 = x53 + x55;
+const int x60 = x58.t2;
+const bool x62 = x60 < x56;
+T3iii x63;
+if (x62) {
+x63 = x58;
 } else {
+const T3iii x57 = (T3iii){x47,x56,x52};
+x63 = x57;
 }
+x15 = x63;
+} else {
 }
 } else {
 }
-const T3iii x73 = x14;
-const int x72 = x35 + x13;
-x7[x72] = x73;
 }
-}
-T3iii x79 = x3;
-const int x80 = x5 * 0;
-const int x81 = x80 + x4;
-const T3iii x82 = x7[x81];
-const bool x83 = true; //x82 != null;
-if (x83) {
-x79 = x82;
 } else {
 }
-const T3iii x87 = x79;
-return x87;
+const T3iii x74 = x15;
+const int x73 = x36 + x14;
+x7[x73] = x74;
+}
+}
+T3iii x80 = x3;
+const int x81 = x5 * 0;
+const int x82 = x81 + x4;
+const T3iii x83 = x7[x82];
+const bool x84 = true; //x83 != null;
+if (x84) {
+x80 = x83;
+} else {
+}
+const T3iii x88 = x80;
+return x88;
 }
 /*****************************************
   End of C Generated Code
@@ -108,10 +109,10 @@ return x87;
 int main() {
 
   T2ii matrices[] = {
-    {1, 2}
+    {1,2},{2,20},{20,2},{2,4},{4,2},{2,1},{1,7},{7,3}
   };
 
-  T3iii res = testParse(matrices, 0);
+  T3iii res = testParse(matrices, 8);
 
   printf("(%d, %d, %d)\n", res.t1, res.t2, res.t3 );
 
