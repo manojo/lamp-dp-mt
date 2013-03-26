@@ -131,11 +131,13 @@ trait ZukerGrammar extends ADPParsers with ZukerSig {
   val REG3 = seq(3,maxN)
   val REG30 = seq(1,30)
 
+  val tail = cfun2((i:Int,j:Int) => j==size-1, "i,j","return j==M_W-1;")
+
   val struct:Tabulate = tabulate("st",(
       BASE   ~ struct ^^ sadd
     | dangle ~ struct ^^ cadd
     | empty           ^^ nil
-    ) aggregate h, true); // always nonempty
+    ) aggregate h filter tail, true); // always nonempty
 
   lazy val dangle = LOC ~ closed ~ LOC ^^ dlr
   val closed:Tabulate = tabulate("cl", (stack | hairpin | leftB | rightB | iloop | multiloop) aggregate h filter stackpairing)
@@ -178,25 +180,34 @@ object Zuker extends App {
     (pretty.build(seq,bt)+" (%6.2f)".format(score/100.0),bt)
   }
 
+  /*
   def testSeq(seq:String, strict:Boolean=true) {
-    val (gpu,btG)=parse(seq,mfe.psCPU)
+    val (gpu,btG)=parse(seq,mfe.psGPU)
     val (cpu,btC)=parse(seq,mfe.psTopDown)
     val ref=Utils.refFold(seq,"src/librna/rfold" /*"resources/RNAfold_orig_mac --noPS --noLP -d2"*/)
     if (ref==gpu || !strict && ref.substring(seq.size)==gpu.substring(seq.size)) print(".")
     else println("\nSeq: "+seq+"\nRef: "+ref+"\nCPU: "+cpu+"\nGPU: "+gpu+"\n"+
       "CXP: "+explain.build(seq.toArray,btC)+"\nGXP: "+explain.build(seq.toArray,btG)+"\n")
   }
+  */
+
+  def testSeq(seq:String, strict:Boolean=true) {
+    val (cpu,btG)=parse(seq,mfe.psCPU)
+    val ref=mfe.time("Verify")(()=>Utils.refFold(seq,"resources/RNAfold_orig_mac --noPS --noLP -d2"))
+    if (ref==cpu || !strict && ref.substring(seq.size)==cpu.substring(seq.size)) print(".")
+    else println("\nSeq: "+seq+"\nRef: "+ref+"\nCPU: "+cpu+"\n")
+  }
 
   // Having separate JVM instances is required due to issue described in
   // http://codethesis.com/sites/default/index.php?servlet=4&content=2
   // Note that sbt execute the program in the same JVM
 
-  println(mfe.gen)
+  //println(mfe.gen)
   //testSeq("acgcaccggcauacgugugcucgaaaagcgu")
   //testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
 
-  val s = Utils.genRNA(160)
-  for (k<-0 until 1) { testSeq(s); println }
+  val s = Utils.genRNA(1000)
+  for (k<-0 until 2) { testSeq(s); println }
 
   //println(Utils.genRNA(8192))
   //mfe.backtrack(mfe.convert(Utils.genRNA(128)))
