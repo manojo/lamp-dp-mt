@@ -17,7 +17,7 @@ fi
 
 # Benchmarking setup
 
-LOOPS=10; # Number of tests
+LOOPS=25; # Number of tests
 SIZES="100 200 300 400 500 600 700 800 900 1000"
 
 # Benchmarking loop
