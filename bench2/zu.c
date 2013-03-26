@@ -96,7 +96,7 @@ void my_init(input_t* in1, input_t* in2) {
   if (in2) { size_t sz2=(M_W-1)*sizeof(input_t); _in2=(input_t*)malloc(sz2); memcpy(_in2,in2,sz2); }
   c_cost=(cost_t*)malloc(sizeof(cost_t)*MEM_MATRIX);
   c_back=(back_t*)malloc(sizeof(back_t)*MEM_MATRIX);
-  read_parameter_file("vienna/rna_turner2004.par");
+  read_parameter_file(LIBRNA "vienna/rna_turner2004.par");
   c_P = get_scaled_parameters();
 }
 

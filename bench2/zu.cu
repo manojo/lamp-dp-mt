@@ -55,7 +55,7 @@ __constant__ paramT0 param0;
 static paramT *cg_P=NULL;
 __global__ static void _initP(paramT* params) { g_P=params; }
 static inline void rna_init() {
-  read_parameter_file("vienna/rna_turner2004.par");
+  read_parameter_file(LIBRNA "vienna/rna_turner2004.par");
   paramT* P = get_scaled_parameters();
   cudaMemcpyToSymbol(param0,&(P->p0),sizeof(paramT0));  cuMalloc(cg_P,sizeof(paramT));
   cuPut(P,cg_P,sizeof(paramT),NULL);

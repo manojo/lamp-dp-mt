@@ -27,8 +27,8 @@ for bt in nobt backtrack; do
 for size in $SIZES; do
 	FLAGS="`echo -DLOOPS=$LOOPS -D$prog -D$type -D$bt -DSIZE=$size | tr '[:lower:]' '[:upper:]'`";
 	if [ "$bt" = "yes" ]; then FLAGS="$FLAGS -DBACKTRACK"; fi
-	if [ "$type" = "cuda" ]; then $CUDA/bin/nvcc $NVFLAGS $CCFLAGS $FLAGS $prog.cu -c -o bin/$prog.o;
-	else g++ $CCFLAGS $FLAGS $prog.c -c -o bin/$prog.o; fi
+	if [ "$type" = "cuda" ]; then $CUDA/bin/nvcc -DLIBRNA='"../src/librna/"' $NVFLAGS $CCFLAGS $FLAGS $prog.cu -c -o bin/$prog.o;
+	else g++ -DLIBRNA='"../src/librna/"' $CCFLAGS $FLAGS $prog.c -c -o bin/$prog.o; fi
 	g++ wrapper.c $CCFLAGS $FLAGS -c -o bin/wrapper.o
 	g++ $LDFLAGS bin/wrapper.o bin/librna.o bin/$prog.o -o bin/$prog
 	./bin/$prog
