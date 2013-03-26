@@ -117,16 +117,17 @@ trait CodeGen extends BaseParsers { this:Signature =>
             f1 match { case f:CFun => head.getType(f.tpe) case _ => bodyTpe }
           case _ => bodyTpe
         }
-        val (tc,tb) = if(aggr==0) (if (cudaEmpty!=null) "_c0" else "_cost."+t.name,"_b0") else { aggid=aggid+1; ("_c"+aggid, "_b"+aggid) }
+        val (tc,tb) = if(aggr==0) ("_c0","_b0") else { aggid=aggid+1; ("_c"+aggid, "_b"+aggid) }
         // Generate aggregation body
         val updt = "{ "+tc+"=_c; "+tb+"=("+btTpe(if (aggr==0) t.inner.cat else p.cat)+"){"+rule+(if (p.cat>0)",{"+bti.mkString(",")+"}" else "")+"}; }";
+        val or_empty = if (cudaEmpty!=null) "" else " || "+tb+".rule==-1"
         val cc = "{ "+(h.toString match {
-          case "$$max$$" => tpe+" _c="+b+"; if (_c>"+tc+" || "+tb+".rule==-1) "+updt
-          case "$$min$$" => tpe+" _c="+b+"; if (_c<"+tc+" || "+tb+".rule==-1) "+updt
+          case "$$max$$" => tpe+" _c="+b+"; if (_c>"+tc+or_empty+") "+updt
+          case "$$min$$" => tpe+" _c="+b+"; if (_c<"+tc+or_empty+") "+updt
           case "$$count$$" => tc+"+=1;"
           case "$$sum$$" => tc+"+="+b+";"
-          case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)>"+f+"("+tc+") || "+tb+".rule==-1) "+updt
-          case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)<"+f+"("+tc+") || "+tb+".rule==-1) "+updt
+          case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)>"+f+"("+tc+")"+or_empty+") "+updt
+          case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)<"+f+"("+tc+")"+or_empty+") "+updt
           case _ => sys.error("Unsupported aggregation: "+b)
         })+" }"
         if (aggr==0) (c,hb,cc,bti) // hoist aggregation if contained
@@ -183,15 +184,15 @@ trait CodeGen extends BaseParsers { this:Signature =>
   }
 
   def genKern(gpu:Boolean=true) = {
-    val kern= "#define VALID(I,J,RULE) "+(if (cudaEmpty!=null) "(cost[idx(I,J)].RULE!="+cudaEmpty+")\n" else "(back[idx(I,J)].RULE.rule!=-1)\ncost_t _cost = {}; // init to 0\n")+
+    val kern= "#define VALID(I,J,RULE) "+(if (cudaEmpty!=null) "(cost[idx(I,J)].RULE!="+cudaEmpty+")\n" else "(back[idx(I,J)].RULE.rule!=-1)\n")+
       rulesOrder.map{n=>val r=rules(n); val c=r.inner.cat;
-        "// ---- "+n+"[i,j] ----\n{\n"+ind("__bt"+c+" _b0 = {-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"};\n"+
-        (if (cudaEmpty!=null) tpAnswer+" _c0 = "+cudaEmpty+";\n"+genTab(r)+"\ncost[idx(i,j)]."+n+" = _c0;\n" else genTab(r)+"\ncost[idx(i,j)]."+n+" = _cost."+n+";\n")+
+        "// ---- "+n+"[i,j] ----\n{\n"+ind("bt"+c+" _b0 = {-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"};\n"+
+        tpAnswer+" _c0"+(if (cudaEmpty!=null)" = "+cudaEmpty else "")+";\n"+genTab(r)+"\ncost[idx(i,j)]."+n+" = _c0;\n"+
         "back[idx(i,j)]."+n+" = _b0;")+"}"
       }.mkString("\n")
     if (gpu) {
       val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
-        (if (twotracks) "  for (int i=tI; i<M_H; i+=tN) {\n    int j = jj-i; if (j>=0)" else "  for (int ii=tI; ii<M_H; ii+=tN) {\n    int i = M_H-1-ii, j = i+jj;")+"\n"
+        (if (twotracks) "  for (int i=tI; i<M_H; i+=tN) {\n    int j = jj-i; if (j>=0)" else "  for (int ii=tI; ii<M_H; ii+=tN) {\n    int i=M_H-1-ii, j=i+jj;")+"\n"
       "__global__ void gpu_solve(const input_t* in1, const input_t* in2, cost_t* cost, back_t* back, volatile unsigned* lock, unsigned s_start, unsigned s_stop) {\n"+ind(
       "const unsigned tI = threadIdx.x + blockIdx.x * blockDim.x;\n"+
       "const unsigned tN = blockDim.x * gridDim.x;\n"+
@@ -431,22 +432,6 @@ trait CodeGen extends BaseParsers { this:Signature =>
   }
 
   // --------------------------------------------------------------------------
-  // Configuration
-
-  val cudaSplit = 1024 // threshold for multiple CUDA kernels
-  val cudaDevice = -1  // preferred execution CUDA device
-  val cudaUnroll = 5 // experimental unrolling optimal
-  val cudaSharedInput = this match { case s:RNASignature => true case _ => false } // store input in shared memory
-  val cudaEmpty:String = null // "empty" Answer value (usually zero or infinite). By setting this value, aggregation must be done _ONLY_ on Answer type
-  val ccompiler = new CodeCompiler {
-    override val outPath = "bin"
-    override val cudaPath = "/usr/local/cuda"
-    override val cudaFlags = "-m64 -arch=sm_30" // --ptxas-options=-v
-    override val ccFlags = "-O3 -I/System/Library/Frameworks/JavaVM.framework/Headers"
-    override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
-  }
-
-  // --------------------------------------------------------------------------
   // C code generation and execution
 
   lazy val (code_h,code_cu,code_c,code_cpx) = {
@@ -525,6 +510,22 @@ trait CodeGen extends BaseParsers { this:Signature =>
 
     val (_,hpriv,hfun)=head.flush
     hpriv+"\n"+hfun.replace("__device__ ","")+"\n"+kern+"\n"+bt+"\n"+wrap+"\n"
+  }
+
+  // --------------------------------------------------------------------------
+  // Configuration
+
+  val cudaSplit = 1024 // threshold for multiple CUDA kernels
+  val cudaDevice = -1  // preferred execution CUDA device
+  val cudaUnroll = 5 // experimental unrolling optimal
+  val cudaSharedInput = this match { case s:RNASignature => true case _ => false } // store input in shared memory
+  val cudaEmpty:String = null // "empty" Answer value (usually zero or infinite). By setting this value, aggregation must be done _ONLY_ on Answer type
+  val ccompiler = new CodeCompiler {
+    override val outPath = "bin"
+    override val cudaPath = "/usr/local/cuda"
+    override val cudaFlags = "-m64 -arch=sm_30" // --ptxas-options=-v
+    override val ccFlags = "-O3 -I/System/Library/Frameworks/JavaVM.framework/Headers"
+    override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
   }
 
   // --------------------------------------------------------------------------
