@@ -1,11 +1,30 @@
 #!/bin/sh
 
 CUDA="/usr/local/cuda"
-CCFLAGS="-O3 -I../src/librna"
-NVFLAGS="-m64 -arch=sm_30"
-LDFLAGS="-L$CUDA/lib -lcudart -Wl,-rpath,$CUDA/lib"
+if [ "$OSTYPE" = "darwin" ]; then
+	LIBRNA="../src/librna/"
+	CCFLAGS="-O3 -I$LIBRNA"
+	NVFLAGS="-m64 -arch=sm_30"
+	LDFLAGS="-L$CUDA/lib -lcudart -Wl,-rpath,$CUDA/lib"
+else
+	LIBRNA="./"
+	CCFLAGS="-O3 -I$LIBRNA"
+	NVFLAGS="-m64 -arch=sm_20"
+	LDFLAGS="-L$CUDA/lib64 -lcudart -Wl,-rpath,$CUDA/lib64"
+fi
 
 cd `dirname $0`; mkdir -p bin;
+
+if [ "$1" = "push" ]; then
+	tar --exclude '._*' -czf bench2.tgz bench.sh *.c *.h *.cu -C $LIBRNA librna_impl.h vienna
+	# ssh manohar@ppl.stanford.edu -L 22000:tflop1.stanford.edu:22 -L 22001:tflop2.stanford.edu:22
+	for port in 22000 22001; do
+		scp -o Port=$port bench2.tgz manohar@localhost:/home/manohar
+		ssh -p $port manohar@localhost 'rm -r bench2; mkdir bench2; tar -C bench2 -xzf bench2.tgz; rm bench2.tgz'
+	done
+	rm bench2.tgz
+	exit
+fi
 
 # Cleanup
 if [ "$1" = "clean" ]; then rm bin/*; exit; fi
@@ -15,24 +34,37 @@ if [ ! -f bin/librna.o ]; then
   g++ $CCFLAGS librna.c -c -o bin/librna.o
 fi
 
+
 # Benchmarking setup
 
 LOOPS=25; # Number of tests
-SIZES="100 200 300 400 500 600 700 800 900 1000 1200 1400 1600 1800 2000 2200 2400 2600 2800 3000 3200 3400 3600 3800 4000"
+SIZES="100 200 300 400 500 600 700 800 900 1000"
+#SIZES="100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000"
 
 # Benchmarking loop
-for prog in nu zu; do
-for type in cpu cuda; do
-for bt in nobt backtrack; do
-for size in $SIZES; do
-	FLAGS="`echo -DLOOPS=$LOOPS -D$prog -D$type -D$bt -DSIZE=$size | tr '[:lower:]' '[:upper:]'`";
-	if [ "$bt" = "yes" ]; then FLAGS="$FLAGS -DBACKTRACK"; fi
-	if [ "$type" = "cuda" ]; then $CUDA/bin/nvcc -DLIBRNA='"../src/librna/"' $NVFLAGS $CCFLAGS $FLAGS $prog.cu -c -o bin/$prog.o;
-	else g++ -DLIBRNA='"../src/librna/"' $CCFLAGS $FLAGS $prog.c -c -o bin/$prog.o; fi
-	g++ wrapper.c $CCFLAGS $FLAGS -c -o bin/wrapper.o
-	g++ $LDFLAGS bin/wrapper.o bin/librna.o bin/$prog.o -o bin/$prog
-	./bin/$prog
-done
-done
-done
-done
+if [ "$1" = "h" ]; then # Haskell ADP fusion
+	g++ $CCFLAGS gen.c -o bin/gen
+	for size in $SIZES; do
+		i=0; echo "% size = $size"
+		while [ "$i" -ne "$LOOPS" ]; do
+			bin/gen $size $i | time --format=%E /home/manohar/cabal-dev/bin/RNAFold >/dev/null
+			i=`expr $i + 1`;
+		done
+	done
+else
+	for type in cpu cuda; do
+		for prog in nu zu; do
+			for bt in nobt backtrack; do
+				for size in $SIZES; do
+					FLAGS="`echo -DLOOPS=$LOOPS -D$prog -D$type -D$bt -DSIZE=$size | tr '[:lower:]' '[:upper:]'`";
+					if [ "$bt" = "yes" ]; then FLAGS="$FLAGS -DBACKTRACK"; fi
+					if [ "$type" = "cuda" ]; then $CUDA/bin/nvcc -DLIBRNA='"'$LIBRNA'"' $NVFLAGS $CCFLAGS $FLAGS $prog.cu -c -o bin/$prog.o;
+					else g++ -DLIBRNA='"'$LIBRNA'"' $CCFLAGS $FLAGS $prog.c -c -o bin/$prog.o; fi
+					g++ wrapper.c $CCFLAGS $FLAGS -c -o bin/wrapper.o
+					g++ $LDFLAGS bin/wrapper.o bin/librna.o bin/$prog.o -o bin/$prog
+					./bin/$prog
+				done
+			done
+		done
+	done
+fi

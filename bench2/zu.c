@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 #include "zu.h"
 
@@ -16,8 +17,8 @@ static back_t* c_back=NULL;
 #define my_seq _in1
 #define my_P c_P
 #define my_dev
-#include "../src/librna/vienna/vienna.h"
-#include "../src/librna/librna_impl.h"
+#include "vienna/vienna.h"
+#include "librna_impl.h"
 
 static inline int fun0(int lb, int e, int rb) { return e + sr_energy(lb,rb); }
 static inline int fun1(int lb, int f1, T2ii x, int f2, int rb) { return hl_energy(f1,f2) + sr_energy(lb,rb); }

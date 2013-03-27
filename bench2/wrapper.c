@@ -14,7 +14,7 @@ void genSeq(char* seq) {
 	for (int i=0;i<SIZE;++i) {
 		seq[i]=random()%4;
 		#ifdef NUSSINOV
-		seq[i]=map[(int)i];
+		seq[i]=map[(int)seq[i]];
 		#endif
 	}
 }
@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
     printf("sprintf('%%.3f',median(["); fflush(stdout);
 
 	for (int i=0;i<LOOPS;++i) {
+		genSeq(seq);
 		my_init(seq,NULL);
 		trace_t* trace=NULL;
 		unsigned size=0;

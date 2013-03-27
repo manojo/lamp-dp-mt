@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "zu.h"
 
 #define cuReset cudaDeviceReset()
@@ -33,7 +34,7 @@ __global__ void gpu_input(input_t* in1, input_t* in2) { __in1=in1; __in2=in2; }
 __shared__ input_t _in1[M_H];
 
 // --------------------------------
-#include "../src/librna/vienna/vienna.h"
+#include "vienna/vienna.h"
 __constant__ paramT0 param0;
 #define my_LOG logf
 #define my_LXC 107.8560
@@ -50,7 +51,7 @@ __constant__ paramT0 param0;
 #define my_P g_P
 #define my_P0 param0
 #define my_dev __device__
-#include "../src/librna/librna_impl.h"
+#include "librna_impl.h"
 
 static paramT *cg_P=NULL;
 __global__ static void _initP(paramT* params) { g_P=params; }
