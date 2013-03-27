@@ -67,15 +67,16 @@ run_bench() {
 if [ "$1" = "l" ]; then
 	type="cpu"; prog="lms"; bt="nobt"
 	for size in $SIZES; do run_bench; done
-elif [ "$1" = "h" -o "$1" = "r" ]; then # Haskell ADP fusion
+elif [ "$1" = "h" -o "$1" = "r" -o "$1" = "n" ]; then # Haskell ADP fusion
 	g++ $CCFLAGS gen.c -o bin/gen
-	for size in $SIZES; do
-		i=0; echo "% size = $size"
+	for size in $SIZES; do i=0;
 		while [ "$i" -ne "$LOOPS" ]; do
 			if [ "$1" = "h" ]; then bin/gen $size $i | time --format=%E /home/manohar/cabal-dev/bin/RNAFold >/dev/null
+			elif [ "$1" = "n" ]; then bin/gen $size $i | time --format=%E /home/manohar/cabal-dev/bin/Nussinov78 gaplike >/dev/null
 			else bin/gen $size $i | time --format=%E /home/manohar/vienna/RNAfold -d2 --noLP --noPS >/dev/null; fi
 			i=`expr $i + 1`;
 		done
+		echo " % size = $size"
 	done
 else
 	for type in cpu cuda; do
