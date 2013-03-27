@@ -1,0 +1,71 @@
+median([3318.97 3316.49 3316.80 3319.17 3318.76 3320.82 3318.21 3317.95 3319.53 3319.87 3316.48 3316.76 3319.98 3323.23 3318.30 3320.36 3322.47 3317.19 3318.61 3320.21 3318.26 3319.91 3322.36 3317.47 3318.71  ]) ... % Nussinov-CPU-plain-1500, 25 samples
+median([9266.34 9250.56 9274.17 9263.72 9256.16 9241.71 9282.28 9266.56 9271.69 9252.63 9259.35 9251.35 9266.39 9246.71 9270.80 9257.28 9255.32 9261.55 9273.41 9260.37 9272.53 9243.10 9283.55 9249.35 9282.48  ]) ... % Nussinov-CPU-plain-2000, 25 samples
+median([20390.23 20420.09 20383.58 20358.75 20380.26 20354.01 20359.96 20397.73 20364.54 20377.48 20353.95 20345.92 20430.16 20374.39 20364.35 20423.45 20365.30 20387.73 20375.06 20388.85 20370.54 20338.66 20331.65 20315.44 20328.17  ]) ... % Nussinov-CPU-plain-2500, 25 samples
+median([36651.59 36617.98 36467.73 36673.73 36666.72 36657.02 36572.45 36756.13 36733.81 36639.73 36608.90 36616.72 36743.61 36642.06 36560.19 36648.76 36608.36 36729.90 36673.76 36586.67 36557.73 36645.90 36616.27 36624.46 36603.47  ]) ... % Nussinov-CPU-plain-3000, 25 samples
+median([97711.87 ^C
+
+
+median([3309.06  ]) ... % Nussinov-CPU-plain-1500, 1 samples
+median([9213.08  ]) ... % Nussinov-CPU-plain-2000, 1 samples
+median([20250.52  ]) ... % Nussinov-CPU-plain-2500, 1 samples
+median([37095.31  ]) ... % Nussinov-CPU-plain-3000, 1 samples
+median([62995.28  ]) ... % Nussinov-CPU-plain-3500, 1 samples
+median([95606.72  ]) ... % Nussinov-CPU-plain-4000, 1 samples
+median([144990.63  ]) ... % Nussinov-CPU-plain-4500, 1 samples
+median([202115.15  ]) ... % Nussinov-CPU-plain-5000, 1 samples
+median([3696.08  ]) ... % Nussinov-CPU-BT-1500, 1 samples
+median([11474.63  ]) ... % Nussinov-CPU-BT-2000, 1 samples
+median([23259.83  ]) ... % Nussinov-CPU-BT-2500, 1 samples
+median([45788.42  ]) ... % Nussinov-CPU-BT-3000, 1 samples
+median([78862.07  ]) ... % Nussinov-CPU-BT-3500, 1 samples
+median([118224.23  ]) ... % Nussinov-CPU-BT-4000, 1 samples
+median([179288.46  ]) ... % Nussinov-CPU-BT-4500, 1 samples
+median([245804.77  ]) ... % Nussinov-CPU-BT-5000, 1 samples
+median([9632.49  ]) ... % Zuker-CPU-plain-1500, 1 samples
+median([23051.04  ]) ... % Zuker-CPU-plain-2000, 1 samples
+median([46610.79  ]) ... % Zuker-CPU-plain-2500, 1 samples
+median([79307.06  ]) ... % Zuker-CPU-plain-3000, 1 samples
+median([129145.35  ]) ... % Zuker-CPU-plain-3500, 1 samples
+median([189399.65  ]) ... % Zuker-CPU-plain-4000, 1 samples
+median([275941.83  ]) ... % Zuker-CPU-plain-4500, 1 samples
+median([373265.36  ]) ... % Zuker-CPU-plain-5000, 1 samples
+median([9734.50  ]) ... % Zuker-CPU-BT-1500, 1 samples
+median([23292.08  ]) ... % Zuker-CPU-BT-2000, 1 samples
+median([46555.61  ]) ... % Zuker-CPU-BT-2500, 1 samples
+median([79895.59  ]) ... % Zuker-CPU-BT-3000, 1 samples
+median([129091.59  ]) ... % Zuker-CPU-BT-3500, 1 samples
+median([190996.14  ]) ... % Zuker-CPU-BT-4000, 1 samples
+median([275364.30  ]) ... % Zuker-CPU-BT-4500, 1 samples
+median([374096.26  ]) ... % Zuker-CPU-BT-5000, 1 samples
+median([ 401.85  ]) ... % Nussinov-CUDA-plain-1500, 1 samples
+median([ 712.48  ]) ... % Nussinov-CUDA-plain-2000, 1 samples
+median([1122.13  ]) ... % Nussinov-CUDA-plain-2500, 1 samples
+median([1650.68  ]) ... % Nussinov-CUDA-plain-3000, 1 samples
+median([2240.93  ]) ... % Nussinov-CUDA-plain-3500, 1 samples
+median([3011.14  ]) ... % Nussinov-CUDA-plain-4000, 1 samples
+median([3997.91  ]) ... % Nussinov-CUDA-plain-4500, 1 samples
+median([5231.53  ]) ... % Nussinov-CUDA-plain-5000, 1 samples
+median([ 790.44  ]) ... % Nussinov-CUDA-BT-1500, 1 samples
+median([1393.61  ]) ... % Nussinov-CUDA-BT-2000, 1 samples
+median([2175.54  ]) ... % Nussinov-CUDA-BT-2500, 1 samples
+median([3209.75  ]) ... % Nussinov-CUDA-BT-3000, 1 samples
+median([4333.16  ]) ... % Nussinov-CUDA-BT-3500, 1 samples
+median([5711.92  ]) ... % Nussinov-CUDA-BT-4000, 1 samples
+median([7619.64  ]) ... % Nussinov-CUDA-BT-4500, 1 samples
+median([9671.88  ]) ... % Nussinov-CUDA-BT-5000, 1 samples
+median([10909.19  ]) ... % Zuker-CUDA-plain-1500, 1 samples
+median([18104.44  ]) ... % Zuker-CUDA-plain-2000, 1 samples
+median([27818.22  ]) ... % Zuker-CUDA-plain-2500, 1 samples
+median([38665.09  ]) ... % Zuker-CUDA-plain-3000, 1 samples
+median([51467.47  ]) ... % Zuker-CUDA-plain-3500, 1 samples
+median([67868.97  ]) ... % Zuker-CUDA-plain-4000, 1 samples
+median([87535.38  ]) ... % Zuker-CUDA-plain-4500, 1 samples
+median([111028.01  ]) ... % Zuker-CUDA-plain-5000, 1 samples
+median([11205.89  ]) ... % Zuker-CUDA-BT-1500, 1 samples
+median([18565.52  ]) ... % Zuker-CUDA-BT-2000, 1 samples
+median([28485.97  ]) ... % Zuker-CUDA-BT-2500, 1 samples
+median([39548.47  ]) ... % Zuker-CUDA-BT-3000, 1 samples
+median([52624.28  ]) ... % Zuker-CUDA-BT-3500, 1 samples
+median([69314.97  ]) ... % Zuker-CUDA-BT-4000, 1 samples
+median([89457.76  ]) ... % Zuker-CUDA-BT-4500, 1 samples
+median([113360.30  ]) ... % Zuker-CUDA-BT-5000, 1 samples

@@ -55,7 +55,19 @@ SIZES="100 200 300 400 500 600 700 800 900 1000"
 #SIZES="100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000"
 
 # Benchmarking loop
-if [ "$1" = "h" -o "$1" = "r" ]; then # Haskell ADP fusion
+run_bench() {
+	FLAGS="`echo -DLOOPS=$LOOPS -D$prog -D$type -D$bt -DSIZE=$size | tr '[:lower:]' '[:upper:]'`";
+	if [ "$type" = "cuda" ]; then $CUDA/bin/nvcc -DLIBRNA='"'$LIBRNA'"' $NVFLAGS $CCFLAGS $FLAGS $prog.cu -c -o bin/$prog.o;
+	else g++ -DLIBRNA='"'$LIBRNA'"' $CCFLAGS $FLAGS $prog.c -c -o bin/$prog.o; fi
+	g++ wrapper.c $CCFLAGS $FLAGS -c -o bin/wrapper.o
+	g++ bin/wrapper.o bin/librna.o bin/$prog.o $LDFLAGS -o bin/$prog
+	./bin/$prog
+}
+
+if [ "$1" = "l" ]; then
+	type="cpu"; prog="lms"; bt="nobt"
+	for size in $SIZES; do run_bench; done
+elif [ "$1" = "h" -o "$1" = "r" ]; then # Haskell ADP fusion
 	g++ $CCFLAGS gen.c -o bin/gen
 	for size in $SIZES; do
 		i=0; echo "% size = $size"
@@ -70,12 +82,7 @@ else
 		for prog in nu zu; do
 			for bt in nobt backtrack; do
 				for size in $SIZES; do
-					FLAGS="`echo -DLOOPS=$LOOPS -D$prog -D$type -D$bt -DSIZE=$size | tr '[:lower:]' '[:upper:]'`";
-					if [ "$type" = "cuda" ]; then $CUDA/bin/nvcc -DLIBRNA='"'$LIBRNA'"' $NVFLAGS $CCFLAGS $FLAGS $prog.cu -c -o bin/$prog.o;
-					else g++ -DLIBRNA='"'$LIBRNA'"' $CCFLAGS $FLAGS $prog.c -c -o bin/$prog.o; fi
-					g++ wrapper.c $CCFLAGS $FLAGS -c -o bin/wrapper.o
-					g++ bin/wrapper.o bin/librna.o bin/$prog.o $LDFLAGS -o bin/$prog
-					./bin/$prog
+					run_bench
 				done
 			done
 		done

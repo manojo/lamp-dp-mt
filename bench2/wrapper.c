@@ -13,7 +13,7 @@ void genSeq(char* seq) {
 	const char* map="nacgu_";
 	for (int i=0;i<SIZE;++i) {
 		seq[i]=random()%4+1;
-		#ifdef NU
+		#ifndef ZU
 		seq[i]=map[(int)seq[i]];
 		#endif
 	}
@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
 	struct timeval ts, te;
 	srandom(0x87654321);
 	char* seq=(char*)malloc(SIZE);
-	printf("sprintf('%%.3f',median(["); fflush(stdout);
+	printf("median(["); fflush(stdout);
 
 	for (int i=0;i<LOOPS;++i) {
 		genSeq(seq);
@@ -44,11 +44,15 @@ int main(int argc, char** argv) {
 		double last=(te.tv_sec-ts.tv_sec)*1000.0+(te.tv_usec-ts.tv_usec)/1000.0;
 		printf("%7.2f ",last); fflush(stdout);
 	}
-	printf(" ])) %% ");
+	printf(" ]) ... %% ");
 	#ifdef NU
 	printf("Nussinov");
-	#else
+	#endif
+	#ifdef ZU
 	printf("Zuker");
+	#endif
+	#ifdef LMS
+	printf("LMS");
 	#endif
 	#ifdef CUDA
 	printf("-CUDA");
