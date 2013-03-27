@@ -3,8 +3,8 @@
 #include <unistd.h>
 
 void genSeq(char* seq, int size) {
-	const char* map="acgu";
-	int i; for (i=0;i<size;++i) seq[i]=map[random()%4];
+	const char* map="nacgu_";
+	for (int i=0;i<size;++i) seq[i]=map[random()%4+1];
 }
 
 int main(int argc, char** argv) {

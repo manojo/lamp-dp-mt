@@ -10,11 +10,13 @@
 #endif
 
 void genSeq(char* seq) {
-	const char* map="acgu";
+	const char* map="nacgu_";
 	for (int i=0;i<SIZE;++i) {
-		seq[i]=random()%4;
-		#ifdef NUSSINOV
+		seq[i]=random()%4+1;
+		#ifdef NU
 		seq[i]=map[(int)seq[i]];
+		#else
+		printf("%c",map[(int)seq[i]]);
 		#endif
 	}
 }
@@ -23,7 +25,7 @@ int main(int argc, char** argv) {
 	struct timeval ts, te;
 	srandom(0x87654321);
 	char* seq=(char*)malloc(SIZE);
-    printf("sprintf('%%.3f',median(["); fflush(stdout);
+	printf("sprintf('%%.3f',median(["); fflush(stdout);
 
 	for (int i=0;i<LOOPS;++i) {
 		genSeq(seq);
@@ -33,7 +35,10 @@ int main(int argc, char** argv) {
 		gettimeofday(&ts, NULL);
 		my_solve();
 		#ifdef BACKTRACK
-		my_backtrack(&trace, &size);
+		int res = my_backtrack(&trace, &size);
+		#ifdef CHECK
+		printf("\nResult = %d\n",res);
+		#endif
 		#endif
 		gettimeofday(&te, NULL);
 		my_free();

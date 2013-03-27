@@ -34,6 +34,19 @@ if [ ! -f bin/librna.o ]; then
   g++ $CCFLAGS librna.c -c -o bin/librna.o
 fi
 
+if [ "$1" = "check" ]; then
+	# program
+	prog=zu
+	FLAGS="`echo -DLOOPS=1 -D$prog -DCPU -DBACKTRACK -DSIZE=100 -DCHECK | tr '[:lower:]' '[:upper:]'`";
+	g++ -DLIBRNA='"'$LIBRNA'"' $CCFLAGS $FLAGS $prog.c -c -o bin/$prog.o;
+	g++ wrapper.c $CCFLAGS $FLAGS -c -o bin/wrapper.o
+	g++ $LDFLAGS bin/wrapper.o bin/librna.o bin/$prog.o -o bin/$prog
+	./bin/$prog
+	# generator
+	g++ $CCFLAGS gen.c -o bin/gen
+	bin/gen 100 0 | ${LIBRNA}rfold
+	exit;
+fi
 
 # Benchmarking setup
 
@@ -57,7 +70,6 @@ else
 			for bt in nobt backtrack; do
 				for size in $SIZES; do
 					FLAGS="`echo -DLOOPS=$LOOPS -D$prog -D$type -D$bt -DSIZE=$size | tr '[:lower:]' '[:upper:]'`";
-					if [ "$bt" = "yes" ]; then FLAGS="$FLAGS -DBACKTRACK"; fi
 					if [ "$type" = "cuda" ]; then $CUDA/bin/nvcc -DLIBRNA='"'$LIBRNA'"' $NVFLAGS $CCFLAGS $FLAGS $prog.cu -c -o bin/$prog.o;
 					else g++ -DLIBRNA='"'$LIBRNA'"' $CCFLAGS $FLAGS $prog.c -c -o bin/$prog.o; fi
 					g++ wrapper.c $CCFLAGS $FLAGS -c -o bin/wrapper.o
