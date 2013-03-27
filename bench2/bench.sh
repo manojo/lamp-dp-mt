@@ -55,12 +55,13 @@ SIZES="100 200 300 400 500 600 700 800 900 1000"
 #SIZES="100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000"
 
 # Benchmarking loop
-if [ "$1" = "h" ]; then # Haskell ADP fusion
+if [ "$1" = "h" -o "$1" = "r" ]; then # Haskell ADP fusion
 	g++ $CCFLAGS gen.c -o bin/gen
 	for size in $SIZES; do
 		i=0; echo "% size = $size"
 		while [ "$i" -ne "$LOOPS" ]; do
-			bin/gen $size $i | time --format=%E /home/manohar/cabal-dev/bin/RNAFold >/dev/null
+			if [ "$1" = "h" ]; then bin/gen $size $i | time --format=%E /home/manohar/cabal-dev/bin/RNAFold >/dev/null
+			else bin/gen $size $i | time --format=%E /home/manohar/vienna/RNAfold -d2 --noLP --noPS >/dev/null; fi
 			i=`expr $i + 1`;
 		done
 	done
