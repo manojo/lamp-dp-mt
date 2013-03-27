@@ -73,7 +73,7 @@ else
 					if [ "$type" = "cuda" ]; then $CUDA/bin/nvcc -DLIBRNA='"'$LIBRNA'"' $NVFLAGS $CCFLAGS $FLAGS $prog.cu -c -o bin/$prog.o;
 					else g++ -DLIBRNA='"'$LIBRNA'"' $CCFLAGS $FLAGS $prog.c -c -o bin/$prog.o; fi
 					g++ wrapper.c $CCFLAGS $FLAGS -c -o bin/wrapper.o
-					g++ $LDFLAGS bin/wrapper.o bin/librna.o bin/$prog.o -o bin/$prog
+					g++ bin/wrapper.o bin/librna.o bin/$prog.o $LDFLAGS -o bin/$prog
 					./bin/$prog
 				done
 			done

@@ -15,8 +15,6 @@ void genSeq(char* seq) {
 		seq[i]=random()%4+1;
 		#ifdef NU
 		seq[i]=map[(int)seq[i]];
-		#else
-		printf("%c",map[(int)seq[i]]);
 		#endif
 	}
 }
