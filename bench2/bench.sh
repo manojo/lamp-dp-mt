@@ -49,7 +49,6 @@ if [ "$1" = "check" ]; then
 fi
 
 # Benchmarking setup
-
 LOOPS=25; # Number of tests
 SIZES="100 200 300 400 500 600 700 800 900 1000"
 #SIZES="100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000"
@@ -67,12 +66,14 @@ run_bench() {
 if [ "$1" = "l" ]; then
 	type="cpu"; prog="lms"; bt="nobt"
 	for size in $SIZES; do run_bench; done
-elif [ "$1" = "h" -o "$1" = "r" -o "$1" = "n" ]; then # Haskell ADP fusion
+elif [ "$1" = "h" -o "$1" = "r" -o "$1" = "n" -o "$1" = "no" ]; then # Haskell ADP fusion
 	g++ $CCFLAGS gen.c -o bin/gen
+	gcc $CCFLAGS nu_opt.c -o bin/nu_opt
 	for size in $SIZES; do i=0;
 		while [ "$i" -ne "$LOOPS" ]; do
 			if [ "$1" = "h" ]; then bin/gen $size $i | time --format=%E /home/manohar/cabal-dev/bin/RNAFold >/dev/null
 			elif [ "$1" = "n" ]; then bin/gen $size $i | time --format=%E /home/manohar/cabal-dev/bin/Nussinov78 gaplike >/dev/null
+			elif [ "$1" = "no" ]; then bin/gen $size $i | time --format=%E bin/nu_opt gaplike >/dev/null
 			else bin/gen $size $i | time --format=%E /home/manohar/vienna/RNAfold -d2 --noLP --noPS >/dev/null; fi
 			i=`expr $i + 1`;
 		done

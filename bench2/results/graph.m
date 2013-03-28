@@ -1,8 +1,8 @@
 function [] = graph()
 	[D, axis, D2, axis2] = data();
 
-	% D=[ 1-4=cpu(NuPlain,NuBT, ZuPlain, ZuBT); 5-8=gpu(NuPlain,NuBT, ZuPlain, ZuBT); 9=adp_nu; 10=adp_zu; 11=vienna; 12=lms];
-	%do_graph('small_nu.eps','Nussinov',D,axis,[12,10,1,2,5,6],{'-k','--k','-rd','-gx','-bs','-mo'},{'LMS','ADP fusion','CPU','CPU+BT','GPU','GPU+BT'})
+	% D=[ 1-4=cpu(NuPlain,NuBT, ZuPlain, ZuBT); 5-8=gpu(NuPlain,NuBT, ZuPlain, ZuBT); 9=adp_nu; 10=adp_zu; 11=vienna; 12=lms; 13=nu_handopt];
+	% do_graph('small_nu.eps','Nussinov',D,axis,[13,10,1,2,5,6],{'-k','--k','-rd','-gx','-bs','-mo'},{'HandOptimized','ADP fusion','CPU','CPU+BT','GPU','GPU+BT'})
 	do_graph('small_nu.eps','Nussinov',D,axis,[10,1,2,5,6],{'--k','-rd','-gx','-bs','-mo'},{'ADP fusion','CPU','CPU+BT','GPU','GPU+BT'})
 	do_graph('small_zu.eps','Zuker',D,axis,[11,10,3,4,7,8],{'-k','--k','-rd','-gx','-bs','-mo'},{'ViennaRNA','ADP fusion','CPU','CPU+BT','GPU','GPU+BT'})
 
