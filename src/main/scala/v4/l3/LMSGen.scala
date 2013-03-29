@@ -18,7 +18,50 @@ object Test extends Signature with LMSGenADP with App {
   scala.Console.println(genLMS)
 }
 
+/*
+BOILS DOWN TO CORRECT CODE (SIMPLIFIED):
+class kernel extends ((Int, Int)=>(Unit)) {
+  def apply(x0:Int, x1:Int): Unit = {
+    var x2: Int = -1
+    val x3 = new Array[Int](1);
+    val x4 = new Array[Int](1);
+    var x5: scala.Tuple3[Int, Int, Int] = null
+    val x6 = x0 + 1
+    val x7 = x6 == x1
+    val x26 = if (x7) {
+      val x8 = _in1[x0];
+      if (x2 == -1 || 0 < x5._2) {
+        x5 = (x8._1,0,x8._2)
+        x2 = 0
+        x3 = x4.clone();
+      }
+    }
+    val x30 = x6
+    var x38 : Int = x30
+    while (x38 < x1) {
+      x4(0) = x38;
+      val x41 = _cost.M[idx(x0,x38)];
+      val x43 = _cost.M[idx(x38,x1)];
+      val x50 = x43._3
+      val x45 = x41._1
+      val x54 = x41._2 + x43._2 + x45 * x41._3 * x50
+      if (x2 == -1 || x54 < x5._2) {
+        x5 = (x45,x54,x50)
+        x2 = 0
+        x3 = x4.clone();
+      }
+      x38 = x38 + 1
+    }
+    val x73 = idx(x0,x1);
+    _cost.M[x73] = x5;
+    _back.M[x73].rule = x2;
+    _back.M[x73].pos = x3;
+  }
+}
+*/
+
 // -----------------------------------------------------------------
+
 import scala.virtualization.lms.common._
 import scala.reflect.SourceContext
 import scala.virtualization.lms.internal.{Expressions,Effects}
@@ -33,6 +76,7 @@ trait DPOps extends Base with Expressions with Effects {
   // int[] stack array storage for backtrack
   def bt_new(size:Int)(implicit pos: SourceContext) : Rep[Array[Int]]
   def bt_set(dst:Rep[Array[Int]], idx:Int, value:Rep[Int])(implicit pos: SourceContext) : Rep[Unit]
+  def bt_copy(dst:Rep[Array[Int]],src:Rep[Array[Int]])(implicit pos: SourceContext) : Rep[Unit]
 }
 
 trait DPExp extends DPOps with EffectExp {
@@ -44,6 +88,7 @@ trait DPExp extends DPOps with EffectExp {
 
   case class BtNew(size:Int)(implicit pos: SourceContext) extends Def[Array[Int]]
   case class BtSet(dst:Exp[Array[Int]], idx:Int, value:Exp[Int]) extends Def[Unit]
+  case class BtCopy(dst:Exp[Array[Int]], src:Exp[Array[Int]]) extends Def[Unit]
 
   def tab_idx(i:Rep[Int], j:Rep[Int])(implicit pos: SourceContext) = TabIdx(i,j)
   def tab_read[T](name:String, idx:Exp[Int])(mT:Manifest[T])(implicit pos: SourceContext) = reflectEffect(TabRead(name,idx))
@@ -53,6 +98,7 @@ trait DPExp extends DPOps with EffectExp {
 
   def bt_new(size:Int)(implicit pos: SourceContext) = reflectEffect(BtNew(size))
   def bt_set(dst:Rep[Array[Int]], idx:Int, value:Rep[Int])(implicit pos: SourceContext) = reflectEffect(BtSet(dst,idx,value))
+  def bt_copy(dst:Rep[Array[Int]],src:Rep[Array[Int]])(implicit pos: SourceContext) = reflectEffect(BtCopy(dst,src))
 }
 
 trait ScalaGenDP extends ScalaGenEffect {
@@ -69,6 +115,7 @@ trait ScalaGenDP extends ScalaGenEffect {
     case In2Read(i) => stream.println("val "+quote(sym)+" = _in2["+quote(i)+"];")
     case BtNew(size) => stream.println("val "+quote(sym)+" = new Array[Int]("+size+");")
     case BtSet(dst, idx, value) => stream.println(quote(dst)+"("+idx+") = "+quote(value)+";")
+    case BtCopy(dst, src) => stream.println(quote(dst)+" = "+quote(src)+".clone();")
     case _ => super.emitNode(sym, rhs)
   }
 }
@@ -87,7 +134,11 @@ trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
   }
 }
 
+// -----------------------------------------------------------------
+
 // XXX: missing two-tracks
+
+// -----------------------------------------------------------------
 
 trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp with BooleanOpsExp with CompileScala { self:Signature =>
   val codegen = new ScalaCodeGenPkg with ScalaGenGeneratorOps with ScalaGenDP { val IR:self.type = self }
@@ -110,32 +161,38 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
   def genTerminal[T](t:Terminal[T],i:Rep[Int],j:Rep[Int],cont:Rep[T]=>Rep[Unit]) : Rep[Unit] // abstract
 
   def genTabLMS(t:Tabulate)(i0:Rep[Int],j0:Rep[Int]):Rep[Unit] = {
-    var rule = var_new(unit(-1)) // best rule
-    var bt = bt_new(t.inner.cat) // best backtrack
-    var bt_tmp = bt_new(t.inner.cat) // temporary backtrack
+    val rule = var_new(unit(-1)) // best rule
+    val bt = bt_new(t.inner.cat) // best backtrack
+    val bt_tmp = bt_new(t.inner.cat) // temporary backtrack
     val tc = (value:Rep[Answer]) => _write(t,i0,j0,value,rule,bt) // tail continuation
     genParser(t.inner,tc,i0,j0,t.id,0)
     
-    // Transform into generators/CPS
+    // Transform into delimited CPS
     def genParser[T](p0:Parser[T],cont:Rep[T]=>Rep[Unit],i:Rep[Int],j:Rep[Int],rid:Int,off:Int) : Rep[Unit] = p0 match { // rule id, backtrack index position
       case Aggregate(p,h) => 
         implicit val manifestForH:Manifest[T] = tps._2.asInstanceOf[Manifest[T]] // FIXME: not necessarily, but do we care ?
         var tmp = var_new(unit(null).asInstanceOf[Const[T]])
         genParser(p,{(res:Rep[T]) =>
           implicit val ord = new Ordering[T] { def compare(x:T,y:T): Int=0 } // FIXME: I love cheating
+          def do_assign = {
+            var_assign(tmp,res);
+            var_assign(rule,unit(rid)); // XXX: fetch recursively instead !!
+            scala.Console.println("RID="+rid); // must be passed by the terminal in the continuation
+            bt_copy(bt,bt_tmp)
+          }
           h.toString match {
-            case "$$max$$" => if (rule==unit(-1) || res > tmp) { var_assign(tmp,res); rule=rid; }
-            case "$$min$$" => if (rule==unit(-1) || res < tmp) { var_assign(tmp,res); rule=rid; }
+            case "$$max$$" => if (rule==unit(-1) || res > tmp) do_assign
+            case "$$min$$" => if (rule==unit(-1) || res < tmp) do_assign
             case "$$count$$" => var_plusequals(tmp,unit(1))
             case "$$sum$$" => var_plusequals(tmp,res)
             case "$$minBy$$" => (h.asInstanceOf[MinBy[Any,Any]].f) match {
               case l@LFun(f0) => val f=f0.asInstanceOf[Rep[T]=>Rep[T]] // FIXME: T=>Numeric[Any]
-                if (rule==unit(-1) || f(res) < f(tmp)) { var_assign(tmp,res); rule=rid; }
+                if (rule==unit(-1) || f(res) < f(tmp)) do_assign
               case _ => sys.error("Non-LMS minBy")
             }
             case "$$maxBy$$" => (h.asInstanceOf[MinBy[Any,Any]].f) match {
               case l@LFun(f0) => val f=f0.asInstanceOf[Rep[T]=>Rep[T]] // FIXME: T=>Numeric[Any]
-                if (rule==unit(-1) || f(res) > f(tmp)) { var_assign(tmp,res); rule=rid; }
+                if (rule==unit(-1) || f(res) > f(tmp)) do_assign
               case _ => sys.error("Non-LMS maxBy")
             }
             case _ => sys.error("Unsupported aggregation "+h.toString)
@@ -148,55 +205,22 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
       case p:Tabulate => cont(_read(p,i,j))
       case t@Terminal(_,_,_) => genTerminal(t,i,j,cont)
       case cc@Concat(left,right,track) => val (lL,lU,rL,rU) = cc.indices
-
-        if (track==0) {
-          val min_k = if (unit(rU==maxN) || i+unit(lL) > j-unit(rU)) i+unit(lL) else j-unit(rU)
-          val max_k = if (unit(lU==maxN) || j-unit(rL) < i+unit(lU)) j-unit(rL) else i+unit(lU)
-          range_foreach(range_until(min_k,max_k+unit(1)),(k:Rep[Int])=>{
-            genParser(left,(x:Rep[Any])=>{
-              genParser(right,(y:Rep[Any])=>{
-                cont(x,y)
-              },k,j,rid,off+left.cat+(if (cc.hasBt) 1 else 0))
-            },i,k,rid,off)
-          })
-        } else sys.error("Unimplemented track")
-/*
-    def apply(sw:Subword) = {
-      val (i,j) = sw; val (lL,lU,rL,rU) = indices
-      if (track==0) {
-        val min_k = if (rU==maxN || i+lL > j-rU) i+lL else j-rU
-        val max_k = if (lU==maxN || j-rL < i+lU) j-rL else i+lU
-        for(
-          k <- (min_k to max_k).toList;
-          (x,xb) <- left((i,k));
-          (y,yb) <- right((k,j))
-        ) yield(((x,y),bt(xb,yb,k)))
-      } else if (track==1) {
-        val min_k = if (lU==maxN || i-lU < 0) 0 else i-lU
-        val max_k = i-lL
-        for(
-          k <- (min_k to max_k).toList;
-          (x,xb) <- left((k,i)); // in1[k..i]
-          (y,yb) <- right((k,j)) // M[k,j]
-        ) yield(((x,y),bt(xb,yb,k)))
-      } else if (track==2) {
-        val min_k = if (rU==maxN || j-rU < 0) 0 else j-rU
-        val max_k = j-rL
-        for(
-          k <- (min_k to max_k).toList;
-          (x,xb) <- left((i,k)); // M[i,k]
-          (y,yb) <- right((k,j)) // in2[k..j]
-        ) yield(((x,y),bt(xb,yb,k)))
-      } else Nil
-    }
-*/
-      case _ => sys.error("Does not match")
-        /*
-        val value = _read(t,i,j)
-        rule = unit(0)
-        bt_set(bt,0,rule)
-        cont(value)
-        */
+        def loop(kmin:Rep[Int],kmax:Rep[Int],f:Rep[Int]=>Rep[Unit]) = {
+          range_foreach(range_until(kmin,kmax+unit(1)),(k:Rep[Int])=> { bt_set(bt_tmp,left.cat,k); f(k) })
+        }
+        def inner(li:Rep[Int],lj:Rep[Int],ri:Rep[Int],rj:Rep[Int]) = {
+          genParser(left,(x:Rep[Any])=>{
+            genParser(right,(y:Rep[Any])=>{
+              cont(x,y)
+            },ri,rj,rid,off+left.cat+(if (cc.hasBt) 1 else 0))
+          },li,lj,rid,off)
+        }
+        if (track==0) loop(if (unit(rU==maxN) || i+unit(lL) > j-unit(rU)) i+unit(lL) else j-unit(rU),
+                           if (unit(lU==maxN) || j-unit(rL) < i+unit(lU)) j-unit(rL) else i+unit(lU), k=>inner(i,k, k,j))
+        else if (track==1) loop(if (unit(lU==maxN) || i-unit(lU) < unit(0)) unit(0) else i-unit(lU), i-unit(lL), k=>inner(k,i, k,j))
+        else if (track==2) loop(if (unit(rU==maxN) || j-unit(rU) < unit(0)) unit(0) else j-unit(rU), j-unit(rL), k=>inner(i,k, k,j))
+        else sys.error("Unimplemented track")
+      case _ => sys.error("Bad parser")
     } 
   }
 
