@@ -15,6 +15,8 @@ object Test extends Signature with LMSGenADP with App {
   val mult = toFun{p:Rep[(Answer,Answer)] => { val l=p._1; val r=p._2; (l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3) } }
   val axiom:Tabulate = tabulate("M",(el ^^ single | axiom ~ axiom ^^ mult) aggregate h)
 
+  scala.Console.println(parse(scala.Array((3,2),(2,4),(4,2),(2,5)),psBottomUp))
+
   scala.Console.println(genLMS)
 }
 
@@ -140,8 +142,17 @@ trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
 
 // -----------------------------------------------------------------
 
-trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp with BooleanOpsExp with CompileScala { self:Signature =>
+trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp with BooleanOpsExp { self:Signature =>
   val codegen = new ScalaCodeGenPkg with ScalaGenGeneratorOps with ScalaGenDP { val IR:self.type = self }
+
+  // Replace LMS's ScalaCompiler
+  private var compileCount = 0
+  def compile[A,B](f: Exp[A] => Exp[B])(implicit mA: Manifest[A], mB: Manifest[B]): A=>B = {
+    val className = "staged$" + compileCount
+    val source = new java.io.StringWriter()
+    codegen.emitSource(f, className, new java.io.PrintWriter(source))
+    compiler.compile[A=>B](className,source.toString)
+  }
 
   // Helper to wrap LMS function appropriately
   def toFun[T:Manifest,U:Manifest](f:Rep[T]=>Rep[U]) = new LFun(f)

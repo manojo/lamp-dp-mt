@@ -9,12 +9,19 @@ trait ScalaCompiler {
   var compiler: Global = _
   var reporter: ConsoleReporter = _
   def setupCompiler = {
-    // Patch the classpath to add outPath
-    val cl = this.getClass.getClassLoader
-    val method=cl.getClass.getDeclaredMethod("addURL", classOf[java.net.URL]);
-    method.setAccessible(true);
-    try { method.invoke(cl, new File(outPath).toURI.toURL); }
-    catch { case t:Throwable => sys.error("Unable to add outPath to classpath") }
+    // Add outPath to the classpath
+    try {
+      val cl = this.getClass.getClassLoader
+      val method=cl.getClass.getDeclaredMethod("addURL", classOf[java.net.URL]);
+      method.setAccessible(true);
+      try { method.invoke(cl, new File(outPath).toURI.toURL); }
+      catch { case t:Throwable => sys.error("Unable to add outPath to classpath") }
+    } catch { case t:Throwable => // Fallback, assuming we have appropriate permissions
+      val currentThreadClassLoader = Thread.currentThread().getContextClassLoader();
+      val urlClassLoader = new java.net.URLClassLoader(Array(new File(outPath).toURI.toURL), currentThreadClassLoader);
+      Thread.currentThread().setContextClassLoader(urlClassLoader);
+    }
+
     // Initialize compiler settings
     val settings = new Settings()
     settings.classpath.value = this.getClass.getClassLoader match {

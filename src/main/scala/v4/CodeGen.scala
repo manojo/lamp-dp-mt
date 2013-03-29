@@ -520,7 +520,7 @@ trait CodeGen extends BaseParsers { this:Signature =>
   val cudaUnroll = 5 // experimental unrolling optimal
   val cudaSharedInput = this match { case s:RNASignature => true case _ => false } // store input in shared memory
   val cudaEmpty:String = null // "empty" Answer value (usually zero or infinite). By setting this value, aggregation must be done _ONLY_ on Answer type
-  val ccompiler = new CodeCompiler {
+  val compiler = new CodeCompiler {
     override val outPath = "bin"
     override val cudaPath = "/usr/local/cuda"
     override val cudaFlags = "-m64 -arch=sm_30" // --ptxas-options=-v
@@ -559,10 +559,10 @@ trait CodeGen extends BaseParsers { this:Signature =>
   }
 
   // Wrappers for CUDA invocation, these are automatically called by ADPParsers/TTParsers
-  def parseC(in1:Input,gpu:Boolean) = { val w=ccompiler.getADP(in1.size,gpu); time("Execution"){()=> w.parse(in1) } }
-  def backtrackC(in1:Input,gpu:Boolean) = { val w=ccompiler.getADP(in1.size,gpu); time("Execution"){()=> w.backtrack(in1) } }
-  def parseCTT(in1:Input,in2:Input,gpu:Boolean) = { val w=ccompiler.getTT(in1.size,in2.size,gpu); time("Execution"){()=> w.parse(in1,in2) } }
-  def backtrackCTT(in1:Input,in2:Input,gpu:Boolean) = { val w=ccompiler.getTT(in1.size,in2.size,gpu); time("Execution"){()=> w.backtrack(in1,in2) } }
+  def parseC(in1:Input,gpu:Boolean) = { val w=compiler.getADP(in1.size,gpu); time("Execution"){()=> w.parse(in1) } }
+  def backtrackC(in1:Input,gpu:Boolean) = { val w=compiler.getADP(in1.size,gpu); time("Execution"){()=> w.backtrack(in1) } }
+  def parseCTT(in1:Input,in2:Input,gpu:Boolean) = { val w=compiler.getTT(in1.size,in2.size,gpu); time("Execution"){()=> w.parse(in1,in2) } }
+  def backtrackCTT(in1:Input,in2:Input,gpu:Boolean) = { val w=compiler.getTT(in1.size,in2.size,gpu); time("Execution"){()=> w.backtrack(in1,in2) } }
 
   // Debug
   def gen:String = {
