@@ -4,7 +4,7 @@ import lms._
 
 import scala.virtualization.lms.common._
 
-object Test extends Signature with ADPParsers with LMSGen with App {
+object Test extends Signature with LMSGenADP with App {
   // Matrix multiplication
   type Alphabet = (Int,Int)
   type Answer = (Int,Int,Int) // col
@@ -75,9 +75,24 @@ trait ScalaGenDP extends ScalaGenEffect {
 
 // -----------------------------------------------------------------
 
+trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
+  def in(idx:Rep[Int]):Rep[Alphabet] = in1_read(idx)(tps._1)
+  def genTerminal[T](t:Terminal[T],i:Rep[Int],j:Rep[Int],cont:Rep[T]=>Rep[Unit]) = t match {
+    case `empty` => if (i==j) cont(unit(()).asInstanceOf[Rep[T]])
+    case `emptyi` => if (i==j) cont(i.asInstanceOf[Rep[T]])
+    case `el` => if (i+1==j) cont(in(i).asInstanceOf[Rep[T]])
+    case `eli` => if (i+1==j) cont(i.asInstanceOf[Rep[T]])
+    // XXX: missing seq(min,max) => create a class and pattern match
+    case _ => sys.error("Unsupported terminal")
+  }
+}
+
+// XXX: missing two-tracks
+
 trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp with BooleanOpsExp with CompileScala { self:Signature =>
   val codegen = new ScalaCodeGenPkg with ScalaGenGeneratorOps with ScalaGenDP { val IR:self.type = self }
 
+  // Helper to wrap LMS function appropriately
   def toFun[T:Manifest,U:Manifest](f:Rep[T]=>Rep[U]) = new LFun(f)
   case class LFun[T:Manifest,U:Manifest](f:Rep[T]=>Rep[U]) extends Function1[T,U] {
     //val mT = manifest[T] // to feed at LMS node construction
@@ -87,56 +102,102 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
   }
 
   // Helpers to set manifest appropriately
-  private def _in1(idx:Rep[Int]):Rep[Alphabet] = in1_read(idx)(tps._1)
-  private def _in2(idx:Rep[Int]):Rep[Alphabet] = in2_read(idx)(tps._1)
+  //private def _in1(idx:Rep[Int]):Rep[Alphabet] = in1_read(idx)(tps._1)
+  //private def _in2(idx:Rep[Int]):Rep[Alphabet] = in2_read(idx)(tps._1)
   private def _read(t:Tabulate,i:Rep[Int],j:Rep[Int]) = tab_read(t.name,tab_idx(i,j))(tps._2)
   private def _write(t:Tabulate,i:Rep[Int],j:Rep[Int],value:Rep[Answer],rule:Rep[Int],bt:Rep[Array[Int]]) = { implicit val manifestForAnswer=tps._2; tab_write(t.name,tab_idx(i,j),value,rule,bt) }
   
-  def genTabLMS(t:Tabulate)(i:Rep[Int],j:Rep[Int]):Rep[Unit] = {
+  def genTerminal[T](t:Terminal[T],i:Rep[Int],j:Rep[Int],cont:Rep[T]=>Rep[Unit]) : Rep[Unit] // abstract
+
+  def genTabLMS(t:Tabulate)(i0:Rep[Int],j0:Rep[Int]):Rep[Unit] = {
     var rule = var_new(unit(-1)) // best rule
     var bt = bt_new(t.inner.cat) // best backtrack
     var bt_tmp = bt_new(t.inner.cat) // temporary backtrack
-    val tc = (value:Rep[Answer]) => _write(t,i,j,value,rule,bt) // tail continuation
+    val tc = (value:Rep[Answer]) => _write(t,i0,j0,value,rule,bt) // tail continuation
+    genParser(t.inner,tc,i0,j0,t.id,0)
     
     // Transform into generators/CPS
-    def genParser[T](p0:Parser[T],cont:Rep[T]=>Rep[Unit],rid:Int,off:Int) : Rep[Unit] = p0 match { // rule id, backtrack index position
+    def genParser[T](p0:Parser[T],cont:Rep[T]=>Rep[Unit],i:Rep[Int],j:Rep[Int],rid:Int,off:Int) : Rep[Unit] = p0 match { // rule id, backtrack index position
       case Aggregate(p,h) => 
-        implicit val manifestForH = tps._2 // not necessarily
-        var tmp = unit(null).asInstanceOf[Rep[T]] // must be a Var instead
+        implicit val manifestForH:Manifest[T] = tps._2.asInstanceOf[Manifest[T]] // FIXME: not necessarily, but do we care ?
+        var tmp = var_new(unit(null).asInstanceOf[Const[T]])
         genParser(p,{(res:Rep[T]) =>
+          implicit val ord = new Ordering[T] { def compare(x:T,y:T): Int=0 } // FIXME: I love cheating
           h.toString match {
-            case "$$max$$" => if (/*boolean_or(*/ rule==unit(-1) /*,r > tmp)*/) { tmp=res; rule=rid; }
-            case "$$min$$" => if (/*boolean_or(*/ rule==unit(-1) /*,r < tmp)*/) { tmp=res; rule=rid; }
-            case "$$count$$" => // var_plusequals(tmp,unit(1))
-            /*
-            case "$$sum$$" => tc+"+="+b+";"
-            case "$$maxBy$$" => val f=genFun(h.asInstanceOf[MaxBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)>"+f+"("+tc+") || "+tb+".rule==-1) "+updt
-            case "$$minBy$$" => val f=genFun(h.asInstanceOf[MinBy[Any,Any]].f); tpe+" _c="+b+"; if ("+f+"(_c)<"+f+"("+tc+") || "+tb+".rule==-1) "+updt
-            */
-
-            case _ =>
-             //  match on mixBy(LFun(f))
-              // sys.error("Unsupported LMS aggregation "+h.toString)
-              scala.Console.println("Unsupported LMS aggregation "+h.toString)
+            case "$$max$$" => if (rule==unit(-1) || res > tmp) { var_assign(tmp,res); rule=rid; }
+            case "$$min$$" => if (rule==unit(-1) || res < tmp) { var_assign(tmp,res); rule=rid; }
+            case "$$count$$" => var_plusequals(tmp,unit(1))
+            case "$$sum$$" => var_plusequals(tmp,res)
+            case "$$minBy$$" => (h.asInstanceOf[MinBy[Any,Any]].f) match {
+              case l@LFun(f0) => val f=f0.asInstanceOf[Rep[T]=>Rep[T]] // FIXME: T=>Numeric[Any]
+                if (rule==unit(-1) || f(res) < f(tmp)) { var_assign(tmp,res); rule=rid; }
+              case _ => sys.error("Non-LMS minBy")
+            }
+            case "$$maxBy$$" => (h.asInstanceOf[MinBy[Any,Any]].f) match {
+              case l@LFun(f0) => val f=f0.asInstanceOf[Rep[T]=>Rep[T]] // FIXME: T=>Numeric[Any]
+                if (rule==unit(-1) || f(res) > f(tmp)) { var_assign(tmp,res); rule=rid; }
+              case _ => sys.error("Non-LMS maxBy")
+            }
+            case _ => sys.error("Unsupported aggregation "+h.toString)
           }
-        },rid,off)
+        },i,j,rid,off)
         cont(tmp)
-      case Or(l,r) => genParser(l,cont,rid,off); genParser(r,cont,rid+l.alt,off)
-      case Filter(p,LFun(f)) => if (f((i,j))) genParser(p,cont,rid,off);
-      case Map(p,m@LFun(f)) => genParser(p,{ (r:Rep[Any]) => cont(f(r)) },rid,off)
-      /*
-      case t:Terminal =>
-      case p:Tabulate =>
-      case cc@Concat(l,r,tt) =>
-      */
-      case _ =>
-        //sys.error("Does not match")
+      case Or(l,r) => genParser(l,cont,i,j,rid,off); genParser(r,cont,i,j,rid+l.alt,off)
+      case Filter(p,LFun(f)) => if (f((i,j))) genParser(p,cont,i,j,rid,off);
+      case Map(p,m@LFun(f)) => genParser(p,{ (r:Rep[Any]) => cont(f(r)) },i,j,rid,off)
+      case p:Tabulate => cont(_read(p,i,j))
+      case t@Terminal(_,_,_) => genTerminal(t,i,j,cont)
+      case cc@Concat(left,right,track) => val (lL,lU,rL,rU) = cc.indices
+
+        if (track==0) {
+          val min_k = if (unit(rU==maxN) || i+unit(lL) > j-unit(rU)) i+unit(lL) else j-unit(rU)
+          val max_k = if (unit(lU==maxN) || j-unit(rL) < i+unit(lU)) j-unit(rL) else i+unit(lU)
+          range_foreach(range_until(min_k,max_k+unit(1)),(k:Rep[Int])=>{
+            genParser(left,(x:Rep[Any])=>{
+              genParser(right,(y:Rep[Any])=>{
+                cont(x,y)
+              },k,j,rid,off+left.cat+(if (cc.hasBt) 1 else 0))
+            },i,k,rid,off)
+          })
+        } else sys.error("Unimplemented track")
+/*
+    def apply(sw:Subword) = {
+      val (i,j) = sw; val (lL,lU,rL,rU) = indices
+      if (track==0) {
+        val min_k = if (rU==maxN || i+lL > j-rU) i+lL else j-rU
+        val max_k = if (lU==maxN || j-rL < i+lU) j-rL else i+lU
+        for(
+          k <- (min_k to max_k).toList;
+          (x,xb) <- left((i,k));
+          (y,yb) <- right((k,j))
+        ) yield(((x,y),bt(xb,yb,k)))
+      } else if (track==1) {
+        val min_k = if (lU==maxN || i-lU < 0) 0 else i-lU
+        val max_k = i-lL
+        for(
+          k <- (min_k to max_k).toList;
+          (x,xb) <- left((k,i)); // in1[k..i]
+          (y,yb) <- right((k,j)) // M[k,j]
+        ) yield(((x,y),bt(xb,yb,k)))
+      } else if (track==2) {
+        val min_k = if (rU==maxN || j-rU < 0) 0 else j-rU
+        val max_k = j-rL
+        for(
+          k <- (min_k to max_k).toList;
+          (x,xb) <- left((i,k)); // M[i,k]
+          (y,yb) <- right((k,j)) // in2[k..j]
+        ) yield(((x,y),bt(xb,yb,k)))
+      } else Nil
+    }
+*/
+      case _ => sys.error("Does not match")
+        /*
         val value = _read(t,i,j)
         rule = unit(0)
         bt_set(bt,0,rule)
         cont(value)
+        */
     } 
-    genParser(t.inner,(value:Rep[Answer]) => _write(t,i,j,value,rule,bt),t.id,0)
   }
 
   def genLMS:String = {
