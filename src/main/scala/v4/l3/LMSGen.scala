@@ -79,7 +79,7 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
   private def _write(t:Tabulate,i:Rep[Int],j:Rep[Int],value:Rep[Answer],rule:Rep[Int],bt:Rep[Array[Int]]) = { implicit val manifestForAnswer=tps._2; tab_write(t.name,tab_idx(i,j),value,rule,bt) }
   
 
-  def parseLMS(in1:Input):List[(Answer,Trace)] = {
+  def parseLMS(in1:Input):(Answer,Trace) = {
     val buf = new java.io.ByteArrayOutputStream;
     val pr = new java.io.PrintWriter(buf)
     analyze
@@ -90,18 +90,20 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
     val source = new java.io.StringWriter()
 
     codegen.emitSource2(bottomUpLMS _, className, new java.io.PrintWriter(source))
-    scala.Console.println("SOURCE CODE = "+source.toString)
+    //scala.Console.println("SOURCE CODE = "+source.toString)
     val bu = compiler.compile[(Input,List[ Array[(Answer,Backtrack)] ]) =>Unit](className,source.toString)
+    
+    val mem = (in1.length+1)*(in1.length+1)
+    val as = rulesOrder.map{x=>new Array[(Answer,Backtrack)](mem)}
 
-/*
-    input=in1; analyze; tabInit(in1.size+1,in1.size+1);
+    bu(in1,as)
+    //as.foreach(x=>x.foreach(y=> scala.Console.println(y) ))
 
-    // Bottom-up application
-    tabReset; input=null; res
-*/
-    Nil
+
+    var res:(Answer,Trace)=null
+    rulesOrder.zipWithIndex.foreach { case (n,i)=> if (rules(n)==axiom) res=as(i).apply(in1.size) }
+    res
   }
-
 
   // XXX: also make a wrapper that alloc/free tables and does the backtrack
   def bottomUpLMS(in1:Rep[Input], /*in2:Rep[Input],*/ tabs: Rep[List[ Array[(Answer,Backtrack)] ]]) : Rep[Unit] = {
@@ -116,7 +118,7 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
     }
     // explicitly name tables
     range_foreach(range_until(unit(0),in1.length+unit(1)),(l:Rep[Int])=>{
-      range_foreach(range_until(unit(0),in1.length+unit(1)),(i:Rep[Int])=>{ val j=i+l
+      range_foreach(range_until(unit(0),in1.length+unit(1)-l),(i:Rep[Int])=>{ val j=i+l
         rulesOrder.foreach{n=>
           genTabLMS(rules(n))(i,j)
         } // XXX: address the rule names in codegen
@@ -143,7 +145,7 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
           def do_assign = {
             var_assign(tmp,res);
             var_assign(rule,unit(rid)); // XXX: fetch recursively instead !!
-            scala.Console.println("RID="+rid); // must be passed by the terminal in the continuation
+            scala.Console.println("RID="+rid); // XXX: must be passed by the terminal in the continuation
             bt_copy(bt,bt_tmp)
           }
           h.toString match {
@@ -153,7 +155,8 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
             case "$$sum$$" => var_plusequals(tmp,res)
             case "$$minBy$$" => (h.asInstanceOf[MinBy[Any,Any]].f) match {
               case l@LFun(f0) => val f=f0.asInstanceOf[Rep[T]=>Rep[T]] // FIXME: T=>Numeric[Any]
-                if (rule==unit(-1) || f(res) < f(tmp)) do_assign
+                if (__equal(tmp,unit(null))) do_assign // XXX: replicate for other cases
+                else if (rule==unit(-1) || f(res) < f(tmp)) do_assign
               case _ => sys.error("Non-LMS minBy")
             }
             case "$$maxBy$$" => (h.asInstanceOf[MinBy[Any,Any]].f) match {
@@ -168,7 +171,7 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
       case Or(l,r) => genParser(l,cont,i,j,rid,off); genParser(r,cont,i,j,rid+l.alt,off)
       case Filter(p,LFun(f)) => if (f((i,j))) genParser(p,cont,i,j,rid,off);
       case Map(p,m@LFun(f)) => genParser(p,{ (r:Rep[Any]) => cont(f(r)) },i,j,rid,off)
-      case p:Tabulate => cont(_read(p,i,j))
+      case p:Tabulate => val v=_read(p,i,j); if (v!=unit(null)) cont(v)
       case t@Terminal(_,_,_) => genTerminal(t,i,j,cont)
       case cc@Concat(left,right,track) => val (lL,lU,rL,rU) = cc.indices
         def loop(kmin:Rep[Int],kmax:Rep[Int],f:Rep[Int]=>Rep[Unit]) = {
