@@ -20,4 +20,15 @@ function [] = mbp()
 
 	% D2 = [ 1-4=cpu(NuPlain,NuBT, ZuPlain, ZuBT); 5-8=gpu(NuPlain,NuBT, ZuPlain, ZuBT) ]
 
+    d1 = D2(1,:);
+	d2 = D2(5,:);
+	d3 = []; for i=1:length(d1), d3(i)=d1(i)/d2(i); end
+	disp(sprintf('GPU/CPU Nussinov speedup = %.2f',median(d3))); disp(d3);
+
+    d1 = D2(3,:);
+	d2 = D2(7,:);
+	d3 = []; for i=1:length(d1), d3(i)=d1(i)/d2(i); end
+	disp(sprintf('GPU/CPU Zuker speedup = %.2f',median(d3))); disp(d3);
+
+    
 end
