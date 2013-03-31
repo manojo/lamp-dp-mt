@@ -22,7 +22,7 @@ object Test extends Signature with LMSGenADP with App {
 
   // LMS generated code
   scala.Console.println(parseLMS(mats))
-  //scala.Console.println(genLMS)
+  scala.Console.println(genLMS)
 }
 
 // -----------------------------------------------------------------
@@ -128,61 +128,50 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
 
   def genTerminal[T](t:Terminal[T],i:Rep[Int],j:Rep[Int],cont:Rep[T]=>Rep[Unit]) : Rep[Unit] // abstract
 
+  type Cont[T] = (Rep[T],Rep[Int])=>Rep[Unit]
   def genTabLMS(t:Tabulate)(i0:Rep[Int],j0:Rep[Int]):Rep[Unit] = {
-    val rule = var_new(unit(-1)) // best rule
-    val bt = bt_new(t.inner.cat) // best backtrack
-    val bt_tmp = bt_new(t.inner.cat) // temporary backtrack
-    val tc = (value:Rep[Answer]) => _write(t,i0,j0,value,rule,bt) // tail continuation
-    genParser(t.inner,tc,i0,j0,t.id,0)
-    
-    // Transform into delimited CPS
-    def genParser[T](p0:Parser[T],cont:Rep[T]=>Rep[Unit],i:Rep[Int],j:Rep[Int],rid:Int,off:Int) : Rep[Unit] = p0 match { // rule id, backtrack index position
+    val bt0 = bt_new(t.inner.cat) // best backtrack
+    val bt = bt_new(t.inner.cat) // temporary backtrack
+    t.inner match { case Aggregate(_,_) => case _ => sys.error("All tabulation must contain an aggregation") }
+    gen[Answer](t.inner,(v:Rep[Answer],r:Rep[Int]) => _write(t,i0,j0,v,r,bt0),i0,j0,0,true)
+
+    def gen[T](p0:Parser[T],cont:Cont[T],i:Rep[Int],j:Rep[Int],off:Int,top:Boolean=false) : Rep[Unit] = p0 match {
       case Aggregate(p,h) => 
-        implicit val manifestForH:Manifest[T] = tps._2.asInstanceOf[Manifest[T]] // FIXME: not necessarily, but do we care ?
-        var tmp = var_new(unit(null).asInstanceOf[Const[T]])
-        genParser(p,{(res:Rep[T]) =>
-          implicit val ord = new Ordering[T] { def compare(x:T,y:T): Int=0 } // FIXME: I love cheating
-          def do_assign = {
-            var_assign(tmp,res);
-            var_assign(rule,unit(rid)); // XXX: fetch recursively instead !!
-            scala.Console.println("RID="+rid); // XXX: must be passed by the terminal in the continuation
-            bt_copy(bt,bt_tmp)
-          }
+        implicit val mT:Manifest[T]=tps._2.asInstanceOf[Manifest[T]] // FIXME: not necessarily, but do we care ?
+        implicit val oT=new Ordering[T] { def compare(x:T,y:T): Int=0 } // FIXME: I love cheating
+        def af[U](f:T=>U):Rep[T]=>Rep[T] = f match { case l@LFun(f0) => f0.asInstanceOf[Rep[T]=>Rep[T]] case _ => sys.error("Non-LMS function: "+f) }  // FIXME: T=>Numeric[U]
+        var av = var_new(unit(null).asInstanceOf[Const[T]])
+        var ar = var_new(unit(-1))
+        def empty:Rep[Boolean] = av==unit(null) // in C: ar==unit(-1)
+        gen(p,{(v:Rep[T],r:Rep[Int]) =>
+          def set = { if (top) bt_copy(bt0,bt); var_assign(av,v); var_assign(ar,r) }
           h.toString match {
-            case "$$max$$" => if (rule==unit(-1) || res > tmp) do_assign
-            case "$$min$$" => if (rule==unit(-1) || res < tmp) do_assign
-            case "$$count$$" => var_plusequals(tmp,unit(1))
-            case "$$sum$$" => var_plusequals(tmp,res)
-            case "$$minBy$$" => (h.asInstanceOf[MinBy[Any,Any]].f) match {
-              case l@LFun(f0) => val f=f0.asInstanceOf[Rep[T]=>Rep[T]] // FIXME: T=>Numeric[Any]
-                if (__equal(tmp,unit(null))) do_assign // XXX: replicate for other cases
-                else if (rule==unit(-1) || f(res) < f(tmp)) do_assign
-              case _ => sys.error("Non-LMS minBy")
-            }
-            case "$$maxBy$$" => (h.asInstanceOf[MinBy[Any,Any]].f) match {
-              case l@LFun(f0) => val f=f0.asInstanceOf[Rep[T]=>Rep[T]] // FIXME: T=>Numeric[Any]
-                if (rule==unit(-1) || f(res) > f(tmp)) do_assign
-              case _ => sys.error("Non-LMS maxBy")
-            }
+            case "$$max$$" => if (boolean_or(empty , v > av)) set
+            case "$$min$$" => if (empty || v < av) set
+            case "$$count$$" => var_plusequals(av,unit(1))
+            case "$$sum$$" => var_plusequals(av,v)
+            case "$$minBy$$" => val f=af(h.asInstanceOf[MinBy[Any,Any]].f); if (empty) set else if (f(v) < f(av)) set // fix for sequentiality
+            case "$$maxBy$$" => val f=af(h.asInstanceOf[MaxBy[Any,Any]].f); if (empty || f(v) < f(av)) set
             case _ => sys.error("Unsupported aggregation "+h.toString)
           }
-        },i,j,rid,off)
-        cont(tmp)
-      case Or(l,r) => genParser(l,cont,i,j,rid,off); genParser(r,cont,i,j,rid+l.alt,off)
-      case Filter(p,LFun(f)) => if (f((i,j))) genParser(p,cont,i,j,rid,off);
-      case Map(p,m@LFun(f)) => genParser(p,{ (r:Rep[Any]) => cont(f(r)) },i,j,rid,off)
-      case p:Tabulate => val v=_read(p,i,j); if (v!=unit(null)) cont(v)
-      case t@Terminal(_,_,_) => genTerminal(t,i,j,cont)
+        },i,j,off)
+        if (!empty) cont(av,ar)
+
+      case Or(l,r) => gen(l,cont,i,j,off); gen(r,(v:Rep[T],r:Rep[Int])=>cont(v,r+unit(l.alt)),i,j,off)
+      case Filter(p,LFun(f)) => if (f((i,j))) gen(p,cont,i,j,off);
+      case Map(p,m@LFun(f)) => gen(p,(v:Rep[Any],r:Rep[Int])=>cont(f(v),r),i,j,off)
+      case p:Tabulate => val v=_read(p,i,j); if (v!=unit(null)) cont(v,unit(0)) // XXX: fix emptiness check
+      case t@Terminal(_,_,_) => genTerminal(t,i,j,(v:Rep[T])=>cont(v,unit(0)))
       case cc@Concat(left,right,track) => val (lL,lU,rL,rU) = cc.indices
         def loop(kmin:Rep[Int],kmax:Rep[Int],f:Rep[Int]=>Rep[Unit]) = {
-          range_foreach(range_until(kmin,kmax+unit(1)),(k:Rep[Int])=> { bt_set(bt_tmp,left.cat,k); f(k) })
+          range_foreach(range_until(kmin,kmax+unit(1)),(k:Rep[Int])=> { bt_set(bt,left.cat,k); f(k) })
         }
         def inner(li:Rep[Int],lj:Rep[Int],ri:Rep[Int],rj:Rep[Int]) = {
-          genParser(left,(x:Rep[Any])=>{
-            genParser(right,(y:Rep[Any])=>{
-              cont(x,y)
-            },ri,rj,rid,off+left.cat+(if (cc.hasBt) 1 else 0))
-          },li,lj,rid,off)
+          gen(left,(vl:Rep[Any],rl:Rep[Int])=>{
+            gen(right,(vr:Rep[Any],rr:Rep[Int])=>{
+              cont((vl,vr),rl*unit(right.alt)+rr)
+            },ri,rj,off+left.cat+(if (cc.hasBt) 1 else 0))
+          },li,lj,off)
         }
         if (track==0) loop(if (unit(rU==maxN) || i+unit(lL) > j-unit(rU)) i+unit(lL) else j-unit(rU),
                            if (unit(lU==maxN) || j-unit(rL) < i+unit(lU)) j-unit(rL) else i+unit(lU), k=>inner(i,k, k,j))
@@ -190,7 +179,7 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
         else if (track==2) loop(if (unit(rU==maxN) || j-unit(rU) < unit(0)) unit(0) else j-unit(rU), j-unit(rL), k=>inner(i,k, k,j))
         else sys.error("Unimplemented track")
       case _ => sys.error("Bad parser")
-    } 
+    }
   }
 
   def genLMS:String = {
