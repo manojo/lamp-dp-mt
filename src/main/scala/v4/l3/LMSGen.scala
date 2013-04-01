@@ -22,23 +22,20 @@ object Test extends Signature with LMSGenADP with App {
 
   // Vanilla Scala version
   override val benchmark = true
-  var (r1,b1) = time("Plain")(()=>backtrack(mats,psCPU).head)
-  scala.Console.println(r1)
-  scala.Console.println(build(mats,b1))
-
-  scala.Console.println("--------")
-  scala.Console.println(time("LMS_parse")(()=>parse(mats).head))
-  scala.Console.println("--------")
   
-  var (r2,b2) = time("LMS")(()=>backtrack(mats).head)
-  scala.Console.println(r2)
-  scala.Console.println(build(mats,b2))
+  def test(name:String,ps:ParserStyle) {
+    scala.Console.println("---------- "+name)
+    var (r1,b1) = backtrack(mats,ps).head
+    scala.Console.println(r1+" == "+build(mats,b1))
+  }
 
-  //scala.Console.println(backtrack(mats,psBottomUp))
-
-  // LMS generated code
-  //scala.Console.println(parseLMS(mats))
-  //scala.Console.println(genLMS)
+  test("Plain Scala (top-down)",psTopDown)
+  test("Plain Scala (bottom-up)",psScalaLMS)
+  test("LMS Scala",psBottomUp)
+  scala.Console.println("---------- LMS Scala (parse only)")
+  scala.Console.println(parse(mats).head)
+  test("CPU LMS",psCPU)
+  test("GPU/CUDA LMS",psCUDA)
 }
 
 // -----------------------------------------------------------------
@@ -91,7 +88,6 @@ trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
         })
       })
     }
-
     codegen.emitSource2(botUpLMS _, className, new java.io.PrintWriter(source))
     compiler.compile[(Input,List[ Array[(Answer,Backtrack)] ]) =>Unit](className,source.toString)
   }
@@ -127,7 +123,7 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
     }
   }
 
-  // Replaces LMS's ScalaCompiler
+  // Replaces LMS's ScalaCompiler trait
   private var compileCount = 0
   protected def freshClassName = { compileCount=compileCount+1; "staged$"+compileCount }
   def compile[A,B](f: Exp[A] => Exp[B])(implicit mA: Manifest[A], mB: Manifest[B]): A=>B = {
@@ -142,20 +138,12 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
   case class LFun[T:Manifest,U:Manifest](f:Rep[T]=>Rep[U]) extends Function1[T,U] with CFun {
     lazy val fs = self.compile(f);
     def apply(arg:T) = fs(arg)
-
-    import java.io._
-    private def getArgs(as:List[LMSGen.this.Sym[_]]) = as.map{x=>(ccodegen.quote(x), x.tp.toString) }
-    private def getBody(bdy:ccodegen.Block[_]):String = {
-      val os=new ByteArrayOutputStream; val stream=new PrintWriter(os)
-      ccodegen.withStream(stream) {
-        ccodegen.emitBlock(bdy); val y=ccodegen.getBlockResult(bdy)
-        if(ccodegen.remap(y.tp) != "void") stream.println("return "+ ccodegen.quote(y)+";")
-      }
+    private def getBody(bdy:ccodegen.Block[_]):String = { val os=new java.io.ByteArrayOutputStream; val stream=new java.io.PrintWriter(os)
+      ccodegen.withStream(stream) { ccodegen.emitBlock(bdy); val y=ccodegen.getBlockResult(bdy); if(ccodegen.remap(y.tp) != "void") stream.println("return "+ ccodegen.quote(y)+";") }
       val temp=os.toString("UTF-8"); os.close; stream.close; temp
     }
-
     private val s = fresh[T]
-    val args = getArgs(scala.List(s))
+    val args = scala.List((ccodegen.quote(s), s.tp.toString))
     val body = getBody(ccodegen.reifyBlock(f(s)))
     val tpe = manifest[U].toString
   }
@@ -167,7 +155,7 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
   private def _read(t:Tabulate,i:Rep[Int],j:Rep[Int]) = { implicit val manifestForAnswer=tps._2; tab_read(t.name,tab_idx(i,j)) }
   private def _write(t:Tabulate,i:Rep[Int],j:Rep[Int],value:Rep[Answer],rule:Rep[Int],bt:Rep[Array[Int]]) = { implicit val manifestForAnswer=tps._2; tab_write(t.name,tab_idx(i,j),value,rule,bt) }
 
-  // C/CUDA codegen
+  // C/CUDA codegen drop-in replacement
   private var genC = false
   override def genTab(t:Tabulate):String = { val buf = new java.io.ByteArrayOutputStream;
     genC=true; ccodegen.emitSource2(genTabLMS(t) _,"kern",new java.io.PrintWriter(buf)); genC=false
@@ -311,12 +299,7 @@ trait CGenDP extends CGenEffect {
     case In2Read(i) => stream.println("input_t "+quote(sym)+" = _in2["+quote(i)+"];")
     case BtNew(size) => stream.println("short "+quote(sym)+"["+size+"];")
     case BtSet(dst, idx, value) => stream.println(quote(dst)+"["+idx+"] = "+quote(value)+";")
-    case BtCopy(dst, src) => 
-      //stream.println(quote(dst)+" = "+quote(src)+";")
-      stream.println("memcpy("+quote(dst)+","+quote(src)+",sizeof("+quote(src)+"));")
-
-
-
+    case BtCopy(dst, src) => stream.println("memcpy("+quote(dst)+","+quote(src)+",sizeof("+quote(src)+"));")
     case NamedVal(name,value) => sys.error("NamedVal should not appear") //stream.println(value.tp+" "+name+" = "+quote(value)+";")
     case _ => super.emitNode(sym, rhs)
   }
@@ -333,22 +316,22 @@ trait CGenTupleOps extends CLikeGenBase {
   import IR._
 
   private val encounteredTuples = collection.mutable.HashMap.empty[String, Def[Any]]
-  private def registerType[A](m: Manifest[A], rhs: Def[Any]) { encounteredTuples += tupleClassName(m) -> rhs }
-
+  private def registerType[A](m: Manifest[A], rhs: Def[Any]) { encounteredTuples += tupleName(m) -> rhs }
+  override def remap[A](m: Manifest[A]): String = m.toString match { case f if f.startsWith("scala.Tuple") => tupleName(m) case _ => super.remap(m) }
   override def emitNode(sym: Sym[Any], rhs: Def[Any]) = rhs match {
-    case e2@ETuple2(a,b) => registerType(sym.tp,rhs); emitValDef(sym, "("+tupleClassName(sym.tp)+"){"+ quote(a)+","+quote(b)+"}")
+    case e2@ETuple2(a,b) => registerType(sym.tp,rhs); emitValDef(sym, "("+tupleName(sym.tp)+"){"+ quote(a)+","+quote(b)+"}")
     case Tuple2Access1(t) => emitValDef(sym, quote(t) + "._1")
     case Tuple2Access2(t) => emitValDef(sym, quote(t) + "._2")
-    case e3@ETuple3(a,b,c) => registerType(sym.tp,rhs); emitValDef(sym, "("+tupleClassName(sym.tp)+"){"+quote(a)+","+quote(b)+","+quote(c)+"}")
+    case e3@ETuple3(a,b,c) => registerType(sym.tp,rhs); emitValDef(sym, "("+tupleName(sym.tp)+"){"+quote(a)+","+quote(b)+","+quote(c)+"}")
     case Tuple3Access1(t) => emitValDef(sym, quote(t) + "._1")
     case Tuple3Access2(t) => emitValDef(sym, quote(t) + "._2")
     case Tuple3Access3(t) => emitValDef(sym, quote(t) + "._3")
-    case e4@ETuple4(a,b,c,d) => registerType(sym.tp,rhs); emitValDef(sym, "("+tupleClassName(sym.tp)+"){"+quote(a)+","+quote(b)+","+quote(c)+","+quote(d) + "}")
+    case e4@ETuple4(a,b,c,d) => registerType(sym.tp,rhs); emitValDef(sym, "("+tupleName(sym.tp)+"){"+quote(a)+","+quote(b)+","+quote(c)+","+quote(d) + "}")
     case Tuple4Access1(t) => emitValDef(sym, quote(t) + "._1")
     case Tuple4Access2(t) => emitValDef(sym, quote(t) + "._2")
     case Tuple4Access3(t) => emitValDef(sym, quote(t) + "._3")
     case Tuple4Access4(t) => emitValDef(sym, quote(t) + "._4")
-    case e5@ETuple5(a,b,c,d,e) => registerType(sym.tp,rhs); emitValDef(sym, "("+tupleClassName(sym.tp)+"){"+quote(a)+","+quote(b)+","+quote(c)+","+quote(d)+","+quote(e)+"}")
+    case e5@ETuple5(a,b,c,d,e) => registerType(sym.tp,rhs); emitValDef(sym, "("+tupleName(sym.tp)+"){"+quote(a)+","+quote(b)+","+quote(c)+","+quote(d)+","+quote(e)+"}")
     case Tuple5Access1(t) => emitValDef(sym, quote(t) + "._1")
     case Tuple5Access2(t) => emitValDef(sym, quote(t) + "._2")
     case Tuple5Access3(t) => emitValDef(sym, quote(t) + "._3")
@@ -356,14 +339,7 @@ trait CGenTupleOps extends CLikeGenBase {
     case Tuple5Access5(t) => emitValDef(sym, quote(t) + "._5")
     case _ => super.emitNode(sym, rhs)
   }
-
-  override def remap[A](m: Manifest[A]): String = m.toString match {
-    case f if f.startsWith("scala.Tuple") => tupleClassName(m)
-    case _ => super.remap(m)
-  }
-
-  // not public because should not be called with a manifest not describing a subtype of Manifest[Record]
-  protected def tupleClassName[A](m: Manifest[A]): String = m.toString match {
+  private def tupleName[A](m: Manifest[A]): String = m.toString match {
     case f if f.startsWith("scala.Tuple") =>
       val targs = m.typeArguments
       val res = remap(m.typeArguments.last)
@@ -374,15 +350,4 @@ trait CGenTupleOps extends CLikeGenBase {
       "T" + targsUnboxed.size + targsUnboxed.map{_(0)}.mkString //+ "[" + targsUnboxed.mkString(",") + sep + res + "]"
     case _ => super.remap(m)
   }
-
-  import java.io.PrintWriter
-  def emitDataStructures(out: PrintWriter) { withStream(out) { for ((name,tuple) <- encounteredTuples) {
-    stream.println{ tuple match {
-      case e2@ETuple2(a,b) => "typedef struct {"+ remap(e2.m1) + " _1; " + remap(e2.m2) + " _2; } "+name+";"
-      case e3@ETuple3(a,b,c) => "typedef struct {"+ remap(e3.m1) + " _1; " + remap(e3.m2) + " _2; "+ remap(e3.m3) +" _3; } "+name+";"
-      case e4@ETuple4(a,b,c,d) => "typedef struct {"+ remap(e4.m1) + " _1; " + remap(e4.m2) + " _2; "+ remap(e4.m3) +" _3; " + remap(e4.m4) +" _4; } "+name+";"
-      case e5@ETuple5(a,b,c,d,e) => "typedef struct {"+ remap(e5.m1) + " _1; " + remap(e5.m2) + " _2; "+ remap(e5.m3) +" _3; " + remap(e5.m4) +" _4; " + remap(e5.m5) +" _5 } "+name+";"
-    }}
-    // stream.println("case class " + name + "(" + (for ((n, e) <- fields) yield n + ": " + remap(e.tp)).mkString(", ") + ")")
-  }}}
 }

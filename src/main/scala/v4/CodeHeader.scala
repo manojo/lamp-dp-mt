@@ -90,7 +90,7 @@ class CodeHeader(within:Any) {
     val h1 = tps.toList.map{case (b,n) => "typedef struct __"+n+" "+n+";"}.mkString("\n") + "\n" +
              tps.toList.map{case (b,n) => "struct __"+n+" { "+b+"; };"}.mkString("\n") + "\n" + user
     val h2 = priv
-    val h3 = fns.toList.sortBy(_._2).map{case (f,n) => "__device__ static inline "+getType(f.tpe)+" "+n+"("+
+    val h3 = fns.toList.sortBy(_._2).map{case (f,n) => "__attribute__((unused)) __device__ static inline "+getType(f.tpe)+" "+n+"("+
              f.args.map{case (n,tp)=>(getType(tp)+" "+n) }.mkString(", ")+") { "+f.body+" }" }.mkString("\n")+"\n"
     tps.clear(); fns.clear(); tpc=0; fnc=0; user=""; priv=""; (h1,h2,h3)
   }
