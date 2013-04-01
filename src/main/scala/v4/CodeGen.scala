@@ -11,7 +11,7 @@ trait TTWrapper[A,R] {
 }
 
 trait CodeGen extends BaseParsers { this:Signature =>
-  private val head = new CodeHeader(this) // User code and helpers store
+  protected val head = new CodeHeader(this) // User code and helpers store
   private def tpAlphabet = head.parse(tps._1.toString)
   private def tpAnswer = head.parse(tps._2.toString)
 
@@ -180,16 +180,14 @@ trait CodeGen extends BaseParsers { this:Signature =>
       if (hb==false) hbody+cc else cc
     }
     // Generate the whole tabulation
-    emit(gen(norm(Aggregate(t.inner,h)),Var('i',0),Var('j',0),new FreeVar('k'),t.id,0))
+    val body = emit(gen(norm(Aggregate(t.inner,h)),Var('i',0),Var('j',0),new FreeVar('k'),t.id,0))
+    "bt"+t.inner.cat+" _b0 = {-1"+(if(t.inner.cat>0) ",{"+(0 until t.inner.cat).map{_=>"0"}.mkString(",")+"}" else "")+"};\n"+
+    tpAnswer+" _c0"+(if (cudaEmpty!=null)" = "+cudaEmpty else "")+";\n"+body+"\ncost[idx(i,j)]."+t.name+" = _c0;\nback[idx(i,j)]."+t.name+" = _b0;"
   }
 
   def genKern(gpu:Boolean=true) = {
-    val kern= "#define VALID(I,J,RULE) "+(if (cudaEmpty!=null) "(cost[idx(I,J)].RULE!="+cudaEmpty+")\n" else "(back[idx(I,J)].RULE.rule!=-1)\n")+
-      rulesOrder.map{n=>val r=rules(n); val c=r.inner.cat;
-        "// ---- "+n+"[i,j] ----\n{\n"+ind("bt"+c+" _b0 = {-1"+(if(c>0) ",{"+(0 until c).map{_=>"0"}.mkString(",")+"}" else "")+"};\n"+
-        tpAnswer+" _c0"+(if (cudaEmpty!=null)" = "+cudaEmpty else "")+";\n"+genTab(r)+"\ncost[idx(i,j)]."+n+" = _c0;\n"+
-        "back[idx(i,j)]."+n+" = _b0;")+"}"
-      }.mkString("\n")
+    val kern = "#define VALID(I,J,RULE) "+(if (cudaEmpty!=null) "(cost[idx(I,J)].RULE!="+cudaEmpty+")\n" else "(back[idx(I,J)].RULE.rule!=-1)\n")+
+               rulesOrder.map{n=> "// ---- "+n+"[i,j] ----\n"+"{\n"+ind(genTab(rules(n)))+"}" }.mkString("\n")
     if (gpu) {
       val loops = "for (unsigned jj=s_start; jj<s_stop; ++jj) {\n"+
         (if (twotracks) "  for (int i=tI; i<M_H; i+=tN) {\n    int j = jj-i; if (j>=0)" else "  for (int ii=tI; ii<M_H; ii+=tN) {\n    int i=M_H-1-ii, j=i+jj;")+"\n"
