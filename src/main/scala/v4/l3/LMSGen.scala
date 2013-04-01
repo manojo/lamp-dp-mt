@@ -4,48 +4,79 @@ import lms._
 
 import scala.virtualization.lms.common._
 
-object Test extends Signature with LMSGenADP with App {
+// XXX: RMA library does not work
+// XXX: two-track is not tested
+
+object Test extends App {
   // Matrix multiplication
-  type Alphabet = (Int,Int)
-  type Answer = (Int,Int,Int) // col
-  val tps=(manifest[Alphabet],manifest[Answer])
+  object mm extends Signature with LMSGenADP {
+    type Alphabet = (Int,Int)
+    type Answer = (Int,Int,Int) // col
+    val tps=(manifest[Alphabet],manifest[Answer])
 
-  override val h = minBy(lfun{ (a:Rep[Answer]) => a._2  })
-  val single = lfun{(a: Rep[Alphabet]) => (a._1, unit(0), a._2)} 
-  val mult = lfun{p:Rep[(Answer,Answer)] => { val l=p._1; val r=p._2; (l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3) } }
-  //val mult = lfun2{(l:Rep[Answer],r:Rep[Answer]) => { (l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3) } }
+    override val h = minBy(lfun{ (a:Rep[Answer]) => a._2  })
+    val single = lfun{ a:Rep[Alphabet] => (a._1, unit(0), a._2) }
+    val mult = lfun{ p:Rep[(Answer,Answer)] => { val l=p._1; val r=p._2; (l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3) } }
+    val axiom:Tabulate = tabulate("M",(el ^^ single | axiom ~ axiom ^^ mult) aggregate h)
+    //override val window = 10
 
-  val axiom:Tabulate = tabulate("M",(el ^^ single | axiom ~ axiom ^^ mult) aggregate h)
-
-  val mats = Utils.genMats(128) // scala.Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
-  //override val window = 10
-
-  // Vanilla Scala version
-  override val benchmark = true
-  
-  def test(name:String,ps:ParserStyle) {
-    scala.Console.println("---------- "+name)
-    var (r1,b1) = backtrack(mats,ps).head
-    scala.Console.println(r1+" == "+build(mats,b1))
+    override val benchmark = true
+    def test(name:String,ps:ParserStyle,mats:Input) {
+      scala.Console.println("---------- "+name)
+      var (res,bt) = backtrack(mats,ps).head
+      scala.Console.println(res+" == "+build(mats,bt))
+    }
   }
 
-  test("Plain Scala (top-down)",psTopDown)
-  test("Plain Scala (bottom-up)",psScalaLMS)
-  test("LMS Scala",psBottomUp)
-  scala.Console.println("---------- LMS Scala (parse only)")
-  scala.Console.println(parse(mats).head)
-  test("CPU LMS",psCPU)
-  test("GPU/CUDA LMS",psCUDA)
+/*
+  object sw extends Signature with LMSGenTT {
+    type Alphabet = Char
+    type Answer = Int
+    val tps=(manifest[Alphabet],manifest[Answer])
+
+    override val h = max[Int] _
+    val start = (x:Rep[Unit]) => unit(0)
+    val gap1 = (v:Rep[((Int,Int),Int)]) => gap2(v._2,v._1) // by symmetry
+    val gap2 = (v:Rep[(Int,(Int,Int))]) => { val d=v._2; val c=v._1 + unit(-2)+(d._2-d._1)*unit(-1); if (c < unit(0)) unit(0) else c }
+    val pair = (v:Rep[(Char,(Int,Char))]) => { val r=v._2; r._1 + (if (v._1==r._2) unit(10) else unit(-3)) }
+    val axiom:Tabulate = tabulate("M",(
+      empty                   ^^ start
+//    | seq() -~ axiom          ^^ gap1
+//    |          axiom ~- seq() ^^ gap2
+    | el1   -~ axiom ~- el2   ^^ pair
+    ) aggregate h,true)
+
+    def test(name:String,ps:ParserStyle,s1:Input,s2:Input) {
+      scala.Console.println("---------- "+name)
+      var (res,bt) = backtrack(s1,s2,ps).head
+      scala.Console.println(res+" == "+build(s1,s2,bt))
+    }
+  }
+
+  val s1=Utils.genDNA(40)
+  val s2=Utils.genDNA(40)
+  sw.test("Plain Scala (top-down)",sw.psTopDown,s1,s2)
+  sw.test("Plain Scala (bottom-up)",sw.psScalaLMS,s1,s2)
+*/
+
+
+  val mats = Utils.genMats(128) // scala.Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
+  mm.test("Plain Scala (top-down)",mm.psTopDown,mats)
+  mm.test("Plain Scala (bottom-up)",mm.psScalaLMS,mats)
+  mm.test("LMS Scala",mm.psBottomUp,mats)
+  println("---------- LMS Scala (parse only)")
+  println(mm.parse(mats,mm.psScalaLMS).head)
+  mm.test("CPU LMS",mm.psCPU,mats)
+  mm.test("GPU/CUDA LMS",mm.psCUDA,mats)
 }
 
 // -----------------------------------------------------------------
 
 trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
-  def in(idx:Rep[Int]):Rep[Alphabet] = in1_read(idx)(tps._1)
   override def genTerminal[T](t:Terminal[T],i:Rep[Int],j:Rep[Int],cont:Rep[T]=>Rep[Unit]) = t match {
     case `empty` => if (i==j) cont(unit(()).asInstanceOf[Rep[T]])
     case `emptyi` => if (i==j) cont(i.asInstanceOf[Rep[T]])
-    case `el` => if (i+1==j) cont(in(i).asInstanceOf[Rep[T]])
+    case `el` => if (i+1==j) cont(in1_read(i)(tps._1).asInstanceOf[Rep[T]])
     case `eli` => if (i+1==j) cont(i.asInstanceOf[Rep[T]])
     case _ => super.genTerminal(t,i,j,cont)
   }
@@ -71,13 +102,12 @@ trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
   }
 
   private lazy val botUp:(Input,List[ Array[(Answer,Backtrack)] ])=>Unit = {
-    val buf = new java.io.ByteArrayOutputStream;
+    val buf = new java.io.ByteArrayOutputStream
     val pr = new java.io.PrintWriter(buf)
-    implicit val manifestForAlphabet=tps._1
-    implicit val manifestForAnswer=tps._2
+    implicit val mAlphabet=tps._1
+    implicit val mAnswer=tps._2
     val className = freshClassName
     val source = new java.io.StringWriter()
-
     def botUpLMS(in1:Rep[Input],tabs: Rep[List[ Array[(Answer,Backtrack)] ]]) : Rep[Unit] = {
       named_val("in1",in1); named_val("size1",in1.length+unit(1))
       rulesOrder.zipWithIndex.foreach{case (n,i)=> named_val("tab_"+n,tabs(unit(i))) }
@@ -96,20 +126,51 @@ trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
 // -----------------------------------------------------------------
 
 trait LMSGenTT extends TTParsers with LMSGen { self:Signature =>
-  // XXX: missing two-tracks
+  override def genTerminal[T](t:Terminal[T],i:Rep[Int],j:Rep[Int],cont:Rep[T]=>Rep[Unit]) = t match {
+    case `empty` => if (i==0 && j==0) cont(unit(()).asInstanceOf[Rep[T]])
+    case `empty1` => if (i==0) cont(j.asInstanceOf[Rep[T]])
+    case `empty2` => if (j==0) cont(i.asInstanceOf[Rep[T]])
+    case `el1` => if (i+1==j) cont(in1_read(i)(tps._1).asInstanceOf[Rep[T]])
+    case `el2` => if (i+1==j) cont(in2_read(i)(tps._1).asInstanceOf[Rep[T]])
+    case `eli` => if (i+1==j) cont(i.asInstanceOf[Rep[T]])
+    case _ => super.genTerminal(t,i,j,cont)
+  }
 
-  // Two-track bottom-up parsing (Scala)
-  private def bottomUpLMS(in1:Rep[Input],in2:Rep[Input],tabs: Rep[List[ Array[(Answer,Backtrack)] ]]) : Rep[Unit] = {
-    implicit val manifestForAlphabet=tps._1
-    implicit val manifestForAnswer=tps._2
-    named_val("in1",in1); named_val("size1",in1.length+unit(1))
-    named_val("in2",in2); named_val("size2",in2.length+unit(1))
-    rulesOrder.zipWithIndex.foreach{case (n,i)=> named_val("tab_"+n,tabs(unit(i))) }
-    range_foreach(range_until(unit(0),in1.length+unit(1)),(i:Rep[Int])=>{
-      range_foreach(range_until(unit(0),in1.length+unit(1)),(j:Rep[Int])=>{
-        rulesOrder.foreach{n=> genTabLMS(rules(n))(i,j) }
+  override def parse(in1:Input,in2:Input,ps:ParserStyle=psScalaLMS):List[Answer] = if (ps!=psScalaLMS) super.parse(in1,in2,ps) else {
+    val as=bottomUp(in1,in2); var res:scala.List[Answer]=Nil
+    for((p,a)<-as) if (p==axiom) res=scala.List(a(in2.size*(in2.size+1) + in2.size)._1)
+    res
+  }
+
+  override def backtrack(in1:Input,in2:Input,ps:ParserStyle=psScalaLMS):List[(Answer,Trace)] = if (ps!=psScalaLMS) super.backtrack(in1,in2,ps) else run(in1,in2,()=>{
+    val as=bottomUp(in1,in2); val n=(size2+1)
+    for((p,a)<-as) for (i<-0 to size1) for (j<-0 to size2) { p.data(i*n+j)=scala.List(a(i*n+j)) }; axiom.backtrack(size1,size2)
+  })
+
+  private def bottomUp(in1:Input,in2:Input) : List[(Tabulate,Array[(Answer,Backtrack)])] = {
+    val as = rulesOrder.map{n=>(rules(n),new Array[(Answer,Backtrack)]( (in1.size+1)*(in2.size+1) ))}
+    botUp(in1,in2,as.map(_._2)); as
+  }
+
+  private lazy val botUp:(Input,Input,List[ Array[(Answer,Backtrack)] ])=>Unit = {
+    val buf = new java.io.ByteArrayOutputStream
+    val pr = new java.io.PrintWriter(buf)
+    implicit val mAlphabet=tps._1
+    implicit val mAnswer=tps._2
+    val className = freshClassName
+    val source = new java.io.StringWriter()
+    def botUpLMS(in1:Rep[Input],in2:Rep[Input],tabs: Rep[List[ Array[(Answer,Backtrack)] ]]) : Rep[Unit] = {
+      named_val("in1",in1); named_val("size1",in1.length+unit(1))
+      named_val("in2",in2); named_val("size2",in2.length+unit(1))
+      rulesOrder.zipWithIndex.foreach{case (n,i)=> named_val("tab_"+n,tabs(unit(i))) }
+      range_foreach(range_until(unit(0),in1.length+unit(1)),(i:Rep[Int])=>{
+        range_foreach(range_until(unit(0),in1.length+unit(1)),(j:Rep[Int])=>{
+          rulesOrder.foreach{n=> genTabLMS(rules(n))(i,j) }
+        })
       })
-    })
+    }
+    codegen.emitSource3(botUpLMS _, className, new java.io.PrintWriter(source))
+    compiler.compile[(Input,Input,List[ Array[(Answer,Backtrack)] ]) =>Unit](className,source.toString)
   }
 }
 
@@ -152,14 +213,13 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
   //private def _in1(idx:Rep[Int]):Rep[Alphabet] = in1_read(idx)(tps._1)
   //private def _in2(idx:Rep[Int]):Rep[Alphabet] = in2_read(idx)(tps._1)
   private def _valid(t:Tabulate,i:Rep[Int],j:Rep[Int]) = tab_valid(t.name,tab_idx(i,j))(tps._2)
-  private def _read(t:Tabulate,i:Rep[Int],j:Rep[Int]) = { implicit val manifestForAnswer=tps._2; tab_read(t.name,tab_idx(i,j)) }
-  private def _write(t:Tabulate,i:Rep[Int],j:Rep[Int],value:Rep[Answer],rule:Rep[Int],bt:Rep[Array[Int]]) = { implicit val manifestForAnswer=tps._2; tab_write(t.name,tab_idx(i,j),value,rule,bt) }
+  private def _read(t:Tabulate,i:Rep[Int],j:Rep[Int]) = { implicit val mAnswer=tps._2; tab_read(t.name,tab_idx(i,j)) }
+  private def _write(t:Tabulate,i:Rep[Int],j:Rep[Int],value:Rep[Answer],rule:Rep[Int],bt:Rep[Array[Int]]) = { implicit val mAnswer=tps._2; tab_write(t.name,tab_idx(i,j),value,rule,bt) }
 
   // C/CUDA codegen drop-in replacement
   private var genC = false
   override def genTab(t:Tabulate):String = { val buf = new java.io.ByteArrayOutputStream;
-    genC=true; ccodegen.emitSource2(genTabLMS(t) _,"kern",new java.io.PrintWriter(buf)); genC=false
-    buf.toString
+    genC=true; ccodegen.emitSource2(genTabLMS(t) _,"kern",new java.io.PrintWriter(buf)); genC=false; buf.toString
   }
 
   def genTerminal[T](t:Terminal[T],i:Rep[Int],j:Rep[Int],cont:Rep[T]=>Rep[Unit]) = { // general case for seq()
@@ -197,7 +257,7 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
       case Or(l,r) => gen(l,cont,i,j,off); gen(r,(v:Rep[T],r:Rep[Int])=>cont(v,r+unit(l.alt)),i,j,off)
       case Filter(p,LFun(f)) => if (f((i,j))) gen(p,cont,i,j,off);
       case Map(p,m@LFun(f)) => gen(p,(v:Rep[Any],r:Rep[Int])=>cont(f(v),r),i,j,off)
-      case p:Tabulate => if (_valid(p,i,j)) cont(_read(p,i,j),unit(0)) // val v=_read(p,i,j); if (v!=unit(null)) cont(v,unit(0)) // XXX: fix emptiness check
+      case p:Tabulate => if (_valid(p,i,j)) cont(_read(p,i,j),unit(0))
       case t@Terminal(_,_,_) => genTerminal(t,i,j,(v:Rep[T])=>cont(v,unit(0)))
       case cc@Concat(left,right,track) => val (lL,lU,rL,rU) = cc.indices
         def loop(kmin:Rep[Int],kmax:Rep[Int],f:Rep[Int]=>Rep[Unit]) = {
@@ -268,7 +328,7 @@ trait ScalaGenDP extends ScalaGenEffect {
   val IR: DPExp
   import IR._
   override def emitNode(sym: Sym[Any], rhs: Def[Any]) = rhs match {
-    case TabIdx(i,j) => stream.println("val "+quote(sym)+" = "+quote(i)+" * size1 + "+quote(j)) // XXX: fix dimension
+    case TabIdx(i,j) => stream.println("val "+quote(sym)+" = "+quote(i)+" * size1 + "+quote(j))
     case TabValid(name,idx) => stream.println("val "+quote(sym)+" = tab_"+name+"("+quote(idx)+")!=null")
     case TabRead(name,idx) => stream.println("val "+quote(sym)+" = tab_"+name+"("+quote(idx)+")._1")
     case TabWrite(name,idx,value,rule,bt) => stream.println("tab_"+name+"("+quote(idx)+") = ("+quote(value)+",("+quote(rule)+","+quote(bt)+".toList)); val "+quote(sym)+"=()")
