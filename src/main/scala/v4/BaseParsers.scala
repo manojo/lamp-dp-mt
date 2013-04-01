@@ -38,6 +38,7 @@ trait BaseParsers { this:Signature =>
   case object psBottomUp extends ParserStyle
   case object psCPU extends ParserStyle
   case object psCUDA extends ParserStyle
+  case object psScalaLMS extends ParserStyle
 
   type Input = Array[Alphabet]
   type Subword = (Int, Int)
