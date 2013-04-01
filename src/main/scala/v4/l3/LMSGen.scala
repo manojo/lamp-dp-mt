@@ -15,14 +15,23 @@ object Test extends Signature with LMSGenADP with App {
   val mult = lfun{p:Rep[(Answer,Answer)] => { val l=p._1; val r=p._2; (l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3) } }
   val axiom:Tabulate = tabulate("M",(el ^^ single | axiom ~ axiom ^^ mult) aggregate h)
 
-  val mats = scala.Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
+  val mats = Utils.genMats() // scala.Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
 
   // Vanilla Scala version
-  scala.Console.println(parse(mats,psBottomUp))
+  override val benchmark = true
+  var (r1,b1) = time("Plain")(()=>backtrack(mats,psTopDown).head)
+  scala.Console.println(r1)
+  scala.Console.println(build(mats,b1))
+  
+  var (r2,b2) = time("LMS")(()=>backtrack(mats,psBottomUp).head)
+  scala.Console.println(r2)
+  scala.Console.println(build(mats,b2))
+
+  //scala.Console.println(backtrack(mats,psBottomUp))
 
   // LMS generated code
-  scala.Console.println(parseLMS(mats))
-  scala.Console.println(genLMS)
+  //scala.Console.println(parseLMS(mats))
+  //scala.Console.println(genLMS)
 }
 
 // -----------------------------------------------------------------
@@ -36,6 +45,35 @@ trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
     case `eli` => if (i+1==j) cont(i.asInstanceOf[Rep[T]])
     // XXX: missing seq(min,max) => create a case class to pattern match
     case _ => sys.error("Unsupported terminal")
+  }
+
+  override def parseBottomUp(in1:Input) {
+    val buf = new java.io.ByteArrayOutputStream;
+    val pr = new java.io.PrintWriter(buf)
+    implicit val manifestForAlphabet=tps._1
+    implicit val manifestForAnswer=tps._2
+    val className = freshClassName
+    val source = new java.io.StringWriter()
+
+    codegen.emitSource2(bottomUpLMS _, className, new java.io.PrintWriter(source))
+    //scala.Console.println("SOURCE CODE = "+source.toString)
+    val bu = compiler.compile[(Input,List[ Array[(Answer,Backtrack)] ]) =>Unit](className,source.toString)
+    
+    val N = size+1
+    val mem = N*N
+    val as = rulesOrder.map{n=>(rules(n),new Array[(Answer,Backtrack)](mem))}
+
+    bu(in1,as.map(_._2))
+    // Push back into regular matrices
+    for((p,a)<-as) {
+      def idx(sw:Subword):Int = { val d=N+1+sw._1-sw._2; ( N*(N+1) - d*(d-1) ) /2 + sw._1 }
+      for (i<-0 to size) {
+        for (j<-0 to size) {
+          if (i<=j) p.data(idx((i,j))) = scala.List(a(i*N+j))
+        }
+      }
+    }
+    // ---
   }
 }
 
@@ -51,8 +89,7 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
 
   // Replaces LMS's ScalaCompiler
   private var compileCount = 0
-  private def freshClassName = { compileCount=compileCount+1; "staged$"+compileCount }
-
+  /*private*/ def freshClassName = { compileCount=compileCount+1; "staged$"+compileCount }
 
   def compile[A,B](f: Exp[A] => Exp[B])(implicit mA: Manifest[A], mB: Manifest[B]): A=>B = {
     val className = freshClassName
@@ -60,8 +97,6 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
     codegen.emitSource(f, className, new java.io.PrintWriter(source))
     compiler.compile[A=>B](className,source.toString)
   }
-
-
 
   // Helper to wrap LMS function appropriately
   def lfun[T:Manifest,U:Manifest](f:Rep[T]=>Rep[U]) = new LFun(f)
@@ -78,7 +113,7 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
   private def _read(t:Tabulate,i:Rep[Int],j:Rep[Int]) = tab_read(t.name,tab_idx(i,j))(tps._2)
   private def _write(t:Tabulate,i:Rep[Int],j:Rep[Int],value:Rep[Answer],rule:Rep[Int],bt:Rep[Array[Int]]) = { implicit val manifestForAnswer=tps._2; tab_write(t.name,tab_idx(i,j),value,rule,bt) }
   
-
+  /*
   def parseLMS(in1:Input):(Answer,Trace) = {
     val buf = new java.io.ByteArrayOutputStream;
     val pr = new java.io.PrintWriter(buf)
@@ -93,17 +128,98 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
     //scala.Console.println("SOURCE CODE = "+source.toString)
     val bu = compiler.compile[(Input,List[ Array[(Answer,Backtrack)] ]) =>Unit](className,source.toString)
     
-    val mem = (in1.length+1)*(in1.length+1)
-    val as = rulesOrder.map{x=>new Array[(Answer,Backtrack)](mem)}
+    val N = in1.length+1
+    val mem = N*N
+    val as = rulesOrder.map{n=>(rules(n),new Array[(Answer,Backtrack)](mem))}
 
-    bu(in1,as)
+    bu(in1,as.map(_._2))
+
+    tabInit(N,N)
+    for((p,a)<-as) {
+
+      def idx(sw:Subword):Int = { val d=N+1+sw._1-sw._2; ( N*(N+1) - d*(d-1) ) /2 + sw._1 }
+      for (i<-0 to in1.length) {
+        for (j<-0 to in1.length) {
+          if (i<=j) {
+            p.data(idx((i,j))) = scala.List(a(i*N+j))
+          }
+        }
+      }
+
+    }
+    tabReset
+
+    // XXX: from this point push back into original parser matrix
+
+
     //as.foreach(x=>x.foreach(y=> scala.Console.println(y) ))
 
 
     var res:(Answer,Trace)=null
-    rulesOrder.zipWithIndex.foreach { case (n,i)=> if (rules(n)==axiom) res=as(i).apply(in1.size) }
+    for((p,a)<-as) { if (p==axiom) res=a(in1.size) }
+    //rulesOrder.zipWithIndex.foreach { case (n,i)=> if (rules(n)==axiom) res=as(i).apply(in1.size) }
     res
   }
+  */
+
+/*
+  def backtrackLMS(as:Rep[List[ Array[(Answer,Backtrack)] ]]) : Rep[Unit] {
+
+  }
+
+  def btLMS2(p0:Parser[T],i:Rep[Int],j:Rep[Int],r:Rep[Int],idx:Array[Int],off:Rep[Int], /*within idx */ as:List[ Array[(Answer,Backtrack)] ]) {
+
+  }
+
+  // ----------------------------
+  // This is only for Scala/LMS
+  def btLMS[T](p0:Parser[T],i:Int,j:Int,r:Int,idx:Array[Int]) : Trace = p0 match { //  = List[(Subword,Backtrack)]
+    case Aggregate(p,_) => btLMS(p,i,j,r,idx)
+    case Filter(p,_) => btLMS(p,i,j,r,idx)
+    case Map(p,_) => btLMS(p,i,j,r,idx)
+    case Terminal(_,_,_) => Nil
+    // XXX: tabulate ==> map to appropriate array index
+    case Or(left,right) => var a=left.alt-1; if (r<=a) btLMS(left,i,j,r,idx) else btLMS(right,i,j,r-a,idx)
+    case cc@Concat(left,right,track) =>
+      val a=right.alt; val c=left.cat;
+      val (bl,br,kb) = ((r/a,idx.take(c)), (r%a,idx.drop(c+(if (cc.hasBt)1 else 0))), if (cc.hasBt)idx(c) else -1)
+
+      val (swl,swr) = (track,cc.indices) match {
+        case (0,(lL,lU,rL,rU)) if i < j => // single track
+          val k=if(cc.hasBt)kb else if (rU==maxN || i+lL>j-rU)i+lL else j-rU; ((i,k),(k,j))
+        case (1,(l,u,_,_)) => val k=if(cc.hasBt)kb else i-l; ((k,i),(k,j)) // tt:concat1
+        case (2,(_,_,l,u)) => val k=if(cc.hasBt)kb else j-l; ((i,k),(k,j)) // tt:concat2
+        case _ => ((0,0),(0,0))
+      }
+      btLMS(left,swl._1,swl._2,bl._1,bl._2) ::: btLMS(right,swr._1,swr._2,br._1,br._2)
+  }
+  */
+/*
+  class Tabulate(in: => Parser[Answer], val name:String, val alwaysValid:Boolean=false) extends Parser[Answer] {
+    def apply(sw: Subword) = get(sw) map {x=>(x._1,bt0)}
+    def unapply(sw:Subword,bt:Backtrack) = get(sw).map{ case (c,b) => List((sw,b)) }.head
+
+    def backtrack(sw:Subword) = {
+      val e=get(sw).head;
+      def bt0(tail:Trace,pending:Trace):List[Trace] = pending match {
+        case Nil => List(tail)
+        case (sw,(rule,bt))::ps => val (t,rr) = findTab(rule)
+          val res = t.inner.unapply(sw,(rr,bt))
+          bt0((sw,(rule,bt))::tail, res:::ps)
+      }
+      bt0(Nil,List((sw,e._2))).map{x=>(e._1,x)}
+    } 
+  }
+
+  def findTab(rule:Int):(Tabulate,Int) = {
+    rules.find{ case (n,t)=> val rr=rule-t.id; rr >= 0 && rr < t.inner.alt} match {
+      case Some((n,t)) => (t,rule-t.id)
+      case None => sys.error("No tabulation for subrule #"+rule)
+    }
+  }
+*/
+
+
 
   // XXX: also make a wrapper that alloc/free tables and does the backtrack
   def bottomUpLMS(in1:Rep[Input], /*in2:Rep[Input],*/ tabs: Rep[List[ Array[(Answer,Backtrack)] ]]) : Rep[Unit] = {
@@ -119,11 +235,18 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
     // explicitly name tables
     range_foreach(range_until(unit(0),in1.length+unit(1)),(l:Rep[Int])=>{
       range_foreach(range_until(unit(0),in1.length+unit(1)-l),(i:Rep[Int])=>{ val j=i+l
-        rulesOrder.foreach{n=>
-          genTabLMS(rules(n))(i,j)
-        } // XXX: address the rule names in codegen
+        rulesOrder.foreach{n=> genTabLMS(rules(n))(i,j) } // XXX: address the rule names in codegen
       })
     })
+  }
+
+
+  def genLMS:String = {
+    val buf = new java.io.ByteArrayOutputStream;
+    val pr = new java.io.PrintWriter(buf)
+    analyze
+    rulesOrder.foreach{n=>codegen.emitSource2(genTabLMS(rules(n)) _, "kernel", pr) }
+    buf.toString
   }
 
   def genTerminal[T](t:Terminal[T],i:Rep[Int],j:Rep[Int],cont:Rep[T]=>Rep[Unit]) : Rep[Unit] // abstract
@@ -181,15 +304,8 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with GeneratorOpsExp with DPExp
       case _ => sys.error("Bad parser")
     }
   }
-
-  def genLMS:String = {
-    val buf = new java.io.ByteArrayOutputStream;
-    val pr = new java.io.PrintWriter(buf)
-    analyze
-    rulesOrder.foreach{n=>codegen.emitSource2(genTabLMS(rules(n)) _, "kernel", pr) }
-    buf.toString
-  }
 }
+
 
 // -----------------------------------------------------------------
 

@@ -158,7 +158,7 @@ trait BaseParsers { this:Signature =>
     def max = maxv; var maxv = 0
 
     // Matrix storage
-    private var data:Array[List[(Answer,Backtrack)]] = null
+    /*private*/ var data:Array[List[(Answer,Backtrack)]] = null
     private var (mW,mH) = (0,0)
     def init(w:Int,h:Int) { mW=w; mH=h; val sz=if (twotracks) w*h else { assert(w==h); h*(h+1)/2 }; data=new Array(sz); }
     def reset { data=null; mW=0; mH=0; }
