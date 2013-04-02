@@ -30,6 +30,11 @@ trait Signature {
     new Function6[A,B,C,D,E,F,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC,mD,mE,mF).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C,d:D,e:E,f:F) = fn(a,b,c,d,e,f) }
   def cfun7[A,B,C,D,E,F,G,R](fn:(A,B,C,D,E,F,G)=>R,as:String,bdy:String)(implicit mA:Manifest[A],mB:Manifest[B],mC:Manifest[C],mD:Manifest[D],mE:Manifest[E],mF:Manifest[F],mG:Manifest[G],mR:Manifest[R]) =
     new Function7[A,B,C,D,E,F,G,R] with CFun { val (args,body,tpe)=(as.split(",").toList zip List(mA,mB,mC,mD,mE,mF,mG).map{_.toString},bdy,mR.toString); def apply(a:A,b:B,c:C,d:D,e:E,f:F,g:G) = fn(a,b,c,d,e,f,g) }
+
+  // Warning about JNI/SBT embedded JVM issues (multiple loading failure, unable to properly load generated code)
+  protected def reqJNI { try { this.getClass.getClassLoader.getClass.getDeclaredMethod("addURL", classOf[java.net.URL]); }
+    catch { case t:Throwable => println("\nWARNING: Using embedded SBT JVM; JNI loading might fail (java.lang.UnsatisfiedLinkError).\nSee build.sbt tasks to launch a separate JVM.\n") }
+  }
 }
 
 trait BaseParsers { this:Signature =>

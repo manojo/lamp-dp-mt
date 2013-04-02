@@ -60,6 +60,7 @@ object CompileCounter {
   private var count = 1
   def get:Int = count
   def next = { count=count+1 }
+  def getNext = { val v=count; count=count+1; v }
 }
 
 trait CCompiler {

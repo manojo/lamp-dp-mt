@@ -10,7 +10,7 @@ trait TTWrapper[A,R] {
   def backtrack(in1:Array[A],in2:Array[A]):(R,List[((Int, Int),(Int,List[Int]))])
 }
 
-trait CodeGen extends BaseParsers { this:Signature =>
+trait CodeGen extends BaseParsers { this:Signature => reqJNI
   protected val head = new CodeHeader(this) // User code and helpers store
   private def tpAlphabet = head.parse(tps._1.toString)
   private def tpAnswer = head.parse(tps._2.toString)

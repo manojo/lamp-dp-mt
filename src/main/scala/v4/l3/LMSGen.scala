@@ -20,7 +20,7 @@ object Test extends App {
     val axiom:Tabulate = tabulate("M",(el ^^ single | axiom ~ axiom ^^ mult) aggregate h)
     //override val window = 10
 
-    override val benchmark = true
+    //override val benchmark = true
     def test(name:String,ps:ParserStyle,mats:Input) {
       scala.Console.println("---------- "+name)
       var (res,bt) = backtrack(mats,ps).head
@@ -54,25 +54,27 @@ object Test extends App {
     }
   }
 
-
   val s1=Utils.genDNA(40)
   val s2=Utils.genDNA(40)
-  //sw.test("Plain Scala (top-down)",sw.psTopDown,s1,s2)
-  //sw.test("Plain Scala (bottom-up)",sw.psScalaLMS,s1,s2)
+  sw.test("Plain Scala (top-down)",sw.psTopDown,s1,s2)
+  sw.test("Plain Scala (bottom-up)",sw.psBottomUp,s1,s2)
   scala.Console.println(sw.parse(s1,s2))
+  sw.test("LMS Scala",sw.psScalaLMS,s1,s2)
+  println("---------- LMS Scala (parse only)")
+  println(sw.parse(s1,s2,sw.psScalaLMS).head)
+  sw.test("CPU LMS",sw.psCPU,s1,s2)
+  sw.test("GPU/CUDA LMS",sw.psCUDA,s1,s2)
 
   //Utils.useJNI
 
-/*
   val mats = Utils.genMats(128) // scala.Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
   mm.test("Plain Scala (top-down)",mm.psTopDown,mats)
-  mm.test("Plain Scala (bottom-up)",mm.psScalaLMS,mats)
-  mm.test("LMS Scala",mm.psBottomUp,mats)
+  mm.test("Plain Scala (bottom-up)",mm.psBottomUp,mats)
+  mm.test("LMS Scala",mm.psScalaLMS,mats)
   println("---------- LMS Scala (parse only)")
   println(mm.parse(mats,mm.psScalaLMS).head)
   mm.test("CPU LMS",mm.psCPU,mats)
   mm.test("GPU/CUDA LMS",mm.psCUDA,mats)
-*/
 }
 
 // -----------------------------------------------------------------
@@ -107,12 +109,7 @@ trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
   }
 
   private lazy val botUp:(Input,List[ Array[(Answer,Backtrack)] ])=>Unit = {
-    val buf = new java.io.ByteArrayOutputStream
-    val pr = new java.io.PrintWriter(buf)
-    implicit val mAlphabet=tps._1
-    implicit val mAnswer=tps._2
-    val className = freshClassName
-    val source = new java.io.StringWriter()
+    implicit val mAlphabet=tps._1; implicit val mAnswer=tps._2
     def botUpLMS(in1:Rep[Input],tabs: Rep[List[ Array[(Answer,Backtrack)] ]]) : Rep[Unit] = {
       named_val("in1",in1); named_val("size1",in1.length+unit(1))
       rulesOrder.zipWithIndex.foreach{case (n,i)=> named_val("tab_"+n,tabs(unit(i))) }
@@ -123,8 +120,9 @@ trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
         })
       })
     }
-    codegen.emitSource2(botUpLMS _, className, new java.io.PrintWriter(source))
-    compiler.compile[(Input,List[ Array[(Answer,Backtrack)] ]) =>Unit](className,source.toString)
+    val cls=freshClassName; val source=new java.io.StringWriter
+    codegen.emitSource2(botUpLMS _,cls,new java.io.PrintWriter(source))
+    compiler.compile[(Input,List[ Array[(Answer,Backtrack)] ]) =>Unit](cls,source.toString)
   }
 }
 
@@ -158,12 +156,7 @@ trait LMSGenTT extends TTParsers with LMSGen { self:Signature =>
   }
 
   private lazy val botUp:(Input,Input,List[ Array[(Answer,Backtrack)] ])=>Unit = {
-    val buf = new java.io.ByteArrayOutputStream
-    val pr = new java.io.PrintWriter(buf)
-    implicit val mAlphabet=tps._1
-    implicit val mAnswer=tps._2
-    val className = freshClassName
-    val source = new java.io.StringWriter()
+    implicit val mAlphabet=tps._1; implicit val mAnswer=tps._2
     def botUpLMS(in1:Rep[Input],in2:Rep[Input],tabs: Rep[List[ Array[(Answer,Backtrack)] ]]) : Rep[Unit] = {
       named_val("in1",in1); named_val("size1",in1.length+unit(1))
       named_val("in2",in2); named_val("size2",in2.length+unit(1))
@@ -174,9 +167,9 @@ trait LMSGenTT extends TTParsers with LMSGen { self:Signature =>
         })
       })
     }
-    codegen.emitSource3(botUpLMS _, className, new java.io.PrintWriter(source))
-    scala.Console.println(source)
-    compiler.compile[(Input,Input,List[ Array[(Answer,Backtrack)] ]) =>Unit](className,source.toString)
+    val cls=freshClassName; val source=new java.io.StringWriter
+    codegen.emitSource3(botUpLMS _,cls,new java.io.PrintWriter(source))
+    compiler.compile[(Input,Input,List[ Array[(Answer,Backtrack)] ]) =>Unit](cls,source.toString)
   }
 }
 
@@ -191,12 +184,11 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
   }
 
   // Replaces LMS's ScalaCompiler trait
-  private var compileCount = 0
-  protected def freshClassName = { compileCount=compileCount+1; "staged$"+compileCount }
+  protected def freshClassName = { "staged$"+CompileCounter.getNext }
   def compile[A,B](f: Exp[A] => Exp[B])(implicit mA: Manifest[A], mB: Manifest[B]): A=>B = {
-    val className=freshClassName; val source=new java.io.StringWriter()
-    codegen.emitSource(f, className, new java.io.PrintWriter(source))
-    compiler.compile[A=>B](className,source.toString)
+    val cls=freshClassName; val source=new java.io.StringWriter
+    codegen.emitSource(f,cls,new java.io.PrintWriter(source))
+    compiler.compile[A=>B](cls,source.toString)
   }
 
   // Helper to wrap LMS function appropriately

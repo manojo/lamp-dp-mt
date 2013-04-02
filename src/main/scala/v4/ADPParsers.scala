@@ -72,7 +72,7 @@ trait LexicalParsers extends ADPParsers { this:Signature =>
   def in(k:Int):Char
 }
 
-trait RNASignature extends Signature {
+trait RNASignature extends Signature { reqJNI
   final type Alphabet = Char
   val energies = true
   var paramsFile:String = null // parameters for CodeGen
