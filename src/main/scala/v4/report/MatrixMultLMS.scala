@@ -10,7 +10,7 @@ import lms._
 
 trait RepPackage extends NumericOpsExp with TupleOpsExp with MyScalaCompile with FunctionGen { self =>
   val codegen = new ScalaGenNumericOps with ScalaGenTupleOps { val IR: self.type = self }
-  val cCodegen = new CGenNumericOps with CGenTupleOps with CFatCodegen { val IR: self.type = self }
+  val cCodegen = new CGenNumericOps with lms.CGenTupleOps with CFatCodegen { val IR: self.type = self }
 }
 
 trait RepWorld extends NumericOps with TupleOps {

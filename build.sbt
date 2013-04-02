@@ -43,7 +43,7 @@ compile in Compile <<= (compile in Compile) map { x => ("src/librna/make target/
   s(mm1,ex+"MatrixMultGen") ++ s(mm2,ex+"MatrixMultGen2") ++ s(mm3,ex+"MatrixMultGen3") ++ s(align,ex+"SeqAlignGen") ++
   s(zuker,ex+"Zuker") ++ s(z2,ex+"Zuker2") ++ s(rnafold,ex+"RNAFold") ++ s(nu,ex+"Nussinov") ++ s(swat,ex+"SWatAffine") ++
   s(mml,"lms.LMSMatrixAlgebraGen") ++ s(mmr,"v4.report.MatrixMult8") ++ s(rr,"v4.report.RNAFold") ++ s(bench,"v4.report.Benchmarks") ++
-  s(lt1,"v4.l3.Test")
+  s(lt1,ex+"TestLMS")
 }
 // TaskKey[Unit]("zuker") := { "scala -cp target/scala-2.10/classes v4.examples.Zuker".run.exitValue }
 // http://stackoverflow.com/questions/6951261/how-to-define-tasks-to-run-with-hprof-from-sbt-0-10
