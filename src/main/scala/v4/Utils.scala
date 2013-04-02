@@ -1,9 +1,22 @@
 package v4
 
-// Here we put useful functoins, nevertheless problem-specific,
-// for our environment or mainly for benchmarking
+// Problem-specific and benchmarking helpers
 
 object Utils {
+  // Warn about JNI/SBT embedded JVM issues
+  def useJNI {
+    try { this.getClass.getClassLoader.getClass.getDeclaredMethod("addURL", classOf[java.net.URL]); }
+    catch { case t:Throwable => println
+      println("WARNING: Using embedded SBT JVM; JNI loading might fail.")
+      println("         See build.sbt tasks to launch a separate JVM.\n")
+    }
+  }
+
+
+
+
+
+
   // Pretty print multiple answer/backtrack traces
   def printBT[T](bs:List[(T,List[((Int, Int),(Int,List[Int]))])]) = {
     println("Backtrack = {")

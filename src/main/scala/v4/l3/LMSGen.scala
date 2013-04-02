@@ -28,11 +28,12 @@ object Test extends App {
     }
   }
 
-/*
+
   object sw extends Signature with LMSGenTT {
     type Alphabet = Char
     type Answer = Int
     val tps=(manifest[Alphabet],manifest[Answer])
+    override val cudaEmpty = "-100" // necessary as it is a numeric type
 
     override val h = max[Int] _
     val start = (x:Rep[Unit]) => unit(0)
@@ -41,8 +42,8 @@ object Test extends App {
     val pair = (v:Rep[(Char,(Int,Char))]) => { val r=v._2; r._1 + (if (v._1==r._2) unit(10) else unit(-3)) }
     val axiom:Tabulate = tabulate("M",(
       empty                   ^^ start
-//    | seq() -~ axiom          ^^ gap1
-//    |          axiom ~- seq() ^^ gap2
+    | seq() -~ axiom          ^^ gap1
+    |          axiom ~- seq() ^^ gap2
     | el1   -~ axiom ~- el2   ^^ pair
     ) aggregate h,true)
 
@@ -53,13 +54,16 @@ object Test extends App {
     }
   }
 
+
   val s1=Utils.genDNA(40)
   val s2=Utils.genDNA(40)
-  sw.test("Plain Scala (top-down)",sw.psTopDown,s1,s2)
-  sw.test("Plain Scala (bottom-up)",sw.psScalaLMS,s1,s2)
-*/
+  //sw.test("Plain Scala (top-down)",sw.psTopDown,s1,s2)
+  //sw.test("Plain Scala (bottom-up)",sw.psScalaLMS,s1,s2)
+  scala.Console.println(sw.parse(s1,s2))
 
+  //Utils.useJNI
 
+/*
   val mats = Utils.genMats(128) // scala.Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // -> 1x3 matrix, 122 multiplications
   mm.test("Plain Scala (top-down)",mm.psTopDown,mats)
   mm.test("Plain Scala (bottom-up)",mm.psScalaLMS,mats)
@@ -68,6 +72,7 @@ object Test extends App {
   println(mm.parse(mats,mm.psScalaLMS).head)
   mm.test("CPU LMS",mm.psCPU,mats)
   mm.test("GPU/CUDA LMS",mm.psCUDA,mats)
+*/
 }
 
 // -----------------------------------------------------------------
@@ -82,7 +87,7 @@ trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
   }
 
   override def parse(in:Input,ps:ParserStyle=psScalaLMS):List[Answer] = if (ps!=psScalaLMS) super.parse(in,ps) else {
-    val as=bottomUp(in); var res:scala.List[Answer]=Nil
+    analyze; val as=bottomUp(in); var res:scala.List[Answer]=Nil
     for((p,a)<-as) if (p==axiom) res=if (window>0) h( (0 to in.size-window).map{x=>a(x*(in.size+2)+window)._1}.toList ) else scala.List(a(in.size)._1)
     res
   }
@@ -137,7 +142,7 @@ trait LMSGenTT extends TTParsers with LMSGen { self:Signature =>
   }
 
   override def parse(in1:Input,in2:Input,ps:ParserStyle=psScalaLMS):List[Answer] = if (ps!=psScalaLMS) super.parse(in1,in2,ps) else {
-    val as=bottomUp(in1,in2); var res:scala.List[Answer]=Nil
+    analyze; val as=bottomUp(in1,in2); var res:scala.List[Answer]=Nil
     for((p,a)<-as) if (p==axiom) res=scala.List(a(in2.size*(in2.size+1) + in2.size)._1)
     res
   }
@@ -170,6 +175,7 @@ trait LMSGenTT extends TTParsers with LMSGen { self:Signature =>
       })
     }
     codegen.emitSource3(botUpLMS _, className, new java.io.PrintWriter(source))
+    scala.Console.println(source)
     compiler.compile[(Input,Input,List[ Array[(Answer,Backtrack)] ]) =>Unit](className,source.toString)
   }
 }
@@ -223,10 +229,12 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
   }
 
   def genTerminal[T](t:Terminal[T],i:Rep[Int],j:Rep[Int],cont:Rep[T]=>Rep[Unit]) = { // general case for seq()
-    if (i+unit(t.min)<=j && (unit(t.max==maxN) || i+unit(t.max)>=j)) cont((i,j).asInstanceOf[Rep[T]])
+    if (i+unit(t.min)<=j && (unit(t.max==maxN) || i+unit(t.max)>=j)) { val p:Rep[(Int,Int)] = (i,j); cont(p.asInstanceOf[Rep[T]]) }
   }
 
   type Cont[T] = (Rep[T],Rep[Int])=>Rep[Unit]
+  case class RawValue(s:String) { override def toString=s }
+
   def genTabLMS(t:Tabulate)(i0:Rep[Int],j0:Rep[Int]):Rep[Unit] = {
     val bt0 = bt_new(t.inner.cat) // best backtrack
     val bt = bt_new(t.inner.cat) // temporary backtrack
@@ -238,9 +246,14 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
         implicit val mT:Manifest[T]=tps._2.asInstanceOf[Manifest[T]] // FIXME: not necessarily, but do we care ?
         implicit val oT=new Ordering[T] { def compare(x:T,y:T): Int=0 } // FIXME: I love cheating
         def af[U](f:T=>U):Rep[T]=>Rep[T] = f match { case l@LFun(f0) => f0.asInstanceOf[Rep[T]=>Rep[T]] case _ => sys.error("Non-LMS function: "+f) }  // FIXME: T=>Numeric[U]
-        var av = var_new(unit(null).asInstanceOf[Const[T]])
+
+        var av:Var[T] = if (cudaEmpty==null) var_new(unit(null).asInstanceOf[Const[T]])
+                        else var_new(Const(RawValue(cudaEmpty)).asInstanceOf[Const[T]])
         var ar = var_new(unit(-1))
-        def empty:Rep[Boolean] = if (genC) ar==unit(-1) else av==unit(null)
+        def empty:Rep[Boolean] = {
+          if (cudaEmpty!=null) ar==Const(RawValue(cudaEmpty)).asInstanceOf[Const[T]]
+          else if (genC) ar==unit(-1) else av==unit(null)
+        }
         gen(p,{(v:Rep[T],r:Rep[Int]) =>
           def set = { if (top) bt_copy(bt0,bt); var_assign(av,v); var_assign(ar,r) }
           h.toString match {
