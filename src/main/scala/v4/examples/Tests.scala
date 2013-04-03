@@ -1,5 +1,9 @@
 package v4.examples
 
+// -----------------------------------------------
+// Test of some existing grammars
+// -----------------------------------------------
+
 object Tests extends App {
   def tests(s:String,ts:List[Boolean]) = {
     print("- "+s+": "); ts.foreach{r=>print(if(r) "." else "FAIL")}; println
@@ -48,7 +52,7 @@ object Tests extends App {
   // Zuker.testSeq("uaacacaucaaagucuuuauaaagucauugcuagaauaauaagagccgaaaacauuccuacccuuugccuccccaaaaac")
   // Zuker.testSeq("cgacaugcauuagaaaaguaaaucuuuguagccuucuuggucuggacgccugagcccgauuuaugcaugaucuaaaacgc")
   println
-  
+  /*
   val (s1,s2)=("CGATTACA","CCCATTAGAG")
   val (swScore,sw1,sw2) = SeqAlign.SWat.align(s1,s2).head
   val (nwScore,nw1,nw2) = SeqAlign.NWun.align(s1,s2).head
@@ -56,4 +60,5 @@ object Tests extends App {
   	swScore==51,sw1==".--CGATTACA-",sw2==".CCC-ATTAGAG",
   	nwScore== -12,nw1==".-CGATTACA-",nw2==".CCCATTAGAG"
   ))
+  */
 }

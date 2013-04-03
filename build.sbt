@@ -40,7 +40,7 @@ compile in Compile <<= (compile in Compile) map { x => ("src/librna/make target/
   val (mml,mmr,rr,bench)=(t("mml"),t("mmr"),t("rr"),t("bench")) // LMS and report
   val lt1=t("lt1") // LMS testing
   val ex="v4.examples."
-  s(mm,ex+"MatrixMult") ++ s(mm2,ex+"MatrixMult2") ++ s(mm3,ex+"MatrixMult3") ++ s(align,ex+"SeqAlignGen") ++
+  s(mm,ex+"MatrixMult") ++ s(mm2,ex+"MatrixMult2") ++ s(mm3,ex+"MatrixMult3") ++ s(align,ex+"SeqAlign") ++
   s(zuker,ex+"Zuker") ++ s(z2,ex+"Zuker2") ++ s(rnafold,ex+"RNAFold") ++ s(nu,ex+"Nussinov") ++ s(swat,ex+"SWatAffine") ++
   s(mml,"lms.LMSMatrixAlgebraGen") ++ s(mmr,"v4.report.MatrixMult8") ++ s(rr,"v4.report.RNAFold") ++ s(bench,"v4.report.Benchmarks") ++
   s(lt1,ex+"TestLMS")

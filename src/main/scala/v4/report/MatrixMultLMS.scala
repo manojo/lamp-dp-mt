@@ -2,11 +2,19 @@ package v4.report
 
 import scala.virtualization.lms.common._
 import scala.virtualization.lms.internal._
-import java.io.{PrintWriter,StringWriter,FileOutputStream}
 
 import v4._
 import v4.examples._
 import lms._
+
+// +----------------------------------------------------------+
+// |                                                          |
+// |   DEPRECATED: see v4.examples.MatrixAlgebraLMS instead   |
+// |                                                          |
+// +----------------------------------------------------------+
+
+// This example is broken due to the use of "Tuple.tX"
+// instead of "Tuple._X" in lms.CGenTupleOps codegen
 
 trait RepPackage extends NumericOpsExp with TupleOpsExp with MyScalaCompile with FunctionGen { self =>
   val codegen = new ScalaGenNumericOps with ScalaGenTupleOps { val IR: self.type = self }

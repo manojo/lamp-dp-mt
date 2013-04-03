@@ -1,7 +1,10 @@
 package v4.examples
 import v4._
 
-// This demonstrates the correct parenthesizing for a two-track grammar
+// -----------------------------------------------
+// Demonstrates the correct parenthesizing for two-track grammars
+// -----------------------------------------------
+
 object SeqTest extends Signature with TTParsers with App {
   type Alphabet = Char
   type Answer = (Int,String)

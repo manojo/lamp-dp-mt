@@ -1,7 +1,10 @@
 package v4.examples
 import v4._
 
-// Matrix chain multiplication with outrageously complicated structures.
+// -----------------------------------------------
+// Matrix chain multiplication
+// with outrageously complicated structures.
+// -----------------------------------------------
 
 case class Num(i:Int,f:Float)
 case class Mat(rows:Num,cols:Num)

@@ -1,6 +1,9 @@
 package v4.report
 import v4._
 
+// Minimal example of matrix multiplication,
+// See v4.examples.MatrixMult for more features.
+
 trait MatrixSig extends Signature {
   type Alphabet = (Int,Int) // Matrix(rows, columns)
   val single:Alphabet=>Answer

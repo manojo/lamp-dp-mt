@@ -1,8 +1,11 @@
 package v4.examples
 import v4._
 
-// Matrix chain multiplication vairant.
+// -----------------------------------------------
+// Matrix chain multiplication variant
+// -----------------------------------------------
 // This grammar variant is slightly faster for CUDA
+// slower in all other cases
 
 trait MatrixSig2 extends Signature {
   type Alphabet = (Int,Int) // matrix as (rows, columns)

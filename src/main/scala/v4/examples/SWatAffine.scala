@@ -4,7 +4,8 @@ import v4._
 // -----------------------------------------------
 // Smith-Waterman with affine gap cost
 // -----------------------------------------------
-// Uses 3 tables but serial dependencies
+// Uses 3 tables but has serial dependencies, thus
+// algorithmic complexity = O(n^2).
 
 trait SWatSig extends Signature {
   type Alphabet = Char

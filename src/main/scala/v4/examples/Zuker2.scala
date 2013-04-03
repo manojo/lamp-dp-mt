@@ -2,10 +2,16 @@ package v4.examples
 import v4._
 
 // -----------------------------------------------
-// Zuker folding (Minimum Free Energy) variant
+// Zuker folding (Minimum Free Energy) variant 
 // -----------------------------------------------
 // Variant based on Haskell RNAFold-1.99
-// Formulae are according to TCK's empirical guess (CURRENTLY NOT WORKING)
+// Formulae are according to TCK's empirical guess
+
+// -----------------------------------------------
+//
+//             CURRENTLY NOT WORKING !
+//
+// -----------------------------------------------
 
 trait Zuker2Sig extends RNASignature {
   val iloopI : ((Int,Int),Answer,(Int,Int)) => Answer

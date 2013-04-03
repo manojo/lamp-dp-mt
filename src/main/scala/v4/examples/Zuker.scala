@@ -4,7 +4,7 @@ import v4._
 // -----------------------------------------------
 // Zuker folding (Minimum Free Energy)
 // -----------------------------------------------
-// Based on from http://gapc.eu/grammar/adpfold.gap (gapc-2012.07.23/grammar/adpf.gap
+// Based on from http://gapc.eu/grammar/adpfold.gap, gapc-2012.07.23/grammar/adpf.gap
 // See p.147 of "Parallelization of Dynamic Programming Recurrences in Computational Biology"
 // Same coefficients as: http://www.tbi.univie.ac.at/~ivo/RNA/ (with parameters -noLP -d2)
 

@@ -1,9 +1,12 @@
 package v4.examples
 import v4._
 
+// -----------------------------------------------
 // El Mamun's "oldest" DP problem.
+// -----------------------------------------------
 // Parenthesizes placement to maximize or minimize the result of a given formula
 // Full story: http://bibiserv.techfak.uni-bielefeld.de/adp/ps/elmamun.pdf
+
 trait Bill extends Signature {
   override type Answer = Int
   def add(l:Int, c:Char, r:Int) = l + r

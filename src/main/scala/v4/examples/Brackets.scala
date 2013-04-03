@@ -1,8 +1,11 @@
 package v4.examples
 import v4._
 
-// Correct parenthesization problem.
+// -----------------------------------------------
+// Correct parenthesization problem
+// -----------------------------------------------
 // Also examplifies the windowing
+
 trait BracketsSignature extends Signature {
   type Answer = Int
   override type Alphabet = Char

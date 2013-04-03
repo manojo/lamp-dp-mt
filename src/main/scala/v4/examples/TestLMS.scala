@@ -1,6 +1,10 @@
 package v4.examples
 import v4._
 
+// -----------------------------------------------
+// Tests for the new LMS code generator
+// -----------------------------------------------
+
 object TestLMS extends App {
   // Matrix multiplication
   object mm extends Signature with LMSGenADP {
