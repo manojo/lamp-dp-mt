@@ -44,6 +44,8 @@ trait MatrixPrettyPrint extends MatrixSig {
   val mult = (l:Answer,r:Answer) => "("+l+"*"+r+")"
 }
 
+// -----------------------------------------------
+
 // Combining two algebrae manually (inefficient, requires O(n^3) storage)
 trait MatrixPrettyAlgebra extends MatrixSig {
   object m extends MatrixGrammar with MatrixAlgebra 
@@ -56,7 +58,7 @@ trait MatrixPrettyAlgebra extends MatrixSig {
 
 // -----------------------------------------------
 
-// The same as above, but with manual description of the matching C functions
+// Cost algebra with manual description of the matching C functions
 trait MatrixAlgebraC extends MatrixSig {
   type Answer = (Int,Int,Int) // rows, cost, columns
   val tps=(manifest[Alphabet],manifest[Answer])
@@ -66,8 +68,7 @@ trait MatrixAlgebraC extends MatrixSig {
                     "l,r", "return (T3iii){l._1, l._2+r._2 + l._1*l._3*r._3, r._3};")
 }
 
-// The same as above, but for LMS code generation
-import scala.virtualization.lms.common._
+// Cost algebra for LMS code generation
 trait MatrixAlgebraLMS extends MatrixSig with LMSGenADP {
   type Answer = (Int,Int,Int) // rows, cost, columns
   val tps=(manifest[Alphabet],manifest[Answer])
@@ -81,7 +82,7 @@ trait MatrixAlgebraLMS extends MatrixSig with LMSGenADP {
 // Our application
 object MatrixMult extends App {
   object mmc extends MatrixGrammar with MatrixAlgebraC with CodeGen // CodeGen enabled
-  object mml extends MatrixGrammar with MatrixAlgebraLMS
+  object mml extends MatrixGrammar with MatrixAlgebraLMS // LMS enabled
 
   // Demonstration of grammar and algebrae usage
   def demo = {
@@ -93,7 +94,6 @@ object MatrixMult extends App {
     }
 
     val mats = Array((3,2),(2,4),(4,2),(2,5)) // master report + paper example --> 3x5 matrix, 58 multiplications, single optimal
-    //val mats = Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // --> 1x3 matrix, 122 multiplications, co-optimal solutions
     println("\nOriginally, we computed matrix cost, with ad-hoc backtrack")
     println("  "+mm1.parse(mats).head+" --> how to backtrack ?\n")
     println("Then ADP proposed cross product, computing two results at the same time")
@@ -126,13 +126,48 @@ object MatrixMult extends App {
     println("  "+mml.parse(mats,mml.psCUDA))
   }
 
-  demo
+  // Correctness verification (simple tests due to the problem nature)
+  def check {
+    val mats = Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // --> 1x3 matrix, 122 multiplications, co-optimal solutions
+    def test(name:String,tr:mmc.Trace) = print(if (mmc.build(mats,tr)==(1,122,3)) "." else " FAIL("+name+") ") // reference result
+    print("MatrixMult: ")
+    test("ScalaTopDown",mmc.backtrack(mats,mmc.psTopDown).head._2)
+    test("ScalaBottomUp",mmc.backtrack(mats,mmc.psBottomUp).head._2)
+    test("CPU",mmc.backtrack(mats,mmc.psCPU).head._2)
+    test("CUDA",mmc.backtrack(mats,mmc.psCUDA).head._2)
+    test("LMS-Scala",mml.backtrack(mats,mml.psScalaLMS).head._2)
+    test("LMS-CPU",mml.backtrack(mats,mml.psCPU).head._2)
+    test("LMS-CUDA",mml.backtrack(mats,mml.psCUDA).head._2)
+  }
 
+  def bench(size:Int,num:Int=1) {
+    def pt(ms:Long) = "%3d.%03d".format(ms/1000,ms%1000)
+    def run(name:String,f:Array[(Int,Int)]=>Unit) {
+      Utils.reset; f(Utils.genMats(size)); // reset random number generator, warm-up
+      val ts = (0 until num).map{_=> val s=System.currentTimeMillis; f(Utils.genMats(size)); System.currentTimeMillis-s }.sorted
+      val med=if (ts.length%2==1) ts(ts.length/2) else (ts(ts.length/2)+ts(ts.length/2-1))/2
+      println("%-20s : ".format(name)+" "+pt(med)+"  ["+pt(ts.head)+", "+pt(ts.last)+"]")
+    }
+    println("Benchmarks: chain of "+size+" matrices, median of "+num+" samples")
+    run("Scala-TopDown",mats=>mmc.parse(mats,mmc.psTopDown))
+    run("Scala-TopDown+BT",mats=>mmc.backtrack(mats,mmc.psTopDown))
+    run("Scala-BottomUp",mats=>mmc.parse(mats,mmc.psBottomUp))
+    run("Scala-BottomUp+BT",mats=>mmc.backtrack(mats,mmc.psBottomUp))
+    run("CPU",mats=>mmc.parse(mats,mmc.psCPU))
+    run("CPU+BT",mats=>mmc.backtrack(mats,mmc.psCPU))
+    run("CUDA",mats=>mmc.parse(mats,mmc.psCUDA))
+    run("CUDA+BT",mats=>mmc.backtrack(mats,mmc.psCUDA))
+    run("LMS-Scala",mats=>mml.parse(mats,mml.psScalaLMS))
+    run("LMS-Scala+BT",mats=>mml.backtrack(mats,mml.psScalaLMS))
+    run("LMS-CPU",mats=>mml.parse(mats,mml.psCPU))
+    run("LMS-CPU+BT",mats=>mml.backtrack(mats,mml.psCPU))
+    run("LMS-CUDA",mats=>mml.parse(mats,mml.psCUDA))
+    run("LMS-CUDA+BT",mats=>mml.backtrack(mats,mml.psCUDA))
+  }
 
-
-  //val mats = Utils.genMats(128) // generated random matrix chain
-
-
+  //demo
+  //check
+  bench(128,10)
 }
 
 

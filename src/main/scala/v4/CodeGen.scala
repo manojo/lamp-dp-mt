@@ -557,10 +557,10 @@ trait CodeGen extends BaseParsers { this:Signature => reqJNI
   }
 
   // Wrappers for CUDA invocation, these are automatically called by ADPParsers/TTParsers
-  def parseC(in1:Input,gpu:Boolean) = { val w=compiler.getADP(in1.size,gpu); time("Execution"){()=> w.parse(in1) } }
-  def backtrackC(in1:Input,gpu:Boolean) = { val w=compiler.getADP(in1.size,gpu); time("Execution"){()=> w.backtrack(in1) } }
-  def parseCTT(in1:Input,in2:Input,gpu:Boolean) = { val w=compiler.getTT(in1.size,in2.size,gpu); time("Execution"){()=> w.parse(in1,in2) } }
-  def backtrackCTT(in1:Input,in2:Input,gpu:Boolean) = { val w=compiler.getTT(in1.size,in2.size,gpu); time("Execution"){()=> w.backtrack(in1,in2) } }
+  def parseC(in1:Input,gpu:Boolean) = { val w=compiler.getADP(in1.size,gpu); time("Run"+(if(gpu)"CUDA"else"CPU")){()=> w.parse(in1) } }
+  def backtrackC(in1:Input,gpu:Boolean) = { val w=compiler.getADP(in1.size,gpu); time("Run"+(if(gpu)"CUDA"else"CPU")+"+BT"){()=> w.backtrack(in1) } }
+  def parseCTT(in1:Input,in2:Input,gpu:Boolean) = { val w=compiler.getTT(in1.size,in2.size,gpu); time("Run"+(if(gpu)"CUDA"else"CPU")){()=> w.parse(in1,in2) } }
+  def backtrackCTT(in1:Input,in2:Input,gpu:Boolean) = { val w=compiler.getTT(in1.size,in2.size,gpu); time("Run"+(if(gpu)"CUDA"else"CPU")+"+BT"){()=> w.backtrack(in1,in2) } }
 
   // Debug
   def gen:String = {
