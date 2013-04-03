@@ -7,17 +7,21 @@ trait ADPParsers extends BaseParsers { this:Signature =>
   def size:Int = input.size
   def parse(in:Input,ps:ParserStyle=psCUDA):List[Answer] = this match {
     case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.parseC(in.asInstanceOf[c.Input],ps==psCUDA).asInstanceOf[Answer])
-    case _ => run(in,()=>{ if (ps==psBottomUp) parseBottomUp; (if (window>0) aggr(((0 to size-window).flatMap{x=>axiom(x,window+x)}).toList, h) else axiom(0,size)).map(_._1)})
+    case _ => run(if(ps==psBottomUp)"ScalaBotUp" else "ScalaTopDown",in,()=>{ if (ps==psBottomUp) parseBottomUp;
+      (if (window>0) aggr(((0 to size-window).flatMap{x=>axiom(x,window+x)}).toList, h) else axiom(0,size)).map(_._1)
+    })
   }
   def backtrack(in:Input,ps:ParserStyle=psCUDA):List[(Answer,Trace)] = this match {
     case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.backtrackC(in.asInstanceOf[c.Input],ps==psCUDA).asInstanceOf[(Answer,Trace)])
-    case _ => run(in,()=>{ if (ps==psBottomUp) parseBottomUp; if (window>0) aggr(((0 to size-window).flatMap{x=>axiom.backtrack(x,window+x)}).toList, h) else axiom.backtrack(0,size)})
+    case _ => run(if(ps==psBottomUp)"ScalaBotUp+BT" else "ScalaTopDown+BT",in,()=>{ if (ps==psBottomUp) parseBottomUp;
+      if (window>0) aggr(((0 to size-window).flatMap{x=>axiom.backtrack(x,window+x)}).toList, h) else axiom.backtrack(0,size)
+    })
   }
-  def build(in:Input,bt:Trace):Answer = run(in,()=>axiom.build(bt))
-  protected def run[T](in:Input, f:()=>T) = {
+  def build(in:Input,bt:Trace):Answer = run("Build",in,()=>axiom.build(bt))
+  protected def run[T](name:String,in:Input, f:()=>T) = {
     input=in; analyze; tabInit(in.size+1,in.size+1);
     this match { case s:RNASignature => if (s.energies) librna.LibRNA.setSequence(in.mkString) case _ => }
-    val res=time("Execution")(f);
+    val res=time("Run"+name)(f);
     this match { case s:RNASignature => if (s.energies) librna.LibRNA.clear case _ => }
     tabReset; input=null; res
   }

@@ -14,10 +14,12 @@ object Tests extends App {
   val (mS,mBt)=MatrixMult2.a.backtrack(mIn).head
   val (mS2,_ )=MatrixMult2.a.backtrack(mIn2).head
   object mm extends MatrixGrammar with MatrixAlgebra { override val window=3 }
+  object mm1 extends MatrixGrammar with MatrixPrettyAlgebra
+
   val (mS3,_ )=mm.backtrack(mIn2).head
   tests("MatrixMul",List(mS==(10,7500,50),mS2==(1,122,3),mS3==(2,16,1),
     MatrixMult2.b.build(mIn,mBt)=="((|10x100|*|100x5|)*|5x50|)",
-    MatrixMult.parse(mIn)==List(((10,7500,50),"((|10x100|*|100x5|)*|5x50|)"))
+    mm1.parse(mIn)==List(((10,7500,50),"((|10x100|*|100x5|)*|5x50|)"))
   ))
 
   print("- Zuker: "); 

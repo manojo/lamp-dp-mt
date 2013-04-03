@@ -521,7 +521,7 @@ trait CodeGen extends BaseParsers { this:Signature => reqJNI
   val compiler = new CodeCompiler {
     override val outPath = "bin"
     override val cudaPath = "/usr/local/cuda"
-    override val cudaFlags = "-m64 -arch=sm_30" // --ptxas-options=-v
+    override val cudaFlags = "-m64 -arch=sm_30 --disable-warnings" // --ptxas-options=-v
     override val ccFlags = "-O3 -I/System/Library/Frameworks/JavaVM.framework/Headers"
     override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
   }

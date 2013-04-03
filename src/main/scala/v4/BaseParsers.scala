@@ -33,7 +33,11 @@ trait Signature {
 
   // Warning about JNI/SBT embedded JVM issues (multiple loading failure, unable to properly load generated code)
   protected def reqJNI { try { this.getClass.getClassLoader.getClass.getDeclaredMethod("addURL", classOf[java.net.URL]); }
-    catch { case t:Throwable => println("\nWARNING: Using embedded SBT JVM; JNI loading might fail (java.lang.UnsatisfiedLinkError).\nSee build.sbt tasks to launch a separate JVM.\n") }
+    catch { case t:Throwable => println("\n"+
+            "+----------------------------------------------------------------------------------+\n"+
+            "| WARNING: Using SBT embedded JVM, JNI will fail (java.lang.UnsatisfiedLinkError). |\n"+
+            "| See build.sbt tasks to launch a separate JVM.                                    |\n"+
+            "+----------------------------------------------------------------------------------+\n\n") }
   }
 }
 

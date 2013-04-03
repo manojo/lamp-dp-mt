@@ -14,14 +14,14 @@ trait TTParsers extends BaseParsers { this:Signature =>
   def size2:Int = input2.size
   def parse(in1:Input,in2:Input,ps:ParserStyle=psCUDA):List[Answer] = this match {
     case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.parseCTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input],ps==psCUDA).asInstanceOf[Answer])
-    case _ => run(in1,in2,()=>{ if (ps==psBottomUp) parseBottomUp; axiom(size1,size2).map(_._1)})
+    case _ => run(if (ps==psBottomUp)"ScalaBotUp" else "ScalaTopDown",in1,in2,()=>{ if (ps==psBottomUp) parseBottomUp; axiom(size1,size2).map(_._1)})
   }
   def backtrack(in1:Input,in2:Input,ps:ParserStyle=psCUDA):List[(Answer,Trace)] =  this match {
     case c:CodeGen if (ps==psCPU || ps==psCUDA) => List(c.backtrackCTT(in1.asInstanceOf[c.Input],in2.asInstanceOf[c.Input],ps==psCUDA).asInstanceOf[(Answer,Trace)])
-    case _ => run(in1,in2,()=>{ if (ps==psBottomUp) parseBottomUp; axiom.backtrack(size1,size2)})
+    case _ => run(if (ps==psBottomUp)"ScalaBotUp+BT" else "ScalaTopDown+BT",in1,in2,()=>{ if (ps==psBottomUp) parseBottomUp; axiom.backtrack(size1,size2)})
   }
-  def build(in1:Input,in2:Input,bt:Trace):Answer = run(in1,in2,()=>axiom.build(bt))
-  protected def run[T](in1:Input,in2:Input, f:()=>T) = { input1=in1; input2=in2; analyze; tabInit(size1+1,size2+1); val res=time("Execution")(f); tabReset; input1=null; input2=null; res }
+  def build(in1:Input,in2:Input,bt:Trace):Answer = run("Build",in1,in2,()=>axiom.build(bt))
+  protected def run[T](name:String,in1:Input,in2:Input, f:()=>T) = { input1=in1; input2=in2; analyze; tabInit(size1+1,size2+1); val res=time("Run"+name)(f); tabReset; input1=null; input2=null; res }
   private def parseBottomUp { val rs=rulesOrder map {n=>rules(n)}; var i=0; while (i<=size1) { var j=0; while (j<=size2) { for (r<-rs) r((i,j)); j=j+1; }; i=i+1; } }
 
   // Concat parsers

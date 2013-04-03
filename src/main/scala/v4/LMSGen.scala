@@ -1,5 +1,4 @@
 package v4
-//import lms._
 
 import scala.virtualization.lms.common._
 
@@ -14,13 +13,11 @@ trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
     case _ => super.genTerminal(t,i,j,cont)
   }
 
-  override def parse(in:Input,ps:ParserStyle=psScalaLMS):List[Answer] = if (ps!=psScalaLMS) super.parse(in,ps) else {
-    analyze; val as=bottomUp(in); var res:scala.List[Answer]=Nil
-    for((p,a)<-as) if (p==axiom) res=if (window>0) h( (0 to in.size-window).map{x=>a(x*(in.size+2)+window)._1}.toList ) else scala.List(a(in.size)._1)
-    res
+  override def parse(in:Input,ps:ParserStyle=psScalaLMS):List[Answer] = if (ps!=psScalaLMS) super.parse(in,ps) else time("ScalaLMS"){()=> analyze;
+    val as=bottomUp(in); var res:scala.List[Answer]=Nil
+    for((p,a)<-as) if (p==axiom) res=if (window>0) h((0 to in.size-window).map{x=>a(x*(in.size+2)+window)._1}.toList) else scala.List(a(in.size)._1); res
   }
-
-  override def backtrack(in:Input,ps:ParserStyle=psScalaLMS):List[(Answer,Trace)] = if (ps!=psScalaLMS) super.backtrack(in,ps) else run(in,()=>{
+  override def backtrack(in:Input,ps:ParserStyle=psScalaLMS):List[(Answer,Trace)] = if (ps!=psScalaLMS) super.backtrack(in,ps) else run("ScalaLMS+BT",in,()=>{
     val as=bottomUp(in); val n=size+1
     for((p,a)<-as) for (i<-0 to size) for (j<-i to (if (window>0) java.lang.Math.min(i+window,size) else size)) {
       val d=n+1+i-j; val idx = (n*(n+1)-d*(d-1))/2 + i // Must be sync'ed with BaseParser::Tabulate::idx(sw:Subword=(i,j))
@@ -28,10 +25,8 @@ trait LMSGenADP extends ADPParsers with LMSGen { self:Signature =>
     }
     if (window>0) aggr(((0 to size-window).flatMap{x=>axiom.backtrack(x,window+x)}).toList, h) else axiom.backtrack(0,size)
   })
-
   private def bottomUp(in:Input) : List[(Tabulate,Array[(Answer,Backtrack)])] = {
-    val as = rulesOrder.map{n=>(rules(n),new Array[(Answer,Backtrack)]( (in.size+1)*(in.size+1) ))}
-    botUp(in,as.map(_._2)); as
+    val as=rulesOrder.map{n=>(rules(n),new Array[(Answer,Backtrack)]( (in.size+1)*(in.size+1) ))}; botUp(in,as.map(_._2)); as
   }
 
   private lazy val botUp:(Input,List[ Array[(Answer,Backtrack)] ])=>Unit = {
@@ -65,20 +60,14 @@ trait LMSGenTT extends TTParsers with LMSGen { self:Signature =>
     case _ => super.genTerminal(t,i,j,cont)
   }
 
-  override def parse(in1:Input,in2:Input,ps:ParserStyle=psScalaLMS):List[Answer] = if (ps!=psScalaLMS) super.parse(in1,in2,ps) else {
-    analyze; val as=bottomUp(in1,in2); var res:scala.List[Answer]=Nil
-    for((p,a)<-as) if (p==axiom) res=scala.List(a(in2.size*(in2.size+1) + in2.size)._1)
-    res
+  override def parse(in1:Input,in2:Input,ps:ParserStyle=psScalaLMS):List[Answer] = if (ps!=psScalaLMS) super.parse(in1,in2,ps) else time("ScalaLMS"){()=> analyze;
+    val as=bottomUp(in1,in2); var res:scala.List[Answer]=Nil; for((p,a)<-as) if (p==axiom) res=scala.List(a(in2.size*(in2.size+1) + in2.size)._1); res
   }
-
-  override def backtrack(in1:Input,in2:Input,ps:ParserStyle=psScalaLMS):List[(Answer,Trace)] = if (ps!=psScalaLMS) super.backtrack(in1,in2,ps) else run(in1,in2,()=>{
-    val as=bottomUp(in1,in2); val n=(size2+1)
-    for((p,a)<-as) for (i<-0 to size1) for (j<-0 to size2) { p.data(i*n+j)=scala.List(a(i*n+j)) }; axiom.backtrack(size1,size2)
+  override def backtrack(in1:Input,in2:Input,ps:ParserStyle=psScalaLMS):List[(Answer,Trace)] = if (ps!=psScalaLMS) super.backtrack(in1,in2,ps) else run("ScalaLMS+BT",in1,in2,()=>{
+    val as=bottomUp(in1,in2); val n=(size2+1); for((p,a)<-as) for (i<-0 to size1) for (j<-0 to size2) { p.data(i*n+j)=scala.List(a(i*n+j)) }; axiom.backtrack(size1,size2)
   })
-
   private def bottomUp(in1:Input,in2:Input) : List[(Tabulate,Array[(Answer,Backtrack)])] = {
-    val as = rulesOrder.map{n=>(rules(n),new Array[(Answer,Backtrack)]( (in1.size+1)*(in2.size+1) ))}
-    botUp(in1,in2,as.map(_._2)); as
+    val as=rulesOrder.map{n=>(rules(n),new Array[(Answer,Backtrack)]( (in1.size+1)*(in2.size+1) ))}; botUp(in1,in2,as.map(_._2)); as
   }
 
   private lazy val botUp:(Input,Input,List[ Array[(Answer,Backtrack)] ])=>Unit = {
@@ -88,7 +77,7 @@ trait LMSGenTT extends TTParsers with LMSGen { self:Signature =>
       named_val("in2",in2); named_val("size2",in2.length+unit(1))
       rulesOrder.zipWithIndex.foreach{case (n,i)=> named_val("tab_"+n,tabs(unit(i))) }
       range_foreach(range_until(unit(0),in1.length+unit(1)),(i:Rep[Int])=>{
-        range_foreach(range_until(unit(0),in1.length+unit(1)),(j:Rep[Int])=>{
+        range_foreach(range_until(unit(0),in2.length+unit(1)),(j:Rep[Int])=>{
           rulesOrder.foreach{n=> genTabLMS(rules(n))(i,j) }
         })
       })
@@ -132,6 +121,29 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
     val body = getBody(ccodegen.reifyBlock(f(s)))
     val tpe = manifest[U].toString
   }
+
+  // ----------------------------------------
+  implicit def lfun2[A:Manifest,B:Manifest,R:Manifest](f:Rep[(A,B)]=>Rep[R]) = new LFun(f) with Function2[A,B,R] { def apply(a:A,b:B)=fs((a,b)) }
+  /*
+  case class LFun2[A:Manifest,B:Manifest,R:Manifest](f:Rep[(A,B)]=>Rep[R]) extends LFun(f) {
+    def apply(a:A,b:B) = fs((a,b))
+  }
+  */
+/*
+  case class LFun2[A:Manifest,B:Manifest,R:Manifest](f:Rep[(A,B)]=>Rep[R]) extends Function2[A,B,R] with CFun {
+    lazy val fs = self.compile(f);
+    def apply(a:A,b:B) = fs((a,b))
+    private def getBody(bdy:ccodegen.Block[_]):String = { val os=new java.io.ByteArrayOutputStream; val stream=new java.io.PrintWriter(os)
+      ccodegen.withStream(stream) { ccodegen.emitBlock(bdy); val y=ccodegen.getBlockResult(bdy); if(ccodegen.remap(y.tp) != "void") stream.println("return "+ ccodegen.quote(y)+";") }
+      val temp=os.toString("UTF-8"); os.close; stream.close; temp
+    }
+    private val s = fresh[(A,B)]
+    val args = scala.List((ccodegen.quote(s), s.tp.toString))
+    val body = getBody(ccodegen.reifyBlock(f(s)))
+    val tpe = manifest[R].toString
+  }  
+*/
+  // ----------------------------------------
 
   // Helpers to set manifest appropriately
   //private def _in1(idx:Rep[Int]):Rep[Alphabet] = in1_read(idx)(tps._1)
@@ -214,7 +226,6 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
 // -----------------------------------------------------------------
 // DP-specific operations
 
-import scala.virtualization.lms.common._
 import scala.reflect.SourceContext
 import scala.virtualization.lms.internal.{Expressions,Effects}
 
@@ -298,9 +309,6 @@ trait CGenDP extends CGenEffect {
 
 // -----------------------------------------------------------------
 // Tuple operations operations
-
-import scala.virtualization.lms.common._
-import scala.reflect.RefinedManifest
 
 trait CGenTupleOps extends CLikeGenBase {
   val IR: TupleOpsExp
