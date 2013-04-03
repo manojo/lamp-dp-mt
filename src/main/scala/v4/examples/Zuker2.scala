@@ -1,10 +1,11 @@
 package v4.examples
 import v4._
 
-// Zuker folding (Minimum Free Energy)
-// ----------------------------------------------------------------------------
+// -----------------------------------------------
+// Zuker folding (Minimum Free Energy) variant
+// -----------------------------------------------
 // Variant based on Haskell RNAFold-1.99
-// Formulae are according to TCK's empirical guess
+// Formulae are according to TCK's empirical guess (CURRENTLY NOT WORKING)
 
 trait Zuker2Sig extends RNASignature {
   val iloopI : ((Int,Int),Answer,(Int,Int)) => Answer
@@ -99,9 +100,6 @@ trait Zuker2Pretty extends Zuker2Sig {
   val nil = cfun1((d:Unit)=>0,"","return 0;")
 }
 */
-
-
-
 
 trait Zuker2Grammar extends Zuker2Sig with ADPParsers {
   lazy val iif = primary ~(3,30,1,maxN)~   weak  ~(1,maxN,3,30)~  primary ^^ iloopI aggregate h
@@ -291,8 +289,6 @@ BACKTACKING GRAMMAR
 
   hBT tbl ij = L.concatMap snd . L.filter ((tbl!ij==).fst) . P.toList
 */
-
-
 /*
 (*~+) = makeLeft_MinRight (3,31) 1
 (+~*) = makeMinLeft_Right 1 (3,31)

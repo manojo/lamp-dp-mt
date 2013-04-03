@@ -144,7 +144,7 @@ object MatrixMult extends App {
     def pt(ms:Long) = "%3d.%03d".format(ms/1000,ms%1000)
     def run(name:String,f:Array[(Int,Int)]=>Unit) {
       Utils.reset; f(Utils.genMats(size)); // reset random number generator, warm-up
-      val ts = (0 until num).map{_=> val s=System.currentTimeMillis; f(Utils.genMats(size)); System.currentTimeMillis-s }.sorted
+      val ts = (0 until num).map{_=> val m=Utils.genMats(size); val s=System.currentTimeMillis; f(m); System.currentTimeMillis-s }.sorted
       val med=if (ts.length%2==1) ts(ts.length/2) else (ts(ts.length/2)+ts(ts.length/2-1))/2
       println("%-20s : ".format(name)+" "+pt(med)+"  ["+pt(ts.head)+", "+pt(ts.last)+"]")
     }
@@ -164,38 +164,7 @@ object MatrixMult extends App {
     run("LMS-CUDA",mats=>mml.parse(mats,mml.psCUDA))
     run("LMS-CUDA+BT",mats=>mml.backtrack(mats,mml.psCUDA))
   }
-
   //demo
   //check
   bench(128,10)
-}
-
-
-
-
-/*
-// Demonstration of the manual cross product algebra
-object MatrixMult extends MatrixGrammar with MatrixPrettyAlgebra with App {
-  val input = List((10,100),(100,5),(5,50)).toArray
-  println(parse(input))
-  //println(gen)
-}
-
-*/
-
-// Demonstration of the separate DP-backtrack / build process
-object MatrixMult2 extends App {
-  object a extends MatrixGrammar with MatrixAlgebra
-  object b extends MatrixGrammar with MatrixPrettyPrint
-  //val input = List((10,100),(100,5),(5,50)).toArray
-  val input = Array((3,2),(2,4),(4,2),(2,5))
-
-  // Compute the matrix, and return the best solution's backtrack
-  val (score,bt) = a.backtrack(input).head
-  println("Score     : "+score)
-  println("Backtrack : "+bt)
-
-  // Apply the backtrack to another parser sharing the same grammar,
-  // This will only compute 1 result in relevant cells, hence O(n).
-  println("Result    : "+b.build(input,bt))
 }

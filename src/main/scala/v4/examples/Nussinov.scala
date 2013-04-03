@@ -1,25 +1,21 @@
 package v4.examples
 import v4._
 
+// -----------------------------------------------
 // Nussinov RNA folding
+// -----------------------------------------------
+
 trait NussinovSig extends Signature {
   type Alphabet = Char
-  val nil:Unit=>Answer
-  val left:(Alphabet,Answer)=>Answer
-  val right:(Answer,Alphabet)=>Answer
-  val pair:(Alphabet,Answer,Alphabet)=>Answer
-  val split:(Answer,Answer)=>Answer
+  val nil   : Unit=>Answer
+  val left  : (Alphabet,Answer)=>Answer
+  val right : (Answer,Alphabet)=>Answer
+  val pair  : (Alphabet,Answer,Alphabet)=>Answer
+  val split : (Answer,Answer)=>Answer
 }
 
 trait NussinovAlgebra extends NussinovSig {
   type Answer = Int
-  /*
-  val nil = (a: Unit) => 0
-  val left = (c: Alphabet,a: Answer) => a
-  val right = (a: Answer, c:Alphabet) => a
-  val pair = (l: Alphabet, a: Answer, r: Alphabet) => a+1
-  val split = (l: Answer, r: Answer) => l + r
-  */
   val nil   = cfun1((a: Unit) => 0, "", "return 0;")
   val left  = cfun2((c: Alphabet,a: Answer) => a, "c,a", "return a;")
   val right = cfun2((a: Answer,c: Alphabet) => a, "a,c", "return a;")
@@ -51,18 +47,13 @@ trait NussinovPrettyAlgebra extends NussinovSig {
 */
 
 trait NussinovGrammar extends ADPParsers with NussinovSig {
-  /*
-  def basePair(i:Int,j:Int) = (in(i),in(j-1)) match {
-    case ('a','u') | ('u','a') | ('g','u') | ('u','g') | ('c','g') | ('g','c') => true
-    case _ => false
-  }
-  */
   val basePair = cfun2((i:Int,j:Int) => if (i+2>j) false else (in(i),in(j-1)) match {
     case ('a','u') | ('u','a') | ('g','u') | ('u','g') | ('c','g') | ('g','c') => true
     case _ => false
   },"i,j","if (i+2>j) return false; char a=_in1[i],b=_in1[j-1];"+
     " return (a=='a'&&b=='u') || (a=='u'&&b=='a') || (a=='g'&&b=='u') || (a=='u'&&b=='g') || (a=='c'&&b=='g') || (a=='g'&&b=='c');")
 
+  // Grammar variation
   /*
   val s:Tabulate = tabulate("s",(
     empty  ^^ nil
@@ -107,5 +98,4 @@ object Nussinov extends App {
     val s = Utils.genRNA(1000).toArray
     nu.time("CPU")(()=>nu.backtrack(s,nu.psCPU))
   }
-
 }

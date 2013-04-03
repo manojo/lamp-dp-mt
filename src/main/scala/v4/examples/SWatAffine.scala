@@ -1,7 +1,10 @@
 package v4.examples
 import v4._
 
+// -----------------------------------------------
 // Smith-Waterman with affine gap cost
+// -----------------------------------------------
+// Uses 3 tables but serial dependencies
 
 trait SWatSig extends Signature {
   type Alphabet = Char

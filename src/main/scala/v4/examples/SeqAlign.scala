@@ -1,8 +1,11 @@
 package v4.examples
 import v4._
 
+// -----------------------------------------------
 // Sequence alignment problem.
+// -----------------------------------------------
 // Demonstrates two algebrae for the same problem.
+
 // +--------------------------------------------------------+
 // | This example is VERY BAD as the sequences are computed |
 // | in the forward computation (and eat additional space). |

@@ -11,14 +11,16 @@ object Tests extends App {
 
   val mIn = List((10,100),(100,5),(5,50)).toArray
   val mIn2 = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray
-  val (mS,mBt)=MatrixMult2.a.backtrack(mIn).head
-  val (mS2,_ )=MatrixMult2.a.backtrack(mIn2).head
-  object mm extends MatrixGrammar with MatrixAlgebra { override val window=3 }
+  object mm0 extends MatrixGrammar with MatrixAlgebra
+  val (mS,mBt)=mm0.backtrack(mIn).head
+  val (mS2,_ )=mm0.backtrack(mIn2).head
+  object mmw extends MatrixGrammar with MatrixAlgebra { override val window=3 }
   object mm1 extends MatrixGrammar with MatrixPrettyAlgebra
+  object mmp extends MatrixGrammar with MatrixPrettyPrint
 
-  val (mS3,_ )=mm.backtrack(mIn2).head
+  val (mS3,_ )=mmw.backtrack(mIn2).head
   tests("MatrixMul",List(mS==(10,7500,50),mS2==(1,122,3),mS3==(2,16,1),
-    MatrixMult2.b.build(mIn,mBt)=="((|10x100|*|100x5|)*|5x50|)",
+    mmp.build(mIn,mBt)=="((|10x100|*|100x5|)*|5x50|)",
     mm1.parse(mIn)==List(((10,7500,50),"((|10x100|*|100x5|)*|5x50|)"))
   ))
 

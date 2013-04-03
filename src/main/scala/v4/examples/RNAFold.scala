@@ -1,7 +1,9 @@
 package v4.examples
 import v4._
 
-// ----------------------------------------------------------------------------
+// -----------------------------------------------
+// RNAfolding minimizing free energy
+// -----------------------------------------------
 // Folding algorithm from Unafold package in the function hybrid-ss-min
 // Using the grammar described in paper "GPU accelerated RNA folding algorithm"
 
@@ -10,9 +12,9 @@ trait RNAFoldSig extends RNASignature {
   val stack : (Int,Answer,Int)=>Answer
   val iloop : ((Int,Int),Answer,(Int,Int))=>Answer
   val mloop : (Int,Answer,Int)=>Answer
-  val left : (Answer,Int)=>Answer
+  val left  : (Answer,Int)=>Answer
   val right : (Int,Answer)=>Answer
-  val join : (Answer,Answer)=>Answer
+  val join  : (Answer,Answer)=>Answer
 }
 
 trait RNAFoldAlgebra extends RNAFoldSig {
@@ -24,9 +26,9 @@ trait RNAFoldAlgebra extends RNAFoldSig {
   val stack = cfun3((i:Int,s:Int,j:Int) => sr_energy(i,j) + s, "i,s,j", "return sr_energy(i,j) + s;")
   val iloop = cfun3((ik:(Int,Int),s:Int,lj:(Int,Int)) => il_energy(ik._1,ik._2,lj._1-1,lj._2-1) + s, "ik,s,lj", "return il_energy(ik._1,ik._2,lj._1-1,lj._2-1) + s;")
   val mloop = cfun3((i:Int,s:Int,j:Int) => s, "i,s,j", "return s;")
-  val left = cfun2((l:Int,r:Int) => l, "l,r", "return l;")
-  val right = cfun2((l:Int,r:Int) => r, "l,r", "return r;")
-  val join = cfun2((l:Int,r:Int) => l+r, "l,r", "return l+r;")
+  val left  = cfun2((l:Int,r:Int) => l,   "l,r", "return l;")
+  val right = cfun2((l:Int,r:Int) => r,   "l,r", "return r;")
+  val join  = cfun2((l:Int,r:Int) => l+r, "l,r", "return l+r;")
 }
 
 trait RNAFoldPrettyPrint extends RNAFoldSig {
@@ -36,27 +38,27 @@ trait RNAFoldPrettyPrint extends RNAFoldSig {
   val stack = (i:Int,s:String,j:Int) => "("+s+")"
   val iloop = (ik:(Int,Int),s:String,lj:(Int,Int)) => "("+dots(ik._2-1-ik._1)+s+dots(lj._2-1-lj._1)+")"
   val mloop = (i:Int,s:String,j:Int) => "("+s+")"
-  val left = (l:String,r:Int) => l+"."
+  val left  = (l:String,r:Int) => l+"."
   val right = (l:Int,r:String) => "."+r
-  val join = (l:String,r:String) => l+r
+  val join  = (l:String,r:String) => l+r
 }
 
 trait RNAFoldGrammar extends ADPParsers with RNAFoldSig {
   lazy val Qp:Tabulate = tabulate("Qp",(
-    seq(3,maxN)        ^^ hairpin
-  | eli   ~ Qp ~ eli   ^^ stack
+    seq(3,maxN)                ^^ hairpin
+  | eli       ~ Qp ~ eli       ^^ stack
   | seq(1,30) ~ Qp ~ seq(1,30) ^^ iloop
-  | eli   ~ QM ~ eli   ^^ mloop
-  ) filter basepairing aggregate h)
+  | eli       ~ QM ~ eli       ^^ mloop
+  ) aggregate h filter basepairing)
 
-  lazy val QM:Tabulate = tabulate("QM",(Q ~ Q ^^ join) filter(length(4)) aggregate h)
+  lazy val QM:Tabulate = tabulate("QM",(Q ~ Q ^^ join) aggregate h filter(length(4)))
 
   lazy val Q:Tabulate = tabulate("Q",(
     QM
   | Q ~ eli ^^ left
   | eli ~ Q ^^ right
   | Qp
-  ) filter(length(2)) aggregate h)
+  ) aggregate h filter(length(2)))
 
   override val axiom = Q
 }

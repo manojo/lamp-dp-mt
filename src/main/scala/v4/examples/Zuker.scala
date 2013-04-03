@@ -1,9 +1,10 @@
 package v4.examples
 import v4._
 
+// -----------------------------------------------
 // Zuker folding (Minimum Free Energy)
-// ----------------------------------------------------------------------------
-// Based on http://gapc.eu/grammar/adpfold.gap (gapc-2012.07.23/grammar/adpf.gap)
+// -----------------------------------------------
+// Based on from http://gapc.eu/grammar/adpfold.gap (gapc-2012.07.23/grammar/adpf.gap
 // See p.147 of "Parallelization of Dynamic Programming Recurrences in Computational Biology"
 // Same coefficients as: http://www.tbi.univie.ac.at/~ivo/RNA/ (with parameters -noLP -d2)
 
@@ -21,7 +22,7 @@ trait ZukerSig extends RNASignature {
   val app:(Answer, Answer) => Answer
   val ul:(Answer) => Answer
   val addss:(Answer, SSeq) => Answer
-  val nil : Unit => Answer
+  val nil:Unit => Answer
 }
 
 trait ZukerCount extends ZukerSig {
@@ -63,23 +64,6 @@ trait ZukerPrettyPrint extends ZukerSig {
 trait ZukerMFE extends ZukerSig {
   type Answer = Int
   import librna.LibRNA._
-  /*
-  val sadd = (lb:Int, e:Answer) => e
-  val cadd = (x:Answer, e:Answer) => x + e
-  val dlr = (lb:Int, e:Answer, rb:Int) => e + ext_mismatch_energy(lb, rb-1) + termau_energy(lb, rb-1) // OK
-  val sr = (lb:Int, e:Answer, rb:Int) => e + sr_energy(lb,rb) // OK
-  val hl = (lb:Int, f1:Int, x:SSeq, f2:Int, rb:Int) => hl_energy(f1,f2) + sr_energy(lb, rb) // OK
-  val bl = (lb:Int, f1:Int, b:SSeq, x:Answer, f2:Int, rb:Int) => x + bl_energy(f1,b._1,b._2-1,f2,f2-1) + sr_energy(lb, rb) // OK
-  val br = (lb:Int, f1:Int, x:Answer, b:SSeq, f2:Int, rb:Int) => x + br_energy(f1,b._1,b._2-1,f2,f1+1) + sr_energy(lb, rb) // OK
-  val il = (f1:Int, f2:Int, r1:SSeq, x:Answer, r2:SSeq, f3:Int, f4:Int) => x + il_energy(f2,r1._2,r2._1-1,f3) + sr_energy(f1, f4) // OK
-  val ml = (lb:Int, f1:Int, x:Answer, f2:Int, rb:Int) => ml_energy + ul_energy + x + termau_energy(f1, f2) + sr_energy(lb, rb) + ml_mismatch_energy(f1,f2)
-  val app = (c1:Answer, c:Answer) => c1 + c
-  val ul = (c1:Answer) => ul_energy + c1
-  val addss = (c1:Answer, e:SSeq) => c1 // + ss_energy(e._1,e._2-1)=0 OK
-  val nil = (d:Unit) => 0
-  override val h = min[Answer] _
-  */
-
   val sadd = cfun2((lb:Int,e:Int) => e,    "lb,e", "return e;")
   val cadd = cfun2((x:Int,e:Int) => x + e, "x,e" , "return x+e;")
   val dlr = cfun3((lb:Int, e:Answer, rb:Int)=> e + ext_mismatch_energy(lb,rb-1) + termau_energy(lb,rb-1),
