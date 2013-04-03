@@ -92,9 +92,8 @@ object MatrixMult extends App {
       override val h = (l:List[Answer]) => { val m=l.map{_._2}.min; l.filter{x=>x._2==m} }
     }
 
-    //val mats = Array((3,2),(2,4),(4,2),(2,5)) // master report + paper example --> 3x5 matrix, 58 multiplications, single optimal
-    val mats = Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // --> 1x3 matrix, 122 multiplications, co-optimal solutions
-
+    val mats = Array((3,2),(2,4),(4,2),(2,5)) // master report + paper example --> 3x5 matrix, 58 multiplications, single optimal
+    //val mats = Array((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)) // --> 1x3 matrix, 122 multiplications, co-optimal solutions
     println("\nOriginally, we computed matrix cost, with ad-hoc backtrack")
     println("  "+mm1.parse(mats).head+" --> how to backtrack ?\n")
     println("Then ADP proposed cross product, computing two results at the same time")
@@ -117,6 +116,14 @@ object MatrixMult extends App {
     println("    "+pr.build(mats,bt)+" = "+pr.build(mats,bt2)+" = "+pr.build(mats,bt3))
     println("-> Or different results with the same cost")
     for((r,i)<-mmco.backtrack(mats).zipWithIndex) println("   "+(i+1)+": "+r._1+" <-- "+r._2)
+    println
+    println("You think that's all ? No, we can use LMS to generate more efficient ...")
+    println("Scala (converting into generators)")
+    println("  "+mml.parse(mats))
+    println("C code")
+    println("  "+mml.parse(mats,mml.psCPU))
+    println("GPU code (CUDA)")
+    println("  "+mml.parse(mats,mml.psCUDA))
   }
 
   demo

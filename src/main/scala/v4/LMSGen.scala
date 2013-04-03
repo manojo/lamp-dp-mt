@@ -121,28 +121,11 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
     val body = getBody(ccodegen.reifyBlock(f(s)))
     val tpe = manifest[U].toString
   }
-
   // ----------------------------------------
   implicit def lfun2[A:Manifest,B:Manifest,R:Manifest](f:Rep[(A,B)]=>Rep[R]) = new LFun(f) with Function2[A,B,R] { def apply(a:A,b:B)=fs((a,b)) }
-  /*
-  case class LFun2[A:Manifest,B:Manifest,R:Manifest](f:Rep[(A,B)]=>Rep[R]) extends LFun(f) {
-    def apply(a:A,b:B) = fs((a,b))
-  }
-  */
-/*
-  case class LFun2[A:Manifest,B:Manifest,R:Manifest](f:Rep[(A,B)]=>Rep[R]) extends Function2[A,B,R] with CFun {
-    lazy val fs = self.compile(f);
-    def apply(a:A,b:B) = fs((a,b))
-    private def getBody(bdy:ccodegen.Block[_]):String = { val os=new java.io.ByteArrayOutputStream; val stream=new java.io.PrintWriter(os)
-      ccodegen.withStream(stream) { ccodegen.emitBlock(bdy); val y=ccodegen.getBlockResult(bdy); if(ccodegen.remap(y.tp) != "void") stream.println("return "+ ccodegen.quote(y)+";") }
-      val temp=os.toString("UTF-8"); os.close; stream.close; temp
-    }
-    private val s = fresh[(A,B)]
-    val args = scala.List((ccodegen.quote(s), s.tp.toString))
-    val body = getBody(ccodegen.reifyBlock(f(s)))
-    val tpe = manifest[R].toString
-  }  
-*/
+  implicit def lfun3[A:Manifest,B:Manifest,C:Manifest,R:Manifest](f:Rep[(A,B,C)]=>Rep[R]) = new LFun(f) with Function3[A,B,C,R] { def apply(a:A,b:B,c:C)=fs((a,b,c)) }
+  implicit def lfun4[A:Manifest,B:Manifest,C:Manifest,D:Manifest,R:Manifest](f:Rep[(A,B,C,D)]=>Rep[R]) = new LFun(f) with Function4[A,B,C,D,R] { def apply(a:A,b:B,c:C,d:D)=fs((a,b,c,d)) }
+  implicit def lfun5[A:Manifest,B:Manifest,C:Manifest,D:Manifest,E:Manifest,R:Manifest](f:Rep[(A,B,C,D,E)]=>Rep[R]) = new LFun(f) with Function5[A,B,C,D,E,R] { def apply(a:A,b:B,c:C,d:D,e:E)=fs((a,b,c,d,e)) }
   // ----------------------------------------
 
   // Helpers to set manifest appropriately
@@ -199,7 +182,15 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
         if (!empty) cont(av,ar)
       case Or(l,r) => gen(l,cont,i,j,off); gen(r,(v:Rep[T],r:Rep[Int])=>cont(v,r+unit(l.alt)),i,j,off)
       case Filter(p,LFun(f)) => if (f((i,j))) gen(p,cont,i,j,off);
-      case Map(p,m@LFun(f)) => gen(p,(v:Rep[Any],r:Rep[Int])=>cont(f(v),r),i,j,off)
+      case Filter(p,f0) => if (f0.isInstanceOf[DeTuple]) f0.asInstanceOf[DeTuple].f match {
+        case LFun(f) => if (f.asInstanceOf[Rep[Any]=>Rep[Boolean]]((i,j))) gen(p,cont,i,j,off)
+        case f => sys.error("Non-LMS filtering function "+f)
+      } else sys.error("Non-LMS filtering function "+f0)
+      case Map(p,LFun(f)) => gen(p,(v:Rep[Any],r:Rep[Int])=>cont(f(v),r),i,j,off)
+      case Map(p,f0) => if (f0.isInstanceOf[DeTuple]) f0.asInstanceOf[DeTuple].f match {
+        case LFun(f) => gen(p,(v:Rep[Any],r:Rep[Int])=>cont(f.asInstanceOf[Rep[Any]=>Rep[T]](v),r),i,j,off)
+        case f => sys.error("Non-LMS mapping function "+f)
+      } else sys.error("Non-LMS mapping function "+f0)
       case p:Tabulate => if (_valid(p,i,j)) cont(_read(p,i,j),unit(0))
       case t@Terminal(_,_,_) => genTerminal(t,i,j,(v:Rep[T])=>cont(v,unit(0)))
       case cc@Concat(left,right,track) => val (lL,lU,rL,rU) = cc.indices
