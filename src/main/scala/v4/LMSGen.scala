@@ -86,6 +86,10 @@ trait LMSGenTT extends TTParsers with LMSGen { self:Signature =>
     codegen.emitSource3(botUpLMS _,cls,new java.io.PrintWriter(source))
     compiler.compile[(Input,Input,List[ Array[(Answer,Backtrack)] ]) =>Unit](cls,source.toString)
   }
+
+  // Helpers to wrap LMS function appropriately
+  import scala.language.implicitConversions
+  implicit def lfun11[A:Manifest,B:Manifest,C:Manifest,R:Manifest](f:Rep[(A,(B,C))]=>Rep[R]) = new LFun(f) with Function3[A,B,C,R] { def apply(a:A,b:B,c:C)=fs((a,(b,c))) }
 }
 
 // -----------------------------------------------------------------
@@ -106,7 +110,7 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
     compiler.compile[A=>B](cls,source.toString)
   }
 
-  // Helper to wrap LMS function appropriately
+  // Helpers to wrap LMS function appropriately
   import scala.language.implicitConversions
   implicit def lfun[T:Manifest,U:Manifest](f:Rep[T]=>Rep[U]) = new LFun(f)
   case class LFun[T:Manifest,U:Manifest](f:Rep[T]=>Rep[U]) extends Function1[T,U] with CFun {
@@ -123,9 +127,9 @@ trait LMSGen extends CodeGen with ScalaOpsPkgExp with DPExp { self:Signature =>
   }
   // ----------------------------------------
   implicit def lfun2[A:Manifest,B:Manifest,R:Manifest](f:Rep[(A,B)]=>Rep[R]) = new LFun(f) with Function2[A,B,R] { def apply(a:A,b:B)=fs((a,b)) }
-  implicit def lfun3[A:Manifest,B:Manifest,C:Manifest,R:Manifest](f:Rep[(A,B,C)]=>Rep[R]) = new LFun(f) with Function3[A,B,C,R] { def apply(a:A,b:B,c:C)=fs((a,b,c)) }
-  implicit def lfun4[A:Manifest,B:Manifest,C:Manifest,D:Manifest,R:Manifest](f:Rep[(A,B,C,D)]=>Rep[R]) = new LFun(f) with Function4[A,B,C,D,R] { def apply(a:A,b:B,c:C,d:D)=fs((a,b,c,d)) }
-  implicit def lfun5[A:Manifest,B:Manifest,C:Manifest,D:Manifest,E:Manifest,R:Manifest](f:Rep[(A,B,C,D,E)]=>Rep[R]) = new LFun(f) with Function5[A,B,C,D,E,R] { def apply(a:A,b:B,c:C,d:D,e:E)=fs((a,b,c,d,e)) }
+  implicit def lfun3[A:Manifest,B:Manifest,C:Manifest,R:Manifest](f:Rep[((A,B),C)]=>Rep[R]) = new LFun(f) with Function3[A,B,C,R] { def apply(a:A,b:B,c:C)=fs(((a,b),c)) }
+  implicit def lfun4[A:Manifest,B:Manifest,C:Manifest,D:Manifest,R:Manifest](f:Rep[(((A,B),C),D)]=>Rep[R]) = new LFun(f) with Function4[A,B,C,D,R] { def apply(a:A,b:B,c:C,d:D)=fs((((a,b),c),d)) }
+  implicit def lfun5[A:Manifest,B:Manifest,C:Manifest,D:Manifest,E:Manifest,R:Manifest](f:Rep[((((A,B),C),D),E)]=>Rep[R]) = new LFun(f) with Function5[A,B,C,D,E,R] { def apply(a:A,b:B,c:C,d:D,e:E)=fs(((((a,b),c),d),e)) }
   // ----------------------------------------
 
   // Helpers to set manifest appropriately

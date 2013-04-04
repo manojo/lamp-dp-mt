@@ -30,14 +30,8 @@ object MatrixMult2 extends MatrixGrammar2 with MatrixSig2 with CodeGen with App 
   override val cudaSharedInput=true
 
   def bench(size:Int,num:Int=1) {
-    def pt(ms:Long) = "%3d.%03d".format(ms/1000,ms%1000)
-    def run(name:String,f:Array[(Int,Int)]=>Unit) {
-      Utils.reset; f(Utils.genMats(size)); // reset random number generator, warm-up
-      val ts = (0 until num).map{_=> val m=Utils.genMats(size); val s=System.currentTimeMillis; f(m); System.currentTimeMillis-s }.sorted
-      val med=if (ts.length%2==1) ts(ts.length/2) else (ts(ts.length/2)+ts(ts.length/2-1))/2
-      println("%-20s : ".format(name)+" "+pt(med)+"  ["+pt(ts.head)+", "+pt(ts.last)+"]")
-    }
-    println("Benchmarks: chain of "+size+" matrices, median of "+num+" samples (BT enabled)")
+    val run = Utils.bench(num,()=>Utils.genMats(size)) _
+    println("Benchmarks: chain of "+size+" matrices, median of "+num+" samples (backtrack enabled)")
     run("Scala-TopDown",mats=>backtrack(mats,psTopDown))
     run("Scala-BottomUp",mats=>backtrack(mats,psBottomUp))
     run("CPU",mats=>backtrack(mats,psCPU))
@@ -48,14 +42,4 @@ object MatrixMult2 extends MatrixGrammar2 with MatrixSig2 with CodeGen with App 
   }
   bench(128,10)
 
-  //override val benchmark = true
-  /*
-  val input = List((1,2),(2,20),(20,2),(2,4),(4,2),(2,1),(1,7),(7,3)).toArray // -> 1x3 matrix, 122 multiplications
-  println(parse(input))
-
-  Utils.runBenchmark(
-    (n:Int)=>backtrack(Utils.genMats(n)),
-    (n:Int)=>backtrack(Utils.genMats(n),psBottomUp)
-  )
-  */
 }

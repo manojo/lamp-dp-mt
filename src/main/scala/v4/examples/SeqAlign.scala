@@ -31,6 +31,19 @@ trait SmithWatermanAlgebra extends SeqAlignSig {
   val pair = cfun3((c1:Char,a:Int,c2:Char) => a + (if (c1==c2) 10 else -3), "c1,a,c2","return a+(c1==c2?10:-3);")
 }
 
+trait SmithWatermanAlgebraLMS extends SeqAlignSig with LMSGenTT {
+  type Answer = Int
+  val tps=(manifest[Alphabet],manifest[Answer])
+  override val cudaEmpty = "-100000" // necessary to avoid codegen issues
+  override val h = max[Int] _
+  private val open = -3
+  private val extend = -1
+  val start = lfun{(x:Rep[Unit]) => unit(0)} 
+  val gap1 = lfun2{(x:Rep[((Int,Int),Int)]) => { val g=x._1; val r=x._2+unit(open-extend)+(g._2-g._1)*unit(extend); if (r>unit(0)) r else unit(0) }} 
+  val gap2 = lfun2{(x:Rep[(Int,(Int,Int))]) => { val g=x._2; val r=x._1+unit(open-extend)+(g._2-g._1)*unit(extend); if (r>unit(0)) r else unit(0) }} 
+  val pair = lfun11{(x:Rep[(Char,(Int,Char))]) => x._2._1 + (if (x._1==x._2._2) unit(10) else unit(-3)) }
+}
+
 trait NeedlemanWunschAlgebra extends SeqAlignSig {
   type Answer = Int
   override val h = max[Int] _
@@ -62,24 +75,38 @@ trait SeqAlignGrammar extends TTParsers with SeqAlignSig {
 }
 
 object SeqAlign extends App {
-  object SWat extends SeqAlignGrammar with SmithWatermanAlgebra with CodeGen {
-    val tps=(manifest[Alphabet],manifest[Answer])
-  }
+  object SWat extends SeqAlignGrammar with SmithWatermanAlgebra with CodeGen { val tps=(manifest[Alphabet],manifest[Answer]) }
+  object SWatLMS extends SeqAlignGrammar with SmithWatermanAlgebraLMS
   object NWun extends SeqAlignGrammar with NeedlemanWunschAlgebra
   object pretty extends SeqAlignGrammar with SeqPrettyPrint
-  val seq1 = "CGATTACA"
-  val seq2 = "CCCATTAGAG"
 
-  def align(name:String,s1:String,s2:String,g:SeqAlignGrammar) = {
-    val (score,bt) = g.backtrack(s1.toArray,s2.toArray).head
-    val (a1,a2) = pretty.build(s1.toArray,s2.toArray,bt)
-    println(name+" alignment\n- Score: "+score)
-    println("- Seq1: "+a1+"\n- Seq2: "+a2+"\n")
+  def demo {
+    val seq1 = "CGATTACA"
+    val seq2 = "CCCATTAGAG"
+    def align(name:String,s1:String,s2:String,g:SeqAlignGrammar) = {
+      val (score,bt) = g.backtrack(s1.toArray,s2.toArray).head
+      val (a1,a2) = pretty.build(s1.toArray,s2.toArray,bt)
+      println(name+" alignment\n- Score: "+score)
+      println("- Seq1: "+a1+"\n- Seq2: "+a2+"\n")
+    }
+    align("Smith-Waterman",seq1,seq2,SWat) // By default, this runs on GPU as CodeGen is enabled
+    align("Needleman-Wunsch",seq1,seq2,NWun)
+    println(SWat.backtrack(seq1.toArray,seq2.toArray,SWat.psCPU))
   }
-  align("Smith-Waterman",seq1,seq2,SWat) // By default, this runs on GPU as CodeGen is enabled
-  align("Needleman-Wunsch",seq1,seq2,NWun)
 
-  println(SWat.backtrack(seq1.toArray,seq2.toArray,SWat.psCPU))
+  def bench(size:Int,num:Int=1) {
+    val run = Utils.bench(num,()=>(Utils.genDNA(size).toArray,Utils.genDNA(size).toArray))(_,_)
+    println("Benchmarks: sequences of sizes "+size+", median of "+num+" samples (backtrack enabled)")
+    run("Scala-TopDown",s=>SWat.backtrack(s._1,s._2,SWat.psTopDown))
+    run("Scala-BottomUp",s=>SWat.backtrack(s._1,s._2,SWat.psBottomUp))
+    run("CPU",s=>SWat.backtrack(s._1,s._2,SWat.psCPU))
+    run("CUDA",s=>SWat.backtrack(s._1,s._2,SWat.psCUDA))
+    run("LMS-Scala",s=>SWatLMS.backtrack(s._1,s._2,SWatLMS.psScalaLMS))
+    run("LMS-CPU",s=>SWatLMS.backtrack(s._1,s._2,SWatLMS.psCPU))
+    run("LMS-CUDA",s=>SWatLMS.backtrack(s._1,s._2,SWatLMS.psCUDA))
+  }
+  //demo
+  bench(128,10)
 }
 
 /*

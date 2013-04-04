@@ -2,7 +2,7 @@ package v4.examples
 import v4._
 
 // -----------------------------------------------
-// Zuker folding (Minimum Free Energy) variant 
+// Variant of Zuker folding (Minimum Free Energy)
 // -----------------------------------------------
 // Variant based on Haskell RNAFold-1.99
 // Formulae are according to TCK's empirical guess

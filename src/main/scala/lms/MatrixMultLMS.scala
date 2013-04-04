@@ -1,11 +1,10 @@
-package v4.report
+package lms
 
 import scala.virtualization.lms.common._
 import scala.virtualization.lms.internal._
 
 import v4._
 import v4.examples._
-import lms._
 
 // +----------------------------------------------------------+
 // |                                                          |
@@ -16,12 +15,12 @@ import lms._
 // This example is broken due to the use of "Tuple.tX"
 // instead of "Tuple._X" in lms.CGenTupleOps codegen
 
-trait RepPackage extends NumericOpsExp with TupleOpsExp with MyScalaCompile with FunctionGen { self =>
+trait RepPackage2 extends NumericOpsExp with TupleOpsExp with MyScalaCompile with FunctionGen { self =>
   val codegen = new ScalaGenNumericOps with ScalaGenTupleOps { val IR: self.type = self }
   val cCodegen = new CGenNumericOps with lms.CGenTupleOps with CFatCodegen { val IR: self.type = self }
 }
 
-trait RepWorld extends NumericOps with TupleOps {
+trait RepWorld2 extends NumericOps with TupleOps {
   type Alphabet = (Int, Int)
   type Answer = (Int, Int, Int)
 
@@ -31,14 +30,13 @@ trait RepWorld extends NumericOps with TupleOps {
     (l._1, l._2 + r._2 + l._1 * l._3 * r._3, r._3)
 }
 
-object MatrixMultLMS extends MatrixSig with MatrixGrammar
-    with CodeGen with App {
+object MatrixMultLMS extends MatrixSig with MatrixGrammar with CodeGen with App {
   val tps=(manifest[Alphabet],manifest[Answer])
   override val benchmark = true // display timing measurements
 
   // Algebra is defined immediately in the concrete program
   type Answer = (Int, Int, Int)
-  val concreteProg = new RepWorld with RepPackage
+  val concreteProg = new RepWorld2 with RepPackage2
   override val h = minBy(concreteProg.gen(concreteProg.hf))
   val single = concreteProg.gen(concreteProg.repSingle)
   val mult = concreteProg.gen2(concreteProg.repMult)

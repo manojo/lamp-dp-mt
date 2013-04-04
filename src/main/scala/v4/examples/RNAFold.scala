@@ -21,10 +21,10 @@ trait RNAFoldAlgebra extends RNAFoldSig {
   type Answer = Int
   override val h = min[Answer] _
 
-  import librna.LibRNA._
-  val hairpin = cfun1((ij:(Int,Int)) => hl_energy(ij._1,ij._2-1), "ij", "return hl_energy(ij._1,ij._2-1);")
-  val stack = cfun3((i:Int,s:Int,j:Int) => sr_energy(i,j) + s, "i,s,j", "return sr_energy(i,j) + s;")
-  val iloop = cfun3((ik:(Int,Int),s:Int,lj:(Int,Int)) => il_energy(ik._1,ik._2,lj._1-1,lj._2-1) + s, "ik,s,lj", "return il_energy(ik._1,ik._2,lj._1-1,lj._2-1) + s;")
+  import librna.LibRNA._ // indexing convention: first base,last base
+  val hairpin = cfun1((ij:(Int,Int)) => hl_energy(ij._1,ij._2-1), "ij", "return hl_energy(ij._1,ij._2-1);") // Eh
+  val stack = cfun3((i:Int,s:Int,j:Int) => sr_energy(i,j) + s, "i,s,j", "return sr_energy(i,j) + s;") // Es
+  val iloop = cfun3((ik:(Int,Int),s:Int,lj:(Int,Int)) => il_energy(ik._1,ik._2,lj._1-1,lj._2-1) + s, "ik,s,lj", "return il_energy(ik._1,ik._2,lj._1-1,lj._2-1) + s;") // Ei
   val mloop = cfun3((i:Int,s:Int,j:Int) => s, "i,s,j", "return s;")
   val left  = cfun2((l:Int,r:Int) => l,   "l,r", "return l;")
   val right = cfun2((l:Int,r:Int) => r,   "l,r", "return r;")
@@ -51,14 +51,14 @@ trait RNAFoldGrammar extends ADPParsers with RNAFoldSig {
   | eli       ~ QM ~ eli       ^^ mloop
   ) aggregate h filter basepairing)
 
-  lazy val QM:Tabulate = tabulate("QM",(Q ~ Q ^^ join) aggregate h filter(length(4)))
+  lazy val QM:Tabulate = tabulate("QM",(Q ~ Q ^^ join) filter(length(4)) aggregate h)
 
   lazy val Q:Tabulate = tabulate("Q",(
     QM
   | Q ~ eli ^^ left
   | eli ~ Q ^^ right
   | Qp
-  ) aggregate h filter(length(2)))
+  ) filter(length(2)) aggregate h)
 
   override val axiom = Q
 }
@@ -89,6 +89,12 @@ object RNAFold extends App {
   if (seq=="aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagaggagacucuuucaaaaaucccucuuuu")
     println("Ref: ((((.(((((...(((.((((((((....)))))))))))...(((((((....))))))).....))))).)))) (-24.5)")
   println("Our: "+res+" (%6.2f)".format(score/100.0))
+  */
+  /*
+  val seq="aaaaaagggaaaagaacaaaggagacucuucuccuuuuucaaaggaagagg"
+  val (score,bt) = fold.backtrack(seq.toArray).head
+  val res = pretty.build(seq.toArray,bt)
+  println("Folding : "+res+" (%5.2f)".format(score/100.0));
   */
   Utils.runBenchmark(
     (n:Int)=>fold.backtrack(fold.convert(Utils.genRNA(n))),

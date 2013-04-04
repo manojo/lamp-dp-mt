@@ -141,13 +141,7 @@ object MatrixMult extends App {
   }
 
   def bench(size:Int,num:Int=1) {
-    def pt(ms:Long) = "%3d.%03d".format(ms/1000,ms%1000)
-    def run(name:String,f:Array[(Int,Int)]=>Unit) {
-      Utils.reset; f(Utils.genMats(size)); // reset random number generator, warm-up
-      val ts = (0 until num).map{_=> val m=Utils.genMats(size); val s=System.currentTimeMillis; f(m); System.currentTimeMillis-s }.sorted
-      val med=if (ts.length%2==1) ts(ts.length/2) else (ts(ts.length/2)+ts(ts.length/2-1))/2
-      println("%-20s : ".format(name)+" "+pt(med)+"  ["+pt(ts.head)+", "+pt(ts.last)+"]")
-    }
+    val run = Utils.bench(num,()=>Utils.genMats(size)) _
     println("Benchmarks: chain of "+size+" matrices, median of "+num+" samples")
     run("Scala-TopDown",mats=>mmc.parse(mats,mmc.psTopDown))
     run("Scala-TopDown+BT",mats=>mmc.backtrack(mats,mmc.psTopDown))
