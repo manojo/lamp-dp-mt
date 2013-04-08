@@ -479,7 +479,7 @@ trait CodeGen extends BaseParsers { this:Signature => reqJNI
       case _ => sys.error("Unsupported aggregation: "+h)
     }
 
-    head.addPriv("#include <strings.h>") // for memcpy
+    head.addPriv("#include <string.h>") // for memcpy
     head.addPriv("static input_t *_in1=NULL, *_in2=NULL;\nstatic cost_t* c_cost=NULL;\nstatic back_t* c_back=NULL;")
     // RNA setup
     val rna = this match {

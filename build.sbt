@@ -33,7 +33,7 @@ compile in Compile <<= (compile in Compile) map { x => ("src/librna/make target/
   val yjp="/Applications/Tools/YourKit Java Profiler.app/bin/mac/libyjpagent.jnilib"
   def t(n:String) = { val t=TaskKey[Unit](n); t.dependsOn(compile in Compile); t }
   def s(t:TaskKey[Unit],cl:String) = Seq(fullRunTask(t in Test, Test, cl), fork in t:=true,javaOptions in t++=List(
-    "-Xss512m","-Xmx8G","-Xms8G","-XX:MaxPermSize=8G" //,"-verbose:gc"
+    "-Xss128m" //"-Xss512m","-Xmx8G","-Xms8G","-XX:MaxPermSize=8G" //,"-verbose:gc"
     //"-agentpath:"+yjp+"=sampling,onexit=snapshot,builtinprobes=all"
   ))
   val (mm,mm2,mm3,align,zuker,z2,rnafold,nu,swat)=(t("mm"),t("mm2"),t("mm3"),t("align"),t("zuker"),t("z2"),t("rnafold"),t("nu"),t("swat")) // Examples
