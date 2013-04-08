@@ -28,8 +28,7 @@ if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f "$out/
 	echo "[make] $name up to date."; rm "$out/$name.tmp";
 else
 	printf "[make] Compiling $name ... "
-	gcc -Wall -O3 -c vienna/vienna.c -o "$out"/vienna.o || exit
-	gcc -Wall -O3 -fPIC -shared $JAVA_INC librna.c "$out"/vienna.o $LDFLAGS -o "$out"/libRNA.jnilib || exit
+	gcc -Wall -O3 -fPIC -shared $JAVA_INC librna.c vienna/vienna.c $LDFLAGS -o "$out"/libRNA.jnilib || exit
 	mv "$out/$name.tmp" "$out/$name.md5"
 	echo 'done.'
 fi
@@ -43,7 +42,7 @@ if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f rfold 
 	echo "[make] $name up to date."; rm "$out/$name.tmp";
 else
 	printf "[make] Compiling $name ... "
-	gcc -Wall -O3 -Ivienna rnafold/rnafold.c "$out"/vienna.o $LDFLAGS -o rfold || exit
+	gcc -Wall -O3 -Ivienna rnafold/RNAfold.c vienna/vienna.c $LDFLAGS -o rfold || exit
 	mv "$out/$name.tmp" "$out/$name.md5"
 	echo 'done.'
 fi
