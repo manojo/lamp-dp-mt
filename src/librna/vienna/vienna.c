@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "vienna.h"
-#include "energy_par.h"
+#include "energy_data.h"
 
 // -----------------------------------------
 

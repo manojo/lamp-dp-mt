@@ -1,19 +1,16 @@
 #!/bin/sh
-# Mostly copied from GAPC/librna
-# from ViennaRNA-2.0.7 (not changed): vienna/ folder
-# imported from adpc 0.9 (heavily changed): rnalib.[ch]
+# From ViennaRNA-2.0.7 (stripped down): vienna/ and rnafold/ folders
+# From ADPC 0.9 / GAPC/librna (modified): rnalib.[ch]
 
 JAVA_INC="-I$JAVA_HOME/include -I$JAVA_HOME/include/linux"
 if [ "$OSTYPE" = "darwin" ]; then
   JAVA_INC="$JAVA_INC -I/System/Library/Frameworks/JavaVM.framework/Headers"
   md5_hash() { md5 -q $@; }
-  CCFLAGS=""
+  LDFLAGS=""
 else
-  CCFLAGS="-lm"
+  LDFLAGS="-lm"
   md5_hash() { md5sum $@; }
 fi
-
-if [ "$1" = "test" ]; then TEST=1; shift; fi
 
 root="`pwd`"; cd "`dirname $0`"; base="`pwd`";
 if [ "$1" = "" ]; then
@@ -31,8 +28,8 @@ if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f "$out/
 	echo "[make] $name up to date."; rm "$out/$name.tmp";
 else
 	printf "[make] Compiling $name ... "
-	gcc -Wall -O2 $CCFLAGS -fPIC -shared $JAVA_INC librna.c \
-		vienna/energy_par.c vienna/vienna.c -o "$out"/libRNA.jnilib || exit
+	gcc -Wall -O3 -c vienna/vienna.c -o "$out"/vienna.o || exit
+	gcc -Wall -O3 -fPIC -shared $JAVA_INC librna.c "$out"/vienna.o $LDFLAGS -o "$out"/libRNA.jnilib || exit
 	mv "$out/$name.tmp" "$out/$name.md5"
 	echo 'done.'
 fi
@@ -46,12 +43,11 @@ if diff "$out/$name.md5" "$out/$name.tmp" 1>/dev/null 2>/dev/null && [ -f rfold 
 	echo "[make] $name up to date."; rm "$out/$name.tmp";
 else
 	printf "[make] Compiling $name ... "
-	gcc -Wall -O2 $CCFLAGS -Ivienna rnafold/*.c vienna/*.c -o rfold || exit
+	gcc -Wall -O3 -Ivienna rnafold/rnafold.c "$out"/vienna.o $LDFLAGS -o rfold || exit
 	mv "$out/$name.tmp" "$out/$name.md5"
 	echo 'done.'
 fi
 
-if [ "$TEST" != "" ]; then
-	echo ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug | ./rfold
-	echo ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug | ../../resources/RNAfold_orig_mac --noPS --noLP -d2
-fi
+# --------------------------------------------------
+#echo ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug | ./rfold
+#echo ccgaugccagcgucugcgccuucgccuaagggggagaagaagcucucccauaacggcaug | ../../resources/RNAfold_orig_mac --noPS --noLP -d2

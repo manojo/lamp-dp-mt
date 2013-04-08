@@ -413,7 +413,6 @@ trait CodeGen extends BaseParsers { this:Signature => reqJNI
       "#define my_dev __device__\n"+
       "#include \""+rnaPath+"librna_impl.h\"\n"+
       "#include \""+rnaPath+"vienna/vienna.c\"\n"+
-      "#include \""+rnaPath+"vienna/energy_par.c\"\n\n"+
       "static paramT *cg_P=NULL;\n"+
       "__global__ static void _initP(paramT* params) { g_P=params; }\n"+
       "static inline void rna_init() {\n"+
@@ -486,7 +485,7 @@ trait CodeGen extends BaseParsers { this:Signature => reqJNI
     val rna = this match {
       case s:RNASignature if (s.energies) => val p=s.paramsFile; if (p!=null) librna.LibRNA.setParams(p)
         head.addPriv("#define my_len (M_H-1)\n#define my_seq _in1\n#define my_P c_P\n#define my_dev")
-        List("vienna/vienna.h","librna_impl.h","vienna/vienna.c","vienna/energy_par.c").foreach{x=>head.addPriv("#include \""+rnaPath+x+"\"")}
+        List("vienna/vienna.h","librna_impl.h","vienna/vienna.c").foreach{x=>head.addPriv("#include \""+rnaPath+x+"\"")}
         (if (p!=null) "  read_parameter_file(\""+p+"\");\n" else "")+"  c_P = get_scaled_parameters();\n"
       case _ => ""
     }

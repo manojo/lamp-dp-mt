@@ -114,10 +114,8 @@ static unsigned int get_multi_input_line(char **string, unsigned int option) {
 
 int main(int argc, char *argv[]){
   char          *rec_sequence, *structure;
-  unsigned int  rec_type;
   double        min_en;
 
-  rec_type      = 0;
   rec_sequence = structure = NULL;
 
   /* initialization */

@@ -295,7 +295,7 @@ static void backtrack(const char *string) {
   length = strlen(string);
   if (s==0) PUSH(1,length,0)
   while (s>0) {
-    int ml, fij, fi, cij=0, traced, i1, j1, p, q, jj=0;
+    int ml, fij, fi, cij=0, traced, i1, p, q, jj=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;
@@ -365,7 +365,7 @@ static void backtrack(const char *string) {
     /* end of repeat: --------------------------------------------------*/
     /* (i.j) must close a multi-loop */
     tt = rtype[type];
-    i1 = i+1; j1 = j-1;
+    i1 = i+1;
 
     en = cij - E_MLstem(tt, S[j-1], S[i+1], P) - P->p0.MLclosing;
     for(k = i+2+TURN; k < j-2-TURN; k++){
