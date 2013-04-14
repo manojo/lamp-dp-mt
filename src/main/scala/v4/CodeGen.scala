@@ -521,8 +521,14 @@ trait CodeGen extends BaseParsers { this:Signature => reqJNI
     override val outPath = "bin"
     override val cudaPath = "/usr/local/cuda"
     override val cudaFlags = "-m64 -arch=sm_30 --disable-warnings" // --ptxas-options=-v
-    override val ccFlags = "-O3 -I/System/Library/Frameworks/JavaVM.framework/Headers"
-    override val ldFlags = "-L"+cudaPath+"/lib -lcudart -shared -Wl,-rpath,"+cudaPath+"/lib"
+    override val ccFlags = "-O3 "+{ val home=System.getenv("JAVA_HOME");
+      if (home!=null) "-I"+home+"/include -I"+home+"/include/linux" // for Linux    XXX: relate to System.getProperty("os.name")
+      else "-I/System/Library/Frameworks/JavaVM.framework/Headers"  // for MacOS    (path to jni.h and jni_md.h, from the JDK)
+    }
+    override val ldFlags = "-shared "+{ // disable CUDA library linking if not found
+      def dir(path:String,fail:String) = if (new java.io.File(path).isDirectory()) path else fail
+      val lib=dir(cudaPath+"/lib64",dir(cudaPath+"/lib",null)); if (lib!=null) "-L"+lib+" -lcudart -Wl,-rpath,"+lib else ""
+    }
   }
 
   // --------------------------------------------------------------------------
