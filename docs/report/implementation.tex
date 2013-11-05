@@ -285,7 +285,7 @@ In this section, we explain how to use the DynaProg DSL using an example based a
 
 % ----------------------------------------------
 \subsubsection{Smith-Waterman and Needleman-Wunsch} \label{ex_swat}
-First define a signature that can fit both algebrae, then specify for each algebra the related functions. In this example, both algebra operate on the same output domain and share the same optimization function (although this is not true in general).
+First define a signature that can fit both algebras, then specify for each algebra the related functions. In this example, both algebra operate on the same output domain and share the same optimization function (although this is not true in general).
 \begin{lstlisting}[language=Scala,captionpos=none]
 trait SeqAlignSignature extends Signature {
   type Alphabet = Char
@@ -338,7 +338,7 @@ trait SeqPrettyPrint extends SeqAlignSignature {
 }
 \end{lstlisting}
 
-Finally, we describe the associated grammar and the programs that mixes the algebrae and the grammar. Note that we need one instance of each pair of grammar and algebra. Once we have done that, we can request scores and backtracks associated with an evaluation algebra (Smith-Waterman or Needleman-Wunsch) and reuse the obtained backtrack to construct the matching aligned sequences:
+Finally, we describe the associated grammar and the programs that mixes the algebras and the grammar. Note that we need one instance of each pair of grammar and algebra. Once we have done that, we can request scores and backtracks associated with an evaluation algebra (Smith-Waterman or Needleman-Wunsch) and reuse the obtained backtrack to construct the matching aligned sequences:
 \begin{lstlisting}[language=Scala,captionpos=none]
 trait SeqAlignGrammar extends TTParsers with SeqAlignSignature {
   val axiom:Tabulate = tabulate("M",(
@@ -503,7 +503,7 @@ The complete source file of the presented problems can be found in the {\tt repo
 \subsection{Other usage options}
 We here provide a list of relevant variables and traits that the programmer might be interested to use. This list only serves the purpose of documenting features that might otherwise be difficult to find within the code.
 
-Although the whole program can be defined in a single trait, it is preferable to cleanly separate the signature from the grammar and the algebra, this good practice would help adding new algebrae easily. The signature needs to inherit either from {\tt Signature} or {\tt RNASignature}, would the RNA folding energies be needed. The grammar can be either single track or two-tracks by inheriting respectively from  {\tt ADPParsers} and {\tt TTParsers}. Note that RNA folding only works for single track grammars and library setup is enabled by the usage of the trait {\tt RNASignature} (this could be changed by disabling the flag {\tt energies}).
+Although the whole program can be defined in a single trait, it is preferable to cleanly separate the signature from the grammar and the algebra, this good practice would help adding new algebras easily. The signature needs to inherit either from {\tt Signature} or {\tt RNASignature}, would the RNA folding energies be needed. The grammar can be either single track or two-tracks by inheriting respectively from  {\tt ADPParsers} and {\tt TTParsers}. Note that RNA folding only works for single track grammars and library setup is enabled by the usage of the trait {\tt RNASignature} (this could be changed by disabling the flag {\tt energies}).
 
 The code generator is used by simply mixing in the {\tt CodeGen} trait, using the following idiom
 	\[\text{\tt val tps=(manifest[Alphabet],manifest[Answer])}\]

@@ -45,7 +45,7 @@ f(i,k_1,k_2,j) &=& f_3(i,k_1,f_4(k_1,k_2,j),j) & \land \\
 % Viktor Kuncak: We can solve this more easily if functions are linear
 Since this requires complex mathematical analysis that is out of the scope of the project, and since we have not found relevant literature on that particular subject, we leave this optimization to the responsibility of the user by assuming that the provided grammar is already optimal.
 
-Note that this optimization needs to use informations from both the grammar (the rule to split) and the algebra ($f$), which restricting its application to either single algebra or algebra that could share the same optimization, because modifying the grammar will change the associated backtrack information (thereby breaking its compatibility for usage with other algebrae).
+Note that this optimization needs to use informations from both the grammar (the rule to split) and the algebra ($f$), which restricting its application to either single algebra or algebra that could share the same optimization, because modifying the grammar will change the associated backtrack information (thereby breaking its compatibility for usage with other algebras).
 
 % ------------------------------------------------------------------------------------------------
 \subsection{Recurrences analysis} \label{recurrences}
@@ -311,9 +311,9 @@ and the mapping of indices is given by:
 \subsection{LMS integration} \label{lms_use}
 At first glance, LMS seems the ideal candidate to transform Scala code into its C-like equivalent. However, the concern in this project is that the GPU code sensibly differs from the original CPU code because the two implementations serve different purposes: CPU version (Scala) is more general whereas the GPU version trades some functionalities for performance and suffer additional restrictions, in particular for memory management and alignment. We want to discuss how LMS could best be used in our project:
 
-LMS only supports a subset of Scala. Embedding both algebrae and grammars into the LMS framework would reduce the expressivity of algebrae. Taking the example of matrix multiplication, the user would like to not only solve the dynamic problem on GPU, but also leverage the graphic card, the disk or the network to compute the matrices products. Since these resources are outside for the LMS world, the user needs to write an ad-hoc DSL for every particular function. In order to avoid this constraint, we need to decouple the grammar and algebra generation.
+LMS only supports a subset of Scala. Embedding both algebras and grammars into the LMS framework would reduce the expressivity of algebras. Taking the example of matrix multiplication, the user would like to not only solve the dynamic problem on GPU, but also leverage the graphic card, the disk or the network to compute the matrices products. Since these resources are outside for the LMS world, the user needs to write an ad-hoc DSL for every particular function. In order to avoid this constraint, we need to decouple the grammar and algebra generation.
 
-For the generation of algebra functions, since CUDA types are restricted, they are representable in LMS. Hence we can leverage LMS for CUDA-compatible algebrae whereas regular Scala can be used for complex algebrae being executed on CPU exclusively.
+For the generation of algebra functions, since CUDA types are restricted, they are representable in LMS. Hence we can leverage LMS for CUDA-compatible algebras whereas regular Scala can be used for complex algebras being executed on CPU exclusively.
 
 It remains to generate the C code corresponding to the grammar; we argue in favor of a specialized conversion rather than generation through LMS for the following reasons:\ul
 \item We have only 6 parser classes to convert (tabulations, terminals, aggregations, filters, alternatives, concatenations), the rest of the user program is part of the algebra. These parsers are combined with very little modifications to create the grammar.

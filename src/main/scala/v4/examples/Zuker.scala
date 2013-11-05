@@ -176,7 +176,7 @@ object Zuker extends App {
   */
 
   def testSeq(seq:String, strict:Boolean=true) {
-    val (cpu,btG)=parse(seq,mfe.psCPU)
+    val (cpu,btG)=parse(seq,mfe.psCUDA)
     val ref=mfe.time("Verify")(()=>Utils.refFold(seq,"resources/RNAfold_orig_mac --noPS --noLP -d2"))
     if (ref==cpu || !strict && ref.substring(seq.size)==cpu.substring(seq.size)) print(".")
     else println("\nSeq: "+seq+"\nRef: "+ref+"\nCPU: "+cpu+"\n")
@@ -190,7 +190,7 @@ object Zuker extends App {
   //testSeq("acgcaccggcauacgugugcucgaaaagcgu")
   //testSeq("augggcgcucaacucuccgugaauuugaaugagucagcagugcaauauagggcccucauc")
 
-  val s = Utils.genRNA(1000)
+  val s = Utils.genRNA(256)
   for (k<-0 until 2) { testSeq(s); println }
 
   //println(Utils.genRNA(8192))
