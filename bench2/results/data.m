@@ -168,6 +168,13 @@ median([ 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0.66 0
 ];
 
 D=[cpu; cuda; adp_nu; adp_zu; vienna; lms; nu_hopt ];
+cpu
+cuda
+adp_nu
+adp_zu
+vienna
+lms
+nu_hopt
 
 axis2 = [ 500 1000 1500 2000 2500 3000 3500 4000 4500 5000 ];
 D2=[
